@@ -7,5 +7,5 @@
 
 # For more detailed documentation see
 # https://atom.io/docs/latest/advanced/keymaps
-'.workspace':
-  'ctrl-alt-o': 'agda-mode:toggle'
+'.editor':
+  'ctrl-c ctrl-l': 'agda-mode:load'

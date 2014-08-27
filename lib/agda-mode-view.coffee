@@ -3,11 +3,11 @@
 module.exports =
 class AgdaModeView extends View
   @content: ->
-    @div class: 'agda-mode overlay from-top', =>
+    @div class: 'agda-mode overlay from-bottom', =>
       @div "The AgdaMode package is Alive! It's ALIVE!", class: "message"
 
   initialize: (serializeState) ->
-    atom.workspaceView.command "agda-mode:toggle", => @toggle()
+    atom.workspaceView.command "agda-mode:load", => @toggle()
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->
