@@ -1,0 +1,16 @@
+# See https://atom.io/docs/latest/creating-a-package#menus for more details
+'context-menu':
+  '.overlayer':
+      'Enable agda-mode': 'agda-mode:toggle'
+
+'menu': [
+  {
+    'label': 'Packages'
+    'submenu': [
+      'label': 'agda-mode'
+      'submenu': [
+        { 'label': 'Toggle', 'command': 'agda-mode:toggle' }
+      ]
+    ]
+  }
+]
