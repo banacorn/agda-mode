@@ -1,14 +1,17 @@
 AgdaModeView = require './agda-mode-view'
+AgdaSyntaxManager = require './agda-syntax-manager'
 
 module.exports =
+
+  agdaSyntaxManager: new AgdaSyntaxManager
   # agdaModeView: null
 
   activate: (state) ->
+
+    @agdaSyntaxManager.start()
+
     # @agdaModeView = new AgdaModeView(state.agdaModeViewState)
-    atom.workspaceView.command 'agda-mode:load', =>
-      console.log('loading Agda')
-
-
+    
   deactivate: ->
     # @agdaModeView.destroy()
 
