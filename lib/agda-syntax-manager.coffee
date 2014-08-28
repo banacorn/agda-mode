@@ -7,6 +7,9 @@ module.exports = class AgdaSyntaxManager
     atom.workspaceView.command 'agda-mode:load', =>
       @activeAgdaSyntax()
 
+    atom.workspaceView.command 'agda-mode:quit', =>
+      @deactiveAgdaSyntax()
+
   isAgdaFile: ->
     editor = atom.workspace.activePaneItem
     filePath = editor.getPath?()

@@ -5,7 +5,8 @@
     'submenu': [
       'label': 'agda-mode'
       'submenu': [
-        { 'label': 'Load', 'command': 'agda-mode:load' }
+          { 'label': 'Load', 'command': 'agda-mode:load' }
+          { 'label': 'Quit', 'command': 'agda-mode:quit' }
       ]
     ]
   }

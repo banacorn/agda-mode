@@ -9,3 +9,4 @@
 # https://atom.io/docs/latest/advanced/keymaps
 '.editor':
   'ctrl-c ctrl-l': 'agda-mode:load'
+  'ctrl-c ctrl-x ctrl-q': 'agda-mode:quit'
