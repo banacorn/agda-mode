@@ -4,13 +4,6 @@ module.exports = class AgdaSyntax
 
   deactivate: ->
     @editor.setGrammar atom.syntax.nullGrammar
-    # selection = @editor.selectAll()
-    # console.log selection[0].getText()
-    # selection[0].insertText 'fuck'
-    # selection[0].delete()
-    # console.log @editor.selectAll()[0].insertText 'fuck you'
-    # @editor.selectAll()[0].insertText 'fuck you'
-    # @editor.selectAll().insertText 'fuck you'
 
   activate: ->
     grammars = atom.syntax.getGrammars().filter (grammar) ->
