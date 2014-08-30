@@ -8,36 +8,37 @@ module.exports =
 
     # register agda instance for all agda editor
     atom.workspace.eachEditor (editor) =>
-      path = editor.getPath()
       # if end with ".agda"
-      if @isAgdaFile
+      if @isAgdaFile(editor)
         agda = editor.agda = new Agda editor
         agda.syntax.deactivate()
 
-    # # switch between tabs
-    # atom.workspaceView.on 'pane-container:active-pane-item-changed', (event, editor) =>
-    #   console.log editor
+    # switch between tabs
+    atom.workspaceView.on 'pane-container:active-pane-item-changed', (event, editor) =>
 
+    # load
     atom.workspaceView.command 'agda-mode:load', =>
-      editor = atom.workspaceView.getActiveView().editor
+
       if @isAgdaFile()
+        editor = @getTheFuckingEditor()
         editor.agda.syntax.activate()
-    #     console.log atom.workspace.getEditors()
-    #     @agdaSyntaxManager.activate()
-    #     @agdaExecutableView = new AgdaExecutableView(state.agdaModeViewState)
-    #
-    # atom.workspaceView.command 'agda-mode:quit', =>
-    #
-    #   if @isAgdaFile()
-    #     @agdaSyntaxManager.deactivate()
 
+    # quit
+    atom.workspaceView.command 'agda-mode:quit', =>
+      if @isAgdaFile()
+        editor = @getTheFuckingEditor()
+        editor.agda.syntax.deactivate()
 
-    # @agdaModeView = new AgdaModeView(state.agdaModeViewState)
+  getTheFuckingEditor: ->
+    atom.workspace.getActivePaneItem()
 
   isAgdaFile: (editor) ->
-    editor ?= atom.workspaceView.getActiveView().editor
-    path = editor.getPath()
-    /\.agda$/.test path
+    if editor
+      filePath = editor.getPath()
+    else
+      filePath = @getTheFuckingEditor().getPath()
+    /\.agda$/.test filePath
+
   deactivate: ->
     @agdaExecutableView.destroy()
 
