@@ -1,25 +1,44 @@
 AgdaModeView = require './agda-mode-view'
-AgdaSyntaxManager = require './agda-syntax-manager'
+AgdaExecutableView = require './agda-executable-view'
+Agda = require './agda'
 
 module.exports =
 
-  agdaSyntaxManager: new AgdaSyntaxManager
-
   activate: (state) ->
-    @agdaSyntaxManager.deactivate()
-    atom.workspaceView.on 'pane-container:active-pane-item-changed', =>
-      @agdaSyntaxManager.deactivate()
 
-    atom.workspaceView.command 'agda-mode:load', =>
-      @agdaSyntaxManager.activate()
+    # register agda instance for all agda editor
+    atom.workspace.eachEditor (editor) =>
+      path = editor.getPath()
+      # if end with ".agda"
+      if /\.agda$/.test path
+        editor.agda = new Agda
 
-    atom.workspaceView.command 'agda-mode:quit', =>
-      @agdaSyntaxManager.deactivate()
+    # # first time loaded
+    # if @isAgdaFile()
+    #   @agdaSyntaxManager.deactivate()
+    #
+    # # switch between tabs
+    # atom.workspaceView.on 'pane-container:active-pane-item-changed', =>
+    #   if @isAgdaFile()
+    #     @agdaSyntaxManager.deactivate()
+    #
+    # atom.workspaceView.command 'agda-mode:load', =>
+    #
+    #   if @isAgdaFile()
+    #     console.log atom.workspace.getEditors()
+    #     @agdaSyntaxManager.activate()
+    #     @agdaExecutableView = new AgdaExecutableView(state.agdaModeViewState)
+    #
+    # atom.workspaceView.command 'agda-mode:quit', =>
+    #
+    #   if @isAgdaFile()
+    #     @agdaSyntaxManager.deactivate()
+
 
     # @agdaModeView = new AgdaModeView(state.agdaModeViewState)
 
   deactivate: ->
-    # @agdaModeView.destroy()
+    @agdaExecutableView.destroy()
 
   serialize: ->
     # agdaModeViewState: @agdaModeView.serialize()
