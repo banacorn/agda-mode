@@ -12,18 +12,21 @@ module.exports = class Agda
 
     @syntax.deactivate()
 
+
   load: ->
     if not @loaded
       @loaded = true
-      console.log 'loaded', @loaded
       @syntax.activate()
     else
-      console.log 'reload'
+      @restart()
+
 
   quit: ->
     if @loaded
       @loaded = false
-      console.log 'loaded', @loaded
       @syntax.deactivate()
-    else
-      console.log 'not loaded'
+
+
+  restart: ->
+    @quit()
+    @load()

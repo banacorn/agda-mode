@@ -28,6 +28,13 @@ module.exports =
         editor.agda.quit()
 
 
+    # restart
+    atom.workspaceView.command 'agda-mode:restart', =>
+      if @isAgdaFile()
+        editor = @getTheFuckingEditor()
+        editor.agda.restart()
+
+
   getTheFuckingEditor: ->
     atom.workspace.getActivePaneItem()
 
