@@ -4,7 +4,7 @@ module.exports = class Agda
 
   executablePath: null
 
-  syntax: new AgdaSyntax
-
-  constructor: ->
+  constructor: (@editor) ->
     console.log 'initialized'
+
+    @syntax = new AgdaSyntax @editor

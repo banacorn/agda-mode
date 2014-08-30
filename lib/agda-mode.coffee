@@ -12,6 +12,7 @@ module.exports =
       # if end with ".agda"
       if /\.agda$/.test path
         editor.agda = new Agda
+        editor.agda.syntax.deactivate()
 
     # # first time loaded
     # if @isAgdaFile()

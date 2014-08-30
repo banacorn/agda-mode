@@ -1,8 +1,9 @@
 module.exports = class AgdaSyntax
 
+  constructor: (@editor) ->
+
   deactivate: ->
-    editor = atom.workspace.activePaneItem
-    editor.setGrammar(atom.syntax.nullGrammar)
+    @editor.setGrammar(atom.syntax.nullGrammar)
 
   activate: ->
     grammars = atom.syntax.getGrammars().filter (grammar) ->
@@ -10,6 +11,4 @@ module.exports = class AgdaSyntax
     agdaGrammar = if grammars.length is 1 then grammars[0] else undefined
 
     if agdaGrammar
-      # console.log('is .agda and grammar exists')
-      editor = atom.workspace.activePaneItem
-      editor.setGrammar(agdaGrammar)
+      @editor.setGrammar(agdaGrammar)
