@@ -10,22 +10,18 @@ module.exports =
     atom.workspace.eachEditor (editor) =>
       path = editor.getPath()
       # if end with ".agda"
-      if /\.agda$/.test path
-        editor.agda = new Agda
-        editor.agda.syntax.deactivate()
+      if @isAgdaFile
+        agda = editor.agda = new Agda editor
+        agda.syntax.deactivate()
 
-    # # first time loaded
-    # if @isAgdaFile()
-    #   @agdaSyntaxManager.deactivate()
-    #
     # # switch between tabs
-    # atom.workspaceView.on 'pane-container:active-pane-item-changed', =>
-    #   if @isAgdaFile()
-    #     @agdaSyntaxManager.deactivate()
-    #
-    # atom.workspaceView.command 'agda-mode:load', =>
-    #
-    #   if @isAgdaFile()
+    # atom.workspaceView.on 'pane-container:active-pane-item-changed', (event, editor) =>
+    #   console.log editor
+
+    atom.workspaceView.command 'agda-mode:load', =>
+      editor = atom.workspaceView.getActiveView().editor
+      if @isAgdaFile()
+        editor.agda.syntax.activate()
     #     console.log atom.workspace.getEditors()
     #     @agdaSyntaxManager.activate()
     #     @agdaExecutableView = new AgdaExecutableView(state.agdaModeViewState)
@@ -38,6 +34,10 @@ module.exports =
 
     # @agdaModeView = new AgdaModeView(state.agdaModeViewState)
 
+  isAgdaFile: (editor) ->
+    editor ?= atom.workspaceView.getActiveView().editor
+    path = editor.getPath()
+    /\.agda$/.test path
   deactivate: ->
     @agdaExecutableView.destroy()
 
