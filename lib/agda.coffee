@@ -1,5 +1,6 @@
-AgdaSyntax = require './agda-syntax'
-AgdaPathQueryView = require './agda-path-query-view'
+AgdaSyntax = require './agda/syntax'
+AgdaPathQueryView = require './agda/path-query-view'
+AgdaInteractive = require './agda/interactive'
 
 module.exports = class Agda
 
@@ -11,7 +12,11 @@ module.exports = class Agda
     @syntax = new AgdaSyntax @editor
     @syntax.deactivate()
 
-    @queryExecutablePath()
+    filepath = @editor.getPath()
+    @interactive = new AgdaInteractive filepath
+
+
+    # @queryExecutablePath()
 
   queryExecutablePath: ->
     @pathQueryView = new AgdaPathQueryView
@@ -20,6 +25,8 @@ module.exports = class Agda
     if not @loaded
       @loaded = true
       @syntax.activate()
+      @interactive.start()
+      @interactive.load()
     else
       @restart()
 
@@ -28,7 +35,7 @@ module.exports = class Agda
     if @loaded
       @loaded = false
       @syntax.deactivate()
-
+      @interactive.quit()
 
   restart: ->
     @quit()

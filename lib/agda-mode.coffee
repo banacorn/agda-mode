@@ -1,4 +1,3 @@
-AgdaModeView = require './agda-mode-view'
 Agda = require './agda'
 
 module.exports =
