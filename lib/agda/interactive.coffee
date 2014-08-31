@@ -39,10 +39,10 @@ module.exports = class AgdaInteractive extends EventEmitter
       @emit 'data', data.toString()
 
     @agda.stderr.on 'data', (data) =>
-      console.log data
+      @emit 'error', data.toString()
 
     @agda.on 'close', (code) =>
-      console.log 'agda process exited with code', code
+      @emit 'close', code
 
 
 
