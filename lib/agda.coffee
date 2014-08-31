@@ -1,6 +1,7 @@
 AgdaSyntax = require './agda/syntax'
 AgdaPathQueryView = require './agda/path-query-view'
 AgdaInteractive = require './agda/interactive'
+{Stdout} = require './util'
 
 module.exports = class Agda
 
@@ -12,8 +13,8 @@ module.exports = class Agda
     @syntax = new AgdaSyntax @editor
     @syntax.deactivate()
 
-    filepath = @editor.getPath()
-    @interactive = new AgdaInteractive filepath
+    @filepath = @editor.getPath()
+    @interactive = new AgdaInteractive
 
     @registerHandlers()
 
@@ -22,7 +23,12 @@ module.exports = class Agda
     @interactive.on 'wired', =>
       @loaded = true
       @syntax.activate()
-      @interactive.load()
+      # @interactive.load()
+
+      @interactive.agda.stdout.pipe (new Stdout)
+
+      command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" [])\n'
+      @interactive.agda.stdin.write command
 
   load: ->
     if not @loaded
@@ -35,7 +41,7 @@ module.exports = class Agda
     if @loaded
       @loaded = false
       @syntax.deactivate()
-      @interactive.quit()
+      # @interactive.quit()
 
   restart: ->
     @quit()
