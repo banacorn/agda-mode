@@ -23,13 +23,15 @@ module.exports = class AgdaPathQueryView extends View
     configPath = atom.config.get 'agda-mode.agdaExecutablePath'
     @validatePath configPath
 
-  activateView: ->
+  query: ->
 
     atom.workspaceView.prependToBottom(this)
 
     # focus on the input box
     @pathEditor.focus()
     @errorMessage.hide()
+
+
 
   registerHandlers: ->
 
@@ -54,7 +56,7 @@ module.exports = class AgdaPathQueryView extends View
 
       # the path from the config is wrong
       if not @viewActivated
-        @activateView()
+        @query()
         @viewActivated = true
 
       # the path from the input box is wrong

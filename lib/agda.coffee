@@ -15,18 +15,18 @@ module.exports = class Agda
     filepath = @editor.getPath()
     @interactive = new AgdaInteractive filepath
 
+    @registerHandlers()
 
-    # @queryExecutablePath()
+  registerHandlers: ->
 
-  queryExecutablePath: ->
-    @pathQueryView = new AgdaPathQueryView
+    @interactive.on 'start success', =>
+      @loaded = true
+      @syntax.activate()
+      @interactive.load()
 
   load: ->
     if not @loaded
-      @loaded = true
-      @syntax.activate()
-      @interactive.start()
-      @interactive.load()
+      @interactive.wire()
     else
       @restart()
 
