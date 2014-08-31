@@ -2,7 +2,7 @@
 PathQueryView = require './path-query-view'
 {EventEmitter} = require 'events'
 
-module.exports = class AgdaInteractive extends EventEmitter
+module.exports = class AgdaExecutable extends EventEmitter
 
   constructor: ->
 
