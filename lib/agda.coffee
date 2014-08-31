@@ -19,7 +19,7 @@ module.exports = class Agda
 
   registerHandlers: ->
 
-    @interactive.on 'start success', =>
+    @interactive.on 'wired', =>
       @loaded = true
       @syntax.activate()
       @interactive.load()

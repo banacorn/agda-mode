@@ -4,9 +4,6 @@ PathQueryView = require './path-query-view'
 
 module.exports = class AgdaInteractive extends EventEmitter
 
-  # wired with Agda executable
-  wired: false
-
   constructor: (@filename) ->
 
 
@@ -17,6 +14,7 @@ module.exports = class AgdaInteractive extends EventEmitter
     # try to catch EACCES, etc (yep, process.on 'uncaughtException' failed)
     try
       @agda = spawn executablePath, ['--interaction']
+      @agda.wired = false
     catch error
       pathQueryView = new PathQueryView
       pathQueryView.query()
@@ -31,15 +29,14 @@ module.exports = class AgdaInteractive extends EventEmitter
       pathQueryView.one 'agda-path-query-view.success', (el, path) =>
         @wire()
 
-
     @agda.stdout.on 'data', (data) =>
 
-      if not @wired and /^Agda2/.test data
-        @wired = true
-        @emit 'start success'
+      # run only when the executable was just wired
+      if not @agda.wired and /^Agda2/.test data
+        @agda.wired = true
+        @emit 'wired'
 
-
-      console.log data.toString()
+      @emit 'data', data.toString()
 
     @agda.stderr.on 'data', (data) =>
       console.log data
