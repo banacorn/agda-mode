@@ -1,6 +1,7 @@
 AgdaSyntax = require './agda/syntax'
 AgdaPathQueryView = require './agda/path-query-view'
 AgdaExecutable = require './agda/executable'
+{Concatenator} = require './agda/parser'
 {Stdout} = require './util'
 
 module.exports = class Agda
@@ -9,7 +10,6 @@ module.exports = class Agda
   loaded: false
 
   constructor: (@editor) ->
-
     @syntax = new AgdaSyntax @editor
     @syntax.deactivate()
 
@@ -25,7 +25,9 @@ module.exports = class Agda
       @syntax.activate()
       # @interactive.load()
 
-      @executable.agda.stdout.pipe (new Stdout)
+      @executable.agda.stdout
+        .pipe new Concatenator
+        .pipe new Stdout
 
       command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" [])\n'
       @executable.agda.stdin.write command

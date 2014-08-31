@@ -28,7 +28,7 @@ module.exports = class AgdaExecutable extends EventEmitter
       pathQueryView.one 'agda-path-query-view.success', (el, path) =>
         @wire()
 
-    @agda.stdout.on 'data', (data) =>
+    @agda.stdout.once 'data', (data) =>
 
       # run only when the executable was just wired
       if not @agda.wired and /^Agda2/.test data
