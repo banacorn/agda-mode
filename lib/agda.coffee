@@ -1,4 +1,5 @@
 AgdaSyntax = require './agda-syntax'
+AgdaPathQueryView = require './agda-path-query-view'
 
 module.exports = class Agda
 
@@ -6,12 +7,14 @@ module.exports = class Agda
   loaded: false
 
   constructor: (@editor) ->
-    console.log 'initialized'
 
     @syntax = new AgdaSyntax @editor
-
     @syntax.deactivate()
 
+    @queryExecutablePath()
+
+  queryExecutablePath: ->
+    @pathQueryView = new AgdaPathQueryView
 
   load: ->
     if not @loaded

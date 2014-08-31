@@ -1,8 +1,10 @@
 AgdaModeView = require './agda-mode-view'
-AgdaExecutableView = require './agda-executable-view'
 Agda = require './agda'
 
 module.exports =
+
+  configDefaults:
+    agdaExecutablePath: ''
 
   activate: (state) ->
     # register agda instance for all agda editor
@@ -14,12 +16,18 @@ module.exports =
     # switch between tabs
     # atom.workspaceView.on 'pane-container:active-pane-item-changed', (event, editor) =>
 
+
+    #
+    # Comands
+    #
+
+
     # load
     atom.workspaceView.command 'agda-mode:load', =>
-
       if @isAgdaFile()
         editor = @getTheFuckingEditor()
         editor.agda.load()
+
 
     # quit
     atom.workspaceView.command 'agda-mode:quit', =>
@@ -49,7 +57,7 @@ module.exports =
 
 
   deactivate: ->
-    @agdaExecutableView.destroy()
+    # @agdaExecutableView.destroy()
 
 
   serialize: ->
