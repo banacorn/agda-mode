@@ -6,15 +6,15 @@ Stream = require './agda/stream'
 {Writable} = require 'stream'
 code = require './agda/command-code'
 
-class CommandExec extends Writable
+class ExecCommand extends Writable
 
   constructor: (@panel) ->
     super
       objectMode: true
 
   _write: (command, encoding, next) ->
-    console.log code.toString command.type
-    console.log command
+    # console.log code.toString command.type
+    # console.log command
 
     switch command.type
       when code.INFO_ACTION
@@ -48,12 +48,12 @@ module.exports = class Agda
       @syntax.activate()
       @panelView.attach()
       @executable.agda.stdout
-        .pipe new Stream.Rectifier
-        .pipe new Stream.Preprocessor
+        .pipe new Stream.Rectify
+        .pipe new Stream.Preprocess
         .pipe new Stream.SExpression
-        .pipe new Stream.ConsoleLog
-        .pipe new Stream.Command
-        .pipe new CommandExec @panelView
+        .pipe new Stream.Log
+        .pipe new Stream.ParseCommand
+        .pipe new ExecCommand @panelView
 
       command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" [])\n'
       @executable.agda.stdin.write command
