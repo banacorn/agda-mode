@@ -12,8 +12,8 @@ commands = [
 module.exports = {}
 code = 0
 for command in commands
-  module.exports.command = code
+  module.exports[command] = code
   code++
 
 # insert toString function
-module.exports.toString = (n) -> command[n]
+module.exports.toString = (n) -> commands[n]
