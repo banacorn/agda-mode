@@ -47,40 +47,13 @@ class Preprocessor extends Transform
       chunk = chunk.substring index, length - 1
 
 
-    #
-    #
-    #
-    # switch tokens[0]
-    #
-    #   when "agda2-status-action" then command =
-    #     type: STATUS_ACTION
-    #     status: tokens[1]
-    #
-    #   when "agda2-info-action" then command =
-    #     type: INFO_ACTION
-    #     header: tokens[1]
-    #     content: tokens[2]
-    #
-    #   when "agda2-goals-action" then command =
-    #     type: GOALS_ACTION
-    #     goals: tokens[1]
-    #
-    #   when "agda2-highlight-clear" then command =
-    #     type: HIGHLIGHT_CLEAR
-    #
-    #   else
-    #     throw 'wtf is this command? ' + tokens
-    #     command = type: UNKNOWN
-    #
 
     @push chunk
     next()
 
-# lisp list => js list
-class Lexer extends Transform
+class SExpression extends Transform
 
   constructor: ->
-
     super
       objectMode: true
 
@@ -89,6 +62,7 @@ class Lexer extends Transform
     @push tokens
     next()
 
+  # helper function from Haskell
   head: (string) -> string.substr 0, 1
   tail: (string) -> string.substr 1
   take: (n, string) -> string.substr 0, n
@@ -167,7 +141,40 @@ class Lexer extends Transform
     return [token, rest]
 
 
+class Command extends Transform
+  constructor: ->
+    super
+      objectMode: true
+
+  _transform: (tokens, encoding, next) ->
+
+    switch tokens[0]
+
+      when "agda2-status-action" then command =
+        type: STATUS_ACTION
+        status: tokens[1]
+
+      when "agda2-info-action" then command =
+        type: INFO_ACTION
+        header: tokens[1]
+        content: tokens[2]
+
+      when "agda2-goals-action" then command =
+        type: GOALS_ACTION
+        goals: tokens[1]
+
+      when "agda2-highlight-clear" then command =
+        type: HIGHLIGHT_CLEAR
+
+      else
+        throw 'wtf is this command? ' + tokens
+        command = type: UNKNOWN
+
+    @push command
+    next()
+    
 module.exports =
   Rectifier: Rectifier
   Preprocessor: Preprocessor
-  Lexer: Lexer
+  SExpression: SExpression
+  Command: Command

@@ -28,7 +28,8 @@ module.exports = class Agda
       @executable.agda.stdout
         .pipe new Parser.Rectifier
         .pipe new Parser.Preprocessor
-        .pipe new Parser.Lexer
+        .pipe new Parser.SExpression
+        .pipe new Parser.Command
         .pipe new Stdout
 
       command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" [])\n'
