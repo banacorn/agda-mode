@@ -32,7 +32,8 @@ class Rectifier extends Transform
     next()
 
 
-class Command extends Transform
+# make s-expression prettier
+class Preprocessor extends Transform
   constructor: ->
     super
       objectMode: true
@@ -44,9 +45,6 @@ class Command extends Transform
       index = chunk.indexOf '(agda'
       length = chunk.length
       chunk = chunk.substring index, length - 1
-
-    # remove the outermost parenthesis
-    chunk = chunk.substring 1, chunk.length - 1
 
     # split into list of tokens
     tokens = chunk.split ' '
@@ -77,10 +75,60 @@ class Command extends Transform
     @push chunk
     next()
 
+# lisp list => js list
+class Lexer extends Transform
 
+  constructor: ->
+    super
+      objectMode: true
+
+  _transform: (chunk, encoding, next) ->
+    tokens = []
+
+    # remove '('
+    chunk = chunk.substr 1
+
+    takeString = ->
+      # end of the string
+      index = chunk.substr(1).indexOf '"'
+      # take the string, remove qoutes, and push it into tokens
+      tokens.push chunk.substr 1, index - 1
+      # drop chunk
+      chunk = chunk.substr index + 1
+
+    takeQuote = ->
+      # end of the string
+      index = chunk.substr(1).indexOf '"'
+      # take the string, remove qoutes, and push it into tokens
+      tokens.push chunk.substr 1, index - 1
+      # drop chunk
+      chunk = chunk.substr index + 1
+
+
+    takeAtom = ->
+      # end of the atom
+      index = chunk.indexOf ' '
+      index = if index is -1 then chunk.length else index
+
+      # take the atom and push it into tokens
+      tokens.push chunk.substr 0, index
+      # drop chunk
+      chunk = chunk.substr index + 1
+
+
+
+    takeAtom()
+    # takeString()
+    # takeString()
+    # takeString()
+    # takeAtom()
+    console.log chunk
+
+    @push tokens
+    next()
 
 
 module.exports =
   Rectifier: Rectifier
-  Command: Command
-  toString: toString
+  Preprocessor: Preprocessor
+  Lexer: Lexer
