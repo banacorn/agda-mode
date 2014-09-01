@@ -46,31 +46,32 @@ class Preprocessor extends Transform
       length = chunk.length
       chunk = chunk.substring index, length - 1
 
-    # split into list of tokens
-    tokens = chunk.split ' '
 
-
-
-    switch tokens[0]
-
-      when "agda2-status-action" then command =
-        type: STATUS_ACTION
-        status: tokens[1]
-
-      when "agda2-info-action" then command =
-        type: INFO_ACTION
-        header: tokens[1]
-        content: tokens[2]
-
-      when "agda2-goals-action" then command =
-        type: GOALS_ACTION
-        goals: tokens[1]
-
-      when "agda2-highlight-clear" then command =
-        type: HIGHLIGHT_CLEAR
-
-      else command = type: UNKNOWN
-
+    #
+    #
+    #
+    # switch tokens[0]
+    #
+    #   when "agda2-status-action" then command =
+    #     type: STATUS_ACTION
+    #     status: tokens[1]
+    #
+    #   when "agda2-info-action" then command =
+    #     type: INFO_ACTION
+    #     header: tokens[1]
+    #     content: tokens[2]
+    #
+    #   when "agda2-goals-action" then command =
+    #     type: GOALS_ACTION
+    #     goals: tokens[1]
+    #
+    #   when "agda2-highlight-clear" then command =
+    #     type: HIGHLIGHT_CLEAR
+    #
+    #   else
+    #     throw 'wtf is this command? ' + tokens
+    #     command = type: UNKNOWN
+    #
 
     @push chunk
     next()
@@ -79,53 +80,91 @@ class Preprocessor extends Transform
 class Lexer extends Transform
 
   constructor: ->
+
     super
       objectMode: true
 
   _transform: (chunk, encoding, next) ->
-    tokens = []
-
-    # remove '('
-    chunk = chunk.substr 1
-
-    takeString = ->
-      # end of the string
-      index = chunk.substr(1).indexOf '"'
-      # take the string, remove qoutes, and push it into tokens
-      tokens.push chunk.substr 1, index - 1
-      # drop chunk
-      chunk = chunk.substr index + 1
-
-    takeQuote = ->
-      # end of the string
-      index = chunk.substr(1).indexOf '"'
-      # take the string, remove qoutes, and push it into tokens
-      tokens.push chunk.substr 1, index - 1
-      # drop chunk
-      chunk = chunk.substr index + 1
-
-
-    takeAtom = ->
-      # end of the atom
-      index = chunk.indexOf ' '
-      index = if index is -1 then chunk.length else index
-
-      # take the atom and push it into tokens
-      tokens.push chunk.substr 0, index
-      # drop chunk
-      chunk = chunk.substr index + 1
-
-
-
-    takeAtom()
-    # takeString()
-    # takeString()
-    # takeString()
-    # takeAtom()
-    console.log chunk
-
+    [tokens, rest] = @takeList chunk
     @push tokens
     next()
+
+  head: (string) -> string.substr 0, 1
+  tail: (string) -> string.substr 1
+  take: (n, string) -> string.substr 0, n
+  drop: (n, string) -> string.substr n
+
+  # (a b "c" '(d r)) => [a, b, "c", [d, r]]
+  takeList: (string) ->
+
+    tokens = []
+
+    # drop "("
+    string = @tail string
+
+    while string.length > 0
+      switch @head string
+        when ' '
+          string = @tail string
+          # console.log '[SPACE]', [string]
+        when '('
+          [token, string] = @takeList string
+          # console.log '[List]', [token, string]
+          tokens.push token, [string]
+        when ')'
+          string = @tail string
+        when '\''
+          [token, string] = @takeQuote string
+          # console.log '[Quote]', [token, string]
+          tokens.push token
+        when '"'
+          [token, string] = @takeString string
+          # console.log '[String]', [token, string]
+          tokens.push token
+        else
+          [token, string] = @takeAtom string
+          # console.log '[Atom]', [token, string]
+          tokens.push token
+
+    # drop ")"
+    rest = @tail string
+    return [tokens, rest]
+
+  takeAtom: (string) ->
+
+    indexI = string.indexOf ' '
+    indexP = string.indexOf ')'
+    indexE = string.length
+
+    if indexI isnt -1
+      index = indexI
+    else if indexP isnt -1
+      index = indexP
+    else
+      index = indexE
+
+    token = @take index, string
+    rest = @drop index, string
+    return [token, rest]
+
+  takeQuote: (string) ->
+
+    # drop '
+    string = @tail string
+
+    @takeList string
+
+  takeString: (string) ->
+
+    # drop "
+    string = @tail string
+
+    indexQ = string.indexOf '"'
+
+    token = @take indexQ, string
+    rest = @drop (indexQ + 1), string    # indexQ+1 to drop the closing "
+
+    return [token, rest]
 
 
 module.exports =
