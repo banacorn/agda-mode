@@ -49,9 +49,9 @@ module.exports = class Agda
       @panelView.attach()
       @executable.agda.stdout
         .pipe new Stream.Rectifier
-        # .pipe new Stream.ConsoleLog
         .pipe new Stream.Preprocessor
         .pipe new Stream.SExpression
+        .pipe new Stream.ConsoleLog
         .pipe new Stream.Command
         .pipe new CommandExec @panelView
 

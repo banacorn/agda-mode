@@ -161,17 +161,31 @@ class Command extends Transform
       when "agda2-highlight-clear" then command =
         type: code.HIGHLIGHT_CLEAR
 
+      when "agda2-goto" then command =
+        type: code.GOTO
+        file: tokens[1]
+        position: tokens[3]
+
+      when "agda2-highlight-add-annotations" then command =
+        type: code.HIGHLIGHT_ADD_ANNOTATIONS
+
       else
-        throw 'wtf is this command? ' + tokens
+        throw 'wtf is this command? ' + JSON.stringify tokens
         command = type: UNKNOWN
 
     @push command
     next()
 
-class ConsoleLog extends Writable
+class ConsoleLog extends Transform
   constructor: ->
     super
       objectMode: true
+
+  _transform: (chunk, encoding, next) ->
+    console.log chunk
+    @push chunk
+    next()
+
   _write: (chunk, encoding, next) ->
     console.log chunk
     next()
