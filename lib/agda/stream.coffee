@@ -1,4 +1,4 @@
-{Transform} = require 'stream'
+{Writable, Transform} = require 'stream'
 
 UNKNOWN = 0
 STATUS_ACTION = 1
@@ -172,9 +172,18 @@ class Command extends Transform
 
     @push command
     next()
-    
+
+class ConsoleLog extends Writable
+  constructor: ->
+    super
+      objectMode: true
+  _write: (chunk, encoding, next) ->
+    console.log chunk
+    next()
+
 module.exports =
-  Rectifier: Rectifier
+  Rectifier:    Rectifier
   Preprocessor: Preprocessor
-  SExpression: SExpression
-  Command: Command
+  SExpression:  SExpression
+  Command:      Command
+  ConsoleLog:   ConsoleLog
