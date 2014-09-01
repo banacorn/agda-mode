@@ -35,17 +35,6 @@ module.exports = class AgdaExecutable extends EventEmitter
         @agda.wired = true
         @emit 'wired'
 
-      # @emit 'data', data.toString()
-    #
-    # @agda.stderr.on 'data', (data) =>
-    #   @emit 'error', data.toString()
-    #
-    # @agda.on 'close', (code) =>
-    #   @emit 'close', code
-  #
   # load: ->
   #   command = 'IOTCM "' + @filename + '" None Direct (Cmd_load "' + @filename + '" [])\n'
   #   @agda.stdin.write command
-  #
-  # quit: ->
-  #   @agda.stdin.end()

@@ -1,5 +1,5 @@
 AgdaSyntax = require './agda/syntax'
-AgdaPathQueryView = require './agda/path-query-view'
+AgdaPanelView = require './agda/panel-view'
 AgdaExecutable = require './agda/executable'
 Stream = require './agda/stream'
 
@@ -8,16 +8,19 @@ code = require './agda/command-code'
 
 class CommandExec extends Writable
 
-  constructor: ->
+  constructor: (@panel) ->
     super
       objectMode: true
 
   _write: (command, encoding, next) ->
     console.log code.toString command.type
     console.log command
-    #
-    # switch command.type
-    #   when code.
+
+    switch command.type
+      when code.INFO_ACTION
+        @panel.info.text command.content
+      when code.STATUS_ACTION
+        @panel.status.text command.status
 
 
     next()
@@ -34,6 +37,8 @@ module.exports = class Agda
     @filepath = @editor.getPath()
     @executable = new AgdaExecutable
 
+    @panelView = new AgdaPanelView
+
     @registerHandlers()
 
   registerHandlers: ->
@@ -41,15 +46,14 @@ module.exports = class Agda
     @executable.on 'wired', =>
       @loaded = true
       @syntax.activate()
-      # @interactive.load()
-
+      @panelView.attach()
       @executable.agda.stdout
         .pipe new Stream.Rectifier
-        .pipe new Stream.ConsoleLog
-        # .pipe new Stream.Preprocessor
-        # .pipe new Stream.SExpression
-        # .pipe new Stream.Command
-        # .pipe new CommandExec
+        # .pipe new Stream.ConsoleLog
+        .pipe new Stream.Preprocessor
+        .pipe new Stream.SExpression
+        .pipe new Stream.Command
+        .pipe new CommandExec @panelView
 
       command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" [])\n'
       @executable.agda.stdin.write command
@@ -65,7 +69,6 @@ module.exports = class Agda
     if @loaded
       @loaded = false
       @syntax.deactivate()
-      # @interactive.quit()
 
   restart: ->
     @quit()
