@@ -5,7 +5,6 @@ data Banana : Set where
     unpeeled : Banana
 
 a : Banana
-a = c
-
+a = ?
 -- a : Banana
 -- a = ?

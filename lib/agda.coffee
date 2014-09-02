@@ -15,11 +15,20 @@ class ExecCommand extends Writable
     # console.log command
 
     switch command.type
-      when 'info-action'
-        @panel.infoHeader.text command.header
+      when 'info-action: type-checking'
+        @panel.infoHeader.text 'Type Checking'
         @panel.infoContent.text command.content
-      when 'status-action'
-        @panel.status.text command.status
+        @panel.setStatus 'info'
+      when 'info-action: error'
+        @panel.infoHeader.text 'Error'
+        @panel.infoContent.text command.content
+        @panel.setStatus 'error'
+      when 'info-action: all goals'
+        @panel.infoHeader.text 'All Goals'
+        @panel.infoContent.text command.content
+        @panel.setStatus()
+      # when 'status-action'
+      #   @panel.status.text command.status
 
 
     next()
