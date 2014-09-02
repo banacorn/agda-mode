@@ -1,7 +1,7 @@
 AgdaSyntax = require './agda/syntax'
 PanelView = require './view/panel'
 AgdaExecutable = require './agda/executable'
-Stream = require './agda/stream'
+Stream = require './stream'
 
 {Writable} = require 'stream'
 class ExecCommand extends Writable
