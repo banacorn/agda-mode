@@ -6,25 +6,12 @@ module.exports =
     agdaExecutablePath: ''
 
   activate: (state) ->
-    # register agda instance for all agda editor
-    atom.workspace.eachEditor (editor) =>
-      if @isAgdaFile(editor)
-        agda = editor.agda = new Agda editor
-
-
-    # switch between tabs
-    # atom.workspaceView.on 'pane-container:active-pane-item-changed', (event, editor) =>
-
-
-    #
-    # Comands
-    #
-
 
     # load
     atom.workspaceView.command 'agda-mode:load', =>
       if @isAgdaFile()
         editor = @getTheFuckingEditor()
+        editor.agda ?= new Agda editor
         editor.agda.load()
 
 

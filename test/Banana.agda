@@ -5,6 +5,4 @@ data Banana : Set where
     unpeeled : Banana
 
 a : Banana
-a = asdasd
--- a : Banana
--- a = ?
+a = ?
