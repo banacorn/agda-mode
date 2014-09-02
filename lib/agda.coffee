@@ -50,7 +50,8 @@ module.exports = class Agda
       @executable.agda.stdout
         .pipe new Stream.Rectify
         .pipe new Stream.Preprocess
-        .pipe new Stream.SExpression
+        .pipe new Stream.Log
+        .pipe new Stream.ParseSExpr
         .pipe new Stream.Log
         .pipe new Stream.ParseCommand
         .pipe new ExecCommand @panelView

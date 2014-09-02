@@ -1,4 +1,4 @@
-{Transform} = require 'stream'
+{Transform, Readable} = require 'stream'
 code = require './command-code'
 Lex = require 'lex'
 
@@ -47,18 +47,7 @@ class Preprocess extends Transform
     @push chunk
     next()
 
-
-class Lexer extends Transform
-
-  constructor: ->
-    super
-      objectMode: true
-
-  _transform: (chunk, encoding, next) ->
-    @push chunk
-    next()
-
-class SExpression extends Transform
+class ParseSExpr extends Transform
 
   constructor: ->
     super
@@ -77,13 +66,12 @@ class SExpression extends Transform
 
   # (a b "c" '(d r)) => [a, b, "c", [d, r]]
   takeList: (string) ->
-
     tokens = []
 
     # drop "("
     string = @tail string
 
-    while string.length > 0
+    while (string[0] isnt ')')
       switch @head string
         when ' '
           string = @tail string
@@ -91,11 +79,10 @@ class SExpression extends Transform
         when '('
           [token, string] = @takeList string
           # console.log '[List]', [token, string]
-          tokens.push token, [string]
-        when ')'
-          string = @tail string
+          tokens.push token
         when '\''
-          [token, string] = @takeQuote string
+          string = @tail string
+          [token, string] = @takeList string
           # console.log '[Quote]', [token, string]
           tokens.push token
         when '"'
@@ -106,8 +93,6 @@ class SExpression extends Transform
           [token, string] = @takeAtom string
           # console.log '[Atom]', [token, string]
           tokens.push token
-
-    # drop ")"
     rest = @tail string
     return [tokens, rest]
 
@@ -117,7 +102,12 @@ class SExpression extends Transform
     indexP = string.indexOf ')'
     indexE = string.length
 
-    if indexI isnt -1
+    if indexI isnt -1 and indexP isnt -1
+      if indexI < indexP
+        index = indexI
+      else
+        index = indexP
+    else if indexI isnt -1
       index = indexI
     else if indexP isnt -1
       index = indexP
@@ -127,13 +117,6 @@ class SExpression extends Transform
     token = @take index, string
     rest = @drop index, string
     return [token, rest]
-
-  takeQuote: (string) ->
-
-    # drop '
-    string = @tail string
-
-    @takeList string
 
   takeString: (string) ->
 
@@ -146,6 +129,15 @@ class SExpression extends Transform
     rest = @drop (indexQ + 1), string    # indexQ+1 to drop the closing "
 
     return [token, rest]
+
+class ListSource extends Readable
+  constructor: (@list) ->
+    super
+      objectMode: true
+  _read: ->
+    for l in @list
+      @push l
+    @push null
 
 
 class ParseCommand extends Transform
@@ -201,6 +193,7 @@ class Log extends Transform
 module.exports =
   Rectify:      Rectify
   Preprocess:   Preprocess
-  SExpression:  SExpression
+  ParseSExpr:   ParseSExpr
   ParseCommand: ParseCommand
+  ListSource:   ListSource
   Log:          Log
