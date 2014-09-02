@@ -73,7 +73,11 @@ module.exports = class Agda
         .pipe new Stream.ParseCommand
         .pipe @commandExecutor
 
-      command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" [])\n'
+      includeDir = atom.config.get 'agda-mode.agdaLibraryPath'
+      if includeDir
+        command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" ["./", "' + includeDir + '"])\n'
+      else
+        command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" [])\n'
       @executable.agda.stdin.write command
 
   load: ->

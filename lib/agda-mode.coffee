@@ -4,6 +4,7 @@ module.exports =
 
   configDefaults:
     agdaExecutablePath: ''
+    agdaLibraryPath: ''
 
   activate: (state) ->
 
