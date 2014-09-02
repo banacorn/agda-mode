@@ -6,7 +6,8 @@ module.exports = class AgdaPanelView extends View
   @content: ->
     @div class: 'tool-panel panel-bottom padded', =>
       @div class: "block", =>
-        @span outlet: 'info', class: 'inline-block'
+        @span outlet: 'infoHeader', class: 'inline-block text-highlight'
+        @span outlet: 'infoContent', class: 'inline-block'
       @div class: "block", =>
         @span outlet: 'status', class: 'inline-block'
 

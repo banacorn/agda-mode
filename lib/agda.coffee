@@ -18,7 +18,8 @@ class ExecCommand extends Writable
 
     switch command.type
       when code.INFO_ACTION
-        @panel.info.text command.content
+        @panel.infoHeader.text command.header
+        @panel.infoContent.text command.content
       when code.STATUS_ACTION
         @panel.status.text command.status
 
@@ -52,7 +53,6 @@ module.exports = class Agda
         .pipe new Stream.Preprocess
         .pipe new Stream.Log
         .pipe new Stream.ParseSExpr
-        .pipe new Stream.Log
         .pipe new Stream.ParseCommand
         .pipe new ExecCommand @panelView
 

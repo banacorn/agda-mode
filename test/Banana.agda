@@ -3,4 +3,9 @@ module Banana where
 data Banana : Set where
     peeled : Banana
     unpeeled : Banana
-a
+
+a : Banana
+a = c
+
+-- a : Banana
+-- a = ?
