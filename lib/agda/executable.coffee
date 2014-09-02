@@ -1,5 +1,5 @@
 {spawn} = require 'child_process'
-PathQueryView = require './path-query-view'
+PathQueryView = require './../view/path-query'
 {EventEmitter} = require 'events'
 
 module.exports = class AgdaExecutable extends EventEmitter

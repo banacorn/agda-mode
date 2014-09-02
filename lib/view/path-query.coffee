@@ -1,7 +1,6 @@
 {View, EditorView} = require 'atom'
 
-
-module.exports = class AgdaPathQueryView extends View
+module.exports = class PathQueryView extends View
 
   @viewActivated: false
 
@@ -16,9 +15,7 @@ module.exports = class AgdaPathQueryView extends View
 
   initialize: (serializeState) ->
 
-
     @registerHandlers()
-
 
     configPath = atom.config.get 'agda-mode.agdaExecutablePath'
     @validatePath configPath
@@ -30,7 +27,6 @@ module.exports = class AgdaPathQueryView extends View
     # focus on the input box
     @pathEditor.focus()
     @errorMessage.hide()
-
 
 
   registerHandlers: ->

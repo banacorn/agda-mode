@@ -1,5 +1,5 @@
 AgdaSyntax = require './agda/syntax'
-AgdaPanelView = require './agda/panel-view'
+PanelView = require './view/panel'
 AgdaExecutable = require './agda/executable'
 Stream = require './agda/stream'
 
@@ -36,7 +36,7 @@ module.exports = class Agda
     @filepath = @editor.getPath()
     @executable = new AgdaExecutable
 
-    @panelView = new AgdaPanelView
+    @panelView = new PanelView
 
     @registerHandlers()
 

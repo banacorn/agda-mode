@@ -1,7 +1,6 @@
 {View} = require 'atom'
 
-
-module.exports = class AgdaPanelView extends View
+module.exports = class PanelView extends View
 
   @content: ->
     @div class: 'tool-panel panel-bottom padded', =>
@@ -16,8 +15,6 @@ module.exports = class AgdaPanelView extends View
 
   attach: ->
     atom.workspaceView.prependToBottom @
-
-
 
   registerHandlers: ->
     # ########## UI events ##########
@@ -47,8 +44,6 @@ module.exports = class AgdaPanelView extends View
     #   # the path from the input box is wrong
     #   else
     #     @errorMessage.show()
-
-
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->
