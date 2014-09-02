@@ -3,7 +3,7 @@
   "main": "./lib/agda-mode",
   "version": "0.0.0",
   "description": "A short description of your package",
-  "activationEvents": ["agda-mode:load"],
+  "activationEvents": [],
   "repository": "https://github.com/atom/agda-mode",
   "license": "MIT",
   "engines": {

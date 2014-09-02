@@ -8,11 +8,29 @@ module.exports =
 
   activate: (state) ->
 
+    atom.workspace.eachEditor (editor) =>
+      if @isAgdaFile(editor)
+        editor.agda = new Agda editor
+
+        # deactivated on default
+        editor.agda.syntax.deactivate()
+
+        # make sure that the highlighting is consistent with Agda' state,
+        # highlighting on only when loaded and passed.
+        #
+        # We need to do this because Atom is so fucking slow, it may
+        # apply highlighting after we deactivated it.
+        editor.on 'grammar-changed', =>
+          grammarIsAgda = editor.getGrammar().name is 'Agda'
+          shouldHighlight = editor.agda.passed and editor.agda.passed
+          if grammarIsAgda and not shouldHighlight
+            # fuck you atom
+            editor.agda.syntax.deactivate()
+
     # load
     atom.workspaceView.command 'agda-mode:load', =>
       if @isAgdaFile()
         editor = @getTheFuckingEditor()
-        editor.agda ?= new Agda editor
         editor.agda.load()
 
 

@@ -42,12 +42,13 @@ module.exports = class Agda
 
   executablePath: null
   loaded: false
+  passed: false
 
   constructor: (@editor) ->
     @syntax = new AgdaSyntax @editor
-    @syntax.deactivate()
 
     @filepath = @editor.getPath()
+    
     @executable = new AgdaExecutable
 
     @panelView = new PanelView
@@ -63,6 +64,7 @@ module.exports = class Agda
 
       @commandExecutor = new ExecCommand @panelView
       @commandExecutor.on 'passed', =>
+        @passed = true
         @syntax.activate()
 
       @executable.agda.stdout
@@ -91,6 +93,7 @@ module.exports = class Agda
   quit: ->
     if @loaded
       @loaded = false
+      @passed = false
       @syntax.deactivate()
 
   restart: ->
