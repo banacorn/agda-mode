@@ -1,25 +1,7 @@
 {Transform, Readable} = require 'stream'
 code = require './command-code'
 Rectify = require './stream/rectify'
-
-# make s-expression prettier
-class Preprocess extends Transform
-  constructor: ->
-    super
-      objectMode: true
-
-  _transform: (chunk, encoding, next) ->
-
-    # drop wierd prefix like ((last . 1))
-    if chunk.startsWith '((last'
-      index = chunk.indexOf '(agda'
-      length = chunk.length
-      chunk = chunk.substring index, length - 1
-
-
-
-    @push chunk
-    next()
+Preprocess = require './stream/preprocess'
 
 class ParseSExpr extends Transform
 
