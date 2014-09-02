@@ -3,15 +3,8 @@ code = require './command-code'
 Rectify = require './stream/rectify'
 Preprocess = require './stream/preprocess'
 ParseSExpr = require './stream/parse-s-expr'
+Util = require './stream/util'
 
-class ListSource extends Readable
-  constructor: (@list) ->
-    super
-      objectMode: true
-  _read: ->
-    for l in @list
-      @push l
-    @push null
 
 
 class ParseCommand extends Transform
@@ -54,20 +47,11 @@ class ParseCommand extends Transform
     @push command
     next()
 
-class Log extends Transform
-  constructor: ->
-    super
-      objectMode: true
-
-  _transform: (chunk, encoding, next) ->
-    console.log chunk
-    @push chunk
-    next()
 
 module.exports =
   Rectify:      Rectify
   Preprocess:   Preprocess
   ParseSExpr:   ParseSExpr
   ParseCommand: ParseCommand
-  ListSource:   ListSource
-  Log:          Log
+  ListSource:   Util.ListSource
+  Log:          Util.Log
