@@ -4,8 +4,6 @@ AgdaExecutable = require './agda/executable'
 Stream = require './agda/stream'
 
 {Writable} = require 'stream'
-code = require './agda/command-code'
-
 class ExecCommand extends Writable
 
   constructor: (@panel) ->
@@ -17,10 +15,10 @@ class ExecCommand extends Writable
     # console.log command
 
     switch command.type
-      when code.INFO_ACTION
+      when 'info-action'
         @panel.infoHeader.text command.header
         @panel.infoContent.text command.content
-      when code.STATUS_ACTION
+      when 'status-action'
         @panel.status.text command.status
 
 
