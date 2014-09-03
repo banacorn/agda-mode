@@ -2,43 +2,9 @@ AgdaSyntax = require './agda/syntax'
 PanelView = require './view/panel'
 AgdaExecutable = require './agda/executable'
 Stream = require './stream'
-{Writable} = require 'stream'
+{EventEmitter} = require 'events'
 
-class ExecCommand extends Writable
-
-  constructor: (@panel) ->
-    super
-      objectMode: true
-
-  _write: (command, encoding, next) ->
-
-    switch command.type
-
-      when 'info-action: type-checking'
-        @panel.infoHeader.text 'Type Checking'
-        @panel.infoContent.text command.content
-        @panel.setStatus 'info'
-
-      when 'info-action: error'
-        @panel.infoHeader.text 'Error'
-        @panel.infoContent.text command.content
-        @panel.setStatus 'error'
-
-      when 'info-action: all goals'
-        @panel.infoHeader.text 'All Goals'
-        @panel.infoContent.text command.content
-        @panel.setStatus()
-
-        # we consider it passed, when this info-action shows up
-        @emit 'passed'
-
-      # when 'status-action'
-      #   @panel.status.text command.status
-
-
-    next()
-
-module.exports = class Agda
+class Agda extends EventEmitter
 
   executablePath: null
   loaded: false
@@ -48,7 +14,7 @@ module.exports = class Agda
     @syntax = new AgdaSyntax @editor
 
     @filepath = @editor.getPath()
-    
+
     @executable = new AgdaExecutable
 
     @panelView = new PanelView
@@ -62,7 +28,7 @@ module.exports = class Agda
 
       @panelView.attach()
 
-      @commandExecutor = new ExecCommand @panelView
+      @commandExecutor = new Stream.ExecuteCommand @panelView
       @commandExecutor.on 'passed', =>
         @passed = true
         @syntax.activate()
@@ -99,3 +65,5 @@ module.exports = class Agda
   restart: ->
     @quit()
     @executable.wire()
+
+module.exports = Agda

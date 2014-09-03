@@ -22,11 +22,8 @@ module.exports = class PanelView extends View
     @registerHandlers()
 
   attach: ->
-    # atom.workspaceView.prependToBottom @
-    # console.log atom.workspaceView
-
-    atom.workspaceView.getActiveView().append @
-
+    atom.workspaceView.prependToBottom @
+    
   registerHandlers: ->
     # ########## UI events ##########
     #
