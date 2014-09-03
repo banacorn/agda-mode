@@ -21,9 +21,9 @@ class ExecuteCommand extends Transform
         @panel.setStatus 'error'
 
       when 'info-action: all goals'
-        @panel.infoHeader.text 'All Goals'
-        @panel.infoContent.text command.content
-        @panel.setStatus()
+        # @panel.infoHeader.text 'All Goals'
+        # @panel.infoContent.text command.content
+        # @panel.setStatus()
 
         # we consider it passed, when this info-action shows up
         @emit 'passed'

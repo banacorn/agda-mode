@@ -72,6 +72,7 @@ class Agda extends EventEmitter
       @loaded = false
       @passed = false
       @syntax.deactivate()
+      @panelView.detach()
 
   restart: ->
     @quit()
