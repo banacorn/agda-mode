@@ -7,6 +7,7 @@ Stream = require './stream'
 class Agda extends EventEmitter
 
   executablePath: null
+  active: false
   loaded: false
   passed: false
 
@@ -47,6 +48,16 @@ class Agda extends EventEmitter
       else
         command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" [])\n'
       @executable.agda.stdin.write command
+
+    @on 'activate', =>
+      @active = true
+      if @loaded
+        @panelView.attach()
+
+    @on 'deactivate', =>
+      @active = false
+      if @loaded
+        @panelView.detach()
 
   load: ->
     console.log '========='
