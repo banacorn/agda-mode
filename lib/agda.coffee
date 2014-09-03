@@ -29,15 +29,15 @@ class Agda extends EventEmitter
 
       @panelView.attach()
 
-      @commandExecutor = new Stream.ExecuteCommand @panelView
+      @commandExecutor = new Stream.ExecuteCommand @
       @commandExecutor.on 'passed', =>
         @passed = true
         @syntax.activate()
 
       @executable.agda.stdout
         .pipe new Stream.Rectify
-        .pipe new Stream.Preprocess
         .pipe new Stream.Log
+        .pipe new Stream.Preprocess
         .pipe new Stream.ParseSExpr
         .pipe new Stream.ParseCommand
         .pipe @commandExecutor

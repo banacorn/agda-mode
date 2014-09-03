@@ -5,4 +5,4 @@ data Banana : Set where
     unpeeled : Banana
 
 a : Banana
-a = ?
+a = {!!}

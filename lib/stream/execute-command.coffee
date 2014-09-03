@@ -2,7 +2,7 @@
 
 class ExecuteCommand extends Transform
 
-  constructor: (@panel) ->
+  constructor: (@agda) ->
     super
       objectMode: true
 
@@ -11,13 +11,13 @@ class ExecuteCommand extends Transform
     switch command.type
 
       when 'info-action: type-checking'
-        @panel.setStatus 'Type Checking'
+        @agda.panelView.setStatus 'Type Checking'
         # @panel.setContent command.content
         # @panel.setStatus 'info'
 
       when 'info-action: error'
-        @panel.setStatus 'Error', 'error'
-        @panel.setContent command.content
+        @agda.panelView.setStatus 'Error', 'error'
+        @agda.panelView.setContent command.content
         # @panel.setStatus 'error'
 
 
@@ -25,11 +25,11 @@ class ExecuteCommand extends Transform
 
         # no more goals, all good
         if command.content.length is 0
-          @panel.setStatus 'No Goals', 'success'
+          @agda.panelView.setStatus 'No Goals', 'success'
         else
-          @panel.setStatus 'Goals', 'info'
+          @agda.panelView.setStatus 'Goals', 'info'
 
-        @panel.setContent command.content
+        @agda.panelView.setContent command.content
 
         # we consider it passed, when this info-action shows up
         @emit 'passed'

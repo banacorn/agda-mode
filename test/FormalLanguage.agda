@@ -1,6 +1,6 @@
 module FormalLanguage where
 
-open import Data.Bool
+open import Data.Bool{}
 open import Data.List using (List; []; _∷_; zip)
 import Data.List.Any
 open Data.List.Any.Membership-≡ using (_∈_ ; _∉_)
