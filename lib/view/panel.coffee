@@ -6,13 +6,19 @@ module.exports = class PanelView extends View
     @div outlet: 'agdaPanel', class: 'agda-panel tool-panel panel-bottom', =>
       @div outlet: 'header', class: 'inset-panel padded', =>
         @span outlet: 'status'
-      @div class: "block padded", =>
+      @div outlet: 'contentBlock', class: "block padded", =>
         @div outlet: 'content', class: 'agda-panel-content block', =>
-          @ul class: 'list-group'
+          @ul outlet: 'contentList', class: 'list-group'
 
-  addInfoContent: (string) ->
-    @content.find 'ul'
-      .append "<li class: 'list-item'>#{string}</li>"
+  setContent: (messages) ->
+    @contentList.empty()
+
+    if messages.length > 0
+      @contentBlock.show()
+      for message in messages
+        @contentList.append "<li class: 'list-item'>#{message}</li>"
+    else
+      @contentBlock.hide()
 
   setStatus: (string, type) ->
     if type

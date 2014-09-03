@@ -1,4 +1,5 @@
 {Transform} = require 'stream'
+_ = require 'lodash'
 
 class ParseCommand extends Transform
 
@@ -15,18 +16,19 @@ class ParseCommand extends Transform
         status: tokens[1]
 
       when "agda2-info-action"
+        content = _.compact tokens[2].split '\\n'
         switch tokens[1]
           when "*Type-checking*" then command =
             type: 'info-action: type-checking'
-            content: tokens[2]
+            content: content
 
           when "*Error*" then command =
             type: 'info-action: error'
-            content: tokens[2]
+            content: content
 
           when "*All Goals*" then command =
             type: 'info-action: all goals'
-            content: tokens[2]
+            content: content
 
           else
             throw 'wtf is this info-action? ' + JSON.stringify tokens
