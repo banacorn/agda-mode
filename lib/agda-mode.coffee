@@ -23,13 +23,13 @@ module.exports =
         currentEditor = nextEditor
 
 
-    atom.workspace.eachEditor (editor) =>
-      if @isAgdaFile(editor)
-        editor.agda = new Agda editor
+    atom.workspaceView.eachEditorView (editorView) =>
+      editor = editorView.getModel()
+      if @isAgdaFile editor
+        editor.agda = new Agda editorView
 
         # deactivated on default
         editor.agda.syntax.deactivate()
-
         # make sure that the highlighting is consistent with Agda' state,
         # highlighting on only when loaded and passed.
         #

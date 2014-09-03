@@ -11,7 +11,8 @@ class Agda extends EventEmitter
   loaded: false
   passed: false
 
-  constructor: (@editor) ->
+  constructor: (@editorView) ->
+    @editor = @editorView.getModel()
     @syntax = new AgdaSyntax @editor
 
     @filepath = @editor.getPath()
