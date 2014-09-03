@@ -3,20 +3,21 @@
 module.exports = class PanelView extends View
 
   @content: ->
-    @div class: 'tool-panel panel-bottom padded', =>
-      @div class: "block", =>
-        @span outlet: 'infoHeader', class: 'inline-block text-highlight'
-        @span outlet: 'infoContent', class: 'inline-block'
-      # @div class: "block", =>
-      #   @span outlet: 'status', class: 'inline-block'
+    @div outlet: 'agdaPanel', class: 'agda-panel tool-panel panel-bottom', =>
+      @div outlet: 'header', class: 'inset-panel padded', =>
+        @span outlet: 'status'
+      @div class: "block padded", =>
+        @div outlet: 'content', class: 'agda-panel-content block', =>
+          @ul class: 'list-group'
 
-  setStatus: (type) ->
-    defaultClass = 'inline-block'
+  addInfoContent: (string) ->
+    @content.find 'ul'
+      .append "<li class: 'list-item'>#{string}</li>"
+
+  setStatus: (string, type) ->
     if type
-      additional = 'highlight-' + type
-    else
-      additional = 'highlight'
-    @infoHeader.attr 'class', defaultClass + ' ' + additional
+      @status.attr 'class', 'text-' + type
+    @status.text string
 
   attach: ->
     atom.workspaceView.prependToBottom @

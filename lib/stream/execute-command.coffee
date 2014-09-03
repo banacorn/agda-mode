@@ -11,20 +11,20 @@ class ExecuteCommand extends Transform
     switch command.type
 
       when 'info-action: type-checking'
-        @panel.infoHeader.text 'Type Checking'
-        @panel.infoContent.text command.content
-        @panel.setStatus 'info'
+        @panel.setStatus 'Type Checking'
+        @panel.addInfoContent command.content
+        # @panel.setStatus 'info'
 
       when 'info-action: error'
-        @panel.infoHeader.text 'Error'
-        @panel.infoContent.text command.content
-        @panel.setStatus 'error'
+        @panel.setStatus 'Error', 'error'
+        @panel.content.text command.content
+        # @panel.setStatus 'error'
+
 
       when 'info-action: all goals'
-        # @panel.infoHeader.text 'All Goals'
-        # @panel.infoContent.text command.content
-        # @panel.setStatus()
-
+        @panel.setStatus 'All Goals', 'info'
+        @panel.content.text command.content
+        console.log command.content
         # we consider it passed, when this info-action shows up
         @emit 'passed'
 
