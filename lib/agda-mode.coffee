@@ -8,6 +8,15 @@ module.exports =
 
   activate: (state) ->
 
+    # editor active/inactive event register, fuck Atom's event clusterfuck
+    currentEditor = atom.workspaceView.getActivePaneItem()
+    atom.workspaceView.on 'pane-container:active-pane-item-changed', (event, nextEditor) =>
+      if nextEditor.getPath() isnt currentEditor.getPath()
+        currentEditor.emit 'became-inactive'
+        nextEditor.emit 'became-active'
+        currentEditor = nextEditor
+
+
     atom.workspace.eachEditor (editor) =>
       if @isAgdaFile(editor)
         editor.agda = new Agda editor
@@ -26,6 +35,12 @@ module.exports =
           if grammarIsAgda and not shouldHighlight
             # fuck you atom
             editor.agda.syntax.deactivate()
+
+        editor.on 'became-active', =>
+          editor.agda.emit 'activate'
+        editor.on 'became-inactive', =>
+          editor.agda.emit 'deactivate'
+
 
     # load
     atom.workspaceView.command 'agda-mode:load', =>
