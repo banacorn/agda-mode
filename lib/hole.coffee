@@ -11,27 +11,41 @@ class Hole extends EventEmitter
     @headIndices = @indicesOf text, /\{!/
     @tailIndices = @indicesOf text, /!\}/
 
+    # register all markers first
+    for headIndex, i in @headIndices
+      console.log 'registering hole marker'
+      tailIndex = @tailIndices[i]
+
+      pointHead = @agda.editor.buffer.positionForCharacterIndex headIndex
+      markerHead = @agda.editor.markBufferPosition pointHead,
+        hole: true
+        type: 'head'
+        index: i
+
+      pointTail = @agda.editor.buffer.positionForCharacterIndex tailIndex
+      markerTail = @agda.editor.markBufferPosition pointTail,
+        hole: true
+        type: 'tail'
+        index: i
 
     @agda.editor.cursors[0].on 'moved', @skipHandler
+
+  findHoleMarkers: -> @agda.editor.findMarkers hole: true
 
   skipHandler: (event) =>
       cursorOld = event.oldBufferPosition
       cursorNew = event.newBufferPosition
 
-      for headIndex, i in @headIndices
-        tailIndex = @tailIndices[i]
+      @findHoleMarkers().map (marker) =>
 
-        pointHead = @agda.editor.buffer.positionForCharacterIndex headIndex
-        markerHead = @agda.editor.markBufferPosition pointHead
+        attrs = marker.getAttributes()
 
-        pointTail = @agda.editor.buffer.positionForCharacterIndex tailIndex
-        markerTail = @agda.editor.markBufferPosition pointTail
-
-        # skip '{!'
-        @skipBorder cursorOld, cursorNew, markerHead, 'left'
-
-        # skip '!}'
-        @skipBorder cursorOld, cursorNew, markerTail, 'right'
+        if attrs.type is 'head'
+          # skip '{!'
+          @skipBorder cursorOld, cursorNew, marker, 'left'
+        else
+          # skip '!}'
+          @skipBorder cursorOld, cursorNew, marker, 'right'
 
   skipBorder: (cursorOld, cursorNew, marker, direction) ->
 
