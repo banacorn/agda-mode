@@ -7,6 +7,3 @@ data Banana : Set where
 
 a : Banana
 a = {!!}
-
-b : Banana
-b = {!!}
