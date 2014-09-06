@@ -14,8 +14,6 @@ class Hole extends EventEmitter
       point = @agda.editor.buffer.positionForCharacterIndex headIndex
       marker = @agda.editor.markBufferPosition point
 
-    marker.on 'changed', (event) =>
-      console.log event.newHeadBufferPosition.toArray()
 
     @agda.editor.cursors[0].on 'moved', (event) =>
       cursorOld = event.oldBufferPosition
@@ -25,36 +23,17 @@ class Hole extends EventEmitter
       markerLeft = marker.oldHeadBufferPosition
       markerCenter = markerLeft.translate new Point 0, 1
       markerRight = markerLeft.translate new Point 0, 2
-
       if cursorNew.isEqual markerCenter
-        if cursorOld.isEqual markerLeft # from left -->
-          @agda.editor.moveCursorRight()
-        else if cursorOld.isEqual markerRight # from right <--
-          @agda.editor.moveCursorLeft()
-        else # from somewhere else
-          @agda.editor.moveCursorRight()
+        if cursorOld.isEqual markerLeft
+          # from left -->
+          @agda.editor.setCursorBufferPosition markerRight
+        else if cursorOld.isEqual markerRight
+          # from right <--
+          @agda.editor.setCursorBufferPosition markerLeft
+        else
+          # from somewhere else
+          @agda.editor.setCursorBufferPosition markerRight
 
-        # direction = cursorNew.compare cursorOld
-        # if direction is 1 # =>
-        #   console.log '==>'
-        #   @agda.editor.moveCursorRight()
-        # else if direction is -1 # <=
-        #   console.log '<=='
-        #   @agda.editor.moveCursorLeft()
-
-
-
-    # tailIndices = indicesOf text, /!\}/
-    #
-    # for headIndex, i in headIndices
-    #   tailIndex = tailIndices[i]
-    #   headPoint = @agda.editor.buffer.positionForCharacterIndex headIndex
-    #   tailPoint = @agda.editor.buffer.positionForCharacterIndex tailIndex
-    #   marker = @agda.editor.markBufferRange [headPoint.toArray(), tailPoint.toArray()]
-    #   marker.on 'changed', (event) =>
-    #     console.log 'changed'
-    #     console.log event.oldHeadBufferPosition.toArray(), event.oldTailBufferPosition.toArray()
-    #     console.log event.newHeadBufferPosition.toArray(), event.newTailBufferPosition.toArray()
 
   indicesOf = (string, pattern) ->
     indices = []
