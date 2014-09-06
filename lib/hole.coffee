@@ -8,34 +8,54 @@ class Hole extends EventEmitter
   constructor: (@agda) ->
 
     text = @agda.editor.getText()
-    headIndices = indicesOf text, /\{!/
-
-    for headIndex in headIndices
-      point = @agda.editor.buffer.positionForCharacterIndex headIndex
-      marker = @agda.editor.markBufferPosition point
+    @headIndices = @indicesOf text, /\{!/
+    @tailIndices = @indicesOf text, /!\}/
 
 
-    @agda.editor.cursors[0].on 'moved', (event) =>
+    @agda.editor.cursors[0].on 'moved', @skipHandler
+
+  skipHandler: (event) =>
       cursorOld = event.oldBufferPosition
       cursorNew = event.newBufferPosition
 
-      # no go between '{' and '!'
-      markerLeft = marker.oldHeadBufferPosition
-      markerCenter = markerLeft.translate new Point 0, 1
-      markerRight = markerLeft.translate new Point 0, 2
-      if cursorNew.isEqual markerCenter
-        if cursorOld.isEqual markerLeft
-          # from left -->
-          @agda.editor.setCursorBufferPosition markerRight
-        else if cursorOld.isEqual markerRight
-          # from right <--
-          @agda.editor.setCursorBufferPosition markerLeft
-        else
-          # from somewhere else
-          @agda.editor.setCursorBufferPosition markerRight
+      for headIndex, i in @headIndices
+        tailIndex = @tailIndices[i]
+
+        pointHead = @agda.editor.buffer.positionForCharacterIndex headIndex
+        markerHead = @agda.editor.markBufferPosition pointHead
+
+        pointTail = @agda.editor.buffer.positionForCharacterIndex tailIndex
+        markerTail = @agda.editor.markBufferPosition pointTail
+
+        # skip '{!'
+        @skipBorder cursorOld, cursorNew, markerHead, 'left'
+
+        # skip '!}'
+        @skipBorder cursorOld, cursorNew, markerTail, 'right'
+
+  skipBorder: (cursorOld, cursorNew, marker, direction) ->
+
+    markerLeft = marker.oldHeadBufferPosition
+    markerCenter = markerLeft.translate new Point 0, 1
+    markerRight = markerLeft.translate new Point 0, 2
+
+    if cursorNew.isEqual markerCenter
+      if cursorOld.isEqual markerLeft
+        # from left -->
+        @agda.editor.setCursorBufferPosition markerRight
+      else if cursorOld.isEqual markerRight
+        # from right <--
+        @agda.editor.setCursorBufferPosition markerLeft
+      else
+        # from somewhere else
+        switch direction
+          when 'left'
+            @agda.editor.setCursorBufferPosition markerRight
+          when 'right'
+            @agda.editor.setCursorBufferPosition markerLeft
 
 
-  indicesOf = (string, pattern) ->
+  indicesOf: (string, pattern) ->
     indices = []
     cursor = 0
     result = string.match pattern
