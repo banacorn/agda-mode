@@ -30,7 +30,6 @@ class ExecuteCommand extends Transform
           @agda.panelView.setStatus 'No Goals', 'success'
         else
           @agda.panelView.setStatus 'Goals', 'info'
-
         @agda.panelView.setContent command.content
 
         # we consider it passed, when this info-action shows up

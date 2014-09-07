@@ -1,9 +1,11 @@
 {EventEmitter} = require 'events'
-{Point} = require 'atom'
+{Point, Range} = require 'atom'
+HoleView = require './view/hole'
+
+
+
 # manages all "holes" in a editor
 class Hole extends EventEmitter
-
-  holes = []
 
   constructor: (@agda) ->
 
@@ -13,7 +15,6 @@ class Hole extends EventEmitter
 
     # register all markers first
     for headIndex, i in @headIndices
-      console.log 'registering hole marker'
       tailIndex = @tailIndices[i]
 
       pointHead = @agda.editor.buffer.positionForCharacterIndex headIndex
@@ -21,6 +22,7 @@ class Hole extends EventEmitter
         hole: true
         type: 'head'
         index: i
+      @agda.editor
 
       pointTail = @agda.editor.buffer.positionForCharacterIndex tailIndex
       markerTail = @agda.editor.markBufferPosition pointTail,
@@ -28,7 +30,17 @@ class Hole extends EventEmitter
         type: 'tail'
         index: i
 
+      markerBody = @agda.editor.markBufferRange new Range(pointHead, pointTail),
+        hole: true
+        type: 'body'
+        index: i
+
+      view = new HoleView @agda, markerBody
+      view.attach()
+
+
     @agda.editor.cursors[0].on 'moved', @skipHandler
+
 
   findHoleMarkers: -> @agda.editor.findMarkers hole: true
 

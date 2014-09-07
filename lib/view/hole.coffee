@@ -3,13 +3,18 @@
 module.exports = class HoleView extends View
 
   @content: ->
-    @div 'some shit'
-    
-  initialize: (serializeState) ->
+    @div outlet: 'hole', class: 'hole', '{}'
 
-  # Returns an object that can be retrieved when package is activated
-  serialize: ->
+  initialize: (@agda, @marker) ->
+    markerStartPosition = @marker.oldTailBufferPosition
+    # markerEndPosition = @marker.oldHeadBufferPosition
+    {top, left} = @agda.editorView.pixelPositionForScreenPosition markerStartPosition
+    # end = @agda.editorView.pixelPositionForScreenPosition markerEndPosition
+    # console.log end.left - left
+    @offset
+      top: top
+      left: left
+      # width: end.left - left
 
-  # Tear down any state and detach
-  destroy: ->
-    @detach()
+  attach: ->
+    @agda.editorView.overlayer.append @

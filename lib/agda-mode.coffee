@@ -12,13 +12,13 @@ module.exports =
     currentEditor = atom.workspaceView.getActivePaneItem()
     atom.workspaceView.on 'pane-container:active-pane-item-changed', (event, nextEditor) =>
 
-      current = currentEditor.getPath?()
+      current = currentEditor?.getPath?()
       current ?= 'no path'
       next = nextEditor.getPath?()
       next ?= 'no path'
 
       if next isnt current
-        currentEditor.emit? 'became-inactive'
+        currentEditor?.emit? 'became-inactive'
         nextEditor.emit? 'became-active'
         currentEditor = nextEditor
 
