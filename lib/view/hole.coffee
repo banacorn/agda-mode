@@ -1,4 +1,4 @@
-{View} = require 'atom'
+{View, Point} = require 'atom'
 
 module.exports = class HoleView extends View
 
@@ -7,14 +7,12 @@ module.exports = class HoleView extends View
 
   initialize: (@agda, @marker) ->
     markerStartPosition = @marker.oldTailBufferPosition
-    # markerEndPosition = @marker.oldHeadBufferPosition
-    {top, left} = @agda.editorView.pixelPositionForScreenPosition markerStartPosition
-    # end = @agda.editorView.pixelPositionForScreenPosition markerEndPosition
-    # console.log end.left - left
-    @offset
-      top: top
-      left: left
-      # width: end.left - left
+    markerEndPosition = @marker.oldHeadBufferPosition.translate new Point 0, 2
+    pixelStartPosition = @agda.editorView.pixelPositionForScreenPosition markerStartPosition
+    pixelEndPosition = @agda.editorView.pixelPositionForScreenPosition markerEndPosition
+
+    @offset pixelStartPosition
+    @width pixelEndPosition.left - pixelStartPosition.left
 
   attach: ->
     @agda.editorView.overlayer.append @
