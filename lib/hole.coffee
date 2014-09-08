@@ -9,15 +9,16 @@ class Hole extends EventEmitter
     # register marker
     @startPosition = @agda.editor.buffer.positionForCharacterIndex headIndex
     @endPosition = @agda.editor.buffer.positionForCharacterIndex tailIndex
-    range = new Range @endPosition, @startPosition
-    @marker = @agda.editor.markBufferRange range, type: 'hole'
+    @range = new Range @endPosition, @startPosition
+
+    @marker = @agda.editor.markBufferRange @range, type: 'hole'
 
     # view
     view = new HoleView @agda, @
     view.attach()
 
     # text
-    @text = @agda.editor.getTextInRange range
+    @text = @agda.editor.getTextInRange @range
     @emit 'position-changed', @startPosition, @endPosition
     @emit 'text-changed', @text
 
@@ -29,12 +30,14 @@ class Hole extends EventEmitter
       range = @marker.bufferMarker.getRange()
       oldText = @text
       newText = @agda.editor.getTextInRange range
-
+      
       # calculate new marker range
-      leftPadding = newText.indexOf '{!'
-      rightPadding = newText.length - newText.indexOf('!}') - 2
-      @startPosition = event.newTailBufferPosition.translate new Point 0, leftPadding
-      @endPosition = event.newHeadBufferPosition.translate new Point 0, -rightPadding
+      # leftPadding = newText.indexOf '{!'
+      # rightPadding = newText.length - newText.indexOf('!}') - 2
+      # @startPosition = event.newTailBufferPosition.translate new Point 0, leftPadding
+      # @endPosition = event.newHeadBufferPosition.translate new Point 0, -rightPadding
+      @startPosition = event.newTailBufferPosition
+      @endPosition = event.newHeadBufferPosition
       @emit 'position-changed', @startPosition, @endPosition
 
 

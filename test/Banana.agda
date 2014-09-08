@@ -6,7 +6,11 @@ data Banana : Set where
     rotten : Banana
 
 a : Banana
-a = {!  asdfasdfasdfasdf  !}
+a = {!
+  !}
 
 b : Banana
-b = {! afasdfsdf !}
+b = {!
+
+asdfasdf
+     !}
