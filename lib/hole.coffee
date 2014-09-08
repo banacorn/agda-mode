@@ -7,9 +7,9 @@ class Hole extends EventEmitter
   constructor: (@agda, i, headIndex, tailIndex) ->
 
     # register marker
-    startPosition = @agda.editor.buffer.positionForCharacterIndex headIndex
-    endPosition = @agda.editor.buffer.positionForCharacterIndex tailIndex
-    range = new Range endPosition, startPosition
+    @startPosition = @agda.editor.buffer.positionForCharacterIndex headIndex
+    @endPosition = @agda.editor.buffer.positionForCharacterIndex tailIndex
+    range = new Range @endPosition, @startPosition
     @marker = @agda.editor.markBufferRange range, type: 'hole'
 
     # view
@@ -17,16 +17,26 @@ class Hole extends EventEmitter
     view.attach()
 
     # text
-    text = @agda.editor.getTextInRange range
-
-    @emit 'position-changed', startPosition, endPosition
-    @emit 'text-changed', text
+    @text = @agda.editor.getTextInRange range
+    @emit 'position-changed', @startPosition, @endPosition
+    @emit 'text-changed', @text
 
     @registerHandlers()
 
   registerHandlers: ->
-    #
-    # @marker.on
+
+    @marker.on 'changed', (event) =>
+      range = @marker.bufferMarker.getRange()
+      oldText = @text
+      newText = @agda.editor.getTextInRange range
+
+      # calculate new marker range
+      leftPadding = newText.indexOf '{!'
+      rightPadding = newText.length - newText.indexOf('!}') - 2
+      @startPosition = event.newTailBufferPosition.translate new Point 0, leftPadding
+      @endPosition = event.newHeadBufferPosition.translate new Point 0, -rightPadding
+      @emit 'position-changed', @startPosition, @endPosition
+
 
   # 1 for cursor right =>
   # -1 for cursor right <=
@@ -54,10 +64,10 @@ class Hole extends EventEmitter
     #  __         ____
     # "{! foo bar !}42"
 
-    skipZoneHeadLeft = @marker.oldTailBufferPosition
-    skipZoneHeadRight = @marker.oldTailBufferPosition.translate new Point 0, 2
-    skipZoneTailLeft = @marker.oldHeadBufferPosition.translate new Point 0, -2
-    skipZoneTailRight = @marker.oldHeadBufferPosition
+    skipZoneHeadLeft = @startPosition
+    skipZoneHeadRight = @startPosition.translate new Point 0, 2
+    skipZoneTailLeft = @endPosition.translate new Point 0, -2
+    skipZoneTailRight = @endPosition
     skipZoneHead = new Range skipZoneHeadLeft, skipZoneHeadRight
     skipZoneTail = new Range skipZoneTailLeft, skipZoneTailRight
 
