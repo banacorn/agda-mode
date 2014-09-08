@@ -39,13 +39,27 @@ class Hole extends EventEmitter
   destroyAllHoleMarkers: ->
     @findHoleMarkers().map (marker) => marker.destroy()
 
+  # 1 for cursor right =>
+  # -1 for cursor right <=
+  # 0 for jump-in
+  cursorDirection: (cursorOld, cursorNew) ->
+    diff = (a, b) ->
+      [b.row - a.row, b.column - a.column]
+    [rowDiff, columnDiff] = diff cursorOld, cursorNew
+    if rowDiff is 0
+      if columnDiff is 1
+        return 1
+      else if columnDiff is -1
+        return -1
+      else
+        return 0
+    else
+      return 0
+
   skip: (event) =>
     cursorOld = event.oldBufferPosition
     cursorNew = event.newBufferPosition
-
-    # 1 for forward =>
-    # -1 for backward <=
-    direction = cursorNew.compare cursorOld
+    direction = @cursorDirection cursorOld, cursorNew
     @findHoleMarkers?().map (marker) =>
 
       # skip zone:
@@ -60,15 +74,19 @@ class Hole extends EventEmitter
       skipZoneTail = new Range skipZoneTailLeft, skipZoneTailRight
 
       if skipZoneHead.containsPoint cursorNew, true
-        if direction is 1 # ==>
+        if direction is 1       # ==>
           @agda.editor.setCursorBufferPosition skipZoneHeadRight
-        else              # <==
+        else if direction is -1 # <==
           @agda.editor.setCursorBufferPosition skipZoneHeadLeft
+        else                    # random jump-in
+          @agda.editor.setCursorBufferPosition skipZoneHeadRight
 
       if skipZoneTail.containsPoint cursorNew, true
-        if direction is 1 # ==>
+        if direction is 1       # ==>
           @agda.editor.setCursorBufferPosition skipZoneTailRight
-        else              # <==
+        else if direction is -1 # <==
+          @agda.editor.setCursorBufferPosition skipZoneTailLeft
+        else                    # random jump-in
           @agda.editor.setCursorBufferPosition skipZoneTailLeft
 
   indicesOf: (string, pattern) ->
