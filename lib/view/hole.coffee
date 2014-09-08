@@ -10,7 +10,7 @@ module.exports = class HoleView extends View
     @index = @marker.getAttributes().index
 
     markerStartPosition = @marker.oldTailBufferPosition
-    markerEndPosition = @marker.oldHeadBufferPosition.translate new Point 0, 2
+    markerEndPosition = @marker.oldHeadBufferPosition
     pixelStartPosition = @agda.editorView.pixelPositionForScreenPosition markerStartPosition
     pixelEndPosition = @agda.editorView.pixelPositionForScreenPosition markerEndPosition
 

@@ -31,6 +31,9 @@ class Hole extends EventEmitter
         type: 'hole'
         index: i
         width: width
+      view = new HoleView @agda, marker
+      view.attach()
+
     @agda.editor.cursors[0].on 'moved', @skip
 
   findHoleMarkers: ->
