@@ -9,77 +9,67 @@ class Hole extends EventEmitter
 
   constructor: (@agda) ->
 
+    @destroyAllHoleMarkers()
+
     text = @agda.editor.getText()
     @headIndices = @indicesOf text, /\{!/
     @tailIndices = @indicesOf text, /!\}/
 
     # register all markers first
     for headIndex, i in @headIndices
+
       tailIndex = @tailIndices[i]
 
+      # length of '!}'
+      tailIndex += 2
+      # width of the marker from head to toe
+      width = tailIndex - headIndex
       pointHead = @agda.editor.buffer.positionForCharacterIndex headIndex
-      markerHead = @agda.editor.markBufferPosition pointHead,
-        hole: true
-        type: 'head'
-        index: i
-      @agda.editor
-
       pointTail = @agda.editor.buffer.positionForCharacterIndex tailIndex
-      markerTail = @agda.editor.markBufferPosition pointTail,
-        hole: true
-        type: 'tail'
+      range = new Range pointTail, pointHead
+      marker = @agda.editor.markBufferRange range,
+        type: 'hole'
         index: i
+        width: width
+    @agda.editor.cursors[0].on 'moved', @skip
 
-      markerBody = @agda.editor.markBufferRange new Range(pointHead, pointTail),
-        hole: true
-        type: 'body'
-        index: i
+  findHoleMarkers: ->
+    @agda.editor.findMarkers type: 'hole'
 
-      view = new HoleView @agda, markerBody
-      view.attach()
+  destroyAllHoleMarkers: ->
+    @findHoleMarkers().map (marker) => marker.destroy()
 
+  skip: (event) =>
+    cursorOld = event.oldBufferPosition
+    cursorNew = event.newBufferPosition
 
-    @agda.editor.cursors[0].on 'moved', @skipHandler
+    # 1 for forward =>
+    # -1 for backward <=
+    direction = cursorNew.compare cursorOld
+    @findHoleMarkers?().map (marker) =>
 
+      # skip zone:
+      #  __         ____
+      # "{! foo bar !}42"
 
-  findHoleMarkers: -> @agda.editor.findMarkers hole: true
+      skipZoneHeadLeft = marker.oldTailBufferPosition
+      skipZoneHeadRight = marker.oldTailBufferPosition.translate new Point 0, 2
+      skipZoneTailLeft = marker.oldHeadBufferPosition.translate new Point 0, -2
+      skipZoneTailRight = marker.oldHeadBufferPosition
+      skipZoneHead = new Range skipZoneHeadLeft, skipZoneHeadRight
+      skipZoneTail = new Range skipZoneTailLeft, skipZoneTailRight
 
-  skipHandler: (event) =>
-      cursorOld = event.oldBufferPosition
-      cursorNew = event.newBufferPosition
+      if skipZoneHead.containsPoint cursorNew, true
+        if direction is 1 # ==>
+          @agda.editor.setCursorBufferPosition skipZoneHeadRight
+        else              # <==
+          @agda.editor.setCursorBufferPosition skipZoneHeadLeft
 
-      @findHoleMarkers().map (marker) =>
-
-        attrs = marker.getAttributes()
-
-        if attrs.type is 'head'
-          # skip '{!'
-          @skipBorder cursorOld, cursorNew, marker, 'left'
-        else
-          # skip '!}'
-          @skipBorder cursorOld, cursorNew, marker, 'right'
-
-  skipBorder: (cursorOld, cursorNew, marker, direction) ->
-
-    markerLeft = marker.oldHeadBufferPosition
-    markerCenter = markerLeft.translate new Point 0, 1
-    markerRight = markerLeft.translate new Point 0, 2
-
-    if cursorNew.isEqual markerCenter
-      if cursorOld.isEqual markerLeft
-        # from left -->
-        @agda.editor.setCursorBufferPosition markerRight
-      else if cursorOld.isEqual markerRight
-        # from right <--
-        @agda.editor.setCursorBufferPosition markerLeft
-      else
-        # from somewhere else
-        switch direction
-          when 'left'
-            @agda.editor.setCursorBufferPosition markerRight
-          when 'right'
-            @agda.editor.setCursorBufferPosition markerLeft
-
+      if skipZoneTail.containsPoint cursorNew, true
+        if direction is 1 # ==>
+          @agda.editor.setCursorBufferPosition skipZoneTailRight
+        else              # <==
+          @agda.editor.setCursorBufferPosition skipZoneTailLeft
 
   indicesOf: (string, pattern) ->
     indices = []
@@ -91,6 +81,5 @@ class Hole extends EventEmitter
       string = string.substr (result.index + result[0].length)
       result = string.match pattern
     return indices
-
 
 module.exports = Hole
