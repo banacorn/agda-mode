@@ -1,6 +1,5 @@
 AgdaSyntax = require './agda/syntax'
 PanelView = require './view/panel'
-HoleView = require './view/hole'
 AgdaExecutable = require './agda/executable'
 Stream = require './stream'
 {EventEmitter} = require 'events'

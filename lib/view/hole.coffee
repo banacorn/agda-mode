@@ -6,8 +6,9 @@ module.exports = class HoleView extends View
     @div outlet: 'hole', class: 'hole'
 
 
-  initialize: (@agda, @marker) ->
+  initialize: (@agda, @hole) ->
 
+    @marker = @hole.marker
     @setPosition @marker.oldTailBufferPosition, @marker.oldHeadBufferPosition
 
     @marker.on 'changed', (event) =>

@@ -2,47 +2,23 @@
 {Point, Range} = require 'atom'
 HoleView = require './view/hole'
 
-
-
-# manages all "holes" in a editor
 class Hole extends EventEmitter
 
-  constructor: (@agda) ->
+  constructor: (@agda, i, headIndex, tailIndex) ->
 
-    @destroyAllHoleMarkers()
-
-    text = @agda.editor.getText()
-    @headIndices = @indicesOf text, /\{!/
-    @tailIndices = @indicesOf text, /!\}/
-
-    # register all markers first
-    for headIndex, i in @headIndices
-
-      tailIndex = @tailIndices[i]
-
-      # length of '!}'
-      tailIndex += 2
-      # width of the marker from head to toe
-      width = tailIndex - headIndex
-      pointHead = @agda.editor.buffer.positionForCharacterIndex headIndex
-      pointTail = @agda.editor.buffer.positionForCharacterIndex tailIndex
-      range = new Range pointTail, pointHead
-      text = @agda.editor.getTextInRange range
-      marker = @agda.editor.markBufferRange range,
-        type: 'hole'
-        index: i
-        width: width,
-        text: text
-      view = new HoleView @agda, marker
-      view.attach()
-
-    @agda.editor.cursors[0].on 'moved', @skip
-
-  findHoleMarkers: ->
-    @agda.editor.findMarkers type: 'hole'
-
-  destroyAllHoleMarkers: ->
-    @findHoleMarkers().map (marker) => marker.destroy()
+    # width of the marker from head to toe
+    @width = tailIndex - headIndex
+    pointHead = @agda.editor.buffer.positionForCharacterIndex headIndex
+    pointTail = @agda.editor.buffer.positionForCharacterIndex tailIndex
+    range = new Range pointTail, pointHead
+    @text = @agda.editor.getTextInRange range
+    @marker = @agda.editor.markBufferRange range,
+      type: 'hole'
+      index: i
+      width: @width,
+      text: @text
+    @view = new HoleView @agda, @
+    @view.attach()
 
   # 1 for cursor right =>
   # -1 for cursor right <=
@@ -93,16 +69,5 @@ class Hole extends EventEmitter
           @agda.editor.setCursorBufferPosition skipZoneTailLeft
         else                    # random jump-in
           @agda.editor.setCursorBufferPosition skipZoneTailLeft
-
-  indicesOf: (string, pattern) ->
-    indices = []
-    cursor = 0
-    result = string.match pattern
-    while result
-      indices.push result.index + cursor
-      cursor += result.index + result[0].length
-      string = string.substr (result.index + result[0].length)
-      result = string.match pattern
-    return indices
 
 module.exports = Hole
