@@ -6,19 +6,27 @@ class Hole extends EventEmitter
 
   constructor: (@agda, i, headIndex, tailIndex) ->
 
-    # width of the marker from head to toe
-    @width = tailIndex - headIndex
-    pointHead = @agda.editor.buffer.positionForCharacterIndex headIndex
-    pointTail = @agda.editor.buffer.positionForCharacterIndex tailIndex
-    range = new Range pointTail, pointHead
-    @text = @agda.editor.getTextInRange range
-    @marker = @agda.editor.markBufferRange range,
-      type: 'hole'
-      index: i
-      width: @width,
-      text: @text
-    @view = new HoleView @agda, @
-    @view.attach()
+    # register marker
+    startPosition = @agda.editor.buffer.positionForCharacterIndex headIndex
+    endPosition = @agda.editor.buffer.positionForCharacterIndex tailIndex
+    range = new Range endPosition, startPosition
+    @marker = @agda.editor.markBufferRange range, type: 'hole'
+
+    # view
+    view = new HoleView @agda, @
+    view.attach()
+
+    # text
+    text = @agda.editor.getTextInRange range
+
+    @emit 'position-changed', startPosition, endPosition
+    @emit 'text-changed', text
+
+    @registerHandlers()
+
+  registerHandlers: ->
+    #
+    # @marker.on
 
   # 1 for cursor right =>
   # -1 for cursor right <=
@@ -41,33 +49,32 @@ class Hole extends EventEmitter
     cursorOld = event.oldBufferPosition
     cursorNew = event.newBufferPosition
     direction = @cursorDirection cursorOld, cursorNew
-    @findHoleMarkers?().map (marker) =>
 
-      # skip zone:
-      #  __         ____
-      # "{! foo bar !}42"
+    # skip zone:
+    #  __         ____
+    # "{! foo bar !}42"
 
-      skipZoneHeadLeft = marker.oldTailBufferPosition
-      skipZoneHeadRight = marker.oldTailBufferPosition.translate new Point 0, 2
-      skipZoneTailLeft = marker.oldHeadBufferPosition.translate new Point 0, -2
-      skipZoneTailRight = marker.oldHeadBufferPosition
-      skipZoneHead = new Range skipZoneHeadLeft, skipZoneHeadRight
-      skipZoneTail = new Range skipZoneTailLeft, skipZoneTailRight
+    skipZoneHeadLeft = @marker.oldTailBufferPosition
+    skipZoneHeadRight = @marker.oldTailBufferPosition.translate new Point 0, 2
+    skipZoneTailLeft = @marker.oldHeadBufferPosition.translate new Point 0, -2
+    skipZoneTailRight = @marker.oldHeadBufferPosition
+    skipZoneHead = new Range skipZoneHeadLeft, skipZoneHeadRight
+    skipZoneTail = new Range skipZoneTailLeft, skipZoneTailRight
 
-      if skipZoneHead.containsPoint cursorNew, true
-        if direction is 1       # ==>
-          @agda.editor.setCursorBufferPosition skipZoneHeadRight
-        else if direction is -1 # <==
-          @agda.editor.setCursorBufferPosition skipZoneHeadLeft
-        else                    # random jump-in
-          @agda.editor.setCursorBufferPosition skipZoneHeadRight
+    if skipZoneHead.containsPoint cursorNew, true
+      if direction is 1       # ==>
+        @agda.editor.setCursorBufferPosition skipZoneHeadRight
+      else if direction is -1 # <==
+        @agda.editor.setCursorBufferPosition skipZoneHeadLeft
+      else                    # random jump-in
+        @agda.editor.setCursorBufferPosition skipZoneHeadRight
 
-      if skipZoneTail.containsPoint cursorNew, true
-        if direction is 1       # ==>
-          @agda.editor.setCursorBufferPosition skipZoneTailRight
-        else if direction is -1 # <==
-          @agda.editor.setCursorBufferPosition skipZoneTailLeft
-        else                    # random jump-in
-          @agda.editor.setCursorBufferPosition skipZoneTailLeft
+    if skipZoneTail.containsPoint cursorNew, true
+      if direction is 1       # ==>
+        @agda.editor.setCursorBufferPosition skipZoneTailRight
+      else if direction is -1 # <==
+        @agda.editor.setCursorBufferPosition skipZoneTailLeft
+      else                    # random jump-in
+        @agda.editor.setCursorBufferPosition skipZoneTailLeft
 
 module.exports = Hole
