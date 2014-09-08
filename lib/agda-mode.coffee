@@ -54,7 +54,6 @@ module.exports =
         editor = @getTheFuckingEditor()
         editor.agda.load()
 
-
     # quit
     atom.workspaceView.command 'agda-mode:quit', =>
       if @isAgdaFile()

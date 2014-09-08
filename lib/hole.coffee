@@ -27,10 +27,12 @@ class Hole extends EventEmitter
       pointHead = @agda.editor.buffer.positionForCharacterIndex headIndex
       pointTail = @agda.editor.buffer.positionForCharacterIndex tailIndex
       range = new Range pointTail, pointHead
+      text = @agda.editor.getTextInRange range
       marker = @agda.editor.markBufferRange range,
         type: 'hole'
         index: i
-        width: width
+        width: width,
+        text: text
       view = new HoleView @agda, marker
       view.attach()
 
