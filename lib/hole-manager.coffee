@@ -29,8 +29,8 @@ class HoleManager extends EventEmitter
   # convert all '?' to '{!!}'
   expandHoles: ->
     rawText = @agda.editor.getText()
-    convertSpaced = rawText.split(' ? ').join(' {!!} ')
-    convertNewlined = convertSpaced.split(' ?\n').join(' {!!}\n')
+    convertSpaced = rawText.split(' ? ').join(' {!  !} ')
+    convertNewlined = convertSpaced.split(' ?\n').join(' {!  !}\n')
     @agda.editor.setText convertNewlined
 
   destroyAllHoleMarkers: ->

@@ -14,6 +14,23 @@ class Hole extends EventEmitter
   # Marker
   _marker: null
 
+  constructor: (@agda, i, headIndex, tailIndex) ->
+
+    start = @agda.editor.buffer.positionForCharacterIndex headIndex
+    end = @agda.editor.buffer.positionForCharacterIndex tailIndex
+    @initPosition start, end
+    @trimHole()
+
+    @initWatcher()
+
+
+    @registerHandlers()
+
+    # view
+    view = new HoleView @agda, @
+    view.attach()
+    @emit 'position-changed', @_start, @_end
+
   initPosition: (start, end) ->
     @_start = start
     @_end = end
@@ -69,21 +86,6 @@ class Hole extends EventEmitter
     @updatePosition start, end
 
 
-  constructor: (@agda, i, headIndex, tailIndex) ->
-
-    start = @agda.editor.buffer.positionForCharacterIndex headIndex
-    end = @agda.editor.buffer.positionForCharacterIndex tailIndex
-    @initPosition start, end
-
-    @trimHole()
-
-    @registerHandlers()
-
-    # view
-    view = new HoleView @agda, @
-    view.attach()
-    @emit 'position-changed', @_start, @_end
-
 
   registerHandlers: ->
     @_marker.on 'changed', (event) =>
@@ -94,23 +96,19 @@ class Hole extends EventEmitter
 
   destroy: ->
     @_marker.destroy()
+    @_watcher.destroy()
     @emit 'destroyed'
 
-  # # fucking ugly hack, to monitor text modification at the start of the marker
-  # updateWatcher: ->
-  #   if @watcher
-  #     @watcher.setHeadBufferPosition @startPosition.translate(new Point(0, 2))
-  #     @watcher.setTailBufferPosition @startPosition
-  #     console.log 'watched repositioned'
-  #
-  # initWatcher: ->
-  #   range = new Range @startPosition, @startPosition.translate(new Point(0, 2))
-  #   @watcher = @agda.editor.markBufferRange range, type: 'hole-watcher'
-  #   console.log 'watched inited'
-  #   @watcher.on 'changed', (event) =>
-  #     console.log 'watched changed'
-  #
-  #     @updateMarker()
+  # fucking ugly hack, to monitor text modification at the start of the marker
 
+  initWatcher: ->
+    @watcher = @agda.editor.markBufferPosition @_start, type: 'hole-watcher'
+
+    @watcher.on 'changed', (event) =>
+
+      @trimHole()
+
+  updateWatcher: ->
+    @watcher.setTailBufferPosition @_start
 
 module.exports = Hole
