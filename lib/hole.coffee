@@ -102,13 +102,13 @@ class Hole extends EventEmitter
   # fucking ugly hack, to monitor text modification at the start of the marker
 
   initWatcher: ->
-    @watcher = @agda.editor.markBufferPosition @_start, type: 'hole-watcher'
+    @_watcher = @agda.editor.markBufferPosition @_start, type: 'hole-watcher'
 
-    @watcher.on 'changed', (event) =>
+    @_watcher.on 'changed', (event) =>
 
       @trimHole()
 
   updateWatcher: ->
-    @watcher.setTailBufferPosition @_start
+    @_watcher.setTailBufferPosition @_start
 
 module.exports = Hole

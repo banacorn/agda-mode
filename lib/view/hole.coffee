@@ -6,21 +6,13 @@ module.exports = class HoleView extends View
     @ul outlet: 'holeView'
 
   initialize: (@agda, @hole) ->
-
-    {left} = @agda.editor.pixelPositionForBufferPosition new Point 0, 1
-    @charWidth = left
+    @measureCharWidth()
 
     @hole.on 'destroyed', @destroy
     @hole.on 'position-changed', @setPosition
-    # @hole.on 'text-changed', @setText
-
-    # text = ''
-    # for i in [1 .. @width]
-    #   text += ' '
-    @text ' '
 
   setPosition: (startPosition, endPosition) =>
-    console.log 'view should change', startPosition.toArray(), endPosition.toArray()
+    # console.log 'view should change', startPosition.toArray(), endPosition.toArray()
     @empty()
     # console.log @hole.range.getRows()
     blocks = @hole._range.getRows().map (row) =>
@@ -42,6 +34,11 @@ module.exports = class HoleView extends View
       lastLine.width endPx.left
     blocks.forEach (div) =>
       @append div
+
+  measureCharWidth: ->
+    {left} = @agda.editor.pixelPositionForBufferPosition new Point 0, 1
+    @charWidth = left
+
 
   attach: ->
     @agda.editorView.overlayer.append @
