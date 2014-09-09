@@ -30,9 +30,16 @@ module.exports = class HoleView extends View
         left: 0
         width: '100%'
 
-    [first, ..., last] = blocks
-    first.css @agda.editor.pixelPositionForBufferPosition startPosition
-    last.width @agda.editor.pixelPositionForBufferPosition(endPosition).left
+    [firstLine, ..., lastLine] = blocks
+    startPx = @agda.editor.pixelPositionForBufferPosition startPosition
+    endPx = @agda.editor.pixelPositionForBufferPosition endPosition
+    if blocks.length is 1
+      firstLine
+        .css startPx
+        .width endPx.left - startPx.left
+    else
+      firstLine.css startPx
+      lastLine.width endPx.left
     blocks.forEach (div) =>
       @append div
 
