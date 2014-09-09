@@ -91,7 +91,7 @@ class Agda extends EventEmitter
         .map (marker) => marker.getTailBufferPosition().translate new Point 0, 3
 
       positions.forEach (position) =>
-        if position.isGreaterThanOrEqual cursor
+        if position.isGreaterThan cursor
           nextGoal ?= position
 
       # no hole ahead of cursor, loop back
