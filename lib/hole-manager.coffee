@@ -9,6 +9,7 @@ class HoleManager extends EventEmitter
 
   constructor: (@agda) ->
     @destroyAllHoleMarkers()
+    @expandHoles()
 
     text = @agda.editor.getText()
     headIndices = @indicesOf text, /\{!/
@@ -24,6 +25,13 @@ class HoleManager extends EventEmitter
 
 
       new Hole @agda, i, headIndex, tailIndex
+
+  # convert all '?' to '{!!}'
+  expandHoles: ->
+    rawText = @agda.editor.getText()
+    convertSpaced = rawText.split(' ? ').join(' {!!} ')
+    convertNewlined = convertSpaced.split(' ?\n').join(' {!!}\n')
+    @agda.editor.setText convertNewlined
 
   destroyAllHoleMarkers: ->
     markers = @agda.editor.findMarkers type: 'hole'

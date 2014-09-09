@@ -39,5 +39,6 @@ module.exports = class HoleView extends View
   attach: ->
     @agda.editorView.overlayer.append @
 
+
   destroy: =>
     @detach()
