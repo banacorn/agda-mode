@@ -1,9 +1,9 @@
-{View, Point} = require 'atom'
+{View, Point, $} = require 'atom'
 
 module.exports = class HoleView extends View
 
   @content: ->
-    @div outlet: 'hole', class: 'hole'
+    @ul outlet: 'holeView'
 
   initialize: (@agda, @hole) ->
 
@@ -14,20 +14,25 @@ module.exports = class HoleView extends View
     @hole.on 'position-changed', @setPosition
     # @hole.on 'text-changed', @setText
 
-    indexLength = @hole.index.toString().length
-    text = ''
-    for i in [1 .. @hole.length - indexLength]
-      text += ' '
-    text += @hole.index.toString()
-    @text text
+    # text = ''
+    # for i in [1 .. @width]
+    #   text += ' '
+    @text ' '
 
   setPosition: (startPosition, endPosition) =>
-    pixelStartPosition = @agda.editor.pixelPositionForBufferPosition startPosition
-    pixelEndPosition = @agda.editor.pixelPositionForBufferPosition endPosition
-    pixelWidth = @hole.length * @charWidth
-    @css pixelStartPosition
-    @width pixelWidth
+    @empty()
+    blocks = @hole.range.getRows().map (row) =>
+      position = @agda.editor.pixelPositionForBufferPosition new Point row, 0
+      $('<div class="hole"> </div>').css
+        top: position.top
+        left: 0
+        width: '100%'
 
+    [first, ..., last] = blocks
+    first.css @agda.editor.pixelPositionForBufferPosition startPosition
+    last.width @agda.editor.pixelPositionForBufferPosition(endPosition).left
+    blocks.forEach (div) =>
+      @append div
 
   attach: ->
     @agda.editorView.overlayer.append @

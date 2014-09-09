@@ -4,42 +4,45 @@ HoleView = require './view/hole'
 
 class Hole extends EventEmitter
 
+
   constructor: (@agda, i, headIndex, tailIndex) ->
 
     @index = i
 
     # register marker
-    @startPosition = @agda.editor.buffer.positionForCharacterIndex headIndex
-    @endPosition = @agda.editor.buffer.positionForCharacterIndex tailIndex
-    @length = (@agda.editor.getBuffer().characterIndexForPosition @endPosition) - (@agda.editor.getBuffer().characterIndexForPosition @startPosition)
-    range = new Range @endPosition, @startPosition
-    @marker = @agda.editor.markBufferRange range, type: 'hole'
+    @setPositionAndRange @agda.editor.buffer.positionForCharacterIndex(headIndex), @agda.editor.buffer.positionForCharacterIndex(tailIndex)
 
+    @marker = @agda.editor.markBufferRange @range, type: 'hole'
+    @agda.editor.addSelectionForBufferRange @range
     # view
     view = new HoleView @agda, @
     view.attach()
 
     # text
-    @text = @agda.editor.getTextInRange range
+    @text = @agda.editor.getTextInRange @range
     @emit 'position-changed', @startPosition, @endPosition
     @emit 'text-changed', @text
 
     @registerHandlers()
 
+  setPositionAndRange: (startPosition, endPosition) ->
+    @startPosition = startPosition
+    @endPosition = endPosition
+    @range = new Range startPosition, endPosition
+
   registerHandlers: ->
 
     @marker.on 'changed', (event) =>
-      range = @marker.bufferMarker.getRange()
-      oldText = @text
-      newText = @agda.editor.getTextInRange range
-
       # calculate new marker range
-      leftPadding = newText.indexOf '{!'
-      # lengthOfHoleIndex = @index.toString().length
-      rightPadding = newText.length - newText.indexOf('!}') - 2
-      # rightPadding = newText.length - newText.indexOf('!}') - 2 - lengthOfHoleIndex
-      @startPosition = event.newTailBufferPosition.translate new Point 0, leftPadding
-      @endPosition = event.newHeadBufferPosition.translate new Point 0, -rightPadding
+
+      # leftPadding = newText.indexOf '{!'
+      # rightPadding = newText.length - newText.indexOf('!}') - 2
+      # @startPosition = event.newTailBufferPosition.translate new Point 0, leftPadding
+      # @endPosition = event.newHeadBufferPosition.translate new Point 0, -rightPadding
+
+      # console.log event.newHeadBufferPosition
+      @setPositionAndRange event.newTailBufferPosition, event.newHeadBufferPosition
+
       @emit 'position-changed', @startPosition, @endPosition
 
 
