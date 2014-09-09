@@ -30,6 +30,17 @@ class Hole extends EventEmitter
     view.attach()
     @emit 'position-changed', @_start, @_end
 
+
+  registerHandlers: ->
+    @_marker.on 'changed', (event) =>
+      start = event.newTailBufferPosition
+      end = event.newHeadBufferPosition
+      @updatePosition start, end
+      @trimHole()
+      @_text = @agda.editor.getTextInRange @_marker.bufferMarker.getRange()
+
+    @_marker.on 'destroyed', @destroy
+
   initPosition: (start, end) ->
     @_start = start
     @_end = end
@@ -93,20 +104,13 @@ class Hole extends EventEmitter
     @updatePosition start, end
 
 
-
-  registerHandlers: ->
-    @_marker.on 'changed', (event) =>
-      start = event.newTailBufferPosition
-      end = event.newHeadBufferPosition
-      @updatePosition start, end
-      @trimHole()
-      @_text = @agda.editor.getTextInRange @_marker.bufferMarker.getRange()
-
   restoreBoundary: ->
     @agda.editor.setTextInBufferRange @_range, @_text
 
-  destroy: ->
-    @_marker.destroy()
+  destroy: =>
+
+    if not @_marker.isDestroyed()
+      @_marker.destroy()
     @_watcher.destroy()
     @emit 'destroyed'
 

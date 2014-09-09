@@ -22,9 +22,9 @@ class HoleManager extends EventEmitter
 
       # length of '!}' and hole index
       tailIndex += 2
-
-
       new Hole @agda, i, headIndex, tailIndex
+
+    @agda.on 'quit', @destroyAllHoleMarkers
 
   # convert all '?' to '{!!}'
   expandHoles: ->
@@ -33,7 +33,7 @@ class HoleManager extends EventEmitter
     convertNewlined = convertSpaced.split(' ?\n').join(' {!  !}\n')
     @agda.editor.setText convertNewlined
 
-  destroyAllHoleMarkers: ->
+  destroyAllHoleMarkers: =>
     markers = @agda.editor.findMarkers type: 'hole'
     markers.map (marker) => marker.destroy()
 
