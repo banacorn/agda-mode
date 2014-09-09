@@ -5,8 +5,11 @@ data Banana : Set where
     ripe : Banana
     rotten : Banana
 
+b : Banana
+b = {!  !}
+
 a : Banana
 a = {! asafdf !}
 
-b : Banana
-b = raw
+c : Banana
+c = {!  !}

@@ -1,3 +1,4 @@
+{Point} = require 'atom'
 AgdaSyntax = require './agda/syntax'
 PanelView = require './view/panel'
 AgdaExecutable = require './agda/executable'
@@ -78,5 +79,29 @@ class Agda extends EventEmitter
   restart: ->
     @quit()
     @executable.wire()
+
+  nextGoal: ->
+    if @loaded
+
+      cursor = @editor.getCursorBufferPosition()
+      nextGoal = null
+
+      positions = @editor
+        .findMarkers type: 'hole'
+        .map (marker) => marker.getTailBufferPosition().translate new Point 0, 3
+
+      positions.forEach (position) =>
+        if position.isGreaterThanOrEqual cursor
+          nextGoal ?= position
+
+      # no hole ahead of cursor, loop back
+      if nextGoal is null
+        nextGoal = positions[0]
+
+      @editor.setCursorBufferPosition nextGoal
+
+  previousGoal: ->
+    if @loaded
+      console.log 'previous goal'
 
 module.exports = Agda

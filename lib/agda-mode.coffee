@@ -67,6 +67,19 @@ module.exports =
         editor = @getTheFuckingEditor()
         editor.agda.restart()
 
+    # next goal
+    atom.workspaceView.command 'agda-mode:next-goal', =>
+      if @isAgdaFile()
+        editor = @getTheFuckingEditor()
+        editor.agda.nextGoal()
+
+    # previous goal
+    atom.workspaceView.command 'agda-mode:previous-goal', =>
+      if @isAgdaFile()
+        editor = @getTheFuckingEditor()
+        editor.agda.previousGoal()
+
+
 
   getTheFuckingEditor: ->
     atom.workspace.getActivePaneItem()

@@ -8,6 +8,8 @@
           { 'label': 'Load', 'command': 'agda-mode:load' }
           { 'label': 'Quit', 'command': 'agda-mode:quit' }
           { 'label': 'Kill and restart', 'command': 'agda-mode:restart' }
+          { 'label': 'Next goal', 'command': 'agda-mode:next-goal' }
+          { 'label': 'Previous goal', 'command': 'agda-mode:previous-goal' }
       ]
     ]
   }

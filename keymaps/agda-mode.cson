@@ -11,3 +11,5 @@
   'ctrl-c ctrl-l': 'agda-mode:load'
   'ctrl-c ctrl-x ctrl-q': 'agda-mode:quit'
   'ctrl-c ctrl-x ctrl-r': 'agda-mode:restart'
+  'ctrl-c ctrl-f': 'agda-mode:next-goal'
+  'ctrl-c ctrl-b': 'agda-mode:previous-goal'
