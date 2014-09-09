@@ -104,6 +104,23 @@ class Agda extends EventEmitter
 
   previousGoal: ->
     if @loaded
-      console.log 'previous goal'
+      cursor = @editor.getCursorBufferPosition()
+      previousGoal = null
+
+      positions = @editor
+        .findMarkers type: 'hole'
+        .map (marker) => marker.getTailBufferPosition().translate new Point 0, 3
+
+      positions.forEach (position) =>
+        if position.isLessThan cursor
+          previousGoal = position
+
+      # no hole ahead of cursor, loop back
+      if previousGoal is null
+        previousGoal = positions[positions.length - 1]
+
+      # jump only when there are goals
+      if positions.length isnt 0
+        @editor.setCursorBufferPosition previousGoal
 
 module.exports = Agda
