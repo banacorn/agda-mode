@@ -42,7 +42,13 @@ class Hole extends EventEmitter
     newText = @agda.editor.getTextInRange @_marker.bufferMarker.getRange()
 
     # decide how much to trim
-    left = newText.indexOf '{!'
+    leftIndex = newText.indexOf '{!'
+    rightIndex = newText.indexOf '!}'
+    if leftIndex is -1 or rightIndex is -1
+      @destroy()
+      return
+
+    left = leftIndex
     right = newText.length - newText.indexOf('!}') - 2
 
     # convert original position to character index
@@ -85,6 +91,10 @@ class Hole extends EventEmitter
       end = event.newHeadBufferPosition
       @updatePosition start, end
       @trimHole()
+
+  destroy: ->
+    @_marker.destroy()
+    @emit 'destroyed'
 
   # # fucking ugly hack, to monitor text modification at the start of the marker
   # updateWatcher: ->

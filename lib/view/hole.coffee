@@ -10,7 +10,7 @@ module.exports = class HoleView extends View
     {left} = @agda.editor.pixelPositionForBufferPosition new Point 0, 1
     @charWidth = left
 
-
+    @hole.on 'destroyed', @destroy
     @hole.on 'position-changed', @setPosition
     # @hole.on 'text-changed', @setText
 
@@ -38,3 +38,6 @@ module.exports = class HoleView extends View
 
   attach: ->
     @agda.editorView.overlayer.append @
+
+  destroy: =>
+    @detach()

@@ -23,10 +23,7 @@ class HoleManager extends EventEmitter
       tailIndex += 2 + i.toString().length
 
 
-      @holes.push new Hole @agda, i, headIndex, tailIndex
-
-    # @agda.editor.cursors[0].on 'moved', (event) =>
-    #   @holes.map (hole) => hole.skip event
+      new Hole @agda, i, headIndex, tailIndex
 
   destroyAllHoleMarkers: ->
     markers = @agda.editor.findMarkers type: 'hole'
