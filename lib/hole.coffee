@@ -19,7 +19,6 @@ class Hole extends EventEmitter
     start = @agda.editor.buffer.positionForCharacterIndex headIndex
     end = @agda.editor.buffer.positionForCharacterIndex tailIndex
     @initPosition start, end
-    @trimHole()
 
     @initWatcher()
 
@@ -36,6 +35,7 @@ class Hole extends EventEmitter
     @_end = end
     @_range = new Range start, end
     @_marker = @agda.editor.markBufferRange @_range, type: 'hole'
+    @_text = @agda.editor.getTextInRange @_marker.bufferMarker.getRange()
 
   updatePosition: (start, end) ->
 
@@ -55,18 +55,25 @@ class Hole extends EventEmitter
 
   # calculate new marker range
   trimHole: ->
-    oldText = @text
-    newText = @agda.editor.getTextInRange @_marker.bufferMarker.getRange()
+    text = @agda.editor.getTextInRange @_marker.bufferMarker.getRange()
 
     # decide how much to trim
-    leftIndex = newText.indexOf '{!'
-    rightIndex = newText.indexOf '!}'
-    if leftIndex is -1 or rightIndex is -1
+    leftIndex = text.indexOf '{!'
+    rightIndex = text.indexOf '!}'
+
+    # the entire hole got destroyed
+    if leftIndex is -1 and rightIndex is -1
       @destroy()
       return
 
+    # attempt to damage boundaries
+    else if leftIndex is -1 or rightIndex is -1
+      @restoreBoundary()
+      return
+
+    # now we can trim the marker
     left = leftIndex
-    right = newText.length - newText.indexOf('!}') - 2
+    right = text.length - text.indexOf('!}') - 2
 
     # convert original position to character index
     start = @agda.editor.getBuffer().characterIndexForPosition @_start
@@ -93,6 +100,10 @@ class Hole extends EventEmitter
       end = event.newHeadBufferPosition
       @updatePosition start, end
       @trimHole()
+      @_text = @agda.editor.getTextInRange @_marker.bufferMarker.getRange()
+
+  restoreBoundary: ->
+    @agda.editor.setTextInBufferRange @_range, @_text
 
   destroy: ->
     @_marker.destroy()

@@ -21,7 +21,7 @@ class HoleManager extends EventEmitter
       tailIndex = tailIndices[i]
 
       # length of '!}' and hole index
-      tailIndex += 2 + i.toString().length
+      tailIndex += 2
 
 
       new Hole @agda, i, headIndex, tailIndex
