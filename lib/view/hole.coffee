@@ -20,10 +20,10 @@ module.exports = class HoleView extends View
     @text ' '
 
   setPosition: (startPosition, endPosition) =>
-    # console.log 'view should change', startPosition.toArray(), endPosition.toArray()
+    console.log 'view should change', startPosition.toArray(), endPosition.toArray()
     @empty()
     # console.log @hole.range.getRows()
-    blocks = @hole.range.getRows().map (row) =>
+    blocks = @hole._range.getRows().map (row) =>
       position = @agda.editor.pixelPositionForBufferPosition new Point row, 0
       $('<div class="hole"> </div>').css
         top: position.top

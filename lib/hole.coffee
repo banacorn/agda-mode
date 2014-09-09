@@ -4,81 +4,103 @@ HoleView = require './view/hole'
 
 class Hole extends EventEmitter
 
+  # Points representing the boundary of the Hole
+  _start: null
+  _end: null
 
-  constructor: (@agda, i, headIndex, tailIndex) ->
+  # Range
+  _range: null
 
-    @index = i
+  # Marker
+  _marker: null
 
-    # register marker
-    @setPosition @agda.editor.buffer.positionForCharacterIndex(headIndex), @agda.editor.buffer.positionForCharacterIndex(tailIndex)
-    @trimMarker()
-    # view
-    view = new HoleView @agda, @
-    view.attach()
+  initPosition: (start, end) ->
+    @_start = start
+    @_end = end
+    @_range = new Range start, end
+    @_marker = @agda.editor.markBufferRange @_range, type: 'hole'
 
-    # text
-    # @text = @agda.editor.getTextInRange @range
-    # @emit 'text-changed', @text
+  updatePosition: (start, end) ->
 
-    # view kick-off
-    @emit 'position-changed', @startPosition, @endPosition
-
-
-    @registerHandlers()
-
-  # set or update
-  # marker's startPosition, endPosition, range and all that
-  setPosition: (startPosition, endPosition) ->
-
-    changed = startPosition isnt @startPosition  and endPosition isnt @endPosition
+    changed = not start.isEqual(@_start) or not end.isEqual(@_end)
 
     if changed
-      @startPosition = startPosition
-      @endPosition = endPosition
-      @range = new Range startPosition, endPosition
+      # console.log '== changed =='
+      # console.log @_start.toArray(), '==>', start.toArray()
+      # console.log @_end.toArray(), '==>', end.toArray()
+      @_start = start
+      @_end = end
+      @_range = new Range start, end
+      @_marker.setHeadBufferPosition end
+      @_marker.setTailBufferPosition start
 
-      if @marker
-        @marker.setHeadBufferPosition @endPosition
-        @marker.setTailBufferPosition @startPosition
-      else
-        @marker = @agda.editor.markBufferRange @range, type: 'hole'
-
-      @emit 'position-changed', @startPosition, @endPosition
-
+      @emit 'position-changed', start, end
 
   # calculate new marker range
-  trimMarker: ->
-
+  trimHole: ->
     oldText = @text
-    newText = @agda.editor.getTextInRange @marker.bufferMarker.getRange()
+    newText = @agda.editor.getTextInRange @_marker.bufferMarker.getRange()
 
-    # examine how much to trim
+    # decide how much to trim
     left = newText.indexOf '{!'
     right = newText.length - newText.indexOf('!}') - 2
 
     # convert original position to character index
-    start = @agda.editor.getBuffer().characterIndexForPosition @startPosition
-    end = @agda.editor.getBuffer().characterIndexForPosition @endPosition
+    start = @agda.editor.getBuffer().characterIndexForPosition @_start
+    end = @agda.editor.getBuffer().characterIndexForPosition @_end
 
     # translate character index according to much to trim
     start += left
     end -= right
 
     # convert translated character index back to position
-    startPosition = @agda.editor.getBuffer().positionForCharacterIndex start
-    endPosition = @agda.editor.getBuffer().positionForCharacterIndex end
+    start = @agda.editor.getBuffer().positionForCharacterIndex start
+    end = @agda.editor.getBuffer().positionForCharacterIndex end
     # console.log left, right
-    # console.log @startPosition.toArray(), @endPosition.toArray()
-    # console.log startPosition.toArray(), endPosition.toArray()
+    # console.log @_start.toArray(), @_end.toArray()
+    # console.log start.toArray(), end.toArray()
 
-    # update
-    @setPosition startPosition, endPosition
+    @updatePosition start, end
+
+
+  constructor: (@agda, i, headIndex, tailIndex) ->
+
+    start = @agda.editor.buffer.positionForCharacterIndex headIndex
+    end = @agda.editor.buffer.positionForCharacterIndex tailIndex
+    @initPosition start, end
+
+    @trimHole()
+
+    @registerHandlers()
+
+    # view
+    view = new HoleView @agda, @
+    view.attach()
+    @emit 'position-changed', @_start, @_end
+
 
   registerHandlers: ->
+    @_marker.on 'changed', (event) =>
+      start = event.newTailBufferPosition
+      end = event.newHeadBufferPosition
+      @updatePosition start, end
+      @trimHole()
 
-
-    @marker.on 'changed', (event) =>
-      @setPosition event.newTailBufferPosition, event.newHeadBufferPosition
+  # # fucking ugly hack, to monitor text modification at the start of the marker
+  # updateWatcher: ->
+  #   if @watcher
+  #     @watcher.setHeadBufferPosition @startPosition.translate(new Point(0, 2))
+  #     @watcher.setTailBufferPosition @startPosition
+  #     console.log 'watched repositioned'
+  #
+  # initWatcher: ->
+  #   range = new Range @startPosition, @startPosition.translate(new Point(0, 2))
+  #   @watcher = @agda.editor.markBufferRange range, type: 'hole-watcher'
+  #   console.log 'watched inited'
+  #   @watcher.on 'changed', (event) =>
+  #     console.log 'watched changed'
+  #
+  #     @updateMarker()
 
 
 module.exports = Hole
