@@ -98,7 +98,9 @@ class Agda extends EventEmitter
       if nextGoal is null
         nextGoal = positions[0]
 
-      @editor.setCursorBufferPosition nextGoal
+      # jump only when there are goals
+      if positions.length isnt 0
+        @editor.setCursorBufferPosition nextGoal
 
   previousGoal: ->
     if @loaded
