@@ -79,6 +79,12 @@ module.exports =
         editor = @getTheFuckingEditor()
         editor.agda.previousGoal()
 
+    # give
+    atom.workspaceView.command 'agda-mode:give', =>
+      if @isAgdaFile()
+        editor = @getTheFuckingEditor()
+        editor.agda.give()
+
 
 
   getTheFuckingEditor: ->

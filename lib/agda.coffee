@@ -123,4 +123,25 @@ class Agda extends EventEmitter
       if positions.length isnt 0
         @editor.setCursorBufferPosition previousGoal
 
+  give: ->
+    if @loaded
+      console.log 'give'
+      @atGoal()
+
+  atGoal: ->
+    cursor = @editor.getCursorBufferPosition()
+    goals = @editor
+      .findMarkers type: 'hole'
+      .filter (marker) =>
+        marker.bufferMarker.range.containsPoint cursor
+    # in certain hole
+    if goals.length is 1
+
+      
+      command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" [])\n'
+      @executable.agda.stdin.write command
+
+    else
+      console.log 'not in any goal'
+
 module.exports = Agda
