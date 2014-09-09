@@ -10,89 +10,75 @@ class Hole extends EventEmitter
     @index = i
 
     # register marker
-    @setPositionAndRange @agda.editor.buffer.positionForCharacterIndex(headIndex), @agda.editor.buffer.positionForCharacterIndex(tailIndex)
-
-    @marker = @agda.editor.markBufferRange @range, type: 'hole'
-    @agda.editor.addSelectionForBufferRange @range
+    @setPosition @agda.editor.buffer.positionForCharacterIndex(headIndex), @agda.editor.buffer.positionForCharacterIndex(tailIndex)
+    @trimMarker()
     # view
     view = new HoleView @agda, @
     view.attach()
 
     # text
-    @text = @agda.editor.getTextInRange @range
+    # @text = @agda.editor.getTextInRange @range
+    # @emit 'text-changed', @text
+
+    # view kick-off
     @emit 'position-changed', @startPosition, @endPosition
-    @emit 'text-changed', @text
+
 
     @registerHandlers()
 
-  setPositionAndRange: (startPosition, endPosition) ->
-    @startPosition = startPosition
-    @endPosition = endPosition
-    @range = new Range startPosition, endPosition
+  # set or update
+  # marker's startPosition, endPosition, range and all that
+  setPosition: (startPosition, endPosition) ->
 
-  registerHandlers: ->
+    changed = startPosition isnt @startPosition  and endPosition isnt @endPosition
 
-    @marker.on 'changed', (event) =>
-      # calculate new marker range
+    if changed
+      @startPosition = startPosition
+      @endPosition = endPosition
+      @range = new Range startPosition, endPosition
 
-      # leftPadding = newText.indexOf '{!'
-      # rightPadding = newText.length - newText.indexOf('!}') - 2
-      # @startPosition = event.newTailBufferPosition.translate new Point 0, leftPadding
-      # @endPosition = event.newHeadBufferPosition.translate new Point 0, -rightPadding
-
-      # console.log event.newHeadBufferPosition
-      @setPositionAndRange event.newTailBufferPosition, event.newHeadBufferPosition
+      if @marker
+        @marker.setHeadBufferPosition @endPosition
+        @marker.setTailBufferPosition @startPosition
+      else
+        @marker = @agda.editor.markBufferRange @range, type: 'hole'
 
       @emit 'position-changed', @startPosition, @endPosition
 
 
-  # 1 for cursor right =>
-  # -1 for cursor right <=
-  # 0 for jump-in
-  cursorDirection: (cursorOld, cursorNew) ->
-    diff = (a, b) ->
-      [b.row - a.row, b.column - a.column]
-    [rowDiff, columnDiff] = diff cursorOld, cursorNew
-    if rowDiff is 0
-      if columnDiff is 1
-        return 1
-      else if columnDiff is -1
-        return -1
-      else
-        return 0
-    else
-      return 0
+  # calculate new marker range
+  trimMarker: ->
 
-  skip: (event) =>
-    cursorOld = event.oldBufferPosition
-    cursorNew = event.newBufferPosition
-    direction = @cursorDirection cursorOld, cursorNew
+    oldText = @text
+    newText = @agda.editor.getTextInRange @marker.bufferMarker.getRange()
 
-    # skip zone:
-    #  __         ____
-    # "{! foo bar !}42"
+    # examine how much to trim
+    left = newText.indexOf '{!'
+    right = newText.length - newText.indexOf('!}') - 2
 
-    skipZoneHeadLeft = @startPosition
-    skipZoneHeadRight = @startPosition.translate new Point 0, 2
-    skipZoneTailLeft = @endPosition.translate new Point 0, -2
-    skipZoneTailRight = @endPosition
-    skipZoneHead = new Range skipZoneHeadLeft, skipZoneHeadRight
-    skipZoneTail = new Range skipZoneTailLeft, skipZoneTailRight
+    # convert original position to character index
+    start = @agda.editor.getBuffer().characterIndexForPosition @startPosition
+    end = @agda.editor.getBuffer().characterIndexForPosition @endPosition
 
-    if skipZoneHead.containsPoint cursorNew, true
-      if direction is 1       # ==>
-        @agda.editor.setCursorBufferPosition skipZoneHeadRight
-      else if direction is -1 # <==
-        @agda.editor.setCursorBufferPosition skipZoneHeadLeft
-      else                    # random jump-in
-        @agda.editor.setCursorBufferPosition skipZoneHeadRight
+    # translate character index according to much to trim
+    start += left
+    end -= right
 
-    if skipZoneTail.containsPoint cursorNew, true
-      if direction is 1       # ==>
-        @agda.editor.setCursorBufferPosition skipZoneTailRight
-      else if direction is -1 # <==
-        @agda.editor.setCursorBufferPosition skipZoneTailLeft
-      else                    # random jump-in
-        @agda.editor.setCursorBufferPosition skipZoneTailLeft
+    # convert translated character index back to position
+    startPosition = @agda.editor.getBuffer().positionForCharacterIndex start
+    endPosition = @agda.editor.getBuffer().positionForCharacterIndex end
+    # console.log left, right
+    # console.log @startPosition.toArray(), @endPosition.toArray()
+    # console.log startPosition.toArray(), endPosition.toArray()
+
+    # update
+    @setPosition startPosition, endPosition
+
+  registerHandlers: ->
+
+
+    @marker.on 'changed', (event) =>
+      @setPosition event.newTailBufferPosition, event.newHeadBufferPosition
+
 
 module.exports = Hole
