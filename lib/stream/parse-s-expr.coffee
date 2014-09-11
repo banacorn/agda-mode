@@ -1,5 +1,7 @@
 {Transform} = require 'stream'
 
+
+
 class ParseSExpr extends Transform
 
   constructor: ->
@@ -20,11 +22,10 @@ class ParseSExpr extends Transform
   # (a b "c" '(d r)) => [a, b, "c", [d, r]]
   takeList: (string) ->
     tokens = []
-
     # drop "("
     string = @tail string
 
-    while (string[0] isnt ')')
+    while (string[0] isnt ')' and string.length isnt 0)
       switch @head string
         when ' '
           string = @tail string
@@ -84,5 +85,11 @@ class ParseSExpr extends Transform
     rest = @drop (indexQ + 1), string    # indexQ+1 to drop the closing "
 
     return [token, rest]
+
+# {ListSource, Log} = require './util'
+# command = "(agda2-give-action 0 'no-paren)"
+# new ListSource [command]
+#   .pipe new ParseSExpr
+#   .pipe new Log
 
 module.exports = ParseSExpr
