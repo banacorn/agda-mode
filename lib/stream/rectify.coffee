@@ -32,6 +32,8 @@ class Rectify extends Transform
       for string in block.split '\n'
         # ignores empty newline
         if string.length isnt 0
+          # trim space, the start and the end
+          string = string.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
           @push string
 
       @_buffer = drop (delimeterIndex + 6), @_buffer
