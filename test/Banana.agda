@@ -9,4 +9,4 @@ a : Banana
 a = {!  !}
 
 b : Banana
-b = {! asdasd !}
+b = {!  !}

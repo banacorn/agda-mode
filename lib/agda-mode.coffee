@@ -14,7 +14,7 @@ module.exports =
 
       current = currentEditor?.getPath?()
       current ?= 'no path'
-      next = nextEditor.getPath?()
+      next = nextEditor?.getPath?()
       next ?= 'no path'
 
       if next isnt current

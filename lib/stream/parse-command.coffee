@@ -49,6 +49,9 @@ class ParseCommand extends Transform
       when "agda2-highlight-add-annotations" then command =
         type: 'highlight-add-annotations'
 
+      when 'agda2-highlight-load-and-delete-action' then command =
+        type: 'highlight-load-and-delete-action'
+
       else
         throw 'wtf is this command? ' + JSON.stringify tokens
         command = type: 'unknown'

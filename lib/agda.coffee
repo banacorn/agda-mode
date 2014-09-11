@@ -45,9 +45,10 @@ class Agda extends EventEmitter
 
       includeDir = atom.config.get 'agda-mode.agdaLibraryPath'
       if includeDir
-        command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" ["./", "' + includeDir + '"])\n'
+        command = 'IOTCM "' + @filepath + '" NonInteractive Indirect (Cmd_load "' + @filepath + '" ["./", "' + includeDir + '"])\n'
       else
-        command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" [])\n'
+        command = 'IOTCM "' + @filepath + '" NonInteractive Indirect (Cmd_load "' + @filepath + '" [])\n'
+      
       @executable.agda.stdin.write command
 
     @on 'activate', =>
@@ -137,7 +138,7 @@ class Agda extends EventEmitter
     # in certain hole
     if goals.length is 1
 
-      
+
       command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" [])\n'
       @executable.agda.stdin.write command
 

@@ -10,6 +10,7 @@ module.exports = class AgdaExecutable extends EventEmitter
   wire: ->
     executablePath = atom.config.get 'agda-mode.agdaExecutablePath'
 
+
     # try to catch EACCES, etc (yep, process.on 'uncaughtException' failed)
     try
       @agda = spawn executablePath, ['--interaction']
@@ -29,7 +30,6 @@ module.exports = class AgdaExecutable extends EventEmitter
         @wire()
 
     @agda.stdout.once 'data', (data) =>
-
       # run only when the executable was just wired
       if not @agda.wired and /^Agda2/.test data
         @agda.wired = true
