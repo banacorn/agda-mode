@@ -48,7 +48,7 @@ class Agda extends EventEmitter
         command = 'IOTCM "' + @filepath + '" NonInteractive Indirect (Cmd_load "' + @filepath + '" ["./", "' + includeDir + '"])\n'
       else
         command = 'IOTCM "' + @filepath + '" NonInteractive Indirect (Cmd_load "' + @filepath + '" [])\n'
-      
+
       @executable.agda.stdin.write command
 
     @on 'activate', =>
@@ -126,7 +126,6 @@ class Agda extends EventEmitter
 
   give: ->
     if @loaded
-      console.log 'give'
       @atGoal()
 
   atGoal: ->
@@ -139,7 +138,8 @@ class Agda extends EventEmitter
     if goals.length is 1
 
 
-      command = 'IOTCM "' + @filepath + '" None Direct (Cmd_load "' + @filepath + '" [])\n'
+      command = 'IOTCM "' + @filepath + '" NonInteractive Indirect (Cmd_give  0 (Range [Interval (Pn (Just (mkAbsolute "' + @filepath + '")) 119 9 7) (Pn (Just (mkAbsolute "' + @filepath + '")) 124 9 12)]) "raw  " )\n'
+    
       @executable.agda.stdin.write command
 
     else
