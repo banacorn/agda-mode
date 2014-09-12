@@ -16,6 +16,7 @@ class Hole extends EventEmitter
 
   constructor: (@agda, i, headIndex, tailIndex) ->
 
+    @index = i
     start = @agda.editor.buffer.positionForCharacterIndex headIndex
     end = @agda.editor.buffer.positionForCharacterIndex tailIndex
     @initPosition start, end
@@ -45,7 +46,9 @@ class Hole extends EventEmitter
     @_start = start
     @_end = end
     @_range = new Range start, end
-    @_marker = @agda.editor.markBufferRange @_range, type: 'hole'
+    @_marker = @agda.editor.markBufferRange @_range,
+      type: 'hole',
+      index: @index
     @_text = @agda.editor.getTextInRange @_marker.bufferMarker.getRange()
 
   updatePosition: (start, end) ->

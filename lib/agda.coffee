@@ -1,4 +1,4 @@
-{Point} = require 'atom'
+{Point, Range} = require 'atom'
 AgdaSyntax = require './agda/syntax'
 PanelView = require './view/panel'
 AgdaExecutable = require './agda/executable'
@@ -137,9 +137,18 @@ class Agda extends EventEmitter
     # in certain hole
     if goals.length is 1
 
+      index = goals[0].getAttributes().index
+      start = goals[0].getStartBufferPosition().translate new Point 0, 2
+      startIndex = @editor.getBuffer().characterIndexForPosition start
+      end = goals[0].getEndBufferPosition().translate new Point 0, -2
+      endIndex = @editor.getBuffer().characterIndexForPosition end
+      content = @editor.getTextInBufferRange new Range(start, end)
 
-      command = 'IOTCM "' + @filepath + '" NonInteractive Indirect (Cmd_give  0 (Range [Interval (Pn (Just (mkAbsolute "' + @filepath + '")) 119 9 7) (Pn (Just (mkAbsolute "' + @filepath + '")) 124 9 12)]) "raw  " )\n'
-    
+      command = "IOTCM \"#{@filepath}\" NonInteractive Indirect \
+        (Cmd_give #{index} (Range [Interval (Pn (Just (mkAbsolute \
+        \"#{@filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})\
+         (Pn (Just (mkAbsolute \"#{@filepath}\")) #{endIndex} #{end.row + 1} \
+          #{end.column + 1})]) \"#{content}\" )\n"
       @executable.agda.stdin.write command
 
     else
