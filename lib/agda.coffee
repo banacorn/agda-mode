@@ -111,7 +111,7 @@ class Agda extends EventEmitter
       positions = @holeManager.holes.map (hole) =>
         start = hole.getStart()
         hole.translate start, 3
-        
+
       positions.forEach (position) =>
         if position.isLessThan cursor
           previousGoal = position
@@ -130,20 +130,19 @@ class Agda extends EventEmitter
 
   atGoal: ->
     cursor = @editor.getCursorBufferPosition()
-    goals = @editor
-      .findMarkers type: 'hole'
-      .filter (marker) =>
-        marker.bufferMarker.range.containsPoint cursor
+    goals = @holeManager.holes.filter (hole) =>
+       hole.getRange().containsPoint cursor
+
     # in certain hole
     if goals.length is 1
-
-      index = goals[0].getAttributes().index
-      start = goals[0].getStartBufferPosition().translate new Point 0, 2
-      startIndex = @editor.getBuffer().characterIndexForPosition start
-      end = goals[0].getEndBufferPosition().translate new Point 0, -2
-      endIndex = @editor.getBuffer().characterIndexForPosition end
-      content = @editor.getTextInBufferRange new Range(start, end)
-
+      goal = goals[0]
+      index = goal.index
+      start = goal.getStart()
+      startIndex = goal.toIndex start
+      end = goal.getEnd()
+      endIndex = goal.toIndex end
+      text = goal.getText()
+      content = text.substring(2, text.length - 2)
       command = "IOTCM \"#{@filepath}\" NonInteractive Indirect \
         (Cmd_give #{index} (Range [Interval (Pn (Just (mkAbsolute \
         \"#{@filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})\
