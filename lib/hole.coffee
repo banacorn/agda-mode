@@ -33,12 +33,12 @@ class Hole extends EventEmitter
       changed = @trimMarker()
       if changed
         @emit 'resized', @getStart(), @getEnd()
+
     @endMarker.on 'changed', (event) =>
       changed = @trimMarker()
       if changed
         @emit 'resized', @getStart(), @getEnd()
 
-    @oldText = @getText()
 
     # view
     view = new HoleView @agda, @
@@ -48,6 +48,7 @@ class Hole extends EventEmitter
 
   getText: -> @agda.editor.getTextInRange new Range @getStart(), @getEnd()
   setText: (text) -> @agda.editor.setTextInBufferRange new Range(@getStart(), @getEnd()), text
+  setTextInRange: (text, range) -> @agda.editor.setTextInBufferRange range, text
 
   getStart: -> @startMarker.bufferMarker.getStartPosition()
   setStart: (startLeft) ->
@@ -81,7 +82,6 @@ class Hole extends EventEmitter
   # trimMarker :: IO Changed
   #   recalculate the boundary of the marker
   trimMarker: ->
-
     text = @getText()
 
 
@@ -107,7 +107,6 @@ class Hole extends EventEmitter
 
     left  = text.indexOf('{!')
     right = text.length - text.indexOf('!}') - 2
-
     if left isnt 0
       @setStart(@translate @getStart(), left)
 
@@ -132,16 +131,11 @@ class Hole extends EventEmitter
       @oldEnd = newEnd
       changed = true
 
-    if changed
-      @oldText = @getText()
-
     return changed
 
-
-
   restoreBoundary: ->
-    @setText @oldText
-
+    @setTextInRange '{!', @startMarker.bufferMarker.range
+    @setTextInRange '!}', @endMarker.bufferMarker.range
 
   # respecests character index
   translate: (pos, n) -> @fromIndex((@toIndex pos) + n)

@@ -9,5 +9,4 @@ a : Banana
 a = {!   raw   !}
 
 b : Banana
-b =  {!
-ada  asd !}
+b = {! ada  asd   !}
