@@ -8,6 +8,7 @@ class HoleManager extends EventEmitter
   holes: []
 
   constructor: (@agda) ->
+    console.log 'INIT HOLEMANAGER'
     @destroyHoles()
     @expandBoundaries()
 
@@ -24,7 +25,7 @@ class HoleManager extends EventEmitter
       tailIndex += 2
       @holes.push new Hole(@agda, i, headIndex, tailIndex)
 
-    @agda.on 'quit', @destroyHoles
+    @agda.once 'quit', @destroyHoles
 
   # convert all '?' to '{!!}'
   expandBoundaries: ->
@@ -35,7 +36,9 @@ class HoleManager extends EventEmitter
 
   destroyHoles: =>
     # first, destroy all Holes
-    @holes.forEach (hole) => hole.emit 'destroyed'
+    @holes.forEach (hole) =>
+      hole.emit 'destroyed'
+      @holes = []
     # second, destroy wandering markers
     markers = @agda.editor.findMarkers type: 'hole'
     markers.map (marker) => marker.destroy()
@@ -116,6 +119,9 @@ class HoleManager extends EventEmitter
     goals = @holes.filter (hole) =>
       hole.getRange().containsPoint cursor
 
+    console.log cursor.toArray()
+    console.log goals[0]?.getRange().start.toArray(), goals[0]?.getRange().end.toArray()
+
     # in certain hole
     if goals.length is 1
       goal = goals[0]
@@ -134,6 +140,7 @@ class HoleManager extends EventEmitter
       @agda.executable.agda.stdin.write command
 
     else
+      console.log goals
       console.log 'not in any goal'
 
   giveHandler: (index) ->
