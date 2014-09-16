@@ -132,6 +132,9 @@ class Hole extends EventEmitter
       @oldEnd = newEnd
       changed = true
 
+    if changed
+      @oldText = @getText()
+
     return changed
 
 
