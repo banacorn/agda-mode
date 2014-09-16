@@ -5,11 +5,9 @@ Hole = require './hole'
 # manages all "holes" in a editor
 class HoleManager extends EventEmitter
 
-  holes: []
-
   constructor: (@agda) ->
-    @destroyAllHoleMarkers()
-    @expandHoles()
+    @destroyMarkers()
+    @expandBoundaries()
 
     text = @agda.editor.getText()
     headIndices = @indicesOf text, /\{!/
@@ -24,16 +22,16 @@ class HoleManager extends EventEmitter
       tailIndex += 2
       new Hole @agda, i, headIndex, tailIndex
 
-    @agda.on 'quit', @destroyAllHoleMarkers
+    @agda.on 'quit', @destroyMarkers
 
   # convert all '?' to '{!!}'
-  expandHoles: ->
+  expandBoundaries: ->
     rawText = @agda.editor.getText()
     convertSpaced = rawText.split(' ? ').join(' {!  !} ')
     convertNewlined = convertSpaced.split(' ?\n').join(' {!  !}\n')
     @agda.editor.setText convertNewlined
 
-  destroyAllHoleMarkers: =>
+  destroyMarkers: =>
     markers = @agda.editor.findMarkers type: 'hole'
     markers.map (marker) => marker.destroy()
 

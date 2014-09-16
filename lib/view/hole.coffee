@@ -2,20 +2,25 @@
 
 module.exports = class HoleView extends View
 
+  start: null
+  end: null
+
   @content: ->
     @ul outlet: 'holeView'
 
   initialize: (@agda, @hole) ->
+
     @measureCharWidth()
 
     @hole.on 'destroyed', @destroy
-    @hole.on 'position-changed', @setPosition
+    @hole.on 'resized', @resize
 
-  setPosition: (startPosition, endPosition) =>
-    # console.log 'view should change', startPosition.toArray(), endPosition.toArray()
+    @attach()
+
+  resize: (start, end) =>
+    console.log 'resize'
     @empty()
-    # console.log @hole.range.getRows()
-    blocks = @hole._range.getRows().map (row) =>
+    blocks = @hole.getRange().getRows().map (row) =>
       position = @agda.editor.pixelPositionForBufferPosition new Point row, 0
       $('<div class="hole"> </div>').css
         top: position.top
@@ -23,8 +28,8 @@ module.exports = class HoleView extends View
         width: '100%'
 
     [firstLine, ..., lastLine] = blocks
-    startPx = @agda.editor.pixelPositionForBufferPosition startPosition
-    endPx = @agda.editor.pixelPositionForBufferPosition endPosition
+    startPx = @agda.editor.pixelPositionForBufferPosition start
+    endPx = @agda.editor.pixelPositionForBufferPosition end
     if blocks.length is 1
       firstLine
         .css startPx

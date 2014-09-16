@@ -1,132 +1,142 @@
 {EventEmitter} = require 'events'
 {Point, Range} = require 'atom'
 HoleView = require './view/hole'
+HoleBoundary = require './view/hole'
+
+# A Hole has 2 kinds of views
+# 1. the {! !} pair
+# 2. the highlighting
 
 class Hole extends EventEmitter
 
-  # Points representing the boundary of the Hole
-  _start: null
-  _end: null
+  startMarker: null
+  endMarker: null
 
-  # Range
-  _range: null
-
-  # Marker
-  _marker: null
-
-  constructor: (@agda, i, headIndex, tailIndex) ->
-
-    @index = i
-    start = @agda.editor.buffer.positionForCharacterIndex headIndex
-    end = @agda.editor.buffer.positionForCharacterIndex tailIndex
-    @initPosition start, end
-
-    @initWatcher()
+  oldStart: null
+  oldEnd: null
 
 
-    @registerHandlers()
+  constructor: (@agda, @index, startIndex, endIndex) ->
+
+    start = @oldStart = @fromIndex startIndex
+    end   = @oldEnd   = @fromIndex endIndex
+
+    @startMarker = @agda.editor.markBufferPosition start,
+      type: 'hole'
+    @endMarker = @agda.editor.markBufferPosition end,
+      type: 'hole'
+
+    @startMarker.on 'changed', (event) =>
+      changed = @trimMarker()
+      if changed
+        @emit 'resized', @getStart(), @getEnd()
+    @endMarker.on 'changed', (event) =>
+      changed = @trimMarker()
+      if changed
+        @emit 'resized', @getStart(), @getEnd()
+
+    @oldText = @getText()
 
     # view
     view = new HoleView @agda, @
-    view.attach()
-    @emit 'position-changed', @_start, @_end
+
+    # kick off
+    @emit 'resized', @getStart(), @getEnd()
+
+  getText: -> @agda.editor.getTextInRange new Range @getStart(), @getEnd()
+  setText: (text) -> @agda.editor.setTextInBufferRange new Range(@getStart(), @getEnd()), text
+
+  getStart: -> @startMarker.bufferMarker.getStartPosition()
+  setStart: (pos) ->
+    @startMarker.bufferMarker.setRange new Range pos, pos
+
+  getEnd: -> @endMarker.bufferMarker.getStartPosition()
+  setEnd: (pos) ->
+    @endMarker.bufferMarker.setRange new Range pos, pos
 
 
-  registerHandlers: ->
-    @_marker.on 'changed', (event) =>
-      start = event.newTailBufferPosition
-      end = event.newHeadBufferPosition
-      @updatePosition start, end
-      @trimHole()
-      @_text = @agda.editor.getTextInRange @_marker.bufferMarker.getRange()
+  getRange: ->
+    start = @startMarker.bufferMarker.getStartPosition()
+    end = @endMarker.bufferMarker.getStartPosition()
+    new Range start, end
 
-    @_marker.on 'destroyed', @destroy
+  setRange: (range) ->
+    start = new Range range.start, range.start
+    end = new Range range.end, range.end
 
-  initPosition: (start, end) ->
-    @_start = start
-    @_end = end
-    @_range = new Range start, end
-    @_marker = @agda.editor.markBufferRange @_range,
-      type: 'hole',
-      index: @index
-    @_text = @agda.editor.getTextInRange @_marker.bufferMarker.getRange()
+    @startMarker.setRange start
+    @endMarker.setRange end
 
-  updatePosition: (start, end) ->
+  # toIndex :: Position -> Character Index
+  toIndex: (pos) -> @agda.editor.getBuffer().characterIndexForPosition pos
 
-    changed = not start.isEqual(@_start) or not end.isEqual(@_end)
+  # fromIndex :: Character Index -> Position
+  fromIndex: (ind) -> @agda.editor.getBuffer().positionForCharacterIndex ind
 
-    if changed
-      # console.log '== changed =='
-      # console.log @_start.toArray(), '==>', start.toArray()
-      # console.log @_end.toArray(), '==>', end.toArray()
-      @_start = start
-      @_end = end
-      @_range = new Range start, end
-      @_marker.setHeadBufferPosition end
-      @_marker.setTailBufferPosition start
+  # trimMarker :: IO Changed
+  #   recalculate the boundary of the marker
+  trimMarker: ->
 
-      @emit 'position-changed', start, end
+    text = @getText()
 
-  # calculate new marker range
-  trimHole: ->
-    text = @agda.editor.getTextInRange @_marker.bufferMarker.getRange()
 
-    # decide how much to trim
-    leftIndex = text.indexOf '{!'
-    rightIndex = text.indexOf '!}'
 
-    # the entire hole got destroyed
-    if leftIndex is -1 and rightIndex is -1
+    # integrity of the boundaries
+    newStartIndex = text.indexOf '{!'
+    newEndIndex   = text.indexOf '!}'
+
+    # the entire hole got destroyed, so be it
+    if newStartIndex is -1 and newEndIndex is -1
       @destroy()
-      return
+      return true   # changed
 
-    # attempt to damage boundaries
-    else if leftIndex is -1 or rightIndex is -1
+    # attempt to damage boundaries, we should restore it
+    else if newStartIndex is -1 or newEndIndex is -1
       @restoreBoundary()
-      return
+      return false # not changed
 
-    # now we can trim the marker
-    left = leftIndex
+
+
+
+    # determine if the marker doesn't match the boundary
+    # if so, bend the marker back
+
+    left  = text.indexOf('{!')
     right = text.length - text.indexOf('!}') - 2
 
-    # convert original position to character index
-    start = @agda.editor.getBuffer().characterIndexForPosition @_start
-    end = @agda.editor.getBuffer().characterIndexForPosition @_end
+    if left isnt 0
+      startIndex = @toIndex @getStart()
+      startIndex += left
+      @setStart  (@fromIndex startIndex)
 
-    # translate character index according to much to trim
-    start += left
-    end -= right
+    if right isnt 0
+      endIndex   = @toIndex @getEnd()
+      endIndex   -= right
+      @setEnd    (@fromIndex endIndex)
 
-    # convert translated character index back to position
-    start = @agda.editor.getBuffer().positionForCharacterIndex start
-    end = @agda.editor.getBuffer().positionForCharacterIndex end
-    # console.log left, right
-    # console.log @_start.toArray(), @_end.toArray()
-    # console.log start.toArray(), end.toArray()
 
-    @updatePosition start, end
+    # see if the boundaries really changed  (optimization stuff)
+    newStart = @getStart()
+    newEnd = @getEnd()
+
+
+    changed = false
+
+    if not @oldStart.isEqual newStart
+      # console.log '{!', @oldStart.toArray(), '=>', newStart.toArray()
+      @oldStart = newStart
+      changed = true
+
+    if not @oldEnd.isEqual newEnd
+      # console.log '!}', @oldEnd.toArray(),   '=>', newEnd.toArray()
+      @oldEnd = newEnd
+      changed = true
+
+    return changed
+
 
 
   restoreBoundary: ->
-    @agda.editor.setTextInBufferRange @_range, @_text
-
-  destroy: =>
-
-    if not @_marker.isDestroyed()
-      @_marker.destroy()
-    @_watcher.destroy()
-    @emit 'destroyed'
-
-  # fucking ugly hack, to monitor text modification at the start of the marker
-
-  initWatcher: ->
-    @_watcher = @agda.editor.markBufferPosition @_start, type: 'hole-watcher'
-
-    @_watcher.on 'changed', (event) =>
-
-      @trimHole()
-
-  updateWatcher: ->
-    @_watcher.setTailBufferPosition @_start
+    @setText @oldText
 
 module.exports = Hole
