@@ -1,6 +1,5 @@
 {$} = require 'atom'
 {Transform} = require 'stream'
-HoleManager = require './../hole-manager'
 
 class ExecuteCommand extends Transform
 
@@ -31,8 +30,6 @@ class ExecuteCommand extends Transform
 
         # we consider it passed, when this info-action shows up
         @emit 'passed'
-
-        @agda.holeManager = new HoleManager @agda
 
       when 'give-action'
         @agda.holeManager.giveHandler command.holeIndex

@@ -8,7 +8,7 @@ class HoleManager extends EventEmitter
   holes: []
 
   constructor: (@agda) ->
-    console.log 'INIT HOLEMANAGER'
+
     @destroyHoles()
     @expandBoundaries()
 
@@ -118,9 +118,6 @@ class HoleManager extends EventEmitter
     cursor = @agda.editor.getCursorBufferPosition()
     goals = @holes.filter (hole) =>
       hole.getRange().containsPoint cursor
-
-    console.log cursor.toArray()
-    console.log goals[0]?.getRange().start.toArray(), goals[0]?.getRange().end.toArray()
 
     # in certain hole
     if goals.length is 1

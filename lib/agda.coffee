@@ -2,6 +2,7 @@
 AgdaSyntax = require './agda/syntax'
 PanelView = require './view/panel'
 AgdaExecutable = require './agda/executable'
+HoleManager = require './hole-manager'
 Stream = require './stream'
 {EventEmitter} = require 'events'
 
@@ -31,9 +32,15 @@ class Agda extends EventEmitter
       @panelView.attach()
 
       @commandExecutor = new Stream.ExecuteCommand @
+
+      
       @commandExecutor.on 'passed', =>
         @passed = true
         @syntax.activate()
+
+      # initialize HoleManager per agda-mode:load
+      @commandExecutor.once 'passed', =>
+        @holeManager = new HoleManager @
 
       @executable.agda.stdout
         .pipe new Stream.Rectify
