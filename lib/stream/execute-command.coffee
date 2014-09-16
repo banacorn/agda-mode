@@ -35,9 +35,7 @@ class ExecuteCommand extends Transform
         @agda.holeManager = new HoleManager @agda
 
       when 'give-action'
-        hole = @agda.holeManager.findHole command.holeIndex
-        hole.give()
-        @agda.holeManager.destroyHole command.holeIndex
+        @agda.holeManager.giveHandler command.holeIndex
 
     next()
 

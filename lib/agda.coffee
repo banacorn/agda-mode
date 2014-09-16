@@ -82,38 +82,13 @@ class Agda extends EventEmitter
     @executable.wire()
 
   nextGoal: ->
-    @holeManager.nextGoal() if @loaded
+    @holeManager.NextGoalCommand() if @loaded
 
   previousGoal: ->
-    @holeManager.previousGoal() if @loaded
+    @holeManager.previousGoalCommand() if @loaded
 
   give: ->
-    if @loaded
-      @atGoal()
+    @holeManager.GiveCommand() if @loaded
 
-  atGoal: ->
-    cursor = @editor.getCursorBufferPosition()
-    goals = @holeManager.holes.filter (hole) =>
-       hole.getRange().containsPoint cursor
-
-    # in certain hole
-    if goals.length is 1
-      goal = goals[0]
-      index = goal.index
-      start = goal.getStart()
-      startIndex = goal.toIndex start
-      end = goal.getEnd()
-      endIndex = goal.toIndex end
-      text = goal.getText()
-      content = text.substring(2, text.length - 2)
-      command = "IOTCM \"#{@filepath}\" NonInteractive Indirect \
-        (Cmd_give #{index} (Range [Interval (Pn (Just (mkAbsolute \
-        \"#{@filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})\
-         (Pn (Just (mkAbsolute \"#{@filepath}\")) #{endIndex} #{end.row + 1} \
-          #{end.column + 1})]) \"#{content}\" )\n"
-      @executable.agda.stdin.write command
-
-    else
-      console.log 'not in any goal'
 
 module.exports = Agda

@@ -64,7 +64,7 @@ class HoleManager extends EventEmitter
   #
   # agda-mode: next-goal
   #
-  nextGoal: ->
+  nextGoalCommand: ->
     cursor = @agda.editor.getCursorBufferPosition()
     nextGoal = null
 
@@ -87,7 +87,7 @@ class HoleManager extends EventEmitter
   #
   # agda-mode: previous-goal
   #
-  previousGoal: ->
+  previousGoalCommand: ->
     cursor = @agda.editor.getCursorBufferPosition()
     previousGoal = null
 
@@ -106,5 +106,41 @@ class HoleManager extends EventEmitter
     # jump only when there are goals
     if positions.length isnt 0
       @agda.editor.setCursorBufferPosition previousGoal
-      
+
+
+  #
+  # agda-mode: give
+  #
+  giveCommand: ->
+    cursor = @agda.editor.getCursorBufferPosition()
+    goals = @holes.filter (hole) =>
+      hole.getRange().containsPoint cursor
+
+    # in certain hole
+    if goals.length is 1
+      goal = goals[0]
+      index = goal.index
+      start = goal.getStart()
+      startIndex = goal.toIndex start
+      end = goal.getEnd()
+      endIndex = goal.toIndex end
+      text = goal.getText()
+      content = text.substring(2, text.length - 2)
+      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
+        (Cmd_give #{index} (Range [Interval (Pn (Just (mkAbsolute \
+        \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})\
+         (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
+          #{end.column + 1})]) \"#{content}\" )\n"
+      @agda.executable.agda.stdin.write command
+
+    else
+      console.log 'not in any goal'
+
+  giveHandler: (index) ->
+    @holes.forEach (hole) =>
+      if hole.index is index
+        hole.destroy()
+        console.log @holes.length
+        @holes.splice index, 1
+        console.log @holes.length
 module.exports = HoleManager
