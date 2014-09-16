@@ -18,7 +18,6 @@ module.exports = class HoleView extends View
     @attach()
 
   resize: (start, end) =>
-    console.log 'resize'
     @empty()
     blocks = @hole.getRange().getRows().map (row) =>
       position = @agda.editor.pixelPositionForBufferPosition new Point row, 0

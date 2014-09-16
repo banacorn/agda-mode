@@ -52,8 +52,10 @@ class ParseCommand extends Transform
       when 'agda2-highlight-load-and-delete-action' then command =
         type: 'highlight-load-and-delete-action'
 
+      # e.g. (agda2-give-action 1 'no-paren)
       when 'agda2-give-action' then command =
         type: 'give-action'
+        holeIndex: parseInt tokens[1]
 
       else
         throw 'wtf is this command? ' + JSON.stringify tokens

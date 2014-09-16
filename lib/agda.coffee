@@ -132,7 +132,7 @@ class Agda extends EventEmitter
     cursor = @editor.getCursorBufferPosition()
     goals = @holeManager.holes.filter (hole) =>
        hole.getRange().containsPoint cursor
-
+       
     # in certain hole
     if goals.length is 1
       goal = goals[0]

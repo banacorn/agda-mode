@@ -51,4 +51,14 @@ class HoleManager extends EventEmitter
       result = string.match pattern
     return indices
 
+  findHole: (index) ->
+    holes = @holes.filter (hole) => hole.index is index
+    return holes[0]
+
+  destroyHole: (index) ->
+    @holes.filter (hole, i) =>
+      hole.index is index
+      hole.destroy()
+      @holes.splice i, 1
+
 module.exports = HoleManager

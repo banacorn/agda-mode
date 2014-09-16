@@ -14,14 +14,11 @@ class ExecuteCommand extends Transform
 
       when 'info-action: type-checking'
         @agda.panelView.setStatus 'Type Checking'
-        # @panel.setContent command.content
-        # @panel.setStatus 'info'
+        @agda.panelView.appendContent command.content
 
       when 'info-action: error'
         @agda.panelView.setStatus 'Error', 'error'
         @agda.panelView.setContent command.content
-        # @panel.setStatus 'error'
-
 
       when 'info-action: all goals'
 
@@ -36,9 +33,11 @@ class ExecuteCommand extends Transform
         @emit 'passed'
 
         @agda.holeManager = new HoleManager @agda
-      # when 'status-action'
-      #   @panel.status.text command.status
 
+      when 'give-action'
+        hole = @agda.holeManager.findHole command.holeIndex
+        hole.give()
+        @agda.holeManager.destroyHole command.holeIndex
 
     next()
 

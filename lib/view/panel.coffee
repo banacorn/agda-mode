@@ -20,6 +20,15 @@ module.exports = class PanelView extends View
     else
       @contentBlock.hide()
 
+  appendContent: (messages) ->
+    if messages.length > 0
+      @contentBlock.show()
+      for message in messages
+        @contentList.append "<li class: 'list-item'>#{message}</li>"
+    else
+      @contentBlock.hide()
+
+
   setStatus: (string, type) ->
     if type
       @status.attr 'class', 'text-' + type

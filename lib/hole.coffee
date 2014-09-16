@@ -39,12 +39,6 @@ class Hole extends EventEmitter
       if changed
         @emit 'resized', @getStart(), @getEnd()
 
-
-    @on 'destroyed', =>
-      @startMarker.destroy()
-      @endMarker.destroy()
-
-
     # view
     view = new HoleView @agda, @
 
@@ -141,6 +135,19 @@ class Hole extends EventEmitter
   restoreBoundary: ->
     @setTextInRange '{!', @startMarker.bufferMarker.range
     @setTextInRange '!}', @endMarker.bufferMarker.range
+
+  # agda-mode:give
+  give: ->
+    text = @getText()
+    @setText text.substring(2, text.length - 2).replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+
+  destroy: ->
+    @startMarker.destroy()
+    @endMarker.destroy()
+
+    # console.log "[Hole #{ @index }] destroyed"
+    @emit 'destroyed'
+
 
   # respecests character index
   translate: (pos, n) -> @fromIndex((@toIndex pos) + n)
