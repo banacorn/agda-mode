@@ -3,6 +3,7 @@
 HoleView = require './view/hole'
 HoleBoundary = require './view/hole'
 
+
 # A Hole has 2 kinds of views
 # 1. the {! !} pair
 # 2. the highlighting
@@ -18,12 +19,14 @@ class Hole extends EventEmitter
 
   constructor: (@agda, @index, startIndex, endIndex) ->
 
-    start = @oldStart = @fromIndex startIndex
-    end   = @oldEnd   = @fromIndex endIndex
+    startLeft  = @oldStart = @fromIndex startIndex
+    startRight             = @fromIndex (startIndex + 2)
+    endLeft                = @fromIndex (endIndex - 2)
+    endRight   = @oldEnd   = @fromIndex endIndex
 
-    @startMarker = @agda.editor.markBufferPosition start,
+    @startMarker = @agda.editor.markBufferRange new Range(startLeft, startRight),
       type: 'hole'
-    @endMarker = @agda.editor.markBufferPosition end,
+    @endMarker = @agda.editor.markBufferRange new Range(endLeft, endRight),
       type: 'hole'
 
     @startMarker.on 'changed', (event) =>
@@ -47,25 +50,27 @@ class Hole extends EventEmitter
   setText: (text) -> @agda.editor.setTextInBufferRange new Range(@getStart(), @getEnd()), text
 
   getStart: -> @startMarker.bufferMarker.getStartPosition()
-  setStart: (pos) ->
-    @startMarker.bufferMarker.setRange new Range pos, pos
+  setStart: (startLeft) ->
+    startRight = @translate startLeft, 2
+    @startMarker.bufferMarker.setRange new Range startLeft, startRight
 
-  getEnd: -> @endMarker.bufferMarker.getStartPosition()
-  setEnd: (pos) ->
-    @endMarker.bufferMarker.setRange new Range pos, pos
+  getEnd: -> @endMarker.bufferMarker.getEndPosition()
+  setEnd: (endRight) ->
+    endLeft = @translate endRight, -2
+    @endMarker.bufferMarker.setRange new Range endLeft, endRight
 
 
   getRange: ->
     start = @startMarker.bufferMarker.getStartPosition()
-    end = @endMarker.bufferMarker.getStartPosition()
+    end = @endMarker.bufferMarker.getEndPosition()
     new Range start, end
 
   setRange: (range) ->
-    start = new Range range.start, range.start
-    end = new Range range.end, range.end
+    startRange = new Range range.start, @translate range.start, 2
+    endRange   = new Range @translate range.end, -2, range.end
 
-    @startMarker.setRange start
-    @endMarker.setRange end
+    @startMarker.setRange startRange
+    @endMarker.setRange endRange
 
   # toIndex :: Position -> Character Index
   toIndex: (pos) -> @agda.editor.getBuffer().characterIndexForPosition pos
@@ -78,7 +83,6 @@ class Hole extends EventEmitter
   trimMarker: ->
 
     text = @getText()
-
 
 
     # integrity of the boundaries
@@ -105,21 +109,17 @@ class Hole extends EventEmitter
     right = text.length - text.indexOf('!}') - 2
 
     if left isnt 0
-      startIndex = @toIndex @getStart()
-      startIndex += left
-      @setStart  (@fromIndex startIndex)
+      @setStart(@translate @getStart(), left)
 
     if right isnt 0
-      endIndex   = @toIndex @getEnd()
-      endIndex   -= right
-      @setEnd    (@fromIndex endIndex)
-
+      @setEnd(@translate @getEnd(), -right)
 
     # see if the boundaries really changed  (optimization stuff)
     newStart = @getStart()
     newEnd = @getEnd()
 
-
+    # console.log '{!', @oldStart.toArray(), '=>', newStart.toArray()
+    # console.log '!}', @oldEnd.toArray(), '=>', newEnd.toArray()
     changed = false
 
     if not @oldStart.isEqual newStart
@@ -141,5 +141,12 @@ class Hole extends EventEmitter
 
   restoreBoundary: ->
     @setText @oldText
+
+
+  # respecests character index
+  translate: (pos, n) -> @fromIndex((@toIndex pos) + n)
+
+
+
 
 module.exports = Hole
