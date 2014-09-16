@@ -40,6 +40,11 @@ class Hole extends EventEmitter
         @emit 'resized', @getStart(), @getEnd()
 
 
+    @on 'destroyed', =>
+      @startMarker.destroy()
+      @endMarker.destroy()
+
+
     # view
     view = new HoleView @agda, @
 
@@ -91,7 +96,7 @@ class Hole extends EventEmitter
 
     # the entire hole got destroyed, so be it
     if newStartIndex is -1 and newEndIndex is -1
-      @destroy()
+      @emit 'destroyed'
       return true   # changed
 
     # attempt to damage boundaries, we should restore it
@@ -139,8 +144,6 @@ class Hole extends EventEmitter
 
   # respecests character index
   translate: (pos, n) -> @fromIndex((@toIndex pos) + n)
-
-
 
 
 module.exports = Hole
