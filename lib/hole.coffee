@@ -136,8 +136,8 @@ class Hole extends EventEmitter
     @setTextInRange '{!', @startMarker.bufferMarker.range
     @setTextInRange '!}', @endMarker.bufferMarker.range
 
-  # agda-mode:give
-  give: ->
+  
+  removeBoundary: ->
     text = @getText()
     @setText text.substring(2, text.length - 2).replace(/^\s\s*/, '').replace(/\s\s*$/, '')
 
@@ -145,7 +145,6 @@ class Hole extends EventEmitter
     @startMarker.destroy()
     @endMarker.destroy()
 
-    # console.log "[Hole #{ @index }] destroyed"
     @emit 'destroyed'
 
 

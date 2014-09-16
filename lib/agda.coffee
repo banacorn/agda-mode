@@ -82,13 +82,13 @@ class Agda extends EventEmitter
     @executable.wire()
 
   nextGoal: ->
-    @holeManager.NextGoalCommand() if @loaded
+    @holeManager.nextGoalCommand() if @loaded
 
   previousGoal: ->
     @holeManager.previousGoalCommand() if @loaded
 
   give: ->
-    @holeManager.GiveCommand() if @loaded
+    @holeManager.giveCommand() if @loaded
 
 
 module.exports = Agda

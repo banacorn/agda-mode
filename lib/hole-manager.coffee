@@ -139,8 +139,8 @@ class HoleManager extends EventEmitter
   giveHandler: (index) ->
     @holes.forEach (hole) =>
       if hole.index is index
+        hole.removeBoundary()
         hole.destroy()
-        console.log @holes.length
         @holes.splice index, 1
-        console.log @holes.length
+        return
 module.exports = HoleManager
