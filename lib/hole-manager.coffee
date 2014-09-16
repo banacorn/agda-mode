@@ -5,6 +5,8 @@ Hole = require './hole'
 # manages all "holes" in a editor
 class HoleManager extends EventEmitter
 
+  holes: []
+
   constructor: (@agda) ->
     @destroyMarkers()
     @expandBoundaries()
@@ -20,7 +22,7 @@ class HoleManager extends EventEmitter
 
       # length of '!}' and hole index
       tailIndex += 2
-      new Hole @agda, i, headIndex, tailIndex
+      @holes.push new Hole(@agda, i, headIndex, tailIndex)
 
     @agda.on 'quit', @destroyMarkers
 
@@ -32,6 +34,9 @@ class HoleManager extends EventEmitter
     @agda.editor.setText convertNewlined
 
   destroyMarkers: =>
+    # first, destroy all Holes
+    @holes.forEach (hole) => hole.emit 'destroyed'
+    # second, destroy wandering markers
     markers = @agda.editor.findMarkers type: 'hole'
     markers.map (marker) => marker.destroy()
 

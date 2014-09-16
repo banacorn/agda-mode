@@ -87,9 +87,9 @@ class Agda extends EventEmitter
       cursor = @editor.getCursorBufferPosition()
       nextGoal = null
 
-      positions = @editor
-        .findMarkers type: 'hole'
-        .map (marker) => marker.getTailBufferPosition().translate new Point 0, 3
+      positions = @holeManager.holes.map (hole) =>
+        start = hole.getStart()
+        hole.translate start, 3
 
       positions.forEach (position) =>
         if position.isGreaterThan cursor
@@ -108,10 +108,10 @@ class Agda extends EventEmitter
       cursor = @editor.getCursorBufferPosition()
       previousGoal = null
 
-      positions = @editor
-        .findMarkers type: 'hole'
-        .map (marker) => marker.getTailBufferPosition().translate new Point 0, 3
-
+      positions = @holeManager.holes.map (hole) =>
+        start = hole.getStart()
+        hole.translate start, 3
+        
       positions.forEach (position) =>
         if position.isLessThan cursor
           previousGoal = position
