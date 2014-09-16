@@ -82,47 +82,10 @@ class Agda extends EventEmitter
     @executable.wire()
 
   nextGoal: ->
-    if @loaded
-
-      cursor = @editor.getCursorBufferPosition()
-      nextGoal = null
-
-      positions = @holeManager.holes.map (hole) =>
-        start = hole.getStart()
-        hole.translate start, 3
-
-      positions.forEach (position) =>
-        if position.isGreaterThan cursor
-          nextGoal ?= position
-
-      # no hole ahead of cursor, loop back
-      if nextGoal is null
-        nextGoal = positions[0]
-
-      # jump only when there are goals
-      if positions.length isnt 0
-        @editor.setCursorBufferPosition nextGoal
+    @holeManager.nextGoal() if @loaded
 
   previousGoal: ->
-    if @loaded
-      cursor = @editor.getCursorBufferPosition()
-      previousGoal = null
-
-      positions = @holeManager.holes.map (hole) =>
-        start = hole.getStart()
-        hole.translate start, 3
-
-      positions.forEach (position) =>
-        if position.isLessThan cursor
-          previousGoal = position
-
-      # no hole ahead of cursor, loop back
-      if previousGoal is null
-        previousGoal = positions[positions.length - 1]
-
-      # jump only when there are goals
-      if positions.length isnt 0
-        @editor.setCursorBufferPosition previousGoal
+    @holeManager.previousGoal() if @loaded
 
   give: ->
     if @loaded
@@ -132,7 +95,7 @@ class Agda extends EventEmitter
     cursor = @editor.getCursorBufferPosition()
     goals = @holeManager.holes.filter (hole) =>
        hole.getRange().containsPoint cursor
-       
+
     # in certain hole
     if goals.length is 1
       goal = goals[0]
