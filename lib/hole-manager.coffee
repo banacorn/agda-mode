@@ -143,8 +143,14 @@ class HoleManager extends EventEmitter
   giveHandler: (index) ->
     @holes.forEach (hole) =>
       if hole.index is index
+
+        # destroy the hole
         hole.removeBoundary()
         hole.destroy()
         @holes.splice index, 1
+
+        # save the buffer
+        @agda.editor.save()
+
         return
 module.exports = HoleManager
