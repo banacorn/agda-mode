@@ -137,8 +137,8 @@ class HoleManager extends EventEmitter
       @agda.executable.agda.stdin.write command
 
     else
-      console.log goals
-      console.log 'not in any goal'
+      @agda.panelView.setStatus 'Info'
+      @agda.panelView.setContent ['For this command, please place the cursor in a goal']
 
   giveHandler: (index) ->
     @holes.forEach (hole) =>
