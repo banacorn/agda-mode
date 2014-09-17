@@ -6,6 +6,11 @@ HoleManager = require './hole-manager'
 Stream = require './stream'
 {EventEmitter} = require 'events'
 
+# events:
+#   activate
+#   deactivate
+#   quit
+
 class Agda extends EventEmitter
 
   executablePath: null
@@ -33,7 +38,7 @@ class Agda extends EventEmitter
 
       @commandExecutor = new Stream.ExecuteCommand @
 
-      
+
       @commandExecutor.on 'passed', =>
         @passed = true
         @syntax.activate()
@@ -68,14 +73,30 @@ class Agda extends EventEmitter
       if @loaded
         @panelView.detach()
 
+    @on 'hole-manager:initialized', => @restoreCursor()
+
+  # saves current position of the cursor
+  saveCursor: ->
+    @cursorPositionLock = true
+    @cursorPosition = @editor.getCursorBufferPosition()
+
+  # restores cursor position, must be paired with @saveCursor
+  restoreCursor: ->
+    if @cursorPositionLock
+      @editor.setCursorBufferPosition @cursorPosition
+      @cursorPositionLock = false
+
+  #         #
+  # comands #
+  #         #
+
   load: ->
     console.log '========='
+    @saveCursor()
     if not @loaded
       @executable.wire()
     else
       @restart()
-
-
   quit: ->
     if @loaded
       @loaded = false
@@ -96,6 +117,8 @@ class Agda extends EventEmitter
 
   give: ->
     @holeManager.giveCommand() if @loaded
+
+
 
 
 module.exports = Agda

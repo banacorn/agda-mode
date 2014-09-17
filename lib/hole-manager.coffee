@@ -27,6 +27,7 @@ class HoleManager extends EventEmitter
 
     @agda.once 'quit', @destroyHoles
 
+    @agda.emit 'hole-manager:initialized'
   # convert all '?' to '{!!}'
   expandBoundaries: ->
     rawText = @agda.editor.getText()
