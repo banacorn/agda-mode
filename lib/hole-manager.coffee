@@ -10,8 +10,9 @@ class HoleManager extends EventEmitter
   constructor: (@agda) ->
 
     @destroyHoles()
-    @expandBoundaries()
+    @agda.once 'quit', @destroyHoles
 
+  load: ->
     text = @agda.editor.getText()
     headIndices = @indicesOf text, /\{!/
     tailIndices = @indicesOf text, /!\}/
@@ -25,15 +26,17 @@ class HoleManager extends EventEmitter
       tailIndex += 2
       @holes.push new Hole(@agda, i, headIndex, tailIndex)
 
-    @agda.once 'quit', @destroyHoles
 
     @agda.emit 'hole-manager:initialized'
+
+
   # convert all '?' to '{!!}'
   expandBoundaries: ->
     rawText = @agda.editor.getText()
     convertSpaced = rawText.split(' ? ').join(' {!  !} ')
     convertNewlined = convertSpaced.split(' ?\n').join(' {!  !}\n')
     @agda.editor.setText convertNewlined
+    @agda.emit 'hole-manager:buffer-modified'
 
   destroyHoles: =>
     # first, destroy all Holes
@@ -150,8 +153,7 @@ class HoleManager extends EventEmitter
         hole.destroy()
         @holes.splice index, 1
 
-        # save the buffer
-        @agda.editor.save()
+        @agda.emit 'hole-manager:buffer-modified'
 
         return
 module.exports = HoleManager

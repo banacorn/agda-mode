@@ -25,7 +25,7 @@ class Agda extends EventEmitter
     @filepath = @editor.getPath()
 
     @executable = new AgdaExecutable
-
+    @holeManager = new HoleManager @
     @panelView = new PanelView
     @registerHandlers()
 
@@ -45,7 +45,6 @@ class Agda extends EventEmitter
 
       # initialize HoleManager per agda-mode:load
       @commandExecutor.once 'passed', =>
-        @holeManager = new HoleManager @
 
       @executable.agda.stdout
         .pipe new Stream.Rectify
@@ -61,8 +60,9 @@ class Agda extends EventEmitter
       else
         command = 'IOTCM "' + @filepath + '" NonInteractive Indirect (Cmd_load "' + @filepath + '" [])\n'
 
+      @holeManager.expandBoundaries()
       @executable.agda.stdin.write command
-
+      @holeManager.load()
     @on 'activate', =>
       @active = true
       if @loaded
@@ -74,6 +74,8 @@ class Agda extends EventEmitter
         @panelView.detach()
 
     @on 'hole-manager:initialized', => @restoreCursor()
+
+    @on 'hole-manager:buffer-modified', => @editor.save()
 
   # saves current position of the cursor
   saveCursor: ->
