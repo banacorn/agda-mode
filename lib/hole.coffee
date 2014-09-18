@@ -21,8 +21,8 @@ class Hole extends EventEmitter
 
     startLeft  = @oldStart = @fromIndex startIndex
     startRight             = @fromIndex (startIndex + 2)
-    endLeft                = @fromIndex (endIndex - 2)
-    endRight   = @oldEnd   = @fromIndex endIndex
+    endLeft                = @fromIndex endIndex
+    endRight   = @oldEnd   = @fromIndex (endIndex + 2)
 
     @startMarker = @agda.editor.markBufferRange new Range(startLeft, startRight),
       type: 'hole'
@@ -136,7 +136,7 @@ class Hole extends EventEmitter
     @setTextInRange '{!', @startMarker.bufferMarker.range
     @setTextInRange '!}', @endMarker.bufferMarker.range
 
-  
+
   removeBoundary: ->
     text = @getText()
     @setText text.substring(2, text.length - 2).replace(/^\s\s*/, '').replace(/\s\s*$/, '')

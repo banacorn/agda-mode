@@ -13,39 +13,34 @@ class HoleManager extends EventEmitter
     @agda.once 'quit', @destroyHoles
 
   load: ->
+    @destroyHoles()
+
+    # get positions of all holes
     text = @agda.editor.getText()
     headIndices = @indicesOf text, /\{!/
     tailIndices = @indicesOf text, /!\}/
 
-    # register all markers first
+    # instantiate Holes
     for headIndex, i in headIndices
-
       tailIndex = tailIndices[i]
-
-      # length of '!}' and hole index
-      tailIndex += 2
       @holes.push new Hole(@agda, i, headIndex, tailIndex)
-
 
     @agda.emit 'hole-manager:initialized'
 
-
   # convert all '?' to '{!!}'
   expandBoundaries: ->
-    rawText = @agda.editor.getText()
-    convertSpaced = rawText.split(' ? ').join(' {!  !} ')
-    convertNewlined = convertSpaced.split(' ?\n').join(' {!  !}\n')
-    @agda.editor.setText convertNewlined
+
+    converted = @agda.editor.getText()
+      .split(' ? ')
+      .join(' {!  !} ')
+      .split(' ?\n')
+      .join(' {!  !}\n')
+    @agda.editor.setText converted
     @agda.emit 'hole-manager:buffer-modified'
 
-  destroyHoles: =>
-    # first, destroy all Holes
-    @holes.forEach (hole) =>
-      hole.emit 'destroyed'
-      @holes = []
-    # second, destroy wandering markers
-    markers = @agda.editor.findMarkers type: 'hole'
-    markers.map (marker) => marker.destroy()
+  #
+  #   Helper functions
+  #
 
   indicesOf: (string, pattern) ->
     indices = []
@@ -63,10 +58,23 @@ class HoleManager extends EventEmitter
     return holes[0]
 
   destroyHole: (index) ->
-    @holes.filter (hole, i) =>
-      hole.index is index
+    # destroy Hole
+    @holes
+      .filter (hole) => hole.index is index
+      .forEach (hole) => hole.destroy()
+    # remove from @holes
+    @holes = @holes.filter (hole) => hole.index isnt index
+
+
+  destroyHoles: =>
+    # first, destroy all Holes
+    @holes.forEach (hole) =>
       hole.destroy()
-      @holes.splice i, 1
+    @holes = []
+    # second, destroy all wandering markers
+    markers = @agda.editor.findMarkers type: 'hole'
+    markers.map (marker) => marker.destroy()
+
 
   #
   # agda-mode: next-goal
@@ -145,15 +153,9 @@ class HoleManager extends EventEmitter
       @agda.panelView.setContent ['For this command, please place the cursor in a goal']
 
   giveHandler: (index) ->
-    @holes.forEach (hole) =>
-      if hole.index is index
+    hole = @findHole index
+    hole.removeBoundary()
+    @destroyHole index
+    @agda.emit 'hole-manager:buffer-modified'
 
-        # destroy the hole
-        hole.removeBoundary()
-        hole.destroy()
-        @holes.splice index, 1
-
-        @agda.emit 'hole-manager:buffer-modified'
-
-        return
 module.exports = HoleManager

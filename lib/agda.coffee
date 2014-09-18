@@ -48,7 +48,7 @@ class Agda extends EventEmitter
 
       @executable.agda.stdout
         .pipe new Stream.Rectify
-        .pipe new Stream.Log
+        # .pipe new Stream.Log
         .pipe new Stream.Preprocess
         .pipe new Stream.ParseSExpr
         .pipe new Stream.ParseCommand
@@ -63,6 +63,7 @@ class Agda extends EventEmitter
       @holeManager.expandBoundaries()
       @executable.agda.stdin.write command
       @holeManager.load()
+
     @on 'activate', =>
       @active = true
       if @loaded
@@ -118,6 +119,7 @@ class Agda extends EventEmitter
     @holeManager.previousGoalCommand() if @loaded
 
   give: ->
+    console.log 'give'
     @holeManager.giveCommand() if @loaded
 
 
