@@ -13,8 +13,9 @@ module.exports = class AgdaExecutable extends EventEmitter
 
     # try to catch EACCES, etc (yep, process.on 'uncaughtException' failed)
     try
-      @agda = spawn executablePath, ['--interaction']
-      @agda.wired = false
+      @process = spawn executablePath, ['--interaction']
+      @process.wired = false
+
     catch error
       pathQueryView = new PathQueryView
       pathQueryView.query()
@@ -23,17 +24,18 @@ module.exports = class AgdaExecutable extends EventEmitter
       return
 
     # catch other forms of errors
-    @agda.on 'error', (error) =>
+    @process.on 'error', (error) =>
       pathQueryView = new PathQueryView
       pathQueryView.query()
       pathQueryView.one 'agda-path-query-view.success', (el, path) =>
         @wire()
 
-    @agda.stdout.once 'data', (data) =>
+    @process.stdout.once 'data', (data) =>
       # run only when the executable was just wired
-      if not @agda.wired and /^Agda2/.test data
-        @agda.wired = true
+      if not @process.wired and /^Agda2/.test data
+        @process.wired = true
         @emit 'wired'
+
 
   #
   #   Commands
@@ -45,4 +47,7 @@ module.exports = class AgdaExecutable extends EventEmitter
       command = "IOTCM \"#{obj.filepath}\" NonInteractive Indirect (Cmd_load \"#{obj.filepath}\" [\"./\", \"#{includeDir}\"])\n"
     else
       command = "IOTCM \"#{obj.filepath}\" NonInteractive Indirect (Cmd_load \"#{obj.filepath}\" [])\n"
-    @agda.stdin.write command
+    @process.stdin.write command
+
+  quitCommand: ->
+    @process.kill()

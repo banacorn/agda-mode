@@ -89,7 +89,7 @@ class Agda extends EventEmitter
           @passed = true
           @syntax.activate()
 
-        @executable.agda.stdout
+        @executable.process.stdout
           .pipe new Stream.Rectify
           # .pipe new Stream.Log
           .pipe new Stream.Preprocess
@@ -112,6 +112,7 @@ class Agda extends EventEmitter
       @syntax.deactivate()
       @panelView.detach()
       @emit 'quit'
+      @executable.quitCommand()
 
   restart: ->
     @quit()
