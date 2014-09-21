@@ -63,4 +63,5 @@ module.exports = class HoleView extends View
 
 
   destroy: =>
+    # console.log "[HOLE VIEW] #{@hole.index} DETACH"
     @detach()

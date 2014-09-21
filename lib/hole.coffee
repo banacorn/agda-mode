@@ -103,9 +103,6 @@ class Hole extends EventEmitter
       @restoreBoundary()
       return false # not changed
 
-
-
-
     # determine if the marker doesn't match the boundary
     # if so, bend the marker back
 
@@ -144,6 +141,9 @@ class Hole extends EventEmitter
   removeBoundary: -> @setText @getContent().replace(/^\s\s*/, '').replace(/\s\s*$/, '')
 
   destroy: ->
+
+    # console.log "[HOLE] #{@index} destroyed"
+
     @startMarker.destroy()
     @endMarker.destroy()
 

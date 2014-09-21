@@ -57,38 +57,38 @@ class HoleManager extends EventEmitter
     markers = @agda.editor.findMarkers type: 'hole'
     markers.map (marker) => marker.destroy()
 
-  refreshGoals: (goalIndices) ->
-    console.log 'refreshing goals'
-    # get positions of all holes
+  resetGoals: (goalIndices) ->
+    @destroyHoles()
     text = @agda.editor.getText()
+
+    # make hole {! <----> !} larger
+    text = text
+      .split /\{!(.*)!\}/
+      .map (seg, i) =>
+        if i % 2 is 1
+          goalIndex = goalIndices[(i - 1)/2]
+          seg = seg.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+          seg = seg + ' '.repeat(goalIndex.toString().length)
+          return '{! ' + seg + ' !}'
+        else
+          seg
+      .join('')
+    @agda.editor.setText text
+
+    # get positions of all holes
     headIndices = @indicesOf text, /\{!/
     tailIndices = @indicesOf text, /!\}/
 
-
-    delta = 0
-
     # instantiate a Hole if not existed
     for headIndex, i in headIndices
-      headIndex = headIndex + delta
-      tailIndex = tailIndices[i] + delta
+      # headIndex = headIndex
+      tailIndex = tailIndices[i]
       goalIndex = goalIndices[i]
-
       hole = @findHole goalIndex
       if hole is undefined
         # instantiate Hole
         hole = new Hole(@agda, goalIndex, headIndex, tailIndex)
         @holes.push hole
-      else
-        console.log 'existed'
-        hole.setStart headIndex
-        hole.setEnd   tailIndex
-
-      # make hole {! <----> !} larger
-      goalIndexDigitLength = goalIndex.toString().length
-      rawContent = hole.getContent()
-      content = ' ' + rawContent.replace(/^\s\s*/, '').replace(/\s\s*$/, '') + ' '.repeat(1 + goalIndexDigitLength)
-      delta += content.length - rawContent.length
-      hole.setContent content
 
     @agda.emit 'hole-manager:initialized'
 
