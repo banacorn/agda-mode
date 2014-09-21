@@ -76,7 +76,7 @@ class Agda extends EventEmitter
     if not @loaded
       console.log '==== LOAD ===='
       @saveCursor()
-      
+
       # triggered when a Agda executable is found
       @executable.once 'wired', =>
         @loaded = true
@@ -91,7 +91,7 @@ class Agda extends EventEmitter
 
         @executable.agda.stdout
           .pipe new Stream.Rectify
-          .pipe new Stream.Log
+          # .pipe new Stream.Log
           .pipe new Stream.Preprocess
           .pipe new Stream.ParseSExpr
           .pipe new Stream.ParseCommand

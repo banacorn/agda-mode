@@ -26,12 +26,13 @@ class ExecuteCommand extends Transform
           @agda.panelView.setStatus 'No Goals', 'success'
         else
           @agda.panelView.setStatus 'Goals', 'info'
+          
+          # refresh holes with given goals
+          indices = command.content.map (goal) => parseInt /^\?(\d+)\s\:\s/.exec(goal)[1]
+          @agda.holeManager.refreshGoals indices
+
         @agda.panelView.setContent command.content
 
-
-
-        indices = command.content.map (goal) => parseInt /^\?(\d+)\s\:\s/.exec(goal)[1]
-        @agda.holeManager.refreshGoals indices
 
 
         # we consider it passed, when this info-action shows up

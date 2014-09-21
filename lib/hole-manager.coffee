@@ -14,13 +14,13 @@ class HoleManager extends EventEmitter
 
 
   # convert all '?' to '{!!}'
-  expandBoundaries: ->
+  convertBoundaries: ->
 
     converted = @agda.editor.getText()
       .split(' ? ')
-      .join(' {!  !} ')
+      .join(' {!!} ')
       .split(' ?\n')
-      .join(' {!  !}\n')
+      .join(' {!!}\n')
     @agda.editor.setText converted
     @agda.emit 'hole-manager:buffer-modified'
 
@@ -73,8 +73,14 @@ class HoleManager extends EventEmitter
       hole = @findHole goalIndex
 
       if hole is undefined
-        @holes.push new Hole(@agda, goalIndex, headIndex, tailIndex)
-        
+        # instantiate Hole
+        hole = new Hole(@agda, goalIndex, headIndex, tailIndex)
+        @holes.push hole
+
+        # console.log hole.get
+        # make hole {! <----> !} larger
+        # pos = hole.fromIndex(headIndex + 2)
+        # @agda.editor.buffer.insert(pos, ' '.repeat(2 + goalIndex.toString().length))
     @agda.emit 'hole-manager:initialized'
 
   #
@@ -82,7 +88,7 @@ class HoleManager extends EventEmitter
   #
   loadCommand: ->
     @destroyHoles()
-    @expandBoundaries()
+    @convertBoundaries()
 
 
   #
