@@ -140,7 +140,11 @@ class HoleManager extends EventEmitter
       end = goal.getEnd()
       endIndex = goal.toIndex end
       text = goal.getText()
-      content = text.substring(2, text.length - 2)
+      content = text.substring(2, text.length - 2)  # remove "{!!}"
+      #
+      # empty = content.replace(/\s/g, '').length is 0
+      # if empty then @agda.panelView.queryExpression()
+
       command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
         (Cmd_give #{index} (Range [Interval (Pn (Just (mkAbsolute \
         \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})\

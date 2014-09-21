@@ -14,16 +14,14 @@ Stream = require './stream'
 class Agda extends EventEmitter
 
   executablePath: null
-  active: false
-  loaded: false
-  passed: false
+  active: false             # show panel view if active (tab focused)
+  loaded: false             # code loaded by agda
+  passed: false             # code loaded and passed by agda
 
   constructor: (@editorView) ->
     @editor = @editorView.getModel()
     @syntax = new AgdaSyntax @editor
-
     @filepath = @editor.getPath()
-
     @executable = new AgdaExecutable
     @holeManager = new HoleManager @
     @panelView = new PanelView
@@ -31,6 +29,7 @@ class Agda extends EventEmitter
 
   registerHandlers: ->
 
+    # triggered when a Agda executable is found
     @executable.on 'wired', =>
       @loaded = true
 
@@ -38,13 +37,9 @@ class Agda extends EventEmitter
 
       @commandExecutor = new Stream.ExecuteCommand @
 
-
       @commandExecutor.on 'passed', =>
         @passed = true
         @syntax.activate()
-
-      # initialize HoleManager per agda-mode:load
-      @commandExecutor.once 'passed', =>
 
       @executable.agda.stdout
         .pipe new Stream.Rectify
@@ -54,15 +49,11 @@ class Agda extends EventEmitter
         .pipe new Stream.ParseCommand
         .pipe @commandExecutor
 
-      includeDir = atom.config.get 'agda-mode.agdaLibraryPath'
-      if includeDir
-        command = 'IOTCM "' + @filepath + '" NonInteractive Indirect (Cmd_load "' + @filepath + '" ["./", "' + includeDir + '"])\n'
-      else
-        command = 'IOTCM "' + @filepath + '" NonInteractive Indirect (Cmd_load "' + @filepath + '" [])\n'
-
       @holeManager.expandBoundaries()
-      @executable.agda.stdin.write command
+      @executable.loadCommand
+        filepath: @filepath
       @holeManager.load()
+
 
     @on 'activate', =>
       @active = true
@@ -116,6 +107,7 @@ class Agda extends EventEmitter
       @executable.wire()
     else
       @restart()
+
   quit: ->
     if @loaded
       @loaded = false
