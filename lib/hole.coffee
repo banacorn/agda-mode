@@ -45,9 +45,14 @@ class Hole extends EventEmitter
     # kick off
     @emit 'resized', @getStart(), @getEnd()
 
-  getText: -> @agda.editor.getTextInRange new Range @getStart(), @getEnd()
-  setText: (text) -> @agda.editor.setTextInBufferRange new Range(@getStart(), @getEnd()), text
+  # with boundaries {! #$% !}
+  getText:        -> @agda.editor.getTextInRange       new Range(@startMarker.bufferMarker.getStartPosition(), @endMarker.bufferMarker.getEndPosition())
+  setText: (text) -> @agda.editor.setTextInBufferRange new Range(@startMarker.bufferMarker.getStartPosition(), @endMarker.bufferMarker.getEndPosition()), text
   setTextInRange: (text, range) -> @agda.editor.setTextInBufferRange range, text
+
+  # without boundaries
+  getContent:        -> @agda.editor.getTextInRange       new Range(@startMarker.bufferMarker.getEndPosition(), @endMarker.bufferMarker.getStartPosition())
+  setContent: (text) -> @agda.editor.setTextInBufferRange new Range(@startMarker.bufferMarker.getEndPosition(), @endMarker.bufferMarker.getStartPosition()), text
 
   getStart: -> @startMarker.bufferMarker.getStartPosition()
   setStart: (startLeft) ->
@@ -136,11 +141,7 @@ class Hole extends EventEmitter
     @setTextInRange '{!', @startMarker.bufferMarker.range
     @setTextInRange '!}', @endMarker.bufferMarker.range
 
-
-  removeBoundary: ->
-    console.log "[Hole #{@index}] boundary got removed"
-    text = @getText()
-    @setText text.substring(2, text.length - 2).replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+  removeBoundary: -> @setText @getContent().replace(/^\s\s*/, '').replace(/\s\s*$/, '')
 
   destroy: ->
     @startMarker.destroy()
