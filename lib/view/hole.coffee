@@ -28,8 +28,8 @@ module.exports = class HoleView extends View
           top: position.top
           left: 0
           width: '100%'
-          paddingRight: @charWidth * 2
-        .text @hole.index.toString()
+      .text ' '
+
 
     [firstLine, ..., lastLine] = blocks
     startPx = @agda.editor.pixelPositionForBufferPosition start
@@ -39,15 +39,22 @@ module.exports = class HoleView extends View
     # from startPx to endPx
     if blocks.length is 1
       firstLine
-        .css startPx
+        .css
+          top: startPx.top
+          left: startPx.left
+          paddingRight: @charWidth * 2
         .width endPx.left - startPx.left
-
+        .text @hole.index.toString()
     # multi row hole
     # firstLine: from startPx to the end
     # lastLine from the start to endPx
     else
       firstLine.css startPx
-      lastLine.width endPx.left
+      lastLine
+        .css
+          paddingRight: @charWidth * 2
+        .width endPx.left
+        .text @hole.index.toString()
 
 
     blocks.forEach (div) =>
