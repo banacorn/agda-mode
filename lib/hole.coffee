@@ -138,6 +138,7 @@ class Hole extends EventEmitter
 
 
   removeBoundary: ->
+    console.log "[Hole #{@index}] boundary got removed"
     text = @getText()
     @setText text.substring(2, text.length - 2).replace(/^\s\s*/, '').replace(/\s\s*$/, '')
 

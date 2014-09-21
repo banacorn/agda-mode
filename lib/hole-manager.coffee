@@ -12,20 +12,6 @@ class HoleManager extends EventEmitter
     @destroyHoles()
     @agda.once 'quit', @destroyHoles
 
-  load: ->
-    @destroyHoles()
-
-    # get positions of all holes
-    text = @agda.editor.getText()
-    headIndices = @indicesOf text, /\{!/
-    tailIndices = @indicesOf text, /!\}/
-
-    # instantiate Holes
-    for headIndex, i in headIndices
-      tailIndex = tailIndices[i]
-      @holes.push new Hole(@agda, i, headIndex, tailIndex)
-
-    @agda.emit 'hole-manager:initialized'
 
   # convert all '?' to '{!!}'
   expandBoundaries: ->
@@ -37,10 +23,6 @@ class HoleManager extends EventEmitter
       .join(' {!  !}\n')
     @agda.editor.setText converted
     @agda.emit 'hole-manager:buffer-modified'
-
-  #
-  #   Helper functions
-  #
 
   indicesOf: (string, pattern) ->
     indices = []
@@ -74,6 +56,33 @@ class HoleManager extends EventEmitter
     # second, destroy all wandering markers
     markers = @agda.editor.findMarkers type: 'hole'
     markers.map (marker) => marker.destroy()
+
+
+  refreshGoals: (goalIndices) ->
+
+    # get positions of all holes
+    text = @agda.editor.getText()
+    headIndices = @indicesOf text, /\{!/
+    tailIndices = @indicesOf text, /!\}/
+
+    # instantiate a Hole if not existed
+    for headIndex, i in headIndices
+      tailIndex = tailIndices[i]
+      goalIndex = goalIndices[i]
+
+      hole = @findHole goalIndex
+
+      if hole is undefined
+        @holes.push new Hole(@agda, goalIndex, headIndex, tailIndex)
+        
+    @agda.emit 'hole-manager:initialized'
+
+  #
+  # agda-mode: load
+  #
+  loadCommand: ->
+    @destroyHoles()
+    @expandBoundaries()
 
 
   #
@@ -134,19 +143,19 @@ class HoleManager extends EventEmitter
     # in certain hole
     if goals.length is 1
       goal = goals[0]
-      index = goal.index
+      goalIndex = goal.index
       start = goal.getStart()
       startIndex = goal.toIndex start
       end = goal.getEnd()
       endIndex = goal.toIndex end
       text = goal.getText()
       content = text.substring(2, text.length - 2)  # remove "{!!}"
+
       #
       # empty = content.replace(/\s/g, '').length is 0
       # if empty then @agda.panelView.queryExpression()
-
       command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
-        (Cmd_give #{index} (Range [Interval (Pn (Just (mkAbsolute \
+        (Cmd_give #{goalIndex} (Range [Interval (Pn (Just (mkAbsolute \
         \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})\
          (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
           #{end.column + 1})]) \"#{content}\" )\n"

@@ -57,6 +57,8 @@ class ParseCommand extends Transform
         type: 'give-action'
         holeIndex: parseInt tokens[1]
 
+      when 'annot'
+        throw 'cannot read: ' + JSON.stringify tokens
       else
         throw 'wtf is this command? ' + JSON.stringify tokens
         command = type: 'unknown'

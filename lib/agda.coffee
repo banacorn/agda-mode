@@ -25,35 +25,6 @@ class Agda extends EventEmitter
     @executable = new AgdaExecutable
     @holeManager = new HoleManager @
     @panelView = new PanelView
-    @registerHandlers()
-
-  registerHandlers: ->
-
-    # triggered when a Agda executable is found
-    @executable.on 'wired', =>
-      @loaded = true
-
-      @panelView.attach()
-
-      @commandExecutor = new Stream.ExecuteCommand @
-
-      @commandExecutor.on 'passed', =>
-        @passed = true
-        @syntax.activate()
-
-      @executable.agda.stdout
-        .pipe new Stream.Rectify
-        # .pipe new Stream.Log
-        .pipe new Stream.Preprocess
-        .pipe new Stream.ParseSExpr
-        .pipe new Stream.ParseCommand
-        .pipe @commandExecutor
-
-      @holeManager.expandBoundaries()
-      @executable.loadCommand
-        filepath: @filepath
-      @holeManager.load()
-
 
     @on 'activate', =>
       @active = true
@@ -101,9 +72,35 @@ class Agda extends EventEmitter
   #         #
 
   load: ->
-    console.log '========='
-    @saveCursor()
+
     if not @loaded
+      console.log '==== LOAD ===='
+      @saveCursor()
+      
+      # triggered when a Agda executable is found
+      @executable.once 'wired', =>
+        @loaded = true
+
+        @panelView.attach()
+
+        @commandExecutor = new Stream.ExecuteCommand @
+
+        @commandExecutor.on 'passed', =>
+          @passed = true
+          @syntax.activate()
+
+        @executable.agda.stdout
+          .pipe new Stream.Rectify
+          .pipe new Stream.Log
+          .pipe new Stream.Preprocess
+          .pipe new Stream.ParseSExpr
+          .pipe new Stream.ParseCommand
+          .pipe @commandExecutor
+
+        @holeManager.loadCommand()
+        @executable.loadCommand
+          filepath: @filepath
+
       @executable.wire()
     else
       @restart()
@@ -118,7 +115,7 @@ class Agda extends EventEmitter
 
   restart: ->
     @quit()
-    @executable.wire()
+    @load()
 
   nextGoal: ->
     @holeManager.nextGoalCommand() if @loaded
