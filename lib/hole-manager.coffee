@@ -174,7 +174,7 @@ class HoleManager extends EventEmitter
         \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})\
          (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
           #{end.column + 1})]) \"#{content}\" )\n"
-      @agda.executable.agda.stdin.write command
+      @agda.executable.process.stdin.write command
 
     else
       @agda.panelView.setStatus 'Info'
