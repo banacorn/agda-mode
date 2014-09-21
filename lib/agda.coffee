@@ -91,7 +91,7 @@ class Agda extends EventEmitter
 
         @executable.process.stdout
           .pipe new Stream.Rectify
-          # .pipe new Stream.Log
+          .pipe new Stream.Log
           .pipe new Stream.Preprocess
           .pipe new Stream.ParseSExpr
           .pipe new Stream.ParseCommand

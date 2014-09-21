@@ -12,18 +12,6 @@ class HoleManager extends EventEmitter
     @destroyHoles()
     @agda.once 'quit', @destroyHoles
 
-
-  # convert all '?' to '{!!}'
-  convertBoundaries: ->
-
-    converted = @agda.editor.getText()
-      .split(' ? ')
-      .join(' {!!} ')
-      .split(' ?\n')
-      .join(' {!!}\n')
-    @agda.editor.setText converted
-    @agda.emit 'hole-manager:buffer-modified'
-
   indicesOf: (string, pattern) ->
     indices = []
     cursor = 0
@@ -61,19 +49,30 @@ class HoleManager extends EventEmitter
     @destroyHoles()
     text = @agda.editor.getText()
 
-    # make hole {! <----> !} larger
+    # make hole {! !}
     text = text
-      .split /\{!(.*)!\}/
+      .split /\{!(.*)!\}|(\s\?\s)/
+      .filter (seg) => seg
       .map (seg, i) =>
         if i % 2 is 1
           goalIndex = goalIndices[(i - 1)/2]
-          seg = seg.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
-          seg = seg + ' '.repeat(goalIndex.toString().length)
-          return '{! ' + seg + ' !}'
+          paddingSpaces = ' '.repeat(goalIndex.toString().length)
+
+          # " ? " or " ?\n"
+          if /\s\?\s/.test seg
+            return " {! #{paddingSpaces} !}#{seg[2]}"
+
+          # "{! ... !}"
+          else
+            # trim spaces
+            seg = seg.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+            return "{! #{seg + paddingSpaces} !}"
         else
           seg
       .join('')
+
     @agda.editor.setText text
+    @agda.emit 'hole-manager:buffer-modified'
 
     # get positions of all holes
     headIndices = @indicesOf text, /\{!/
@@ -97,8 +96,7 @@ class HoleManager extends EventEmitter
   #
   loadCommand: ->
     @destroyHoles()
-    @convertBoundaries()
-
+    # @resetGoals()
 
   #
   # agda-mode: next-goal
@@ -185,5 +183,5 @@ class HoleManager extends EventEmitter
     hole.removeBoundary()
     @destroyHole index
     @agda.emit 'hole-manager:buffer-modified'
-
+    
 module.exports = HoleManager
