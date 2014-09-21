@@ -57,30 +57,39 @@ class HoleManager extends EventEmitter
     markers = @agda.editor.findMarkers type: 'hole'
     markers.map (marker) => marker.destroy()
 
-
   refreshGoals: (goalIndices) ->
-
+    console.log 'refreshing goals'
     # get positions of all holes
     text = @agda.editor.getText()
     headIndices = @indicesOf text, /\{!/
     tailIndices = @indicesOf text, /!\}/
 
+
+    delta = 0
+
     # instantiate a Hole if not existed
     for headIndex, i in headIndices
-      tailIndex = tailIndices[i]
+      headIndex = headIndex + delta
+      tailIndex = tailIndices[i] + delta
       goalIndex = goalIndices[i]
 
       hole = @findHole goalIndex
-
       if hole is undefined
         # instantiate Hole
         hole = new Hole(@agda, goalIndex, headIndex, tailIndex)
         @holes.push hole
+      else
+        console.log 'existed'
+        hole.setStart headIndex
+        hole.setEnd   tailIndex
 
-        # console.log hole.get
-        # make hole {! <----> !} larger
-        # pos = hole.fromIndex(headIndex + 2)
-        # @agda.editor.buffer.insert(pos, ' '.repeat(2 + goalIndex.toString().length))
+      # make hole {! <----> !} larger
+      goalIndexDigitLength = goalIndex.toString().length
+      rawContent = hole.getContent()
+      content = ' ' + rawContent.replace(/^\s\s*/, '').replace(/\s\s*$/, '') + ' '.repeat(1 + goalIndexDigitLength)
+      delta += content.length - rawContent.length
+      hole.setContent content
+
     @agda.emit 'hole-manager:initialized'
 
   #
