@@ -140,7 +140,7 @@ class Agda extends EventEmitter
   goalTypeAndInferredType: ->
     @holeManager.goalTypeAndInferredTypeCommand() if @loaded
 
-
-
+  refine: ->
+    @holeManager.refineCommand() if @loaded
 
 module.exports = Agda

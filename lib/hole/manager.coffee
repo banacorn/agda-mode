@@ -50,16 +50,16 @@ class HoleManager extends EventEmitter
     text = @agda.editor.getText()
     # make hole {! !}
     text = text
-      .split /\{!(.*)!\}|(\s\?\s)/
+      .split /\{!(.*)!\}|\s\?(\n| |\))/
       .filter (seg) => seg
       .map (seg, i) =>
         if i % 2 is 1
           goalIndex = goalIndices[(i - 1)/2]
           paddingSpaces = ' '.repeat(goalIndex.toString().length)
 
-          # " ? " or " ?\n"
-          if /\s\?\s/.test seg
-            return " {! #{paddingSpaces} !}#{seg[2]}"
+          # " ? "
+          if /^\n$|^ $|^\)$/.test seg
+            return " {! #{paddingSpaces} !}" + seg
 
           # "{! ... !}"
           else
@@ -174,10 +174,20 @@ class HoleManager extends EventEmitter
       @agda.executable.process.stdin.write command
 
 
-  giveHandler: (index) ->
-    hole = @findHole index
-    hole.removeBoundary()
-    @destroyHole index
+  giveHandler: (index, content) ->
+
+
+    if content
+      hole = @findHole index
+      hole.setContent content
+      hole.removeBoundary()
+      @destroyHole index
+      # @resetGoals()
+    else
+      hole = @findHole index
+      hole.removeBoundary()
+      @destroyHole index
+
     @agda.emit 'hole-manager:buffer-modified'
 
 
@@ -207,6 +217,23 @@ class HoleManager extends EventEmitter
       goalIndex = goal.index
       context = goal.getContent()
       command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{context}\" )\n"
+      @agda.executable.process.stdin.write command
+
+  refineCommand: (index) ->
+    @currentHole (goal) =>
+      goalIndex = goal.index
+      start = goal.getStart()
+      startIndex = goal.toIndex start
+      end = goal.getEnd()
+      endIndex = goal.toIndex end
+      content = goal.getContent()
+
+      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
+        ( Cmd_refine_or_intro False #{goalIndex} (Range [Interval (Pn (Just \
+         (mkAbsolute \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1}) \
+         (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
+          #{end.column + 1})]) \"#{content}\" )\n"
+
       @agda.executable.process.stdin.write command
 
 

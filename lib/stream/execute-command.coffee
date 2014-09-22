@@ -27,10 +27,6 @@ class ExecuteCommand extends Transform
         @agda.panelView.setStatus 'Context'
         @agda.panelView.setContent command.content
 
-      when 'info-action: context'
-        @agda.panelView.setStatus 'Context'
-        @agda.panelView.setContent command.content
-
       when 'info-action: goal type etc'
         @agda.panelView.setStatus 'Goal type etc'
         @agda.panelView.setContent command.content
@@ -53,9 +49,9 @@ class ExecuteCommand extends Transform
         # we consider it passed, when this info-action shows up
         @emit 'passed'
 
-      when 'give-action'
-        @agda.holeManager.giveHandler command.holeIndex
 
+      when 'give-action'
+        @agda.holeManager.giveHandler command.holeIndex, command.content
 
 
     next()

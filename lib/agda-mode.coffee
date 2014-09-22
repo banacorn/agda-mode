@@ -109,7 +109,11 @@ module.exports =
         editor = @getTheFuckingEditor()
         editor.agda.goalTypeAndInferredType()
 
-
+    # refine
+    atom.workspaceView.command 'agda-mode:refine', =>
+      if @isAgdaFile()
+        editor = @getTheFuckingEditor()
+        editor.agda.refine()
 
 
   getTheFuckingEditor: ->
