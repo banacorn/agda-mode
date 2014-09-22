@@ -44,8 +44,7 @@ class HoleManager extends EventEmitter
     markers = @agda.editor.findMarkers type: 'hole'
     markers.map (marker) => marker.destroy()
 
-  resetGoals: (goalIndices) ->
-    @agda.saveCursor()
+  convertHoles: (goalIndices) ->
     @destroyHoles()
     text = @agda.editor.getText()
     # make hole {! !}
@@ -72,6 +71,12 @@ class HoleManager extends EventEmitter
 
     @agda.editor.setText text
     @agda.emit 'hole-manager:buffer-modified'
+
+    return text
+
+  resetGoals: (goalIndices) ->
+    @agda.saveCursor()
+    text = @convertHoles goalIndices
 
     # get positions of all holes
     headIndices = @indicesOf text, /\{!/
