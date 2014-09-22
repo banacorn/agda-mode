@@ -56,6 +56,8 @@ module.exports = class PanelView extends View
   setStatus: (string, type) ->
     if type
       @status.attr 'class', 'text-' + type
+    else
+      @status.attr 'class', ''
     @status.text string
 
   attach: ->
