@@ -20,15 +20,15 @@ class ExecuteCommand extends Transform
         @agda.panelView.setContent command.content
 
       when 'info-action: current goal'
-        @agda.panelView.setStatus 'Current Goal'
+        @agda.panelView.setStatus 'Current Goal', 'info'
         @agda.panelView.setContent command.content
 
       when 'info-action: context'
-        @agda.panelView.setStatus 'Context'
+        @agda.panelView.setStatus 'Context', 'info'
         @agda.panelView.setContent command.content
 
       when 'info-action: goal type etc'
-        @agda.panelView.setStatus 'Goal type etc'
+        @agda.panelView.setStatus 'Goal type etc', 'info'
         @agda.panelView.setContent command.content
 
       when 'info-action: all goals'
