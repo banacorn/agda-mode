@@ -14,3 +14,5 @@
   'ctrl-c ctrl-f': 'agda-mode:next-goal'
   'ctrl-c ctrl-b': 'agda-mode:previous-goal'
   'ctrl-c ctrl-space': 'agda-mode:give'
+  'ctrl-c ctrl-t': 'agda-mode:goal-type'
+  'ctrl-c ctrl-e': 'agda-mode:context'
