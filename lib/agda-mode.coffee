@@ -97,6 +97,18 @@ module.exports =
         editor = @getTheFuckingEditor()
         editor.agda.context()
 
+    # goal type and context
+    atom.workspaceView.command 'agda-mode:goal-type-and-context', =>
+      if @isAgdaFile()
+        editor = @getTheFuckingEditor()
+        editor.agda.goalTypeAndContext()
+
+    # goal type and inferred type
+    atom.workspaceView.command 'agda-mode:goal-type-and-inferred-type', =>
+      if @isAgdaFile()
+        editor = @getTheFuckingEditor()
+        editor.agda.goalTypeAndInferredType()
+
 
 
 

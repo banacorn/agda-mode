@@ -134,6 +134,12 @@ class Agda extends EventEmitter
   context: ->
     @holeManager.contextCommand() if @loaded
 
+  goalTypeAndContext: ->
+    @holeManager.goalTypeAndContextCommand() if @loaded
+
+  goalTypeAndInferredType: ->
+    @holeManager.goalTypeAndInferredTypeCommand() if @loaded
+
 
 
 

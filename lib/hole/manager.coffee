@@ -184,16 +184,30 @@ class HoleManager extends EventEmitter
   goalTypeCommand: (index) ->
     @currentHole (goal) =>
       goalIndex = goal.index
-      command = "IOTCM \"/Users/banacorn/github/agda-mode/test/Banana.agda\" NonInteractive Indirect ( Cmd_goal_type Simplified #{goalIndex} noRange \"\" )\n"
+      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type Simplified #{goalIndex} noRange \"\" )\n"
       @agda.executable.process.stdin.write command
+
 
   contextCommand: (index) ->
-
     @currentHole (goal) =>
       goalIndex = goal.index
-      command = "IOTCM \"/Users/banacorn/github/agda-mode/test/Banana.agda\" NonInteractive Indirect ( Cmd_context Simplified #{goalIndex} noRange \"\" )\n"
+      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_context Simplified #{goalIndex} noRange \"\" )\n"
       @agda.executable.process.stdin.write command
 
+
+  goalTypeAndContextCommand: (index) ->
+    @currentHole (goal) =>
+      goalIndex = goal.index
+      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context Simplified #{goalIndex} noRange \"\" )\n"
+      @agda.executable.process.stdin.write command
+
+
+  goalTypeAndInferredTypeCommand: (index) ->
+    @currentHole (goal) =>
+      goalIndex = goal.index
+      context = goal.getContent()
+      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{context}\" )\n"
+      @agda.executable.process.stdin.write command
 
 
 module.exports = HoleManager
