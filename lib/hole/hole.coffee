@@ -1,7 +1,6 @@
 {EventEmitter} = require 'events'
 {Point, Range} = require 'atom'
-HoleView = require './view/hole'
-HoleBoundary = require './view/hole'
+HoleView = require './view'
 
 
 # A Hole has 2 kinds of views

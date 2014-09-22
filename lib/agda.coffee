@@ -2,7 +2,7 @@
 AgdaSyntax = require './agda/syntax'
 PanelView = require './view/panel'
 AgdaExecutable = require './agda/executable'
-HoleManager = require './hole-manager'
+HoleManager = require './hole/manager'
 Stream = require './stream'
 {EventEmitter} = require 'events'
 
