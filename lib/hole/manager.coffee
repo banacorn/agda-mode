@@ -90,6 +90,19 @@ class HoleManager extends EventEmitter
 
     @agda.restoreCursor()
 
+
+  currentHole: (callback) ->
+    cursor = @agda.editor.getCursorBufferPosition()
+    goals = @holes.filter (hole) =>
+      hole.getRange().containsPoint cursor
+
+    # in certain hole
+    if goals.length is 1
+      callback goals[0]
+    else
+      @agda.panelView.setStatus 'Info'
+      @agda.panelView.setContent ['For this command, please place the cursor in a goal']
+
   #
   # agda-mode: next-goal
   #
@@ -141,13 +154,8 @@ class HoleManager extends EventEmitter
   # agda-mode: give
   #
   giveCommand: ->
-    cursor = @agda.editor.getCursorBufferPosition()
-    goals = @holes.filter (hole) =>
-      hole.getRange().containsPoint cursor
 
-    # in certain hole
-    if goals.length is 1
-      goal = goals[0]
+    @currentHole (goal) =>
       goalIndex = goal.index
       start = goal.getStart()
       startIndex = goal.toIndex start
@@ -156,7 +164,6 @@ class HoleManager extends EventEmitter
       text = goal.getText()
       content = text.substring(2, text.length - 2)  # remove "{!!}"
 
-      #
       # empty = content.replace(/\s/g, '').length is 0
       # if empty then @agda.panelView.queryExpression()
       command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
@@ -166,9 +173,6 @@ class HoleManager extends EventEmitter
           #{end.column + 1})]) \"#{content}\" )\n"
       @agda.executable.process.stdin.write command
 
-    else
-      @agda.panelView.setStatus 'Info'
-      @agda.panelView.setContent ['For this command, please place the cursor in a goal']
 
   giveHandler: (index) ->
     hole = @findHole index
@@ -178,41 +182,17 @@ class HoleManager extends EventEmitter
 
 
   goalTypeCommand: (index) ->
-
-    cursor = @agda.editor.getCursorBufferPosition()
-    goals = @holes.filter (hole) =>
-      hole.getRange().containsPoint cursor
-
-    # in certain hole
-    if goals.length is 1
-
-      goal = goals[0]
+    @currentHole (goal) =>
       goalIndex = goal.index
       command = "IOTCM \"/Users/banacorn/github/agda-mode/test/Banana.agda\" NonInteractive Indirect ( Cmd_goal_type Simplified #{goalIndex} noRange \"\" )\n"
       @agda.executable.process.stdin.write command
 
-    else
-      @agda.panelView.setStatus 'Info'
-      @agda.panelView.setContent ['For this command, please place the cursor in a goal']
-
-
   contextCommand: (index) ->
 
-    cursor = @agda.editor.getCursorBufferPosition()
-    goals = @holes.filter (hole) =>
-      hole.getRange().containsPoint cursor
-
-    # in certain hole
-    if goals.length is 1
-
-      goal = goals[0]
+    @currentHole (goal) =>
       goalIndex = goal.index
       command = "IOTCM \"/Users/banacorn/github/agda-mode/test/Banana.agda\" NonInteractive Indirect ( Cmd_context Simplified #{goalIndex} noRange \"\" )\n"
       @agda.executable.process.stdin.write command
-
-    else
-      @agda.panelView.setStatus 'Info'
-      @agda.panelView.setContent ['For this command, please place the cursor in a goal']
 
 
 
