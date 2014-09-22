@@ -36,9 +36,7 @@ class Agda extends EventEmitter
       if @loaded
         @panelView.detach()
 
-    @on 'hole-manager:initialized', => @restoreCursor()
-
-    @on 'hole-manager:buffer-modified', => @editor.save()
+    @on 'hole-manager:buffer-modified', => @saveBuffer()
 
   # saves current position of the cursor
   saveCursor: ->
@@ -67,6 +65,8 @@ class Agda extends EventEmitter
 
       @cursorPositionLock = false
 
+  saveBuffer: -> @editor.save()
+
   #         #
   # comands #
   #         #
@@ -75,7 +75,9 @@ class Agda extends EventEmitter
 
     if not @loaded
       console.log '==== LOAD ===='
+
       @saveCursor()
+      @saveBuffer()
 
       # triggered when a Agda executable is found
       @executable.once 'wired', =>
@@ -91,13 +93,12 @@ class Agda extends EventEmitter
 
         @executable.process.stdout
           .pipe new Stream.Rectify
-          .pipe new Stream.Log
+          # .pipe new Stream.Log
           .pipe new Stream.Preprocess
           .pipe new Stream.ParseSExpr
           .pipe new Stream.ParseCommand
           .pipe @commandExecutor
 
-        @holeManager.loadCommand()
         @executable.loadCommand
           filepath: @filepath
 

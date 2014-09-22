@@ -8,7 +8,6 @@ class HoleManager extends EventEmitter
   holes: []
 
   constructor: (@agda) ->
-
     @destroyHoles()
     @agda.once 'quit', @destroyHoles
 
@@ -46,9 +45,9 @@ class HoleManager extends EventEmitter
     markers.map (marker) => marker.destroy()
 
   resetGoals: (goalIndices) ->
+    @agda.saveCursor()
     @destroyHoles()
     text = @agda.editor.getText()
-
     # make hole {! !}
     text = text
       .split /\{!(.*)!\}|(\s\?\s)/
@@ -89,14 +88,7 @@ class HoleManager extends EventEmitter
         hole = new Hole(@agda, goalIndex, headIndex, tailIndex)
         @holes.push hole
 
-    @agda.emit 'hole-manager:initialized'
-
-  #
-  # agda-mode: load
-  #
-  loadCommand: ->
-    @destroyHoles()
-    # @resetGoals()
+    @agda.restoreCursor()
 
   #
   # agda-mode: next-goal
@@ -183,5 +175,5 @@ class HoleManager extends EventEmitter
     hole.removeBoundary()
     @destroyHole index
     @agda.emit 'hole-manager:buffer-modified'
-    
+
 module.exports = HoleManager

@@ -29,10 +29,9 @@ class ExecuteCommand extends Transform
 
           # refresh holes with given goals
           indices = command.content.map (goal) => parseInt /^\?(\d+)\s\:\s/.exec(goal)[1]
-          @agda.holeManager.resetGoals indices
 
         @agda.panelView.setContent command.content
-
+        @agda.holeManager.resetGoals indices
 
 
         # we consider it passed, when this info-action shows up
