@@ -91,6 +91,13 @@ module.exports =
         editor = @getTheFuckingEditor()
         editor.agda.goalType()
 
+    # context
+    atom.workspaceView.command 'agda-mode:context', =>
+      if @isAgdaFile()
+        editor = @getTheFuckingEditor()
+        editor.agda.context()
+
+
 
 
   getTheFuckingEditor: ->

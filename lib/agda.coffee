@@ -131,6 +131,10 @@ class Agda extends EventEmitter
   goalType: ->
     @holeManager.goalTypeCommand() if @loaded
 
+  context: ->
+    @holeManager.contextCommand() if @loaded
+
+
 
 
 module.exports = Agda

@@ -34,6 +34,10 @@ class ParseCommand extends Transform
             type: 'info-action: current goal'
             content: content
 
+          when '*Context*' then command =
+            type: 'info-action: context'
+            content: content
+
           else
             throw 'wtf is this info-action? ' + JSON.stringify tokens
             command = type: 'info-action: unknown'
