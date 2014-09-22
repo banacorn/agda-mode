@@ -19,6 +19,10 @@ class ExecuteCommand extends Transform
         @agda.panelView.setStatus 'Error', 'error'
         @agda.panelView.setContent command.content
 
+      when 'info-action: current goal'
+        @agda.panelView.setStatus 'Current Goal'
+        @agda.panelView.setContent command.content
+
       when 'info-action: all goals'
 
         # no more goals, all good
@@ -39,6 +43,8 @@ class ExecuteCommand extends Transform
 
       when 'give-action'
         @agda.holeManager.giveHandler command.holeIndex
+
+
 
     next()
 

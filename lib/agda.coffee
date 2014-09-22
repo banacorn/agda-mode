@@ -128,6 +128,8 @@ class Agda extends EventEmitter
   give: ->
     @holeManager.giveCommand() if @loaded
 
+  goalType: ->
+    @holeManager.goalTypeCommand() if @loaded
 
 
 

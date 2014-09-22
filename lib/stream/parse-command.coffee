@@ -30,6 +30,10 @@ class ParseCommand extends Transform
             type: 'info-action: all goals'
             content: content
 
+          when '*Current Goal*' then command =
+            type: 'info-action: current goal'
+            content: content
+
           else
             throw 'wtf is this info-action? ' + JSON.stringify tokens
             command = type: 'info-action: unknown'
@@ -56,6 +60,7 @@ class ParseCommand extends Transform
       when 'agda2-give-action' then command =
         type: 'give-action'
         holeIndex: parseInt tokens[1]
+
 
       when 'annot'
         throw 'cannot read: ' + JSON.stringify tokens
