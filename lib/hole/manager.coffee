@@ -103,7 +103,26 @@ class HoleManager extends EventEmitter
 
     # in certain hole
     if goals.length is 1
-      callback goals[0]
+
+      # if the content is required,
+      # 'content' and 'warningWhenEmpty' will be given
+      # and we should check if 'content' is empty
+      {command, content, warningWhenEmpty} = callback goals[0]
+
+      # content required
+      if warningWhenEmpty
+
+        if empty content
+          @agda.panelView.setStatus 'Warn', 'warning'
+          @agda.panelView.setContent [warningWhenEmpty]
+        else
+          @agda.executable.process.stdin.write command
+
+      # content not required
+      else
+        @agda.executable.process.stdin.write command
+
+    # out of hole
     else
       @agda.panelView.setStatus 'Info'
       @agda.panelView.setContent ['For this command, please place the cursor in a goal']
@@ -168,65 +187,52 @@ class HoleManager extends EventEmitter
       endIndex = goal.toIndex end
       content = goal.getContent()
 
-      empty = content.replace(/\s/g, '').length is 0
-
-
-      if empty
-        @agda.panelView.setStatus 'Info'
-        @agda.panelView.setContent ['Please type in the expression to give']
-
-      else
-        command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
+      return {
+        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
           (Cmd_give #{goalIndex} (Range [Interval (Pn (Just (mkAbsolute \
           \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})\
            (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
             #{end.column + 1})]) \"#{content}\" )\n"
-        @agda.executable.process.stdin.write command
-
+        content: content
+        warningWhenEmpty: 'Please type in the expression to give'
+      }
 
   giveHandler: (index, content) ->
 
-
+    hole = @findHole index
     if content
-      hole = @findHole index
       hole.setContent content
-      hole.removeBoundary()
-      @destroyHole
-    else
-      hole = @findHole index
-      hole.removeBoundary()
-      @destroyHole index
-
+    hole.removeBoundary()
+    @destroyHole index
     @agda.emit 'hole-manager:buffer-modified'
 
 
   goalTypeCommand: (index) ->
     @currentHole (goal) =>
       goalIndex = goal.index
-      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type Simplified #{goalIndex} noRange \"\" )\n"
-      @agda.executable.process.stdin.write command
-
+      return command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type Simplified #{goalIndex} noRange \"\" )\n"
 
   contextCommand: (index) ->
     @currentHole (goal) =>
       goalIndex = goal.index
-      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_context Simplified #{goalIndex} noRange \"\" )\n"
-      @agda.executable.process.stdin.write command
-
+      return command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_context Simplified #{goalIndex} noRange \"\" )\n"
 
   goalTypeAndContextCommand: (index) ->
     @currentHole (goal) =>
       goalIndex = goal.index
-      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context Simplified #{goalIndex} noRange \"\" )\n"
-      @agda.executable.process.stdin.write command
+      return command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context Simplified #{goalIndex} noRange \"\" )\n"
 
 
   goalTypeAndInferredTypeCommand: (index) ->
     @currentHole (goal) =>
       goalIndex = goal.index
-      context = goal.getContent()
-      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{context}\" )\n"
-      @agda.executable.process.stdin.write command
+      content = goal.getContent()
+
+      return {
+        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{content}\" )\n"
+        content: content
+        warningWhenEmpty: 'Please type in the expression to infer'
+      }
 
   refineCommand: (index) ->
     @currentHole (goal) =>
@@ -237,13 +243,16 @@ class HoleManager extends EventEmitter
       endIndex = goal.toIndex end
       content = goal.getContent()
 
-      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
-        ( Cmd_refine_or_intro False #{goalIndex} (Range [Interval (Pn (Just \
-         (mkAbsolute \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1}) \
-         (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
-          #{end.column + 1})]) \"#{content}\" )\n"
+      return {
+        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
+          ( Cmd_refine_or_intro False #{goalIndex} (Range [Interval (Pn (Just \
+           (mkAbsolute \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1}) \
+           (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
+            #{end.column + 1})]) \"#{content}\" )\n"
+        content: content
+        warningWhenEmpty: 'Please type in the expression to refine'
+      }
 
-      @agda.executable.process.stdin.write command
-
+empty = (content) -> content.replace(/\s/g, '').length is 0
 
 module.exports = HoleManager
