@@ -1,6 +1,7 @@
 {Point, Range} = require 'atom'
 AgdaSyntax = require './agda/syntax'
 PanelView = require './view/panel'
+# QueryView = require './view/query'
 AgdaExecutable = require './agda/executable'
 HoleManager = require './hole/manager'
 Stream = require './stream'
@@ -20,11 +21,14 @@ class Agda extends EventEmitter
 
   constructor: (@editorView) ->
     @editor = @editorView.getModel()
-    @syntax = new AgdaSyntax @editor
     @filepath = @editor.getPath()
+    @syntax = new AgdaSyntax @editor
     @executable = new AgdaExecutable
     @holeManager = new HoleManager @
+    # view
     @panelView = new PanelView
+
+
 
     @on 'activate', =>
       @active = true

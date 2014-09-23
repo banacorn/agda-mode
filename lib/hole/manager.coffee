@@ -166,17 +166,22 @@ class HoleManager extends EventEmitter
       startIndex = goal.toIndex start
       end = goal.getEnd()
       endIndex = goal.toIndex end
-      text = goal.getText()
-      content = text.substring(2, text.length - 2)  # remove "{!!}"
+      content = goal.getContent()
 
-      # empty = content.replace(/\s/g, '').length is 0
-      # if empty then @agda.panelView.queryExpression()
-      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
-        (Cmd_give #{goalIndex} (Range [Interval (Pn (Just (mkAbsolute \
-        \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})\
-         (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
-          #{end.column + 1})]) \"#{content}\" )\n"
-      @agda.executable.process.stdin.write command
+      empty = content.replace(/\s/g, '').length is 0
+
+
+      if empty
+        @agda.panelView.setStatus 'Info'
+        @agda.panelView.setContent ['Please type in the expression to give']
+
+      else
+        command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
+          (Cmd_give #{goalIndex} (Range [Interval (Pn (Just (mkAbsolute \
+          \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})\
+           (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
+            #{end.column + 1})]) \"#{content}\" )\n"
+        @agda.executable.process.stdin.write command
 
 
   giveHandler: (index, content) ->
@@ -186,8 +191,7 @@ class HoleManager extends EventEmitter
       hole = @findHole index
       hole.setContent content
       hole.removeBoundary()
-      @destroyHole index
-      # @resetGoals()
+      @destroyHole
     else
       hole = @findHole index
       hole.removeBoundary()

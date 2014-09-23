@@ -1,4 +1,4 @@
-{View} = require 'atom'
+{View, EditorView} = require 'atom'
 
 module.exports = class PanelView extends View
 

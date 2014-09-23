@@ -47,6 +47,7 @@ module.exports =
         editor.on 'became-inactive', =>
           editor.agda.emit 'deactivate'
 
+    # register commands
     [
       'agda-mode:load'
       'agda-mode:quit'
@@ -63,8 +64,6 @@ module.exports =
 
   deactivate: ->
     # @agdaExecutableView.destroy()
-
-
   serialize: ->
     # agdaModeViewState: @agdaModeView.serialize()
 
