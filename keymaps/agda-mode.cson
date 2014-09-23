@@ -20,3 +20,4 @@
   'ctrl-c ctrl-.': 'agda-mode:goal-type-and-inferred-type'
   'ctrl-c ctrl-r': 'agda-mode:refine'
   'ctrl-c ctrl-c': 'agda-mode:case'
+  'ctrl-c ctrl-a': 'agda-mode:auto'

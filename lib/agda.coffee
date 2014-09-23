@@ -150,4 +150,7 @@ class Agda extends EventEmitter
   case: ->
     @holeManager.caseCommand() if @loaded
 
+  auto: ->
+    @holeManager.autoCommand() if @loaded
+
 module.exports = Agda

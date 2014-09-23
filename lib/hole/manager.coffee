@@ -207,23 +207,23 @@ class HoleManager extends EventEmitter
     @agda.emit 'hole-manager:buffer-modified'
 
 
-  goalTypeCommand: (index) ->
+  goalTypeCommand: ->
     @currentHole (goal) =>
       goalIndex = goal.index
       return command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type Simplified #{goalIndex} noRange \"\" )\n"
 
-  contextCommand: (index) ->
+  contextCommand: ->
     @currentHole (goal) =>
       goalIndex = goal.index
       return command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_context Simplified #{goalIndex} noRange \"\" )\n"
 
-  goalTypeAndContextCommand: (index) ->
+  goalTypeAndContextCommand: ->
     @currentHole (goal) =>
       goalIndex = goal.index
       return command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context Simplified #{goalIndex} noRange \"\" )\n"
 
 
-  goalTypeAndInferredTypeCommand: (index) ->
+  goalTypeAndInferredTypeCommand: ->
     @currentHole (goal) =>
       goalIndex = goal.index
       content = escape goal.getContent()
@@ -234,7 +234,7 @@ class HoleManager extends EventEmitter
         warningWhenEmpty: 'Please type in the expression to infer'
       }
 
-  refineCommand: (index) ->
+  refineCommand: ->
     @currentHole (goal) =>
       goalIndex = goal.index
       start = goal.getStart()
@@ -253,7 +253,7 @@ class HoleManager extends EventEmitter
         warningWhenEmpty: 'Please type in the expression to refine'
       }
 
-  caseCommand: (index) ->
+  caseCommand: ->
     @currentHole (goal) =>
       goalIndex = goal.index
       start = goal.getStart()
@@ -283,6 +283,24 @@ class HoleManager extends EventEmitter
       @agda.load()
     else
       throw "not in any hole when splitting case!!"
+
+  autoCommand: ->
+    @currentHole (goal) =>
+      goalIndex = goal.index
+      start = goal.getStart()
+      startIndex = goal.toIndex start
+      end = goal.getEnd()
+      endIndex = goal.toIndex end
+      content = escape goal.getContent()
+
+      return {
+        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
+          ( Cmd_auto #{goalIndex} (Range [Interval (Pn (Just \
+          (mkAbsolute \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1}) \
+          (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
+           #{end.column + 1})]) \"#{content}\" )\n"
+      }
+
 
 empty = (content) -> content.replace(/\s/g, '').length is 0
 # escapes '\n'
