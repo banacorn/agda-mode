@@ -20,6 +20,8 @@ For people who don't wanna use Emacs for whatever reason.
 |:------------------|:----------------------------|
 | `    C-c C-SPC`   | Give                        |
 | `    C-c C-r`     | Refine                      |
+| `    C-c C-a`     | Auto                        |
+| `    C-c C-c`     | Case                        |
 | `    C-c C-t`     | Goal type                   |
 | `    C-c C-e`     | Context (environment)       |
 | `    C-c C-,`     | Goal type and context       |
