@@ -53,6 +53,8 @@ class ExecuteCommand extends Transform
       when 'give-action'
         @agda.holeManager.giveHandler command.holeIndex, command.content
 
+      when 'make-case-action'
+        @agda.holeManager.caseHandler command.content
 
     next()
 

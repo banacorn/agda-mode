@@ -60,6 +60,7 @@ module.exports =
       'agda-mode:goal-type-and-context'
       'agda-mode:goal-type-and-inferred-type'
       'agda-mode:refine'
+      'agda-mode:case'
     ].forEach registerCommand
 
 

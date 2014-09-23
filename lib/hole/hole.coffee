@@ -139,6 +139,29 @@ class Hole extends EventEmitter
 
   removeBoundary: -> @setText @getContent().replace(/^\s\s*/, '').replace(/\s\s*$/, '')
 
+  # replace and insert one or more lines of content at the hole
+  # usage: spliting case
+  writeLines: (contents) ->
+    contents = contents.join('\n') + '\n'
+    rows = @getRange().getRows()
+
+    # single row
+    if rows.length is 1
+      [row] = rows
+      @agda.editor.getBuffer().deleteRow row
+      position = @agda.editor.getBuffer().rangeForRow(row).start
+      @agda.editor.getBuffer().insert position, contents
+
+    # multi row
+    else
+      [firstRow, ..., lastRow] = rows
+      @agda.editor.getBuffer().deleteRows firstRow, lastRow
+      position = @agda.editor.getBuffer().rangeForRow(firstRow).start
+      @agda.editor.getBuffer().insert position, contents
+
+
+
+
   destroy: ->
 
     # console.log "[HOLE] #{@index} destroyed"

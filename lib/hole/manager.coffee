@@ -185,7 +185,7 @@ class HoleManager extends EventEmitter
       startIndex = goal.toIndex start
       end = goal.getEnd()
       endIndex = goal.toIndex end
-      content = goal.getContent()
+      content = escape goal.getContent()
 
       return {
         command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
@@ -226,7 +226,7 @@ class HoleManager extends EventEmitter
   goalTypeAndInferredTypeCommand: (index) ->
     @currentHole (goal) =>
       goalIndex = goal.index
-      content = goal.getContent()
+      content = escape goal.getContent()
 
       return {
         command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{content}\" )\n"
@@ -241,7 +241,7 @@ class HoleManager extends EventEmitter
       startIndex = goal.toIndex start
       end = goal.getEnd()
       endIndex = goal.toIndex end
-      content = goal.getContent()
+      content = escape goal.getContent()
 
       return {
         command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
@@ -253,6 +253,38 @@ class HoleManager extends EventEmitter
         warningWhenEmpty: 'Please type in the expression to refine'
       }
 
-empty = (content) -> content.replace(/\s/g, '').length is 0
+  caseCommand: (index) ->
+    @currentHole (goal) =>
+      goalIndex = goal.index
+      start = goal.getStart()
+      startIndex = goal.toIndex start
+      end = goal.getEnd()
+      endIndex = goal.toIndex end
+      content = escape goal.getContent()
 
+      return {
+        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
+          ( Cmd_make_case #{goalIndex} (Range [Interval (Pn (Just \
+          (mkAbsolute \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1}) \
+          (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
+           #{end.column + 1})]) \"#{content}\" )\n"
+        content: content
+        warningWhenEmpty: 'Please type in the expression to make case'
+      }
+
+  caseHandler: (content) ->
+    cursor = @agda.editor.getCursorBufferPosition()
+    goals = @holes.filter (hole) =>
+      hole.getRange().containsPoint cursor
+    # in certain hole
+    if goals.length is 1
+      goal = goals[0]
+      goal.writeLines content
+      @agda.load()
+    else
+      throw "not in any hole when splitting case!!"
+
+empty = (content) -> content.replace(/\s/g, '').length is 0
+# escapes '\n'
+escape = (content) -> content.replace(/\n/g, '\\n')
 module.exports = HoleManager

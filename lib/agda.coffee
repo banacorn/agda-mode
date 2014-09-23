@@ -147,4 +147,7 @@ class Agda extends EventEmitter
   refine: ->
     @holeManager.refineCommand() if @loaded
 
+  case: ->
+    @holeManager.caseCommand() if @loaded
+
 module.exports = Agda
