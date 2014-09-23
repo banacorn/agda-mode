@@ -25,7 +25,7 @@ module.exports =
 
     atom.workspaceView.eachEditorView (editorView) =>
       editor = editorView.getModel()
-      if @isAgdaFile editor
+      if isAgdaFile editor
         editor.agda = new Agda editorView
 
         # deactivated on default
@@ -37,7 +37,7 @@ module.exports =
         # apply highlighting after we deactivated it.
         editor.on 'grammar-changed', =>
           grammarIsAgda = editor.getGrammar().name is 'Agda'
-          shouldHighlight = editor.agda.passed and editor.agda.passed
+          shouldHighlight = editor.agda.loaded and editor.agda.passed
           if grammarIsAgda and not shouldHighlight
             # fuck you atom
             editor.agda.syntax.deactivate()
@@ -47,86 +47,18 @@ module.exports =
         editor.on 'became-inactive', =>
           editor.agda.emit 'deactivate'
 
-
-    # load
-    atom.workspaceView.command 'agda-mode:load', =>
-      if @isAgdaFile()
-        editor = @getTheFuckingEditor()
-        editor.agda.load()
-
-    # quit
-    atom.workspaceView.command 'agda-mode:quit', =>
-      if @isAgdaFile()
-        editor = @getTheFuckingEditor()
-        editor.agda.quit()
-
-
-    # restart
-    atom.workspaceView.command 'agda-mode:restart', =>
-      if @isAgdaFile()
-        editor = @getTheFuckingEditor()
-        editor.agda.restart()
-
-    # next goal
-    atom.workspaceView.command 'agda-mode:next-goal', =>
-      if @isAgdaFile()
-        editor = @getTheFuckingEditor()
-        editor.agda.nextGoal()
-
-    # previous goal
-    atom.workspaceView.command 'agda-mode:previous-goal', =>
-      if @isAgdaFile()
-        editor = @getTheFuckingEditor()
-        editor.agda.previousGoal()
-
-    # give
-    atom.workspaceView.command 'agda-mode:give', =>
-      if @isAgdaFile()
-        editor = @getTheFuckingEditor()
-        editor.agda.give()
-
-    # goal type
-    atom.workspaceView.command 'agda-mode:goal-type', =>
-      if @isAgdaFile()
-        editor = @getTheFuckingEditor()
-        editor.agda.goalType()
-
-    # context
-    atom.workspaceView.command 'agda-mode:context', =>
-      if @isAgdaFile()
-        editor = @getTheFuckingEditor()
-        editor.agda.context()
-
-    # goal type and context
-    atom.workspaceView.command 'agda-mode:goal-type-and-context', =>
-      if @isAgdaFile()
-        editor = @getTheFuckingEditor()
-        editor.agda.goalTypeAndContext()
-
-    # goal type and inferred type
-    atom.workspaceView.command 'agda-mode:goal-type-and-inferred-type', =>
-      if @isAgdaFile()
-        editor = @getTheFuckingEditor()
-        editor.agda.goalTypeAndInferredType()
-
-    # refine
-    atom.workspaceView.command 'agda-mode:refine', =>
-      if @isAgdaFile()
-        editor = @getTheFuckingEditor()
-        editor.agda.refine()
-
-
-  getTheFuckingEditor: ->
-    atom.workspace.getActivePaneItem()
-
-
-  # if end with ".agda"
-  isAgdaFile: (editor) ->
-    if editor
-      filePath = editor.getPath?()
-    else
-      filePath = @getTheFuckingEditor().getPath()
-    /\.agda$/.test filePath
+    [
+      'agda-mode:load'
+      'agda-mode:quit'
+      'agda-mode:restart'
+      'agda-mode:next-goal'
+      'agda-mode:previous-goal'
+      'agda-mode:give'
+      'agda-mode:goal-type'
+      'agda-mode:context'
+      'agda-mode:goal-type-and-context'
+      'agda-mode:refine'
+    ].forEach registerCommand
 
 
   deactivate: ->
@@ -135,3 +67,34 @@ module.exports =
 
   serialize: ->
     # agdaModeViewState: @agdaModeView.serialize()
+
+
+registerCommand = (command) =>
+  atom.workspaceView.command command, =>
+    if isAgdaFile()
+      editor = getTheFuckingEditor()
+      editor.agda[toCamalCase command]()
+
+getTheFuckingEditor = ->
+  atom.workspace.getActivePaneItem()
+
+
+# if end with ".agda"
+isAgdaFile = (editor) ->
+  if editor
+    filePath = editor.getPath?()
+  else
+    filePath = getTheFuckingEditor().getPath()
+  /\.agda$/.test filePath
+
+
+toCamalCase = (str) ->
+  str
+    .substr(10)   # strip "agda-mode:"
+    .split('-')
+    .map (str, i) =>
+      if i is 0
+        str
+      else
+        str.charAt(0).toUpperCase() + str.slice(1)
+    .join('')
