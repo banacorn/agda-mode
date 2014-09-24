@@ -42,6 +42,10 @@ class ParseCommand extends Transform
             type: 'info-action: goal type etc'
             content: content
 
+          when '*Auto*' then command =
+            type: 'info-action: auto'
+            content: content
+
           else
             throw 'wtf is this info-action? ' + JSON.stringify tokens
             command = type: 'info-action: unknown'
@@ -50,19 +54,10 @@ class ParseCommand extends Transform
         type: 'goals-action'
         goals: tokens[1]
 
-      when 'agda2-highlight-clear' then command =
-        type: 'highlight-clear'
-
       when 'agda2-goto' then command =
         type: 'goto'
         file: tokens[1]
         position: tokens[3]
-
-      when 'agda2-highlight-add-annotations' then command =
-        type: 'highlight-add-annotations'
-
-      when 'agda2-highlight-load-and-delete-action' then command =
-        type: 'highlight-load-and-delete-action'
 
       when 'agda2-give-action' then command =
         type: 'give-action'
@@ -72,6 +67,23 @@ class ParseCommand extends Transform
       when 'agda2-make-case-action' then command =
         type: 'make-case-action'
         content: tokens[1]
+
+      #
+      #   highlighting shit
+      #
+
+      when 'agda2-highlight-clear' then command =
+        type: 'highlight-clear'
+
+      when 'agda2-highlight-add-annotations' then command =
+        type: 'highlight-add-annotations'
+
+      when 'agda2-highlight-load-and-delete-action' then command =
+        type: 'highlight-load-and-delete-action'
+
+      #
+      #   Agda cannot read our input
+      #
 
       when 'annot'
         throw 'cannot read: ' + JSON.stringify tokens

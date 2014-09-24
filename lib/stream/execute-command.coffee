@@ -31,6 +31,10 @@ class ExecuteCommand extends Transform
         @agda.panelView.setStatus 'Goal type etc', 'info'
         @agda.panelView.setContent command.content
 
+      when 'info-action: auto'
+        @agda.panelView.setStatus 'Info', 'info'
+        @agda.panelView.setContent command.content
+
       when 'info-action: all goals'
 
         # no more goals, all good
@@ -39,9 +43,8 @@ class ExecuteCommand extends Transform
         else
           @agda.panelView.setStatus 'Goals', 'info'
 
-          # refresh holes with given goals
-          indices = command.content.map (goal) => parseInt /^\?(\d+)\s\:\s/.exec(goal)[1]
-
+        # refresh holes with given goals
+        indices = command.content.map (goal) => parseInt /^\?(\d+)\s\:\s/.exec(goal)[1]
         @agda.panelView.setContent command.content
         @agda.holeManager.resetGoals indices
 
