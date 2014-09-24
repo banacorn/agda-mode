@@ -37,14 +37,19 @@ class ExecuteCommand extends Transform
 
       when 'info-action: all goals'
 
+        indices = []
+
         # no more goals, all good
         if command.content.length is 0
           @agda.panelView.setStatus 'No Goals', 'success'
         else
           @agda.panelView.setStatus 'Goals', 'info'
+          # refresh holes with given goals
+          indices = command.content
+            .map (goal) => /^\?(\d+)\s\:\s/.exec(goal)
+            .filter (result) => result isnt null
+            .map (result) => result[1]
 
-        # refresh holes with given goals
-        indices = command.content.map (goal) => parseInt /^\?(\d+)\s\:\s/.exec(goal)[1]
         @agda.panelView.setContent command.content
         @agda.holeManager.resetGoals indices
 
