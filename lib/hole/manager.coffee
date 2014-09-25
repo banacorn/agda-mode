@@ -47,24 +47,34 @@ class HoleManager extends EventEmitter
   convertHoles: (goalIndices) ->
     @destroyHoles()
     text = @agda.editor.getText()
+
+    pattern = ///
+      (\{![^\{\}]*!\})        # hole
+      |
+      ([\s\(\{\_\;\.\"@]
+      \?                  # ?
+      [\s\)\}\_\;\.\"@])
+    ///
+
+    index = 0
+
     # make hole {! !}
     text = text
-      .split /\{!(.*)!\}|\s\?(\n| |\))/
+      .split pattern
       .filter (seg) => seg
       .map (seg, i) =>
-        if i % 2 is 1
-          goalIndex = goalIndices[(i - 1)/2]
+        if pattern.test seg
+
+          goalIndex = goalIndices[index]
+          index += 1
           paddingSpaces = ' '.repeat(goalIndex.toString().length)
-
-          # " ? "
-          if /^\n$|^ $|^\)$/.test seg
-            return " {! #{paddingSpaces} !}" + seg
-
-          # "{! ... !}"
-          else
-            # trim spaces
-            seg = seg.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+          # console.log "[#{goalIndex}] #{seg} | #{/\{!(.*)!\}/.test seg}"
+          if /\{!(.*)!\}/.test seg
+            seg = /\{!(.*)!\}/.exec(seg)[1].replace(/^\s\s*/, '').replace(/\s\s*$/, '')
             return "{! #{seg + paddingSpaces} !}"
+          else
+            return seg[0] + "{! #{paddingSpaces} !}" + seg[2]
+
         else
           seg
       .join('')

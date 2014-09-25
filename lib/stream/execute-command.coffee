@@ -48,7 +48,7 @@ class ExecuteCommand extends Transform
           indices = command.content
             .map (goal) => /^\?(\d+)\s\:\s/.exec(goal)
             .filter (result) => result isnt null
-            .map (result) => result[1]
+            .map (result) => parseInt result[1]
 
         @agda.panelView.setContent command.content
         @agda.holeManager.resetGoals indices
