@@ -159,7 +159,6 @@ class Agda extends EventEmitter
 
 
   input: ->
-
-    console.log 'indent!!'
+    console.log '\\!!'
 
 module.exports = Agda

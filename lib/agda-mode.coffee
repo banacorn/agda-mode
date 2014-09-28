@@ -26,6 +26,11 @@ module.exports =
     atom.workspaceView.eachEditorView (editorView) =>
       editor = editorView.getModel()
       if isAgdaFile editor
+
+        # add class .agda to every agda editor
+        editorView.addClass 'agda'
+
+
         editor.agda = new Agda editorView
 
         # deactivated on default
