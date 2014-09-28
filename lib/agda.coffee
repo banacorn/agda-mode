@@ -35,12 +35,12 @@ class Agda extends EventEmitter
     @on 'activate', =>
       @active = true
       if @loaded
-        @view.panel.attach()
+        @view.attachPanel()
 
     @on 'deactivate', =>
       @active = false
       if @loaded
-        @view.panel.detach()
+        @view.detach()
 
     @on 'hole-manager:buffer-modified', => @saveBuffer()
 
@@ -89,7 +89,7 @@ class Agda extends EventEmitter
       @executable.once 'wired', =>
         @loaded = true
 
-        @view.panel.attach()
+        @view.attachPanel()
 
         @commandExecutor = new Stream.ExecuteCommand @
 
@@ -117,7 +117,7 @@ class Agda extends EventEmitter
       @loaded = false
       @passed = false
       @syntax.deactivate()
-      @view.panel.detach()
+      @view.detach()
       @emit 'quit'
       @executable.quitCommand()
 
