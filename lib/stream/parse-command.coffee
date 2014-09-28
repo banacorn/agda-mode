@@ -64,7 +64,7 @@ class ParseCommand extends Transform
 
       when 'agda2-give-action' then command =
         type: 'give-action'
-        holeIndex: parseInt tokens[1]
+        goalIndex: parseInt tokens[1]
         content: if typeof tokens[2] is 'string' then tokens[2] else null
 
       when 'agda2-make-case-action' then command =

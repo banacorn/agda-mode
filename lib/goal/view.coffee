@@ -1,30 +1,29 @@
 {View, Point, $} = require 'atom'
 
-module.exports = class HoleView extends View
+module.exports = class GoalView extends View
 
   start: null
   end: null
 
   @content: ->
-    @ul outlet: 'holeView'
+    @ul outlet: 'goalView'
 
-  initialize: (@agda, @hole) ->
-
+  initialize: (@agda, @goal) ->
     @measureCharWidth()
 
-    @hole.on 'destroyed', @destroy
-    @hole.on 'resized', @resize
+    @goal.on 'destroyed', @destroy
+    @goal.on 'resized', @resize
 
     @attach()
 
   resize: (start, end) =>
     @empty()
 
-    blocks = @hole.getRange().getRows().map (row) =>
+    blocks = @goal.getRange().getRows().map (row) =>
 
       position = @agda.editor.pixelPositionForBufferPosition new Point row, 0
 
-      $('<div class="hole"></div>').css
+      $('<div class="goal"></div>').css
           top: position.top
           left: 0
           width: '100%'
@@ -35,7 +34,7 @@ module.exports = class HoleView extends View
     startPx = @agda.editor.pixelPositionForBufferPosition start
     endPx = @agda.editor.pixelPositionForBufferPosition end
 
-    # single row hole
+    # single row goal
     # from startPx to endPx
     if blocks.length is 1
       firstLine
@@ -44,8 +43,8 @@ module.exports = class HoleView extends View
           left: startPx.left
           paddingRight: @charWidth * 2
         .width endPx.left - startPx.left
-        .text @hole.index.toString()
-    # multi row hole
+        .text @goal.index.toString()
+    # multi row goal
     # firstLine: from startPx to the end
     # lastLine from the start to endPx
     else
@@ -54,7 +53,7 @@ module.exports = class HoleView extends View
         .css
           paddingRight: @charWidth * 2
         .width endPx.left
-        .text @hole.index.toString()
+        .text @goal.index.toString()
 
 
     blocks.forEach (div) =>
@@ -70,5 +69,5 @@ module.exports = class HoleView extends View
 
 
   destroy: =>
-    # console.log "[HOLE VIEW] #{@hole.index} DETACH"
+    # console.log "[HOLE VIEW] #{@goal.index} DETACH"
     @detach()

@@ -1,13 +1,8 @@
 {EventEmitter} = require 'events'
 {Point, Range} = require 'atom'
-HoleView = require './view'
+GoalView = require './view'
 
-
-# A Hole has 2 kinds of views
-# 1. the {! !} pair
-# 2. the highlighting
-
-class Hole extends EventEmitter
+class Goal extends EventEmitter
 
   startMarker: null
   endMarker: null
@@ -24,9 +19,9 @@ class Hole extends EventEmitter
     endRight   = @oldEnd   = @fromIndex (endIndex + 2)
 
     @startMarker = @agda.editor.markBufferRange new Range(startLeft, startRight),
-      type: 'hole'
+      type: 'goal'
     @endMarker = @agda.editor.markBufferRange new Range(endLeft, endRight),
-      type: 'hole'
+      type: 'goal'
 
     @startMarker.on 'changed', (event) =>
       changed = @trimMarker()
@@ -39,7 +34,7 @@ class Hole extends EventEmitter
         @emit 'resized', @getStart(), @getEnd()
 
     # view
-    view = new HoleView @agda, @
+    view = new GoalView @agda, @
 
     # kick off
     @emit 'resized', @getStart(), @getEnd()
@@ -92,7 +87,7 @@ class Hole extends EventEmitter
     newStartIndex = text.indexOf '{!'
     newEndIndex   = text.indexOf '!}'
 
-    # the entire hole got destroyed, so be it
+    # the entire goal got destroyed, so be it
     if newStartIndex is -1 and newEndIndex is -1
       @emit 'destroyed'
       return true   # changed
@@ -139,7 +134,7 @@ class Hole extends EventEmitter
 
   removeBoundary: -> @setText @getContent().replace(/^\s\s*/, '').replace(/\s\s*$/, '')
 
-  # replace and insert one or more lines of content at the hole
+  # replace and insert one or more lines of content at the goal
   # usage: spliting case
   writeLines: (contents) ->
     contents = contents.join('\n') + '\n'
@@ -164,8 +159,6 @@ class Hole extends EventEmitter
 
   destroy: ->
 
-    # console.log "[HOLE] #{@index} destroyed"
-
     @startMarker.destroy()
     @endMarker.destroy()
 
@@ -176,4 +169,4 @@ class Hole extends EventEmitter
   translate: (pos, n) -> @fromIndex((@toIndex pos) + n)
 
 
-module.exports = Hole
+module.exports = Goal

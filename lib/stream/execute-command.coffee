@@ -55,14 +55,14 @@ class ExecuteCommand extends Transform
           @agda.view.panel.setStatus 'No Goals', 'success'
         else
           @agda.view.panel.setStatus 'Goals', 'info'
-          # refresh holes with given goals
+          # refresh goals with given goals
           indices = command.content
             .map (goal) => /^\?(\d+)\s\:\s/.exec(goal)
             .filter (result) => result isnt null
             .map (result) => parseInt result[1]
 
         @agda.view.panel.setContent command.content
-        @agda.holeManager.resetGoals indices
+        @agda.goalManager.resetGoals indices
 
 
         # we consider it passed, when this info-action shows up
@@ -70,10 +70,10 @@ class ExecuteCommand extends Transform
 
 
       when 'give-action'
-        @agda.holeManager.giveHandler command.holeIndex, command.content
+        @agda.goalManager.giveHandler command.goalIndex, command.content
 
       when 'make-case-action'
-        @agda.holeManager.caseHandler command.content
+        @agda.goalManager.caseHandler command.content
 
     next()
 

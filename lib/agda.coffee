@@ -3,7 +3,7 @@ AgdaSyntax = require './agda/syntax'
 
 AgdaExecutable = require './agda/executable'
 
-HoleManager = require './hole/manager'
+GoalManager = require './goal/manager'
 ViewManager = require './view/manager'
 Stream = require './stream'
 
@@ -26,7 +26,7 @@ class Agda extends EventEmitter
     @filepath = @editor.getPath()
     @syntax = new AgdaSyntax @editor
     @executable = new AgdaExecutable @
-    @holeManager = new HoleManager @
+    @goalManager = new GoalManager @
     # view
     @view = new ViewManager
 
@@ -42,7 +42,7 @@ class Agda extends EventEmitter
       if @loaded
         @view.detach()
 
-    @on 'hole-manager:buffer-modified', => @saveBuffer()
+    @on 'goal-manager:buffer-modified', => @saveBuffer()
 
   # saves current position of the cursor
   saveCursor: ->
@@ -53,7 +53,7 @@ class Agda extends EventEmitter
   restoreCursor: ->
     if @cursorPositionLock
 
-      goal = @holeManager.inSomeHole()
+      goal = @goalManager.inSomeGoal()
 
       if goal
         newCursorPosition = goal.translate goal.getStart(), 3
@@ -118,42 +118,42 @@ class Agda extends EventEmitter
     @load()
 
   nextGoal: ->
-    @holeManager.nextGoalCommand() if @loaded
+    @goalManager.nextGoalCommand() if @loaded
 
   previousGoal: ->
-    @holeManager.previousGoalCommand() if @loaded
+    @goalManager.previousGoalCommand() if @loaded
 
   give: ->
-    @holeManager.giveCommand() if @loaded
+    @goalManager.giveCommand() if @loaded
 
   goalType: ->
-    @holeManager.goalTypeCommand() if @loaded
+    @goalManager.goalTypeCommand() if @loaded
 
   context: ->
-    @holeManager.contextCommand() if @loaded
+    @goalManager.contextCommand() if @loaded
 
   goalTypeAndContext: ->
-    @holeManager.goalTypeAndContextCommand() if @loaded
+    @goalManager.goalTypeAndContextCommand() if @loaded
 
   goalTypeAndInferredType: ->
-    @holeManager.goalTypeAndInferredTypeCommand() if @loaded
+    @goalManager.goalTypeAndInferredTypeCommand() if @loaded
 
   refine: ->
-    @holeManager.refineCommand() if @loaded
+    @goalManager.refineCommand() if @loaded
 
   case: ->
-    @holeManager.caseCommand() if @loaded
+    @goalManager.caseCommand() if @loaded
 
   auto: ->
-    @holeManager.autoCommand() if @loaded
+    @goalManager.autoCommand() if @loaded
 
   normalize: ->
-    hole = @holeManager.inSomeHole()
-    content = hole?.getContent()
+    goal = @goalManager.inSomeGoal()
+    content = goal?.getContent()
     contentNotEmpty = content and content?.replace(/\s/g, '').length isnt 0
 
-    if hole and contentNotEmpty
-      content = hole.getContent()
+    if goal and contentNotEmpty
+      content = goal.getContent()
       @executable.normalizeCommand content
     else
       @view.attachInputBox @executable.normalizeCommand if @loaded
