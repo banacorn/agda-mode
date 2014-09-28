@@ -53,19 +53,11 @@ class Agda extends EventEmitter
   restoreCursor: ->
     if @cursorPositionLock
 
-      # see if the cursor position is now stucked in some hole's boundary,
-      # if so, move it into the hole
-      holes = @holeManager.holes.filter (hole) =>
-        hole.getRange().containsPoint @cursorPosition
+      goal = @holeManager.inSomeHole()
 
-      # in some hole
-      if holes.length is 1
-        hole = holes[0]
-        # console.log "[cursor] #{@cursorPosition.toArray()}"
-        # console.log "[hole] #{hole.getRange().start.toArray()} #{hole.getRange().end.toArray()}"
-        newCursorPosition = hole.translate hole.getStart(), 3
+      if goal
+        newCursorPosition = goal.translate goal.getStart(), 3
         @editor.setCursorBufferPosition newCursorPosition
-      # not in some hole
       else
         @editor.setCursorBufferPosition @cursorPosition
 

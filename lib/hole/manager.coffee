@@ -120,17 +120,17 @@ class HoleManager extends EventEmitter
       return null
 
   currentHole: (callback) ->
-    cursor = @agda.editor.getCursorBufferPosition()
-    goals = @holes.filter (hole) =>
-      hole.getRange().containsPoint cursor
+
+
+    goal = @inSomeHole()
 
     # in certain hole
-    if goals.length is 1
+    if goal
 
       # if the content is required,
       # 'content' and 'warningWhenEmpty' will be given
       # and we should check if 'content' is empty
-      {command, content, warningWhenEmpty} = callback goals[0]
+      {command, content, warningWhenEmpty} = callback goal
 
       # content required
       if warningWhenEmpty
