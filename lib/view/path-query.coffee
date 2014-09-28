@@ -2,16 +2,14 @@
 
 module.exports = class PathQueryView extends View
 
-  @viewActivated: false
+  @activated: false
 
   @content: ->
-    @div class: 'tool-panel panel-bottom padded', =>
-      @div class: "block", =>
-        @label 'Given path of Agda executable not found, try "which agda" in your terminal'
+    @div class: 'agda-panel tool-panel panel-bottom', =>
+      @div outlet: 'header-block', class: 'inset-panel padded', =>
+        @span outlet: 'header', 'Given path of Agda executable not found, try "which agda" in your terminal'
+      @div outlet: 'body-block', class: "block padded", =>
         @subview 'pathEditor', new EditorView(mini: true, placeholderText: 'Please insert the path here')
-      @div class: "block", =>
-        @button outlet: 'pathButton', class: 'btn', 'Enter'
-        @span outlet: 'errorMessage', class: 'inline-block text-error', 'Error: command not found'
 
   initialize: (serializeState) ->
 
@@ -20,14 +18,11 @@ module.exports = class PathQueryView extends View
     configPath = atom.config.get 'agda-mode.agdaExecutablePath'
     @validatePath configPath
 
-  query: (callback) ->
-
-    atom.workspaceView.prependToBottom(this)
+  attach: (callback) ->
+    atom.workspaceView.prependToBottom @
 
     # focus on the input box
     @pathEditor.focus()
-    @errorMessage.hide()
-
     @one 'success', callback
 
 
@@ -36,15 +31,17 @@ module.exports = class PathQueryView extends View
     ########## UI events ##########
 
     # confirm
-    @on 'core:confirm', => @onConfirm()     # key
-    @pathButton.click => @onConfirm()       # button
+    @on 'core:confirm', =>
+      path = @pathEditor.getText()
+      # @errorMessage.hide()
+      @validatePath path
 
     # cancel or close
-    @on 'core:cancel core:close', => @destroy()
+    @on 'core:cancel core:close', => @detach()
 
 
 
-    ########## custom events ##########
+    ########## internal custom events ##########
 
     @on 'success', (el, path, stdout) =>
       atom.config.set 'agda-mode.agdaExecutablePath', path
@@ -52,21 +49,16 @@ module.exports = class PathQueryView extends View
 
     @on 'error', (el, error) =>
 
-      # the path from the config is wrong
-      if not @viewActivated
-        @query()
-        @viewActivated = true
-
+      # the path from the config is wrong, attach the view
+      if not @activated
+        @attach()
+        @activated = true
       # the path from the input box is wrong
       else
-        @errorMessage.show()
+        @header
+          .text 'Given path not found! Please try again.'
+          .attr 'class', 'text-error'
 
-
-
-  onConfirm: ->
-    path = @pathEditor.getText()
-    @errorMessage.hide()
-    @validatePath path
 
   # locate the path and see if it is Agda executable
   validatePath: (path) ->
@@ -83,10 +75,3 @@ module.exports = class PathQueryView extends View
           @trigger 'success', path, stdout
         else
           @trigger 'error'
-
-  # Returns an object that can be retrieved when package is activated
-  serialize: ->
-
-  # Tear down any state and detach
-  destroy: ->
-    @detach()

@@ -14,18 +14,21 @@ class ViewManager extends EventEmitter
     @panel = new PanelView
     @pathQuery = new PathQueryView
 
-  queryPath: (callback) -> @pathQuery.query callback
-
-  attachPanel: -> @attach 'panel'
+  attachPathQuery: (callback) -> @attach 'pathQuery', callback
+  attachPanel:                -> @attach 'panel'
 
   #
   #   attach & detach
   #
 
-  attach: (view) ->
+  attach: (view, callback) ->
     @detach()
     @attachedView = @[view]
-    @attachedView.attach()
+
+    if callback
+      @attachedView.attach callback
+    else
+      @attachedView.attach()
 
   detach: ->
     if @attachedView isnt null
