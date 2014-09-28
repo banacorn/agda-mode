@@ -198,11 +198,11 @@ class HoleManager extends EventEmitter
       content = escape goal.getContent()
 
       return {
-        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
-          (Cmd_give #{goalIndex} (Range [Interval (Pn (Just (mkAbsolute \
-          \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})\
-           (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
-            #{end.column + 1})]) \"#{content}\" )\n"
+        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect
+          (Cmd_give #{goalIndex} (Range [Interval (Pn (Just (mkAbsolute
+          \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
+          (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1}
+          #{end.column + 1})]) \"#{content}\" )\n"
         content: content
         warningWhenEmpty: 'Please type in the expression to give'
       }
@@ -254,10 +254,10 @@ class HoleManager extends EventEmitter
       content = escape goal.getContent()
 
       return {
-        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
-          ( Cmd_refine_or_intro False #{goalIndex} (Range [Interval (Pn (Just \
-           (mkAbsolute \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1}) \
-           (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
+        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect
+          ( Cmd_refine_or_intro False #{goalIndex} (Range [Interval (Pn (Just
+           (mkAbsolute \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
+           (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1}
             #{end.column + 1})]) \"#{content}\" )\n"
         content: content
         warningWhenEmpty: 'Please type in the expression to refine'
@@ -273,10 +273,10 @@ class HoleManager extends EventEmitter
       content = escape goal.getContent()
 
       return {
-        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
-          ( Cmd_make_case #{goalIndex} (Range [Interval (Pn (Just \
-          (mkAbsolute \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1}) \
-          (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
+        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect
+          ( Cmd_make_case #{goalIndex} (Range [Interval (Pn (Just
+          (mkAbsolute \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
+          (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1}
            #{end.column + 1})]) \"#{content}\" )\n"
         content: content
         warningWhenEmpty: 'Please type in the expression to make case'
@@ -304,10 +304,10 @@ class HoleManager extends EventEmitter
       content = escape goal.getContent()
 
       return {
-        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect \
-          ( Cmd_auto #{goalIndex} (Range [Interval (Pn (Just \
-          (mkAbsolute \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1}) \
-          (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1} \
+        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect 
+          ( Cmd_auto #{goalIndex} (Range [Interval (Pn (Just
+          (mkAbsolute \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
+          (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1}
            #{end.column + 1})]) \"#{content}\" )\n"
       }
 

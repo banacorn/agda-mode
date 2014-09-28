@@ -20,13 +20,15 @@ module.exports = class PathQueryView extends View
     configPath = atom.config.get 'agda-mode.agdaExecutablePath'
     @validatePath configPath
 
-  query: ->
+  query: (callback) ->
 
     atom.workspaceView.prependToBottom(this)
 
     # focus on the input box
     @pathEditor.focus()
     @errorMessage.hide()
+
+    @one 'success', callback
 
 
   registerHandlers: ->
@@ -44,11 +46,11 @@ module.exports = class PathQueryView extends View
 
     ########## custom events ##########
 
-    @on 'agda-path-query-view.success', (el, path, stdout) =>
+    @on 'success', (el, path, stdout) =>
       atom.config.set 'agda-mode.agdaExecutablePath', path
       @detach()
 
-    @on 'agda-path-query-view.error', (el, error) =>
+    @on 'error', (el, error) =>
 
       # the path from the config is wrong
       if not @viewActivated
@@ -73,14 +75,14 @@ module.exports = class PathQueryView extends View
     command = path + ' -V'
     exec command, (error, stdout, stderr) =>
       if error
-        @trigger 'agda-path-query-view.error', error
+        @trigger 'error', error
       else if stderr
-        @trigger 'agda-path-query-view.error', stderr
+        @trigger 'error', stderr
       else
         if /^Agda version/.test stdout
-          @trigger 'agda-path-query-view.success', path, stdout
+          @trigger 'success', path, stdout
         else
-          @trigger 'agda-path-query-view.error'
+          @trigger 'error'
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->

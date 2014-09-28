@@ -62,6 +62,7 @@ module.exports =
       'agda-mode:refine'
       'agda-mode:case'
       'agda-mode:auto'
+      'agda-mode:input'
     ].forEach registerCommand
 
 

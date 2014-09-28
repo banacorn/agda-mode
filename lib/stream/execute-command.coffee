@@ -12,28 +12,28 @@ class ExecuteCommand extends Transform
     switch command.type
 
       when 'info-action: type-checking'
-        @agda.panelView.setStatus 'Type Checking'
-        @agda.panelView.appendContent command.content
+        @agda.view.panel.setStatus 'Type Checking'
+        @agda.view.panel.appendContent command.content
 
       when 'info-action: error'
-        @agda.panelView.setStatus 'Error', 'error'
-        @agda.panelView.setContent command.content
+        @agda.view.panel.setStatus 'Error', 'error'
+        @agda.view.panel.setContent command.content
 
       when 'info-action: current goal'
-        @agda.panelView.setStatus 'Current Goal', 'info'
-        @agda.panelView.setContent command.content
+        @agda.view.panel.setStatus 'Current Goal', 'info'
+        @agda.view.panel.setContent command.content
 
       when 'info-action: context'
-        @agda.panelView.setStatus 'Context', 'info'
-        @agda.panelView.setContent command.content
+        @agda.view.panel.setStatus 'Context', 'info'
+        @agda.view.panel.setContent command.content
 
       when 'info-action: goal type etc'
-        @agda.panelView.setStatus 'Goal type etc', 'info'
-        @agda.panelView.setContent command.content
+        @agda.view.panel.setStatus 'Goal type etc', 'info'
+        @agda.view.panel.setContent command.content
 
       when 'info-action: auto'
-        @agda.panelView.setStatus 'Info', 'info'
-        @agda.panelView.setContent command.content
+        @agda.view.panel.setStatus 'Info', 'info'
+        @agda.view.panel.setContent command.content
 
       when 'info-action: all goals'
 
@@ -41,16 +41,16 @@ class ExecuteCommand extends Transform
 
         # no more goals, all good
         if command.content.length is 0
-          @agda.panelView.setStatus 'No Goals', 'success'
+          @agda.view.panel.setStatus 'No Goals', 'success'
         else
-          @agda.panelView.setStatus 'Goals', 'info'
+          @agda.view.panel.setStatus 'Goals', 'info'
           # refresh holes with given goals
           indices = command.content
             .map (goal) => /^\?(\d+)\s\:\s/.exec(goal)
             .filter (result) => result isnt null
             .map (result) => parseInt result[1]
 
-        @agda.panelView.setContent command.content
+        @agda.view.panel.setContent command.content
         @agda.holeManager.resetGoals indices
 
 

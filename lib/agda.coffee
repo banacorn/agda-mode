@@ -1,10 +1,12 @@
 {Point, Range} = require 'atom'
 AgdaSyntax = require './agda/syntax'
-PanelView = require './view/panel'
-# QueryView = require './view/query'
+
 AgdaExecutable = require './agda/executable'
+
 HoleManager = require './hole/manager'
+ViewManager = require './view/manager'
 Stream = require './stream'
+
 {EventEmitter} = require 'events'
 
 # events:
@@ -23,22 +25,22 @@ class Agda extends EventEmitter
     @editor = @editorView.getModel()
     @filepath = @editor.getPath()
     @syntax = new AgdaSyntax @editor
-    @executable = new AgdaExecutable
+    @executable = new AgdaExecutable @
     @holeManager = new HoleManager @
     # view
-    @panelView = new PanelView
+    @view = new ViewManager
 
 
 
     @on 'activate', =>
       @active = true
       if @loaded
-        @panelView.attach()
+        @view.panel.attach()
 
     @on 'deactivate', =>
       @active = false
       if @loaded
-        @panelView.detach()
+        @view.panel.detach()
 
     @on 'hole-manager:buffer-modified', => @saveBuffer()
 
@@ -87,7 +89,7 @@ class Agda extends EventEmitter
       @executable.once 'wired', =>
         @loaded = true
 
-        @panelView.attach()
+        @view.panel.attach()
 
         @commandExecutor = new Stream.ExecuteCommand @
 
@@ -115,7 +117,7 @@ class Agda extends EventEmitter
       @loaded = false
       @passed = false
       @syntax.deactivate()
-      @panelView.detach()
+      @view.panel.detach()
       @emit 'quit'
       @executable.quitCommand()
 
@@ -152,5 +154,8 @@ class Agda extends EventEmitter
 
   auto: ->
     @holeManager.autoCommand() if @loaded
+
+  input: ->
+    console.log 'indent!!'
 
 module.exports = Agda

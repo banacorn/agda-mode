@@ -1,10 +1,9 @@
 {spawn} = require 'child_process'
-PathQueryView = require './../view/path-query'
 {EventEmitter} = require 'events'
 
 module.exports = class AgdaExecutable extends EventEmitter
 
-  constructor: ->
+  constructor: (@agda) ->
 
   # wire up with the Agda executable
   wire: ->
@@ -17,17 +16,13 @@ module.exports = class AgdaExecutable extends EventEmitter
       @process.wired = false
 
     catch error
-      pathQueryView = new PathQueryView
-      pathQueryView.query()
-      pathQueryView.one 'agda-path-query-view.success', (el, path) =>
+      @agda.view.pathQuery.query =>
         @wire()
       return
 
     # catch other forms of errors
     @process.on 'error', (error) =>
-      pathQueryView = new PathQueryView
-      pathQueryView.query()
-      pathQueryView.one 'agda-path-query-view.success', (el, path) =>
+      @agda.view.pathQuery.query =>
         @wire()
 
     @process.stdout.once 'data', (data) =>
