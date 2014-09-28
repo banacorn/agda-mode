@@ -13,6 +13,7 @@ For people who don't wanna use Emacs for whatever reason.
 | `    C-c C-x C-r` | Kill and restart Agda |
 | `    C-c     C-f` | Next goal (forward)   |
 | `    C-c     C-b` | Previous goal (back)  |
+| `    C-c     C-n` | Compute normal form   |
 
 ### Goal specific
 
@@ -26,6 +27,7 @@ For people who don't wanna use Emacs for whatever reason.
 | `    C-c C-e`     | Context (environment)       |
 | `    C-c C-,`     | Goal type and context       |
 | `    C-c C-.    ` | Goal type and inferred type |
+| `    C-c     C-n` | Compute normal form         |
 
 
 

@@ -156,7 +156,15 @@ class Agda extends EventEmitter
     @holeManager.autoCommand() if @loaded
 
   normalize: ->
-    @view.attachInputBox @executable.normalizeCommand if @loaded
+    hole = @holeManager.inSomeHole()
+    content = hole?.getContent()
+    contentNotEmpty = content and content?.replace(/\s/g, '').length isnt 0
+
+    if hole and contentNotEmpty
+      content = hole.getContent()
+      @executable.normalizeCommand content
+    else
+      @view.attachInputBox @executable.normalizeCommand if @loaded
 
 
   input: ->

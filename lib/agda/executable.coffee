@@ -48,5 +48,6 @@ module.exports = class AgdaExecutable extends EventEmitter
     @process.kill()
 
   normalizeCommand: (content) =>
+
     command = "IOTCM \"#{@agda.filepath}\" None Indirect ( Cmd_compute_toplevel False \"#{content}\" )\n"
     @process.stdin.write command

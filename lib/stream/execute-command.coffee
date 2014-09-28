@@ -44,6 +44,7 @@ class ExecuteCommand extends Transform
         @agda.view.attachPanel()
         @agda.view.panel.setStatus 'Normal form', 'info'
         @agda.view.panel.setContent command.content
+
       when 'info-action: all goals'
 
         @agda.view.attachPanel()

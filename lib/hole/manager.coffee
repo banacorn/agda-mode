@@ -106,6 +106,19 @@ class HoleManager extends EventEmitter
     @agda.restoreCursor()
 
 
+  # inSomeHole :: IO (Maybe Hole)
+  inSomeHole: ->
+    cursor = @agda.editor.getCursorBufferPosition()
+    holes = @holes.filter (hole) =>
+      hole.getRange().containsPoint cursor
+    if holes.length is 1
+      return holes[0]
+    else if holes.length > 1
+      throw "cursor in more than one hole WTF??"
+      return null
+    else
+      return null
+
   currentHole: (callback) ->
     cursor = @agda.editor.getCursorBufferPosition()
     goals = @holes.filter (hole) =>
@@ -123,8 +136,8 @@ class HoleManager extends EventEmitter
       if warningWhenEmpty
 
         if empty content
-          @agda.panelView.setStatus 'Warn', 'warning'
-          @agda.panelView.setContent [warningWhenEmpty]
+          @agda.view.panel.setStatus 'Warn', 'warning'
+          @agda.view.panel.setContent [warningWhenEmpty]
         else
           @agda.executable.process.stdin.write command
 
@@ -134,8 +147,8 @@ class HoleManager extends EventEmitter
 
     # out of hole
     else
-      @agda.panelView.setStatus 'Info'
-      @agda.panelView.setContent ['For this command, please place the cursor in a goal']
+      @agda.view.panel.setStatus 'Info'
+      @agda.view.panel.setContent ['For this command, please place the cursor in a goal']
 
   #
   # agda-mode: next-goal
@@ -304,7 +317,7 @@ class HoleManager extends EventEmitter
       content = escape goal.getContent()
 
       return {
-        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect 
+        command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect
           ( Cmd_auto #{goalIndex} (Range [Interval (Pn (Just
           (mkAbsolute \"#{@agda.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
           (Pn (Just (mkAbsolute \"#{@agda.filepath}\")) #{endIndex} #{end.row + 1}
