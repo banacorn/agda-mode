@@ -52,8 +52,7 @@ class Agda extends EventEmitter
   # restores cursor position, must be paired with @saveCursor
   restoreCursor: ->
     if @cursorPositionLock
-
-      goal = @goalManager.inSomeGoal()
+      goal = @goalManager.inSomeGoal @cursorPosition
 
       if goal
         newCursorPosition = goal.translate goal.getStart(), 3

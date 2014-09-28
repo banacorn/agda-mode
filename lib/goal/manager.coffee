@@ -106,9 +106,9 @@ class GoalManager extends EventEmitter
     @agda.restoreCursor()
 
 
-  # inSomeGoal :: IO (Maybe Goal)
-  inSomeGoal: ->
-    cursor = @agda.editor.getCursorBufferPosition()
+  # inSomeGoal :: {Position} -> IO (Maybe Goal)
+  inSomeGoal: (cursor) ->
+    cursor ?= @agda.editor.getCursorBufferPosition()
     goals = @goals.filter (goal) =>
       goal.getRange().containsPoint cursor
     if goals.length is 1
