@@ -155,7 +155,12 @@ class Agda extends EventEmitter
   auto: ->
     @holeManager.autoCommand() if @loaded
 
+  normalize: ->
+    @view.attachInputBox @executable.normalizeCommand if @loaded
+
+
   input: ->
+
     console.log 'indent!!'
 
 module.exports = Agda

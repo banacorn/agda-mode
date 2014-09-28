@@ -1,4 +1,3 @@
-{$} = require 'atom'
 {Transform} = require 'stream'
 
 class ExecuteCommand extends Transform
@@ -12,31 +11,42 @@ class ExecuteCommand extends Transform
     switch command.type
 
       when 'info-action: type-checking'
+        @agda.view.attachPanel()
         @agda.view.panel.setStatus 'Type Checking'
         @agda.view.panel.appendContent command.content
 
       when 'info-action: error'
+        @agda.view.attachPanel()
         @agda.view.panel.setStatus 'Error', 'error'
         @agda.view.panel.setContent command.content
 
       when 'info-action: current goal'
+        @agda.view.attachPanel()
         @agda.view.panel.setStatus 'Current Goal', 'info'
         @agda.view.panel.setContent command.content
 
       when 'info-action: context'
+        @agda.view.attachPanel()
         @agda.view.panel.setStatus 'Context', 'info'
         @agda.view.panel.setContent command.content
 
       when 'info-action: goal type etc'
+        @agda.view.attachPanel()
         @agda.view.panel.setStatus 'Goal type etc', 'info'
         @agda.view.panel.setContent command.content
 
       when 'info-action: auto'
+        @agda.view.attachPanel()
         @agda.view.panel.setStatus 'Info', 'info'
         @agda.view.panel.setContent command.content
 
+      when 'info-action: normal form'
+        @agda.view.attachPanel()
+        @agda.view.panel.setStatus 'Normal form', 'info'
+        @agda.view.panel.setContent command.content
       when 'info-action: all goals'
 
+        @agda.view.attachPanel()
         indices = []
 
         # no more goals, all good

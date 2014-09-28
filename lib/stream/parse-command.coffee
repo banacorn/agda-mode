@@ -46,6 +46,9 @@ class ParseCommand extends Transform
             type: 'info-action: auto'
             content: content
 
+          when '*Normal Form*' then command =
+            type: 'info-action: normal form'
+            content: content
           else
             throw 'wtf is this info-action? ' + JSON.stringify tokens
             command = type: 'info-action: unknown'
