@@ -4,10 +4,11 @@
 PanelView = require './panel'
 PathQueryView = require './path-query'
 InputBoxView = require './input-box'
+InputMethodView = require './input-method'
 
 class ViewManager extends EventEmitter
 
-  attachedView: null
+  attachedView: []
 
   constructor: ->
 
@@ -15,29 +16,39 @@ class ViewManager extends EventEmitter
     @panel = new PanelView
     @pathQuery = new PathQueryView
     @inputBox = new InputBoxView
+    @inputMethod = new InputMethodView
 
   attachInputBox:  (callback) -> @attach 'inputBox', callback
   attachPathQuery: (callback) -> @attach 'pathQuery', callback
   attachPanel:                -> @attach 'panel'
 
+  # we shall not detach other views then invoking input method
+  # so we won't apply it to @attach (since it will detach all the other views first)
+  attachInputMethod: (callback) ->
+    @inputMethod.attach()
+    @attachedView.push @inputMethod
+
   #
   #   attach & detach
   #
 
-  attach: (view, callback) ->
+  attach: (viewName, callback) ->
     @detach()
-    @attachedView = @[view]
+
+    view = @[viewName]
+
+    @attachedView.push view
 
     if callback
-      @attachedView.attach callback
+      view.attach() callback
     else
-      @attachedView.attach()
+      view.attach()
 
   detach: ->
-    if @attachedView isnt null
-      @attachedView.detach()
-      # put the focus back to the current view
-      atom.workspaceView.focus()
+    @attachedView.forEach (view) ->
+      view.detach()
+    # put the focus back to the current view
+    atom.workspaceView.focus()
 
 
 module.exports = ViewManager
