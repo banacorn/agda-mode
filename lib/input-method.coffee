@@ -14,19 +14,18 @@ class InputMethod extends EventEmitter
 
   activate: ->
 
-    cursorPos = @agda.editor.getCursorBufferPosition()
-    # insert '\' to the buffer
-    @agda.editor.getBuffer().insert cursorPos, '\\'
-
     if not @activated
 
       @activated = true
 
       # range & marker
-      start = cursorPos
+      start = @agda.editor.getCursorBufferPosition()
       end = start.translate new Point 0, 1
       range = new Range start, end
       @marker = @agda.editor.markBufferRange range
+
+      # insert '\' to the buffer
+      @agda.editor.getBuffer().insert start, '\\'
 
       # kick off
       @decorator.resize range
@@ -61,7 +60,9 @@ class InputMethod extends EventEmitter
             lastInput = content.substr -1
             refill = symbol[0] + lastInput
             @agda.editor.getBuffer().setTextInRange range, refill
+    else
 
+      @deactivate()
 
 
   deactivate: ->
