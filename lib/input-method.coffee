@@ -42,9 +42,17 @@ class InputMethod extends EventEmitter
 
         {valid, result} = @validate content
 
+
         if valid
-          console.log result
-          @decorator.resize range
+          # no further possible key combination
+          # replace with symbol right away
+          if Object.keys(result).length is 1
+            @deactivate()
+            symbol = result['>>'][0]
+            @agda.editor.getBuffer().setTextInRange range, symbol
+          else
+            @decorator.resize range
+            console.log result
 
         else
           @deactivate()
