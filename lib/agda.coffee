@@ -6,6 +6,7 @@ AgdaExecutable = require './agda/executable'
 GoalManager = require './goal/manager'
 ViewManager = require './view/manager'
 Stream = require './stream'
+InputMethod = require './input-method'
 
 {EventEmitter} = require 'events'
 
@@ -27,6 +28,7 @@ class Agda extends EventEmitter
     @syntax = new AgdaSyntax @editor
     @executable = new AgdaExecutable @
     @goalManager = new GoalManager @
+    @inputMethod = new InputMethod @
     # view
     @view = new ViewManager
 
@@ -157,8 +159,8 @@ class Agda extends EventEmitter
     else
       @view.attachInputBox @executable.normalizeCommand if @loaded
 
-
   input: ->
-    console.log '\\!!'
+    @view.attachInputMethod()
+    @inputMethod.activate()
 
 module.exports = Agda
