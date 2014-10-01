@@ -40,7 +40,7 @@ class ViewManager extends EventEmitter
     @attachedView.push view
 
     if callback
-      view.attach() callback
+      view.attach callback
     else
       view.attach()
 

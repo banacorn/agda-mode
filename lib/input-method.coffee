@@ -27,32 +27,36 @@ class InputMethod extends EventEmitter
       # insert '\' to the buffer
       @agda.editor.getBuffer().insert start, '\\'
 
-      # kick off
+      # kick off the decorator view
       @decorator.resize range
 
+      # triggered then new characters are typed in
       @marker.on 'changed', (ev) =>
-        # console.log '-'
+
         # range & decorator
         range = new Range ev.newTailBufferPosition, ev.newHeadBufferPosition
 
         # input content
         content = @agda.editor.getBuffer().getTextInRange range
-        content = content.substr 1 # strip leading \
+        content = content.substr 1 # strip the leading \
 
+        # see if the input is in the keymap
         {valid, result} = @validate content
 
-
         if valid
-          # no further possible key combination
+          # no further possible key combinations
           # replace with symbol right away
           if Object.keys(result).length is 1
             @deactivate()
             symbol = result['>>'][0]
             @agda.editor.getBuffer().setTextInRange range, symbol
+
+          # further key combinations are possible
           else
             @decorator.resize range
-            console.log result
 
+        # key combination out of keymap
+        # replace with closest the symbol possible
         else
           @deactivate()
           symbol = result['>>']
@@ -60,8 +64,11 @@ class InputMethod extends EventEmitter
             lastInput = content.substr -1
             refill = symbol[0] + lastInput
             @agda.editor.getBuffer().setTextInRange range, refill
-    else
 
+    # input method already activated
+    # this will happen only 2 consecutive backslash '\' was punched in
+    # and we shall leave 1 backslash in the buffer, then deactivate
+    else
       @deactivate()
 
 
@@ -106,7 +113,6 @@ class InputMethodDecorator extends View
     downRight = @agda.editor.pixelPositionForBufferPosition range.end
     length = range.end.column - range.start.column
 
-    console.log "#{downRight.left - topLeft.left} (#{downRight.top}, #{downRight.left}) (#{topLeft.top}, #{topLeft.left}}"
     @css
         top: topLeft.top
         left: topLeft.left

@@ -160,7 +160,7 @@ class Agda extends EventEmitter
       @view.attachInputBox @executable.normalizeCommand if @loaded
 
   input: ->
-    @view.attachInputMethod()
+    # @view.attachInputMethod()
     @inputMethod.activate()
 
 module.exports = Agda
