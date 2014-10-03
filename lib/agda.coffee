@@ -6,7 +6,7 @@ AgdaExecutable = require './agda/executable'
 GoalManager = require './goal/manager'
 ViewManager = require './view/manager'
 Stream = require './stream'
-InputMethod = require './input-method'
+InputMethod = require './input-method/input-method'
 
 {EventEmitter} = require 'events'
 
