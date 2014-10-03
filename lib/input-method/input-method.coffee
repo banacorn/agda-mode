@@ -40,12 +40,18 @@ class InputMethod extends EventEmitter
         # update input content incrementally,
         # append only with the last character,
         # since the former characters may could have been replaced with a preview symbol
-        @input += @agda.editor.getBuffer().getTextInRange(range).substr(1).substr(-1)
+        newCharacter = @agda.editor.getBuffer().getTextInRange(range).substr(1).substr(-1)
+
+        # false alarm
+        return if newCharacter is ''
+
+        # update @input with the newly inserted character
+        @input += newCharacter
 
         # see if the input is in the keymap
         {valid, result} = @validate()
 
-        
+
         if valid
           if Object.keys(result).length is 1
             # no further possible key combinations
@@ -66,13 +72,13 @@ class InputMethod extends EventEmitter
         else
           # key combination out of keymap
           # replace with closest the symbol possible
-          @deactivate()
           symbol = result['>>']
           if symbol.length > 0
             lastInput = @input.substr -1
             refill = symbol[0] + lastInput
-            # console.log "symbol #{symbol} lastInput #{lastInput} refill #{refill}"
+            # console.log "symbol #{symbol} @input #{@input} refill #{refill}"
             @agda.editor.getBuffer().setTextInRange range, refill
+          @deactivate()
 
     else
       # input method already activated
