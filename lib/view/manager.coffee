@@ -28,6 +28,8 @@ class ViewManager extends EventEmitter
     @inputMethod.attach()
     @attachedView.push @inputMethod
 
+  detachInputMethod: -> @inputMethod.detach()
+
   #
   #   attach & detach
   #

@@ -1,5 +1,5 @@
 {Range, Point} = require 'atom'
-
+{_} = require 'lodash'
 {EventEmitter} = require 'events'
 {View, Point, $} = require 'atom'
 
@@ -51,6 +51,8 @@ class InputMethod extends EventEmitter
         # see if the input is in the keymap
         {valid, result} = @validate()
 
+        candidateKeys = Object.keys(_.omit result, '>>')
+        candidateSymbols = result[">>"]
 
         if valid
           if Object.keys(result).length is 1
@@ -68,6 +70,8 @@ class InputMethod extends EventEmitter
               @decorator.resize(new Range range.start, range.start.translate(new Point 0, 1))
             else
               @decorator.resize range
+
+          @agda.view.inputMethod.update @input, candidateKeys, candidateSymbols
 
         else
           # key combination out of keymap
@@ -90,6 +94,7 @@ class InputMethod extends EventEmitter
   deactivate: ->
 
     if @activated
+      @agda.view.detachInputMethod()
       @decorator.hide()
       @marker.destroy()
       @activated = false
