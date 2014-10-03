@@ -6,6 +6,7 @@
 class InputMethod extends EventEmitter
 
   activated: false
+  input: ''
 
   @trie: require './keymap.js'
 
@@ -36,12 +37,15 @@ class InputMethod extends EventEmitter
         # console.log "old range: #{@marker.bufferMarker.range.start} #{@marker.bufferMarker.range.end}"
         # console.log "new range: #{range.start} #{range.end}"
 
-        # input content
-        content = @agda.editor.getBuffer().getTextInRange(range).substr(1)
+        # update input content incrementally,
+        # append only with the last character,
+        # since the former characters may could have been replaced with a preview symbol
+        @input += @agda.editor.getBuffer().getTextInRange(range).substr(1).substr(-1)
 
         # see if the input is in the keymap
-        {valid, result} = @validate content
+        {valid, result} = @validate()
 
+        
         if valid
           if Object.keys(result).length is 1
             # no further possible key combinations
@@ -52,7 +56,12 @@ class InputMethod extends EventEmitter
 
           else
             # further key combinations are possible
-            @decorator.resize range
+            if result['>>'].length > 0
+              symbol = result['>>'][0]
+              @agda.editor.getBuffer().setTextInRange range, symbol
+              @decorator.resize(new Range range.start, range.start.translate(new Point 0, 1))
+            else
+              @decorator.resize range
 
         else
           # key combination out of keymap
@@ -60,7 +69,7 @@ class InputMethod extends EventEmitter
           @deactivate()
           symbol = result['>>']
           if symbol.length > 0
-            lastInput = content.substr -1
+            lastInput = @input.substr -1
             refill = symbol[0] + lastInput
             # console.log "symbol #{symbol} lastInput #{lastInput} refill #{refill}"
             @agda.editor.getBuffer().setTextInRange range, refill
@@ -78,13 +87,14 @@ class InputMethod extends EventEmitter
       @decorator.hide()
       @marker.destroy()
       @activated = false
+      @input = ''
 
-  # if the string is in the keymap
-  validate: (string) ->
+  # if the input is in the keymap
+  validate: ->
     valid = true
     cursor = InputMethod.trie
-    for i in [0 .. string.length - 1]
-      char = string.charAt i
+    for i in [0 .. @input.length - 1]
+      char = @input.charAt i
       next = cursor[char]
       if next
         cursor = next
