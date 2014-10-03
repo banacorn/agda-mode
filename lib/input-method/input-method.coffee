@@ -29,6 +29,11 @@ class InputMethod extends EventEmitter
       # kick off the decorator view
       @decorator.resize @marker.bufferMarker.range
 
+      # initial input suggestion
+      candidateKeys = Object.keys(_.omit InputMethod.trie, '>>')
+      @agda.view.inputMethod.update '', candidateKeys, []
+
+
       # triggered then new characters are typed in
       @marker.on 'changed', (ev) =>
         # range & decorator
