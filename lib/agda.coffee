@@ -41,8 +41,7 @@ class Agda extends EventEmitter
 
     @on 'deactivate', =>
       @active = false
-      if @loaded
-        @view.detach()
+      @view.detach()
 
     @on 'goal-manager:buffer-modified', => @saveBuffer()
 
@@ -160,7 +159,7 @@ class Agda extends EventEmitter
       @view.attachInputBox @executable.normalizeCommand if @loaded
 
   input: ->
-    # @view.attachInputMethod()
+    @view.attachInputMethod()
     @inputMethod.activate()
 
 module.exports = Agda
