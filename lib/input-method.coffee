@@ -20,55 +20,55 @@ class InputMethod extends EventEmitter
 
       # range & marker
       start = @agda.editor.getCursorBufferPosition()
-      end = start.translate new Point 0, 1
-      range = new Range start, end
-      @marker = @agda.editor.markBufferRange range
+      @marker = @agda.editor.markBufferRange(new Range start, start)
 
       # insert '\' to the buffer
       @agda.editor.getBuffer().insert start, '\\'
 
       # kick off the decorator view
-      @decorator.resize range
+      @decorator.resize @marker.bufferMarker.range
 
       # triggered then new characters are typed in
       @marker.on 'changed', (ev) =>
-
         # range & decorator
         range = new Range ev.newTailBufferPosition, ev.newHeadBufferPosition
 
+        # console.log "old range: #{@marker.bufferMarker.range.start} #{@marker.bufferMarker.range.end}"
+        # console.log "new range: #{range.start} #{range.end}"
+
         # input content
-        content = @agda.editor.getBuffer().getTextInRange range
-        content = content.substr 1 # strip the leading \
+        content = @agda.editor.getBuffer().getTextInRange(range).substr(1)
 
         # see if the input is in the keymap
         {valid, result} = @validate content
 
         if valid
-          # no further possible key combinations
-          # replace with symbol right away
           if Object.keys(result).length is 1
+            # no further possible key combinations
+            # replace with symbol right away
             @deactivate()
             symbol = result['>>'][0]
             @agda.editor.getBuffer().setTextInRange range, symbol
 
-          # further key combinations are possible
           else
+            # further key combinations are possible
             @decorator.resize range
 
-        # key combination out of keymap
-        # replace with closest the symbol possible
         else
+          # key combination out of keymap
+          # replace with closest the symbol possible
           @deactivate()
           symbol = result['>>']
           if symbol.length > 0
             lastInput = content.substr -1
             refill = symbol[0] + lastInput
+            # console.log "symbol #{symbol} lastInput #{lastInput} refill #{refill}"
             @agda.editor.getBuffer().setTextInRange range, refill
 
-    # input method already activated
-    # this will happen only 2 consecutive backslash '\' was punched in
-    # and we shall leave 1 backslash in the buffer, then deactivate
     else
+      # input method already activated
+      # this will happen only 2 consecutive backslash '\' was punched in
+      # and we shall leave 1 backslash in the buffer, then deactivate
       @deactivate()
 
 
