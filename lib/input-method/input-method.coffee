@@ -36,11 +36,13 @@ class InputMethod extends EventEmitter
 
       # triggered then new characters are typed in
       @marker.on 'changed', (ev) =>
+
         # range & decorator
         range = new Range ev.newTailBufferPosition, ev.newHeadBufferPosition
 
-        # console.log "old range: #{@marker.bufferMarker.range.start} #{@marker.bufferMarker.range.end}"
-        # console.log "new range: #{range.start} #{range.end}"
+        # console.log "@input #{@input}"
+        # console.log "#{@agda.editor.getBuffer().getTextInRange(range)}"
+        # console.log @agda.editor.getBuffer().getTextInRange(range) is ''
 
         # update input content incrementally,
         # append only with the last character,
@@ -48,7 +50,7 @@ class InputMethod extends EventEmitter
         newCharacter = @agda.editor.getBuffer().getTextInRange(range).substr(1).substr(-1)
 
         # false alarm
-        return if newCharacter is ''
+        # return if newCharacter is ''
 
         # update @input with the newly inserted character
         @input += newCharacter

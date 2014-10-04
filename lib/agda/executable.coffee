@@ -39,9 +39,9 @@ module.exports = class AgdaExecutable extends EventEmitter
   loadCommand: ->
     includeDir = atom.config.get 'agda-mode.agdaLibraryPath'
     if includeDir
-      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect (Cmd_load \"#{@agda.filepath}\" [\"./\", \"#{includeDir}\"])\n"
+      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_load \"#{@agda.filepath}\" [\".\", \"#{includeDir}\"])\n"
     else
-      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect (Cmd_load \"#{@agda.filepath}\" [])\n"
+      command = "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_load \"#{@agda.filepath}\" [])\n"
     @process.stdin.write command
 
   quitCommand: ->

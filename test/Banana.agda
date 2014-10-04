@@ -1,12 +1,28 @@
 module Banana where
 
-data Banana : Set where
-    raw : Banana
-    ripe : Banana
-    rotten : Banana
+data ℕ : Set where
+  zero : ℕ
+  suc : ℕ → ℕ
 
-a : Banana
-a = {!  !}
 
-b : Banana
-b = {! ada  asd   !}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+_+_ : ℕ → ℕ → ℕ
+zero + b = b
+suc a + b = suc (a + b)
