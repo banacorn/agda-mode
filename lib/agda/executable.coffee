@@ -16,13 +16,13 @@ module.exports = class AgdaExecutable extends EventEmitter
       @process.wired = false
 
     catch error
-      @agda.view.queryPath =>
+      @agda.view.attachPathQuery =>
         @wire()
       return
 
     # catch other forms of errors
     @process.on 'error', (error) =>
-      @agda.view.queryPath =>
+      @agda.view.attachPathQuery =>
         @wire()
 
     @process.stdout.once 'data', (data) =>
