@@ -100,6 +100,8 @@ class Agda extends EventEmitter
         @executable.loadCommand
           filepath: @filepath
 
+      @view.panel.setStatus 'Type-checking'
+      @view.panel.setContent []
       @executable.wire()
     else
       @restart()
