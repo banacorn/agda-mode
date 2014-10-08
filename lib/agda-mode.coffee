@@ -19,7 +19,7 @@ module.exports =
 
       if next isnt current
         currentEditor?.emit? 'became-inactive'
-        nextEditor.emit? 'became-active'
+        nextEditor?.emit? 'became-active'
         currentEditor = nextEditor
 
 
