@@ -10,8 +10,6 @@
     "atom": ">0.50.0"
   },
   "dependencies": {
-    "first-mate": "^2.0.5",
-    "lex": "^1.7.6",
     "lodash": "^2.4.1"
   }
 }
