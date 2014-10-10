@@ -2,6 +2,13 @@
 
 For people who don't wanna use Emacs for whatever reason.
 
+
+v0.0.x preview is now available on [Atom](https://atom.io/packages/agda-mode)
+
+Buggy as hell, still under heavy development.
+PRs and comments are all welcome.
+
+
 ## Commands supported
 
 ### Global
@@ -15,7 +22,7 @@ For people who don't wanna use Emacs for whatever reason.
 | `    C-c     C-b` | Previous goal (back)  |
 | `    C-c     C-n` | Compute normal form   |
 
-### Goal specific
+### Goal-specific
 
 | Keymap            | Command                     |
 |:------------------|:----------------------------|
