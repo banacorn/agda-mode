@@ -2,6 +2,20 @@
 {Point, Range} = require 'atom'
 Goal = require './goal'
 
+commentRegex = ///
+  (--[^\r\n]*[\r\n])
+///
+
+goalBracketRegex = ///
+  (\{![^!\}]*!\})
+///
+
+goalQMRegex = ///
+  ([\s\(\{\_\;\.\"@]
+  \?                  # ?
+  [\s\)\}\_\;\.\"@])
+///
+
 # manages all Goals in a editor
 class GoalManager extends EventEmitter
 
@@ -44,39 +58,64 @@ class GoalManager extends EventEmitter
     markers = @agda.editor.findMarkers type: 'goal'
     markers.map (marker) => marker.destroy()
 
+  findGoals: (text) ->
+
+    tokens = new Lexer text
+      .lex commentRegex, 'comment'
+      .lex goalBracketRegex, 'goal bracket'
+      .result
+
+    # for counting character position
+    pos = 0
+
+    positions = tokens
+      .map (obj) =>
+        obj.start = pos
+        pos += obj.content.length
+        obj.end = pos
+        return obj
+      .filter (obj) => obj.type is 'goal bracket'
+      .map (obj) => return {
+        start: obj.start
+        end: obj.end
+      }
+
+    return positions
+
+
   convertGoals: (goalIndices) ->
     @destroyGoals()
     text = @agda.editor.getText()
 
-    pattern = ///
-      (\{![^\{\}]*!\})        # goal
-      |
-      ([\s\(\{\_\;\.\"@]
-      \?                  # ?
-      [\s\)\}\_\;\.\"@])
-    ///
+    tokens = new Lexer text
+      .lex commentRegex, 'comment'
+      .lex goalBracketRegex, 'goal bracket'
+      .lex goalQMRegex, 'goal QM'
+      .result
 
+    # for counting goals
     index = 0
 
-    # make goal {! !}
-    text = text
-      .split pattern
-      .filter (seg) => seg
-      .map (seg, i) =>
-        if pattern.test seg
 
+    text = tokens.map (obj) =>
+        # adjusts the space between goal brackets
+        if obj.type is 'goal bracket'
           goalIndex = goalIndices[index]
           index += 1
           paddingSpaces = ' '.repeat(goalIndex.toString().length)
-          # console.log "[#{goalIndex}] #{seg} | #{/\{!(.*)!\}/.test seg}"
-          if /\{!(.*)!\}/.test seg
-            seg = /\{!(.*)!\}/.exec(seg)[1].replace(/^\s\s*/, '').replace(/\s\s*$/, '')
-            return "{! #{seg + paddingSpaces} !}"
-          else
-            return seg[0] + "{! #{paddingSpaces} !}" + seg[2]
-
+          # strip whitespaces
+          data = /\{!(.*)!\}/.exec(obj.content)[1].replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+          obj.content = "{! #{data + paddingSpaces} !}"
+          return obj
+        else if obj.type is 'goal QM'
+          goalIndex = goalIndices[index]
+          index += 1
+          paddingSpaces = ' '.repeat(goalIndex.toString().length)
+          obj.content = "#{obj.content[0]}{! #{paddingSpaces} !}#{obj.content[2]}"
+          return obj
         else
-          seg
+          return obj
+      .map (obj) => obj.content
       .join('')
 
     @agda.editor.setText text
@@ -88,19 +127,13 @@ class GoalManager extends EventEmitter
     @agda.saveCursor()
     text = @convertGoals goalIndices
 
-    # get positions of all goals
-    headIndices = @indicesOf text, /\{!/
-    tailIndices = @indicesOf text, /!\}/
-
-    # instantiate a Goal if not existed
-    for headIndex, i in headIndices
-      # headIndex = headIndex
-      tailIndex = tailIndices[i]
+    positions = @findGoals text
+    positions.forEach (pos, i) =>
       goalIndex = goalIndices[i]
       goal = @findGoal goalIndex
       if goal is undefined
         # instantiate Goal
-        goal = new Goal(@agda, goalIndex, headIndex, tailIndex)
+        goal = new Goal(@agda, goalIndex, pos.start, pos.end - 2)
         @goals.push goal
 
     @agda.restoreCursor()
@@ -328,4 +361,33 @@ class GoalManager extends EventEmitter
 empty = (content) -> content.replace(/\s/g, '').length is 0
 # escapes '\n'
 escape = (content) -> content.replace(/\n/g, '\\n')
+
+isOf = (token, pattern) => pattern.test token
+
+class Lexer
+  result: []
+  constructor: (raw) ->
+    @result = [{
+        content: raw
+        type: 'raw'
+      }]
+  lex: (regex, typeName) ->
+    pulp = @result.map (token) =>
+      if token.type is 'raw'
+        token.content
+          .split regex
+          .map (token, i) =>
+            if isOf token, regex
+              type = typeName
+            else
+              type = 'raw'
+            return {
+              content: token
+              type: type
+            }
+          .filter (token) => token.content
+      else
+        token
+    @result = [].concat.apply([], pulp)
+    return @
 module.exports = GoalManager

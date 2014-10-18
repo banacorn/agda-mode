@@ -1,28 +1,14 @@
 module Banana where
 
 data ℕ : Set where
-  zero : ℕ
-  suc : ℕ → ℕ
+    zero : ℕ
+    suc : ℕ → ℕ
 
+a : ℕ
+a = {!   !}
 
+-- b : ℕ
+-- b = {!   !}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-_+_ : ℕ → ℕ → ℕ
-zero + b = b
-suc a + b = suc (a + b)
+c : ℕ
+c = {!   !}
