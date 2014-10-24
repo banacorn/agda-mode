@@ -11,8 +11,14 @@ goalBracketRegex = ///
 ///
 
 goalQMRegex = ///
+  # single ?
   ([\s\(\{\_\;\.\"@]
-  \?                  # ?
+  \?
+  [\s\)\}\_\;\.\"@])
+  |
+  # consequtive ?
+  (?=\?[\s\)\}\_\;\.\"@])
+  (\?
   [\s\)\}\_\;\.\"@])
 ///
 
@@ -111,7 +117,9 @@ class GoalManager extends EventEmitter
           goalIndex = goalIndices[index]
           index += 1
           paddingSpaces = ' '.repeat(goalIndex.toString().length)
-          obj.content = "#{obj.content[0]}{! #{paddingSpaces} !}#{obj.content[2]}"
+          switch obj.content.length
+            when 3 then obj.content = "#{obj.content[0]}{! #{paddingSpaces} !}#{obj.content[2]}"
+            when 2 then obj.content = "{! #{paddingSpaces} !}#{obj.content[1]}"
           return obj
         else
           return obj
@@ -255,7 +263,6 @@ class GoalManager extends EventEmitter
       }
 
   giveHandler: (index, content) ->
-
     goal = @findGoal index
     if content
       goal.setContent content
