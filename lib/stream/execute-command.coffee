@@ -55,19 +55,14 @@ class ExecuteCommand extends Transform
           @agda.view.panel.setStatus 'No Goals', 'success'
         else
           @agda.view.panel.setStatus 'Goals', 'info'
-          # refresh goals with given goals
-          indices = command.content
-            .map (goal) => /^\?(\d+)\s\:\s/.exec(goal)
-            .filter (result) => result isnt null
-            .map (result) => parseInt result[1]
 
         @agda.view.panel.setContent command.content
-        @agda.goalManager.resetGoals indices
-
 
         # we consider it passed, when this info-action shows up
         @emit 'passed'
 
+      when 'goals-action'
+        @agda.goalManager.resetGoals command.goals
 
       when 'give-action'
         @agda.goalManager.giveHandler command.goalIndex, command.content

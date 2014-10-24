@@ -124,6 +124,7 @@ class GoalManager extends EventEmitter
     return text
 
   resetGoals: (goalIndices) ->
+
     @agda.saveCursor()
     text = @convertGoals goalIndices
 
