@@ -2,25 +2,18 @@
 {Point, Range} = require 'atom'
 Goal = require './goal'
 
-commentRegex = ///
-  (--[^\r\n]*[\r\n])
-///
-
-goalBracketRegex = ///
-  (\{![^!\}]*!\})
-///
-
-goalQMRegex = ///
-  # single ?
-  ([\s\(\{\_\;\.\"@]
-  \?
-  [\s\)\}\_\;\.\"@])
-  |
-  # consequtive ?
-  (?=\?[\s\)\}\_\;\.\"@])
-  (\?
-  [\s\)\}\_\;\.\"@])
-///
+commentRegex = /(--[^\r\n]*[\r\n])/
+goalBracketRegex = /(\{![^!\}]*!\})/
+goalQuestionMarkGroupRegex =
+    /// (
+        [\s\(\{\_\;\.\"@]\?
+        (?:\s\?)*
+        [\s\)\}\_\;\.\"@]
+    )///
+goalQuestionMarkRegex =
+    /// ([\s\(\{\_\;\.\"@])(?=\?)
+    |   (\?[\s\)\}\_\;\.\"@])
+    ///
 
 # manages all Goals in a editor
 class GoalManager extends EventEmitter
@@ -67,8 +60,8 @@ class GoalManager extends EventEmitter
   findGoals: (text) ->
 
     tokens = new Lexer text
-      .lex commentRegex, 'comment'
-      .lex goalBracketRegex, 'goal bracket'
+      .lex commentRegex, 'raw', 'comment'
+      .lex goalBracketRegex, 'raw', 'goal bracket'
       .result
 
     # for counting character position
@@ -94,9 +87,10 @@ class GoalManager extends EventEmitter
     text = @agda.editor.getText()
 
     tokens = new Lexer text
-      .lex commentRegex, 'comment'
-      .lex goalBracketRegex, 'goal bracket'
-      .lex goalQMRegex, 'goal QM'
+      .lex commentRegex, 'raw', 'comment'
+      .lex goalBracketRegex, 'raw', 'goal bracket'
+      .lex goalQuestionMarkGroupRegex, 'raw', 'goal ?s'
+      .lex goalQuestionMarkRegex, 'goal ?s', 'goal ?'
       .result
 
     # for counting goals
@@ -113,13 +107,15 @@ class GoalManager extends EventEmitter
           data = /\{!(.*)!\}/.exec(obj.content)[1].replace(/^\s\s*/, '').replace(/\s\s*$/, '')
           obj.content = "{! #{data + paddingSpaces} !}"
           return obj
-        else if obj.type is 'goal QM'
+        else if obj.type is 'goal ?s'
+          obj.content = "#{obj.content}"
+          return obj
+
+        else if obj.type is 'goal ?'
           goalIndex = goalIndices[index]
           index += 1
           paddingSpaces = ' '.repeat(goalIndex.toString().length)
-          switch obj.content.length
-            when 3 then obj.content = "#{obj.content[0]}{! #{paddingSpaces} !}#{obj.content[2]}"
-            when 2 then obj.content = "{! #{paddingSpaces} !}#{obj.content[1]}"
+          obj.content = "{! #{paddingSpaces} !}#{obj.content[1]}"
           return obj
         else
           return obj
@@ -379,16 +375,16 @@ class Lexer
         content: raw
         type: 'raw'
       }]
-  lex: (regex, typeName) ->
+  lex: (regex, sourceTypeName, targetTypeName) ->
     pulp = @result.map (token) =>
-      if token.type is 'raw'
+      if token.type is sourceTypeName
         token.content
           .split regex
           .map (token, i) =>
             if isOf token, regex
-              type = typeName
+              type = targetTypeName
             else
-              type = 'raw'
+              type = sourceTypeName
             return {
               content: token
               type: type
