@@ -100,7 +100,10 @@ class GoalManager extends EventEmitter
     text = tokens.map (obj) =>
         # adjusts the space between goal brackets
         if obj.type is 'goal bracket'
-          goalIndex = goalIndices[index]
+          # in case the goalIndex wasn't given, make it '*'
+          # this happens when splitting case,
+          # agda2-goals-action is one index short
+          goalIndex = goalIndices[index] || '*'
           index += 1
           paddingSpaces = ' '.repeat(goalIndex.toString().length)
           # strip whitespaces
@@ -112,7 +115,10 @@ class GoalManager extends EventEmitter
           return obj
 
         else if obj.type is 'goal ?'
-          goalIndex = goalIndices[index]
+          # in case the goalIndex wasn't given, make it '*'
+          # this happens when splitting case,
+          # agda2-goals-action is one index short
+          goalIndex = goalIndices[index] || '*'
           index += 1
           paddingSpaces = ' '.repeat(goalIndex.toString().length)
           obj.content = "{! #{paddingSpaces} !}#{obj.content[1]}"

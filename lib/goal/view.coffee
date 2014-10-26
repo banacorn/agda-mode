@@ -11,9 +11,11 @@ module.exports = class GoalView extends View
   initialize: (@agda, @goal) ->
     @measureCharWidth()
 
+    # in case the index wasn't given
+    @goal.index ?= '*'
+
     @goal.on 'destroyed', @destroy
     @goal.on 'resized', @resize
-
     @attach()
 
   resize: (start, end) =>
