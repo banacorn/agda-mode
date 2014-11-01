@@ -30,8 +30,8 @@ module.exports =
 
         # add class .agda to every agda editor
         editorView.addClass 'agda'
-        
-        new Core editor
+
+        editor.core = new Core editor
         editor.agda = new Agda editorView
 
         # deactivated on default
@@ -84,6 +84,7 @@ registerCommand = (command) =>
     if isAgdaFile()
       editor = getTheFuckingEditor()
       editor.agda[toCamalCase command]()
+      editor.core.commander[toCamalCase command]()
 
 getTheFuckingEditor = ->
   atom.workspace.getActivePaneItem()
