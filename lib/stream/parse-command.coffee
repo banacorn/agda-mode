@@ -89,9 +89,9 @@ class ParseCommand extends Transform
       #
 
       when 'annot'
-        throw 'cannot read: ' + JSON.stringify tokens
+        console.log "[ERR] agda excutable cannot read: #{JSON.stringify tokens}"
       else
-        throw 'wtf is this command? ' + JSON.stringify tokens
+        console.log "[ERR] parser cannot recognize this command : #{JSON.stringify tokens}"
         command = type: 'unknown'
 
     @push command

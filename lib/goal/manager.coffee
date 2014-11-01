@@ -135,19 +135,24 @@ class GoalManager extends EventEmitter
 
   resetGoals: (goalIndices) ->
 
-    @agda.saveCursor()
-    text = @convertGoals goalIndices
+    shouldReset = goalIndices.reduce (acc, n, i) =>
+      acc or @goals[i] is undefined or @goals[i]?.index isnt n
+    , false
 
-    positions = @findGoals text
-    positions.forEach (pos, i) =>
-      goalIndex = goalIndices[i]
-      goal = @findGoal goalIndex
-      if goal is undefined
-        # instantiate Goal
-        goal = new Goal(@agda, goalIndex, pos.start, pos.end - 2)
-        @goals.push goal
+    if shouldReset
+      @agda.saveCursor()
+      text = @convertGoals goalIndices
 
-    @agda.restoreCursor()
+      positions = @findGoals text
+      positions.forEach (pos, i) =>
+        goalIndex = goalIndices[i]
+        goal = @findGoal goalIndex
+        if goal is undefined
+          # instantiate Goal
+          goal = new Goal(@agda, goalIndex, pos.start, pos.end - 2)
+          @goals.push goal
+
+      @agda.restoreCursor()
 
 
   # inSomeGoal :: {Position} -> IO (Maybe Goal)

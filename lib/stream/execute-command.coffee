@@ -63,7 +63,6 @@ class ExecuteCommand extends Transform
 
       when 'goals-action'
         @agda.goalManager.resetGoals command.goals.map (n) => parseInt n
-
       when 'give-action'
         @agda.goalManager.giveHandler command.goalIndex, command.content
 
