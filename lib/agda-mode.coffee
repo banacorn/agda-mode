@@ -1,4 +1,5 @@
 Agda = require './agda'
+Core = require './core'
 
 module.exports =
 
@@ -29,8 +30,8 @@ module.exports =
 
         # add class .agda to every agda editor
         editorView.addClass 'agda'
-
-
+        
+        new Core editor
         editor.agda = new Agda editorView
 
         # deactivated on default
