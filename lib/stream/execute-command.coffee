@@ -62,10 +62,9 @@ class ExecuteCommand extends Transform
         @emit 'passed'
 
       when 'goals-action'
-        @agda.goalManager.resetGoals command.goals.map (n) => parseInt n
+        @agda.goalManager.goalsActionHandler command.goals.map (n) => parseInt n
       when 'give-action'
         @agda.goalManager.giveHandler command.goalIndex, command.content
-
       when 'make-case-action'
         @agda.goalManager.caseHandler command.content
 
