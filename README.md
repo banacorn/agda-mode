@@ -38,7 +38,7 @@ PRs and comments are all welcome.
 
 ## Development
 
-### Architecture
+### Architecture (planned)
 
 ```
             ----------------
@@ -59,5 +59,23 @@ PRs and comments are all welcome.
 
 There are mainly 5 components.
 None will know the existence of one another, except for the Core.
+
+#### User Command
+
+Collects commands issued by user, and forward them to the Core.
+
+#### Agda
+
+Deals with the Agda executable, writes commands to stdin, parses commands from stdout.
+
+#### Text Buffer
+
+Manipulates the text buffer, converts `?` to `{!!}`,  ... etc.
+
+### Panel
+
+Displays informations, receives user inputs.
+
+
 
 ![This gif looks cute so i'm keeping it](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)
