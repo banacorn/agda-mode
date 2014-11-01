@@ -13,10 +13,10 @@ module.exports = class PathQueryView extends View
 
   initialize: (serializeState) ->
 
-    @registerHandlers()
+    # @registerHandlers()
 
-    configPath = atom.config.get 'agda-mode.agdaExecutablePath'
-    @validatePath configPath
+    # configPath = atom.config.get 'agda-mode.agdaExecutablePath'
+    # @validatePath configPath
 
   attach: (callback) ->
     atom.workspaceView.prependToBottom @

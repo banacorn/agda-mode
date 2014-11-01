@@ -70,41 +70,41 @@ class Agda extends EventEmitter
   #         #
 
   load: ->
-
-    if not @loaded
-      console.log '==== LOAD ===='
-
-      @saveCursor()
-      @saveBuffer()
-
-      # triggered when a Agda executable is found
-      @executable.once 'wired', =>
-        @loaded = true
-
-        @view.attachPanel()
-
-        @commandExecutor = new Stream.ExecuteCommand @
-
-        @commandExecutor.on 'passed', =>
-          @passed = true
-          @syntax.activate()
-
-        @executable.process.stdout
-          .pipe new Stream.Rectify
-          # .pipe new Stream.Log
-          .pipe new Stream.Preprocess
-          .pipe new Stream.ParseSExpr
-          .pipe new Stream.ParseCommand
-          .pipe @commandExecutor
-
-        @executable.loadCommand
-          filepath: @filepath
-
-      @view.panel.setStatus 'Type-checking'
-      @view.panel.setContent []
-      @executable.wire()
-    else
-      @restart()
+    # 
+    # if not @loaded
+    #   console.log '==== LOAD ===='
+    #
+    #   @saveCursor()
+    #   @saveBuffer()
+    #
+    #   # triggered when a Agda executable is found
+    #   @executable.once 'wired', =>
+    #     @loaded = true
+    #
+    #     @view.attachPanel()
+    #
+    #     @commandExecutor = new Stream.ExecuteCommand @
+    #
+    #     @commandExecutor.on 'passed', =>
+    #       @passed = true
+    #       @syntax.activate()
+    #
+    #     @executable.process.stdout
+    #       .pipe new Stream.Rectify
+    #       # .pipe new Stream.Log
+    #       .pipe new Stream.Preprocess
+    #       .pipe new Stream.ParseSExpr
+    #       .pipe new Stream.ParseCommand
+    #       .pipe @commandExecutor
+    #
+    #     @executable.loadCommand
+    #       filepath: @filepath
+    #
+    #   @view.panel.setStatus 'Type-checking'
+    #   @view.panel.setContent []
+    #   @executable.wire()
+    # else
+    #   @restart()
 
   quit: ->
     if @loaded
