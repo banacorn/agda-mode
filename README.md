@@ -41,9 +41,9 @@ PRs and comments are all welcome.
 ### Architecture (planned)
 
 ```
-            ----------------
-            | User Command |
-            ----------------
+              -------------
+              | Commander |
+              -------------
                     |
                     v
 --------        --------        ---------------
@@ -60,7 +60,7 @@ PRs and comments are all welcome.
 There are mainly 5 components.
 None will know the existence of one another, except for the Core.
 
-#### User Command
+#### Commander
 
 Collects commands issued by user, and forward them to the Core.
 
