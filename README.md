@@ -36,7 +36,28 @@ PRs and comments are all welcome.
 | `    C-c C-.    ` | Goal type and inferred type |
 | `    C-c     C-n` | Compute normal form         |
 
+## Development
 
+### Architecture
 
+```
+            ----------------
+            | User Command |
+            ----------------
+                    |
+                    v
+--------        --------        ---------------
+| Agda | <----> | Core | <----> | Text Buffer |
+--------        --------        ---------------
+                    ^
+                    |
+                    v
+                ---------
+                | Panel |
+                ---------
+```
+
+There are mainly 5 components.
+None will know the existence of one another, except for the Core.
 
 ![This gif looks cute so i'm keeping it](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)
