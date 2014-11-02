@@ -2,6 +2,7 @@
 {spawn, exec} = require 'child_process'
 Q = require 'Q'
 
+Stream = require './executable/stream'
 
 class Executable extends EventEmitter
 
@@ -82,5 +83,15 @@ class Executable extends EventEmitter
                     \"#{@core.filePath}\"
                     [])\n"
             process.stdin.write command
+
+        process.stdout
+            .pipe new Stream.Rectify
+            # .pipe new Stream.Log
+            .pipe new Stream.Preprocess
+            .pipe new Stream.ParseSExpr
+            .pipe new Stream.ParseCommand
+            .pipe new Stream.ExecCommand
+
+        return process
 
 module.exports = Executable

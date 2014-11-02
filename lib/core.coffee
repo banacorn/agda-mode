@@ -20,8 +20,15 @@ class Core extends EventEmitter
 
         console.log "[Core] initialized"
 
+
+        ##################
+        #   Components   #
+        ##################
+
         @commander.on 'load', =>
             console.log "[Commander] load"
-            @executable.load()
+            @executable.load().then (process) =>
+
+
 
 module.exports = Core

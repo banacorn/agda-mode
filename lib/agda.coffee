@@ -5,7 +5,7 @@ AgdaExecutable = require './agda/executable'
 
 GoalManager = require './goal/manager'
 ViewManager = require './view/manager'
-Stream = require './stream'
+Stream = require './executable/stream'
 InputMethod = require './input-method/input-method'
 
 {EventEmitter} = require 'events'
@@ -70,7 +70,7 @@ class Agda extends EventEmitter
   #         #
 
   load: ->
-    # 
+    #
     # if not @loaded
     #   console.log '==== LOAD ===='
     #
