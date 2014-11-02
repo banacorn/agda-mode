@@ -58,7 +58,10 @@ PRs and comments are all welcome.
 ```
 
 There are mainly 5 components.
-None will know the existence of one another, except for the Core.
+
+#### Core
+
+Glueing everything together.
 
 #### Commander
 

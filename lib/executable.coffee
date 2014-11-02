@@ -8,8 +8,10 @@ class Executable extends EventEmitter
     # instance wired the agda-mode executable
     wired: false
 
+    constructor: (@core) ->
+
     # locate the path and see if it is Agda executable
-    _validateExecutablePath: (path) -> Q.Promise (resolve, reject, notify) =>
+    validateExecutablePath: (path) -> Q.Promise (resolve, reject, notify) =>
         command = path + ' -V'
         exec command, (error, stdout, stderr) =>
             if /^Agda version/.test stdout
@@ -20,16 +22,17 @@ class Executable extends EventEmitter
 
     _getExecutablePath: ->
         path = atom.config.get 'agda-mode.agdaExecutablePath'
-        @_validateExecutablePath path
-            .then (path) => return path
-            .fail        => @_queryExecutablePath()
-
-    _queryExecutablePath: -> Q.Promise (resolve, reject, notify) =>
-        @once 'got executable path', (path) =>
-            @_validateExecutablePath path
-                .then (path) => resolve path
-                .fail        => @_queryExecutablePath()
-        @emit 'query executable path'
+        @validateExecutablePath path
+            .then (path) => path
+            .fail        => @_queryExecutablePathUntilSuccess()
+    _queryExecutablePathUntilSuccess: ->
+        view = new @core.panel.queryExecutablePath
+        view.promise
+            .then (path) => @validateExecutablePath path
+            .then (path) =>
+                atom.config.set 'agda-mode.agdaExecutablePath', path
+                path
+            .fail        => @_queryExecutablePathUntilSuccess()
 
     load: ->
         @_getExecutablePath()
