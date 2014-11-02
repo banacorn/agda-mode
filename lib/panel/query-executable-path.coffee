@@ -30,8 +30,7 @@ class QueryExecutablePath extends View
                 @detach()
                 resolve @pathEditor.getText()
 
-
-            # # cancel or close
+            # cancel or close
             # @on 'core:cancel core:close', =>
             #     @detach()
             #     reject()

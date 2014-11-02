@@ -6,7 +6,8 @@ Q = require 'Q'
 class Executable extends EventEmitter
 
     # instance wired the agda-mode executable
-    wired: false
+    agdaProcessWired: false
+    agdaProcess: null
 
     constructor: (@core) ->
 
@@ -20,25 +21,50 @@ class Executable extends EventEmitter
                 reject error if error
                 reject stderr if stderr
 
-    _getExecutablePath: ->
-        path = atom.config.get 'agda-mode.agdaExecutablePath'
-        @validateExecutablePath path
-            .then (path) => path
-            .fail        => @_queryExecutablePathUntilSuccess()
-    _queryExecutablePathUntilSuccess: ->
+    # keep banging the user until we got the right path
+    queryExecutablePathUntilSuccess: ->
         view = new @core.panel.queryExecutablePath
         view.promise
             .then (path) => @validateExecutablePath path
             .then (path) =>
                 atom.config.set 'agda-mode.agdaExecutablePath', path
                 path
-            .fail        => @_queryExecutablePathUntilSuccess()
+            .fail        => @queryExecutablePathUntilSuccess()
 
-    load: ->
-        @_getExecutablePath()
-            .then (path) =>
-                console.log "[Executable] got path #{path}"
+    # get executable path from config, query the user if failed
+    getExecutablePath: ->
+        path = atom.config.get 'agda-mode.agdaExecutablePath'
+        @validateExecutablePath path
+            .then (path) => path
+            .fail        => @queryExecutablePathUntilSuccess()
 
+    getAgdaProcess: -> Q.Promise (resolve, reject, notify) =>
+        if @agdaProcessWired
+            resolve @agdaProcess
+        else
+            @getExecutablePath().then (path) =>
+                process = spawn path, ['--interaction']
 
+                # catch other forms of errors
+                process.on 'error', (error) =>
+                    reject error
+
+                # see if it is really agda
+                process.stdout.once 'data', (data) =>
+                  if /^Agda2/.test data
+                    @agdaProcessWired = true
+                    @agdaProcess = process
+                    resolve process
+
+    ################
+    #   COMMANDS   #
+    ################
+
+    load: -> @getAgdaProcess().then (process) =>
+        command = "IOTCM \"#{@core.filePath}\"
+            NonInteractive
+            Indirect
+            ( Cmd_load \"#{@core.filePath}\" [])\n"
+        process.stdin.write command
 
 module.exports = Executable
