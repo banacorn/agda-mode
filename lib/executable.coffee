@@ -6,8 +6,8 @@ Q = require 'Q'
 class Executable extends EventEmitter
 
     # instance wired the agda-mode executable
-    agdaProcessWired: false
-    agdaProcess: null
+    processWired: false
+    process: null
 
     constructor: (@core) ->
 
@@ -38,9 +38,9 @@ class Executable extends EventEmitter
             .then (path) => path
             .fail        => @queryExecutablePathUntilSuccess()
 
-    getAgdaProcess: -> Q.Promise (resolve, reject, notify) =>
-        if @agdaProcessWired
-            resolve @agdaProcess
+    getProcess: -> Q.Promise (resolve, reject, notify) =>
+        if @processWired
+            resolve @process
         else
             @getExecutablePath().then (path) =>
                 process = spawn path, ['--interaction']
@@ -52,19 +52,35 @@ class Executable extends EventEmitter
                 # see if it is really agda
                 process.stdout.once 'data', (data) =>
                   if /^Agda2/.test data
-                    @agdaProcessWired = true
-                    @agdaProcess = process
+                    @processWired = true
+                    @process = process
                     resolve process
 
     ################
     #   COMMANDS   #
     ################
 
-    load: -> @getAgdaProcess().then (process) =>
-        command = "IOTCM \"#{@core.filePath}\"
-            NonInteractive
-            Indirect
-            ( Cmd_load \"#{@core.filePath}\" [])\n"
-        process.stdin.write command
+    load: -> @getProcess().then (process) =>
+
+        includeDir = atom.config.get 'agda-mode.agdaLibraryPath'
+
+        if includeDir
+            command = "IOTCM
+                \"#{@core.filePath}\"
+                NonInteractive
+                Indirect
+                ( Cmd_load
+                    \"#{@core.filePath}\"
+                    [\".\", \"#{includeDir}\"])\n"
+            process.stdin.write command
+        else
+            command = "IOTCM
+                \"#{@core.filePath}\"
+                NonInteractive
+                Indirect
+                ( Cmd_load
+                    \"#{@core.filePath}\"
+                    [])\n"
+            process.stdin.write command
 
 module.exports = Executable
