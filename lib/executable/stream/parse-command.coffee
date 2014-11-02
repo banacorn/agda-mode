@@ -3,98 +3,57 @@ _ = require 'lodash'
 
 class ParseCommand extends Transform
 
-  constructor: ->
-    super
-      objectMode: true
+    constructor: (@executable) ->
+        super
+            objectMode: true
 
-  _transform: (tokens, encoding, next) ->
+    _transform: (tokens, encoding, next) ->
 
-    switch tokens[0]
+        switch tokens[0]
 
-      when 'agda2-status-action' then command =
-        type: 'status-action'
-        status: tokens[1]
+            when 'agda2-info-action'
+                content = _.compact tokens[2].split '\\n'
+                @executable.emit 'info-action',
+                    type: tokens[1],
+                    content: content
 
-      when 'agda2-info-action'
-        content = _.compact tokens[2].split '\\n'
-        switch tokens[1]
-          when '*Type-checking*' then command =
-            type: 'info-action: type-checking'
-            content: content
+            when 'agda2-status-action' then @executable.emit 'status-action',
+                status: tokens[1]
 
-          when '*Error*' then command =
-            type: 'info-action: error'
-            content: content
+            when 'agda2-goals-action' then @executable.emit 'goals-action',
+                goals: tokens[1]
 
-          when '*All Goals*' then command =
-            type: 'info-action: all goals'
-            content: content
+            when 'agda2-goto' then @executable.emit 'goto',
+                file: tokens[1]
+                position: tokens[3]
 
-          when '*Current Goal*' then command =
-            type: 'info-action: current goal'
-            content: content
+            when 'agda2-give-action' then @executable.emit 'give-action',
+                goalIndex: parseInt tokens[1]
+                content: if typeof tokens[2] is 'string' then tokens[2] else null
 
-          when '*Context*' then command =
-            type: 'info-action: context'
-            content: content
+            when 'agda2-make-case-action' then @executable.emit 'make-case-action',
+                content: tokens[1]
 
-          when '*Goal type etc.*' then command =
-            type: 'info-action: goal type etc'
-            content: content
+            #
+            #   highlighting shit
+            #
 
-          when '*Auto*' then command =
-            type: 'info-action: auto'
-            content: content
+            when 'agda2-highlight-clear'
+                @executable.emit 'highlight-clear'
 
-          when '*Normal Form*' then command =
-            type: 'info-action: normal form'
-            content: content
-          else
-            throw 'wtf is this info-action? ' + JSON.stringify tokens
-            command = type: 'info-action: unknown'
+            when 'agda2-highlight-add-annotations'
+                @executable.emit 'highlight-add-annotations'
 
-      when 'agda2-goals-action' then command =
-        type: 'goals-action'
-        goals: tokens[1]
+            when 'agda2-highlight-load-and-delete-action'
+                @executable.emit 'highlight-load-and-delete-action'
 
-      when 'agda2-goto' then command =
-        type: 'goto'
-        file: tokens[1]
-        position: tokens[3]
+            #
+            #   Agda cannot read our input
+            #
 
-      when 'agda2-give-action' then command =
-        type: 'give-action'
-        goalIndex: parseInt tokens[1]
-        content: if typeof tokens[2] is 'string' then tokens[2] else null
-
-      when 'agda2-make-case-action' then command =
-        type: 'make-case-action'
-        content: tokens[1]
-
-      #
-      #   highlighting shit
-      #
-
-      when 'agda2-highlight-clear' then command =
-        type: 'highlight-clear'
-
-      when 'agda2-highlight-add-annotations' then command =
-        type: 'highlight-add-annotations'
-
-      when 'agda2-highlight-load-and-delete-action' then command =
-        type: 'highlight-load-and-delete-action'
-
-      #
-      #   Agda cannot read our input
-      #
-
-      when 'annot'
-        console.log "[ERR] agda excutable cannot read: #{JSON.stringify tokens}"
-      else
-        console.log "[ERR] parser cannot recognize this command : #{JSON.stringify tokens}"
-        command = type: 'unknown'
-
-    @push command
-    next()
-
+            when 'annot'
+                @executable.emit 'agda executable cannot read', JSON.stringify tokens
+            else
+                @executable.emit 'parser error', JSON.stringify tokens
+        next()
 module.exports = ParseCommand

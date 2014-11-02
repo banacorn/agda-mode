@@ -12,6 +12,15 @@ class Executable extends EventEmitter
 
     constructor: (@core) ->
 
+        @getProcess().then (process) =>
+            process.stdout
+                .pipe new Stream.Rectify
+                # .pipe new Stream.Log
+                .pipe new Stream.Preprocess
+                .pipe new Stream.ParseSExpr
+                .pipe new Stream.ParseCommand @
+            console.log "[Executable] process.stdout stream established"
+
     # locate the path and see if it is Agda executable
     validateExecutablePath: (path) -> Q.Promise (resolve, reject, notify) =>
         command = path + ' -V'
@@ -83,14 +92,6 @@ class Executable extends EventEmitter
                     \"#{@core.filePath}\"
                     [])\n"
             process.stdin.write command
-
-        process.stdout
-            .pipe new Stream.Rectify
-            # .pipe new Stream.Log
-            .pipe new Stream.Preprocess
-            .pipe new Stream.ParseSExpr
-            .pipe new Stream.ParseCommand
-            .pipe new Stream.ExecCommand
 
         return process
 

@@ -9,7 +9,6 @@ Panel = require './panel'
 class Core extends EventEmitter
     constructor: (@editor) ->
 
-
         # initialize all components
         @commander  = new Commander     @
         @executable = new Executable    @
@@ -25,10 +24,17 @@ class Core extends EventEmitter
         #   Components   #
         ##################
 
+        # Commander
+
         @commander.on 'load', =>
             console.log "[Commander] load"
             @executable.load().then (process) =>
 
+        # Executable
 
+        @executable.on 'info-action', (obj) =>
+            switch obj.type
+                when '*All Goals*'
+                    console.log obj.content
 
 module.exports = Core
