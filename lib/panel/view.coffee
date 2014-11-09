@@ -2,7 +2,7 @@
 
 Q = require 'Q'
 
-class OutputPanel extends View
+class PanelView extends View
 
     @content: ->
         @div outlet: 'agdaPanel', class: 'agda-panel tool-panel panel-bottom', =>
@@ -60,4 +60,4 @@ class OutputPanel extends View
             @contentList.append "<li class: 'list-item'>#{item}</li>"
         return @
 
-module.exports = OutputPanel
+module.exports = PanelView

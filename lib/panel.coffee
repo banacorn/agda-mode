@@ -7,16 +7,16 @@ class Panel extends EventEmitter
     queryExecutablePath: QueryExecutablePath
 
     constructor: ->
-        @output = new OutputPanel
+        @view = new PanelView
 
     infoAction: (obj) ->
         switch obj.type
             when '*All Goals*'
-                @output
+                @view
                     .setTitle 'All Goals', 'info'
                     .setList obj.content
             when '*Type-checking*'
-                @output
+                @view
                     .setTitle 'Type Checking'
                     .setList obj.content
 
