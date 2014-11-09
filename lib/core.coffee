@@ -32,9 +32,5 @@ class Core extends EventEmitter
 
         # Executable
 
-        @executable.on 'info-action', (obj) =>
-            switch obj.type
-                when '*All Goals*'
-                    console.log obj.content
-
+        @executable.on 'info-action', (obj) => @panel.infoAction obj
 module.exports = Core
