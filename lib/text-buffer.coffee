@@ -1,6 +1,7 @@
 {EventEmitter} = require 'events'
 {resizeHoles, findHoles, convertToHoles} = require './text-buffer/pure'
 Goal = require './text-buffer/goal'
+{log, warn, error} = require './logger'
 
 class TextBuffer extends EventEmitter
 
@@ -24,7 +25,7 @@ class TextBuffer extends EventEmitter
     removeGoals: ->
         @goals.forEach (goal) -> goal.destroy()
 
-    inSomeGoal: (cursor = @agda.editor.getCursorBufferPosition()) ->
+    inSomeGoal: (cursor = @core.editor.getCursorBufferPosition()) ->
         goals = @goals.filter (goal) =>
             goal.getRange().containsPoint cursor
         if goals.length is 1
@@ -73,5 +74,12 @@ class TextBuffer extends EventEmitter
         if positions.length isnt 0
             @core.editor.setCursorBufferPosition previousGoal
 
+    give: ->
+        goal = @inSomeGoal()
+        if goal
+            console.log '?'
+        else
+            warn 'Text Buffer', 'out of goal'
+            @core.panel.cursorOutOfGoal()
 
 module.exports = TextBuffer

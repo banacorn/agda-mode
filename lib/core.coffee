@@ -73,7 +73,7 @@ class Core extends EventEmitter
 
         @commander.on 'give', =>
             log 'Commander', 'give'
-            
+            @textBuffer.give()
 
         # Executable
         @executable.on 'info-action', (obj) =>
