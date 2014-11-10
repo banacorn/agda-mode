@@ -7,4 +7,5 @@ class Commander extends EventEmitter
     restart:        -> @emit 'restart'
     nextGoal:       -> @emit 'next-goal'
     previousGoal:   -> @emit 'previous-goal'
+    give:           -> @emit 'give'
 module.exports = Commander

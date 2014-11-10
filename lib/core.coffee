@@ -71,6 +71,9 @@ class Core extends EventEmitter
             log 'Commander', 'previous-goal'
             @textBuffer.previousGoal()
 
+        @commander.on 'give', =>
+            log 'Commander', 'give'
+            
 
         # Executable
         @executable.on 'info-action', (obj) =>

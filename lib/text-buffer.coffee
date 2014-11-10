@@ -24,6 +24,14 @@ class TextBuffer extends EventEmitter
     removeGoals: ->
         @goals.forEach (goal) -> goal.destroy()
 
+    inSomeGoal: (cursor = @agda.editor.getCursorBufferPosition()) ->
+        goals = @goals.filter (goal) =>
+            goal.getRange().containsPoint cursor
+        if goals.length is 1
+            return goals[0]
+        else
+            return null
+
     nextGoal: ->
 
         cursor = @core.editor.getCursorBufferPosition()
@@ -64,7 +72,6 @@ class TextBuffer extends EventEmitter
         # jump only when there are goals
         if positions.length isnt 0
             @core.editor.setCursorBufferPosition previousGoal
-
 
 
 module.exports = TextBuffer
