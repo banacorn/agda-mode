@@ -8,7 +8,7 @@ module.exports = class HoleView extends View
     @content: ->
         @ul outlet: 'goalView'
 
-    initialize: (@core, @goal) ->
+    initialize: (@editor, @goal) ->
         @measureCharWidth()
 
         # in case the index wasn't given
@@ -22,7 +22,7 @@ module.exports = class HoleView extends View
         @empty()
         blocks = @goal.getRange().getRows().map (row) =>
 
-            position = @core.editor.pixelPositionForBufferPosition new Point row, 0
+            position = @editor.pixelPositionForBufferPosition new Point row, 0
 
             $('<div class="goal"></div>').css
                 top: position.top
@@ -32,8 +32,8 @@ module.exports = class HoleView extends View
 
 
         [firstLine, ..., lastLine] = blocks
-        startPx = @core.editor.pixelPositionForBufferPosition start
-        endPx = @core.editor.pixelPositionForBufferPosition end
+        startPx = @editor.pixelPositionForBufferPosition start
+        endPx = @editor.pixelPositionForBufferPosition end
 
         # single row goal
         # from startPx to endPx
@@ -61,12 +61,12 @@ module.exports = class HoleView extends View
             @append div
 
     measureCharWidth: ->
-        {left} = @core.editor.pixelPositionForBufferPosition new Point 0, 1
+        {left} = @editor.pixelPositionForBufferPosition new Point 0, 1
         @charWidth = left
 
 
     attach: ->
-        @core.editor.editorView.overlayer.append @
+        @editor.editorView.overlayer.append @
 
 
     destroy: =>

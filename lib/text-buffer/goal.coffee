@@ -11,16 +11,16 @@ class Goal extends EventEmitter
     oldEnd: null
 
 
-    constructor: (@agda, @index, startIndex, endIndex) ->
+    constructor: (@editor, @index, startIndex, endIndex) ->
 
         startLeft  = @oldStart = @fromIndex startIndex
         startRight             = @fromIndex (startIndex + 2)
         endLeft                = @fromIndex endIndex
         endRight   = @oldEnd   = @fromIndex (endIndex + 2)
 
-        @startMarker = @agda.editor.markBufferRange new Range(startLeft, startRight),
+        @startMarker = @editor.markBufferRange new Range(startLeft, startRight),
             type: 'goal'
-        @endMarker = @agda.editor.markBufferRange new Range(endLeft, endRight),
+        @endMarker = @editor.markBufferRange new Range(endLeft, endRight),
             type: 'goal'
 
         @startMarker.on 'changed', (event) =>
@@ -34,19 +34,19 @@ class Goal extends EventEmitter
                 @emit 'resized', @getStart(), @getEnd()
 
         # view
-        view = new HoleView @agda, @
+        view = new HoleView @editor, @
 
         # kick off
         @emit 'resized', @getStart(), @getEnd()
 
     # with boundaries {! #$% !}
-    getText:        -> @agda.editor.getTextInRange       new Range(@startMarker.bufferMarker.getStartPosition(), @endMarker.bufferMarker.getEndPosition())
-    setText: (text) -> @agda.editor.setTextInBufferRange new Range(@startMarker.bufferMarker.getStartPosition(), @endMarker.bufferMarker.getEndPosition()), text
-    setTextInRange: (text, range) -> @agda.editor.setTextInBufferRange range, text
+    getText:        -> @editor.getTextInRange       new Range(@startMarker.bufferMarker.getStartPosition(), @endMarker.bufferMarker.getEndPosition())
+    setText: (text) -> @editor.setTextInBufferRange new Range(@startMarker.bufferMarker.getStartPosition(), @endMarker.bufferMarker.getEndPosition()), text
+    setTextInRange: (text, range) -> @editor.setTextInBufferRange range, text
 
     # without boundaries and spaces
-    getContent:        -> @agda.editor.getTextInRange       new Range(@startMarker.bufferMarker.getEndPosition(), @endMarker.bufferMarker.getStartPosition())
-    setContent: (text) -> @agda.editor.setTextInBufferRange new Range(@startMarker.bufferMarker.getEndPosition(), @endMarker.bufferMarker.getStartPosition()), text
+    getContent:        -> @editor.getTextInRange       new Range(@startMarker.bufferMarker.getEndPosition(), @endMarker.bufferMarker.getStartPosition())
+    setContent: (text) -> @editor.setTextInBufferRange new Range(@startMarker.bufferMarker.getEndPosition(), @endMarker.bufferMarker.getStartPosition()), text
 
     getStart: -> @startMarker.bufferMarker.getStartPosition()
     setStart: (startLeft) ->
@@ -71,10 +71,10 @@ class Goal extends EventEmitter
         @endMarker.setRange endRange
 
     # toIndex :: Position -> Character Index
-    toIndex: (pos) -> @agda.editor.getBuffer().characterIndexForPosition pos
+    toIndex: (pos) -> @editor.getBuffer().characterIndexForPosition pos
 
     # fromIndex :: Character Index -> Position
-    fromIndex: (ind) -> @agda.editor.getBuffer().positionForCharacterIndex ind
+    fromIndex: (ind) -> @editor.getBuffer().positionForCharacterIndex ind
 
     # trimMarker :: IO Changed
     #   recalculate the boundary of the marker
@@ -142,16 +142,16 @@ class Goal extends EventEmitter
         # single row
         if rows.length is 1
             [row] = rows
-            @agda.editor.getBuffer().deleteRow row
-            position = @agda.editor.getBuffer().rangeForRow(row).start
-            @agda.editor.getBuffer().insert position, contents
+            @editor.getBuffer().deleteRow row
+            position = @editor.getBuffer().rangeForRow(row).start
+            @editor.getBuffer().insert position, contents
 
         # multi row
         else
             [firstRow, ..., lastRow] = rows
-            @agda.editor.getBuffer().deleteRows firstRow, lastRow
-            position = @agda.editor.getBuffer().rangeForRow(firstRow).start
-            @agda.editor.getBuffer().insert position, contents
+            @editor.getBuffer().deleteRows firstRow, lastRow
+            position = @editor.getBuffer().rangeForRow(firstRow).start
+            @editor.getBuffer().insert position, contents
 
 
 

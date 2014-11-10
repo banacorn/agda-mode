@@ -15,7 +15,7 @@ class TextBuffer extends EventEmitter
         positions   = findHoles text
         positions.forEach (pos, i) =>
             index = indices[i]
-            goal  = new Goal @core, index, pos.start, pos.end - 2
+            goal  = new Goal @core.editor, index, pos.start, pos.end - 2
 
 
 
