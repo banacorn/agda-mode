@@ -18,8 +18,8 @@ class Logger extends EventEmitter
         else
             atom.config.set "agda-mode.logLevel", 0
             @level = 0
-        console.log @level
-    log: (level) ->
+
+    printMessage: (level) ->
         message = ''
         switch arguments.length
             when 3  # with namespace
@@ -32,34 +32,31 @@ class Logger extends EventEmitter
                 paddingSpace    = ' '.repeat(18)
                 message = "#{paddingSpace}#{content}"
             else throw "Logger: too few arguments"
+        console.log message
 
-        switch level
-            when 0
-                console.error message
-            when 1
-                console.warn message
-            else
-                console.log message
+        if level <= @level
+            switch level
+                when 0
+                    console.error message
+                when 1
+                    console.warn message
+                else
+                    console.log message
 
-    debug: ->
+    log: =>
         args = Array.prototype.slice.call(arguments, 0)
-        Array.prototype.unshift.call(args, [3])
-        @log.apply @, args
+        Array.prototype.unshift.call(args, [2])
+        @printMessage.apply @, args
 
-    info: ->
+    warn: =>
         args = Array.prototype.slice.call(arguments, 0)
-        Array.prototype.unshift.call(args, [3])
-        @log.apply @, args
+        Array.prototype.unshift.call(args, [1])
+        @printMessage.apply @, args
 
-    warn: ->
+    error: =>
         args = Array.prototype.slice.call(arguments, 0)
-        Array.prototype.unshift.call(args, [3])
-        @log.apply @, args
-
-    error: ->
-        args = Array.prototype.slice.call(arguments, 0)
-        Array.prototype.unshift.call(args, [3])
-        @log.apply @, args
+        Array.prototype.unshift.call(args, [0])
+        @printMessage.apply @, args
 
 
-module.exports = Logger
+module.exports = new Logger

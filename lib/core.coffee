@@ -1,14 +1,12 @@
 {EventEmitter} = require 'events'
 Q = require 'Q'
+{log, warn, error} = require './logger'
 
 # Components
 Commander = require './commander'
 Executable = require './executable'
 Panel = require './panel'
 TextBuffer = require './text-buffer'
-Logger = require './logger'
-
-logger = new Logger
 
 class Core extends EventEmitter
     constructor: (@editor) ->
@@ -22,7 +20,7 @@ class Core extends EventEmitter
         # initialize informations about this editor
         @filePath = @editor.getPath()
 
-        logger.debug 'Core', 'initialized'
+        log 'Core', 'initialized'
 
 
         ##################
@@ -32,13 +30,13 @@ class Core extends EventEmitter
         # Commander
 
         @commander.on 'load', =>
-            console.log "[Commander] load"
+            log 'Commander', 'load'
             @executable.load().then (process) =>
 
         # Executable
         @executable.on 'info-action', (obj) => @panel.infoAction obj
 
         @executable.on 'goals-action', (obj) =>
-            console.log "[Executable]", obj
+            log 'Executable', obj
 
 module.exports = Core
