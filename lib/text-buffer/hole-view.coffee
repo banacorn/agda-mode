@@ -8,7 +8,7 @@ module.exports = class HoleView extends View
     @content: ->
         @ul outlet: 'goalView'
 
-    initialize: (@agda, @goal) ->
+    initialize: (@core, @goal) ->
         @measureCharWidth()
 
         # in case the index wasn't given
@@ -20,10 +20,9 @@ module.exports = class HoleView extends View
 
     resize: (start, end) =>
         @empty()
-
         blocks = @goal.getRange().getRows().map (row) =>
 
-            position = @agda.editor.pixelPositionForBufferPosition new Point row, 0
+            position = @core.editor.pixelPositionForBufferPosition new Point row, 0
 
             $('<div class="goal"></div>').css
                 top: position.top
@@ -33,8 +32,8 @@ module.exports = class HoleView extends View
 
 
         [firstLine, ..., lastLine] = blocks
-        startPx = @agda.editor.pixelPositionForBufferPosition start
-        endPx = @agda.editor.pixelPositionForBufferPosition end
+        startPx = @core.editor.pixelPositionForBufferPosition start
+        endPx = @core.editor.pixelPositionForBufferPosition end
 
         # single row goal
         # from startPx to endPx
@@ -62,12 +61,12 @@ module.exports = class HoleView extends View
             @append div
 
     measureCharWidth: ->
-        {left} = @agda.editor.pixelPositionForBufferPosition new Point 0, 1
+        {left} = @core.editor.pixelPositionForBufferPosition new Point 0, 1
         @charWidth = left
 
 
     attach: ->
-        @agda.editorView.overlayer.append @
+        @core.editor.editorView.overlayer.append @
 
 
     destroy: =>

@@ -52,7 +52,6 @@ class Core extends EventEmitter
             @executable.load().then (process) =>
 
 
-
         # Executable
         @executable.on 'info-action', (obj) =>
             log 'Executable', '=> info-action'
@@ -60,7 +59,7 @@ class Core extends EventEmitter
 
         @executable.on 'goals-action', (obj) =>
             log 'Executable', '=> goals-action'
-
+            @textBuffer.setGoals obj.goals
 
 
 module.exports = Core

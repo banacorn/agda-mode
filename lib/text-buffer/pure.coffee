@@ -101,9 +101,9 @@ convertToHoles = (text) ->
 
     return text
 
-# resizeHoles : Text -> Text
+# resizeHoles : Text -> [Index] -> Text
 # resize all holes to make room for goal indices {! asdsd __!}
-resizeHoles = (indices) ->
+resizeHoles = (text, indices) ->
 
     tokens = new Lexer text
         .lex commentRegex, 'raw', 'comment'
@@ -125,7 +125,7 @@ resizeHoles = (indices) ->
 
                 obj.content = "{! #{content + paddingSpaces} !}"
                 i += 1
-                return obj
+            return obj
         .map (obj) => obj.content
         .join('')
 
@@ -135,5 +135,6 @@ resizeHoles = (indices) ->
 
 
 module.exports =
-    findHoles: findHoles
+    findHoles:      findHoles
     convertToHoles: convertToHoles
+    resizeHoles:    resizeHoles

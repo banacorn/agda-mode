@@ -33,7 +33,9 @@ module.exports =
         # add class .agda to every agda editor
         editorView.addClass 'agda'
 
+        editor.editorView = editorView
         editor.core = new Core editor
+        
         editor.agda = new Agda editorView
 
         # # deactivated on default
