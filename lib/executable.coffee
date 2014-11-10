@@ -42,7 +42,7 @@ class Executable extends EventEmitter
                 @validateExecutablePath path
             .then (path) =>
                 log 'Executable', "path validated: #{path}"
-                atom.config.set 'agda-mode.agdaExecutablePath', path
+                atom.config.set 'agda-mode.executablePath', path
                 path
             .fail        =>
                 warn 'Executable', "path failed: #{path}"
@@ -50,7 +50,7 @@ class Executable extends EventEmitter
 
     # get executable path from config, query the user if failed
     getExecutablePath: ->
-        path = atom.config.get 'agda-mode.agdaExecutablePath'
+        path = atom.config.get 'agda-mode.executablePath'
         @validateExecutablePath path
             .then (path) => path
             .fail        => @queryExecutablePathUntilSuccess()
@@ -78,7 +78,7 @@ class Executable extends EventEmitter
     ################
 
     load: -> @getProcess().then (process) =>
-        includeDir = atom.config.get 'agda-mode.agdaLibraryPath'
+        includeDir = atom.config.get 'agda-mode.libraryPath'
 
         if includeDir
             command = "IOTCM

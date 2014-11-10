@@ -5,9 +5,9 @@ Core = require './core'
 module.exports =
 
   configDefaults:
-    agdaExecutablePath: ''
-    agdaLibraryPath: ''
-    agdaLogLevel: 0
+    executablePath: ''
+    libraryPath: ''
+    logLevel: 0
 
   activate: (state) ->
 
