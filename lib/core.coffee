@@ -6,6 +6,9 @@ Commander = require './commander'
 Executable = require './executable'
 Panel = require './panel'
 TextBuffer = require './text-buffer'
+Logger = require './logger'
+
+logger = new Logger
 
 class Core extends EventEmitter
     constructor: (@editor) ->
@@ -19,7 +22,7 @@ class Core extends EventEmitter
         # initialize informations about this editor
         @filePath = @editor.getPath()
 
-        console.log "[Core] initialized"
+        logger.debug 'Core', 'initialized'
 
 
         ##################
