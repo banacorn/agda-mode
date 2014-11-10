@@ -63,6 +63,15 @@ class Core extends EventEmitter
             @commander.quit()
             @commander.load()
 
+        @commander.on 'next-goal', =>
+            log 'Commander', 'next-goal'
+            @textBuffer.nextGoal()
+
+        @commander.on 'previous-goal', =>
+            log 'Commander', 'previous-goal'
+            @textBuffer.previousGoal()
+
+
         # Executable
         @executable.on 'info-action', (obj) =>
             log 'Executable', '=> info-action'

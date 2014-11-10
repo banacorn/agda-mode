@@ -24,6 +24,47 @@ class TextBuffer extends EventEmitter
     removeGoals: ->
         @goals.forEach (goal) -> goal.destroy()
 
+    nextGoal: ->
+
+        cursor = @core.editor.getCursorBufferPosition()
+        nextGoal = null
+
+        positions = @goals.map (goal) =>
+            start = goal.getStart()
+            goal.translate start, 3
+
+        positions.forEach (position) =>
+            if position.isGreaterThan cursor
+                nextGoal ?= position
+
+        # no goal ahead of cursor, loop back
+        if nextGoal is null
+            nextGoal = positions[0]
+
+        # jump only when there are goals
+        if positions.length isnt 0
+            @core.editor.setCursorBufferPosition nextGoal
+
+    previousGoal: ->
+        cursor = @core.editor.getCursorBufferPosition()
+        previousGoal = null
+
+        positions = @goals.map (goal) =>
+            start = goal.getStart()
+            goal.translate start, 3
+
+        positions.forEach (position) =>
+            if position.isLessThan cursor
+                previousGoal = position
+
+        # no goal ahead of cursor, loop back
+        if previousGoal is null
+            previousGoal = positions[positions.length - 1]
+
+        # jump only when there are goals
+        if positions.length isnt 0
+            @core.editor.setCursorBufferPosition previousGoal
+
 
 
 module.exports = TextBuffer
