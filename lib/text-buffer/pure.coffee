@@ -101,6 +101,37 @@ convertToHoles = (text) ->
 
     return text
 
+# resizeHoles : Text -> Text
+# resize all holes to make room for goal indices {! asdsd __!}
+resizeHoles = (indices) ->
+
+    tokens = new Lexer text
+        .lex commentRegex, 'raw', 'comment'
+        .lex goalBracketRegex, 'raw', 'goal bracket'
+        .result
+
+    i = 0
+
+    text = tokens.map (obj) =>
+        if obj.type is 'goal bracket'
+            # in case the goalIndex wasn't given, make it '*'
+            # this happens when splitting case, agda2-goals-action is one index short
+            goalIndex = indices[i] || '*'
+
+            paddingSpaces = ' '.repeat(goalIndex.toString().length)
+
+            # strip whitespaces in between {!<--space-->some data<---space-->!}
+            content = /\{!(.*)!\}/.exec(obj.content)[1].replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+
+            obj.content = "{! #{content + paddingSpaces} !}"
+            i += 1
+            return obj
+        .map (obj) => obj.content
+        .join('')
+
+    return text
+
+
 
 
 module.exports =
