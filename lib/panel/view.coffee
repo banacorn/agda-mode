@@ -14,8 +14,11 @@ class PanelView extends View
                     @ul outlet: 'contentList', class: 'list-group'
                 @subview 'inputBox', new EditorView(mini: true, placeholderText: 'Please insert the path here')
 
-    initialize: ->
+    attach: ->
         atom.workspaceView.prependToBottom @
+
+    initialize: ->
+        @attach()
         @hide()
         return @
 

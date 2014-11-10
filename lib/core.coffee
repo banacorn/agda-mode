@@ -24,9 +24,10 @@ class Core extends EventEmitter
 
         @on 'activate', =>
             log 'Core', "activated: #{@filePath}"
+            @panel.show()
         @on 'deactivate', =>
             log 'Core', "deactivated: #{@filePath}"
-
+            @panel.hide()
 
         ##################
         #   Components   #

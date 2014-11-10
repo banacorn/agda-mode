@@ -3,9 +3,12 @@
 PanelView = require './panel/view'
 
 class Panel extends EventEmitter
-    
+
     constructor: ->
         @view = new PanelView
+
+    hide: -> @view.detach()
+    show: -> @view.attach()
 
     queryExecutablePath: ->
         @view.query()
