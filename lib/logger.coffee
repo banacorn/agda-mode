@@ -32,8 +32,7 @@ class Logger extends EventEmitter
                 paddingSpace    = ' '.repeat(18)
                 message = "#{paddingSpace}#{content}"
             else throw "Logger: too few arguments"
-        console.log message
-
+        
         if level <= @level
             switch level
                 when 0

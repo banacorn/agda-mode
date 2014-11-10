@@ -34,9 +34,11 @@ class Core extends EventEmitter
             @executable.load().then (process) =>
 
         # Executable
-        @executable.on 'info-action', (obj) => @panel.infoAction obj
+        @executable.on 'info-action', (obj) =>
+            log 'Executable', '=> info-action'
+            @panel.infoAction obj
 
         @executable.on 'goals-action', (obj) =>
-            log 'Executable', obj
+            log 'Executable', '=> goals-action'
 
 module.exports = Core

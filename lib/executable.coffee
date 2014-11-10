@@ -1,6 +1,8 @@
 {EventEmitter} = require 'events'
 {spawn, exec} = require 'child_process'
 Q = require 'Q'
+{log, warn, error} = require './logger'
+
 
 Stream = require './executable/stream'
 
@@ -19,7 +21,7 @@ class Executable extends EventEmitter
                 .pipe new Stream.Preprocess
                 .pipe new Stream.ParseSExpr
                 .pipe new Stream.ParseCommand @
-            console.log "[Executable] process.stdout stream established"
+            log 'Executable', 'process.stdout stream established'
 
     # locate the path and see if it is Agda executable
     validateExecutablePath: (path) -> Q.Promise (resolve, reject, notify) =>
@@ -36,11 +38,15 @@ class Executable extends EventEmitter
         view = @core.panel.queryExecutablePath()
         view.promise
             .then (path) =>
+                log 'Executable', "got path: #{path}"
                 @validateExecutablePath path
             .then (path) =>
+                log 'Executable', "path validated: #{path}"
                 atom.config.set 'agda-mode.agdaExecutablePath', path
                 path
-            .fail        => @queryExecutablePathUntilSuccess()
+            .fail        =>
+                warn 'Executable', "path failed: #{path}"
+                @queryExecutablePathUntilSuccess()
 
     # get executable path from config, query the user if failed
     getExecutablePath: ->
@@ -72,7 +78,6 @@ class Executable extends EventEmitter
     ################
 
     load: -> @getProcess().then (process) =>
-
         includeDir = atom.config.get 'agda-mode.agdaLibraryPath'
 
         if includeDir
