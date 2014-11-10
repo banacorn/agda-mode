@@ -15,10 +15,10 @@ class Panel extends EventEmitter
             .setTitle 'Given path of Agda executable not found, try "which agda" in your terminal'
             .setPlaceholder 'Please insert the path here'
 
-    cursorOutOfGoal: ->
+    outputInfo: (content) ->
         @view.output()
             .setTitle 'Info'
-            .setList ['For this command, please place the cursor in a goal']
+            .setList [content]
 
     infoAction: (obj) ->
         switch obj.type

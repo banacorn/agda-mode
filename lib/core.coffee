@@ -84,5 +84,9 @@ class Core extends EventEmitter
             log 'Executable', '=> goals-action'
             @textBuffer.setGoals obj.goals
 
+        @executable.on 'give-action', (obj) =>
+            log 'Executable', '=> give-action'
+            @textBuffer.giveHandler obj.goalIndex
+
 
 module.exports = Core

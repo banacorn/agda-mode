@@ -6,6 +6,8 @@ Q = require 'Q'
 
 Stream = require './executable/stream'
 
+escape = (content) -> content.replace(/\n/g, '\\n')
+
 class Executable extends EventEmitter
 
     # instance wired the agda-mode executable
@@ -65,7 +67,7 @@ class Executable extends EventEmitter
                     resolve process
 
                 log 'Executable', 'process wired'
-                
+
                 process.stdout
                     .pipe new Stream.Rectify
                     # .pipe new Stream.Log
@@ -107,5 +109,38 @@ class Executable extends EventEmitter
         @process.kill()
         @processWired = false
         log 'Executable', 'process killed'
+
+    give: (goal) -> @getProcess().then (process) =>
+        goalIndex   = goal.index
+        start       = goal.getStart()
+        startIndex  = goal.toIndex start
+        end         = goal.getEnd()
+        endIndex    = goal.toIndex end
+        content     = escape goal.getContent()
+
+        command = "IOTCM
+            \"#{@core.filePath}\"
+            NonInteractive
+            Indirect
+            ( Cmd_give
+                #{goalIndex}
+                ( Range [Interval
+                    (Pn
+                        (Just (mkAbsolute \"#{@core.filePath}\"))
+                        #{startIndex}
+                        #{start.row + 1}
+                        #{start.column + 1})
+                    (Pn
+                        (Just (mkAbsolute \"#{@core.filePath}\"))
+                        #{endIndex}
+                        #{end.row + 1}
+                        #{end.column + 1})
+                    ])
+                \"#{content}\" )\n"
+
+        process.stdin.write command
+
+
+
 
 module.exports = Executable

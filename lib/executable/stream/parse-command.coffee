@@ -28,7 +28,7 @@ class ParseCommand extends Transform
                 position: tokens[3]
 
             when 'agda2-give-action' then @executable.emit 'give-action',
-                goalIndex: parseInt tokens[1]
+                goalIndex: tokens[1]
                 content: if typeof tokens[2] is 'string' then tokens[2] else null
 
             when 'agda2-make-case-action' then @executable.emit 'make-case-action',
