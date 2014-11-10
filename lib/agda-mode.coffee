@@ -1,11 +1,13 @@
 Agda = require './agda'
 Core = require './core'
+{log, warn, error} = require './logger'
 
 module.exports =
 
   configDefaults:
     agdaExecutablePath: ''
     agdaLibraryPath: ''
+    agdaLogLevel: 0
 
   activate: (state) ->
 
@@ -50,8 +52,10 @@ module.exports =
 
         editor.on 'became-active', =>
           editor.agda.emit 'activate'
+          editor.core.emit 'activate'
         editor.on 'became-inactive', =>
           editor.agda.emit 'deactivate'
+          editor.core.emit 'deactivate'
 
     # register commands
     [

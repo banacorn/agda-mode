@@ -22,6 +22,11 @@ class Core extends EventEmitter
 
         log 'Core', 'initialized'
 
+        @on 'activate', =>
+            log 'Core', "activated: #{@filePath}"
+        @on 'deactivate', =>
+            log 'Core', "deactivated: #{@filePath}"
+
 
         ##################
         #   Components   #
