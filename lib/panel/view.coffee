@@ -1,4 +1,5 @@
 {View, EditorView} = require 'atom'
+{log, warn, error} = require '../logger'
 
 Q = require 'Q'
 
@@ -35,7 +36,7 @@ class PanelView extends View
         @promise = Q.Promise (resolve, reject, notify) =>
             # confirm
             @on 'core:confirm', =>
-                console.log "[View] #{@inputBox.getText()}"
+                log 'Panel', "queried path: #{@inputBox.getText()}"
                 @hide()
                 resolve @inputBox.getText()
         return @

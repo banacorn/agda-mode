@@ -20,7 +20,7 @@ class Core extends EventEmitter
         # initialize informations about this editor
         @filePath = @editor.getPath()
 
-        log 'Core', 'initialized'
+        log 'Core', 'initialized:', @filePath
 
 
 
@@ -31,18 +31,18 @@ class Core extends EventEmitter
 
 
         @on 'activate', =>
-            log 'Core', "activated: #{@filePath}"
+            log 'Core', 'activated:', @filePath
             @panel.show()
         @on 'deactivate', =>
-            log 'Core', "deactivated: #{@filePath}"
+            log 'Core', 'deactivated:', @filePath
             @panel.hide()
 
 
 
 
-        ##################
-        #   Components   #
-        ##################
+        ########################
+        #   Components Events  #
+        ########################
 
 
 
