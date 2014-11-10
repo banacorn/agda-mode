@@ -50,7 +50,13 @@ class Core extends EventEmitter
         @commander.on 'load', =>
             log 'Commander', 'load'
             @executable.load().then (process) =>
-
+                @panel.show()
+                
+        @commander.on 'quit', =>
+            log 'Commander', 'quit'
+            @executable.quit()
+            @panel.hide()
+            @textBuffer.removeGoals()
 
         # Executable
         @executable.on 'info-action', (obj) =>

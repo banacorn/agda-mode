@@ -3,6 +3,9 @@
 Goal = require './text-buffer/goal'
 
 class TextBuffer extends EventEmitter
+
+    goals: []
+
     constructor: (@core) ->
 
     setGoals: (indices) ->
@@ -16,6 +19,10 @@ class TextBuffer extends EventEmitter
         positions.forEach (pos, i) =>
             index = indices[i]
             goal  = new Goal @core.editor, index, pos.start, pos.end - 2
+            @goals.push goal
+
+    removeGoals: ->
+        @goals.forEach (goal) -> goal.destroy()
 
 
 
