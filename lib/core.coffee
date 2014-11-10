@@ -22,6 +22,14 @@ class Core extends EventEmitter
 
         log 'Core', 'initialized'
 
+
+
+
+        #####################
+        #   Editor Events   #
+        #####################
+
+
         @on 'activate', =>
             log 'Core', "activated: #{@filePath}"
             @panel.show()
@@ -29,15 +37,21 @@ class Core extends EventEmitter
             log 'Core', "deactivated: #{@filePath}"
             @panel.hide()
 
+
+
+
         ##################
         #   Components   #
         ##################
 
-        # Commander
 
+
+        # Commander
         @commander.on 'load', =>
             log 'Commander', 'load'
             @executable.load().then (process) =>
+
+
 
         # Executable
         @executable.on 'info-action', (obj) =>
@@ -46,5 +60,7 @@ class Core extends EventEmitter
 
         @executable.on 'goals-action', (obj) =>
             log 'Executable', '=> goals-action'
+
+
 
 module.exports = Core
