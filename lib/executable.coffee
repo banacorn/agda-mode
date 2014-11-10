@@ -33,10 +33,13 @@ class Executable extends EventEmitter
 
     # keep banging the user until we got the right path
     queryExecutablePathUntilSuccess: ->
-        view = new @core.panel.queryExecutablePath
+        view = @core.panel.queryExecutablePath()
         view.promise
-            .then (path) => @validateExecutablePath path
             .then (path) =>
+                console.log "[Executable] got path: #{path}"
+                @validateExecutablePath path
+            .then (path) =>
+                console.log "[Executable] path validated: #{path}"
                 atom.config.set 'agda-mode.agdaExecutablePath', path
                 path
             .fail        => @queryExecutablePathUntilSuccess()
