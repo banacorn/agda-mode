@@ -113,19 +113,19 @@ resizeHoles = (indices) ->
     i = 0
 
     text = tokens.map (obj) =>
-        if obj.type is 'goal bracket'
-            # in case the goalIndex wasn't given, make it '*'
-            # this happens when splitting case, agda2-goals-action is one index short
-            goalIndex = indices[i] || '*'
+            if obj.type is 'goal bracket'
+                # in case the goalIndex wasn't given, make it '*'
+                # this happens when splitting case, agda2-goals-action is one index short
+                goalIndex = indices[i] || '*'
 
-            paddingSpaces = ' '.repeat(goalIndex.toString().length)
+                paddingSpaces = ' '.repeat(goalIndex.toString().length)
 
-            # strip whitespaces in between {!<--space-->some data<---space-->!}
-            content = /\{!(.*)!\}/.exec(obj.content)[1].replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+                # strip whitespaces in between {!<--space-->some data<---space-->!}
+                content = /\{!(.*)!\}/.exec(obj.content)[1].replace(/^\s\s*/, '').replace(/\s\s*$/, '')
 
-            obj.content = "{! #{content + paddingSpaces} !}"
-            i += 1
-            return obj
+                obj.content = "{! #{content + paddingSpaces} !}"
+                i += 1
+                return obj
         .map (obj) => obj.content
         .join('')
 

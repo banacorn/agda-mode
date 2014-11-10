@@ -1,6 +1,6 @@
 {EventEmitter} = require 'events'
 {Point, Range} = require 'atom'
-GoalView = require './view'
+HoleView = require './hole-view'
 
 class Goal extends EventEmitter
 
@@ -34,7 +34,7 @@ class Goal extends EventEmitter
                 @emit 'resized', @getStart(), @getEnd()
 
         # view
-        view = new GoalView @agda, @
+        view = new HoleView @agda, @
 
         # kick off
         @emit 'resized', @getStart(), @getEnd()
