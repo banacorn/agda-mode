@@ -11,7 +11,7 @@ class TextBuffer extends EventEmitter
 
     constructor: (@core) ->
 
-    setGoals: (indices) ->
+    goalsAction: (indices) ->
 
         unless _.isEqual indices, @indices
             log 'Text Buffer', 'setting goals'
@@ -28,6 +28,10 @@ class TextBuffer extends EventEmitter
                 goal  = new Goal @core.editor, index, pos.start, pos.end - 2
                 @goals.push goal
 
+    #######################
+    #   Goal Management   #
+    #######################
+
     removeGoals: ->
         log 'Text Buffer', 'remove goals'
         @goals.forEach (goal) -> goal.destroy()
@@ -39,6 +43,10 @@ class TextBuffer extends EventEmitter
           .forEach (goal) => goal.destroy()
         @goals = @goals.filter (goal) => goal.index isnt index
 
+    findGoal: (index) ->
+        goals = @goals.filter (goal) => goal.index is index
+        return goals[0]
+
     inSomeGoal: (cursor = @core.editor.getCursorBufferPosition()) ->
         goals = @goals.filter (goal) =>
             goal.getRange().containsPoint cursor
@@ -47,9 +55,9 @@ class TextBuffer extends EventEmitter
         else
             return null
 
-    findGoal: (index) ->
-        goals = @goals.filter (goal) => goal.index is index
-        return goals[0]
+    ################
+    #   Commands   #
+    ################
 
     nextGoal: ->
 
@@ -106,8 +114,27 @@ class TextBuffer extends EventEmitter
             warn 'Text Buffer', 'out of goal'
             @core.panel.outputInfo 'For this command, please place the cursor in a goal'
 
-    giveHandler: (index, content) ->
-        log 'Text Buffer', 'handling give'
+    goalType: ->
+        goal = @inSomeGoal()
+        if goal
+            content = goal.getContent()
+            empty = content.replace(/\s/g, '').length is 0
+            if empty
+                warn 'Text Buffer', 'empty content'
+                @core.panel.outputInfo 'Please type in the expression to infer'
+            else
+                @core.executable.goalType goal
+        else
+            warn 'Text Buffer', 'out of goal'
+            @core.panel.outputInfo 'For this command, please place the cursor in a goal'
+
+
+    ########################
+    #   Command Handlers   #
+    ########################
+
+    giveAction: (index, content) ->
+        log 'Text Buffer', 'handling give-action'
         goal = @findGoal index
         if content
             goal.setContent content

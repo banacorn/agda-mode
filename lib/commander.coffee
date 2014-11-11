@@ -8,4 +8,6 @@ class Commander extends EventEmitter
     nextGoal:       -> @emit 'next-goal'
     previousGoal:   -> @emit 'previous-goal'
     give:           -> @emit 'give'
+    goalType:       -> @emit 'goal-type'
+    context:        -> @emit 'context'
 module.exports = Commander

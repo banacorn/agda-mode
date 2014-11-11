@@ -40,9 +40,9 @@ class Core extends EventEmitter
 
 
 
-        ########################
-        #   Components Events  #
-        ########################
+        #########################
+        #   Components Events   #
+        #########################
 
 
 
@@ -75,6 +75,10 @@ class Core extends EventEmitter
             log 'Commander', 'give'
             @textBuffer.give()
 
+        @commander.on 'goal-type', =>
+            log 'Commander', 'goal-type'
+            @textBuffer.goalType()
+
         # Executable
         @executable.on 'info-action', (obj) =>
             log 'Executable', '=> info-action'
@@ -82,11 +86,11 @@ class Core extends EventEmitter
 
         @executable.on 'goals-action', (obj) =>
             log 'Executable', '=> goals-action'
-            @textBuffer.setGoals obj.goals
+            @textBuffer.goalsAction obj.goals
 
         @executable.on 'give-action', (obj) =>
             log 'Executable', '=> give-action'
-            @textBuffer.giveHandler obj.goalIndex
+            @textBuffer.giveAction obj.goalIndex
 
 
 module.exports = Core
