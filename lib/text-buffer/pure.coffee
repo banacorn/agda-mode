@@ -15,9 +15,12 @@ goalQuestionMarkGroupRegex =
         [\s\)\}\_\;\.\"@]
     )///
 goalQuestionMarkRegex =
-    /// ([\s\(\{\_\;\.\"@])(?=\?)
-        (\?[\s\)\}\_\;\.\"@])
+    /// ([\s\(\{\_\;\.\"@]\?)
     ///
+# goalQuestionMarkRegex =
+#     /// ([\s\(\{\_\;\.\"@])(?=\?)
+#         (\?[\s\)\}\_\;\.\"@])
+#     ///
 
 empty = (content) -> content.replace(/\s/g, '').length is 0
 escape = (content) -> content.replace(/\n/g, '\\n')
@@ -85,6 +88,9 @@ findHoles = (text) ->
 # convert all ? => {!!}
 convertToHoles = (text) ->
 
+    # test.forEach (obj) =>
+    #     console.log "[#{obj.type}] #{obj.content}"
+
     tokens = new Lexer text
         .lex commentRegex, 'raw', 'comment'
         .lex goalBracketRegex, 'raw', 'goal bracket'
@@ -94,11 +100,10 @@ convertToHoles = (text) ->
 
     text = tokens.map (obj) =>
             if obj.type is 'goal ?'
-                obj.content = "{!  !}#{obj.content[1]}"
+                obj.content = "#{obj.content[0]}{!  !}"
             return obj
         .map (obj) => obj.content
         .join('')
-
     return text
 
 # resizeHoles : Text -> [Index] -> Text

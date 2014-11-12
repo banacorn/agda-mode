@@ -6,15 +6,16 @@ _ = require 'lodash'
 
 class TextBuffer extends EventEmitter
 
-    indices: []
     goals: []
 
     constructor: (@core) ->
 
-    goalsAction: (indices) ->
+    # compare goals with indices
+    changed: (indices) -> _.isEqual _.pluck(@goals, 'index'), indices
 
-        unless _.isEqual indices, @indices
-            log 'Text Buffer', 'setting goals'
+    goalsAction: (indices) ->
+        unless @changed indices
+            log 'Text Buffer', "setting goals #{indices}"
             @removeGoals()
 
             textRaw     = @core.editor.getText()            # get raw text
