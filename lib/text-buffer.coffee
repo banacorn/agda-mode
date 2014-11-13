@@ -116,19 +116,24 @@ class TextBuffer extends EventEmitter
             @core.panel.outputInfo 'For this command, please place the cursor in a goal'
 
     goalType: ->
+        # goal = @inSomeGoal()
+        # if goal
+        #     content = goal.getContent()
+        #     empty = content.replace(/\s/g, '').length is 0
+        #     if empty
+        #         warn 'Text Buffer', 'empty content'
+        #         @core.panel.outputInfo 'Please type in the expression to infer'
+        #     else
+        #         @core.executable.goalType goal
+        # else
+        #     warn 'Text Buffer', 'out of goal'
+        #     @core.panel.outputInfo 'For this command, please place the cursor in a goal'
         goal = @inSomeGoal()
         if goal
-            content = goal.getContent()
-            empty = content.replace(/\s/g, '').length is 0
-            if empty
-                warn 'Text Buffer', 'empty content'
-                @core.panel.outputInfo 'Please type in the expression to infer'
-            else
-                @core.executable.goalType goal
+            @core.executable.goalType goal
         else
             warn 'Text Buffer', 'out of goal'
             @core.panel.outputInfo 'For this command, please place the cursor in a goal'
-
 
     ########################
     #   Command Handlers   #

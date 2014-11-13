@@ -88,9 +88,6 @@ findHoles = (text) ->
 # convert all ? => {!!}
 convertToHoles = (text) ->
 
-    # test.forEach (obj) =>
-    #     console.log "[#{obj.type}] #{obj.content}"
-
     tokens = new Lexer text
         .lex commentRegex, 'raw', 'comment'
         .lex goalBracketRegex, 'raw', 'goal bracket'
