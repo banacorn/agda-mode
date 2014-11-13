@@ -135,6 +135,16 @@ class TextBuffer extends EventEmitter
             warn 'Text Buffer', 'out of goal'
             @core.panel.outputInfo 'For this command, please place the cursor in a goal'
 
+    context: ->
+        goal = @inSomeGoal()
+        if goal
+            @core.executable.context goal
+        else
+            warn 'Text Buffer', 'out of goal'
+            @core.panel.outputInfo 'For this command, please place the cursor in a goal'
+
+
+
     ########################
     #   Command Handlers   #
     ########################
