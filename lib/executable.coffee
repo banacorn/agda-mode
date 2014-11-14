@@ -160,4 +160,18 @@ class Executable extends EventEmitter
         command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{content}\" )\n"
         process.stdin.write command
 
+    refine: (goal, content) -> @getProcess().then (process) =>
+        goalIndex = goal.index
+        start = goal.getStart()
+        startIndex = goal.toIndex start
+        end = goal.getEnd()
+        endIndex = goal.toIndex end
+        content = escape goal.getContent()
+        command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect
+          ( Cmd_refine_or_intro False #{goalIndex} (Range [Interval (Pn (Just
+           (mkAbsolute \"#{@core.filePath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
+           (Pn (Just (mkAbsolute \"#{@core.filePath}\")) #{endIndex} #{end.row + 1}
+            #{end.column + 1})]) \"#{content}\" )\n"
+        process.stdin.write command
+
 module.exports = Executable

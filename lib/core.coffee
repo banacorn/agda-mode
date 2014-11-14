@@ -91,6 +91,10 @@ class Core extends EventEmitter
             log 'Commander', 'goal-type-inferred-type'
             @textBuffer.goalTypeAndInferredType()
 
+        @commander.on 'refine', =>
+            log 'Commander', 'refine'
+            @textBuffer.refine()
+
         # Executable
         @executable.on 'info-action', (obj) =>
             log 'Executable', '=> info-action'
@@ -102,7 +106,7 @@ class Core extends EventEmitter
 
         @executable.on 'give-action', (obj) =>
             log 'Executable', '=> give-action'
-            @textBuffer.giveAction obj.goalIndex
+            @textBuffer.giveAction obj.goalIndex, obj.content
 
 
 module.exports = Core

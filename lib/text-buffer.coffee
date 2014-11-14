@@ -98,11 +98,9 @@ class TextBuffer extends EventEmitter
         if positions.length isnt 0
             @core.editor.setCursorBufferPosition previousGoal
 
-    give: ->
-        @getCurrentGoal()
-            .then (goal) =>
-                @warnCurrentGoalIfEmpty goal, 'Please type in the expression to give'
-                @core.executable.give goal
+    give: -> @getCurrentGoal().then (goal) =>
+        @warnCurrentGoalIfEmpty goal, 'Please type in the expression to give'
+        @core.executable.give goal
 
     goalType: -> @getCurrentGoal().then (goal) =>
         @core.executable.goalType goal
@@ -113,12 +111,16 @@ class TextBuffer extends EventEmitter
     goalTypeAndContext: -> @getCurrentGoal().then (goal) =>
         @core.executable.goalTypeAndContext goal
 
-    goalTypeAndInferredType: ->
-        @getCurrentGoal()
-            .then (goal) =>
-                @warnCurrentGoalIfEmpty goal, 'Please type in the expression to infer'
-                content = goal.getContent()
-                @core.executable.goalTypeAndInferredType goal, content
+    goalTypeAndInferredType: -> @getCurrentGoal().then (goal) =>
+        @warnCurrentGoalIfEmpty goal, 'Please type in the expression to infer'
+        content = goal.getContent()
+        @core.executable.goalTypeAndInferredType goal, content
+
+    refine: -> @getCurrentGoal().then (goal) =>
+        @warnCurrentGoalIfEmpty goal, 'Please type in the expression to refine'
+        content = goal.getContent()
+        @core.executable.refine goal, content
+
 
 
     ########################
@@ -142,7 +144,7 @@ class TextBuffer extends EventEmitter
                 @goals.push goal
 
     giveAction: (index, content) ->
-        log 'Text Buffer', 'handling give-action'
+        log 'Text Buffer', "handling give-action #{content}"
         goal = @findGoal index
         if content
             goal.setContent content
