@@ -14,4 +14,7 @@ class Commander extends EventEmitter
     goalTypeAndInferredType:    -> @emit 'goal-type-and-inferred-type'
     refine:         -> @emit 'refine'
     case:           -> @emit 'case'
+    auto:           -> @emit 'auto'
+    normalize:      -> @emit 'normalize'
+    input:          -> @emit 'input'
 module.exports = Commander

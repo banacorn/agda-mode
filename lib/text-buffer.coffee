@@ -113,18 +113,18 @@ class TextBuffer extends EventEmitter
 
     goalTypeAndInferredType: -> @getCurrentGoal().then (goal) =>
         @warnCurrentGoalIfEmpty goal, 'Please type in the expression to infer'
-        content = goal.getContent()
-        @core.executable.goalTypeAndInferredType goal, content
+        @core.executable.goalTypeAndInferredType goal
 
     refine: -> @getCurrentGoal().then (goal) =>
         @warnCurrentGoalIfEmpty goal, 'Please type in the expression to refine'
-        content = goal.getContent()
-        @core.executable.refine goal, content
+        @core.executable.refine goal
 
     case: -> @getCurrentGoal().then (goal) =>
         @warnCurrentGoalIfEmpty goal, 'Please type in the expression to make case'
-        content = goal.getContent()
-        @core.executable.case goal, content
+        @core.executable.case goal
+
+    auto: -> @getCurrentGoal().then (goal) =>
+        @core.executable.auto goal
 
 
     ########################

@@ -155,12 +155,13 @@ class Executable extends EventEmitter
         command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect ( Cmd_goal_type_context Simplified #{goalIndex} noRange \"\" )\n"
         process.stdin.write command
 
-    goalTypeAndInferredType: (goal, content) -> @getProcess().then (process) =>
+    goalTypeAndInferredType: (goal) -> @getProcess().then (process) =>
         goalIndex = goal.index
+        content = escape goal.getContent()
         command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{content}\" )\n"
         process.stdin.write command
 
-    refine: (goal, content) -> @getProcess().then (process) =>
+    refine: (goal) -> @getProcess().then (process) =>
         goalIndex = goal.index
         start = goal.getStart()
         startIndex = goal.toIndex start
@@ -174,7 +175,7 @@ class Executable extends EventEmitter
             #{end.column + 1})]) \"#{content}\" )\n"
         process.stdin.write command
 
-    case: (goal, content) -> @getProcess().then (process) =>
+    case: (goal) -> @getProcess().then (process) =>
         goalIndex = goal.index
         start = goal.getStart()
         startIndex = goal.toIndex start
@@ -187,4 +188,20 @@ class Executable extends EventEmitter
             (Pn (Just (mkAbsolute \"#{@core.filePath}\")) #{endIndex} #{end.row + 1}
              #{end.column + 1})]) \"#{content}\" )\n"
         process.stdin.write command
+
+    auto: (goal) -> @getProcess().then (process) =>
+        goalIndex = goal.index
+        start = goal.getStart()
+        startIndex = goal.toIndex start
+        end = goal.getEnd()
+        endIndex = goal.toIndex end
+        content = escape goal.getContent()
+        command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect
+            ( Cmd_auto #{goalIndex} (Range [Interval (Pn (Just
+            (mkAbsolute \"#{@core.filePath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
+            (Pn (Just (mkAbsolute \"#{@core.filePath}\")) #{endIndex} #{end.row + 1}
+             #{end.column + 1})]) \"#{content}\" )\n"
+        process.stdin.write command
+
+
 module.exports = Executable

@@ -99,6 +99,10 @@ class Core extends EventEmitter
             log 'Commander', 'case'
             @textBuffer.case()
 
+        @commander.on 'auto', =>
+            log 'Commander', 'auto'
+            @textBuffer.auto()
+
         # Executable
         @executable.on 'info-action', (obj) =>
             log 'Executable', '=> info-action'
