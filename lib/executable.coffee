@@ -155,4 +155,9 @@ class Executable extends EventEmitter
         command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect ( Cmd_goal_type_context Simplified #{goalIndex} noRange \"\" )\n"
         process.stdin.write command
 
+    goalTypeAndInferredType: (goal, content) -> @getProcess().then (process) =>
+        goalIndex = goal.index
+        command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{content}\" )\n"
+        process.stdin.write command
+
 module.exports = Executable

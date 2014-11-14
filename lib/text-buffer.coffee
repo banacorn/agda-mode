@@ -45,12 +45,12 @@ class TextBuffer extends EventEmitter
                 @core.panel.outputInfo 'For this command, please place the cursor in a goal'
                 reject()
 
-    warnCurrentGoalIfEmpty: (goal) =>
+    warnCurrentGoalIfEmpty: (goal, warning) =>
         content = goal.getContent()
         isEmpty = content.replace(/\s/g, '').length is 0
         if isEmpty
             warn 'Text Buffer', 'empty content'
-            @core.panel.outputInfo 'Please type in the expression to give'
+            @core.panel.outputInfo warning
 
 
     ################
@@ -101,7 +101,7 @@ class TextBuffer extends EventEmitter
     give: ->
         @getCurrentGoal()
             .then (goal) =>
-                @warnCurrentGoalIfEmpty goal
+                @warnCurrentGoalIfEmpty goal, 'Please type in the expression to give'
                 @core.executable.give goal
 
     goalType: -> @getCurrentGoal().then (goal) =>
@@ -112,6 +112,13 @@ class TextBuffer extends EventEmitter
 
     goalTypeAndContext: -> @getCurrentGoal().then (goal) =>
         @core.executable.goalTypeAndContext goal
+
+    goalTypeAndInferredType: ->
+        @getCurrentGoal()
+            .then (goal) =>
+                @warnCurrentGoalIfEmpty goal, 'Please type in the expression to infer'
+                content = goal.getContent()
+                @core.executable.goalTypeAndInferredType goal, content
 
 
     ########################
