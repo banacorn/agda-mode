@@ -95,6 +95,10 @@ class Core extends EventEmitter
             log 'Commander', 'refine'
             @textBuffer.refine()
 
+        @commander.on 'case', =>
+            log 'Commander', 'case'
+            @textBuffer.case()
+
         # Executable
         @executable.on 'info-action', (obj) =>
             log 'Executable', '=> info-action'
@@ -108,5 +112,9 @@ class Core extends EventEmitter
             log 'Executable', '=> give-action'
             @textBuffer.giveAction obj.goalIndex, obj.content
 
+        @executable.on 'make-case-action', (obj) =>
+            log 'Executable', '=> make-case-action'
+            @textBuffer.makeCaseAction obj.content
+                .then => @commander.load()
 
 module.exports = Core

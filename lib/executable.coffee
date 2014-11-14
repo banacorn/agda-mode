@@ -174,4 +174,17 @@ class Executable extends EventEmitter
             #{end.column + 1})]) \"#{content}\" )\n"
         process.stdin.write command
 
+    case: (goal, content) -> @getProcess().then (process) =>
+        goalIndex = goal.index
+        start = goal.getStart()
+        startIndex = goal.toIndex start
+        end = goal.getEnd()
+        endIndex = goal.toIndex end
+        content = escape goal.getContent()
+        command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect
+            ( Cmd_make_case #{goalIndex} (Range [Interval (Pn (Just
+            (mkAbsolute \"#{@core.filePath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
+            (Pn (Just (mkAbsolute \"#{@core.filePath}\")) #{endIndex} #{end.row + 1}
+             #{end.column + 1})]) \"#{content}\" )\n"
+        process.stdin.write command
 module.exports = Executable

@@ -121,6 +121,10 @@ class TextBuffer extends EventEmitter
         content = goal.getContent()
         @core.executable.refine goal, content
 
+    case: -> @getCurrentGoal().then (goal) =>
+        @warnCurrentGoalIfEmpty goal, 'Please type in the expression to make case'
+        content = goal.getContent()
+        @core.executable.case goal, content
 
 
     ########################
@@ -151,5 +155,7 @@ class TextBuffer extends EventEmitter
         goal.removeBoundary()
         @removeGoal index
 
+    makeCaseAction: (content) -> @getCurrentGoal().then (goal) =>
+        goal.writeLines content
 
 module.exports = TextBuffer
