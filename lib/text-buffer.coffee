@@ -14,21 +14,6 @@ class TextBuffer extends EventEmitter
     # compare goals with indices
     changed: (indices) -> _.isEqual _.pluck(@goals, 'index'), indices
 
-    goalsAction: (indices) ->
-        unless @changed indices
-            log 'Text Buffer', "setting goals #{indices}"
-            @removeGoals()
-
-            textRaw     = @core.editor.getText()            # get raw text
-            textBracket = convertToHoles textRaw            #   ?  => {!!}
-            text        = resizeHoles textBracket, indices  # {!!} => {!  !}
-            @core.editor.setText text
-
-            positions   = findHoles text
-            positions.forEach (pos, i) =>
-                index = indices[i]
-                goal  = new Goal @core.editor, index, pos.start, pos.end - 2
-                @goals.push goal
 
     #######################
     #   Goal Management   #
@@ -48,14 +33,6 @@ class TextBuffer extends EventEmitter
     findGoal: (index) ->
         goals = @goals.filter (goal) => goal.index is index
         return goals[0]
-
-    inSomeGoal: (cursor = @core.editor.getCursorBufferPosition()) ->
-        goals = @goals.filter (goal) =>
-            goal.getRange().containsPoint cursor
-        if goals.length is 1
-            return goals[0]
-        else
-            return null
 
     getCurrentGoal: (cursor = @core.editor.getCursorBufferPosition()) =>
         Q.Promise (resolve, reject, notify) =>
@@ -133,10 +110,29 @@ class TextBuffer extends EventEmitter
     context: -> @getCurrentGoal().then (goal) =>
         @core.executable.context goal
 
+    goalTypeAndContext: -> @getCurrentGoal().then (goal) =>
+        @core.executable.goalTypeAndContext goal
+
 
     ########################
     #   Command Handlers   #
     ########################
+
+    goalsAction: (indices) ->
+        unless @changed indices
+            log 'Text Buffer', "setting goals #{indices}"
+            @removeGoals()
+
+            textRaw     = @core.editor.getText()            # get raw text
+            textBracket = convertToHoles textRaw            #   ?  => {!!}
+            text        = resizeHoles textBracket, indices  # {!!} => {!  !}
+            @core.editor.setText text
+
+            positions   = findHoles text
+            positions.forEach (pos, i) =>
+                index = indices[i]
+                goal  = new Goal @core.editor, index, pos.start, pos.end - 2
+                @goals.push goal
 
     giveAction: (index, content) ->
         log 'Text Buffer', 'handling give-action'

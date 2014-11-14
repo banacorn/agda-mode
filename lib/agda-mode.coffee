@@ -35,7 +35,7 @@ module.exports =
 
         editor.editorView = editorView
         editor.core = new Core editor
-        
+
         editor.agda = new Agda editorView
 
         # # deactivated on default

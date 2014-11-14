@@ -80,11 +80,10 @@ class PanelView extends View
             # we'll style these two parts differently
             index = content.indexOf('————————————————————————————————————————————————————————————')
             sectioned = index isnt -1
-
             if sectioned
 
                 firstHalf = content.slice(0, index)
-                secondHalf = content.slice(index + 1, messages.length)
+                secondHalf = content.slice(index + 1, content.length)
 
                 for item in firstHalf
                     @captionList.append "<li class=\"list-item caption-item\">#{item}</li>"

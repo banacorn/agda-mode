@@ -293,7 +293,6 @@ class GoalManager extends EventEmitter
       goalIndex = goal.index
       return command: "IOTCM \"#{@agda.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context Simplified #{goalIndex} noRange \"\" )\n"
 
-
   goalTypeAndInferredTypeCommand: ->
     @currentGoal (goal) =>
       goalIndex = goal.index

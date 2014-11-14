@@ -42,6 +42,11 @@ class Panel extends EventEmitter
                     .output()
                     .setTitle 'Context'
                     .setList obj.content
+            when '*Goal type etc.*'
+                @view
+                    .output()
+                    .setTitle 'Goal Type and Context'
+                    .setList obj.content
 
 
 module.exports = Panel

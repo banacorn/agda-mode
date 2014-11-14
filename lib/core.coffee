@@ -83,6 +83,10 @@ class Core extends EventEmitter
             log 'Commander', 'context'
             @textBuffer.context()
 
+        @commander.on 'goal-type-and-context', =>
+            log 'Commander', 'goal-type-and-context'
+            @textBuffer.goalTypeAndContext()
+
         # Executable
         @executable.on 'info-action', (obj) =>
             log 'Executable', '=> info-action'
