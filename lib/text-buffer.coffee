@@ -2,6 +2,7 @@
 {resizeHoles, findHoles, convertToHoles} = require './text-buffer/pure'
 Goal = require './text-buffer/goal'
 _ = require 'lodash'
+Q = require 'Q'
 {log, warn, error} = require './logger'
 
 class TextBuffer extends EventEmitter
@@ -56,6 +57,25 @@ class TextBuffer extends EventEmitter
         else
             return null
 
+    getCurrentGoal: (cursor = @core.editor.getCursorBufferPosition()) =>
+        Q.Promise (resolve, reject, notify) =>
+            goals = @goals.filter (goal) =>
+                goal.getRange().containsPoint cursor
+            if goals.length is 1
+                resolve goals[0]
+            else
+                warn 'Text Buffer', 'out of goal'
+                @core.panel.outputInfo 'For this command, please place the cursor in a goal'
+                reject()
+
+    warnCurrentGoalIfEmpty: (goal) =>
+        content = goal.getContent()
+        isEmpty = content.replace(/\s/g, '').length is 0
+        if isEmpty
+            warn 'Text Buffer', 'empty content'
+            @core.panel.outputInfo 'Please type in the expression to give'
+
+
     ################
     #   Commands   #
     ################
@@ -102,47 +122,16 @@ class TextBuffer extends EventEmitter
             @core.editor.setCursorBufferPosition previousGoal
 
     give: ->
-        goal = @inSomeGoal()
-        if goal
-            content = goal.getContent()
-            empty = content.replace(/\s/g, '').length is 0
-            if empty
-                warn 'Text Buffer', 'empty content'
-                @core.panel.outputInfo 'Please type in the expression to give'
-            else
+        @getCurrentGoal()
+            .then (goal) =>
+                @warnCurrentGoalIfEmpty goal
                 @core.executable.give goal
-        else
-            warn 'Text Buffer', 'out of goal'
-            @core.panel.outputInfo 'For this command, please place the cursor in a goal'
 
-    goalType: ->
-        # goal = @inSomeGoal()
-        # if goal
-        #     content = goal.getContent()
-        #     empty = content.replace(/\s/g, '').length is 0
-        #     if empty
-        #         warn 'Text Buffer', 'empty content'
-        #         @core.panel.outputInfo 'Please type in the expression to infer'
-        #     else
-        #         @core.executable.goalType goal
-        # else
-        #     warn 'Text Buffer', 'out of goal'
-        #     @core.panel.outputInfo 'For this command, please place the cursor in a goal'
-        goal = @inSomeGoal()
-        if goal
-            @core.executable.goalType goal
-        else
-            warn 'Text Buffer', 'out of goal'
-            @core.panel.outputInfo 'For this command, please place the cursor in a goal'
+    goalType: -> @getCurrentGoal().then (goal) =>
+        @core.executable.goalType goal
 
-    context: ->
-        goal = @inSomeGoal()
-        if goal
-            @core.executable.context goal
-        else
-            warn 'Text Buffer', 'out of goal'
-            @core.panel.outputInfo 'For this command, please place the cursor in a goal'
-
+    context: -> @getCurrentGoal().then (goal) =>
+        @core.executable.context goal
 
 
     ########################
