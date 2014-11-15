@@ -203,5 +203,9 @@ class Executable extends EventEmitter
              #{end.column + 1})]) \"#{content}\" )\n"
         process.stdin.write command
 
+    normalize: (content) -> @getProcess().then (process) =>
+        command = "IOTCM \"#{@core.filePath}\" None Indirect ( Cmd_compute_toplevel False \"#{content}\" )\n"
+        process.stdin.write command
+
 
 module.exports = Executable

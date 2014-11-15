@@ -103,6 +103,11 @@ class Core extends EventEmitter
             log 'Commander', 'auto'
             @textBuffer.auto()
 
+        @commander.on 'normalize', =>
+            log 'Commander', 'normalize'
+            @panel.queryExpression().promise.then (expr) =>
+                @executable.normalize expr
+
         # Executable
         @executable.on 'info-action', (obj) =>
             log 'Executable', '=> info-action'

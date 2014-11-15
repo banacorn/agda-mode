@@ -15,6 +15,11 @@ class Panel extends EventEmitter
             .setTitle 'Given path of Agda executable not found, try "which agda" in your terminal'
             .setPlaceholder 'Please insert the path here'
 
+    queryExpression: ->
+        @view.query()
+            .setTitle 'Normalize expression'
+            .setPlaceholder 'Expression here'
+
     outputInfo: (content) ->
         @view.output()
             .setTitle 'Info'
@@ -47,6 +52,10 @@ class Panel extends EventEmitter
                     .output()
                     .setTitle 'Goal Type and Context'
                     .setList obj.content
-
+            when '*Normal Form*'
+                @view
+                    .output()
+                    .setTitle 'Normal Form'
+                    .setList obj.content
 
 module.exports = Panel
