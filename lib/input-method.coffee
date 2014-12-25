@@ -2,6 +2,7 @@
 {_} = require 'lodash'
 {EventEmitter} = require 'events'
 {View, Point, $} = require 'atom'
+{log, warn, error} = require './logger'
 
 class InputMethod extends EventEmitter
 
@@ -15,6 +16,8 @@ class InputMethod extends EventEmitter
 
     activate: ->
         if not @activated
+
+            log 'IM', 'activated'
 
             @activated = true
 
@@ -100,6 +103,7 @@ class InputMethod extends EventEmitter
     deactivate: ->
 
         if @activated
+            log 'IM', 'deactivated'
             @core.panel.deactivateIM()
             @decorator.hide()
             @marker.destroy()
