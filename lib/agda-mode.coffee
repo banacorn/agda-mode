@@ -1,4 +1,3 @@
-Agda = require './agda'
 Core = require './core'
 {log, warn, error} = require './logger'
 
