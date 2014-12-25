@@ -23,7 +23,7 @@ class Panel extends EventEmitter
     outputInfo: (content) ->
         @view.output()
             .setTitle 'Info'
-            .setList [content]
+            .setContent [content]
 
     infoAction: (obj) ->
         switch obj.type
@@ -31,32 +31,32 @@ class Panel extends EventEmitter
                 @view
                     .output()
                     .setTitle 'All Goals', 'info'
-                    .setList obj.content
+                    .setContent obj.content
             when '*Type-checking*'
                 @view
                     .output()
                     .setTitle 'Type Checking'
-                    .setList obj.content
+                    .setContent obj.content
             when '*Current Goal*'
                 @view
                     .output()
                     .setTitle 'Current Goal'
-                    .setList obj.content
+                    .setContent obj.content
             when '*Context*'
                 @view
                     .output()
                     .setTitle 'Context'
-                    .setList obj.content
+                    .setContent obj.content
             when '*Goal type etc.*'
                 @view
                     .output()
                     .setTitle 'Goal Type and Context'
-                    .setList obj.content
+                    .setContent obj.content
             when '*Normal Form*'
                 @view
                     .output()
                     .setTitle 'Normal Form'
-                    .setList obj.content
+                    .setContent obj.content
 
     #
     #   Input Method

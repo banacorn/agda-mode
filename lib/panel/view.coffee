@@ -3,14 +3,14 @@
 
 Q = require 'Q'
 
-
-HIDE = 0
-OUTPUT = 1
-QUERY = 2
+UNINIT = 0
+HIDE = 1
+OUTPUT = 2
+QUERY = 3
 
 class PanelView extends View
 
-    mode: HIDE
+    mode: UNINIT
     IM: false
 
     @content: ->
@@ -20,7 +20,6 @@ class PanelView extends View
                 @span outlet: 'inputMethod'
             @div outlet: 'body', class: "block padded", =>
                 @div outlet: 'content', class: 'agda-panel-content block', =>
-                    @ul outlet: 'captionList', class: 'list-group highlight'
                     @ul outlet: 'contentList', class: 'list-group'
                 @subview 'inputBox', new EditorView(mini: true, placeholderText: 'Please insert the path here')
 
@@ -29,7 +28,7 @@ class PanelView extends View
 
     initialize: ->
         @attach()
-        @hide()
+        @switchMode HIDE
         return @
 
     #
@@ -42,6 +41,8 @@ class PanelView extends View
             switch mode
                 when HIDE
                     @hide()
+                    @content.hide()
+                    @inputBox.hide()
                 when OUTPUT
                     @show()
                     @content.show()
@@ -111,16 +112,16 @@ class PanelView extends View
         @inputBox.editor.placeholderText = content
         return @
 
-    # body as alllist
-    clearList: ->
+    clearContent: ->
         @contentList.empty()
+        @body.hide()
         return @
 
-    setList: (content) ->
-        @clearList()
+    setContent: (content) ->
+        @clearContent()
 
         if content.length > 0
-
+            @body.show()
             # some responses from Agda have 2 parts
             # we'll style these two parts differently
             index = content.indexOf('————————————————————————————————————————————————————————————')
@@ -131,16 +132,19 @@ class PanelView extends View
                 secondHalf = content.slice(index + 1, content.length)
 
                 for item in firstHalf
-                    @captionList.append "<li class=\"list-item caption-item\">#{item}</li>"
+                    @contentList.append "<li class=\"list-item text-info\">#{item}</li>"
                 for item in secondHalf
                     @contentList.append "<li class=\"list-item\">#{item}</li>"
 
             else
                 for item in content
                     @contentList.append "<li class=\"list-item\">#{item}</li>"
+        else
+            @body.hide()
         return @
 
-    appendList: (content) ->
+    appendContent: (content) ->
+        @body.show()
         for item in content
             @contentList.append "<li class: 'list-item'>#{item}</li>"
         return @
