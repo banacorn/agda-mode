@@ -60,7 +60,7 @@ class Core extends EventEmitter
         @executable.on 'make-case-action', (obj) =>
             log 'Executable', '=> make-case-action'
             @textBuffer.makeCaseAction obj.content
-                .then => @commander.load()
+                .then => @load()
 
     ################
     #   Commands   #
@@ -73,64 +73,64 @@ class Core extends EventEmitter
             @loaded = true
 
     quit: -> if @loaded
-        log 'Commander', 'quit'
+        log 'Command', 'quit'
         @loaded = false
         @executable.quit()
         @panel.hide()
         @textBuffer.removeGoals()
 
     restart: -> if @loaded
-        log 'Commander', 'restart'
-        @commander.quit()
-        @commander.load()
+        log 'Command', 'restart'
+        @quit()
+        @load()
 
     nextGoal: -> if @loaded
-        log 'Commander', 'next-goal'
+        log 'Command', 'next-goal'
         @textBuffer.nextGoal()
 
     previousGoal: -> if @loaded
-        log 'Commander', 'previous-goal'
+        log 'Command', 'previous-goal'
         @textBuffer.previousGoal()
 
     give: -> if @loaded
-        log 'Commander', 'give'
+        log 'Command', 'give'
         @textBuffer.give()
 
     goalType: -> if @loaded
-        log 'Commander', 'goal-type'
+        log 'Command', 'goal-type'
         @textBuffer.goalType()
 
     context: -> if @loaded
-        log 'Commander', 'context'
+        log 'Command', 'context'
         @textBuffer.context()
 
     goalTypeAndContext: -> if @loaded
-        log 'Commander', 'goal-type-and-context'
+        log 'Command', 'goal-type-and-context'
         @textBuffer.goalTypeAndContext()
 
     goalTypeAndInferredType: -> if @loaded
-        log 'Commander', 'goal-type-inferred-type'
+        log 'Command', 'goal-type-inferred-type'
         @textBuffer.goalTypeAndInferredType()
 
     refine: -> if @loaded
-        log 'Commander', 'refine'
+        log 'Command', 'refine'
         @textBuffer.refine()
 
     case: -> if @loaded
-        log 'Commander', 'case'
+        log 'Command', 'case'
         @textBuffer.case()
 
     auto: -> if @loaded
-        log 'Commander', 'auto'
+        log 'Command', 'auto'
         @textBuffer.auto()
 
     normalize: -> if @loaded
-        log 'Commander', 'normalize'
+        log 'Command', 'normalize'
         @panel.queryExpression().promise.then (expr) =>
             @executable.normalize expr
 
     inputMethod: -> if @loaded
-        log 'Commander', 'input-method'
+        log 'Command', 'input-method'
         @inputMethod.activate()
 
 module.exports = Core
