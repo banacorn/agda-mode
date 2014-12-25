@@ -3,7 +3,6 @@ Q = require 'Q'
 {log, warn, error} = require './logger'
 
 # Components
-Commander   = require './commander'
 Executable  = require './executable'
 Panel       = require './panel'
 TextBuffer  = require './text-buffer'
@@ -16,7 +15,6 @@ class Core extends EventEmitter
     constructor: (@editor) ->
 
         # initialize all components
-        @commander      = new Commander     @
         @executable     = new Executable    @
         @panel          = new Panel         @
         @textBuffer     = new TextBuffer    @
@@ -29,11 +27,9 @@ class Core extends EventEmitter
 
 
 
-
         #####################
         #   Editor Events   #
         #####################
-
 
         @on 'activate', =>
             log 'Core', 'activated:', @filePath
@@ -44,80 +40,9 @@ class Core extends EventEmitter
 
 
 
-
         #########################
         #   Components Events   #
         #########################
-
-
-
-        # Commander
-        @commander.on 'load', =>
-            log 'Commander', 'load'
-            @executable.load().then (process) =>
-                @panel.show()
-                @loaded = true
-
-        @commander.on 'quit', => if @loaded
-            log 'Commander', 'quit'
-            @loaded = false
-            @executable.quit()
-            @panel.hide()
-            @textBuffer.removeGoals()
-
-        @commander.on 'restart', => if @loaded
-            log 'Commander', 'restart'
-            @commander.quit()
-            @commander.load()
-
-        @commander.on 'next-goal', => if @loaded
-            log 'Commander', 'next-goal'
-            @textBuffer.nextGoal()
-
-        @commander.on 'previous-goal', => if @loaded
-            log 'Commander', 'previous-goal'
-            @textBuffer.previousGoal()
-
-        @commander.on 'give', => if @loaded
-            log 'Commander', 'give'
-            @textBuffer.give()
-
-        @commander.on 'goal-type', => if @loaded
-            log 'Commander', 'goal-type'
-            @textBuffer.goalType()
-
-        @commander.on 'context', => if @loaded
-            log 'Commander', 'context'
-            @textBuffer.context()
-
-        @commander.on 'goal-type-and-context', => if @loaded
-            log 'Commander', 'goal-type-and-context'
-            @textBuffer.goalTypeAndContext()
-
-        @commander.on 'goal-type-and-inferred-type', => if @loaded
-            log 'Commander', 'goal-type-inferred-type'
-            @textBuffer.goalTypeAndInferredType()
-
-        @commander.on 'refine', => if @loaded
-            log 'Commander', 'refine'
-            @textBuffer.refine()
-
-        @commander.on 'case', => if @loaded
-            log 'Commander', 'case'
-            @textBuffer.case()
-
-        @commander.on 'auto', => if @loaded
-            log 'Commander', 'auto'
-            @textBuffer.auto()
-
-        @commander.on 'normalize', => if @loaded
-            log 'Commander', 'normalize'
-            @panel.queryExpression().promise.then (expr) =>
-                @executable.normalize expr
-
-        @commander.on 'input-method', => if @loaded
-            log 'Commander', 'input-method'
-            @inputMethod.activate()
 
         # Executable
         @executable.on 'info-action', (obj) =>
@@ -136,5 +61,76 @@ class Core extends EventEmitter
             log 'Executable', '=> make-case-action'
             @textBuffer.makeCaseAction obj.content
                 .then => @commander.load()
+
+    ################
+    #   Commands   #
+    ################
+
+    load: ->
+        log 'Command', 'load'
+        @executable.load().then (process) =>
+            @panel.show()
+            @loaded = true
+
+    quit: -> if @loaded
+        log 'Commander', 'quit'
+        @loaded = false
+        @executable.quit()
+        @panel.hide()
+        @textBuffer.removeGoals()
+
+    restart: -> if @loaded
+        log 'Commander', 'restart'
+        @commander.quit()
+        @commander.load()
+
+    nextGoal: -> if @loaded
+        log 'Commander', 'next-goal'
+        @textBuffer.nextGoal()
+
+    previousGoal: -> if @loaded
+        log 'Commander', 'previous-goal'
+        @textBuffer.previousGoal()
+
+    give: -> if @loaded
+        log 'Commander', 'give'
+        @textBuffer.give()
+
+    goalType: -> if @loaded
+        log 'Commander', 'goal-type'
+        @textBuffer.goalType()
+
+    context: -> if @loaded
+        log 'Commander', 'context'
+        @textBuffer.context()
+
+    goalTypeAndContext: -> if @loaded
+        log 'Commander', 'goal-type-and-context'
+        @textBuffer.goalTypeAndContext()
+
+    goalTypeAndInferredType: -> if @loaded
+        log 'Commander', 'goal-type-inferred-type'
+        @textBuffer.goalTypeAndInferredType()
+
+    refine: -> if @loaded
+        log 'Commander', 'refine'
+        @textBuffer.refine()
+
+    case: -> if @loaded
+        log 'Commander', 'case'
+        @textBuffer.case()
+
+    auto: -> if @loaded
+        log 'Commander', 'auto'
+        @textBuffer.auto()
+
+    normalize: -> if @loaded
+        log 'Commander', 'normalize'
+        @panel.queryExpression().promise.then (expr) =>
+            @executable.normalize expr
+
+    inputMethod: -> if @loaded
+        log 'Commander', 'input-method'
+        @inputMethod.activate()
 
 module.exports = Core

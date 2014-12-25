@@ -23,8 +23,8 @@ module.exports =
         # editor active/inactive event register, fuck Atom's event clusterfuck
         currentEditor = atom.workspace.getActivePaneItem()
         atom.workspace.onDidChangeActivePaneItem (nextEditor) =>
-            current = currentEditor.getPath()
-            next = nextEditor.getPath()
+            current = currentEditor.getPath?()
+            next = nextEditor.getPath?()
             if next isnt current
                 currentEditor?.core?.emit 'deactivate'
                 nextEditor?.core?.emit 'activate'
@@ -51,7 +51,7 @@ module.exports =
             atom.workspaceView.command command, =>
                 if isAgdaFile()
                     editor = atom.workspace.getActivePaneItem()
-                    editor.core.commander[toCamalCase command]()
+                    editor.core[toCamalCase command]()
 
 # if end with ".agda"
 isAgdaFile = (editor) ->
