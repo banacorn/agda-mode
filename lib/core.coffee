@@ -10,6 +10,9 @@ TextBuffer  = require './text-buffer'
 InputMethod = require './input-method'
 
 class Core extends EventEmitter
+
+    @loaded = false
+
     constructor: (@editor) ->
 
         # initialize all components
@@ -53,64 +56,66 @@ class Core extends EventEmitter
             log 'Commander', 'load'
             @executable.load().then (process) =>
                 @panel.show()
+                @loaded = true
 
-        @commander.on 'quit', =>
+        @commander.on 'quit', => if @loaded
             log 'Commander', 'quit'
+            @loaded = false
             @executable.quit()
             @panel.hide()
             @textBuffer.removeGoals()
 
-        @commander.on 'restart', =>
+        @commander.on 'restart', => if @loaded
             log 'Commander', 'restart'
             @commander.quit()
             @commander.load()
 
-        @commander.on 'next-goal', =>
+        @commander.on 'next-goal', => if @loaded
             log 'Commander', 'next-goal'
             @textBuffer.nextGoal()
 
-        @commander.on 'previous-goal', =>
+        @commander.on 'previous-goal', => if @loaded
             log 'Commander', 'previous-goal'
             @textBuffer.previousGoal()
 
-        @commander.on 'give', =>
+        @commander.on 'give', => if @loaded
             log 'Commander', 'give'
             @textBuffer.give()
 
-        @commander.on 'goal-type', =>
+        @commander.on 'goal-type', => if @loaded
             log 'Commander', 'goal-type'
             @textBuffer.goalType()
 
-        @commander.on 'context', =>
+        @commander.on 'context', => if @loaded
             log 'Commander', 'context'
             @textBuffer.context()
 
-        @commander.on 'goal-type-and-context', =>
+        @commander.on 'goal-type-and-context', => if @loaded
             log 'Commander', 'goal-type-and-context'
             @textBuffer.goalTypeAndContext()
 
-        @commander.on 'goal-type-and-inferred-type', =>
+        @commander.on 'goal-type-and-inferred-type', => if @loaded
             log 'Commander', 'goal-type-inferred-type'
             @textBuffer.goalTypeAndInferredType()
 
-        @commander.on 'refine', =>
+        @commander.on 'refine', => if @loaded
             log 'Commander', 'refine'
             @textBuffer.refine()
 
-        @commander.on 'case', =>
+        @commander.on 'case', => if @loaded
             log 'Commander', 'case'
             @textBuffer.case()
 
-        @commander.on 'auto', =>
+        @commander.on 'auto', => if @loaded
             log 'Commander', 'auto'
             @textBuffer.auto()
 
-        @commander.on 'normalize', =>
+        @commander.on 'normalize', => if @loaded
             log 'Commander', 'normalize'
             @panel.queryExpression().promise.then (expr) =>
                 @executable.normalize expr
 
-        @commander.on 'input-method', =>
+        @commander.on 'input-method', => if @loaded
             log 'Commander', 'input-method'
             @inputMethod.activate()
 
