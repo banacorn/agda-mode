@@ -129,8 +129,8 @@ class Core extends EventEmitter
         @panel.queryExpression().promise.then (expr) =>
             @executable.normalize expr
 
-    inputMethod: -> if @loaded
-        log 'Command', 'input-method'
+    inputSymbol: -> if @loaded
+        log 'Command', 'input-symbol'
         @inputMethod.activate()
 
 module.exports = Core

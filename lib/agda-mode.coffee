@@ -46,7 +46,7 @@ module.exports =
             'agda-mode:case'
             'agda-mode:auto'
             'agda-mode:normalize'
-            'agda-mode:input-method'
+            'agda-mode:input-symbol'
         ].forEach (command) =>
             atom.workspaceView.command command, =>
                 if isAgdaFile()
