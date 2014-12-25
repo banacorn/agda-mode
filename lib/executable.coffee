@@ -82,6 +82,10 @@ class Executable extends EventEmitter
     ################
 
     load: -> @getProcess().then (process) =>
+
+        # force save before load, since we are sending filepath not content
+        @core.textBuffer.saveBuffer()
+
         includeDir = atom.config.get 'agda-mode.libraryPath'
 
         if includeDir

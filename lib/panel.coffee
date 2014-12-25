@@ -32,6 +32,11 @@ class Panel extends EventEmitter
                     .output()
                     .setTitle 'All Goals', 'info'
                     .setContent obj.content
+            when '*Error*'
+                @view
+                    .output()
+                    .setTitle 'Error', 'error'
+                    .setContent obj.content
             when '*Type-checking*'
                 @view
                     .output()

@@ -31,6 +31,12 @@ class TextBuffer extends EventEmitter
 
 
     #######################
+    #   File Management   #
+    #######################
+
+    saveBuffer: -> @core.editor.save()
+
+    #######################
     #   Goal Management   #
     #######################
 
