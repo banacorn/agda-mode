@@ -9,6 +9,7 @@ class PanelView extends View
         @div outlet: 'agdaPanel', class: 'agda-panel tool-panel panel-bottom', =>
             @div outlet: 'header', class: 'inset-panel padded', =>
                 @span outlet: 'title'
+                @span outlet: 'inputMethod'
             @div outlet: 'body', class: "block padded", =>
                 @div outlet: 'content', class: 'agda-panel-content block', =>
                     @ul outlet: 'captionList', class: 'list-group highlight'
@@ -47,6 +48,18 @@ class PanelView extends View
         @inputBox.hide()
         return @
 
+    activateIM: ->
+        @show()
+        @title.hide()
+        @inputMethod.show()
+        return @
+
+    deactivateIM: ->
+        @show()
+        @title.show()
+        @inputMethod.hide()
+        return @
+
     #
     #   setting contents
     #
@@ -59,6 +72,12 @@ class PanelView extends View
         else
           @title.attr 'class', ''
         return @
+
+    # input method
+    setInputMethod: (input, candidateKeys, candidateSymbols) ->
+        @inputMethod.text "#{input}[#{candidateKeys.join('')}]"
+        return @
+
 
 
     # placeholder of the inputbox of query mode

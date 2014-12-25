@@ -58,12 +58,18 @@ class Panel extends EventEmitter
                     .setTitle 'Normal Form'
                     .setList obj.content
 
-    update: ->
-        console.log "update shit"
+    #
+    #   Input Method
+    #
+    #   On activating input method, input suggestions will be displayed at
+    #   PanelView.header, we should recover what was there after the input
+    #   method is deactivated
 
-    attach: ->
-        console.log "attach shit"
+    activateIM: (input, candidateKeys, candidateSymbols) ->
+        @view.activateIM()
+            .setInputMethod input, candidateKeys, candidateSymbols
 
-
+    deactivateIM: ->
+        @view.deactivateIM()
 
 module.exports = Panel

@@ -11,7 +11,3 @@ module.exports = class InputMethodView extends View
 
   update: (input, candidateKeys, candidateSymbols) ->
     @panel.text "#{input}[#{candidateKeys.join('')}]"
-
-  attach: (callback) ->
-    @panel.text ''
-    atom.workspaceView.prependToBottom @
