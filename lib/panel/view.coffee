@@ -7,11 +7,11 @@ Q = require 'Q'
 HIDE = 0
 OUTPUT = 1
 QUERY = 2
-IM = 3
 
 class PanelView extends View
 
     mode: HIDE
+    IM: false
 
     @content: ->
         @div outlet: 'agdaPanel', class: 'agda-panel tool-panel panel-bottom', =>
@@ -36,15 +36,27 @@ class PanelView extends View
     #   Modes
     #
 
+    switchMode: (mode, callback) ->
+        if mode isnt @mode
+            log 'Panel', "mode: #{@mode} => #{mode}"
+            switch mode
+                when HIDE
+                    @hide()
+                when OUTPUT
+                    @show()
+                    @content.show()
+                    @inputBox.hide()
+                when QUERY
+                    @show()
+                    @content.hide()
+                    @inputBox.show()
+                else
+            callback?()
+            @mode = mode
+
+
     query: ->
-        if @mode isnt QUERY
-            @mode = QUERY
-
-            log 'Panel', "query mode"
-            @show()
-            @content.hide()
-            @inputBox.show()
-
+        @switchMode QUERY, =>
             @inputBox.focus()
             @promise = Q.Promise (resolve, reject, notify) =>
                 # confirm
@@ -55,28 +67,21 @@ class PanelView extends View
         return @
 
     output: ->
-        if @mode isnt OUTPUT
-            @mode = OUTPUT
-            log 'Panel', "output mode"
-            @show()
-            @content.show()
-            @inputBox.hide()
+        @switchMode OUTPUT
         return @
 
     activateIM: ->
-        if @mode isnt IM
-            @mode = IM
-            log 'Panel', "IM mode on"
-            @show()
+        if not @IM
+            @IM = true
+            log 'Panel', "IM on"
             @title.hide()
             @inputMethod.show()
         return @
 
     deactivateIM: ->
-        if @mode is IM
-            @mode = OUTPUT
-            log 'Panel', "IM mode off"
-            @show()
+        if @IM
+            @IM = false
+            log 'Panel', "IM off"
             @title.show()
             @inputMethod.hide()
         return @
