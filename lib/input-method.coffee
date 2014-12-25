@@ -8,13 +8,12 @@ class InputMethod extends EventEmitter
     activated: false
     input: ''
 
-    @trie: require './keymap.js'
+    @trie: require './input-method/keymap.js'
 
     constructor: (@core) ->
         @decorator = new InputMethodDecorator @core
 
     activate: ->
-
         if not @activated
 
             @activated = true
@@ -31,7 +30,7 @@ class InputMethod extends EventEmitter
 
             # initial input suggestion
             candidateKeys = Object.keys(_.omit InputMethod.trie, '>>')
-            @core.view.inputMethod.update '', candidateKeys, []
+            @core.panel.update '', candidateKeys, []
 
 
             # triggered then new characters are typed in
@@ -78,7 +77,7 @@ class InputMethod extends EventEmitter
                         else
                             @decorator.resize range
 
-                    @core.view.inputMethod.update @input, candidateKeys, candidateSymbols
+                    @core.panel.update @input, candidateKeys, candidateSymbols
 
                 else
                     # key combination out of keymap
@@ -101,7 +100,7 @@ class InputMethod extends EventEmitter
     deactivate: ->
 
         if @activated
-            @core.view.detachInputMethod()
+            # @core.view.detachInputMethod()
             @decorator.hide()
             @marker.destroy()
             @activated = false
@@ -132,7 +131,7 @@ class InputMethodDecorator extends View
 
     initialize: (@core) ->
 
-        @core.editorView.overlayer.append @
+        @core.editor.editorView.overlayer.append @
         @addClass 'agda-input-method'
 
     resize: (range) ->

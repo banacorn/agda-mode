@@ -3,19 +3,21 @@ Q = require 'Q'
 {log, warn, error} = require './logger'
 
 # Components
-Commander = require './commander'
-Executable = require './executable'
-Panel = require './panel'
-TextBuffer = require './text-buffer'
+Commander   = require './commander'
+Executable  = require './executable'
+Panel       = require './panel'
+TextBuffer  = require './text-buffer'
+InputMethod = require './input-method'
 
 class Core extends EventEmitter
     constructor: (@editor) ->
 
         # initialize all components
-        @commander  = new Commander     @
-        @executable = new Executable    @
-        @panel      = new Panel         @
-        @textBuffer = new TextBuffer    @
+        @commander      = new Commander     @
+        @executable     = new Executable    @
+        @panel          = new Panel         @
+        @textBuffer     = new TextBuffer    @
+        @inputMethod    = new InputMethod   @
 
         # initialize informations about this editor
         @filePath = @editor.getPath()
@@ -107,6 +109,10 @@ class Core extends EventEmitter
             log 'Commander', 'normalize'
             @panel.queryExpression().promise.then (expr) =>
                 @executable.normalize expr
+
+        @commander.on 'input-method', =>
+            log 'Commander', 'input-method'
+            @inputMethod.activate()
 
         # Executable
         @executable.on 'info-action', (obj) =>

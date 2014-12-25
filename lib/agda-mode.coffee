@@ -36,7 +36,7 @@ module.exports =
         editor.editorView = editorView
         editor.core = new Core editor
 
-        editor.agda = new Agda editorView
+        # editor.agda = new Agda editorView
 
         # # deactivated on default
         # editor.agda.syntax.deactivate()
@@ -53,11 +53,11 @@ module.exports =
         #     editor.agda.syntax.deactivate()
 
         editor.on 'became-active', =>
-          editor.agda.emit 'activate'
-          editor.core.emit 'activate'
+            # editor.agda.emit 'activate'
+            editor.core.emit 'activate'
         editor.on 'became-inactive', =>
-          editor.agda.emit 'deactivate'
-          editor.core.emit 'deactivate'
+            # editor.agda.emit 'deactivate'
+            editor.core.emit 'deactivate'
 
     # register commands
     [
@@ -75,7 +75,7 @@ module.exports =
       'agda-mode:case'
       'agda-mode:auto'
       'agda-mode:normalize'
-      'agda-mode:input'
+      'agda-mode:input-method'
     ].forEach registerCommand
 
 
@@ -86,11 +86,10 @@ module.exports =
 
 
 registerCommand = (command) =>
-  atom.workspaceView.command command, =>
-    if isAgdaFile()
-      editor = getTheFuckingEditor()
-      editor.agda[toCamalCase command]()
-      editor.core.commander[toCamalCase command]()
+    atom.workspaceView.command command, =>
+        if isAgdaFile()
+            editor = getTheFuckingEditor()
+            editor.core.commander[toCamalCase command]()
 
 getTheFuckingEditor = ->
   atom.workspace.getActivePaneItem()

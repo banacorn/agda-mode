@@ -58,4 +58,12 @@ class Panel extends EventEmitter
                     .setTitle 'Normal Form'
                     .setList obj.content
 
+    update: ->
+        console.log "update shit"
+
+    attach: ->
+        console.log "attach shit"
+
+
+
 module.exports = Panel

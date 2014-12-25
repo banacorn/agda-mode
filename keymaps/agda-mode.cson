@@ -22,4 +22,4 @@
   'ctrl-c ctrl-c': 'agda-mode:case'
   'ctrl-c ctrl-a': 'agda-mode:auto'
   'ctrl-c ctrl-n': 'agda-mode:normalize'
-  '\\': 'agda-mode:input'
+  '\\': 'agda-mode:input-method'

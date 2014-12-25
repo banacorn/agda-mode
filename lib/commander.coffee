@@ -16,5 +16,5 @@ class Commander extends EventEmitter
     case:           -> @emit 'case'
     auto:           -> @emit 'auto'
     normalize:      -> @emit 'normalize'
-    input:          -> @emit 'input'
+    inputMethod:    -> @emit 'input-method'
 module.exports = Commander
