@@ -9,18 +9,24 @@ module.exports =
         libraryPath: ''
         logLevel: 0
 
-    activate: (state) ->
-        # instantiate and attach Core to each editor
-        atom.workspaceView.eachEditorView (editorView) =>
-            editor = editorView.getModel()
-            if isAgdaFile editor
-                # add class .agda to every agda editor
-                editorView.addClass 'agda'
-                # editor <=> editorView, 2-way binding
-                editor.editorView = editorView
-                editor.core = new Core editor
 
-        # editor active/inactive event register, fuck Atom's event clusterfuck
+    activate: (state) ->
+        atom.workspaceView.eachEditorView @instantiateCore
+        @registerEditorActivation()
+        @registerCommands()
+
+
+    instantiateCore: (editorView) =>
+        editor = editorView.getModel()
+        if isAgdaFile editor
+            # add class .agda to every agda editor
+            editorView.addClass 'agda'
+            # editor <=> editorView, 2-way binding
+            editor.editorView = editorView
+            editor.core = new Core editor
+
+    # editor active/inactive event register, fuck Atom's event clusterfuck
+    registerEditorActivation: ->
         currentEditor = atom.workspace.getActivePaneItem()
         atom.workspace.onDidChangeActivePaneItem (nextEditor) =>
             current = currentEditor.getPath?()
@@ -30,28 +36,34 @@ module.exports =
                 nextEditor?.core?.emit 'activate'
                 currentEditor = nextEditor
 
-        # register commands
-        [
-            'agda-mode:load'
-            'agda-mode:quit'
-            'agda-mode:restart'
-            'agda-mode:next-goal'
-            'agda-mode:previous-goal'
-            'agda-mode:give'
-            'agda-mode:goal-type'
-            'agda-mode:context'
-            'agda-mode:goal-type-and-context'
-            'agda-mode:goal-type-and-inferred-type'
-            'agda-mode:refine'
-            'agda-mode:case'
-            'agda-mode:auto'
-            'agda-mode:normalize'
-            'agda-mode:input-symbol'
-        ].forEach (command) =>
+
+    commands: [
+        'agda-mode:load'
+        'agda-mode:quit'
+        'agda-mode:restart'
+        'agda-mode:next-goal'
+        'agda-mode:previous-goal'
+        'agda-mode:give'
+        'agda-mode:goal-type'
+        'agda-mode:context'
+        'agda-mode:goal-type-and-context'
+        'agda-mode:goal-type-and-inferred-type'
+        'agda-mode:refine'
+        'agda-mode:case'
+        'agda-mode:auto'
+        'agda-mode:normalize'
+        'agda-mode:input-symbol'
+    ]
+    
+
+    # register keymap bindings and emit commands
+    registerCommands: ->
+        @commands.forEach (command) =>
             atom.workspaceView.command command, =>
                 if isAgdaFile()
                     editor = atom.workspace.getActivePaneItem()
                     editor.core[toCamalCase command]()
+
 
 # if end with ".agda"
 isAgdaFile = (editor) ->
