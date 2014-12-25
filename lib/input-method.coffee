@@ -42,9 +42,8 @@ class InputMethod extends EventEmitter
                 # range & decorator
                 range = new Range ev.newTailBufferPosition, ev.newHeadBufferPosition
 
-                # console.log "@input #{@input}"
-                # console.log "#{@core.editor.getBuffer().getTextInRange(range)}"
-                # console.log @core.editor.getBuffer().getTextInRange(range) is ''
+                # log 'IM', "input buffer: #{@input}"
+                # log 'IM', "text buffer: #{@core.editor.getBuffer().getTextInRange(range)}"
 
                 # update input content incrementally,
                 # append only with the last character,
@@ -70,7 +69,7 @@ class InputMethod extends EventEmitter
                         @deactivate()
                         symbol = result['>>'][0]
                         @core.editor.getBuffer().setTextInRange range, symbol
-
+                        @core.panel.deactivateIM()
                     else
                         # further key combinations are possible
                         if result['>>'].length > 0
@@ -80,7 +79,7 @@ class InputMethod extends EventEmitter
                         else
                             @decorator.resize range
 
-                    @core.panel.activateIM @input, candidateKeys, candidateSymbols
+                        @core.panel.activateIM @input, candidateKeys, candidateSymbols
 
                 else
                     # key combination out of keymap
