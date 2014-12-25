@@ -35,6 +35,7 @@ module.exports =
                 currentEditor?.core?.emit 'deactivate'
                 nextEditor?.core?.emit 'activate'
                 currentEditor = nextEditor
+                log 'Editor', "#{current} => #{next}"
 
 
     commands: [
@@ -54,7 +55,7 @@ module.exports =
         'agda-mode:normalize'
         'agda-mode:input-symbol'
     ]
-    
+
 
     # register keymap bindings and emit commands
     registerCommands: ->

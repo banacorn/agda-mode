@@ -28,14 +28,14 @@ class Logger extends EventEmitter
                 namespace       = arguments[1]
                 content         = arguments[2]
                 paddingSpace    = ' '.repeat(16 - namespace.length)
-                message = "[#{namespace}]#{paddingSpace}#{content}"
+                message = "#{namespace}#{paddingSpace}#{content}"
             when 4  # with namespace and file path
                 namespace       = arguments[1]
                 content         = arguments[2]
                 filepath        = arguments[3]
                 paddingSpace    = ' '.repeat(16 - namespace.length)
                 paddingSpace2   = ' '.repeat(48 - content.length)
-                message = "[#{namespace}]#{paddingSpace}#{content}#{paddingSpace2}#{filepath}"
+                message = "#{namespace}#{paddingSpace}#{content}#{paddingSpace2}#{filepath}"
             else throw "Logger: too few arguments"
 
         if level <= @level
