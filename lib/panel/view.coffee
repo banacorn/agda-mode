@@ -39,6 +39,7 @@ class PanelView extends View
     query: ->
         if @mode isnt QUERY
             @mode = QUERY
+
             log 'Panel', "query mode"
             @show()
             @content.hide()
@@ -74,7 +75,6 @@ class PanelView extends View
     deactivateIM: ->
         if @mode is IM
             @mode = OUTPUT
-
             log 'Panel', "IM mode off"
             @show()
             @title.show()

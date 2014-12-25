@@ -50,9 +50,6 @@ class InputMethod extends EventEmitter
                 # since the former characters may could have been replaced with a preview symbol
                 newCharacter = @core.editor.getBuffer().getTextInRange(range).substr(1).substr(-1)
 
-                # false alarm
-                # return if newCharacter is ''
-
                 # update @input with the newly inserted character
                 @input += newCharacter
 
@@ -69,7 +66,7 @@ class InputMethod extends EventEmitter
                         @deactivate()
                         symbol = result['>>'][0]
                         @core.editor.getBuffer().setTextInRange range, symbol
-                        @core.panel.deactivateIM()
+                        @deactivate()
                     else
                         # further key combinations are possible
                         if result['>>'].length > 0
@@ -88,7 +85,6 @@ class InputMethod extends EventEmitter
                     if symbol.length > 0
                         lastInput = @input.substr -1
                         refill = symbol[0] + lastInput
-                        # console.log "symbol #{symbol} @input #{@input} refill #{refill}"
                         @core.editor.getBuffer().setTextInRange range, refill
                     @deactivate()
 
