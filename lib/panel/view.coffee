@@ -19,7 +19,7 @@ class PanelView extends View
                 @span outlet: 'title'
                 @span outlet: 'inputMethod'
             @div outlet: 'body', class: "block padded", =>
-                @div outlet: 'content', class: 'agda-panel-content block', =>
+                @div outlet: 'content', class: 'agda-panel-content', =>
                     @ul outlet: 'contentList', class: 'list-group'
                 @subview 'inputBox', new EditorView(mini: true, placeholderText: 'Please insert the path here')
 
