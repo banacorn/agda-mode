@@ -28,8 +28,8 @@ module.exports =
     registerEditorActivation: ->
         currentEditor = atom.workspace.getActivePaneItem()
         atom.workspace.onDidChangeActivePaneItem (nextEditor) =>
-            current = currentEditor.getPath?()
-            next = nextEditor.getPath?()
+            current = currentEditor?.getPath?()
+            next = nextEditor?.getPath?()
             if next isnt current
                 currentEditor?.core?.emit 'deactivate'
                 nextEditor?.core?.emit 'activate'
