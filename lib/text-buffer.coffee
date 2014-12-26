@@ -21,13 +21,14 @@ class TextBuffer extends EventEmitter
 
     protectCursor: (callback) ->
         position = @core.editor.getCursorBufferPosition()
-        callback()
-        @getCurrentGoal()
+        result = callback()
+        @getCurrentGoal position
             .then (goal) =>
                 newPosition = goal.translate goal.getStart(), 3
                 @core.editor.setCursorBufferPosition newPosition
             .fail =>
                 @core.editor.setCursorBufferPosition position
+        return result
 
 
     #######################
@@ -171,7 +172,7 @@ class TextBuffer extends EventEmitter
                 index = indices[i]
                 goal  = new Goal @core.editor, index, pos.start, pos.end - 2
                 @goals.push goal
-
+                
     giveAction: (index, content) -> @protectCursor =>
         log 'Text Buffer', "handling give-action #{content}"
         goal = @findGoal index
