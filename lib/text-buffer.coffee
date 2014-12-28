@@ -142,7 +142,6 @@ class TextBuffer extends EventEmitter
         @core.executable.goalTypeAndInferredType goal
 
     refine: -> @getCurrentGoalOrWarn().then (goal) =>
-        @warnCurrentGoalIfEmpty goal, 'Please type in the expression to refine'
         @core.executable.refine goal
 
     case: -> @getCurrentGoalOrWarn().then (goal) =>
@@ -172,7 +171,7 @@ class TextBuffer extends EventEmitter
                 index = indices[i]
                 goal  = new Goal @core.editor, index, pos.start, pos.end - 2
                 @goals.push goal
-                
+
     giveAction: (index, content) -> @protectCursor =>
         log 'Text Buffer', "handling give-action #{content}"
         goal = @findGoal index

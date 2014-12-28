@@ -62,6 +62,11 @@ class Panel extends EventEmitter
                     .output()
                     .setTitle 'Normal Form'
                     .setContent obj.content
+            when '*Intro*'
+                @view
+                    .output()
+                    .setTitle 'Intro'
+                    .setContent "No introduction forms found"
 
     #
     #   Input Method
