@@ -66,12 +66,12 @@ class Panel extends EventEmitter
                 @view
                     .output()
                     .setTitle 'Intro'
-                    .setContent "No introduction forms found"
+                    .setContent ['No introduction forms found']
             when '*Auto*'
                 @view
                     .output()
                     .setTitle 'Auto'
-                    .setContent "No solution found"
+                    .setContent ['No solution found']
 
     #
     #   Input Method
