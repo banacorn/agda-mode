@@ -23,7 +23,8 @@ module.exports =
             # editor <=> editorView, 2-way binding
             editor.editorView = editorView
             editor.core = new Core editor
-
+            # register editor events
+            editor.onDidDestroy => editor.core.emit 'destroy'
     # editor active/inactive event register, fuck Atom's event clusterfuck
     registerEditorActivation: ->
         currentEditor = atom.workspace.getActivePaneItem()

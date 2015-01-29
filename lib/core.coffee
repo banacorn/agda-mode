@@ -37,7 +37,9 @@ class Core extends EventEmitter
         @on 'deactivate', =>
             log 'Core', 'deactivated:', @filePath
             @panel.hide()
-
+        @on 'destroy', =>
+            log 'Core', 'destroyed:', @filePath
+            @quit()
 
 
         #########################
