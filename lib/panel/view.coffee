@@ -2,6 +2,7 @@
 {log, warn, error} = require '../logger'
 
 Q = require 'Q'
+_ = require 'lodash'
 
 UNINIT = 0
 HIDE = 1
@@ -93,6 +94,7 @@ class PanelView extends View
 
     # title
     setTitle: (content, type) ->
+        content = _.escape content
         @title.text content
         if type
           @title.attr 'class', 'text-' + type
@@ -109,6 +111,7 @@ class PanelView extends View
 
     # placeholder of the inputbox of query mode
     setPlaceholder: (content) ->
+        content = _.escape content
         @inputBox.editor.placeholderText = content
         return @
 
@@ -118,6 +121,7 @@ class PanelView extends View
         return @
 
     setContent: (content) ->
+        content = content.map (s) => _.escape s
         @clearContent()
 
         if content.length > 0
@@ -144,6 +148,7 @@ class PanelView extends View
         return @
 
     appendContent: (content) ->
+        content = content.map (s) => _.escape s
         @body.show()
         for item in content
             @contentList.append "<li class: 'list-item'>#{item}</li>"
