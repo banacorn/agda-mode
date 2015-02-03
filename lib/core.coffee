@@ -72,10 +72,11 @@ class Core extends EventEmitter
         log 'Command', 'load'
         @executable.load().then (process) =>
             @panel.show()
+            @panel.output 'Loading', 'Info', []
             @loaded = true
 
     quit: -> if @loaded
-        log 'Command', 'quit'
+        log 'Command', 'warn'
         @loaded = false
         @executable.quit()
         @panel.hide()
