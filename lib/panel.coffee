@@ -20,18 +20,30 @@ class Panel extends EventEmitter
             .setTitle 'Normalize expression'
             .setPlaceholder 'Expression here'
 
+    output: (title, type, content) ->
+        @view.output()
+            .setTitle title, type
+            .setContent content
+
     outputInfo: (content) ->
         @view.output()
             .setTitle 'Info'
             .setContent [content]
 
+
     infoAction: (obj) ->
         switch obj.type
             when '*All Goals*'
-                @view
-                    .output()
-                    .setTitle 'All Goals', 'info'
-                    .setContent obj.content
+                if obj.content.length > 0
+                    @view
+                        .output()
+                        .setTitle 'All Goals', 'info'
+                        .setContent obj.content
+                else
+                    @view
+                        .output()
+                        .setTitle 'No Goals', 'info'
+                        .setContent []
             when '*Error*'
                 @view
                     .output()

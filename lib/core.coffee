@@ -72,10 +72,11 @@ class Core extends EventEmitter
         log 'Command', 'load'
         @executable.load().then (process) =>
             @panel.show()
+            @panel.output 'Loading', 'Info', []
             @loaded = true
 
     quit: -> if @loaded
-        log 'Command', 'quit'
+        log 'Command', 'warn'
         @loaded = false
         @executable.quit()
         @panel.hide()
@@ -131,8 +132,11 @@ class Core extends EventEmitter
         @panel.queryExpression().promise.then (expr) =>
             @executable.normalize expr
 
-    inputSymbol: -> if @loaded
+    inputSymbol: ->
         log 'Command', 'input-symbol'
+        unless @loaded
+            @panel.show()
+            @panel.output 'Input Method only, Agda not loaded', 'Info', []
         @inputMethod.activate()
 
 module.exports = Core
