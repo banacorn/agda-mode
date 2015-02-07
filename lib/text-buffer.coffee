@@ -1,6 +1,7 @@
 {EventEmitter} = require 'events'
 {resizeHoles, findHoles, convertToHoles} = require './text-buffer/pure'
 Goal = require './text-buffer/goal'
+fs = require 'fs'
 _ = require 'lodash'
 Q = require 'Q'
 {log, warn, error} = require './logger'
@@ -187,4 +188,10 @@ class TextBuffer extends EventEmitter
     goto: (charIndex) ->
         position = @core.editor.buffer.positionForCharacterIndex charIndex - 1
         @core.editor.setCursorBufferPosition position
+
+    # Agda generates files with syntax highlighting notations,
+    # those files are temporary and should be deleted once used.
+    # note: no highlighting yet, we'll just delete them.
+    highlightLoadAndDelete: (filepath) -> fs.unlink filepath
+
 module.exports = TextBuffer

@@ -68,6 +68,10 @@ class Core extends EventEmitter
             log 'Executable', '=> goto'
             @textBuffer.goto obj.position
 
+        @executable.on 'highlight-load-and-delete-action', (obj) =>
+            log 'Executable', '=> highlight-load-and-delete-action'
+            @textBuffer.highlightLoadAndDelete obj.filepath
+
     ################
     #   Commands   #
     ################
