@@ -14,8 +14,9 @@ class TextBuffer extends EventEmitter
     constructor: (@core) ->
 
     # compare goals with indices
-    changed: (indices) -> _.isEqual _.pluck(@goals, 'index'), indices
-
+    indicesChanged: (indices) -> ! _.isEqual _.pluck(@goals, 'index'), indices
+    # compare content with text buffer
+    textBufferChanged: (content) -> content isnt @core.editor.getText()
 
     #########################
     #   Cursor Management   #
@@ -159,13 +160,15 @@ class TextBuffer extends EventEmitter
     ########################
 
     goalsAction: (indices) -> @protectCursor =>
-        unless @changed indices
+
+        textRaw     = @core.editor.getText()            # get raw text
+        textBracket = convertToHoles textRaw            #   ?  => {!!}
+        text        = resizeHoles textBracket, indices  # {!!} => {!  !}
+
+        if @indicesChanged(indices) or @textBufferChanged(text)
             log 'Text Buffer', "setting goals #{indices}"
             @removeGoals()
-
-            textRaw     = @core.editor.getText()            # get raw text
-            textBracket = convertToHoles textRaw            #   ?  => {!!}
-            text        = resizeHoles textBracket, indices  # {!!} => {!  !}
+            
             @core.editor.setText text
 
             positions   = findHoles text
