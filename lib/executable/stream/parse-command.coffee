@@ -24,7 +24,7 @@ class ParseCommand extends Transform
                 goals: tokens[1]
 
             when 'agda2-goto' then @executable.emit 'goto',
-                file: tokens[1][0]
+                filepath: tokens[1][0]
                 position: tokens[1][2]
 
             when 'agda2-give-action' then @executable.emit 'give-action',
@@ -45,7 +45,8 @@ class ParseCommand extends Transform
                 @executable.emit 'highlight-add-annotations'
 
             when 'agda2-highlight-load-and-delete-action'
-                @executable.emit 'highlight-load-and-delete-action'
+                @executable.emit 'highlight-load-and-delete-action',
+                    filepath: tokens[1]
 
             #
             #   Agda cannot read our input
