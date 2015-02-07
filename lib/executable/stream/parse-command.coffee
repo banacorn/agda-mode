@@ -24,7 +24,7 @@ class ParseCommand extends Transform
                 goals: tokens[1]
 
             when 'agda2-goto' then @executable.emit 'goto',
-                file: tokens[1][0]
+                filepath: tokens[1][0]
                 position: tokens[1][2]
 
             when 'agda2-give-action' then @executable.emit 'give-action',

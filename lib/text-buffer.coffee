@@ -3,6 +3,7 @@
 Goal = require './text-buffer/goal'
 fs = require 'fs'
 _ = require 'lodash'
+{Point} = require 'atom'
 Q = require 'Q'
 {log, warn, error} = require './logger'
 
@@ -185,9 +186,12 @@ class TextBuffer extends EventEmitter
         @getCurrentGoalOrWarn().then (goal) =>
             goal.writeLines content
 
-    goto: (charIndex) ->
-        position = @core.editor.buffer.positionForCharacterIndex charIndex - 1
-        @core.editor.setCursorBufferPosition position
+    goto: (filepath, charIndex) ->
+        if @core.filePath is filepath
+            position = @core.editor.buffer.positionForCharacterIndex charIndex - 1
+            @core.editor.setCursorBufferPosition position
+            # scroll down a bit further, or it would be shadowed by the panel
+            @core.editor.scrollToBufferPosition position.translate(new Point(10, 0))
 
     # Agda generates files with syntax highlighting notations,
     # those files are temporary and should be deleted once used.
