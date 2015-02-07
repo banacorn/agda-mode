@@ -184,4 +184,7 @@ class TextBuffer extends EventEmitter
         @getCurrentGoalOrWarn().then (goal) =>
             goal.writeLines content
 
+    goto: (charIndex) ->
+        position = @core.editor.buffer.positionForCharacterIndex charIndex - 1
+        @core.editor.setCursorBufferPosition position
 module.exports = TextBuffer

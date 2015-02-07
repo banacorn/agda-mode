@@ -64,6 +64,10 @@ class Core extends EventEmitter
             @textBuffer.makeCaseAction obj.content
                 .then => @load()
 
+        @executable.on 'goto', (obj) =>
+            log 'Executable', '=> goto'
+            @textBuffer.goto obj.position
+
     ################
     #   Commands   #
     ################
