@@ -40,13 +40,13 @@ class Goal extends EventEmitter
         @emit 'resized', @getStart(), @getEnd()
 
     # with boundaries {! #$% !}
-    getText:        -> @editor.getTextInRange       new Range(@startMarker.bufferMarker.getStartPosition(), @endMarker.bufferMarker.getEndPosition())
-    setText: (text) -> @editor.setTextInBufferRange new Range(@startMarker.bufferMarker.getStartPosition(), @endMarker.bufferMarker.getEndPosition()), text
+    getText:        -> @editor.getTextInRange       @getRange()
+    setText: (text) -> @editor.setTextInBufferRange @getRange(), text
     setTextInRange: (text, range) -> @editor.setTextInBufferRange range, text
 
     # without boundaries and spaces
     getContent:        -> @editor.getTextInRange(      new Range(@getInnerStart(), @getInnerEnd())).replace(/^\s\s*/, '').replace(/\s\s*$/, '')
-    setContent: (text) -> @editor.setTextInBufferRange new Range(@startMarker.bufferMarker.getEndPosition(), @endMarker.bufferMarker.getStartPosition()), text
+    setContent: (text) -> @editor.setTextInBufferRange @getInnerRange(), text
 
     getInnerStart: -> @translate(@startMarker.bufferMarker.getStartPosition(), 2)
     getStart: -> @startMarker.bufferMarker.getStartPosition()
@@ -59,6 +59,11 @@ class Goal extends EventEmitter
     setEnd: (endRight) ->
         endLeft = @translate endRight, -2
         @endMarker.bufferMarker.setRange new Range endLeft, endRight
+
+    getInnerRange: ->
+        start = @translate(@startMarker.bufferMarker.getStartPosition(), 2)
+        end = @translate(@endMarker.bufferMarker.getEndPosition(), -2)
+        new Range start, end
 
     getRange: ->
         start = @startMarker.bufferMarker.getStartPosition()
