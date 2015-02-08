@@ -17,10 +17,6 @@ goalQuestionMarkGroupRegex =
 goalQuestionMarkRegex =
     /// ([\s\(\{\_\;\.\"@]\?)
     ///
-# goalQuestionMarkRegex =
-#     /// ([\s\(\{\_\;\.\"@])(?=\?)
-#         (\?[\s\)\}\_\;\.\"@])
-#     ///
 
 empty = (content) -> content.replace(/\s/g, '').length is 0
 escape = (content) -> content.replace(/\n/g, '\\n')
@@ -29,12 +25,16 @@ escape = (content) -> content.replace(/\n/g, '\\n')
 class Lexer
     result: []
 
-    # return : Text -> Token 'raw'
+    # return : Text -> [Token 'raw']
+    # return : [Token] -> [Token]
     constructor: (raw) ->
-        @result = [{
-            content: raw
-            type: 'raw'
-        }]
+        if typeof raw is 'string'
+            @result = [{
+                content: raw
+                type: 'raw'
+            }]
+        else if Array.isArray(raw)
+            @result = raw
 
     # lex : {source target: TokenType} -> Token source -> [Token target]
     lex: (regex, sourceTypeName, targetTypeName) ->
@@ -59,35 +59,7 @@ class Lexer
 
 
 
-# findHoles : Text -> [(StartPosition, EndPosition)]
-# returns positions of all holes {! !} in some text
 findHoles = (text) ->
-
-    tokens = new Lexer text
-        .lex commentRegex, 'raw', 'comment'
-        .lex goalBracketRegex, 'raw', 'goal bracket'
-        .result
-
-    # for counting character position
-    pos = 0
-
-    positions = tokens
-        .map (obj) =>
-            obj.start = pos
-            pos += obj.content.length
-            obj.end = pos
-            return obj
-        .filter (obj) => obj.type is 'goal bracket'
-        .map (obj) => return {
-            start: obj.start
-            end: obj.end
-        }
-    return positions
-
-# convertToHoles : Text -> Text
-# convert all ? => {!!}
-convertToHoles = (text) ->
-
     tokens = new Lexer text
         .lex commentRegex, 'raw', 'comment'
         .lex goalBracketRegex, 'raw', 'goal bracket'
@@ -95,48 +67,50 @@ convertToHoles = (text) ->
         .lex goalQuestionMarkRegex, 'goal ?s', 'goal ?'
         .result
 
-    text = tokens.map (obj) =>
-            if obj.type is 'goal ?'
-                obj.content = "#{obj.content[0]}{!  !}"
+    # tag original positions
+    pos = 0
+    tokens
+        .map (obj) ->
+            obj.start = pos
+            pos += obj.content.length
+            obj.end = pos
             return obj
-        .map (obj) => obj.content
-        .join('')
-    return text
+        .filter (obj) -> obj.type is 'goal bracket' or obj.type is 'goal ?'
 
-# resizeHoles : Text -> [Index] -> Text
-# resize all holes to make room for goal indices {! asdsd __!}
-resizeHoles = (text, indices) ->
+# convert all ? => {!!}
+digHoles = (tokens) -> tokens.map (obj) =>
+    if obj.type is 'goal ?'
+        obj.modifiedContent = "#{obj.content[0]}{!  !}"
+        obj.type = 'goal bracket'
+    else
+        obj.modifiedContent = obj.content
+    return obj
 
-    tokens = new Lexer text
-        .lex commentRegex, 'raw', 'comment'
-        .lex goalBracketRegex, 'raw', 'goal bracket'
-        .result
+# resize holes to make room for goal indices {! asdsd __!}
+resizeHoles = (tokens, indices) ->
 
     i = 0
+    tokens.map (obj) =>
+        # in case the goalIndex wasn't given, make it '*'
+        # this happens when splitting case, agda2-goals-action is one index short
+        goalIndex = indices[i] || '*'
+        paddingSpaces = ' '.repeat(goalIndex.toString().length)
+        # strip whitespaces in between {!<--space-->some data<---space-->!}
+        content = /\{!(.*)!\}/.exec(obj.modifiedContent)[1].replace(/^\s\s*/, '').replace(/\s\s*$/, '')
 
-    text = tokens.map (obj) =>
-            if obj.type is 'goal bracket'
-                # in case the goalIndex wasn't given, make it '*'
-                # this happens when splitting case, agda2-goals-action is one index short
-                goalIndex = indices[i] || '*'
+        # there might exists prefix before '{!', measure and erase them
+        prefix = obj.modifiedContent.match(/^(.*)\{!/)[1]
+        obj.start += prefix.length
+        obj.content = obj.content.substr(prefix.length)
 
-                paddingSpaces = ' '.repeat(goalIndex.toString().length)
-
-                # strip whitespaces in between {!<--space-->some data<---space-->!}
-                content = /\{!(.*)!\}/.exec(obj.content)[1].replace(/^\s\s*/, '').replace(/\s\s*$/, '')
-
-                obj.content = "{! #{content + paddingSpaces} !}"
-                i += 1
-            return obj
-        .map (obj) => obj.content
-        .join('')
-
-    return text
-
-
+        # reorganize the contents inside the brackets
+        obj.modifiedContent = obj.modifiedContent.replace(/\{!.*!\}/, "{! #{content + paddingSpaces} !}").substr(prefix.length)
+        
+        i += 1
+        return obj
 
 
 module.exports =
     findHoles:      findHoles
-    convertToHoles: convertToHoles
+    digHoles:       digHoles
     resizeHoles:    resizeHoles
