@@ -8,7 +8,7 @@
 class InputMethod extends EventEmitter
 
     activated: false
-    muteEvent: false
+    mute: false
 
     # raw characters
     inputBuffer: ''
@@ -16,7 +16,6 @@ class InputMethod extends EventEmitter
     outputBuffer: ''
     # mark the starting position of the input buffer when activated
     startPosition: null
-
 
     @trie: require './input-method/keymap.js'
 
@@ -51,16 +50,17 @@ class InputMethod extends EventEmitter
         if not @activated
 
 
-            @startPosition = @core.editor.getCursorBufferPosition()
+            # initializations
             log 'IM', 'activated'
+            @startPosition = @core.editor.getCursorBufferPosition()
             @inputBuffer = ''
             @outputBuffer = ''
-            @activated = true
             @decorator.show()
+            @activated = true
 
             # monitors raw text buffer and figures out what happend
             @textBufferMarker = @core.editor.markBufferRange(new Range @startPosition, @startPosition)
-            @textBufferMarker.on 'changed', @analysisEvent
+            @textBufferMarker.on 'changed', @dispatchEvent
 
             # insert '\' at the cursor
             @updateOutputBuffer '\\'
@@ -74,7 +74,25 @@ class InputMethod extends EventEmitter
             # we shall leave 1 backslash in the buffer, then deactivate
             @deactivate()
 
-    analysisEvent: (ev) =>
+    deactivate: ->
+
+        if @activated
+            log 'IM', 'deactivated'
+            @core.panel.deactivateIM()
+            @decorator.hide()
+            @textBufferMarker.destroy()
+            @activated = false
+
+    ##################
+    ###   Events   ###
+    ##################
+
+    muteEvent: (callback) ->
+        @mute = true
+        callback()
+        @mute = false
+
+    dispatchEvent: (ev) =>
 
         # see if the text buffer's resized
         range = new Range ev.newTailBufferPosition, ev.newHeadBufferPosition
@@ -82,7 +100,7 @@ class InputMethod extends EventEmitter
         if @getRange().compare range isnt 0
             @emit 'resize', range
 
-        unless @muteEvent
+        unless @mute
             if textBuffer.length is 0
                 # got wiped out
                 @emit 'deactivate', range
@@ -97,15 +115,9 @@ class InputMethod extends EventEmitter
                     @emit 'delete', range, textBuffer
 
 
-
-    deactivate: ->
-
-        if @activated
-            log 'IM', 'deactivated'
-            @core.panel.deactivateIM()
-            @decorator.hide()
-            @textBufferMarker.destroy()
-            @activated = false
+    #######################
+    ###   Text Buffer   ###
+    #######################
 
     getRange: ->
         new Range(@startPosition, @startPosition.translate(new Point 0, @outputBuffer.length))
@@ -113,10 +125,9 @@ class InputMethod extends EventEmitter
     updateOutputBuffer: (text) ->
 
         # update text buffer
-        @muteEvent = true
-        @core.editor.getBuffer().delete @getRange()
-        @core.editor.getBuffer().insert @startPosition, text
-        @muteEvent = false
+        @muteEvent =>
+            @core.editor.getBuffer().delete @getRange()
+            @core.editor.getBuffer().insert @startPosition, text
 
         # update output buffer
         @outputBuffer = text
