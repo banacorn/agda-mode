@@ -17,10 +17,6 @@ goalQuestionMarkGroupRegex =
 goalQuestionMarkRegex =
     /// ([\s\(\{\_\;\.\"@]\?)
     ///
-# goalQuestionMarkRegex =
-#     /// ([\s\(\{\_\;\.\"@])(?=\?)
-#         (\?[\s\)\}\_\;\.\"@])
-#     ///
 
 empty = (content) -> content.replace(/\s/g, '').length is 0
 escape = (content) -> content.replace(/\n/g, '\\n')
@@ -84,9 +80,9 @@ findHoles = (text) ->
         }
     return positions
 
-# convertToHoles : Text -> Text
+# digHoles : Text -> Text
 # convert all ? => {!!}
-convertToHoles = (text) ->
+digHoles = (text) ->
 
     tokens = new Lexer text
         .lex commentRegex, 'raw', 'comment'
@@ -138,5 +134,5 @@ resizeHoles = (text, indices) ->
 
 module.exports =
     findHoles:      findHoles
-    convertToHoles: convertToHoles
+    digHoles:       digHoles
     resizeHoles:    resizeHoles

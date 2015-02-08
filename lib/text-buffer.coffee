@@ -1,5 +1,5 @@
 {EventEmitter} = require 'events'
-{resizeHoles, findHoles, convertToHoles} = require './text-buffer/pure'
+{resizeHoles, findHoles, digHoles} = require './text-buffer/pure'
 Goal = require './text-buffer/goal'
 fs = require 'fs'
 _ = require 'lodash'
@@ -162,7 +162,7 @@ class TextBuffer extends EventEmitter
     goalsAction: (indices) -> @protectCursor =>
 
         textRaw     = @core.editor.getText()            # get raw text
-        textBracket = convertToHoles textRaw            #   ?  => {!!}
+        textBracket = digHoles textRaw                  #   ?  => {!!}
         text        = resizeHoles textBracket, indices  # {!!} => {!  !}
 
         log 'Text Buffer', "setting goals #{indices}"
