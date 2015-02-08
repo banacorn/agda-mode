@@ -165,17 +165,20 @@ class TextBuffer extends EventEmitter
         textBracket = convertToHoles textRaw            #   ?  => {!!}
         text        = resizeHoles textBracket, indices  # {!!} => {!  !}
 
-        if @indicesChanged(indices) or @textBufferChanged(text)
-            log 'Text Buffer', "setting goals #{indices}"
-            @removeGoals()
-            
+        log 'Text Buffer', "setting goals #{indices}"
+
+        # update text buffer only when there's hole need digging
+        if @textBufferChanged(text)
+            log 'Text Buffer', "digging holes"
             @core.editor.setText text
 
-            positions   = findHoles text
-            positions.forEach (pos, i) =>
-                index = indices[i]
-                goal  = new Goal @core.editor, index, pos.start, pos.end - 2
-                @goals.push goal
+        # refresh goals
+        @removeGoals()
+        findHoles(text).forEach (pos, i) =>
+            index = indices[i]
+            goal  = new Goal @core.editor, index, pos.start, pos.end - 2
+            @goals.push goal
+
 
     giveAction: (index, content) -> @protectCursor =>
         log 'Text Buffer', "handling give-action #{content}"
