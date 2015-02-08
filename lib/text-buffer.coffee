@@ -1,9 +1,9 @@
 {EventEmitter} = require 'events'
-{resizeHoles, findHoles, digHoles} = require './text-buffer/pure'
+{resizeHoles, findHoles , digHoles} = require './text-buffer/pure'
 Goal = require './text-buffer/goal'
 fs = require 'fs'
 _ = require 'lodash'
-{Point} = require 'atom'
+{Point, Range} = require 'atom'
 Q = require 'Q'
 {log, warn, error} = require './logger'
 
@@ -161,23 +161,51 @@ class TextBuffer extends EventEmitter
 
     goalsAction: (indices) -> @protectCursor =>
 
-        textRaw     = @core.editor.getText()            # get raw text
-        textBracket = digHoles textRaw                  #   ?  => {!!}
-        text        = resizeHoles textBracket, indices  # {!!} => {!  !}
+        textRaw         = @core.editor.getText()            # get raw text
+        holes           = findHoles textRaw                 # ? or {!!}
+        holesPure       = digHoles holes                    # ? => {!!}
+        holesResized    = resizeHoles holesPure, indices    # {!!} => {!  !}
+
+
+        diff = 0
+        holesRepositioned = holesResized.map (obj) =>
+            start = @core.editor.buffer.positionForCharacterIndex obj.start + diff
+            end   = @core.editor.buffer.positionForCharacterIndex obj.end + diff
+            range = new Range start, end
+
+            # update hole's range
+            obj.start += diff
+            diff += obj.modifiedContent.length - obj.content.length
+            obj.end += diff
+
+            # if changed then modify text buffer
+            if obj.content isnt obj.modifiedContent
+                # console.log "#{range} diff: #{diff} '#{obj.content}' '#{obj.modifiedContent}'"
+                @core.editor.setTextInBufferRange range , obj.modifiedContent
+            return obj
 
         log 'Text Buffer', "setting goals #{indices}"
 
-        # update text buffer only when there's hole need digging
-        if @textBufferChanged(text)
-            log 'Text Buffer', "digging holes"
-            @core.editor.setText text
-
         # refresh goals
         @removeGoals()
-        findHoles(text).forEach (pos, i) =>
+        holesRepositioned.forEach (obj, i) =>
             index = indices[i]
-            goal  = new Goal @core.editor, index, pos.start, pos.end - 2
+            goal = new Goal @core.editor, index, obj.start, obj.end
             @goals.push goal
+
+
+        #
+        # # update text buffer only when there's hole need digging
+        # if @textBufferChanged(text)
+        #     log 'Text Buffer', "digging holes"
+        #     @core.editor.setText text
+        #
+        # # refresh goals
+        # @removeGoals()
+        # findHoles(text).forEach (pos, i) =>
+        #     index = indices[i]
+        #     goal  = new Goal @core.editor, index, pos.start, pos.end - 2
+        #     @goals.push goal
 
 
     giveAction: (index, content) -> @protectCursor =>

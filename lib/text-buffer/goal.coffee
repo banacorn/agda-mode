@@ -15,8 +15,8 @@ class Goal extends EventEmitter
 
         startLeft  = @oldStart = @fromIndex startIndex
         startRight             = @fromIndex (startIndex + 2)
-        endLeft                = @fromIndex endIndex
-        endRight   = @oldEnd   = @fromIndex (endIndex + 2)
+        endLeft                = @fromIndex (endIndex - 2)
+        endRight   = @oldEnd   = @fromIndex endIndex
 
         @startMarker = @editor.markBufferRange new Range(startLeft, startRight),
             type: 'goal'
