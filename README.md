@@ -2,11 +2,9 @@
 
 For people who don't wanna use Emacs for whatever reason.
 
+Now available on [Atom](https://atom.io/packages/agda-mode)
 
-v0.1.x preview is now available on [Atom](https://atom.io/packages/agda-mode)
-
-Buggy as hell, still under heavy development.
-PRs and comments are all welcome.
+PRs, issues and comments are all welcome.
 
 
 ## Commands supported
