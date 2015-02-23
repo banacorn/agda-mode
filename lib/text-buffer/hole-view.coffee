@@ -1,5 +1,5 @@
-{View, Point, $} = require 'atom'
-
+{View, Point} = require 'atom'
+{$, View} = require 'atom-space-pen-views'
 module.exports = class HoleView extends View
 
     start: null
@@ -66,8 +66,7 @@ module.exports = class HoleView extends View
 
 
     attach: ->
-        @editor.editorView.overlayer.append @
-
+        atom.views.getView(@core.editor).__spacePenView.overlayer.append @
 
     destroy: =>
         # console.log "[HOLE VIEW] #{@goal.index} DETACH"

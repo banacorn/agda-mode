@@ -1,7 +1,8 @@
 {Range, Point} = require 'atom'
 {_} = require 'lodash'
 {EventEmitter} = require 'events'
-{View, Point, $} = require 'atom'
+{View, Point} = require 'atom'
+{$} = require 'atom-space-pen-views'
 {log, warn, error} = require './logger'
 
 # Input Method Singleton (initialized only once per editor, activaed or not)
@@ -200,7 +201,7 @@ class InputMethodDecorator extends View
 
     initialize: (@core, inputMethod) ->
 
-        @core.editor.editorView.overlayer.append @
+        atom.views.getView(@core.editor).__spacePenView.overlayer.append @
         @addClass 'agda-input-method'
 
         inputMethod.on 'resize', (range) =>
