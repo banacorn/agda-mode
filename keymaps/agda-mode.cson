@@ -7,7 +7,7 @@
 
 # For more detailed documentation see
 # https://atom.io/docs/latest/advanced/keymaps
-'.editor.agda':
+'atom-text-editor[data-grammar="source agda"]':
   'ctrl-c ctrl-l': 'agda-mode:load'
   'ctrl-c ctrl-x ctrl-q': 'agda-mode:quit'
   'ctrl-c ctrl-x ctrl-r': 'agda-mode:restart'

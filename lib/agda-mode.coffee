@@ -1,5 +1,6 @@
 Core = require './core'
 {log, warn, error} = require './logger'
+{$} = require 'atom-space-pen-views'
 
 module.exports =
 
@@ -10,21 +11,18 @@ module.exports =
 
 
     activate: (state) ->
-        atom.workspaceView.eachEditorView @instantiateCore
+        atom.workspace.observeTextEditors @instantiateCore
         @registerEditorActivation()
         @registerCommands()
 
 
-    instantiateCore: (editorView) =>
-        editor = editorView.getModel()
+    instantiateCore: (editor) =>
         if isAgdaFile editor
-            # add class .agda to every agda editor
-            editorView.addClass 'agda'
-            # editor <=> editorView, 2-way binding
-            editor.editorView = editorView
             editor.core = new Core editor
             # register editor events
             editor.onDidDestroy => editor.core.emit 'destroy'
+
+
     # editor active/inactive event register, fuck Atom's event clusterfuck
     registerEditorActivation: ->
         currentEditor = atom.workspace.getActivePaneItem()
@@ -60,7 +58,7 @@ module.exports =
     # register keymap bindings and emit commands
     registerCommands: ->
         @commands.forEach (command) =>
-            atom.workspaceView.command command, =>
+            atom.commands.add 'atom-text-editor[data-grammar="source agda"]', command, =>
                 if isAgdaFile()
                     editor = atom.workspace.getActivePaneItem()
                     editor.core[toCamalCase command]()
