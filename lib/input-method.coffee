@@ -1,8 +1,8 @@
 {Range, Point} = require 'atom'
 {_} = require 'lodash'
 {EventEmitter} = require 'events'
-{View, Point} = require 'atom'
-{$} = require 'atom-space-pen-views'
+{$, View, Point} = require 'atom'
+# {$} = require 'atom-space-pen-views'
 {log, warn, error} = require './logger'
 
 # Input Method Singleton (initialized only once per editor, activaed or not)

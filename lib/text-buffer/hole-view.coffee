@@ -1,5 +1,5 @@
-{View, Point} = require 'atom'
-{$, View} = require 'atom-space-pen-views'
+{$, View, Point} = require 'atom'
+# {$, View} = require 'atom-space-pen-views'
 module.exports = class HoleView extends View
 
     start: null

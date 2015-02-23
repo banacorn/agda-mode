@@ -1,4 +1,4 @@
-{View, EditorView} = require 'atom-space-pen-views'
+{View, EditorView} = require 'atom'
 {log, warn, error} = require '../logger'
 
 Q = require 'Q'
