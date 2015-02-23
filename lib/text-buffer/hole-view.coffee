@@ -61,12 +61,13 @@ module.exports = class HoleView extends View
             @append div
 
     measureCharWidth: ->
-        {left} = @editor.pixelPositionForBufferPosition new Point 0, 1
+        textEditorElement = atom.views.getView(@editor)
+        {left} = textEditorElement?.pixelPositionForBufferPosition new Point 0, 1
         @charWidth = left
 
 
     attach: ->
-        atom.views.getView(@core.editor).__spacePenView.overlayer.append @
+        atom.views.getView(@editor).__spacePenView.overlayer.append @
 
     destroy: =>
         # console.log "[HOLE VIEW] #{@goal.index} DETACH"

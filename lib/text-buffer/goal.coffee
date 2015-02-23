@@ -23,12 +23,12 @@ class Goal extends EventEmitter
         @endMarker = @editor.markBufferRange new Range(endLeft, endRight),
             type: 'goal'
 
-        @startMarker.on 'changed', (event) =>
+        @startMarker.onDidChange (event) =>
             changed = @trimMarker()
             if changed
                 @emit 'resized', @getStart(), @getEnd()
 
-        @endMarker.on 'changed', (event) =>
+        @endMarker.onDidChange (event) =>
             changed = @trimMarker()
             if changed
                 @emit 'resized', @getStart(), @getEnd()
