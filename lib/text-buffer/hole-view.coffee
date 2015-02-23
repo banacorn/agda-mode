@@ -22,7 +22,7 @@ module.exports = class HoleView extends View
         @empty()
         blocks = @goal.getRange().getRows().map (row) =>
 
-            position = @editor.pixelPositionForBufferPosition new Point row, 0
+            position = atom.views.getView(@editor).pixelPositionForBufferPosition new Point row, 0
 
             $('<div class="goal"></div>').css
                 top: position.top
@@ -32,8 +32,8 @@ module.exports = class HoleView extends View
 
 
         [firstLine, ..., lastLine] = blocks
-        startPx = @editor.pixelPositionForBufferPosition start
-        endPx = @editor.pixelPositionForBufferPosition end
+        startPx = atom.views.getView(@editor).pixelPositionForBufferPosition start
+        endPx = atom.views.getView(@editor).pixelPositionForBufferPosition end
 
         # single row goal
         # from startPx to endPx
@@ -61,8 +61,7 @@ module.exports = class HoleView extends View
             @append div
 
     measureCharWidth: ->
-        textEditorElement = atom.views.getView(@editor)
-        {left} = textEditorElement?.pixelPositionForBufferPosition new Point 0, 1
+        {left} = atom.views.getView(@editor).pixelPositionForBufferPosition new Point 0, 1
         @charWidth = left
 
 
