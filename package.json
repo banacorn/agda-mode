@@ -7,11 +7,11 @@
   "repository": "https://github.com/banacorn/agda-mode",
   "license": "MIT",
   "engines": {
-    "atom": ">0.50.0"
+    "atom": ">0.180.0"
   },
   "dependencies": {
     "lodash": "^2.4.1",
     "q": "^1.0.1",
-    "atom-space-pen-views": "^2.0.3"
+    "atom-space-pen-views": "^2.0.4"
   }
 }

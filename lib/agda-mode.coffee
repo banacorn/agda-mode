@@ -1,7 +1,6 @@
 Core = require './core'
 {log, warn, error} = require './logger'
-{$} = require 'atom'
-# {$} = require 'atom-space-pen-views'
+{$} = require 'atom-space-pen-views'
 
 module.exports =
 
