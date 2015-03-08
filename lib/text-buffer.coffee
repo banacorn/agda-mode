@@ -209,6 +209,7 @@ class TextBuffer extends EventEmitter
 
 
     giveAction: (index, content) -> @protectCursor =>
+        content = content.replace(/\\n/g, '')
         log 'Text Buffer', "handling give-action #{content}"
         goal = @findGoal index
         if content
