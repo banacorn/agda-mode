@@ -1,4 +1,4 @@
-{View, EditorView} = require 'atom-space-pen-views'
+{View, TextEditorView} = require 'atom-space-pen-views'
 {log, warn, error} = require '../logger'
 
 Q = require 'Q'
@@ -22,16 +22,9 @@ class PanelView extends View
             @div outlet: 'body', class: "block padded", =>
                 @div outlet: 'content', class: 'agda-panel-content', =>
                     @ul outlet: 'contentList', class: 'list-group'
-                @subview 'inputBox', new EditorView(mini: true, placeholderText: 'Please insert the path here')
-
-    attach: ->
-        atom.workspace.addBottomPanel
-            item: @
-            visible: true
-            className: 'agda-panel tool-panel panel-bottom'
+                @subview 'inputBox', new TextEditorView(mini: true, placeholderText: 'Please insert the path here')
 
     initialize: ->
-        @attach()
         @switchMode HIDE
         return @
 

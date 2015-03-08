@@ -6,9 +6,13 @@ class Panel extends EventEmitter
 
     constructor: ->
         @view = new PanelView
+        atom.workspace.addBottomPanel
+            item: @view
+            visible: true
+            className: 'agda-panel tool-panel panel-bottom'
 
-    hide: -> @view.detach()
-    show: -> @view.attach()
+    hide: -> @view.hide()
+    show: -> @view.show()
 
     queryExecutablePath: ->
         @view.query()
