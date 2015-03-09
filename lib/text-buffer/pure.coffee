@@ -2,11 +2,11 @@
 
 #
 #   "Pure" in the sense of not having any interaction with the text buffer
-#   just text transformations only
 #
 
 # regular expressions
-commentRegex = /(--[^\r\n]*[\r\n])/
+
+commentRegex = /(--[^\r\n]*[\r\n])|(\{-([^-]|[\r\n]|(-+([^-\}]|[\r\n])))*-+\})/
 goalBracketRegex = /(\{![^!\}]*!\})/
 goalQuestionMarkGroupRegex =
     /// (
@@ -67,6 +67,10 @@ findHoles = (text) ->
         .lex goalQuestionMarkRegex, 'goal ?s', 'goal ?'
         .result
 
+    test = new Lexer text
+        .lex commentRegex, 'raw', 'comment'
+    console.log test
+
     # tag original positions
     pos = 0
     tokens
@@ -105,7 +109,7 @@ resizeHoles = (tokens, indices) ->
 
         # reorganize the contents inside the brackets
         obj.modifiedContent = obj.modifiedContent.replace(/\{!.*!\}/, "{! #{content + paddingSpaces} !}").substr(prefix.length)
-        
+
         i += 1
         return obj
 
