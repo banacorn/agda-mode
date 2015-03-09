@@ -193,23 +193,8 @@ class TextBuffer extends EventEmitter
             goal = new Goal @core.editor, index, obj.start, obj.end
             @goals.push goal
 
-
-        #
-        # # update text buffer only when there's hole need digging
-        # if @textBufferChanged(text)
-        #     log 'Text Buffer', "digging holes"
-        #     @core.editor.setText text
-        #
-        # # refresh goals
-        # @removeGoals()
-        # findHoles(text).forEach (pos, i) =>
-        #     index = indices[i]
-        #     goal  = new Goal @core.editor, index, pos.start, pos.end - 2
-        #     @goals.push goal
-
-
     giveAction: (index, content) -> @protectCursor =>
-        content = content.replace(/\\n/g, '')
+        content = content?.replace(/\\n/g, ' ').replace(/\s{2,}/g, ' ')
         log 'Text Buffer', "handling give-action #{content}"
         goal = @findGoal index
         if content
