@@ -67,10 +67,6 @@ findHoles = (text) ->
         .lex goalQuestionMarkRegex, 'goal ?s', 'goal ?'
         .result
 
-    test = new Lexer text
-        .lex commentRegex, 'raw', 'comment'
-    console.log test
-
     # tag original positions
     pos = 0
     tokens

@@ -193,12 +193,17 @@ class TextBuffer extends EventEmitter
             goal = new Goal @core.editor, index, obj.start, obj.end
             @goals.push goal
 
-    giveAction: (index, content) -> @protectCursor =>
-        content = content?.replace(/\\n/g, ' ').replace(/\s{2,}/g, ' ')
-        log 'Text Buffer', "handling give-action #{content}"
+    giveAction: (index, content, paran) -> @protectCursor =>
+
         goal = @findGoal index
         if content
+            content = content.replace(/\\n/g, ' ').replace(/\s{2,}/g, ' ')
+            log 'Text Buffer', "handling give-action #{paran} #{content}"
             goal.setContent content
+        if paran
+            content = goal.getContent()
+            goal.setContent "(#{content})"
+
         goal.removeBoundary()
         @removeGoal index
 

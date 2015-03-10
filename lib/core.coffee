@@ -57,7 +57,7 @@ class Core extends EventEmitter
 
         @executable.on 'give-action', (obj) =>
             log 'Executable', '=> give-action'
-            @textBuffer.giveAction obj.goalIndex, obj.content
+            @textBuffer.giveAction obj.goalIndex, obj.content, obj.paran
 
         @executable.on 'make-case-action', (obj) =>
             log 'Executable', '=> make-case-action'
