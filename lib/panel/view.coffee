@@ -42,10 +42,12 @@ class PanelView extends View
                     @inputBox.hide()
                 when OUTPUT
                     @show()
+                    @body.show()
                     @content.show()
                     @inputBox.hide()
                 when QUERY
                     @show()
+                    @body.show()
                     @content.hide()
                     @inputBox.show()
                 else
@@ -59,7 +61,7 @@ class PanelView extends View
             @promise = Q.Promise (resolve, reject, notify) =>
                 # confirm
                 @on 'core:confirm', =>
-                    log 'Panel', "queried path: #{@inputBox.getText()}"
+                    log 'Panel', "queried string: #{@inputBox.getText()}"
                     @hide()
                     resolve @inputBox.getText()
         return @
@@ -108,7 +110,7 @@ class PanelView extends View
     # placeholder of the inputbox of query mode
     setPlaceholder: (content) ->
         content = _.escape content
-        @inputBox.editor.placeholderText = content
+        @inputBox[0].getModel().placeholderText = content
         return @
 
     clearContent: ->
