@@ -5,18 +5,21 @@ Q = require 'Q'
 # Components
 Executable  = require './executable'
 Panel       = require './panel'
+PanelModel  = require './panel/model'
+PanelView_  = require './panel/view_'
 TextBuffer  = require './text-buffer'
 InputMethod = require './input-method'
 
 class Core extends EventEmitter
 
-    @loaded = false
-
+    @loaded: false
+    panels: []
     constructor: (@editor) ->
 
         # initialize all components
         @executable     = new Executable    @
         @panel          = new Panel         @
+        @panelModel     = new PanelModel    @
         @textBuffer     = new TextBuffer    @
         @inputMethod    = new InputMethod   @
 
@@ -24,6 +27,23 @@ class Core extends EventEmitter
         @filePath = @editor.getPath()
 
         log 'Core', 'initialized:', @filePath
+
+
+        #############
+        #   Views   #
+        #############
+
+        # register
+        atom.views.addViewProvider
+            modelConstructor: PanelModel
+            viewConstructor: PanelView_
+
+        # instantiate
+        @panel_ = atom.workspace.addBottomPanel
+            item: atom.views.getView @panelModel
+            visible: false
+            className: 'agda-panel'
+
 
 
 
@@ -34,9 +54,11 @@ class Core extends EventEmitter
         @on 'activate', =>
             log 'Core', 'activated:', @filePath
             @panel.show()
+            @panel_.show()
         @on 'deactivate', =>
             log 'Core', 'deactivated:', @filePath
             @panel.hide()
+            @panel_.hide()
         @on 'destroy', =>
             log 'Core', 'destroyed:', @filePath
             @quit()
@@ -49,7 +71,29 @@ class Core extends EventEmitter
         # Executable
         @executable.on 'info-action', (obj) =>
             log 'Executable', '=> info-action'
-            @panel.infoAction obj
+            content = obj.content | []
+            switch obj.type
+                when '*All Goals*'
+                    if obj.content.length > 0
+                        @panelModel.set 'Goals', content, 'info'
+                    else
+                        @panelModel.set 'No Goals', [], 'success'
+                when '*Error*'
+                    @panelModel.set 'Error', content, 'error'
+                when '*Type-checking*'
+                    @panelModel.set 'Type Checking', content
+                when '*Current Goal*'
+                    @panelModel.set 'Current Goal', content
+                when '*Context*'
+                    @panelModel.set 'Context', content
+                when '*Goal type etc.*'
+                    @panelModel.set 'Goal Type and Context', content
+                when '*Normal Form*'
+                    @panelModel.set 'Normal Form', content
+                when '*Intro*'
+                    @panelModel.set 'Intro', ['No introduction forms found']
+                when '*Auto*'
+                    @panelModel.set 'Auto', ['No solution found']
 
         @executable.on 'goals-action', (obj) =>
             log 'Executable', '=> goals-action'
@@ -79,14 +123,18 @@ class Core extends EventEmitter
     load: ->
         log 'Command', 'load'
         @executable.load().then (process) =>
+            @panel_.show()
+            @panelModel.title = 'Loading'
+
             @panel.show()
-            @panel.output 'Loading', 'Info', []
+            # @panel.output 'Loading', 'Info', []
             @loaded = true
 
     quit: -> if @loaded
         log 'Command', 'warn'
         @loaded = false
         @executable.quit()
+        @panel_.hide()
         @panel.hide()
         @textBuffer.removeGoals()
 
