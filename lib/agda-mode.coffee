@@ -17,11 +17,17 @@ module.exports =
 
 
     instantiateCore: (editor) =>
-        if isAgdaFile editor
-            editor.core = new Core editor
-            # register editor events
-            editor.onDidDestroy => editor.core.emit 'destroy'
 
+        instantiate = =>
+            if isAgdaFile editor
+                editor.core = new Core editor
+                ev = editor.onDidDestroy =>
+                    editor.core.emit 'destroy'
+                    ev.dispose()
+            else if editor.core
+                editor.core.emit 'destroy'
+        instantiate()
+        editor.onDidChangePath => instantiate()
 
     # editor active/inactive event register, fuck Atom's event clusterfuck
     registerEditorActivation: ->
