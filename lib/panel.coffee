@@ -89,18 +89,4 @@ class Panel extends EventEmitter
                     .setTitle 'Auto'
                     .setContent ['No solution found']
 
-    #
-    #   Input Method
-    #
-    #   On activating input method, input suggestions will be displayed at
-    #   PanelView.header, we should recover what was there after the input
-    #   method is deactivated
-
-    activateIM: (input, candidateKeys, candidateSymbols) ->
-        @view.activateIM()
-            .setInputMethod input, candidateKeys, candidateSymbols
-
-    deactivateIM: ->
-        @view.deactivateIM()
-
 module.exports = Panel

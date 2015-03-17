@@ -24,15 +24,17 @@ class PanelView extends View
         @content.hide()
         @inputBox.hide()
 
-    setModel: (panel) ->
+    setModel: (@panel) ->
         log 'Panel', 'Setting Panel Model'
-        Object.observe panel, (changes) => changes.forEach (change) =>
+        Object.observe @panel, (changes) => changes.forEach (change) =>
             switch change.name
-                when 'title'        then @setTitle       panel.title
-                when 'type'         then @setType        panel.type
-                when 'content'      then @setContent     panel.content
-                when 'placeholder'  then @setPlaceholder panel.placeholder
-                when 'queryOn'      then @query panel if panel.queryOn
+                when 'title'            then @setTitle()
+                when 'type'             then @setType()
+                when 'content'          then @setContent()
+                when 'placeholder'      then @setPlaceholder()
+                when 'queryOn'          then @query()
+                when 'inputMethodOn'    then @activateInputMethod()
+                when 'inputMethod'      then @setInputMethod()
         @hideAll()
 
     ############################################################################
@@ -43,23 +45,22 @@ class PanelView extends View
     ############################################################################
 
     # title
-    setTitle: (content) ->
-        content = _.escape content
+    setTitle: ->
+        content = _.escape @panel.title
         @title.text content
 
         @head.show()
         @title.show()
 
-    setType: (type) ->
-        @title.attr 'class', 'text-' + type
+    setType: ->
+        @title.attr 'class', 'text-' + @panel.type
 
-    setPlaceholder: (content) ->
-        content = _.escape content
+    setPlaceholder: ->
+        content = _.escape @panel.placeholder
         @inputBox[0].getModel().placeholderText = content
-        return @
 
-    setContent: (content) ->
-        content = content.map (s) => _.escape s
+    setContent: ->
+        content = @panel.content.map (s) => _.escape s
         @contentList.empty()
 
         if content.length > 0
@@ -84,17 +85,30 @@ class PanelView extends View
                     @contentList.append "<li class=\"list-item\">#{item}</li>"
         else
             @body.hide()
-        return @
 
 
-    query: (panel) ->
+    activateInputMethod: ->
+        console.log @panel.inputMethodOn
+        if @panel.inputMethodOn
+            @title.hide()
+            @inputMethod.show()
+        else
+            @title.show()
+            @inputMethod.hide()
+
+
+    setInputMethod: ->
+        @inputMethod.text "#{@panel.inputMethod.input}[#{@panel.inputMethod.candidateKeys.join('')}]"
+
+
+    query: -> if @panel.queryOn
         @head.show()
         @body.show()
         @inputBox.show()
         @inputBox.focus()
         @on 'core:confirm', =>
             log 'Panel', "queried string: #{@inputBox.getText()}"
-            panel.input = @inputBox.getText()
+            @panel.queryString = @inputBox.getText()
             @inputBox.hide()
 
 

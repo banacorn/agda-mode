@@ -36,7 +36,7 @@ class InputMethod extends EventEmitter
             log 'IM', "@inputBuffer: '#{@inputBuffer}' translates to '#{output}'"
             @updateOutputBuffer output
             if further
-                @core.panel.activateIM @inputBuffer, candidateKeys, candidateSymbols
+                @core.panelModel.setInputMethod @inputBuffer, candidateKeys, candidateSymbols
             else
                 @deactivate()
 
@@ -44,7 +44,7 @@ class InputMethod extends EventEmitter
             {output, further, candidateKeys, candidateSymbols} = @translate @inputBuffer
             log 'IM', "delete #{range} #{textBuffer} #{@inputBuffer}"
             if further
-                @core.panel.activateIM @inputBuffer, candidateKeys, candidateSymbols
+                @core.panelModel.setInputMethod @inputBuffer, candidateKeys, candidateSymbols
 
 
     activate: ->
@@ -67,7 +67,8 @@ class InputMethod extends EventEmitter
             @updateOutputBuffer '\\'
 
             # initial input suggestion
-            @core.panel.activateIM '', @getCandidateKeys InputMethod.trie, []
+            @core.panelModel.inputMethodOn = true
+            @core.panelModel.setInputMethod '', @getCandidateKeys InputMethod.trie, []
 
         else
             # input method already activated
@@ -79,7 +80,7 @@ class InputMethod extends EventEmitter
 
         if @activated
             log 'IM', 'deactivated'
-            @core.panel.deactivateIM()
+            @core.panelModel.inputMethodOn = false
             @decorator.hide()
             @textBufferMarker.destroy()
             @activated = false
