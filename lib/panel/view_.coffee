@@ -32,11 +32,8 @@ class PanelView extends View
                 when 'type'         then @setType        panel.type
                 when 'content'      then @setContent     panel.content
                 when 'placeholder'  then @setPlaceholder panel.placeholder
-                when 'query'        then @query()
+                when 'queryOn'      then @query panel if panel.queryOn
         @hideAll()
-
-        panel.on 'query', => @query panel
-
 
     ############################################################################
 
@@ -97,7 +94,7 @@ class PanelView extends View
         @inputBox.focus()
         @on 'core:confirm', =>
             log 'Panel', "queried string: #{@inputBox.getText()}"
-            panel.emit 'reply', @inputBox.getText()
+            panel.input = @inputBox.getText()
             @inputBox.hide()
 
 

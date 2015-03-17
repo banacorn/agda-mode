@@ -177,6 +177,7 @@ class Core extends EventEmitter
 
     normalize: -> if @loaded
         log 'Command', 'normalize'
+        @panelModel.placeholder = 'expression here'
         @panelModel.query().then (expr) =>
             @executable.normalize expr
 
