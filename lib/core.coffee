@@ -180,6 +180,7 @@ class Core extends EventEmitter
         @panelModel.placeholder = 'expression here'
         @panelModel.query().then (expr) =>
             @executable.normalize expr
+            @textBuffer.focus()
 
     inputSymbol: ->
         log 'Command', 'input-symbol'

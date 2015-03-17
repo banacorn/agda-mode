@@ -33,6 +33,9 @@ class TextBuffer extends EventEmitter
                 @core.editor.setCursorBufferPosition position
         return result
 
+    focus: ->
+        textEditorElement = atom.views.getView(@core.editor)
+        textEditorElement.focus()
 
     #######################
     #   File Management   #
