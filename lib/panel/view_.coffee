@@ -102,13 +102,14 @@ class PanelView extends View
 
 
     query: -> if @panel.queryOn
+        log 'Panel', 'querying ...'
         @head.show()
         @body.show()
         @inputBox.show()
         @inputBox.focus()
         @on 'core:confirm', =>
             log 'Panel', "queried string: #{@inputBox.getText()}"
-            @panel.queryString = @inputBox.getText()
+            @panel.queryString = @inputBox.getText().trim()
             @inputBox.hide()
 
 

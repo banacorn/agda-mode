@@ -31,7 +31,7 @@ class PanelModel extends EventEmitter
         @queryOn = true
         Q.Promise (resolve, reject, notify) =>
             Object.observe @, (changes) => changes.forEach (change) =>
-                if change.name is 'input'
+                if change.name is 'queryString'
                     resolve @queryString
                     @queryOn = false
 

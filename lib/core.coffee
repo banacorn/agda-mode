@@ -118,9 +118,9 @@ class Core extends EventEmitter
 
     load: ->
         log 'Command', 'load'
+        @panel_.show()
         @executable.load().then (process) =>
-            @panel_.show()
-            @panelModel.title = 'Loading'
+            @panelModel.set 'Loading'
             @loaded = true
 
     quit: -> if @loaded
@@ -177,6 +177,7 @@ class Core extends EventEmitter
 
     normalize: -> if @loaded
         log 'Command', 'normalize'
+        @panelModel.set 'Normalize', [], 'info'
         @panelModel.placeholder = 'expression here'
         @panelModel.query().then (expr) =>
             @executable.normalize expr
