@@ -119,6 +119,7 @@ class PanelView extends View
         return @
 
     setContent: (content) ->
+        console.log content
         content = content.map (s) => _.escape s
         @clearContent()
 

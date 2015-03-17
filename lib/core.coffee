@@ -4,7 +4,6 @@ Q = require 'Q'
 
 # Components
 Executable  = require './executable'
-Panel       = require './panel'
 PanelModel  = require './panel/model'
 PanelView_  = require './panel/view_'
 TextBuffer  = require './text-buffer'
@@ -18,7 +17,6 @@ class Core extends EventEmitter
 
         # initialize all components
         @executable     = new Executable    @
-        @panel          = new Panel         @
         @panelModel     = new PanelModel    @
         @textBuffer     = new TextBuffer    @
         @inputMethod    = new InputMethod   @
@@ -53,11 +51,9 @@ class Core extends EventEmitter
 
         @on 'activate', =>
             log 'Core', 'activated:', @filePath
-            @panel.show()
             @panel_.show()
         @on 'deactivate', =>
             log 'Core', 'deactivated:', @filePath
-            @panel.hide()
             @panel_.hide()
         @on 'destroy', =>
             log 'Core', 'destroyed:', @filePath
@@ -71,7 +67,7 @@ class Core extends EventEmitter
         # Executable
         @executable.on 'info-action', (obj) =>
             log 'Executable', '=> info-action'
-            content = obj.content | []
+            content = obj.content
             switch obj.type
                 when '*All Goals*'
                     if obj.content.length > 0
@@ -125,9 +121,6 @@ class Core extends EventEmitter
         @executable.load().then (process) =>
             @panel_.show()
             @panelModel.title = 'Loading'
-
-            @panel.show()
-            # @panel.output 'Loading', 'Info', []
             @loaded = true
 
     quit: -> if @loaded
@@ -135,7 +128,6 @@ class Core extends EventEmitter
         @loaded = false
         @executable.quit()
         @panel_.hide()
-        @panel.hide()
         @textBuffer.removeGoals()
 
     restart: -> if @loaded
@@ -185,14 +177,14 @@ class Core extends EventEmitter
 
     normalize: -> if @loaded
         log 'Command', 'normalize'
-        @panel.queryExpression().promise.then (expr) =>
-            @executable.normalize expr
+        # @panel.queryExpression().promise.then (expr) =>
+            # @executable.normalize expr
 
     inputSymbol: ->
         log 'Command', 'input-symbol'
         unless @loaded
-            @panel.show()
-            @panel.output 'Input Method only, Agda not loaded', 'Info', []
+            @panel_.show()
+            @panelModel.set 'Input Method only, Agda not loaded', [], 'warning'
         @inputMethod.activate()
 
 module.exports = Core

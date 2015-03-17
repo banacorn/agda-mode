@@ -52,6 +52,39 @@ class PanelView extends View
     setType: (type) ->
         @title.attr 'class', 'text-' + type
 
+    setPlaceholder: (content) ->
+        content = _.escape content
+        @inputBox[0].getModel().placeholderText = content
+        return @
+
+    setContent: (content) ->
+        content = content.map (s) => _.escape s
+        @contentList.empty()
+
+        if content.length > 0
+            @body.show()
+            @content.show()
+            # some responses from Agda have 2 parts
+            # we'll style these two parts differently
+            index = content.indexOf('————————————————————————————————————————————————————————————')
+            sectioned = index isnt -1
+            if sectioned
+
+                firstHalf = content.slice(0, index)
+                secondHalf = content.slice(index + 1, content.length)
+
+                for item in firstHalf
+                    @contentList.append "<li class=\"list-item text-info\">#{item}</li>"
+                for item in secondHalf
+                    @contentList.append "<li class=\"list-item\">#{item}</li>"
+
+            else
+                for item in content
+                    @contentList.append "<li class=\"list-item\">#{item}</li>"
+        else
+            @body.hide()
+        return @
+
     #
     # query: ->
     #     @switchMode QUERY, =>
