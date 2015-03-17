@@ -1,6 +1,5 @@
 {EventEmitter} = require 'events'
 Q = require 'Q'
-PanelView = require './view_'
 
 class PanelModel extends EventEmitter
 

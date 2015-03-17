@@ -5,7 +5,7 @@ Q = require 'Q'
 # Components
 Executable  = require './executable'
 PanelModel  = require './panel/model'
-PanelView_  = require './panel/view_'
+PanelView   = require './panel/view'
 TextBuffer  = require './text-buffer'
 InputMethod = require './input-method'
 
@@ -34,10 +34,10 @@ class Core extends EventEmitter
         # register
         atom.views.addViewProvider
             modelConstructor: PanelModel
-            viewConstructor: PanelView_
+            viewConstructor: PanelView
 
         # instantiate
-        @panel_ = atom.workspace.addBottomPanel
+        @panel = atom.workspace.addBottomPanel
             item: atom.views.getView @panelModel
             visible: false
             className: 'agda-panel'
@@ -51,10 +51,10 @@ class Core extends EventEmitter
 
         @on 'activate', =>
             log 'Core', 'activated:', @filePath
-            @panel_.show()
+            @panel.show()
         @on 'deactivate', =>
             log 'Core', 'deactivated:', @filePath
-            @panel_.hide()
+            @panel.hide()
         @on 'destroy', =>
             log 'Core', 'destroyed:', @filePath
             @quit()
@@ -118,7 +118,7 @@ class Core extends EventEmitter
 
     load: ->
         log 'Command', 'load'
-        @panel_.show()
+        @panel.show()
         @executable.load().then (process) =>
             @panelModel.set 'Loading'
             @loaded = true
@@ -127,7 +127,7 @@ class Core extends EventEmitter
         log 'Command', 'warn'
         @loaded = false
         @executable.quit()
-        @panel_.hide()
+        @panel.hide()
         @textBuffer.removeGoals()
 
     restart: -> if @loaded
@@ -186,7 +186,7 @@ class Core extends EventEmitter
     inputSymbol: ->
         log 'Command', 'input-symbol'
         unless @loaded
-            @panel_.show()
+            @panel.show()
             @panelModel.set 'Input Method only, Agda not loaded', [], 'warning'
         @inputMethod.activate()
 

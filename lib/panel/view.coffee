@@ -4,127 +4,68 @@
 Q = require 'Q'
 _ = require 'lodash'
 
-UNINIT = 0
-HIDE = 1
-OUTPUT = 2
-QUERY = 3
-
 class PanelView extends View
-
-    mode: UNINIT
-    IM: false
 
     @content: ->
         @div =>
-            @div outlet: 'header', class: 'inset-panel padded', =>
+            @div outlet: 'head', class: 'inset-panel padded', =>
                 @span outlet: 'title'
                 @span outlet: 'inputMethod'
             @div outlet: 'body', class: "block padded", =>
                 @div outlet: 'content', class: 'agda-panel-content', =>
                     @ul outlet: 'contentList', class: 'list-group'
-                @subview 'inputBox', new TextEditorView(mini: true, placeholderText: 'Please insert the path here')
+                @subview 'inputBox', new TextEditorView mini: true
 
-    initialize: ->
-        @switchMode HIDE
-        return @
+    hideAll: ->
+        @head.hide()
+        @title.hide()
+        @inputMethod.hide()
+        @body.hide()
+        @content.hide()
+        @inputBox.hide()
 
-    #
-    #   Modes
-    #
+    setModel: (@panel) ->
+        log 'Panel', 'Setting Panel Model'
+        Object.observe @panel, (changes) => changes.forEach (change) =>
+            switch change.name
+                when 'title'            then @setTitle()
+                when 'type'             then @setType()
+                when 'content'          then @setContent()
+                when 'placeholder'      then @setPlaceholder()
+                when 'queryOn'          then @query()
+                when 'inputMethodOn'    then @activateInputMethod()
+                when 'inputMethod'      then @setInputMethod()
+        @hideAll()
 
-    switchMode: (mode, callback) ->
-        if mode isnt @mode
-            log 'Panel', "mode: #{@mode} => #{mode}"
-            switch mode
-                when HIDE
-                    @hide()
-                    @content.hide()
-                    @inputBox.hide()
-                when OUTPUT
-                    @show()
-                    @body.show()
-                    @content.show()
-                    @inputBox.hide()
-                when QUERY
-                    @show()
-                    @body.show()
-                    @content.hide()
-                    @inputBox.show()
-                else
-            callback?()
-            @mode = mode
+    ############################################################################
 
 
-    query: ->
-        @switchMode QUERY, =>
-            @inputBox.focus()
-            @promise = Q.Promise (resolve, reject, notify) =>
-                # confirm
-                @on 'core:confirm', =>
-                    log 'Panel', "queried string: #{@inputBox.getText()}"
-                    @hide()
-                    resolve @inputBox.getText()
-        return @
 
-    output: ->
-        @switchMode OUTPUT
-        return @
 
-    activateIM: ->
-        if not @IM
-            @IM = true
-            log 'Panel', "IM on"
-            @title.hide()
-            @inputMethod.show()
-        return @
-
-    deactivateIM: ->
-        if @IM
-            @IM = false
-            log 'Panel', "IM off"
-            @title.show()
-            @inputMethod.hide()
-        return @
-
-    #
-    #   setting contents
-    #
+    ############################################################################
 
     # title
-    setTitle: (content, type) ->
-        content = _.escape content
+    setTitle: ->
+        content = _.escape @panel.title
         @title.text content
-        if type
-          @title.attr 'class', 'text-' + type
-        else
-          @title.attr 'class', ''
-        return @
 
-    # input method
-    setInputMethod: (input, candidateKeys, candidateSymbols) ->
-        @inputMethod.text "#{input}[#{candidateKeys.join('')}]"
-        return @
+        @head.show()
+        @title.show()
 
+    setType: ->
+        @title.attr 'class', 'text-' + @panel.type
 
-
-    # placeholder of the inputbox of query mode
-    setPlaceholder: (content) ->
-        content = _.escape content
+    setPlaceholder: ->
+        content = _.escape @panel.placeholder
         @inputBox[0].getModel().placeholderText = content
-        return @
 
-    clearContent: ->
+    setContent: ->
+        content = @panel.content.map (s) => _.escape s
         @contentList.empty()
-        @body.hide()
-        return @
-
-    setContent: (content) ->
-        console.log content
-        content = content.map (s) => _.escape s
-        @clearContent()
 
         if content.length > 0
             @body.show()
+            @content.show()
             # some responses from Agda have 2 parts
             # we'll style these two parts differently
             index = content.indexOf('————————————————————————————————————————————————————————————')
@@ -144,13 +85,33 @@ class PanelView extends View
                     @contentList.append "<li class=\"list-item\">#{item}</li>"
         else
             @body.hide()
-        return @
 
-    appendContent: (content) ->
-        content = content.map (s) => _.escape s
+
+    activateInputMethod: ->
+        console.log @panel.inputMethodOn
+        if @panel.inputMethodOn
+            @title.hide()
+            @inputMethod.show()
+        else
+            @title.show()
+            @inputMethod.hide()
+
+
+    setInputMethod: ->
+        @inputMethod.text "#{@panel.inputMethod.input}[#{@panel.inputMethod.candidateKeys.join('')}]"
+
+
+    query: -> if @panel.queryOn
+        log 'Panel', 'querying ...'
+        @head.show()
         @body.show()
-        for item in content
-            @contentList.append "<li class: 'list-item'>#{item}</li>"
-        return @
+        @inputBox.show()
+        @inputBox.focus()
+        @on 'core:confirm', =>
+            log 'Panel', "queried string: #{@inputBox.getText()}"
+            @panel.queryString = @inputBox.getText().trim()
+            @inputBox.hide()
+
+
 
 module.exports = PanelView
