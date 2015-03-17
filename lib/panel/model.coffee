@@ -1,5 +1,5 @@
 {EventEmitter} = require 'events'
-
+Q = require 'Q'
 PanelView = require './view_'
 
 class PanelModel extends EventEmitter
@@ -9,5 +9,11 @@ class PanelModel extends EventEmitter
     placeholder: ''
 
     set: (@title = '', @content = [], @type = '', placeholder = '') ->
+
+    query: ->
+        promise = Q.Promise (resolve, reject, notify) =>
+            @on 'reply', (data) => resolve data
+        @emit 'query'
+        return promise
 
 module.exports = PanelModel

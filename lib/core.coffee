@@ -177,8 +177,8 @@ class Core extends EventEmitter
 
     normalize: -> if @loaded
         log 'Command', 'normalize'
-        # @panel.queryExpression().promise.then (expr) =>
-            # @executable.normalize expr
+        @panelModel.query().then (expr) =>
+            @executable.normalize expr
 
     inputSymbol: ->
         log 'Command', 'input-symbol'

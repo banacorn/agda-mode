@@ -28,11 +28,15 @@ class PanelView extends View
         log 'Panel', 'Setting Panel Model'
         Object.observe panel, (changes) => changes.forEach (change) =>
             switch change.name
-                when 'title'       then @setTitle       panel.title
-                when 'type'        then @setType        panel.type
-                when 'content'     then @setContent     panel.content
-                when 'placeholder' then @setPlaceholder panel.placeholder
+                when 'title'        then @setTitle       panel.title
+                when 'type'         then @setType        panel.type
+                when 'content'      then @setContent     panel.content
+                when 'placeholder'  then @setPlaceholder panel.placeholder
+                when 'query'        then @query()
         @hideAll()
+
+        panel.on 'query', => @query panel
+
 
     ############################################################################
 
@@ -85,17 +89,17 @@ class PanelView extends View
             @body.hide()
         return @
 
-    #
-    # query: ->
-    #     @switchMode QUERY, =>
-    #         @inputBox.focus()
-    #         @promise = Q.Promise (resolve, reject, notify) =>
-    #             # confirm
-    #             @on 'core:confirm', =>
-    #                 log 'Panel', "queried string: #{@inputBox.getText()}"
-    #                 @hide()
-    #                 resolve @inputBox.getText()
-    #     return @
+
+    query: (panel) ->
+        @head.show()
+        @body.show()
+        @inputBox.show()
+        @inputBox.focus()
+        @on 'core:confirm', =>
+            log 'Panel', "queried string: #{@inputBox.getText()}"
+            panel.emit 'reply', @inputBox.getText()
+            @inputBox.hide()
+
 
 
 module.exports = PanelView
