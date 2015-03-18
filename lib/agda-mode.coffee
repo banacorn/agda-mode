@@ -19,13 +19,13 @@ module.exports =
     instantiateCore: (editor) =>
 
         instantiate = =>
-            if isAgdaFile editor
+            if editor.core
+                editor.core.emit 'destroy'
+            else if isAgdaFile editor
                 editor.core = new Core editor
                 ev = editor.onDidDestroy =>
                     editor.core.emit 'destroy'
                     ev.dispose()
-            else if editor.core
-                editor.core.emit 'destroy'
         instantiate()
         editor.onDidChangePath => instantiate()
 

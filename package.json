@@ -10,8 +10,8 @@
     "atom": ">0.180.0"
   },
   "dependencies": {
-    "lodash": "^2.4.1",
-    "q": "^1.0.1",
+    "lodash": "^3.5.0",
+    "q": "^1.2.0",
     "atom-space-pen-views": "^2.0.4"
   }
 }
