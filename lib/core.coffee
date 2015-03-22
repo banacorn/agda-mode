@@ -65,12 +65,11 @@ class Core extends EventEmitter
         #########################
 
         # Executable
-        @executable.on 'info-action', (obj) =>
+        @executable.on 'info-action', (type, content) =>
             log 'Executable', '=> info-action'
-            content = obj.content
-            switch obj.type
+            switch type
                 when '*All Goals*'
-                    if obj.content.length > 0
+                    if content.length > 0
                         @panelModel.set 'Goals', content, 'info'
                     else
                         @panelModel.set 'No Goals', [], 'success'
@@ -91,26 +90,26 @@ class Core extends EventEmitter
                 when '*Auto*'
                     @panelModel.set 'Auto', ['No solution found']
 
-        @executable.on 'goals-action', (obj) =>
+        @executable.on 'goals-action', (goals) =>
             log 'Executable', '=> goals-action'
-            @textBuffer.goalsAction obj.goals
+            @textBuffer.goalsAction goals
 
-        @executable.on 'give-action', (obj) =>
+        @executable.on 'give-action', (goalIndex, content, parenthesis) =>
             log 'Executable', '=> give-action'
-            @textBuffer.giveAction obj.goalIndex, obj.content, obj.paran
+            @textBuffer.giveAction goalIndex, content, parenthesis
 
-        @executable.on 'make-case-action', (obj) =>
+        @executable.on 'make-case-action', (content) =>
             log 'Executable', '=> make-case-action'
-            @textBuffer.makeCaseAction obj.content
+            @textBuffer.makeCaseAction content
                 .then => @load()
 
-        @executable.on 'goto', (obj) =>
+        @executable.on 'goto', (filepath, position) =>
             log 'Executable', '=> goto'
-            @textBuffer.goto obj.filepath, obj.position
+            @textBuffer.goto filepath, position
 
-        @executable.on 'highlight-load-and-delete-action', (obj) =>
+        @executable.on 'highlight-load-and-delete-action', (filepath) =>
             log 'Executable', '=> highlight-load-and-delete-action'
-            @textBuffer.highlightLoadAndDelete obj.filepath
+            @textBuffer.highlightLoadAndDelete filepath
 
     ################
     #   Commands   #
