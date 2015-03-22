@@ -73,10 +73,10 @@ module.exports =
 # if end with ".agda"
 isAgdaFile = (editor) ->
     if editor
-        filePath = editor.getPath?()
+        filepath = editor.getPath?()
     else
-        filePath = atom.workspace.getActivePaneItem().getPath()
-    /\.agda$/.test filePath
+        filepath = atom.workspace.getActivePaneItem().getPath()
+    /\.agda$/.test filepath
 
 toCamalCase = (str) ->
     str

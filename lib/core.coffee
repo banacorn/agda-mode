@@ -22,9 +22,9 @@ class Core extends EventEmitter
         @inputMethod    = new InputMethod   @
 
         # initialize informations about this editor
-        @filePath = @editor.getPath()
+        @filepath = @editor.getPath()
 
-        log 'Core', 'initialized:', @filePath
+        log 'Core', 'initialized:', @filepath
 
 
         #############
@@ -50,13 +50,13 @@ class Core extends EventEmitter
         #####################
 
         @on 'activate', =>
-            log 'Core', 'activated:', @filePath
+            log 'Core', 'activated:', @filepath
             @panel.show()
         @on 'deactivate', =>
-            log 'Core', 'deactivated:', @filePath
+            log 'Core', 'deactivated:', @filepath
             @panel.hide()
         @on 'destroy', =>
-            log 'Core', 'destroyed:', @filePath
+            log 'Core', 'destroyed:', @filepath
             @quit()
 
 

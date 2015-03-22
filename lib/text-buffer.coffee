@@ -215,7 +215,7 @@ class TextBuffer extends EventEmitter
             goal.writeLines content
 
     goto: (filepath, charIndex) ->
-        if @core.filePath is filepath
+        if @core.filepath is filepath
             position = @core.editor.buffer.positionForCharacterIndex charIndex - 1
             @core.editor.setCursorBufferPosition position
             # scroll down a bit further, or it would be shadowed by the panel

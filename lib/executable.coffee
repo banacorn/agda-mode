@@ -91,20 +91,20 @@ class Executable extends EventEmitter
 
         if includeDir
             command = "IOTCM
-                \"#{@core.filePath}\"
+                \"#{@core.filepath}\"
                 NonInteractive
                 Indirect
                 ( Cmd_load
-                    \"#{@core.filePath}\"
+                    \"#{@core.filepath}\"
                     [\".\", \"#{includeDir}\"])\n"
             process.stdin.write command
         else
             command = "IOTCM
-                \"#{@core.filePath}\"
+                \"#{@core.filepath}\"
                 NonInteractive
                 Indirect
                 ( Cmd_load
-                    \"#{@core.filePath}\"
+                    \"#{@core.filepath}\"
                     [])\n"
             process.stdin.write command
 
@@ -125,19 +125,19 @@ class Executable extends EventEmitter
 
         if content
             command = "IOTCM
-                \"#{@core.filePath}\"
+                \"#{@core.filepath}\"
                 NonInteractive
                 Indirect
                 ( Cmd_give
                     #{goalIndex}
                     ( Range [Interval
                         (Pn
-                            (Just (mkAbsolute \"#{@core.filePath}\"))
+                            (Just (mkAbsolute \"#{@core.filepath}\"))
                             #{startIndex}
                             #{start.row + 1}
                             #{start.column + 1})
                         (Pn
-                            (Just (mkAbsolute \"#{@core.filePath}\"))
+                            (Just (mkAbsolute \"#{@core.filepath}\"))
                             #{endIndex}
                             #{end.row + 1}
                             #{end.column + 1})
@@ -147,24 +147,24 @@ class Executable extends EventEmitter
 
     goalType: (goal) -> @getProcess().then (process) =>
         index = goal.index
-        command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect ( Cmd_goal_type Simplified #{index} noRange \"\" )\n"
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect ( Cmd_goal_type Simplified #{index} noRange \"\" )\n"
         process.stdin.write command
 
     context: (goal) -> @getProcess().then (process) =>
         index = goal.index
-        command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect ( Cmd_context Simplified #{index} noRange \"\" )\n"
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect ( Cmd_context Simplified #{index} noRange \"\" )\n"
         process.stdin.write command
 
     goalTypeAndContext: (goal) -> @getProcess().then (process) =>
         goalIndex = goal.index
-        command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect ( Cmd_goal_type_context Simplified #{goalIndex} noRange \"\" )\n"
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context Simplified #{goalIndex} noRange \"\" )\n"
         process.stdin.write command
 
     goalTypeAndInferredType: (goal) -> @getProcess().then (process) =>
         goalIndex = goal.index
         content = escape goal.getContent()
         if content
-            command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{content}\" )\n"
+            command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{content}\" )\n"
             process.stdin.write command
 
     refine: (goal) -> @getProcess().then (process) =>
@@ -174,10 +174,10 @@ class Executable extends EventEmitter
         end = goal.getEnd()
         endIndex = goal.toIndex end
         content = escape goal.getContent()
-        command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect
           ( Cmd_refine_or_intro False #{goalIndex} (Range [Interval (Pn (Just
-           (mkAbsolute \"#{@core.filePath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
-           (Pn (Just (mkAbsolute \"#{@core.filePath}\")) #{endIndex} #{end.row + 1}
+           (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
+           (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
             #{end.column + 1})]) \"#{content}\" )\n"
         process.stdin.write command
 
@@ -188,10 +188,10 @@ class Executable extends EventEmitter
         end = goal.getEnd()
         endIndex = goal.toIndex end
         content = escape goal.getContent()
-        command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect
             ( Cmd_make_case #{goalIndex} (Range [Interval (Pn (Just
-            (mkAbsolute \"#{@core.filePath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
-            (Pn (Just (mkAbsolute \"#{@core.filePath}\")) #{endIndex} #{end.row + 1}
+            (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
+            (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
              #{end.column + 1})]) \"#{content}\" )\n"
         process.stdin.write command
 
@@ -202,15 +202,15 @@ class Executable extends EventEmitter
         end = goal.getEnd()
         endIndex = goal.toIndex end
         content = escape goal.getContent()
-        command = "IOTCM \"#{@core.filePath}\" NonInteractive Indirect
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect
             ( Cmd_auto #{goalIndex} (Range [Interval (Pn (Just
-            (mkAbsolute \"#{@core.filePath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
-            (Pn (Just (mkAbsolute \"#{@core.filePath}\")) #{endIndex} #{end.row + 1}
+            (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
+            (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
              #{end.column + 1})]) \"#{content}\" )\n"
         process.stdin.write command
 
     normalize: (content) -> @getProcess().then (process) =>
-        command = "IOTCM \"#{@core.filePath}\" None Indirect ( Cmd_compute_toplevel False \"#{content}\" )\n"
+        command = "IOTCM \"#{@core.filepath}\" None Indirect ( Cmd_compute_toplevel False \"#{content}\" )\n"
         process.stdin.write command
 
 
