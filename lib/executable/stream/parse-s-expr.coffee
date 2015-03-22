@@ -1,6 +1,8 @@
 {Transform} = require 'stream'
 lispToArray = require 'lisp-to-array'
 
+_ = require 'lodash'
+
 class ParseSExpr extends Transform
 
     constructor: ->
@@ -8,8 +10,35 @@ class ParseSExpr extends Transform
             objectMode: true
 
     _transform: (chunk, encoding, next) ->
-        @push lispToArray chunk
+        tokens = transform(lispToArray(preprocess(chunk)))
+        @push tokens
         next()
 
+preprocess = (chunk) ->
+    if chunk.startsWith '((last'
+        # drop wierd prefix like ((last . 1))
+        index = chunk.indexOf '(agda'
+        length = chunk.length
+        chunk = chunk.substring index, length - 1
+
+    # make it friendly to 'lisp-to-array' package
+    chunk = chunk.replace /'\(/g, '(__number__ '
+    chunk = chunk.replace /\("/g, '(__string__ "'
+    return chunk
+
+
+transform = (node) ->
+    if node instanceof Array
+        switch node[0]
+            when "`"           # "some string" -> ["`", "some string"]
+                return node[1]
+            when "__number__", "__string__"
+                node.shift()
+                return transform node
+            else
+                # keep traversing
+                return node.map (x) -> transform x
+    else
+        return node
 
 module.exports = ParseSExpr

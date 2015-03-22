@@ -71,8 +71,6 @@ class Executable extends EventEmitter
 
                 process.stdout
                     .pipe new Stream.Rectify
-                    # .pipe new Stream.Log
-                    .pipe new Stream.Preprocess
                     .pipe new Stream.ParseSExpr
                     .pipe new Stream.ParseCommand @
                 log 'Executable', 'process.stdout stream established'
