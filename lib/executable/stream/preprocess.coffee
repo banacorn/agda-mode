@@ -16,11 +16,11 @@ class Preprocess extends Transform
             length = chunk.length
             chunk = chunk.substring index, length - 1
 
-            chunk = chunk.replace /'\(/g, '(number '
-            chunk = chunk.replace /\("/g, '(string "'
+        chunk = chunk.replace /'\(/g, '(number '
+        chunk = chunk.replace /\("/g, '(string "'
 
-            @push chunk
+        @push chunk
 
-            next()
+        next()
 
 module.exports = Preprocess
