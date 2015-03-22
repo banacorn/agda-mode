@@ -4,40 +4,42 @@
 # "Agda2>" and newline as delimiter
 class Rectify extends Transform
 
-  constructor: ->
-    super
-      objectMode: true
+    constructor: ->
+        super
+            objectMode: true
 
-  _buffer: ''
+    _buffer: ''
+    _parentheseCount: 0
 
-  _transform: (chunk, encoding, next) ->
+    _transform: (chunk, encoding, next) ->
+        # console.log chunk.toString()
+        # helper functions from Haskell <3
+        drop = (n, str) -> str.substr n
+        take = (n, str) -> str.substr 0, n
+        min  = (a, b)   -> a < b ? a : b
 
-    # helper functions from Haskell <3
-    drop = (n, str) -> str.substr n
-    take = (n, str) -> str.substr 0, n
+        # strips "Agda2>" prefix
+        chunk = chunk.toString().replace('Agda2>', '')
 
-    # concat to buffer as String
-    @_buffer += chunk.toString()
+        # iterate through the chunk
+        # parentheseCount +1 when encountered a '('
+        # parentheseCount -1 when encountered a ')'
+        # @push when parentheseCount is 0
 
-    # rips "Agda2>"" prefix
-    if @_buffer.startsWith 'Agda2>'
-      @_buffer = take 6, @_buffer
+        cursorOnChunk = 0
+        for i in [0..chunk.length]
+            switch chunk.charAt i
+                when '('
+                    @_parentheseCount += 1
+                when ')'
+                    @_parentheseCount -= 1
+                    if @_parentheseCount is 0
+                        output = @_buffer + drop(cursorOnChunk, take(i + 1, chunk))
+                        @push output.trim()
+                        @_buffer = ''
+                        cursorOnChunk = i + 1
+        @_buffer += drop cursorOnChunk, chunk
+        next()
 
-    # "Agda2>" as delimeter
-    delimeterIndex = @_buffer.lastIndexOf 'Agda2>'
-    if delimeterIndex isnt -1
-
-      block = take delimeterIndex, @_buffer
-      # newline as delimeter
-      for string in block.split '\n'
-        # ignores empty newline
-        if string.length isnt 0
-          # trim space, the start and the end
-          string = string.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
-          @push string
-
-      @_buffer = drop (delimeterIndex + 6), @_buffer
-
-    next()
 
 module.exports = Rectify
