@@ -40,7 +40,7 @@ class ParseCommand extends Transform
                     else @executable.emit 'give-action', tokens[1], tokens[2], false
 
             when 'agda2-make-case-action'
-                @executable.emit 'make-case-action', content
+                @executable.emit 'make-case-action', tokens[1]
 
             #
             #   highlighting shit
