@@ -1,6 +1,5 @@
 {Transform} = require 'stream'
 lispToArray = require 'lisp-to-array'
-
 _ = require 'lodash'
 
 class ParseSExpr extends Transform
@@ -10,8 +9,7 @@ class ParseSExpr extends Transform
             objectMode: true
 
     _transform: (chunk, encoding, next) ->
-        tokens = transform(lispToArray(preprocess(chunk)))
-        @push tokens
+        @push postprocess(lispToArray(preprocess(chunk)))
         next()
 
 preprocess = (chunk) ->
@@ -26,18 +24,23 @@ preprocess = (chunk) ->
     chunk = chunk.replace /\("/g, '(__string__ "'
     return chunk
 
-
-transform = (node) ->
+# cosmetic surgery, recursively
+postprocess = (node) ->
     if node instanceof Array
         switch node[0]
-            when "`"           # "some string" -> ["`", "some string"]
+
+            when "`"
+                # ["`", "some string"] => "some string"
                 return node[1]
+
             when "__number__", "__string__"
+                # ["number", 1, 2, 3] => [1, 2, 3]
                 node.shift()
-                return transform node
+                return postprocess node
+                
             else
                 # keep traversing
-                return node.map (x) -> transform x
+                return node.map (x) -> postprocess x
     else
         return node
 
