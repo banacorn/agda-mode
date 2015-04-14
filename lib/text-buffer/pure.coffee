@@ -5,8 +5,14 @@
 #
 
 # regular expressions
-
-commentRegex = /(--[^\r\n]*[\r\n])|(\{-([^-]|[\r\n]|(-+([^-\}]|[\r\n])))*-+\})/
+commentRegex =
+    /// (?:
+        # single line comment
+        --[^\r\n]*[\r\n]
+    )|(
+        # multi line comment
+        \{-(?:[^-]|[\r\n]|(-+(?:[^-\}]|[\r\n])))*-+\}
+    )///
 goalBracketRegex = /(\{![^!\}]*!\})/
 goalQuestionMarkGroupRegex =
     /// (
