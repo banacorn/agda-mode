@@ -143,22 +143,25 @@ class Goal extends EventEmitter
     # replace and insert one or more lines of content at the goal
     # usage: spliting case
     writeLines: (contents) ->
-        contents = contents.join('\n') + '\n'
-        rows = @getRange().getRows()
 
-        # single row
+        rows = @getRange().getRows()
+        firstRowRange = @editor.getBuffer().rangeForRow rows[0]
+
+        # indent and join with \n
+        indentSpaces = @editor.getTextInBufferRange(firstRowRange).match(/^(\s)*/)[0]
+        contents = contents.map((s) -> indentSpaces + s).join('\n') + '\n'
+
+        # delete original rows
         if rows.length is 1
             [row] = rows
             @editor.getBuffer().deleteRow row
-            position = @editor.getBuffer().rangeForRow(row).start
-            @editor.getBuffer().insert position, contents
-
-        # multi row
         else
             [firstRow, ..., lastRow] = rows
             @editor.getBuffer().deleteRows firstRow, lastRow
-            position = @editor.getBuffer().rangeForRow(firstRow).start
-            @editor.getBuffer().insert position, contents
+
+        # insert case split content
+        position = firstRowRange.start
+        @editor.getBuffer().insert position, contents
 
 
 
