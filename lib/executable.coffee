@@ -1,6 +1,6 @@
 {EventEmitter} = require 'events'
 {spawn, exec} = require 'child_process'
-Q = require 'Q'
+Q = require 'q'
 {log, warn, error} = require './logger'
 
 

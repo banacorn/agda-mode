@@ -1,7 +1,7 @@
 {View, TextEditorView} = require 'atom-space-pen-views'
 {log, warn, error} = require '../logger'
 
-Q = require 'Q'
+Q = require 'q'
 _ = require 'lodash'
 
 class PanelView extends View

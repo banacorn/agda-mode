@@ -1,5 +1,5 @@
 {EventEmitter} = require 'events'
-Q = require 'Q'
+Q = require 'q'
 
 class PanelModel extends EventEmitter
 

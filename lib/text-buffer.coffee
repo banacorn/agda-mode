@@ -4,7 +4,7 @@ Goal = require './text-buffer/goal'
 fs = require 'fs'
 _ = require 'lodash'
 {Point, Range} = require 'atom'
-Q = require 'Q'
+Q = require 'q'
 {log, warn, error} = require './logger'
 
 class TextBuffer extends EventEmitter
