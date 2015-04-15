@@ -6,7 +6,7 @@
 
 # regular expressions
 commentRegex =
-    /// (?:
+    /// (
         # single line comment
         --[^\r\n]*[\r\n]
     )|(
