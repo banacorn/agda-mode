@@ -64,7 +64,7 @@ module.exports =
     # register keymap bindings and emit commands
     registerCommands: ->
         @commands.forEach (command) =>
-            atom.commands.add 'atom-text-editor[data-grammar="source agda"]', command, =>
+            atom.commands.add 'atom-text-editor', command, =>
                 if isAgdaFile()
                     editor = atom.workspace.getActivePaneItem()
                     editor.core[toCamalCase command]()
