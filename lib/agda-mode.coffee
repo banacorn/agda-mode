@@ -4,11 +4,24 @@ Core = require './core'
 
 module.exports =
 
-    configDefaults:
-        executablePath: ''
-        libraryPath: ''
-        logLevel: 0
-
+    config:
+        executablePath:
+            title: 'Agda Executable'
+            description: 'try "which agda" in your terminal to get the path'
+            type: 'string'
+            default: ''
+        libraryPath:
+            title: 'Libraries'
+            description: 'paths to include (such as agda-stdlib), eperate with comma'
+            type: 'array'
+            default: []
+            items:
+                type: 'string'
+        logLevel:
+            title: 'Log Level'
+            description: '0: error, 1: warn, 2: debug'
+            type: 'integer'
+            default: 0
 
     activate: (state) ->
         atom.workspace.observeTextEditors @instantiateCore

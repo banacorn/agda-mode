@@ -85,26 +85,21 @@ class Executable extends EventEmitter
         # force save before load, since we are sending filepath not content
         @core.textBuffer.saveBuffer()
 
-        includeDir = atom.config.get 'agda-mode.libraryPath'
+        # get library paths
+        libraryPaths = atom.config.get 'agda-mode.libraryPath'
+        log 'Executable', "loading #{libraryPaths}"
+        # current directory '.'
+        libraryPaths.unshift '.'
+        libraryPaths = libraryPaths.map((path) -> '\"' + path + '\"').join(', ')
 
-        if includeDir
-            command = "IOTCM
+        command = "IOTCM
                 \"#{@core.filepath}\"
                 NonInteractive
                 Indirect
                 ( Cmd_load
                     \"#{@core.filepath}\"
-                    [\".\", \"#{includeDir}\"])\n"
-            process.stdin.write command
-        else
-            command = "IOTCM
-                \"#{@core.filepath}\"
-                NonInteractive
-                Indirect
-                ( Cmd_load
-                    \"#{@core.filepath}\"
-                    [])\n"
-            process.stdin.write command
+                    [#{libraryPaths}])\n"
+        process.stdin.write command
 
         return process
 
