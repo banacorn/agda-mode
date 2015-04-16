@@ -33,12 +33,21 @@ module.exports =
 
         instantiate = =>
             if editor.core
+                # if the file is not .agda anymore,
+                # and there exists a core, then destroy it
                 editor.core.emit 'destroy'
             else if isAgdaFile editor
+
+                # add 'agda' class to the editor element
+                # so that keymaps and styles know what to select
+                editorElement = atom.views.getView editor
+                $(editorElement).addClass 'agda'
+
                 editor.core = new Core editor
                 ev = editor.onDidDestroy =>
                     editor.core.emit 'destroy'
                     ev.dispose()
+                    
         instantiate()
         editor.onDidChangePath => instantiate()
 
@@ -77,7 +86,7 @@ module.exports =
     # register keymap bindings and emit commands
     registerCommands: ->
         @commands.forEach (command) =>
-            atom.commands.add 'atom-text-editor', command, =>
+            atom.commands.add 'atom-text-editor.agda', command, =>
                 if isAgdaFile()
                     editor = atom.workspace.getActivePaneItem()
                     editor.core[toCamalCase command]()
