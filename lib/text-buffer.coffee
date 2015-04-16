@@ -1,5 +1,5 @@
 {EventEmitter} = require 'events'
-{resizeHoles, findHoles , digHoles} = require './text-buffer/pure'
+{resizeHoles, findHoles , digHoles} = require './text-buffer/hole'
 Goal = require './text-buffer/goal'
 fs = require 'fs'
 _ = require 'lodash'
