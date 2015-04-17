@@ -8,6 +8,7 @@ PanelModel  = require './panel/model'
 PanelView   = require './panel/view'
 TextBuffer  = require './text-buffer'
 InputMethod = require './input-method'
+Config      = require './config'
 
 class Core extends EventEmitter
 
@@ -20,6 +21,7 @@ class Core extends EventEmitter
         @panelModel     = new PanelModel    @
         @textBuffer     = new TextBuffer    @
         @inputMethod    = new InputMethod   @
+        @config         = new Config
 
         # initialize informations about this editor
         @filepath = @editor.getPath()
