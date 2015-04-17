@@ -111,6 +111,8 @@ class Core extends EventEmitter
             log 'Executable', '=> highlight-load-and-delete-action'
             @textBuffer.highlightLoadAndDelete filepath
 
+        @executable.on 'parse-error', (err) =>
+            error 'Executable', err
     ################
     #   Commands   #
     ################

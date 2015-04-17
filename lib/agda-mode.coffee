@@ -22,6 +22,11 @@ module.exports =
             description: '0: error, 1: warn, 2: debug'
             type: 'integer'
             default: 0
+        directHighlighting:
+            title: 'Direct Highlighting'
+            description: 'Receive the parsing result from Agda, directly from stdio, or indirectly from temporary files (which requires frequent disk access)'
+            type: 'boolean'
+            default: true
 
     activate: (state) ->
         atom.workspace.observeTextEditors @instantiateCore
@@ -47,7 +52,7 @@ module.exports =
                 ev = editor.onDidDestroy =>
                     editor.core.emit 'destroy'
                     ev.dispose()
-                    
+
         instantiate()
         editor.onDidChangePath => instantiate()
 
