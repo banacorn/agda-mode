@@ -59,9 +59,9 @@ class ParseCommand extends Transform
             #   Agda cannot read our input
             #
 
-            when 'cannot'
-                @executable.emit 'agda executable cannot read', JSON.stringify tokens
+            when 'agda2-parse-error'
+                @executable.emit 'parse-error', JSON.stringify tokens
             else
-                @executable.emit 'parser error', JSON.stringify tokens
+                @executable.emit 'what the fuck?', JSON.stringify tokens
         next()
 module.exports = ParseCommand

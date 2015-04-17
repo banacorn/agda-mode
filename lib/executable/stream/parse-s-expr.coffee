@@ -18,7 +18,10 @@ preprocess = (chunk) ->
         index = chunk.indexOf '(agda'
         length = chunk.length
         chunk = chunk.substring index, length - 1
-
+    if chunk.startsWith 'cannot read: '
+        # handles Agda parse error
+        chunk = chunk.substring 12
+        chunk = '(agda2-parse-error' + chunk + ')'
     # make it friendly to 'lisp-to-array' package
     chunk = chunk.replace /'\(/g, '(__number__ '
     chunk = chunk.replace /\("/g, '(__string__ "'
@@ -37,7 +40,7 @@ postprocess = (node) ->
                 # ["number", 1, 2, 3] => [1, 2, 3]
                 node.shift()
                 return postprocess node
-                
+
             else
                 # keep traversing
                 return node.map (x) -> postprocess x
