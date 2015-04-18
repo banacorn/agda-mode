@@ -1,5 +1,6 @@
 {EventEmitter} = require 'events'
 Q = require 'q'
+_ = require 'lodash'
 {log, warn, error} = require './logger'
 
 # Components
@@ -76,7 +77,19 @@ class Core extends EventEmitter
                     else
                         @panelModel.set 'No Goals', [], 'success'
                 when '*Error*'
-                    @panelModel.set 'Error', content, 'error'
+
+                    # the first line with !=< we want to do cosmetic surgery with, -1 if not found
+                    index = _.findIndex(content, (line) -> /!=</.test line)
+
+                    if not @config.rawOutput() and index isnt -1
+                        pre       = _.take content, index
+                        expecting = 'expecting: ' + content[index].split(/!=</)[1]
+                        got       = '      got: ' + content[index].split(/!=</)[0]
+                        post      = _.drop content, index + 1
+                        result = pre.concat([expecting, got]).concat(post)
+                        @panelModel.set 'Error', result, 'error'
+                    else
+                        @panelModel.set 'Error', content, 'error'
                 when '*Type-checking*'
                     @panelModel.set 'Type Checking', content
                 when '*Current Goal*'

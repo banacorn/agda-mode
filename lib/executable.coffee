@@ -83,7 +83,6 @@ class Executable extends EventEmitter
     load: -> @getProcess().then (process) =>
         # force save before load, since we are sending filepath not content
         @core.textBuffer.saveBuffer()
-        console.log @core.config.directHighlighting()
         command = "IOTCM
                 \"#{@core.filepath}\"
                 NonInteractive
