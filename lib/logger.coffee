@@ -7,16 +7,10 @@
 #           1   warn
 #           2   debug
 #
-#   display log when level <= @level
+#   display log when level <= atom.config.get 'agda-mode.logLevel'
 
 
 class Logger extends EventEmitter
-    level: atom.config.get 'agda-mode.logLevel'
-
-    constructor: ->
-        atom.subscribe atom.config.observe 'agda-mode.logLevel', (newLevel) =>
-            @level = newLevel
-
     printMessage: (level) ->
         message = ''
         switch arguments.length
@@ -38,7 +32,7 @@ class Logger extends EventEmitter
                 message = "#{namespace}#{paddingSpace}#{content}#{paddingSpace2}#{filepath}"
             else throw "Logger: too few arguments"
 
-        if level <= @level
+        if level <= atom.config.get 'agda-mode.logLevel'
             switch level
                 when 0
                     console.error message

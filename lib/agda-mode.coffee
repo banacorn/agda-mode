@@ -4,11 +4,34 @@ Core = require './core'
 
 module.exports =
 
-    configDefaults:
-        executablePath: ''
-        libraryPath: ''
-        logLevel: 0
-
+    config:
+        executablePath:
+            title: 'Agda Executable'
+            description: 'try "which agda" in your terminal to get the path'
+            type: 'string'
+            default: ''
+        libraryPath:
+            title: 'Libraries'
+            description: 'paths to include (such as agda-stdlib), eperate with comma'
+            type: 'array'
+            default: []
+            items:
+                type: 'string'
+        logLevel:
+            title: 'Log Level'
+            description: '0: error, 1: warn, 2: debug'
+            type: 'integer'
+            default: 0
+        directHighlighting:
+            title: 'Direct Highlighting'
+            description: 'Receive the parsing result from Agda, directly from stdio, or indirectly from temporary files (which requires frequent disk access)'
+            type: 'boolean'
+            default: true
+        rawOutput:
+            title: 'Raw Output'
+            description: 'no cosmetic surgery on some message such as "ℕ → ℕ → ℕ !=< ℕ of type Set"'
+            type: 'boolean'
+            default: false
 
     activate: (state) ->
         atom.workspace.observeTextEditors @instantiateCore
@@ -19,13 +42,27 @@ module.exports =
     instantiateCore: (editor) =>
 
         instantiate = =>
+
+            editorElement = atom.views.getView editor
+
             if editor.core
-                editor.core.emit 'destroy'
+                # if the file is not .agda anymore,
+                # and there exists a core, then destroy it
+                editor.core.destroy()
+                $(editorElement).removeClass 'agda'
+
             else if isAgdaFile editor
+
+                # add 'agda' class to the editor element
+                # so that keymaps and styles know what to select
+
+                $(editorElement).addClass 'agda'
+
                 editor.core = new Core editor
                 ev = editor.onDidDestroy =>
-                    editor.core.emit 'destroy'
+                    editor.core.destroy()
                     ev.dispose()
+
         instantiate()
         editor.onDidChangePath => instantiate()
 
@@ -64,7 +101,7 @@ module.exports =
     # register keymap bindings and emit commands
     registerCommands: ->
         @commands.forEach (command) =>
-            atom.commands.add 'atom-text-editor', command, =>
+            atom.commands.add 'atom-text-editor.agda', command, =>
                 if isAgdaFile()
                     editor = atom.workspace.getActivePaneItem()
                     editor.core[toCamalCase command]()

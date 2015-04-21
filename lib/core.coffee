@@ -1,5 +1,6 @@
 {EventEmitter} = require 'events'
 Q = require 'q'
+_ = require 'lodash'
 {log, warn, error} = require './logger'
 
 # Components
@@ -8,6 +9,7 @@ PanelModel  = require './panel/model'
 PanelView   = require './panel/view'
 TextBuffer  = require './text-buffer'
 InputMethod = require './input-method'
+Config      = require './config'
 
 class Core extends EventEmitter
 
@@ -20,6 +22,7 @@ class Core extends EventEmitter
         @panelModel     = new PanelModel    @
         @textBuffer     = new TextBuffer    @
         @inputMethod    = new InputMethod   @
+        @config         = new Config
 
         # initialize informations about this editor
         @filepath = @editor.getPath()
@@ -45,20 +48,6 @@ class Core extends EventEmitter
 
 
 
-        #####################
-        #   Editor Events   #
-        #####################
-
-        @on 'activate', =>
-            log 'Core', 'activated:', @filepath
-            @panel.show()
-        @on 'deactivate', =>
-            log 'Core', 'deactivated:', @filepath
-            @panel.hide()
-        @on 'destroy', =>
-            log 'Core', 'destroyed:', @filepath
-            @quit()
-
 
         #########################
         #   Components Events   #
@@ -74,7 +63,19 @@ class Core extends EventEmitter
                     else
                         @panelModel.set 'No Goals', [], 'success'
                 when '*Error*'
-                    @panelModel.set 'Error', content, 'error'
+
+                    # the first line with !=< we want to do cosmetic surgery with, -1 if not found
+                    index = _.findIndex(content, (line) -> /!=</.test line)
+
+                    if not @config.rawOutput() and index isnt -1
+                        pre       = _.take content, index
+                        expecting = 'expecting: ' + content[index].split(/!=</)[1]
+                        got       = '      got: ' + content[index].split(/!=</)[0]
+                        post      = _.drop content, index + 1
+                        result = pre.concat([expecting, got]).concat(post)
+                        @panelModel.set 'Error', result, 'error'
+                    else
+                        @panelModel.set 'Error', content, 'error'
                 when '*Type-checking*'
                     @panelModel.set 'Type Checking', content
                 when '*Current Goal*'
@@ -110,6 +111,25 @@ class Core extends EventEmitter
         @executable.on 'highlight-load-and-delete-action', (filepath) =>
             log 'Executable', '=> highlight-load-and-delete-action'
             @textBuffer.highlightLoadAndDelete filepath
+
+        @executable.on 'parse-error', (err) =>
+            error 'Executable', err
+
+    #####################
+    #   Editor Events   #
+    #####################
+
+    activate: ->
+        log 'Core', 'activated:', @filepath
+        @panel.show()
+    deactivate: ->
+        log 'Core', 'deactivated:', @filepath
+        @panel.hide()
+    destroy: ->
+        log 'Core', 'destroyed:', @filepath
+        @quit()
+
+
 
     ################
     #   Commands   #

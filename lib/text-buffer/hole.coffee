@@ -1,9 +1,3 @@
-{EventEmitter} = require 'events'
-
-#
-#   "Pure" in the sense of not having any interaction with the text buffer
-#
-
 # regular expressions
 commentRegex =
     /// (
@@ -64,7 +58,7 @@ class Lexer
         return @
 
 
-
+# return content and position of holes
 findHoles = (text) ->
     tokens = new Lexer text
         .lex commentRegex, 'raw', 'comment'

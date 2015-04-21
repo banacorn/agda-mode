@@ -44,7 +44,7 @@ class Executable extends EventEmitter
 
     # get executable path from config, query the user if failed
     getExecutablePath: ->
-        path = atom.config.get 'agda-mode.executablePath'
+        path = @core.config.executablePath()
         @validateExecutablePath path
             .then (path) => path
             .fail        => @queryExecutablePathUntilSuccess()
@@ -81,30 +81,16 @@ class Executable extends EventEmitter
     ################
 
     load: -> @getProcess().then (process) =>
-
         # force save before load, since we are sending filepath not content
         @core.textBuffer.saveBuffer()
-
-        includeDir = atom.config.get 'agda-mode.libraryPath'
-
-        if includeDir
-            command = "IOTCM
+        command = "IOTCM
                 \"#{@core.filepath}\"
                 NonInteractive
-                Indirect
+                #{@core.config.directHighlighting()}
                 ( Cmd_load
                     \"#{@core.filepath}\"
-                    [\".\", \"#{includeDir}\"])\n"
-            process.stdin.write command
-        else
-            command = "IOTCM
-                \"#{@core.filepath}\"
-                NonInteractive
-                Indirect
-                ( Cmd_load
-                    \"#{@core.filepath}\"
-                    [])\n"
-            process.stdin.write command
+                    [#{@core.config.libraryPath()}])\n"
+        process.stdin.write command
 
         return process
 
@@ -125,7 +111,7 @@ class Executable extends EventEmitter
             command = "IOTCM
                 \"#{@core.filepath}\"
                 NonInteractive
-                Indirect
+                #{@core.config.directHighlighting()}
                 ( Cmd_give
                     #{goalIndex}
                     ( Range [Interval
@@ -145,24 +131,24 @@ class Executable extends EventEmitter
 
     goalType: (goal) -> @getProcess().then (process) =>
         index = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect ( Cmd_goal_type Simplified #{index} noRange \"\" )\n"
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type Simplified #{index} noRange \"\" )\n"
         process.stdin.write command
 
     context: (goal) -> @getProcess().then (process) =>
         index = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect ( Cmd_context Simplified #{index} noRange \"\" )\n"
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_context Simplified #{index} noRange \"\" )\n"
         process.stdin.write command
 
     goalTypeAndContext: (goal) -> @getProcess().then (process) =>
         goalIndex = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context Simplified #{goalIndex} noRange \"\" )\n"
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type_context Simplified #{goalIndex} noRange \"\" )\n"
         process.stdin.write command
 
     goalTypeAndInferredType: (goal) -> @getProcess().then (process) =>
         goalIndex = goal.index
         content = escape goal.getContent()
         if content
-            command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{content}\" )\n"
+            command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{content}\" )\n"
             process.stdin.write command
 
     refine: (goal) -> @getProcess().then (process) =>
@@ -172,7 +158,7 @@ class Executable extends EventEmitter
         end = goal.getEnd()
         endIndex = goal.toIndex end
         content = escape goal.getContent()
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
           ( Cmd_refine_or_intro False #{goalIndex} (Range [Interval (Pn (Just
            (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
            (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
@@ -186,7 +172,7 @@ class Executable extends EventEmitter
         end = goal.getEnd()
         endIndex = goal.toIndex end
         content = escape goal.getContent()
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
             ( Cmd_make_case #{goalIndex} (Range [Interval (Pn (Just
             (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
             (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
@@ -200,7 +186,7 @@ class Executable extends EventEmitter
         end = goal.getEnd()
         endIndex = goal.toIndex end
         content = escape goal.getContent()
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive Indirect
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
             ( Cmd_auto #{goalIndex} (Range [Interval (Pn (Just
             (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
             (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
@@ -208,7 +194,7 @@ class Executable extends EventEmitter
         process.stdin.write command
 
     normalize: (content) -> @getProcess().then (process) =>
-        command = "IOTCM \"#{@core.filepath}\" None Indirect ( Cmd_compute_toplevel False \"#{content}\" )\n"
+        command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_compute_toplevel False \"#{content}\" )\n"
         process.stdin.write command
 
 
