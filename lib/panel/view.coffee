@@ -111,7 +111,6 @@ class PanelView extends View
             log 'Panel', "queried string: #{@inputBox.getText()}"
             @panel.queryString = @inputBox.getText().trim()
             @inputBox.hide()
-
-
+            @panel.queryOn = false
 
 module.exports = PanelView

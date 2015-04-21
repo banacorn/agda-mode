@@ -30,8 +30,7 @@ class PanelModel extends EventEmitter
         @queryOn = true
         Q.Promise (resolve, reject, notify) =>
             Object.observe @, (changes) => changes.forEach (change) =>
-                if change.name is 'queryString'
+                if change.name is 'queryOn'
                     resolve @queryString
-                    @queryOn = false
 
 module.exports = PanelModel
