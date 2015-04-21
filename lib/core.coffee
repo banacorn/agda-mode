@@ -48,20 +48,6 @@ class Core extends EventEmitter
 
 
 
-        #####################
-        #   Editor Events   #
-        #####################
-
-        @on 'activate', =>
-            log 'Core', 'activated:', @filepath
-            @panel.show()
-        @on 'deactivate', =>
-            log 'Core', 'deactivated:', @filepath
-            @panel.hide()
-        @on 'destroy', =>
-            log 'Core', 'destroyed:', @filepath
-            @quit()
-
 
         #########################
         #   Components Events   #
@@ -128,6 +114,23 @@ class Core extends EventEmitter
 
         @executable.on 'parse-error', (err) =>
             error 'Executable', err
+
+    #####################
+    #   Editor Events   #
+    #####################
+
+    activate: ->
+        log 'Core', 'activated:', @filepath
+        @panel.show()
+    deactivate: ->
+        log 'Core', 'deactivated:', @filepath
+        @panel.hide()
+    destroy: ->
+        log 'Core', 'destroyed:', @filepath
+        @quit()
+
+
+
     ################
     #   Commands   #
     ################

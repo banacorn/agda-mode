@@ -42,20 +42,25 @@ module.exports =
     instantiateCore: (editor) =>
 
         instantiate = =>
+
+            editorElement = atom.views.getView editor
+
             if editor.core
                 # if the file is not .agda anymore,
                 # and there exists a core, then destroy it
-                editor.core.emit 'destroy'
+                editor.core.destroy()
+                $(editorElement).removeClass 'agda'
+
             else if isAgdaFile editor
 
                 # add 'agda' class to the editor element
                 # so that keymaps and styles know what to select
-                editorElement = atom.views.getView editor
+
                 $(editorElement).addClass 'agda'
 
                 editor.core = new Core editor
                 ev = editor.onDidDestroy =>
-                    editor.core.emit 'destroy'
+                    editor.core.destroy()
                     ev.dispose()
 
         instantiate()
