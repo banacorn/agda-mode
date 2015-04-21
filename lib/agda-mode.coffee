@@ -73,8 +73,8 @@ module.exports =
             current = currentEditor?.getPath?()
             next = nextEditor?.getPath?()
             if next isnt current
-                currentEditor?.core?.emit 'deactivate'
-                nextEditor?.core?.emit 'activate'
+                currentEditor?.core?.deactivate()
+                nextEditor?.core?.activate()
                 currentEditor = nextEditor
                 log 'Editor', "#{current} => #{next}"
 
