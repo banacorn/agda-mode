@@ -3,7 +3,7 @@
   "main": "./lib/agda-mode",
   "version": "0.2.17",
   "description": "agda-mode for Atom",
-  "activationEvents": [],
+  "activationCommands": [],
   "repository": "https://github.com/banacorn/agda-mode",
   "license": "MIT",
   "engines": {
