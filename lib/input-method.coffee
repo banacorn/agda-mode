@@ -209,9 +209,9 @@ class InputMethodDecorator extends View
             @resize range
 
     resize: (range) ->
-
-        topLeft   = @core.editor.pixelPositionForBufferPosition range.start
-        downRight = @core.editor.pixelPositionForBufferPosition range.end
+        editorElement = atom.views.getView @core.editor
+        topLeft   = editorElement.pixelPositionForBufferPosition range.start
+        downRight = editorElement.pixelPositionForBufferPosition range.end
         length = range.end.column - range.start.column
 
         @css
