@@ -25,6 +25,7 @@ preprocess = (chunk) ->
     # make it friendly to 'lisp-to-array' package
     chunk = chunk.replace /'\(/g, '(__number__ '
     chunk = chunk.replace /\("/g, '(__string__ "'
+    chunk = chunk.replace /\(\)/g, '(error)'
     return chunk
 
 # cosmetic surgery, recursively
