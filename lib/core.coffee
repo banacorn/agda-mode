@@ -1,6 +1,7 @@
 {EventEmitter} = require 'events'
 Q = require 'q'
 _ = require 'lodash'
+{$} = require 'atom-space-pen-views'
 {log, warn, error} = require './logger'
 
 # Components
@@ -34,17 +35,17 @@ class Core extends EventEmitter
         #   Views   #
         #############
 
-        # register
-        atom.views.addViewProvider
-            modelConstructor: PanelModel
-            viewConstructor: PanelView
+        # register panel view, fuck Atom's everchanging always outdated documentation
+        atom.views.addViewProvider PanelModel, (model) =>
+            view = new PanelView
+            view.setModel model
+            return $(view).get(0)
 
         # instantiate
         @panel = atom.workspace.addBottomPanel
             item: atom.views.getView @panelModel
             visible: false
             className: 'agda-panel'
-
 
 
 

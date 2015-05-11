@@ -61,7 +61,7 @@ class InputMethod extends EventEmitter
 
             # monitors raw text buffer and figures out what happend
             @textBufferMarker = @core.editor.markBufferRange(new Range @startPosition, @startPosition)
-            @textBufferMarker.on 'changed', @dispatchEvent
+            @textBufferMarker.onDidChange @dispatchEvent
 
             # insert '\' at the cursor
             @updateOutputBuffer '\\'
