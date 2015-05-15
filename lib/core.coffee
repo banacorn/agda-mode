@@ -68,7 +68,7 @@ class Core extends EventEmitter
                     # the first line with !=< we want to do cosmetic surgery with, -1 if not found
                     index = _.findIndex(content, (line) -> /!=</.test line)
 
-                    if not @config.rawOutput() and index isnt -1
+                    if not @config.improveMessage() and index isnt -1
                         pre       = _.take content, index
                         expecting = 'expecting: ' + content[index].split(/!=</)[1]
                         got       = '      got: ' + content[index].split(/!=</)[0]

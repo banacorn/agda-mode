@@ -27,8 +27,8 @@ module.exports =
             description: 'Receive the parsing result from Agda, directly from stdio, or indirectly from temporary files (which requires frequent disk access)'
             type: 'boolean'
             default: true
-        rawOutput:
-            title: 'Raw Output'
+        improveMessage:
+            title: 'Improve Message'
             description: 'no cosmetic surgery on some message such as "ℕ → ℕ → ℕ !=< ℕ of type Set"'
             type: 'boolean'
             default: false
