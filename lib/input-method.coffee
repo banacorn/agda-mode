@@ -15,16 +15,12 @@ class InputMethod extends EventEmitter
     inputBuffer: ''
     # synchonize with the text buffer
     outputBuffer: ''
-    # mark the starting position of the input buffer when activated
-    startPosition: null
+    # visual marker
+    textBufferMarker: null
 
     @trie: require './input-method/keymap.js'
 
     constructor: (@core) ->
-
-        # passes InputMethod to the Decorator
-        # the Decorator listens to 'resize' of InputMethod
-        @decorator = new InputMethodDecorator @core, @
 
         @on 'deactivate', (range) =>
             log 'IM', "deactivate #{range}"
@@ -50,18 +46,21 @@ class InputMethod extends EventEmitter
     activate: ->
         if not @activated
 
-
             # initializations
             log 'IM', 'activated'
-            @startPosition = @core.editor.getCursorBufferPosition()
             @inputBuffer = ''
             @outputBuffer = ''
-            @decorator.show()
             @activated = true
 
             # monitors raw text buffer and figures out what happend
-            @textBufferMarker = @core.editor.markBufferRange(new Range @startPosition, @startPosition)
+            startPosition = @core.editor.getCursorBufferPosition()
+            @textBufferMarker = @core.editor.markBufferRange(new Range startPosition, startPosition)
             @textBufferMarker.onDidChange @dispatchEvent
+
+            # decoration
+            @decoration = @core.editor.decorateMarker @textBufferMarker,
+                type: 'highlight'
+                class: 'agda-input-method'
 
             # insert '\' at the cursor
             @updateOutputBuffer '\\'
@@ -81,8 +80,8 @@ class InputMethod extends EventEmitter
         if @activated
             log 'IM', 'deactivated'
             @core.panelModel.inputMethodOn = false
-            @decorator.hide()
             @textBufferMarker.destroy()
+            @decoration.destroy()
             @activated = false
 
     ##################
@@ -96,11 +95,8 @@ class InputMethod extends EventEmitter
 
     dispatchEvent: (ev) =>
 
-        # see if the text buffer's resized
-        range = new Range ev.newTailBufferPosition, ev.newHeadBufferPosition
+        range = @textBufferMarker.getBufferRange()
         textBuffer = @core.editor.getBuffer().getTextInRange range
-        if @getRange().compare range isnt 0
-            @emit 'resize', range
 
         unless @mute
             if textBuffer.length is 0
@@ -121,15 +117,12 @@ class InputMethod extends EventEmitter
     ###   Text Buffer   ###
     #######################
 
-    getRange: ->
-        new Range(@startPosition, @startPosition.translate(new Point 0, @outputBuffer.length))
-
     updateOutputBuffer: (text) ->
 
         # update text buffer
         @muteEvent =>
-            @core.editor.getBuffer().delete @getRange()
-            @core.editor.getBuffer().insert @startPosition, text
+            @core.editor.getBuffer().delete @textBufferMarker.getBufferRange()
+            @core.editor.getBuffer().insert @textBufferMarker.getBufferRange().start, text
 
         # update output buffer
         @outputBuffer = text
@@ -194,31 +187,5 @@ class InputMethod extends EventEmitter
                 output: @outputBuffer
                 further: false
             }
-
-
-class InputMethodDecorator extends View
-
-    @content: -> @div outlet: 'decorator'
-
-    initialize: (@core, inputMethod) ->
-
-        atom.views.getView(@core.editor).__spacePenView.overlayer.append @
-        @addClass 'agda-input-method'
-
-        inputMethod.on 'resize', (range) =>
-            @resize range
-
-    resize: (range) ->
-        editorElement = atom.views.getView @core.editor
-        topLeft   = editorElement.pixelPositionForBufferPosition range.start
-        downRight = editorElement.pixelPositionForBufferPosition range.end
-        length = range.end.column - range.start.column
-
-        @css
-            top: topLeft.top
-            left: topLeft.left
-        @width downRight.left - topLeft.left
-        @text ' '.repeat length
-        @show()
 
 module.exports = InputMethod
