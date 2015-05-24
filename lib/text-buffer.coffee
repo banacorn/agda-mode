@@ -77,7 +77,7 @@ class TextBuffer extends EventEmitter
         @core.panelModel.set 'Out of goal', ['For this command, please place the cursor in a goal'], 'warning'
 
     warnCurrentGoalIfEmpty: (goal, warning) =>
-        content = goal.content
+        content = goal.getContent()
         isEmpty = content.replace(/\s/g, '').length is 0
         if isEmpty
             warn 'Text Buffer', 'empty content'
@@ -130,7 +130,7 @@ class TextBuffer extends EventEmitter
             @core.editor.setCursorBufferPosition previousGoal
 
     give: -> @getCurrentGoal().done (goal) =>
-            @warnCurrentGoalIfEmpty goal, 'Please type in the expression to give'
+            @warnCurrentGoalIfEmpty goal, 'Nothing to give'
             @core.executable.give goal
         , @warnOutOfGoal
 
@@ -147,7 +147,7 @@ class TextBuffer extends EventEmitter
         , @warnOutOfGoal
 
     goalTypeAndInferredType: -> @getCurrentGoal().done (goal) =>
-            @warnCurrentGoalIfEmpty goal, 'Please type in the expression to infer'
+            @warnCurrentGoalIfEmpty goal, 'Nothing to infer'
             @core.executable.goalTypeAndInferredType goal
         , @warnOutOfGoal
 
@@ -156,7 +156,7 @@ class TextBuffer extends EventEmitter
         , @warnOutOfGoal
 
     case: -> @getCurrentGoal().done (goal) =>
-            @warnCurrentGoalIfEmpty goal, 'Please type in the expression to make case'
+            @warnCurrentGoalIfEmpty goal, 'Nothing to make case'
             @core.executable.case goal
         , @warnOutOfGoal
 
@@ -190,7 +190,6 @@ class TextBuffer extends EventEmitter
 
             # if changed then modify text buffer
             if obj.content isnt obj.modifiedContent
-                # console.log "#{range} diff: #{diff} '#{obj.content}' '#{obj.modifiedContent}'"
                 @core.editor.setTextInBufferRange range , obj.modifiedContent
             return obj
 
