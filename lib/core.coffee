@@ -1,5 +1,6 @@
 {EventEmitter} = require 'events'
 Q = require 'q'
+Q.longStackSupport = true
 _ = require 'lodash'
 {$} = require 'atom-space-pen-views'
 {log, warn, error} = require './logger'

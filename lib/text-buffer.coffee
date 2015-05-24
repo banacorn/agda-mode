@@ -5,6 +5,7 @@ fs = require 'fs'
 _ = require 'lodash'
 {Point, Range} = require 'atom'
 Q = require 'q'
+Q.longStackSupport = true
 {log, warn, error} = require './logger'
 
 class TextBuffer extends EventEmitter
@@ -27,7 +28,7 @@ class TextBuffer extends EventEmitter
         result = callback()
         @getCurrentGoal position
             .then (goal) =>
-                newPosition = goal.translate goal.getStart(), 3
+                newPosition = goal.translate goal.range.start, 3
                 @core.editor.setCursorBufferPosition newPosition
             .fail =>
                 @core.editor.setCursorBufferPosition position
@@ -65,7 +66,7 @@ class TextBuffer extends EventEmitter
     getCurrentGoal: (cursor = @core.editor.getCursorBufferPosition()) =>
         Q.Promise (resolve, reject, notify) =>
             goals = @goals.filter (goal) =>
-                goal.getRange().containsPoint cursor
+                goal.range.containsPoint cursor
             if goals.length is 1
                 resolve goals[0]
             else
@@ -76,7 +77,7 @@ class TextBuffer extends EventEmitter
         @core.panelModel.set 'Out of goal', ['For this command, please place the cursor in a goal'], 'warning'
 
     warnCurrentGoalIfEmpty: (goal, warning) =>
-        content = goal.getContent()
+        content = goal.content
         isEmpty = content.replace(/\s/g, '').length is 0
         if isEmpty
             warn 'Text Buffer', 'empty content'
@@ -93,7 +94,7 @@ class TextBuffer extends EventEmitter
         nextGoal = null
 
         positions = @goals.map (goal) =>
-            start = goal.getStart()
+            start = goal.range.start
             goal.translate start, 3
 
         positions.forEach (position) =>
@@ -113,7 +114,7 @@ class TextBuffer extends EventEmitter
         previousGoal = null
 
         positions = @goals.map (goal) =>
-            start = goal.getStart()
+            start = goal.range.start
             goal.translate start, 3
 
         positions.forEach (position) =>

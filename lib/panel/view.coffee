@@ -2,6 +2,7 @@
 {log, warn, error} = require '../logger'
 
 Q = require 'q'
+Q.longStackSupport = true
 _ = require 'lodash'
 
 class PanelView extends View
