@@ -1,16 +1,19 @@
 {EventEmitter} = require 'events'
 {Point, Range} = require 'atom'
-HoleView = require './hole-view'
+{$, View} = require 'atom-space-pen-views'
 
-INTACT = 0
-DAMAGED = 1
-DESTROYED = 2
-
+class GoalIndexView extends View
+    @content: (editor, index) ->
+        @div class: 'agda-goal-index', index
+    initialize: (@editor, @index) ->
+        # adjust the position, outlet not functioning
+        element = $(@)[0]
+        element.style.left = (- @editor.getDefaultCharWidth() * 2) + 'px'
+        element.style.top  = (- @editor.getLineHeightInPixels()) + 'px'
 
 class Goal extends EventEmitter
 
     marker = null
-
     range = null
     content = null
 
@@ -24,68 +27,53 @@ class Goal extends EventEmitter
         @marker = @editor.markBufferRange @range
 
         # decoration
-        @decoration = @editor.decorateMarker @marker,
+        holeDecoration = @editor.decorateMarker @marker,
             type: 'highlight'
-            class: 'goal'
+            class: 'agda-goal'
 
+        indexDecoration = @editor.decorateMarker @marker,
+            type: 'overlay'
+            item: new GoalIndexView @editor, @index
+
+        # event
         @marker.onDidChange (event) =>
 
             newRange = @marker.getBufferRange()
-            {status, range} = @boundaryIntegrity()
 
-            switch status
-                when DESTROYED
-                    @destroy()
-                when DAMAGED
-                    @restoreBoundary()
-                when INTACT
-                    @range = range
-                    @content = @editor.getTextInRange range
-                    @marker.setBufferRange range
+            # boundary position
+            text  = @editor.getTextInRange newRange
+            left  = text.indexOf '{!'
+            right = text.lastIndexOf '!}'
 
-    # boundaryIntegrity :: IO (status, new range)
-    boundaryIntegrity: ->
+            # the entire goal got destroyed, so be it
+            if left is -1 and right is -1
+                @destroy()
 
-        newRange = @marker.getBufferRange()
-        text  = @editor.getTextInRange newRange
-        left  = text.indexOf '{!'
-        right = text.lastIndexOf '!}'
+            # partially damaged
+            else if left is -1 or right is -1
+                @restoreBoundary()
 
-        # the entire goal got destroyed, so be it
-        if left is -1 and right is -1
-            status: DESTROYED
-            range: null
+            # intact
+            else if left isnt -1 and right isnt -1
 
-        # partially damaged
-        else if left is -1 or right is -1
-            status: DAMAGED
-            range: null
+                # inner range
+                innerStart = @translate newRange.start, left
+                innerEnd   = @translate newRange.start, right + 2
+                innerRange = new Range innerStart, innerEnd
 
-        # intact
-        else if left isnt -1 and right isnt -1
-            start = @translate newRange.start, left
-            end   = @translate newRange.start, right + 2
-            return {
-                status: INTACT
-                range: new Range(start, end)
-            }
-        else
-            throw "WTF???"
+                # update states
+                @range = innerRange
+                @content = @editor.getTextInRange innerRange
+                @marker.setBufferRange innerRange
+
+            else
+                throw "WTF???"
+
+    destroy: ->
+        @marker.destroy()
 
     restoreBoundary: ->
         @editor.setTextInBufferRange @range, @content
-
-    getContent: ->
-        left = @translate @range.start, 2
-        right = @translate @range.end, -2
-        innerRange = new Range left, right
-        @editor.getTextInBufferRange(innerRange).trim()
-
-    setContent: (text) ->
-        left = @translate @range.start, 2
-        right = @translate @range.end, -2
-        innerRange = new Range left, right
-        @editor.setTextInBufferRange innerRange, text
 
     removeBoundary: ->
         @editor.setTextInBufferRange @range, @getContent()
@@ -111,16 +99,21 @@ class Goal extends EventEmitter
         position = firstRowRange.start
         @editor.getBuffer().insert position, contents
 
-    destroy: ->
-        @marker.destroy()
+    getContent: ->
+        left = @translate @range.start, 2
+        right = @translate @range.end, -2
+        innerRange = new Range left, right
+        @editor.getTextInBufferRange(innerRange).trim()
 
-    # toIndex :: Position -> Character Index
-    toIndex: (pos) -> @editor.getBuffer().characterIndexForPosition pos
+    setContent: (text) ->
+        left = @translate @range.start, 2
+        right = @translate @range.end, -2
+        innerRange = new Range left, right
+        @editor.setTextInBufferRange innerRange, text
 
-    # fromIndex :: Character Index -> Position
+    # helper functions
+    toIndex  : (pos) -> @editor.getBuffer().characterIndexForPosition pos
     fromIndex: (ind) -> @editor.getBuffer().positionForCharacterIndex ind
-
-    # respects character index
     translate: (pos, n) -> @fromIndex((@toIndex pos) + n)
 
 

@@ -4,36 +4,35 @@
 // for a full listing of what's available.
 @import "ui-variables";
 
-
 .agda-panel {
-  font-size: 125%;
-  .agda-panel-content {
-    max-height: 160px;  // at most 5 rows high
-    overflow: scroll;
-    li {
-      height: 32px;
-      line-height: 32px;
+    font-size: 125%;
+    .agda-panel-content {
+        max-height: @component-line-height * 5;  // at most 5 rows high
+        overflow: scroll;
+        li {
+            height: 32px;
+            line-height: 32px;
+        }
     }
-  }
 }
 
-ul[outlet="goalView"] {
-    margin: 0;
-}
+//
+// goal
+//
 
-  // display: block;
-  // background: #246;
-  // position: absolute;
-  // white-space: pre;
-  // text-align: right;
-.goal .region {
+.agda-goal .region {
     background: #246;
     color: orange;
 }
 
-.caption-item {
-  color: @text-color-highlight !important;
+.agda-goal-index {
+    color: orange;
+    position: relative;
 }
+
+//
+// input method
+//
 
 .agda-input-method .region {
     border-bottom: 2px dotted @text-color;
