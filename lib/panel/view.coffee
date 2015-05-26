@@ -2,6 +2,7 @@
 {log, warn, error} = require '../logger'
 
 Q = require 'q'
+Q.longStackSupport = true
 _ = require 'lodash'
 
 class PanelView extends View
@@ -88,7 +89,6 @@ class PanelView extends View
 
 
     activateInputMethod: ->
-        console.log @panel.inputMethodOn
         if @panel.inputMethodOn
             @title.hide()
             @inputMethod.show()
@@ -107,10 +107,11 @@ class PanelView extends View
         @body.show()
         @inputBox.show()
         @inputBox.focus()
-        @on 'core:confirm', =>
-            log 'Panel', "queried string: #{@inputBox.getText()}"
-            @panel.queryString = @inputBox.getText().trim()
-            @inputBox.hide()
-            @panel.queryOn = false
+        atom.commands.add 'atom-text-editor',
+            'core:confirm': =>
+                log 'Panel', "queried string: #{@inputBox.getText()}"
+                @panel.queryString = @inputBox.getText().trim()
+                @inputBox.hide()
+                @panel.queryOn = false
 
 module.exports = PanelView

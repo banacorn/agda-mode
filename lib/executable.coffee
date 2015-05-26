@@ -1,6 +1,7 @@
 {EventEmitter} = require 'events'
 {spawn, exec} = require 'child_process'
 Q = require 'q'
+Q.longStackSupport = true
 {log, warn, error} = require './logger'
 
 
@@ -101,9 +102,9 @@ class Executable extends EventEmitter
 
     give: (goal) -> @getProcess().then (process) =>
         goalIndex   = goal.index
-        start       = goal.getStart()
+        start       = goal.range.start
         startIndex  = goal.toIndex start
-        end         = goal.getEnd()
+        end         = goal.range.end
         endIndex    = goal.toIndex end
         content     = escape goal.getContent()
 
@@ -153,9 +154,9 @@ class Executable extends EventEmitter
 
     refine: (goal) -> @getProcess().then (process) =>
         goalIndex = goal.index
-        start = goal.getStart()
+        start = goal.range.start
         startIndex = goal.toIndex start
-        end = goal.getEnd()
+        end = goal.range.end
         endIndex = goal.toIndex end
         content = escape goal.getContent()
         command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
@@ -167,9 +168,9 @@ class Executable extends EventEmitter
 
     case: (goal) -> @getProcess().then (process) =>
         goalIndex = goal.index
-        start = goal.getStart()
+        start = goal.range.start
         startIndex = goal.toIndex start
-        end = goal.getEnd()
+        end = goal.range.end
         endIndex = goal.toIndex end
         content = escape goal.getContent()
         command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
@@ -181,9 +182,9 @@ class Executable extends EventEmitter
 
     auto: (goal) -> @getProcess().then (process) =>
         goalIndex = goal.index
-        start = goal.getStart()
+        start = goal.range.start
         startIndex = goal.toIndex start
-        end = goal.getEnd()
+        end = goal.range.end
         endIndex = goal.toIndex end
         content = escape goal.getContent()
         command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}

@@ -5,6 +5,7 @@ fs = require 'fs'
 _ = require 'lodash'
 {Point, Range} = require 'atom'
 Q = require 'q'
+Q.longStackSupport = true
 {log, warn, error} = require './logger'
 
 class TextBuffer extends EventEmitter
@@ -27,7 +28,7 @@ class TextBuffer extends EventEmitter
         result = callback()
         @getCurrentGoal position
             .then (goal) =>
-                newPosition = goal.translate goal.getStart(), 3
+                newPosition = goal.translate goal.range.start, 3
                 @core.editor.setCursorBufferPosition newPosition
             .fail =>
                 @core.editor.setCursorBufferPosition position
@@ -65,24 +66,22 @@ class TextBuffer extends EventEmitter
     getCurrentGoal: (cursor = @core.editor.getCursorBufferPosition()) =>
         Q.Promise (resolve, reject, notify) =>
             goals = @goals.filter (goal) =>
-                goal.getRange().containsPoint cursor
+                goal.range.containsPoint cursor
             if goals.length is 1
                 resolve goals[0]
             else
                 reject()
 
-    getCurrentGoalOrWarn: (cursor = @core.editor.getCursorBufferPosition()) ->
-        @getCurrentGoal cursor
-            .fail =>
-                warn 'Text Buffer', 'out of goal'
-                @core.panel.outputInfo 'For this command, please place the cursor in a goal'
+    warnOutOfGoal: =>
+        warn 'Text Buffer', 'out of goal'
+        @core.panelModel.set 'Out of goal', ['For this command, please place the cursor in a goal'], 'warning'
 
     warnCurrentGoalIfEmpty: (goal, warning) =>
         content = goal.getContent()
         isEmpty = content.replace(/\s/g, '').length is 0
         if isEmpty
             warn 'Text Buffer', 'empty content'
-            @core.panel.outputInfo warning
+            @core.panelModel.set 'No content', [warning], 'warning'
 
 
     ################
@@ -95,7 +94,7 @@ class TextBuffer extends EventEmitter
         nextGoal = null
 
         positions = @goals.map (goal) =>
-            start = goal.getStart()
+            start = goal.range.start
             goal.translate start, 3
 
         positions.forEach (position) =>
@@ -115,7 +114,7 @@ class TextBuffer extends EventEmitter
         previousGoal = null
 
         positions = @goals.map (goal) =>
-            start = goal.getStart()
+            start = goal.range.start
             goal.translate start, 3
 
         positions.forEach (position) =>
@@ -130,32 +129,40 @@ class TextBuffer extends EventEmitter
         if positions.length isnt 0
             @core.editor.setCursorBufferPosition previousGoal
 
-    give: -> @getCurrentGoalOrWarn().then (goal) =>
-        @warnCurrentGoalIfEmpty goal, 'Please type in the expression to give'
-        @core.executable.give goal
+    give: -> @getCurrentGoal().done (goal) =>
+            @warnCurrentGoalIfEmpty goal, 'Nothing to give'
+            @core.executable.give goal
+        , @warnOutOfGoal
 
-    goalType: -> @getCurrentGoalOrWarn().then (goal) =>
-        @core.executable.goalType goal
+    goalType: -> @getCurrentGoal().done (goal) =>
+            @core.executable.goalType goal
+        , @warnOutOfGoal
 
-    context: -> @getCurrentGoalOrWarn().then (goal) =>
-        @core.executable.context goal
+    context: -> @getCurrentGoal().done (goal) =>
+            @core.executable.context goal
+        , @warnOutOfGoal
 
-    goalTypeAndContext: -> @getCurrentGoalOrWarn().then (goal) =>
-        @core.executable.goalTypeAndContext goal
+    goalTypeAndContext: -> @getCurrentGoal().done (goal) =>
+            @core.executable.goalTypeAndContext goal
+        , @warnOutOfGoal
 
-    goalTypeAndInferredType: -> @getCurrentGoalOrWarn().then (goal) =>
-        @warnCurrentGoalIfEmpty goal, 'Please type in the expression to infer'
-        @core.executable.goalTypeAndInferredType goal
+    goalTypeAndInferredType: -> @getCurrentGoal().done (goal) =>
+            @warnCurrentGoalIfEmpty goal, 'Nothing to infer'
+            @core.executable.goalTypeAndInferredType goal
+        , @warnOutOfGoal
 
-    refine: -> @getCurrentGoalOrWarn().then (goal) =>
-        @core.executable.refine goal
+    refine: -> @getCurrentGoal().done (goal) =>
+            @core.executable.refine goal
+        , @warnOutOfGoal
 
-    case: -> @getCurrentGoalOrWarn().then (goal) =>
-        @warnCurrentGoalIfEmpty goal, 'Please type in the expression to make case'
-        @core.executable.case goal
+    case: -> @getCurrentGoal().done (goal) =>
+            @warnCurrentGoalIfEmpty goal, 'Nothing to make case'
+            @core.executable.case goal
+        , @warnOutOfGoal
 
-    auto: -> @getCurrentGoalOrWarn().then (goal) =>
-        @core.executable.auto goal
+    auto: -> @getCurrentGoal().done (goal) =>
+            @core.executable.auto goal
+        , @warnOutOfGoal
 
 
     ########################
@@ -183,7 +190,6 @@ class TextBuffer extends EventEmitter
 
             # if changed then modify text buffer
             if obj.content isnt obj.modifiedContent
-                # console.log "#{range} diff: #{diff} '#{obj.content}' '#{obj.modifiedContent}'"
                 @core.editor.setTextInBufferRange range , obj.modifiedContent
             return obj
 
@@ -211,8 +217,9 @@ class TextBuffer extends EventEmitter
         @removeGoal index
 
     makeCaseAction: (content) ->  @protectCursor =>
-        @getCurrentGoalOrWarn().then (goal) =>
-            goal.writeLines content
+         @getCurrentGoal().then (goal) =>
+                goal.writeLines content
+            , @warnOutOfGoal
 
     goto: (filepath, charIndex) ->
         if @core.filepath is filepath
