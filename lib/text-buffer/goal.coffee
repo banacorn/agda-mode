@@ -8,7 +8,8 @@ class GoalIndexView extends View
     initialize: (@editor, @index) ->
         # adjust the position, outlet not functioning
         element = $(@)[0]
-        element.style.left = (- @editor.getDefaultCharWidth() * 2) + 'px'
+        indexWidth = @index.toString().length
+        element.style.left = (- @editor.getDefaultCharWidth() * (indexWidth + 1)) + 'px'
         element.style.top  = (- @editor.getLineHeightInPixels()) + 'px'
 
 class Goal extends EventEmitter
@@ -17,7 +18,7 @@ class Goal extends EventEmitter
     range = null
     content = null
 
-    constructor: (@editor, @index, startIndex, endIndex) ->
+    constructor: (@editor, @index = '*', startIndex, endIndex) ->
 
         start = @fromIndex startIndex
         end   = @fromIndex endIndex

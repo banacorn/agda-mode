@@ -89,7 +89,6 @@ class PanelView extends View
 
 
     activateInputMethod: ->
-        console.log @panel.inputMethodOn
         if @panel.inputMethodOn
             @title.hide()
             @inputMethod.show()
