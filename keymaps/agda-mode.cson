@@ -23,3 +23,4 @@
   'ctrl-c ctrl-a': 'agda-mode:auto'
   'ctrl-c ctrl-n': 'agda-mode:normalize'
   '\\': 'agda-mode:input-symbol'
+  'alt-/': 'agda-mode:input-symbol'
