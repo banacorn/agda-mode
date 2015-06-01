@@ -7,7 +7,10 @@ Q.longStackSupport = true
 
 Stream = require './executable/stream'
 
-escape = (content) -> content.replace(/\n/g, '\\n')
+escape = (content) ->
+    content
+        .replace(/\n/g, '\\n')
+        .replace(/\"/g, '\\"')
 
 class Executable extends EventEmitter
 
