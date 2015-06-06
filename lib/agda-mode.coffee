@@ -101,6 +101,7 @@ module.exports =
         'agda-mode:goal-type'
         'agda-mode:goal-type-without-normalizing'
         'agda-mode:context'
+        'agda-mode:context-without-normalizing'
         'agda-mode:goal-type-and-context'
         'agda-mode:goal-type-and-inferred-type'
         'agda-mode:input-symbol'

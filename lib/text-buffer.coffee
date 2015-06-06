@@ -159,6 +159,10 @@ class TextBuffer extends EventEmitter
             @core.executable.context goal
         , @warnOutOfGoal
 
+    contextWithoutNormalizing: -> @getCurrentGoal().done (goal) =>
+            @core.executable.contextWithoutNormalizing goal
+        , @warnOutOfGoal
+
     goalTypeAndContext: -> @getCurrentGoal().done (goal) =>
             @core.executable.goalTypeAndContext goal
         , @warnOutOfGoal

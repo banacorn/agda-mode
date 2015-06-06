@@ -262,6 +262,10 @@ class Core extends EventEmitter
         log 'Command', 'context'
         @textBuffer.context()
 
+    contextWithoutNormalizing: -> if @loaded
+        log 'Command', 'context (without normalizing)'
+        @textBuffer.contextWithoutNormalizing()
+        
     goalTypeAndContext: -> if @loaded
         log 'Command', 'goal-type-and-context'
         @textBuffer.goalTypeAndContext()
