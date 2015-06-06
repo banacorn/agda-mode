@@ -21,6 +21,8 @@
     'ctrl-c        ctrl-d': 'agda-mode:infer-type'
     'ctrl-u ctrl-c ctrl-d': 'agda-mode:infer-type-normalized'
     'ctrl-c        ctrl-o': 'agda-mode:module-contents'
+    'ctrl-c        ctrl-n': 'agda-mode:compute-normal-form'
+    'ctrl-u ctrl-c ctrl-n': 'agda-mode:compute-normal-form-ignore-abstract'
 
     # Commands working in the context of a specific goal
     'ctrl-c ctrl-space': 'agda-mode:give'
@@ -31,6 +33,5 @@
     'ctrl-c ctrl-r': 'agda-mode:refine'
     'ctrl-c ctrl-c': 'agda-mode:case'
     'ctrl-c ctrl-a': 'agda-mode:auto'
-    'ctrl-c ctrl-n': 'agda-mode:normalize'
     '\\': 'agda-mode:input-symbol'
     'alt-/': 'agda-mode:input-symbol'

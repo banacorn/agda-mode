@@ -92,6 +92,8 @@ module.exports =
         'agda-mode:infer-type'
         'agda-mode:infer-type-normalized'
         'agda-mode:module-contents'
+        'agda-mode:compute-normal-form'
+        'agda-mode:compute-normal-form-ignore-abstract'
         'agda-mode:give'
         'agda-mode:goal-type'
         'agda-mode:context'
@@ -100,7 +102,6 @@ module.exports =
         'agda-mode:refine'
         'agda-mode:case'
         'agda-mode:auto'
-        'agda-mode:normalize'
         'agda-mode:input-symbol'
     ]
 

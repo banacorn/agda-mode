@@ -218,7 +218,21 @@ class Core extends EventEmitter
             @executable.moduleContents expr
             @textBuffer.focus()
 
+    computeNormalForm: -> if @loaded
+        log 'Command', 'normalize'
+        @panelModel.set 'Compute normal form', [], 'info'
+        @panelModel.placeholder = 'expression here'
+        @panelModel.query().then (expr) =>
+            @executable.computeNormalForm expr
+            @textBuffer.focus()
 
+    computeNormalFormIgnoreAbstract: -> if @loaded
+        log 'Command', 'normalize'
+        @panelModel.set 'Compute normal form (ignoring abstract)', [], 'info'
+        @panelModel.placeholder = 'expression here'
+        @panelModel.query().then (expr) =>
+            @executable.computeNormalFormIgnoreAbstract expr
+            @textBuffer.focus()
 
     give: -> if @loaded
         log 'Command', 'give'
@@ -252,13 +266,6 @@ class Core extends EventEmitter
         log 'Command', 'auto'
         @textBuffer.auto()
 
-    normalize: -> if @loaded
-        log 'Command', 'normalize'
-        @panelModel.set 'Normalize', [], 'info'
-        @panelModel.placeholder = 'expression here'
-        @panelModel.query().then (expr) =>
-            @executable.normalize expr
-            @textBuffer.focus()
 
     inputSymbol: ->
         log 'Command', 'input-symbol'

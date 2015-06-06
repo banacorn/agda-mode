@@ -138,6 +138,14 @@ class Executable extends EventEmitter
         command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_show_module_contents_toplevel Simplified \"#{content}\" )\n"
         process.stdin.write command
 
+    computeNormalForm: (content) -> @getProcess().then (process) =>
+        command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_compute_toplevel False \"#{content}\" )\n"
+        process.stdin.write command
+
+    computeNormalFormIgnoreAbstract: (content) -> @getProcess().then (process) =>
+        command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_compute_toplevel True \"#{content}\" )\n"
+        process.stdin.write command
+
     give: (goal) -> @getProcess().then (process) =>
         goalIndex   = goal.index
         start       = goal.range.start
@@ -231,10 +239,5 @@ class Executable extends EventEmitter
             (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
              #{end.column + 1})]) \"#{content}\" )\n"
         process.stdin.write command
-
-    normalize: (content) -> @getProcess().then (process) =>
-        command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_compute_toplevel False \"#{content}\" )\n"
-        process.stdin.write command
-
 
 module.exports = Executable
