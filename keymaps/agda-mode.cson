@@ -22,7 +22,7 @@
     'ctrl-u ctrl-c ctrl-d': 'agda-mode:infer-type-normalized'   # maybe goal-specific
     'ctrl-c        ctrl-o': 'agda-mode:module-contents'         # maybe goal-specific
     'ctrl-c        ctrl-n': 'agda-mode:compute-normal-form'     # maybe goal-specific
-    'ctrl-u ctrl-c ctrl-n': 'agda-mode:compute-normal-form-ignore-abstract'
+    'ctrl-u ctrl-c ctrl-n': 'agda-mode:compute-normal-form-ignore-abstract' # maybe goal-specific
 
     # Commands working in the context of a specific goal
     'ctrl-c        ctrl-space': 'agda-mode:give'

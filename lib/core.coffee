@@ -195,7 +195,7 @@ class Core extends EventEmitter
         log 'Command', 'infer type'
 
         @panelModel.set 'Infer type', [], 'info'
-        @panelModel.placeholder = 'expression here'
+        @panelModel.placeholder = 'expression to infer:'
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
@@ -210,7 +210,7 @@ class Core extends EventEmitter
         log 'Command', 'infer type (normalized)'
 
         @panelModel.set 'Infer type (normalized)', [], 'info'
-        @panelModel.placeholder = 'expression here'
+        @panelModel.placeholder = 'expression to infer:'
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
@@ -253,10 +253,16 @@ class Core extends EventEmitter
     computeNormalFormIgnoreAbstract: -> if @loaded
         log 'Command', 'normalize'
         @panelModel.set 'Compute normal form (ignoring abstract)', [], 'info'
-        @panelModel.placeholder = 'expression here'
+        @panelModel.placeholder = 'expression to normalize:'
         @panelModel.query().then (expr) =>
-            @executable.computeNormalFormIgnoreAbstract expr
-            @textBuffer.focus()
+            @textBuffer.getCurrentGoal().done (goal) =>
+                # goal-specific
+                @executable.computeNormalFormIgnoreAbstractGoalSpecific goal, expr
+                @textBuffer.focus()
+            , =>
+                # global command
+                @executable.computeNormalFormIgnoreAbstract expr
+                @textBuffer.focus()
 
     give: -> if @loaded
         log 'Command', 'give'

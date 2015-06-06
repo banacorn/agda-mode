@@ -166,6 +166,11 @@ class Executable extends EventEmitter
         command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_compute_toplevel True \"#{content}\" )\n"
         process.stdin.write command
 
+    computeNormalFormIgnoreAbstractGoalSpecific: (goal, content) -> @getProcess().then (process) =>
+        index = goal.index
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_compute True #{index} noRange \"#{content}\" )\n"
+        process.stdin.write command
+
     give: (goal) -> @getProcess().then (process) =>
         goalIndex   = goal.index
         start       = goal.range.start
