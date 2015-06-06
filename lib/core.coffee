@@ -82,6 +82,8 @@ class Core extends EventEmitter
                     @panelModel.set 'Type Checking', content
                 when '*Current Goal*'
                     @panelModel.set 'Current Goal', content
+                when '*Inferred Type*'
+                    @panelModel.set 'Inferred Type', content
                 when '*Context*'
                     @panelModel.set 'Context', content
                 when '*Goal type etc.*'
@@ -185,6 +187,15 @@ class Core extends EventEmitter
     previousGoal: -> if @loaded
         log 'Command', 'previous-goal'
         @textBuffer.previousGoal()
+
+    inferType: -> if @loaded
+        log 'Command', 'infer type'
+
+        @panelModel.set 'Infer Type', [], 'info'
+        @panelModel.placeholder = 'expression here'
+        @panelModel.query().then (expr) =>
+            @executable.inferType expr
+            @textBuffer.focus()
 
     give: -> if @loaded
         log 'Command', 'give'

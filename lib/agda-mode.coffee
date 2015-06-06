@@ -89,6 +89,7 @@ module.exports =
         'agda-mode:show-goals'
         'agda-mode:next-goal'
         'agda-mode:previous-goal'
+        'agda-mode:infer-type'
         'agda-mode:give'
         'agda-mode:goal-type'
         'agda-mode:context'
