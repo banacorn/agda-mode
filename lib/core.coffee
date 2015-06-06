@@ -308,6 +308,10 @@ class Core extends EventEmitter
         log 'Command', 'goal-type-inferred-type'
         @textBuffer.goalTypeAndInferredType()
 
+    goalTypeAndInferredTypeWithoutNormalizing: -> if @loaded
+        log 'Command', 'goal-type-inferred-type-without-normalizing'
+        @textBuffer.goalTypeAndInferredTypeWithoutNormalizing()
+
     inputSymbol: ->
         log 'Command', 'input-symbol'
         unless @loaded

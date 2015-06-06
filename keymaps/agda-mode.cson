@@ -35,6 +35,9 @@
     'ctrl-u ctrl-c ctrl-e': 'agda-mode:context-without-normalizing'
     'ctrl-c        ctrl-,': 'agda-mode:goal-type-and-context'
     'ctrl-u ctrl-c ctrl-,': 'agda-mode:goal-type-and-context-without-normalizing'
-    'ctrl-c ctrl-.': 'agda-mode:goal-type-and-inferred-type'
+    'ctrl-c        ctrl-.': 'agda-mode:goal-type-and-inferred-type'
+    'ctrl-u ctrl-c ctrl-.': 'agda-mode:goal-type-and-inferred-type-without-normalizing'
+
+    # invoke input method
     '\\': 'agda-mode:input-symbol'
     'alt-/': 'agda-mode:input-symbol'

@@ -176,6 +176,11 @@ class TextBuffer extends EventEmitter
             @core.executable.goalTypeAndInferredType goal
         , @warnOutOfGoal
 
+    goalTypeAndInferredTypeWithoutNormalizing: -> @getCurrentGoal().done (goal) =>
+            @warnCurrentGoalIfEmpty goal, 'Nothing to infer'
+            @core.executable.goalTypeAndInferredTypeWithoutNormalizing goal
+        , @warnOutOfGoal
+
 
     ########################
     #   Command Handlers   #
