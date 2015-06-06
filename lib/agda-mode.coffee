@@ -86,6 +86,7 @@ module.exports =
         'agda-mode:compile'
         'agda-mode:toggle-display-of-implicit-arguments'
         'agda-mode:show-constraints'
+        'agda-mode:show-goals'
         'agda-mode:next-goal'
         'agda-mode:previous-goal'
         'agda-mode:give'

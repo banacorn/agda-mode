@@ -174,6 +174,10 @@ class Core extends EventEmitter
         log 'Command', 'show constraints'
         @executable.showConstraints()
 
+    showGoals: ->  if @loaded
+        log 'Command', 'show goals'
+        @executable.showGoals()
+
     nextGoal: -> if @loaded
         log 'Command', 'next-goal'
         @textBuffer.nextGoal()
