@@ -130,12 +130,27 @@ class Executable extends EventEmitter
         command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_infer_toplevel Simplified \"#{content}\" )\n"
         process.stdin.write command
 
+    inferTypeGoalSpecific: (goal, content) -> @getProcess().then (process) =>
+        index = goal.index
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_infer Simplified #{index} noRange \"#{content}\" )\n"
+        process.stdin.write command
+
     inferTypeNormalized: (content) -> @getProcess().then (process) =>
         command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_infer_toplevel Instantiated \"#{content}\" )\n"
         process.stdin.write command
 
+    inferTypeNormalizedGoalSpecific: (goal, content) -> @getProcess().then (process) =>
+        index = goal.index
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_infer Instantiated #{index} noRange \"#{content}\" )\n"
+        process.stdin.write command
+
     moduleContents: (content) -> @getProcess().then (process) =>
         command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_show_module_contents_toplevel Simplified \"#{content}\" )\n"
+        process.stdin.write command
+
+    moduleContentsGoalSpecific: (goal, content) -> @getProcess().then (process) =>
+        index = goal.index
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_show_module_contents Simplified #{index} noRange \"#{content}\" )\n"
         process.stdin.write command
 
     computeNormalForm: (content) -> @getProcess().then (process) =>
@@ -236,16 +251,6 @@ class Executable extends EventEmitter
     contextWithoutNormalizing: (goal) -> @getProcess().then (process) =>
         index = goal.index
         command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_context Instantiated #{index} noRange \"\" )\n"
-        process.stdin.write command
-
-    inferTypeGoalSpecific: (goal, content) -> @getProcess().then (process) =>
-        index = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_infer Simplified #{index} noRange \"#{content}\" )\n"
-        process.stdin.write command
-
-    inferTypeNormalizedGoalSpecific: (goal, content) -> @getProcess().then (process) =>
-        index = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_infer Instantiated #{index} noRange \"#{content}\" )\n"
         process.stdin.write command
 
     goalTypeAndContext: (goal) -> @getProcess().then (process) =>

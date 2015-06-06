@@ -227,8 +227,14 @@ class Core extends EventEmitter
         @panelModel.set 'Module contents', [], 'info'
         @panelModel.placeholder = 'module name:'
         @panelModel.query().then (expr) =>
-            @executable.moduleContents expr
-            @textBuffer.focus()
+            @textBuffer.getCurrentGoal().done (goal) =>
+                # goal-specific
+                @executable.moduleContentsGoalSpecific goal, expr
+                @textBuffer.focus()
+            , =>
+                # global command
+                @executable.moduleContents expr
+                @textBuffer.focus()
 
     computeNormalForm: -> if @loaded
         log 'Command', 'normalize'
@@ -289,7 +295,6 @@ class Core extends EventEmitter
     goalTypeAndInferredType: -> if @loaded
         log 'Command', 'goal-type-inferred-type'
         @textBuffer.goalTypeAndInferredType()
-
 
     inputSymbol: ->
         log 'Command', 'input-symbol'
