@@ -93,6 +93,10 @@ class Core extends EventEmitter
                 when '*Auto*'
                     @panelModel.set 'Auto', ['No solution found']
 
+        @executable.on 'status-action', (content) =>
+            log 'Executable', '=> status-action'
+            @panelModel.set 'Status', content, 'info'
+
         @executable.on 'goals-action', (goals) =>
             log 'Executable', '=> goals-action'
             @textBuffer.goalsAction goals
@@ -159,6 +163,10 @@ class Core extends EventEmitter
     compile: -> if @loaded
         log 'Command', 'compile'
         @executable.compile()
+
+    toggleDisplayOfImplicitArguments: ->  if @loaded
+        log 'Command', 'toggle display of implicit arguments'
+        @executable.toggleDisplayOfImplicitArguments()
 
     nextGoal: -> if @loaded
         log 'Command', 'next-goal'

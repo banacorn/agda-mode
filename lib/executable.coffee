@@ -114,6 +114,10 @@ class Executable extends EventEmitter
                     [#{@core.config.libraryPath()}])\n"
         process.stdin.write command
 
+    toggleDisplayOfImplicitArguments: -> @getProcess().then (process) =>
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( ToggleImplicitArgs )\n"
+        process.stdin.write command
+
     give: (goal) -> @getProcess().then (process) =>
         goalIndex   = goal.index
         start       = goal.range.start

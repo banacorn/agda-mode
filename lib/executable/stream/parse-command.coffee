@@ -22,7 +22,7 @@ class ParseCommand extends Transform
                 if tokens.length is 1
                     @executable.emit 'status-action', []
                 else
-                    @executable.emit 'status-action', tokens[1]
+                    @executable.emit 'status-action', [tokens[1]]
 
             when 'agda2-goals-action'
                 @executable.emit 'goals-action', tokens[1]

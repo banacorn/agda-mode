@@ -81,9 +81,10 @@ module.exports =
 
     commands: [
         'agda-mode:load'
-        'agda-mode:compile'
         'agda-mode:quit'
         'agda-mode:restart'
+        'agda-mode:compile'
+        'agda-mode:toggle-display-of-implicit-arguments'
         'agda-mode:next-goal'
         'agda-mode:previous-goal'
         'agda-mode:give'

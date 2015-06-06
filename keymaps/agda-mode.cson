@@ -12,6 +12,7 @@
   'ctrl-c ctrl-x ctrl-q': 'agda-mode:quit'
   'ctrl-c ctrl-x ctrl-r': 'agda-mode:restart'
   'ctrl-c ctrl-x ctrl-c': 'agda-mode:compile'
+  'ctrl-c ctrl-x ctrl-h': 'agda-mode:toggle-display-of-implicit-arguments'
   'ctrl-c ctrl-f': 'agda-mode:next-goal'
   'ctrl-c ctrl-b': 'agda-mode:previous-goal'
   'ctrl-c ctrl-space': 'agda-mode:give'
