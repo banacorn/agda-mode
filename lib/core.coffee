@@ -239,10 +239,16 @@ class Core extends EventEmitter
     computeNormalForm: -> if @loaded
         log 'Command', 'normalize'
         @panelModel.set 'Compute normal form', [], 'info'
-        @panelModel.placeholder = 'expression here'
+        @panelModel.placeholder = 'expression to normalize:'
         @panelModel.query().then (expr) =>
-            @executable.computeNormalForm expr
-            @textBuffer.focus()
+            @textBuffer.getCurrentGoal().done (goal) =>
+                # goal-specific
+                @executable.computeNormalFormGoalSpecific goal, expr
+                @textBuffer.focus()
+            , =>
+                # global command
+                @executable.computeNormalForm expr
+                @textBuffer.focus()
 
     computeNormalFormIgnoreAbstract: -> if @loaded
         log 'Command', 'normalize'
