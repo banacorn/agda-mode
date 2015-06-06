@@ -191,10 +191,19 @@ class Core extends EventEmitter
     inferType: -> if @loaded
         log 'Command', 'infer type'
 
-        @panelModel.set 'Infer Type', [], 'info'
+        @panelModel.set 'Infer type', [], 'info'
         @panelModel.placeholder = 'expression here'
         @panelModel.query().then (expr) =>
             @executable.inferType expr
+            @textBuffer.focus()
+
+    inferTypeNormalized: -> if @loaded
+        log 'Command', 'infer type (normalized)'
+
+        @panelModel.set 'Infer type (normalized)', [], 'info'
+        @panelModel.placeholder = 'expression here'
+        @panelModel.query().then (expr) =>
+            @executable.inferTypeNormalized expr
             @textBuffer.focus()
 
     give: -> if @loaded
