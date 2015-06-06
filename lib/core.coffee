@@ -92,6 +92,8 @@ class Core extends EventEmitter
                     @panelModel.set 'Intro', ['No introduction forms found']
                 when '*Auto*'
                     @panelModel.set 'Auto', ['No solution found']
+                when '*Constraints*'
+                    @panelModel.set 'Constraints', content
 
         @executable.on 'status-action', (content) =>
             log 'Executable', '=> status-action'
@@ -167,6 +169,10 @@ class Core extends EventEmitter
     toggleDisplayOfImplicitArguments: ->  if @loaded
         log 'Command', 'toggle display of implicit arguments'
         @executable.toggleDisplayOfImplicitArguments()
+
+    showConstraints: ->  if @loaded
+        log 'Command', 'show constraints'
+        @executable.showConstraints()
 
     nextGoal: -> if @loaded
         log 'Command', 'next-goal'
