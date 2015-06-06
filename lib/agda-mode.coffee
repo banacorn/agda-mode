@@ -113,7 +113,7 @@ isAgdaFile = (editor) ->
         filepath = editor.getPath?()
     else
         filepath = atom.workspace.getActivePaneItem().getPath()
-    /\.agda$/.test filepath
+    /\.agda$|\.lagda$/.test filepath
 
 toCamalCase = (str) ->
     str
