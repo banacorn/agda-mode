@@ -253,6 +253,11 @@ class Executable extends EventEmitter
         command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type_context Simplified #{goalIndex} noRange \"\" )\n"
         process.stdin.write command
 
+    goalTypeAndContextWithoutNormalizing: (goal) -> @getProcess().then (process) =>
+        goalIndex = goal.index
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type_context Instantiated #{goalIndex} noRange \"\" )\n"
+        process.stdin.write command
+
     goalTypeAndInferredType: (goal) -> @getProcess().then (process) =>
         goalIndex = goal.index
         content = escape goal.getContent()
