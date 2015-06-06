@@ -19,7 +19,7 @@
     'ctrl-c        ctrl-f': 'agda-mode:next-goal'
     'ctrl-c        ctrl-b': 'agda-mode:previous-goal'
     'ctrl-c        ctrl-d': 'agda-mode:infer-type'              # maybe goal-specific
-    'ctrl-u ctrl-c ctrl-d': 'agda-mode:infer-type-normalized'
+    'ctrl-u ctrl-c ctrl-d': 'agda-mode:infer-type-normalized'   # maybe goal-specific
     'ctrl-c        ctrl-o': 'agda-mode:module-contents'
     'ctrl-c        ctrl-n': 'agda-mode:compute-normal-form'
     'ctrl-u ctrl-c ctrl-n': 'agda-mode:compute-normal-form-ignore-abstract'

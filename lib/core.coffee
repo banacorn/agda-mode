@@ -197,7 +197,6 @@ class Core extends EventEmitter
         @panelModel.set 'Infer type', [], 'info'
         @panelModel.placeholder = 'expression here'
         @panelModel.query().then (expr) =>
-
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
                 @executable.inferTypeGoalSpecific goal, expr
@@ -213,8 +212,14 @@ class Core extends EventEmitter
         @panelModel.set 'Infer type (normalized)', [], 'info'
         @panelModel.placeholder = 'expression here'
         @panelModel.query().then (expr) =>
-            @executable.inferTypeNormalized expr
-            @textBuffer.focus()
+            @textBuffer.getCurrentGoal().done (goal) =>
+                # goal-specific
+                @executable.inferTypeNormalizedGoalSpecific goal, expr
+                @textBuffer.focus()
+            , =>
+                # global command
+                @executable.inferTypeNormalized expr
+                @textBuffer.focus()
 
     moduleContents: -> if @loaded
         log 'Command', 'module contents'
