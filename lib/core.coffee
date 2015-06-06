@@ -84,6 +84,8 @@ class Core extends EventEmitter
                     @panelModel.set 'Current Goal', content
                 when '*Inferred Type*'
                     @panelModel.set 'Inferred Type', content
+                when '*Module contents*'
+                    @panelModel.set 'Module Contents', content
                 when '*Context*'
                     @panelModel.set 'Context', content
                 when '*Goal type etc.*'
@@ -99,7 +101,8 @@ class Core extends EventEmitter
 
         @executable.on 'status-action', (content) =>
             log 'Executable', '=> status-action'
-            @panelModel.set 'Status', content, 'info'
+            if content.length isnt 0
+                @panelModel.set 'Status', content, 'info'
 
         @executable.on 'goals-action', (goals) =>
             log 'Executable', '=> goals-action'
@@ -205,6 +208,17 @@ class Core extends EventEmitter
         @panelModel.query().then (expr) =>
             @executable.inferTypeNormalized expr
             @textBuffer.focus()
+
+    moduleContents: -> if @loaded
+        log 'Command', 'module contents'
+
+        @panelModel.set 'Module contents', [], 'info'
+        @panelModel.placeholder = 'module name:'
+        @panelModel.query().then (expr) =>
+            @executable.moduleContents expr
+            @textBuffer.focus()
+
+
 
     give: -> if @loaded
         log 'Command', 'give'

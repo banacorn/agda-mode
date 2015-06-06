@@ -91,6 +91,7 @@ module.exports =
         'agda-mode:previous-goal'
         'agda-mode:infer-type'
         'agda-mode:infer-type-normalized'
+        'agda-mode:module-contents'
         'agda-mode:give'
         'agda-mode:goal-type'
         'agda-mode:context'

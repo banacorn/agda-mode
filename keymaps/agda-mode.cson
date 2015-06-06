@@ -20,6 +20,8 @@
     'ctrl-c        ctrl-b': 'agda-mode:previous-goal'
     'ctrl-c        ctrl-d': 'agda-mode:infer-type'
     'ctrl-u ctrl-c ctrl-d': 'agda-mode:infer-type-normalized'
+    'ctrl-c        ctrl-o': 'agda-mode:module-contents'
+
     # Commands working in the context of a specific goal
     'ctrl-c ctrl-space': 'agda-mode:give'
     'ctrl-c ctrl-t': 'agda-mode:goal-type'
