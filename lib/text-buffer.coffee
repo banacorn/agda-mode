@@ -147,38 +147,21 @@ class TextBuffer extends EventEmitter
             @core.executable.case goal
         , @warnOutOfGoal
 
-    goalType: -> @getCurrentGoal().done (goal) =>
-            @core.executable.goalType goal
+    goalType: (normalize) -> @getCurrentGoal().done (goal) =>
+            @core.executable.goalType normalize, goal
         , @warnOutOfGoal
 
-    goalTypeWithoutNormalizing: -> @getCurrentGoal().done (goal) =>
-            @core.executable.goalTypeWithoutNormalizing goal
+    context: (normalize) -> @getCurrentGoal().done (goal) =>
+            @core.executable.context normalize, goal
         , @warnOutOfGoal
 
-    context: -> @getCurrentGoal().done (goal) =>
-            @core.executable.context goal
+    goalTypeAndContext: (normalize) -> @getCurrentGoal().done (goal) =>
+            @core.executable.goalTypeAndContext normalize, goal
         , @warnOutOfGoal
 
-    contextWithoutNormalizing: -> @getCurrentGoal().done (goal) =>
-            @core.executable.contextWithoutNormalizing goal
-        , @warnOutOfGoal
-
-    goalTypeAndContext: -> @getCurrentGoal().done (goal) =>
-            @core.executable.goalTypeAndContext goal
-        , @warnOutOfGoal
-
-    goalTypeAndContextWithoutNormalizing: -> @getCurrentGoal().done (goal) =>
-            @core.executable.goalTypeAndContextWithoutNormalizing goal
-        , @warnOutOfGoal
-
-    goalTypeAndInferredType: -> @getCurrentGoal().done (goal) =>
+    goalTypeAndInferredType: (normalize) -> @getCurrentGoal().done (goal) =>
             @warnCurrentGoalIfEmpty goal, 'Nothing to infer'
-            @core.executable.goalTypeAndInferredType goal
-        , @warnOutOfGoal
-
-    goalTypeAndInferredTypeWithoutNormalizing: -> @getCurrentGoal().done (goal) =>
-            @warnCurrentGoalIfEmpty goal, 'Nothing to infer'
-            @core.executable.goalTypeAndInferredTypeWithoutNormalizing goal
+            @core.executable.goalTypeAndInferredType normalize, goal
         , @warnOutOfGoal
 
 

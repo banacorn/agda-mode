@@ -243,48 +243,30 @@ class Executable extends EventEmitter
              #{end.column + 1})]) \"#{content}\" )\n"
         process.stdin.write command
 
-    goalType: (goal) -> @getProcess().then (process) =>
+    goalType: (normalize, goal) -> @getProcess().then (process) =>
         index = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type Simplified #{index} noRange \"\" )\n"
+        normalize = if normalize then 'Simplified' else 'Instantiated'
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type #{normalize} #{index} noRange \"\" )\n"
         process.stdin.write command
 
-    goalTypeWithoutNormalizing: (goal) -> @getProcess().then (process) =>
+    context: (normalize, goal) -> @getProcess().then (process) =>
         index = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type Instantiated #{index} noRange \"\" )\n"
+        normalize = if normalize then 'Simplified' else 'Instantiated'
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_context #{normalize} #{index} noRange \"\" )\n"
         process.stdin.write command
 
-    context: (goal) -> @getProcess().then (process) =>
-        index = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_context Simplified #{index} noRange \"\" )\n"
-        process.stdin.write command
-
-    contextWithoutNormalizing: (goal) -> @getProcess().then (process) =>
-        index = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_context Instantiated #{index} noRange \"\" )\n"
-        process.stdin.write command
-
-    goalTypeAndContext: (goal) -> @getProcess().then (process) =>
+    goalTypeAndContext: (normalize, goal) -> @getProcess().then (process) =>
         goalIndex = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type_context Simplified #{goalIndex} noRange \"\" )\n"
+        normalize = if normalize then 'Simplified' else 'Instantiated'
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type_context #{normalize} #{goalIndex} noRange \"\" )\n"
         process.stdin.write command
 
-    goalTypeAndContextWithoutNormalizing: (goal) -> @getProcess().then (process) =>
+    goalTypeAndInferredType: (normalize, goal) -> @getProcess().then (process) =>
         goalIndex = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type_context Instantiated #{goalIndex} noRange \"\" )\n"
-        process.stdin.write command
-
-    goalTypeAndInferredType: (goal) -> @getProcess().then (process) =>
-        goalIndex = goal.index
+        normalize = if normalize then 'Simplified' else 'Instantiated'
         content = escape goal.getContent()
         if content
-            command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{content}\" )\n"
-            process.stdin.write command
-
-    goalTypeAndInferredTypeWithoutNormalizing: (goal) -> @getProcess().then (process) =>
-        goalIndex = goal.index
-        content = escape goal.getContent()
-        if content
-            command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type_context_infer Instantiated #{goalIndex} noRange \"#{content}\" )\n"
+            command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type_context_infer #{normalize} #{goalIndex} noRange \"#{content}\" )\n"
             process.stdin.write command
 
 module.exports = Executable
