@@ -156,6 +156,10 @@ class Core extends EventEmitter
         @quit()
         @load()
 
+    compile: -> if @loaded
+        log 'Command', 'compile'
+        @executable.compile()
+
     nextGoal: -> if @loaded
         log 'Command', 'next-goal'
         @textBuffer.nextGoal()

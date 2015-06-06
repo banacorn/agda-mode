@@ -103,6 +103,17 @@ class Executable extends EventEmitter
         @processWired = false
         log 'Executable', 'process killed'
 
+    compile: -> @getProcess().then (process) =>
+        command = "IOTCM
+                \"#{@core.filepath}\"
+                NonInteractive
+                #{@core.config.directHighlighting()}
+                ( Cmd_compile
+                    MAlonzo
+                    \"#{@core.filepath}\"
+                    [#{@core.config.libraryPath()}])\n"
+        process.stdin.write command
+
     give: (goal) -> @getProcess().then (process) =>
         goalIndex   = goal.index
         start       = goal.range.start
