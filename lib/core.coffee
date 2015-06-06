@@ -197,8 +197,15 @@ class Core extends EventEmitter
         @panelModel.set 'Infer type', [], 'info'
         @panelModel.placeholder = 'expression here'
         @panelModel.query().then (expr) =>
-            @executable.inferType expr
-            @textBuffer.focus()
+
+            @textBuffer.getCurrentGoal().done (goal) =>
+                # goal-specific
+                @executable.inferTypeGoalSpecific goal, expr
+                @textBuffer.focus()
+            , =>
+                # global command
+                @executable.inferType expr
+                @textBuffer.focus()
 
     inferTypeNormalized: -> if @loaded
         log 'Command', 'infer type (normalized)'
@@ -265,7 +272,7 @@ class Core extends EventEmitter
     contextWithoutNormalizing: -> if @loaded
         log 'Command', 'context (without normalizing)'
         @textBuffer.contextWithoutNormalizing()
-        
+
     goalTypeAndContext: -> if @loaded
         log 'Command', 'goal-type-and-context'
         @textBuffer.goalTypeAndContext()
