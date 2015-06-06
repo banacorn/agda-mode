@@ -95,13 +95,14 @@ module.exports =
         'agda-mode:compute-normal-form'
         'agda-mode:compute-normal-form-ignore-abstract'
         'agda-mode:give'
+        'agda-mode:refine'
+        'agda-mode:auto'
+        'agda-mode:case'
         'agda-mode:goal-type'
+        'agda-mode:goal-type-without-normalizing'
         'agda-mode:context'
         'agda-mode:goal-type-and-context'
         'agda-mode:goal-type-and-inferred-type'
-        'agda-mode:refine'
-        'agda-mode:case'
-        'agda-mode:auto'
         'agda-mode:input-symbol'
     ]
 

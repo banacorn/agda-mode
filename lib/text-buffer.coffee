@@ -134,8 +134,25 @@ class TextBuffer extends EventEmitter
             @core.executable.give goal
         , @warnOutOfGoal
 
+    refine: -> @getCurrentGoal().done (goal) =>
+            @core.executable.refine goal
+        , @warnOutOfGoal
+
+    auto: -> @getCurrentGoal().done (goal) =>
+            @core.executable.auto goal
+        , @warnOutOfGoal
+
+    case: -> @getCurrentGoal().done (goal) =>
+            @warnCurrentGoalIfEmpty goal, 'Nothing to make case'
+            @core.executable.case goal
+        , @warnOutOfGoal
+
     goalType: -> @getCurrentGoal().done (goal) =>
             @core.executable.goalType goal
+        , @warnOutOfGoal
+
+    goalTypeWithoutNormalizing: -> @getCurrentGoal().done (goal) =>
+            @core.executable.goalTypeWithoutNormalizing goal
         , @warnOutOfGoal
 
     context: -> @getCurrentGoal().done (goal) =>
@@ -149,19 +166,6 @@ class TextBuffer extends EventEmitter
     goalTypeAndInferredType: -> @getCurrentGoal().done (goal) =>
             @warnCurrentGoalIfEmpty goal, 'Nothing to infer'
             @core.executable.goalTypeAndInferredType goal
-        , @warnOutOfGoal
-
-    refine: -> @getCurrentGoal().done (goal) =>
-            @core.executable.refine goal
-        , @warnOutOfGoal
-
-    case: -> @getCurrentGoal().done (goal) =>
-            @warnCurrentGoalIfEmpty goal, 'Nothing to make case'
-            @core.executable.case goal
-        , @warnOutOfGoal
-
-    auto: -> @getCurrentGoal().done (goal) =>
-            @core.executable.auto goal
         , @warnOutOfGoal
 
 

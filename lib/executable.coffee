@@ -176,9 +176,56 @@ class Executable extends EventEmitter
                     \"#{content}\" )\n"
             process.stdin.write command
 
+    refine: (goal) -> @getProcess().then (process) =>
+        goalIndex = goal.index
+        start = goal.range.start
+        startIndex = goal.toIndex start
+        end = goal.range.end
+        endIndex = goal.toIndex end
+        content = escape goal.getContent()
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
+          ( Cmd_refine_or_intro False #{goalIndex} (Range [Interval (Pn (Just
+           (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
+           (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
+            #{end.column + 1})]) \"#{content}\" )\n"
+        process.stdin.write command
+
+    auto: (goal) -> @getProcess().then (process) =>
+        goalIndex = goal.index
+        start = goal.range.start
+        startIndex = goal.toIndex start
+        end = goal.range.end
+        endIndex = goal.toIndex end
+        content = escape goal.getContent()
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
+            ( Cmd_auto #{goalIndex} (Range [Interval (Pn (Just
+            (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
+            (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
+             #{end.column + 1})]) \"#{content}\" )\n"
+        process.stdin.write command
+
+    case: (goal) -> @getProcess().then (process) =>
+        goalIndex = goal.index
+        start = goal.range.start
+        startIndex = goal.toIndex start
+        end = goal.range.end
+        endIndex = goal.toIndex end
+        content = escape goal.getContent()
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
+            ( Cmd_make_case #{goalIndex} (Range [Interval (Pn (Just
+            (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
+            (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
+             #{end.column + 1})]) \"#{content}\" )\n"
+        process.stdin.write command
+
     goalType: (goal) -> @getProcess().then (process) =>
         index = goal.index
         command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type Simplified #{index} noRange \"\" )\n"
+        process.stdin.write command
+
+    goalTypeWithoutNormalizing: (goal) -> @getProcess().then (process) =>
+        index = goal.index
+        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type Instantiated #{index} noRange \"\" )\n"
         process.stdin.write command
 
     context: (goal) -> @getProcess().then (process) =>
@@ -197,47 +244,5 @@ class Executable extends EventEmitter
         if content
             command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type_context_infer Simplified #{goalIndex} noRange \"#{content}\" )\n"
             process.stdin.write command
-
-    refine: (goal) -> @getProcess().then (process) =>
-        goalIndex = goal.index
-        start = goal.range.start
-        startIndex = goal.toIndex start
-        end = goal.range.end
-        endIndex = goal.toIndex end
-        content = escape goal.getContent()
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
-          ( Cmd_refine_or_intro False #{goalIndex} (Range [Interval (Pn (Just
-           (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
-           (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
-            #{end.column + 1})]) \"#{content}\" )\n"
-        process.stdin.write command
-
-    case: (goal) -> @getProcess().then (process) =>
-        goalIndex = goal.index
-        start = goal.range.start
-        startIndex = goal.toIndex start
-        end = goal.range.end
-        endIndex = goal.toIndex end
-        content = escape goal.getContent()
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
-            ( Cmd_make_case #{goalIndex} (Range [Interval (Pn (Just
-            (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
-            (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
-             #{end.column + 1})]) \"#{content}\" )\n"
-        process.stdin.write command
-
-    auto: (goal) -> @getProcess().then (process) =>
-        goalIndex = goal.index
-        start = goal.range.start
-        startIndex = goal.toIndex start
-        end = goal.range.end
-        endIndex = goal.toIndex end
-        content = escape goal.getContent()
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
-            ( Cmd_auto #{goalIndex} (Range [Interval (Pn (Just
-            (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
-            (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
-             #{end.column + 1})]) \"#{content}\" )\n"
-        process.stdin.write command
 
 module.exports = Executable

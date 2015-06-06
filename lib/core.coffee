@@ -238,9 +238,25 @@ class Core extends EventEmitter
         log 'Command', 'give'
         @textBuffer.give()
 
+    refine: -> if @loaded
+        log 'Command', 'refine'
+        @textBuffer.refine()
+
+    auto: -> if @loaded
+        log 'Command', 'auto'
+        @textBuffer.auto()
+
+    case: -> if @loaded
+        log 'Command', 'case'
+        @textBuffer.case()
+
     goalType: -> if @loaded
         log 'Command', 'goal-type'
         @textBuffer.goalType()
+
+    goalTypeWithoutNormalizing: -> if @loaded
+        log 'Command', 'goal-type (without normalizing)'
+        @textBuffer.goalTypeWithoutNormalizing()
 
     context: -> if @loaded
         log 'Command', 'context'
@@ -253,18 +269,6 @@ class Core extends EventEmitter
     goalTypeAndInferredType: -> if @loaded
         log 'Command', 'goal-type-inferred-type'
         @textBuffer.goalTypeAndInferredType()
-
-    refine: -> if @loaded
-        log 'Command', 'refine'
-        @textBuffer.refine()
-
-    case: -> if @loaded
-        log 'Command', 'case'
-        @textBuffer.case()
-
-    auto: -> if @loaded
-        log 'Command', 'auto'
-        @textBuffer.auto()
 
 
     inputSymbol: ->
