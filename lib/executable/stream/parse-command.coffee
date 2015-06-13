@@ -50,8 +50,17 @@ class ParseCommand extends Transform
                 @executable.emit 'highlight-clear'
 
             when 'agda2-highlight-add-annotations'
-                @executable.emit 'highlight-add-annotations'
-
+                _.rest(tokens).forEach (obj) =>
+                    result =
+                        start: obj[0]
+                        end: obj[1]
+                        type: obj[2]
+                    if obj[4]
+                        result.source =
+                            path: obj[4][0]
+                            index: obj[4][2]
+                    @executable.emit 'highlight-add-annotations', result
+                    
             when 'agda2-highlight-load-and-delete-action'
                 @executable.emit 'highlight-load-and-delete-action', tokens[1]
 

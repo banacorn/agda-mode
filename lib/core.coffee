@@ -11,6 +11,7 @@ PanelModel  = require './panel/model'
 PanelView   = require './panel/view'
 TextBuffer  = require './text-buffer'
 InputMethod = require './input-method'
+Highlight   = require './highlight'
 Config      = require './config'
 
 class Core extends EventEmitter
@@ -25,7 +26,7 @@ class Core extends EventEmitter
         @textBuffer     = new TextBuffer    @
         @inputMethod    = new InputMethod   @
         @config         = new Config
-
+        @highlight      = new Highlight     @
         # initialize informations about this editor
         @filepath = @editor.getPath()
 
@@ -125,6 +126,12 @@ class Core extends EventEmitter
             log 'Executable', '=> highlight-load-and-delete-action'
             @textBuffer.highlightLoadAndDelete filepath
 
+        @executable.on 'highlight-add-annotations', (obj) =>
+            obj.type.forEach (type) =>
+                switch type
+                    when 'unsolvedmeta', 'terminationproblem'
+                        @highlight.highlight obj
+
         @executable.on 'parse-error', (err) =>
             error 'Executable', err
 
@@ -151,6 +158,7 @@ class Core extends EventEmitter
     load: ->
         log 'Command', 'load'
         @panel.show()
+        @highlight.destroyAllMarker()
         @executable.load().then (process) =>
             @panelModel.set 'Loading'
             @loaded = true
