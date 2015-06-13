@@ -19,9 +19,8 @@ class Goal extends EventEmitter
     content = null
 
     constructor: (@editor, @index = '*', startIndex, endIndex) ->
-
-        start = @fromIndex startIndex
-        end   = @fromIndex endIndex
+        start = @editor.fromIndex startIndex
+        end   = @editor.fromIndex endIndex
 
         @range = new Range(start, end)
         @content = @editor.getTextInRange @range
@@ -56,10 +55,9 @@ class Goal extends EventEmitter
 
             # intact
             else if left isnt -1 and right isnt -1
-
                 # inner range
-                innerStart = @translate newRange.start, left
-                innerEnd   = @translate newRange.start, right + 2
+                innerStart = @editor.translate newRange.start, left
+                innerEnd   = @editor.translate newRange.start, right + 2
                 innerRange = new Range innerStart, innerEnd
 
                 # update states
@@ -101,14 +99,14 @@ class Goal extends EventEmitter
         @editor.getBuffer().insert position, contents
 
     getContent: ->
-        left = @translate @range.start, 2
-        right = @translate @range.end, -2
+        left = @editor.translate @range.start, 2
+        right = @editor.translate @range.end, -2
         innerRange = new Range left, right
         @editor.getTextInBufferRange(innerRange).trim()
 
     setContent: (text) ->
-        left = @translate @range.start, 2
-        right = @translate @range.end, -2
+        left = @editor.translate @range.start, 2
+        right = @editor.translate @range.end, -2
         innerRange = new Range left, right
         @editor.setTextInBufferRange innerRange, text
 

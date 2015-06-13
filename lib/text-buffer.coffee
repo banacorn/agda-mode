@@ -28,7 +28,7 @@ class TextBuffer extends EventEmitter
         result = callback()
         @getCurrentGoal position
             .then (goal) =>
-                newPosition = goal.translate goal.range.start, 3
+                newPosition = @core.editor.translate goal.range.start, 3
                 @core.editor.setCursorBufferPosition newPosition
             .fail =>
                 @core.editor.setCursorBufferPosition position
@@ -95,7 +95,7 @@ class TextBuffer extends EventEmitter
 
         positions = @goals.map (goal) =>
             start = goal.range.start
-            goal.translate start, 3
+            @core.editor.translate start, 3
 
         positions.forEach (position) =>
             if position.isGreaterThan cursor
@@ -115,7 +115,7 @@ class TextBuffer extends EventEmitter
 
         positions = @goals.map (goal) =>
             start = goal.range.start
-            goal.translate start, 3
+            @core.editor.translate start, 3
 
         positions.forEach (position) =>
             if position.isLessThan cursor
@@ -179,8 +179,8 @@ class TextBuffer extends EventEmitter
 
         diff = 0
         holesRepositioned = holesResized.map (obj) =>
-            start = @core.editor.buffer.positionForCharacterIndex obj.start + diff
-            end   = @core.editor.buffer.positionForCharacterIndex obj.end + diff
+            start = @core.editor.fromIndex obj.start + diff
+            end   = @core.editor.fromIndex obj.end + diff
             range = new Range start, end
 
             # update hole's range
@@ -223,7 +223,7 @@ class TextBuffer extends EventEmitter
 
     goto: (filepath, charIndex) ->
         if @core.filepath is filepath
-            position = @core.editor.buffer.positionForCharacterIndex charIndex - 1
+            position = @core.editor.fromIndex charIndex - 1
             @core.editor.setCursorBufferPosition position
             # scroll down a bit further, or it would be shadowed by the panel
             @core.editor.scrollToBufferPosition position.translate(new Point(10, 0))

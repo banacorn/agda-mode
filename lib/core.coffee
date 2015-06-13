@@ -20,6 +20,13 @@ class Core extends EventEmitter
     panels: []
     constructor: (@editor) ->
 
+        # helper methods on @editor
+        @editor.fromIndex = (ind) => @editor.getBuffer().positionForCharacterIndex ind
+        @editor.toIndex   = (pos) => @editor.getBuffer().characterIndexForPosition pos
+        @editor.translate = (pos, n) => @editor.fromIndex((@editor.toIndex pos) + n)
+
+
+
         # initialize all components
         @executable     = new Executable    @
         @panelModel     = new PanelModel    @
