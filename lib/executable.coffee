@@ -83,190 +83,111 @@ class Executable extends EventEmitter
     ################
     #   COMMANDS   #
     ################
+    #
+    # data IOTCM = IOTCM FilePath HighlightingLevel HighlightingMethod (Interaction' range)
+    # data HighlightingLevel = None | NonInteractive | Interactive
+    # data HighlightingMethod = Direct | Indirect
+    #
+    # data Range a = Range [Interval' a]
+    # data Interval a = Interval { iStart, iEnd :: !(Position' a) }
+    # data Position a = Pn a !Int32 !Int32 !Int32
+    #
+    # ################
 
-    load: -> @getProcess().then (process) =>
-        # force save before load, since we are sending filepath not content
+    buildRange: (goal) ->
+        start       = goal.range.start
+        startIndex  = @core.editor.toIndex start
+        end         = goal.range.end
+        endIndex    = @core.editor.toIndex end
+        "( Range [Interval
+            (Pn
+                (Just (mkAbsolute \"#{@core.filepath}\"))
+                #{startIndex}
+                #{start.row + 1}
+                #{start.column + 1})
+            (Pn
+                (Just (mkAbsolute \"#{@core.filepath}\"))
+                #{endIndex}
+                #{end.row + 1}
+                #{end.column + 1})
+            ])"
+
+    sendCommand: (highlightingLevel, interaction) ->
+        @getProcess().then (process) =>
+            filepath = @core.filepath
+            highlightingMethod = @core.config.directHighlighting()
+            command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction} )\n"
+            console.log command
+            process.stdin.write command
+            return process
+
+    load: ->
+        # force save before load, since we are sending filepath but content
         @core.textBuffer.saveBuffer()
-        command = "IOTCM
-                \"#{@core.filepath}\"
-                NonInteractive
-                #{@core.config.directHighlighting()}
-                ( Cmd_load
-                    \"#{@core.filepath}\"
-                    [#{@core.config.libraryPath()}])\n"
-        process.stdin.write command
-
-        return process
+        @sendCommand "NonInteractive", "Cmd_load \"#{@core.filepath}\" [#{@core.config.libraryPath()}]"
 
     quit: ->
         @process.kill()
         @processWired = false
         log 'Executable', 'process killed'
 
-    compile: -> @getProcess().then (process) =>
-        command = "IOTCM
-                \"#{@core.filepath}\"
-                NonInteractive
-                #{@core.config.directHighlighting()}
-                ( Cmd_compile
-                    MAlonzo
-                    \"#{@core.filepath}\"
-                    [#{@core.config.libraryPath()}])\n"
-        process.stdin.write command
+    compile: ->
+        @sendCommand "NonInteractive", "Cmd_compile MAlonzo \"#{@core.filepath}\" [#{@core.config.libraryPath()}]"
+    toggleDisplayOfImplicitArguments: ->
+        @sendCommand "NonInteractive", "ToggleImplicitArgs"
+    showConstraints: ->
+        @sendCommand "NonInteractive", "Cmd_constraints"
+    showGoals: ->
+        @sendCommand "NonInteractive", "Cmd_metas"
+    inferType: (content) ->
+        @sendCommand "None", "Cmd_infer_toplevel Simplified \"#{content}\""
+    inferTypeGoalSpecific: (goal, content) ->
+        @sendCommand "NonInteractive", "Cmd_infer Simplified #{goal.index} noRange \"#{content}\""
+    inferTypeNormalized: (content) ->
+        @sendCommand "None", "Cmd_infer_toplevel Instantiated \"#{content}\""
+    inferTypeNormalizedGoalSpecific: (goal, content) ->
+        @sendCommand "NonInteractive", "Cmd_infer Instantiated #{goal.index} noRange \"#{content}\""
+    moduleContents: (content) ->
+        @sendCommand "None", "Cmd_show_module_contents_toplevel Simplified \"#{content}\""
+    moduleContentsGoalSpecific: (goal, content) ->
+        @sendCommand "NonInteractive", "Cmd_show_module_contents Simplified #{goal.index} noRange \"#{content}\""
+    computeNormalForm: (content) ->
+        @sendCommand "None", "Cmd_compute_toplevel False \"#{content}\""
+    computeNormalFormGoalSpecific: (goal, content) ->
+        @sendCommand "NonInteractive", "Cmd_compute False #{goal.index} noRange \"#{content}\""
+    computeNormalFormIgnoreAbstract: (content) ->
+        @sendCommand "None", "Cmd_compute_toplevel True \"#{content}\""
+    computeNormalFormIgnoreAbstractGoalSpecific: (goal, content) ->
+        @sendCommand "NonInteractive", "Cmd_compute True #{goal.index} noRange \"#{content}\""
 
-    toggleDisplayOfImplicitArguments: -> @getProcess().then (process) =>
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( ToggleImplicitArgs )\n"
-        process.stdin.write command
+    give: (goal) ->
+        @sendCommand "NonInteractive", "Cmd_give #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
 
-    showConstraints: -> @getProcess().then (process) =>
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_constraints )\n"
-        process.stdin.write command
+    refine: (goal) ->
+        @sendCommand "NonInteractive", "Cmd_refine_or_intro False #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
 
-    showGoals: -> @getProcess().then (process) =>
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_metas )\n"
-        process.stdin.write command
+    auto: (goal) ->
+        @sendCommand "NonInteractive", "Cmd_auto #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
 
-    inferType: (content) -> @getProcess().then (process) =>
-        command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_infer_toplevel Simplified \"#{content}\" )\n"
-        process.stdin.write command
+    case: (goal) ->
+        @sendCommand "NonInteractive", "Cmd_make_case #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
 
-    inferTypeGoalSpecific: (goal, content) -> @getProcess().then (process) =>
-        index = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_infer Simplified #{index} noRange \"#{content}\" )\n"
-        process.stdin.write command
-
-    inferTypeNormalized: (content) -> @getProcess().then (process) =>
-        command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_infer_toplevel Instantiated \"#{content}\" )\n"
-        process.stdin.write command
-
-    inferTypeNormalizedGoalSpecific: (goal, content) -> @getProcess().then (process) =>
-        index = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_infer Instantiated #{index} noRange \"#{content}\" )\n"
-        process.stdin.write command
-
-    moduleContents: (content) -> @getProcess().then (process) =>
-        command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_show_module_contents_toplevel Simplified \"#{content}\" )\n"
-        process.stdin.write command
-
-    moduleContentsGoalSpecific: (goal, content) -> @getProcess().then (process) =>
-        index = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_show_module_contents Simplified #{index} noRange \"#{content}\" )\n"
-        process.stdin.write command
-
-    computeNormalForm: (content) -> @getProcess().then (process) =>
-        command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_compute_toplevel False \"#{content}\" )\n"
-        process.stdin.write command
-
-    computeNormalFormGoalSpecific: (goal, content) -> @getProcess().then (process) =>
-        index = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_compute False #{index} noRange \"#{content}\" )\n"
-        process.stdin.write command
-
-    computeNormalFormIgnoreAbstract: (content) -> @getProcess().then (process) =>
-        command = "IOTCM \"#{@core.filepath}\" None #{@core.config.directHighlighting()} ( Cmd_compute_toplevel True \"#{content}\" )\n"
-        process.stdin.write command
-
-    computeNormalFormIgnoreAbstractGoalSpecific: (goal, content) -> @getProcess().then (process) =>
-        index = goal.index
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_compute True #{index} noRange \"#{content}\" )\n"
-        process.stdin.write command
-
-    give: (goal) -> @getProcess().then (process) =>
-        goalIndex   = goal.index
-        start       = goal.range.start
-        startIndex  = goal.toIndex start
-        end         = goal.range.end
-        endIndex    = goal.toIndex end
-        content     = escape goal.getContent()
-
-        if content
-            command = "IOTCM
-                \"#{@core.filepath}\"
-                NonInteractive
-                #{@core.config.directHighlighting()}
-                ( Cmd_give
-                    #{goalIndex}
-                    ( Range [Interval
-                        (Pn
-                            (Just (mkAbsolute \"#{@core.filepath}\"))
-                            #{startIndex}
-                            #{start.row + 1}
-                            #{start.column + 1})
-                        (Pn
-                            (Just (mkAbsolute \"#{@core.filepath}\"))
-                            #{endIndex}
-                            #{end.row + 1}
-                            #{end.column + 1})
-                        ])
-                    \"#{content}\" )\n"
-            process.stdin.write command
-
-    refine: (goal) -> @getProcess().then (process) =>
-        goalIndex = goal.index
-        start = goal.range.start
-        startIndex = goal.toIndex start
-        end = goal.range.end
-        endIndex = goal.toIndex end
-        content = escape goal.getContent()
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
-          ( Cmd_refine_or_intro False #{goalIndex} (Range [Interval (Pn (Just
-           (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
-           (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
-            #{end.column + 1})]) \"#{content}\" )\n"
-        process.stdin.write command
-
-    auto: (goal) -> @getProcess().then (process) =>
-        goalIndex = goal.index
-        start = goal.range.start
-        startIndex = goal.toIndex start
-        end = goal.range.end
-        endIndex = goal.toIndex end
-        content = escape goal.getContent()
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
-            ( Cmd_auto #{goalIndex} (Range [Interval (Pn (Just
-            (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
-            (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
-             #{end.column + 1})]) \"#{content}\" )\n"
-        process.stdin.write command
-
-    case: (goal) -> @getProcess().then (process) =>
-        goalIndex = goal.index
-        start = goal.range.start
-        startIndex = goal.toIndex start
-        end = goal.range.end
-        endIndex = goal.toIndex end
-        content = escape goal.getContent()
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()}
-            ( Cmd_make_case #{goalIndex} (Range [Interval (Pn (Just
-            (mkAbsolute \"#{@core.filepath}\")) #{startIndex} #{start.row + 1} #{start.column + 1})
-            (Pn (Just (mkAbsolute \"#{@core.filepath}\")) #{endIndex} #{end.row + 1}
-             #{end.column + 1})]) \"#{content}\" )\n"
-        process.stdin.write command
-
-    goalType: (normalize, goal) -> @getProcess().then (process) =>
-        index = goal.index
+    goalType: (normalize, goal) ->
         normalize = if normalize then 'Simplified' else 'Instantiated'
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type #{normalize} #{index} noRange \"\" )\n"
-        process.stdin.write command
+        @sendCommand "NonInteractive", "Cmd_goal_type #{normalize} #{goal.index} noRange \"\""
 
-    context: (normalize, goal) -> @getProcess().then (process) =>
-        index = goal.index
+    context: (normalize, goal) ->
         normalize = if normalize then 'Simplified' else 'Instantiated'
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_context #{normalize} #{index} noRange \"\" )\n"
-        process.stdin.write command
+        @sendCommand "NonInteractive", "Cmd_context #{normalize} #{goal.index} noRange \"\""
 
-    goalTypeAndContext: (normalize, goal) -> @getProcess().then (process) =>
-        goalIndex = goal.index
+    goalTypeAndContext: (normalize, goal) ->
         normalize = if normalize then 'Simplified' else 'Instantiated'
-        command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type_context #{normalize} #{goalIndex} noRange \"\" )\n"
-        process.stdin.write command
+        @sendCommand "NonInteractive", "Cmd_goal_type_context #{normalize} #{goal.index} noRange \"\""
 
-    goalTypeAndInferredType: (normalize, goal) -> @getProcess().then (process) =>
-        goalIndex = goal.index
+    goalTypeAndInferredType: (normalize, goal) ->
         normalize = if normalize then 'Simplified' else 'Instantiated'
         content = escape goal.getContent()
         if content
-            command = "IOTCM \"#{@core.filepath}\" NonInteractive #{@core.config.directHighlighting()} ( Cmd_goal_type_context_infer #{normalize} #{goalIndex} noRange \"#{content}\" )\n"
-            process.stdin.write command
+            @sendCommand "NonInteractive", "Cmd_goal_type_context_infer #{normalize} #{goal.index} noRange \"#{content}\""
 
 module.exports = Executable
