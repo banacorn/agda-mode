@@ -26,7 +26,7 @@ class ParseCommand extends Transform
                     @executable.onStatusAction [tokens[1]]
 
             when 'agda2-goals-action'
-                @executable.onGoalAction tokens[1]
+                @executable.onGoalsAction tokens[1]
 
             when 'agda2-goto'
                 @executable.onGoto tokens[1][0], tokens[1][2]

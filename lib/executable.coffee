@@ -130,26 +130,26 @@ class Executable
         if content.length isnt 0
             @core.panelModel.set 'Status', content, 'info'
 
-    onGoalAction: (goals) ->
+    onGoalsAction: (goals) ->
         log 'Executable', '=> goals-action'
-        @core.textBuffer.goalsAction goals
+        @core.textBuffer.onGoalsAction goals
 
     onGiveAction: (goalIndex, content, parenthesis) ->
         log 'Executable', '=> give-action'
-        @core.textBuffer.giveAction goalIndex, content, parenthesis
+        @core.textBuffer.onGiveAction goalIndex, content, parenthesis
 
     onMakeCaseAction: (content) ->
         log 'Executable', '=> make-case-action'
-        @core.textBuffer.makeCaseAction content
+        @core.textBuffer.onMakeCaseAction content
             .then => @core.load()
 
     onGoto: (filepath, position) ->
         log 'Executable', '=> goto'
-        @core.textBuffer.goto filepath, position
+        @core.textBuffer.onGoto filepath, position
 
     onHighlightLoadAndDeleteAction: (filepath) ->
         log 'Executable', '=> highlight-load-and-delete-action'
-        @core.textBuffer.highlightLoadAndDelete filepath
+        @core.textBuffer.onHighlightLoadAndDelete filepath
 
     onHighlightAddAnnotations: (obj) ->
         obj.type.forEach (type) =>

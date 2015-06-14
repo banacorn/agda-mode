@@ -169,7 +169,7 @@ class TextBuffer extends EventEmitter
     #   Command Handlers   #
     ########################
 
-    goalsAction: (indices) -> @protectCursor =>
+    onGoalsAction: (indices) -> @protectCursor =>
 
         textRaw         = @core.editor.getText()            # get raw text
         holes           = findHoles textRaw                 # ? or {!!}
@@ -202,7 +202,7 @@ class TextBuffer extends EventEmitter
             goal = new Goal @core.editor, index, obj.start, obj.end
             @goals.push goal
 
-    giveAction: (index, content, paran) -> @protectCursor =>
+    onGiveAction: (index, content, paran) -> @protectCursor =>
 
         goal = @findGoal index
         if content.length > 0
@@ -216,12 +216,12 @@ class TextBuffer extends EventEmitter
         goal.removeBoundary()
         @removeGoal index
 
-    makeCaseAction: (content) ->  @protectCursor =>
+    onMakeCaseAction: (content) ->  @protectCursor =>
          @getCurrentGoal().then (goal) =>
                 goal.writeLines content
             , @warnOutOfGoal
 
-    goto: (filepath, charIndex) ->
+    onGoto: (filepath, charIndex) ->
         if @core.filepath is filepath
             position = @core.editor.fromIndex charIndex - 1
             @core.editor.setCursorBufferPosition position
@@ -231,6 +231,6 @@ class TextBuffer extends EventEmitter
     # Agda generates files with syntax highlighting notations,
     # those files are temporary and should be deleted once used.
     # note: no highlighting yet, we'll just delete them.
-    highlightLoadAndDelete: (filepath) -> fs.unlink filepath
+    onHighlightLoadAndDelete: (filepath) -> fs.unlink filepath
 
 module.exports = TextBuffer
