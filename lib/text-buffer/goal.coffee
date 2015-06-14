@@ -1,4 +1,3 @@
-{EventEmitter} = require 'events'
 {Point, Range} = require 'atom'
 {$, View} = require 'atom-space-pen-views'
 
@@ -12,7 +11,7 @@ class GoalIndexView extends View
         element.style.left = (- @editor.getDefaultCharWidth() * (indexWidth + 1)) + 'px'
         element.style.top  = (- @editor.getLineHeightInPixels()) + 'px'
 
-class Goal extends EventEmitter
+class Goal
 
     marker = null
     range = null

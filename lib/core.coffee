@@ -1,4 +1,3 @@
-{EventEmitter} = require 'events'
 Q = require 'q'
 Q.longStackSupport = true
 _ = require 'lodash'
@@ -15,7 +14,7 @@ Highlight   = require './highlight'
 Config      = require './config'
 Handler     = require './handler'
 
-class Core extends EventEmitter
+class Core
 
     @loaded: false
     panels: []

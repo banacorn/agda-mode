@@ -1,8 +1,7 @@
-{EventEmitter} = require 'events'
 Q = require 'q'
 Q.longStackSupport = true
 
-class PanelModel extends EventEmitter
+class PanelModel
 
     # data
     title: ''

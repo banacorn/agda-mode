@@ -1,5 +1,3 @@
-{EventEmitter} = require 'events'
-
 #
 #   CHOP CHOP MOTHERFUCKER !!
 #
@@ -9,8 +7,7 @@
 #
 #   display log when level <= atom.config.get 'agda-mode.logLevel'
 
-
-class Logger extends EventEmitter
+class Logger
     printMessage: (level) ->
         message = ''
         switch arguments.length

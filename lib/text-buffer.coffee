@@ -1,4 +1,3 @@
-{EventEmitter} = require 'events'
 {resizeHoles, findHoles , digHoles} = require './text-buffer/hole'
 Goal = require './text-buffer/goal'
 fs = require 'fs'
@@ -8,7 +7,7 @@ Q = require 'q'
 Q.longStackSupport = true
 {log, warn, error} = require './logger'
 
-class TextBuffer extends EventEmitter
+class TextBuffer
 
     goals: []
 
