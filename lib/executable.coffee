@@ -1,4 +1,3 @@
-{EventEmitter} = require 'events'
 {spawn, exec} = require 'child_process'
 Q = require 'q'
 Q.longStackSupport = true
@@ -12,7 +11,7 @@ escape = (content) ->
         .replace(/\n/g, '\\n')
         .replace(/\"/g, '\\"')
 
-class Executable extends EventEmitter
+class Executable
 
     # instance wired the agda-mode executable
     processWired: false
@@ -79,6 +78,87 @@ class Executable extends EventEmitter
                     .pipe new Stream.ParseCommand @
                 log 'Executable', 'process.stdout stream established'
 
+    ########################
+    #   COMMAND HANDLERS   #
+    ########################
+
+    onInfoAction: (type, content) ->
+        log 'Executable', '=> info-action'
+        switch type
+            when '*All Goals*'
+                if content.length > 0
+                    @core.panelModel.set 'Goals', content, 'info'
+                else
+                    @core.panelModel.set 'No Goals', [], 'success'
+            when '*Error*'
+
+                # the first line with !=< we want to do cosmetic surgery with, -1 if not found
+                index = _.findIndex(content, (line) -> /!=</.test line)
+
+                if not @core.config.improveMessage() and index isnt -1
+                    pre       = _.take content, index
+                    expecting = 'expecting: ' + content[index].split(/!=</)[1]
+                    got       = '      got: ' + content[index].split(/!=</)[0]
+                    post      = _.drop content, index + 1
+                    result = pre.concat([expecting, got]).concat(post)
+                    @core.panelModel.set 'Error', result, 'error'
+                else
+                    @core.panelModel.set 'Error', content, 'error'
+            when '*Type-checking*'
+                @core.panelModel.set 'Type Checking', content
+            when '*Current Goal*'
+                @core.panelModel.set 'Current Goal', content
+            when '*Inferred Type*'
+                @core.panelModel.set 'Inferred Type', content
+            when '*Module contents*'
+                @core.panelModel.set 'Module Contents', content
+            when '*Context*'
+                @core.panelModel.set 'Context', content
+            when '*Goal type etc.*'
+                @core.panelModel.set 'Goal Type and Context', content
+            when '*Normal Form*'
+                @core.panelModel.set 'Normal Form', content
+            when '*Intro*'
+                @core.panelModel.set 'Intro', ['No introduction forms found']
+            when '*Auto*'
+                @core.panelModel.set 'Auto', ['No solution found']
+            when '*Constraints*'
+                @core.panelModel.set 'Constraints', content
+
+    onStatusAction: (content) ->
+        log 'Executable', '=> status-action'
+        if content.length isnt 0
+            @core.panelModel.set 'Status', content, 'info'
+
+    onGoalAction: (goals) ->
+        log 'Executable', '=> goals-action'
+        @core.textBuffer.goalsAction goals
+
+    onGiveAction: (goalIndex, content, parenthesis) ->
+        log 'Executable', '=> give-action'
+        @core.textBuffer.giveAction goalIndex, content, parenthesis
+
+    onMakeCaseAction: (content) ->
+        log 'Executable', '=> make-case-action'
+        @core.textBuffer.makeCaseAction content
+            .then => @core.load()
+
+    onGoto: (filepath, position) ->
+        log 'Executable', '=> goto'
+        @core.textBuffer.goto filepath, position
+
+    onHighlightLoadAndDeleteAction: (filepath) ->
+        log 'Executable', '=> highlight-load-and-delete-action'
+        @core.textBuffer.highlightLoadAndDelete filepath
+
+    onHighlightAddAnnotations: (obj) ->
+        obj.type.forEach (type) =>
+            switch type
+                when 'unsolvedmeta', 'terminationproblem'
+                    @core.highlight.highlight obj
+
+    onParseError: (err) ->
+        error 'Executable', err
 
     ################
     #   COMMANDS   #
@@ -117,7 +197,6 @@ class Executable extends EventEmitter
             filepath = @core.filepath
             highlightingMethod = @core.config.directHighlighting()
             command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction} )\n"
-            console.log command
             process.stdin.write command
             return process
 
@@ -159,31 +238,23 @@ class Executable extends EventEmitter
         @sendCommand "None", "Cmd_compute_toplevel True \"#{content}\""
     computeNormalFormIgnoreAbstractGoalSpecific: (goal, content) ->
         @sendCommand "NonInteractive", "Cmd_compute True #{goal.index} noRange \"#{content}\""
-
     give: (goal) ->
         @sendCommand "NonInteractive", "Cmd_give #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
-
     refine: (goal) ->
         @sendCommand "NonInteractive", "Cmd_refine_or_intro False #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
-
     auto: (goal) ->
         @sendCommand "NonInteractive", "Cmd_auto #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
-
     case: (goal) ->
         @sendCommand "NonInteractive", "Cmd_make_case #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
-
     goalType: (normalize, goal) ->
         normalize = if normalize then 'Simplified' else 'Instantiated'
         @sendCommand "NonInteractive", "Cmd_goal_type #{normalize} #{goal.index} noRange \"\""
-
     context: (normalize, goal) ->
         normalize = if normalize then 'Simplified' else 'Instantiated'
         @sendCommand "NonInteractive", "Cmd_context #{normalize} #{goal.index} noRange \"\""
-
     goalTypeAndContext: (normalize, goal) ->
         normalize = if normalize then 'Simplified' else 'Instantiated'
         @sendCommand "NonInteractive", "Cmd_goal_type_context #{normalize} #{goal.index} noRange \"\""
-
     goalTypeAndInferredType: (normalize, goal) ->
         normalize = if normalize then 'Simplified' else 'Instantiated'
         content = escape goal.getContent()

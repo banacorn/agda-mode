@@ -1,5 +1,6 @@
 {Transform} = require 'stream'
 _ = require 'lodash'
+{log, warn, error} = require './../../logger'
 
 class ParseCommand extends Transform
 
@@ -14,40 +15,40 @@ class ParseCommand extends Transform
                 # with content: ["agda2-info-action", "*Type-checking*", "Checking ...", "t"]
                 # w/o  content:  ["agda2-info-action", "*Type-checking*", "nil"]
                 if tokens.length is 3
-                    @executable.emit 'info-action', tokens[1], []
+                    @executable.onInfoAction tokens[1], []
                 else
-                    @executable.emit 'info-action', tokens[1], _.compact tokens[2].split '\\n'
+                    @executable.onInfoAction tokens[1], _.compact tokens[2].split '\\n'
 
             when 'agda2-status-action'
                 if tokens.length is 1
-                    @executable.emit 'status-action', []
+                    @executable.onStatusAction []
                 else
-                    @executable.emit 'status-action', [tokens[1]]
+                    @executable.onStatusAction [tokens[1]]
 
             when 'agda2-goals-action'
-                @executable.emit 'goals-action', tokens[1]
+                @executable.onGoalAction tokens[1]
 
             when 'agda2-goto'
-                @executable.emit 'goto', tokens[1][0], tokens[1][2]
+                @executable.onGoto tokens[1][0], tokens[1][2]
 
             when 'agda2-give-action'
                 # with parenthesis: ["agda2-give-action", 1, "'paren"]
                 # w/o  parenthesis: ["agda2-give-action", 1, "'no-paren"]
                 # with content    : ["agda2-give-action", 0, ...]
                 switch tokens[2]
-                    when "'paren" then @executable.emit 'give-action', tokens[1], [], true
-                    when "'no-paren" then @executable.emit 'give-action', tokens[1], [], false
-                    else @executable.emit 'give-action', tokens[1], tokens[2], false
+                    when "'paren"    then @executable.onGiveAction tokens[1], [], true
+                    when "'no-paren" then @executable.onGiveAction tokens[1], [], false
+                    else @executable.onGiveAction tokens[1], tokens[2], false
 
             when 'agda2-make-case-action'
-                @executable.emit 'make-case-action', tokens[1]
+                @executable.onMakeCaseAction tokens[1]
 
             #
             #   highlighting shit
             #
 
-            when 'agda2-highlight-clear'
-                @executable.emit 'highlight-clear'
+            # when 'agda2-highlight-clear'
+            #     @executable.emit 'highlight-clear'
 
             when 'agda2-highlight-add-annotations'
                 _.rest(tokens).forEach (obj) =>
@@ -59,18 +60,18 @@ class ParseCommand extends Transform
                         result.source =
                             path: obj[4][0]
                             index: obj[4][2]
-                    @executable.emit 'highlight-add-annotations', result
-                    
+                    @executable.onHighlightAddAnnotations result
+
             when 'agda2-highlight-load-and-delete-action'
-                @executable.emit 'highlight-load-and-delete-action', tokens[1]
+                @executable.onHighlightLoadAndDeleteAction tokens[1]
 
             #
             #   Agda cannot read our input
             #
 
             when 'agda2-parse-error'
-                @executable.emit 'parse-error', JSON.stringify tokens
+                @executable.onParseError JSON.stringify tokens
             else
-                @executable.emit 'what the fuck?', JSON.stringify tokens
+                error 'Parser', tokens.toString()
         next()
 module.exports = ParseCommand
