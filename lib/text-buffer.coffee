@@ -12,12 +12,7 @@ class TextBuffer
     goals: []
 
     constructor: (@core) ->
-
-    # compare goals with indices
-    indicesChanged: (indices) -> ! _.isEqual _.pluck(@goals, 'index'), indices
-    # compare content with text buffer
-    textBufferChanged: (content) -> content isnt @core.editor.getText()
-
+        
     #########################
     #   Cursor Management   #
     #########################
