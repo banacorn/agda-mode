@@ -13,6 +13,7 @@ TextBuffer  = require './text-buffer'
 InputMethod = require './input-method'
 Highlight   = require './highlight'
 Config      = require './config'
+Handler     = require './handler'
 
 class Core extends EventEmitter
 
@@ -34,6 +35,7 @@ class Core extends EventEmitter
         @inputMethod    = new InputMethod   @
         @config         = new Config
         @highlight      = new Highlight     @
+        @handler        = new Handler       @
         # initialize informations about this editor
         @filepath = @editor.getPath()
 
