@@ -39,16 +39,15 @@ class Lexer
     # splitRegex: Regex -- regex to perform split on a token
     # sourceType: String -- the type of token to look for and perform splitting
     # targetType: String -- the type of token given to the splitted tokens when identified
-    # testRegex: Regex -- optional, to identify 'targetType', use splitRegex as default
-    lex: (splitRegex, sourceType, targetType, testRegex=splitRegex) ->
+    lex: (regex, sourceType, targetType) ->
         temp = @result.map (token) =>
             if token.type is sourceType
                 cursor = token.range.start  # trace ranges
                 token.content
-                    .split splitRegex
+                    .split regex
                     .filter (tok) => tok
                     .map (tok, i) =>
-                        type = if testRegex.test tok then targetType else sourceType
+                        type = if regex.test tok then targetType else sourceType
                         cursorOld = cursor
                         cursor += tok.length
                         return {
@@ -126,12 +125,14 @@ getHoles = (text, indices) ->
     modifiedHoles = modified.filter isHole
 
     originalHoles.map (token, idx) =>
+        modifiedHole = modifiedHoles[idx]
         return {
             goalIndex: indices[idx]
-            originalRange: token.range
-            modifiedRange: modifiedHoles[idx].range
-            originalContent: token.content
-            modifiedContent: modifiedHoles[idx].content
+            originalRange:
+                start: modifiedHole.range.start
+                end: modifiedHole.range.start + token.content.length
+            modifiedRange: modifiedHole.range
+            content: modifiedHole.content
         }
 
 

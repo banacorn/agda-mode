@@ -17,11 +17,8 @@ class Goal
     range = null
     content = null
 
-    constructor: (@editor, @index = '*', startIndex, endIndex) ->
-        start = @editor.fromIndex startIndex
-        end   = @editor.fromIndex endIndex
-
-        @range = new Range(start, end)
+    constructor: (@editor, @index = '*', range) ->
+        @range = @editor.fromCIRange range
         @content = @editor.getTextInRange @range
         @marker = @editor.markBufferRange @range
 

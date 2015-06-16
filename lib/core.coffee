@@ -3,6 +3,8 @@ Q.longStackSupport = true
 _ = require 'lodash'
 {$} = require 'atom-space-pen-views'
 {log, warn, error} = require './logger'
+{Range} = require 'atom'
+
 
 # Components
 Executable  = require './executable'
@@ -24,7 +26,10 @@ class Core
         @editor.fromIndex = (ind) => @editor.getBuffer().positionForCharacterIndex ind
         @editor.toIndex   = (pos) => @editor.getBuffer().characterIndexForPosition pos
         @editor.translate = (pos, n) => @editor.fromIndex((@editor.toIndex pos) + n)
-
+        @editor.fromCIRange = (range) =>
+            start = @editor.fromIndex range.start
+            end   = @editor.fromIndex range.end
+            new Range start, end
 
 
         # initialize all components
