@@ -165,6 +165,7 @@ class TextBuffer
 
     onGoalsAction: (indices) -> @protectCursor =>
         textRaw = @core.editor.getText()
+        @removeGoals()
         getHoles(textRaw, indices).forEach (token) =>
             startPoint = @core.editor.fromIndex token.modifiedRange.start
             endPoint   = @core.editor.fromIndex token.modifiedRange.start + token.originalContent.length
