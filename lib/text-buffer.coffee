@@ -1,4 +1,4 @@
-{resizeHoles, findHoles , digHoles} = require './text-buffer/hole'
+{getHoles} = require './text-buffer/hole'
 Goal = require './text-buffer/goal'
 fs = require 'fs'
 _ = require 'lodash'
@@ -12,7 +12,7 @@ class TextBuffer
     goals: []
 
     constructor: (@core) ->
-        
+
     #########################
     #   Cursor Management   #
     #########################
@@ -164,36 +164,13 @@ class TextBuffer
     ########################
 
     onGoalsAction: (indices) -> @protectCursor =>
-
-        textRaw         = @core.editor.getText()            # get raw text
-        holes           = findHoles textRaw                 # ? or {!!}
-        holesPure       = digHoles holes                    # ? => {!!}
-        holesResized    = resizeHoles holesPure, indices    # {!!} => {!  !}
-
-
-        diff = 0
-        holesRepositioned = holesResized.map (obj) =>
-            start = @core.editor.fromIndex obj.start + diff
-            end   = @core.editor.fromIndex obj.end + diff
-            range = new Range start, end
-
-            # update hole's range
-            obj.start += diff
-            diff += obj.modifiedContent.length - obj.content.length
-            obj.end += diff
-
-            # if changed then modify text buffer
-            if obj.content isnt obj.modifiedContent
-                @core.editor.setTextInBufferRange range , obj.modifiedContent
-            return obj
-
-        log 'Text Buffer', "setting goals #{indices}"
-
-        # refresh goals
-        @removeGoals()
-        holesRepositioned.forEach (obj, i) =>
-            index = indices[i]
-            goal = new Goal @core.editor, index, obj.start, obj.end
+        textRaw = @core.editor.getText()
+        getHoles(textRaw, indices).forEach (token) =>
+            startPoint = @core.editor.fromIndex token.modifiedRange.start
+            endPoint   = @core.editor.fromIndex token.modifiedRange.start + token.originalContent.length
+            range = new Range startPoint, endPoint
+            @core.editor.setTextInBufferRange range, token.modifiedContent
+            goal = new Goal @core.editor, token.goalIndex, token.modifiedRange.start, token.modifiedRange.end
             @goals.push goal
 
     onGiveAction: (index, content, paran) -> @protectCursor =>
