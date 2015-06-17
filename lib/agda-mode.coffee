@@ -29,9 +29,9 @@ module.exports =
             default: true
         improveMessage:
             title: 'Improve Message'
-            description: 'no cosmetic surgery on some message such as "ℕ → ℕ → ℕ !=< ℕ of type Set"'
+            description: 'cosmetic surgery on some message such as "ℕ → ℕ → ℕ !=< ℕ of type Set"'
             type: 'boolean'
-            default: false
+            default: true
 
     activate: (state) ->
         atom.workspace.observeTextEditors @instantiateCore

@@ -168,7 +168,6 @@ class TextBuffer
         @removeGoals()
         getHoles(textRaw, indices).forEach (token) =>
             range = @core.editor.fromCIRange token.originalRange
-            console.log range
             @core.editor.setTextInBufferRange range, token.content
             goal = new Goal @core.editor, token.goalIndex, token.modifiedRange
             @goals.push goal
