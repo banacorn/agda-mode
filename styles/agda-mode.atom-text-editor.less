@@ -4,6 +4,9 @@
 // for a full listing of what's available.
 @import "ui-variables";
 
+@goal-background: #246;
+@goal-foreground: orange;
+
 .agda-panel {
     font-size: 125%;
     .agda-panel-content {
@@ -23,8 +26,8 @@
 //
 
 .agda-goal .region {
-    background: #246;
-    color: orange;
+    background: @goal-background;
+    color: @goal-foreground;
 }
 
 .agda-goal-index {
