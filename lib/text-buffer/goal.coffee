@@ -8,7 +8,7 @@ class GoalIndexView extends View
         # adjust the position, outlet not functioning
         element = $(@)[0]
         indexWidth = @index.toString().length
-        element.style.left = (- @editor.getDefaultCharWidth() * (indexWidth + 1)) + 'px'
+        element.style.left = (- @editor.getDefaultCharWidth() * (indexWidth + 2)) + 'px'
         element.style.top  = (- @editor.getLineHeightInPixels()) + 'px'
 
 class Goal
