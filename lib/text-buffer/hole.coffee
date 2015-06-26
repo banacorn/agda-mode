@@ -87,6 +87,8 @@ class Lexer
             else
                 token
 
+goalBracketContentRegex = /\{!([^!\}]*)!\}/
+
 getHoles = (text, indices) ->
 
     # for indices
@@ -111,7 +113,7 @@ getHoles = (text, indices) ->
             goalIndex = indices[i] || '*'
             paddingSpaces = ' '.repeat(goalIndex.toString().length)
             # strip whitespaces in between {!<--space-->some data<---space-->!}
-            content = /\{!(.*)!\}/.exec(token.content)[1].trim()
+            content = goalBracketContentRegex.exec(token.content)[1].trim()
             # stuff whitespaces in
             token.content = token.content.replace(/\{!.*!\}/, "{! #{content + paddingSpaces} !}")
             i += 1;
