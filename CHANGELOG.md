@@ -1,3 +1,5 @@
-## 0.1.0 - First Release
-* Every feature added
-* Every bug fixed
+## 0.3.0
+* Nothing big really, just a new number.
+* Enable unsolvedmeta and terminationproblem highlight.
+* Use colours given by user installed syntax.
+* Fixed #18
