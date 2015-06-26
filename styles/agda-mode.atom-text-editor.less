@@ -4,9 +4,6 @@
 // for a full listing of what's available.
 @import "ui-variables";
 
-@goal-background: #246;
-@goal-foreground: orange;
-
 .agda-panel {
     font-size: 125%;
     .agda-panel-content {
@@ -26,12 +23,11 @@
 //
 
 .agda-goal .region {
-    background: @goal-background;
-    color: @goal-foreground;
+    background: @text-color-subtle;
 }
 
 .agda-goal-index {
-    color: orange;
+    color: @background-color-success;
     position: relative;
 }
 
@@ -40,11 +36,11 @@
 //
 
 .agda-highlight.unsolvedmeta .region {
-    background: yellow;
+    background: @background-color-warning;
 }
 
 .agda-highlight.terminationproblem .region {
-    background: #ffa07a;
+    background: @background-color-error;
 }
 //
 // highlighting

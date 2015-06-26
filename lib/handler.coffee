@@ -100,22 +100,22 @@ class Handler
 
     # agda2-highlight-add-annotations
     highlightAddAnnotations: (tokens) ->
-        # log 'Handler', 'agda2-highlight-add-annotations'
-        # annotations = _.rest(tokens)
-        # annotations.forEach (obj) =>
-        #     result =
-        #         start: obj[0]
-        #         end: obj[1]
-        #         type: obj[2]
-        #     if obj[4]
-        #         result.source =
-        #             path: obj[4][0]
-        #             index: obj[4][2]
-        #
-        #     result.type.forEach (type) =>
-        #         switch type
-        #             when 'unsolvedmeta', 'terminationproblem'
-        #                 @highlight.highlight result
+        log 'Handler', 'agda2-highlight-add-annotations'
+        annotations = _.rest(tokens)
+        annotations.forEach (obj) =>
+            result =
+                start: obj[0]
+                end: obj[1]
+                type: obj[2]
+            if obj[4]
+                result.source =
+                    path: obj[4][0]
+                    index: obj[4][2]
+
+            result.type.forEach (type) =>
+                switch type
+                    when 'unsolvedmeta', 'terminationproblem'
+                        @highlight.highlight result
 
     # agda2-highlight-load-and-delete-action
     highlightLoadAndDeleteAction: (tokens) ->
