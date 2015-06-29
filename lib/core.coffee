@@ -135,26 +135,26 @@ class Core
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.inferTypeGoalSpecific goal, expr
+                @executable.inferTypeGoalSpecific true, goal, expr
                 @textBuffer.focus()
             , =>
                 # global command
-                @executable.inferType expr
+                @executable.inferType true, expr
                 @textBuffer.focus()
 
-    inferTypeNormalized: -> if @loaded
-        log 'Command', 'infer type (normalized)'
+    inferTypeWithoutNormalizing: -> if @loaded
+        log 'Command', 'infer type (without normalizing)'
 
-        @panelModel.set 'Infer type (normalized)', [], 'info'
+        @panelModel.set 'Infer type (without normalizing)', [], 'info'
         @panelModel.placeholder = 'expression to infer:'
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.inferTypeNormalizedGoalSpecific goal, expr
+                @executable.inferTypeGoalSpecific false, goal, expr
                 @textBuffer.focus()
             , =>
                 # global command
-                @executable.inferTypeNormalized expr
+                @executable.inferType false, expr
                 @textBuffer.focus()
 
     moduleContents: -> if @loaded

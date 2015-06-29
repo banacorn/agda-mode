@@ -136,14 +136,12 @@ class Executable
         @sendCommand "NonInteractive", "Cmd_constraints"
     showGoals: ->
         @sendCommand "NonInteractive", "Cmd_metas"
-    inferType: (content) ->
-        @sendCommand "None", "Cmd_infer_toplevel Simplified \"#{content}\""
-    inferTypeGoalSpecific: (goal, content) ->
-        @sendCommand "NonInteractive", "Cmd_infer Simplified #{goal.index} noRange \"#{content}\""
-    inferTypeNormalized: (content) ->
-        @sendCommand "None", "Cmd_infer_toplevel Instantiated \"#{content}\""
-    inferTypeNormalizedGoalSpecific: (goal, content) ->
-        @sendCommand "NonInteractive", "Cmd_infer Instantiated #{goal.index} noRange \"#{content}\""
+    inferType: (normalize, content) ->
+        normalize = if normalize then 'Simplified' else 'Instantiated'
+        @sendCommand "None", "Cmd_infer_toplevel #{normalize} \"#{content}\""
+    inferTypeGoalSpecific: (normalize, goal, content) ->
+        normalize = if normalize then 'Simplified' else 'Instantiated'
+        @sendCommand "NonInteractive", "Cmd_infer #{normalize} #{goal.index} noRange \"#{content}\""
     moduleContents: (content) ->
         @sendCommand "None", "Cmd_show_module_contents_toplevel Simplified \"#{content}\""
     moduleContentsGoalSpecific: (goal, content) ->

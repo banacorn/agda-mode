@@ -103,7 +103,7 @@ module.exports =
         'agda-mode:next-goal'
         'agda-mode:previous-goal'
         'agda-mode:infer-type'
-        'agda-mode:infer-type-normalized'
+        'agda-mode:infer-type-without-normalizing'
         'agda-mode:module-contents'
         'agda-mode:compute-normal-form'
         'agda-mode:compute-normal-form-ignore-abstract'

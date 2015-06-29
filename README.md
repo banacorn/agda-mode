@@ -25,7 +25,7 @@ PRs, issues and comments are all welcome.
 | `    C-c     C-f` | next goal (forward)   |
 | `    C-c     C-b` | previous goal (back)  |
 | `    C-c     C-d` | infer type            |
-| `C-u C-c     C-d` | infer type (normalized) |
+| `C-u C-c     C-d` | infer type (without normalizing) |
 | `    C-c     C-o` | module contents       |
 | `    C-c     C-n` | compute normal form   |
 | `C-u C-c     C-n` | compute normal form (ignoring abstract) |
@@ -43,7 +43,7 @@ PRs, issues and comments are all welcome.
 | `    C-c C-e`     | context       |
 | `C-u C-c C-e`     | context (without normalizing) |
 | `    C-c C-d`     | infer type            |
-| `C-u C-c C-d`     | infer type (normalized) |
+| `C-u C-c C-d`     | infer type (without normalizing) |
 | `    C-c C-,`     | goal type and context       |
 | `C-u C-c C-,`     | goal type and context (without normalizing) |
 | `    C-c C-.`     | goal type and inferred type |
