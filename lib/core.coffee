@@ -165,11 +165,26 @@ class Core
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.moduleContentsGoalSpecific goal, expr
+                @executable.moduleContentsGoalSpecific true, goal, expr
                 @textBuffer.focus()
             , =>
                 # global command
-                @executable.moduleContents expr
+                @executable.moduleContents true, expr
+                @textBuffer.focus()
+
+    moduleContentsWithoutNormalizing: -> if @loaded
+        log 'Command', 'module contents (without normalizing)'
+
+        @panelModel.set 'Module contents (without normalizing)', [], 'info'
+        @panelModel.placeholder = 'module name:'
+        @panelModel.query().then (expr) =>
+            @textBuffer.getCurrentGoal().done (goal) =>
+                # goal-specific
+                @executable.moduleContentsGoalSpecific false, goal, expr
+                @textBuffer.focus()
+            , =>
+                # global command
+                @executable.moduleContents false, expr
                 @textBuffer.focus()
 
     computeNormalForm: -> if @loaded

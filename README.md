@@ -27,6 +27,7 @@ PRs, issues and comments are all welcome.
 | `    C-c     C-d` | infer type            |
 | `C-u C-c     C-d` | infer type (without normalizing) |
 | `    C-c     C-o` | module contents       |
+| `C-u C-c     C-o` | module contents (without normalizing) |
 | `    C-c     C-n` | compute normal form   |
 | `C-u C-c     C-n` | compute normal form (ignoring abstract) |
 

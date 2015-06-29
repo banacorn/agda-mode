@@ -142,10 +142,12 @@ class Executable
     inferTypeGoalSpecific: (normalize, goal, content) ->
         normalize = if normalize then 'Simplified' else 'Instantiated'
         @sendCommand "NonInteractive", "Cmd_infer #{normalize} #{goal.index} noRange \"#{content}\""
-    moduleContents: (content) ->
-        @sendCommand "None", "Cmd_show_module_contents_toplevel Simplified \"#{content}\""
-    moduleContentsGoalSpecific: (goal, content) ->
-        @sendCommand "NonInteractive", "Cmd_show_module_contents Simplified #{goal.index} noRange \"#{content}\""
+    moduleContents: (normalize, content) ->
+        normalize = if normalize then 'Simplified' else 'Instantiated'
+        @sendCommand "None", "Cmd_show_module_contents_toplevel #{normalize} \"#{content}\""
+    moduleContentsGoalSpecific: (normalize, goal, content) ->
+        normalize = if normalize then 'Simplified' else 'Instantiated'
+        @sendCommand "NonInteractive", "Cmd_show_module_contents #{normalize} #{goal.index} noRange \"#{content}\""
     computeNormalForm: (content) ->
         @sendCommand "None", "Cmd_compute_toplevel False \"#{content}\""
     computeNormalFormGoalSpecific: (goal, content) ->

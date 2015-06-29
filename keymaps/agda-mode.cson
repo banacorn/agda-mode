@@ -21,6 +21,7 @@
     'ctrl-c        ctrl-d': 'agda-mode:infer-type'              # maybe goal-specific
     'ctrl-u ctrl-c ctrl-d': 'agda-mode:infer-type-without-normalizing'   # maybe goal-specific
     'ctrl-c        ctrl-o': 'agda-mode:module-contents'         # maybe goal-specific
+    'ctrl-u ctrl-c ctrl-o': 'agda-mode:module-contents-without-normalizing'   # maybe goal-specific
     'ctrl-c        ctrl-n': 'agda-mode:compute-normal-form'     # maybe goal-specific
     'ctrl-u ctrl-c ctrl-n': 'agda-mode:compute-normal-form-ignore-abstract' # maybe goal-specific
 

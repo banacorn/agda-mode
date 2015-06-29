@@ -105,6 +105,7 @@ module.exports =
         'agda-mode:infer-type'
         'agda-mode:infer-type-without-normalizing'
         'agda-mode:module-contents'
+        'agda-mode:module-contents-without-normalizing'
         'agda-mode:compute-normal-form'
         'agda-mode:compute-normal-form-ignore-abstract'
         'agda-mode:give'
