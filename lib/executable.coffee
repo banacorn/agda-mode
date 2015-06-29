@@ -136,26 +136,28 @@ class Executable
         @sendCommand "NonInteractive", "Cmd_constraints"
     showGoals: ->
         @sendCommand "NonInteractive", "Cmd_metas"
-    inferType: (normalize, content) ->
+    inferType: (normalize, content, goal) ->
         normalize = if normalize then 'Simplified' else 'Instantiated'
-        @sendCommand "None", "Cmd_infer_toplevel #{normalize} \"#{content}\""
-    inferTypeGoalSpecific: (normalize, goal, content) ->
+        if goal
+            @sendCommand "NonInteractive", "Cmd_infer #{normalize} #{goal.index} noRange \"#{content}\""
+        else
+            @sendCommand "None", "Cmd_infer_toplevel #{normalize} \"#{content}\""
+    moduleContents: (normalize, content, goal) ->
         normalize = if normalize then 'Simplified' else 'Instantiated'
-        @sendCommand "NonInteractive", "Cmd_infer #{normalize} #{goal.index} noRange \"#{content}\""
-    moduleContents: (normalize, content) ->
-        normalize = if normalize then 'Simplified' else 'Instantiated'
-        @sendCommand "None", "Cmd_show_module_contents_toplevel #{normalize} \"#{content}\""
-    moduleContentsGoalSpecific: (normalize, goal, content) ->
-        normalize = if normalize then 'Simplified' else 'Instantiated'
-        @sendCommand "NonInteractive", "Cmd_show_module_contents #{normalize} #{goal.index} noRange \"#{content}\""
-    computeNormalForm: (content) ->
-        @sendCommand "None", "Cmd_compute_toplevel False \"#{content}\""
-    computeNormalFormGoalSpecific: (goal, content) ->
-        @sendCommand "NonInteractive", "Cmd_compute False #{goal.index} noRange \"#{content}\""
-    computeNormalFormIgnoreAbstract: (content) ->
-        @sendCommand "None", "Cmd_compute_toplevel True \"#{content}\""
-    computeNormalFormIgnoreAbstractGoalSpecific: (goal, content) ->
-        @sendCommand "NonInteractive", "Cmd_compute True #{goal.index} noRange \"#{content}\""
+        if goal
+            @sendCommand "NonInteractive", "Cmd_show_module_contents #{normalize} #{goal.index} noRange \"#{content}\""
+        else
+            @sendCommand "None", "Cmd_show_module_contents_toplevel #{normalize} \"#{content}\""
+    computeNormalForm: (content, goal) ->
+        if goal
+            @sendCommand "NonInteractive", "Cmd_compute False #{goal.index} noRange \"#{content}\""
+        else
+            @sendCommand "None", "Cmd_compute_toplevel False \"#{content}\""
+    computeNormalFormIgnoreAbstract: (content, goal) ->
+        if goal
+            @sendCommand "NonInteractive", "Cmd_compute True #{goal.index} noRange \"#{content}\""
+        else
+            @sendCommand "None", "Cmd_compute_toplevel True \"#{content}\""
     give: (goal) ->
         @sendCommand "NonInteractive", "Cmd_give #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
     refine: (goal) ->

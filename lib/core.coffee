@@ -135,7 +135,7 @@ class Core
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.inferTypeGoalSpecific true, goal, expr
+                @executable.inferType false, expr, goal
                 @textBuffer.focus()
             , =>
                 # global command
@@ -150,7 +150,7 @@ class Core
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.inferTypeGoalSpecific false, goal, expr
+                @executable.inferType false, expr, goal
                 @textBuffer.focus()
             , =>
                 # global command
@@ -165,7 +165,7 @@ class Core
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.moduleContentsGoalSpecific true, goal, expr
+                @executable.moduleContents true, expr, goal
                 @textBuffer.focus()
             , =>
                 # global command
@@ -180,7 +180,7 @@ class Core
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.moduleContentsGoalSpecific false, goal, expr
+                @executable.moduleContents true, expr, goal
                 @textBuffer.focus()
             , =>
                 # global command
@@ -194,7 +194,7 @@ class Core
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.computeNormalFormGoalSpecific goal, expr
+                @executable.computeNormalForm expr, goal
                 @textBuffer.focus()
             , =>
                 # global command
@@ -208,7 +208,7 @@ class Core
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.computeNormalFormIgnoreAbstractGoalSpecific goal, expr
+                @executable.computeNormalFormIgnoreAbstract expr, goal
                 @textBuffer.focus()
             , =>
                 # global command
