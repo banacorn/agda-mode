@@ -18,26 +18,33 @@
     'ctrl-c        ctrl-?': 'agda-mode:show-goals'
     'ctrl-c        ctrl-f': 'agda-mode:next-goal'
     'ctrl-c        ctrl-b': 'agda-mode:previous-goal'
-    'ctrl-c        ctrl-d': 'agda-mode:infer-type'              # maybe goal-specific
-    'ctrl-u ctrl-c ctrl-d': 'agda-mode:infer-type-without-normalizing'   # maybe goal-specific
-    'ctrl-c        ctrl-o': 'agda-mode:module-contents'         # maybe goal-specific
-    'ctrl-u ctrl-c ctrl-o': 'agda-mode:module-contents-without-normalizing'   # maybe goal-specific
-    'ctrl-c        ctrl-n': 'agda-mode:compute-normal-form'     # maybe goal-specific
-    'ctrl-u ctrl-c ctrl-n': 'agda-mode:compute-normal-form-ignore-abstract' # maybe goal-specific
+    # the commands below may have a goal-specific version
+    'ctrl-c               ctrl-d': 'agda-mode:infer-type'
+    'ctrl-u ctrl-c        ctrl-d': 'agda-mode:infer-type-no-normalization'
+    'ctrl-u ctrl-u ctrl-c ctrl-d': 'agda-mode:infer-type-full-normalization'
+    'ctrl-c               ctrl-o': 'agda-mode:module-contents'
+    'ctrl-u ctrl-c        ctrl-o': 'agda-mode:module-contents-no-normalization'
+    'ctrl-u ctrl-u ctrl-c ctrl-o': 'agda-mode:module-contents-full-normalization'
+    'ctrl-c         ctrl-n': 'agda-mode:compute-normal-form'
+    'ctrl-u ctrl-c        ctrl-n': 'agda-mode:compute-normal-form-ignore-abstract'
 
     # Commands working in the context of a specific goal
-    'ctrl-c        ctrl-space': 'agda-mode:give'
-    'ctrl-c        ctrl-r': 'agda-mode:refine'
-    'ctrl-c        ctrl-a': 'agda-mode:auto'
-    'ctrl-c        ctrl-c': 'agda-mode:case'
-    'ctrl-c        ctrl-t': 'agda-mode:goal-type'
-    'ctrl-u ctrl-c ctrl-t': 'agda-mode:goal-type-without-normalizing'
-    'ctrl-c        ctrl-e': 'agda-mode:context'
-    'ctrl-u ctrl-c ctrl-e': 'agda-mode:context-without-normalizing'
-    'ctrl-c        ctrl-,': 'agda-mode:goal-type-and-context'
-    'ctrl-u ctrl-c ctrl-,': 'agda-mode:goal-type-and-context-without-normalizing'
-    'ctrl-c        ctrl-.': 'agda-mode:goal-type-and-inferred-type'
-    'ctrl-u ctrl-c ctrl-.': 'agda-mode:goal-type-and-inferred-type-without-normalizing'
+    'ctrl-c               ctrl-space': 'agda-mode:give'
+    'ctrl-c               ctrl-r': 'agda-mode:refine'
+    'ctrl-c               ctrl-a': 'agda-mode:auto'
+    'ctrl-c               ctrl-c': 'agda-mode:case'
+    'ctrl-c               ctrl-t': 'agda-mode:goal-type'
+    'ctrl-u ctrl-c        ctrl-t': 'agda-mode:goal-type-no-normalization'
+    'ctrl-u ctrl-u ctrl-c ctrl-t': 'agda-mode:goal-type-full-normalization'
+    'ctrl-c               ctrl-e': 'agda-mode:context'
+    'ctrl-u ctrl-c        ctrl-e': 'agda-mode:context-no-normalization'
+    'ctrl-u ctrl-u ctrl-c ctrl-e': 'agda-mode:context-full-normalization'
+    'ctrl-c               ctrl-,': 'agda-mode:goal-type-and-context'
+    'ctrl-u ctrl-c        ctrl-,': 'agda-mode:goal-type-and-context-no-normalization'
+    'ctrl-u ctrl-u ctrl-c ctrl-,': 'agda-mode:goal-type-and-context-full-normalization'
+    'ctrl-c               ctrl-.': 'agda-mode:goal-type-and-inferred-type'
+    'ctrl-u ctrl-c        ctrl-.': 'agda-mode:goal-type-and-inferred-type-no-normalization'
+    'ctrl-u ctrl-u ctrl-c ctrl-.': 'agda-mode:goal-type-and-inferred-type-full-normalization'
 
     # invoke input method
     '\\': 'agda-mode:input-symbol'

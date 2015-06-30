@@ -141,21 +141,21 @@ class TextBuffer
             @core.executable.case goal
         , @warnOutOfGoal
 
-    goalType: (normalize) -> @getCurrentGoal().done (goal) =>
-            @core.executable.goalType normalize, goal
+    goalType: (normalization) -> @getCurrentGoal().done (goal) =>
+            @core.executable.goalType normalization, goal
         , @warnOutOfGoal
 
-    context: (normalize) -> @getCurrentGoal().done (goal) =>
-            @core.executable.context normalize, goal
+    context: (normalization) -> @getCurrentGoal().done (goal) =>
+            @core.executable.context normalization, goal
         , @warnOutOfGoal
 
-    goalTypeAndContext: (normalize) -> @getCurrentGoal().done (goal) =>
-            @core.executable.goalTypeAndContext normalize, goal
+    goalTypeAndContext: (normalization) -> @getCurrentGoal().done (goal) =>
+            @core.executable.goalTypeAndContext normalization, goal
         , @warnOutOfGoal
 
-    goalTypeAndInferredType: (normalize) -> @getCurrentGoal().done (goal) =>
+    goalTypeAndInferredType: (normalization) -> @getCurrentGoal().done (goal) =>
             @warnCurrentGoalIfEmpty goal, 'Nothing to infer'
-            @core.executable.goalTypeAndInferredType normalize, goal
+            @core.executable.goalTypeAndInferredType normalization, goal
         , @warnOutOfGoal
 
 

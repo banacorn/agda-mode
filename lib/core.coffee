@@ -135,26 +135,41 @@ class Core
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.inferType false, expr, goal
+                @executable.inferType "Simplified", expr, goal
                 @textBuffer.focus()
             , =>
                 # global command
-                @executable.inferType true, expr
+                @executable.inferType "Simplified", expr
                 @textBuffer.focus()
 
-    inferTypeWithoutNormalizing: -> if @loaded
-        log 'Command', 'infer type (without normalizing)'
+    inferTypeNoNormalization: -> if @loaded
+        log 'Command', 'infer type (no normalization)'
 
-        @panelModel.set 'Infer type (without normalizing)', [], 'info'
+        @panelModel.set 'Infer type (no normalization)', [], 'info'
         @panelModel.placeholder = 'expression to infer:'
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.inferType false, expr, goal
+                @executable.inferType "Instantiated", expr, goal
                 @textBuffer.focus()
             , =>
                 # global command
-                @executable.inferType false, expr
+                @executable.inferType "Instantiated", expr
+                @textBuffer.focus()
+
+    inferTypeFullNormalization: -> if @loaded
+        log 'Command', 'infer type (full normalization)'
+
+        @panelModel.set 'Infer type (full normalization)', [], 'info'
+        @panelModel.placeholder = 'expression to infer:'
+        @panelModel.query().then (expr) =>
+            @textBuffer.getCurrentGoal().done (goal) =>
+                # goal-specific
+                @executable.inferType "Normalised", expr, goal
+                @textBuffer.focus()
+            , =>
+                # global command
+                @executable.inferType "Normalised", expr
                 @textBuffer.focus()
 
     moduleContents: -> if @loaded
@@ -165,26 +180,41 @@ class Core
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.moduleContents true, expr, goal
+                @executable.moduleContents "Simplified", expr, goal
                 @textBuffer.focus()
             , =>
                 # global command
-                @executable.moduleContents true, expr
+                @executable.moduleContents "Simplified", expr
                 @textBuffer.focus()
 
-    moduleContentsWithoutNormalizing: -> if @loaded
-        log 'Command', 'module contents (without normalizing)'
+    moduleContentsNoNormalization: -> if @loaded
+        log 'Command', 'module contents (no normalization)'
 
-        @panelModel.set 'Module contents (without normalizing)', [], 'info'
+        @panelModel.set 'Module contents (no normalization)', [], 'info'
         @panelModel.placeholder = 'module name:'
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.moduleContents true, expr, goal
+                @executable.moduleContents "Instantiated", expr, goal
                 @textBuffer.focus()
             , =>
                 # global command
-                @executable.moduleContents false, expr
+                @executable.moduleContents "Instantiated", expr
+                @textBuffer.focus()
+
+    moduleContentsFullNormalization: -> if @loaded
+        log 'Command', 'module contents (full normalization)'
+
+        @panelModel.set 'Module contents (full normalization)', [], 'info'
+        @panelModel.placeholder = 'module name:'
+        @panelModel.query().then (expr) =>
+            @textBuffer.getCurrentGoal().done (goal) =>
+                # goal-specific
+                @executable.moduleContents "Normalised", expr, goal
+                @textBuffer.focus()
+            , =>
+                # global command
+                @executable.moduleContents "Normalised", expr
                 @textBuffer.focus()
 
     computeNormalForm: -> if @loaded
@@ -233,35 +263,51 @@ class Core
 
     goalType: -> if @loaded
         log 'Command', 'goal-type'
-        @textBuffer.goalType true
+        @textBuffer.goalType "Simplified"
 
-    goalTypeWithoutNormalizing: -> if @loaded
-        log 'Command', 'goal-type (without normalizing)'
-        @textBuffer.goalType false
+    goalTypeNoNormalization: -> if @loaded
+        log 'Command', 'goal-type (no normalization)'
+        @textBuffer.goalType "Instantiated"
+
+    goalTypeFullNormalization: -> if @loaded
+        log 'Command', 'goal-type (full normalization)'
+        @textBuffer.goalType "Normalised"
 
     context: -> if @loaded
         log 'Command', 'context'
-        @textBuffer.context true
+        @textBuffer.context "Simplified"
 
-    contextWithoutNormalizing: -> if @loaded
+    contextNoNormalization: -> if @loaded
+        log 'Command', 'context'
+        @textBuffer.context "Instantiated"
+
+    contextFullNormalization: -> if @loaded
         log 'Command', 'context (without normalizing)'
-        @textBuffer.context false
+        @textBuffer.context "Normalised"
 
     goalTypeAndContext: -> if @loaded
         log 'Command', 'goal-type-and-context'
-        @textBuffer.goalTypeAndContext true
+        @textBuffer.goalTypeAndContext "Simplified"
 
-    goalTypeAndContextWithoutNormalizing: -> if @loaded
+    goalTypeAndContextNoNormalization: -> if @loaded
+        log 'Command', 'goal-type-and-context'
+        @textBuffer.goalTypeAndContext "Instantiated"
+
+    goalTypeAndContextFullNormalization: -> if @loaded
         log 'Command', 'goal-type-and-context (without normalizing)'
-        @textBuffer.goalTypeAndContext false
+        @textBuffer.goalTypeAndContext "Normalised"
 
     goalTypeAndInferredType: -> if @loaded
         log 'Command', 'goal-type-inferred-type'
-        @textBuffer.goalTypeAndInferredType true
+        @textBuffer.goalTypeAndInferredType "Simplified"
 
-    goalTypeAndInferredTypeWithoutNormalizing: -> if @loaded
+    goalTypeAndInferredTypeNoNormalization: -> if @loaded
+        log 'Command', 'goal-type-inferred-type'
+        @textBuffer.goalTypeAndInferredType "Instantiated"
+
+    goalTypeAndInferredTypeFullNormalization: -> if @loaded
         log 'Command', 'goal-type-inferred-type-without-normalizing'
-        @textBuffer.goalTypeAndInferredType false
+        @textBuffer.goalTypeAndInferredType "Normalised"
 
     inputSymbol: ->
         log 'Command', 'input-symbol'

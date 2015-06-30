@@ -136,18 +136,16 @@ class Executable
         @sendCommand "NonInteractive", "Cmd_constraints"
     showGoals: ->
         @sendCommand "NonInteractive", "Cmd_metas"
-    inferType: (normalize, content, goal) ->
-        normalize = if normalize then 'Simplified' else 'Instantiated'
+    inferType: (normalization, content, goal) ->
         if goal
-            @sendCommand "NonInteractive", "Cmd_infer #{normalize} #{goal.index} noRange \"#{content}\""
+            @sendCommand "NonInteractive", "Cmd_infer #{normalization} #{goal.index} noRange \"#{content}\""
         else
-            @sendCommand "None", "Cmd_infer_toplevel #{normalize} \"#{content}\""
-    moduleContents: (normalize, content, goal) ->
-        normalize = if normalize then 'Simplified' else 'Instantiated'
+            @sendCommand "None", "Cmd_infer_toplevel #{normalization} \"#{content}\""
+    moduleContents: (normalization, content, goal) ->
         if goal
-            @sendCommand "NonInteractive", "Cmd_show_module_contents #{normalize} #{goal.index} noRange \"#{content}\""
+            @sendCommand "NonInteractive", "Cmd_show_module_contents #{normalization} #{goal.index} noRange \"#{content}\""
         else
-            @sendCommand "None", "Cmd_show_module_contents_toplevel #{normalize} \"#{content}\""
+            @sendCommand "None", "Cmd_show_module_contents_toplevel #{normalization} \"#{content}\""
     computeNormalForm: (content, goal) ->
         if goal
             @sendCommand "NonInteractive", "Cmd_compute False #{goal.index} noRange \"#{content}\""
@@ -166,19 +164,15 @@ class Executable
         @sendCommand "NonInteractive", "Cmd_auto #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
     case: (goal) ->
         @sendCommand "NonInteractive", "Cmd_make_case #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
-    goalType: (normalize, goal) ->
-        normalize = if normalize then 'Simplified' else 'Instantiated'
-        @sendCommand "NonInteractive", "Cmd_goal_type #{normalize} #{goal.index} noRange \"\""
-    context: (normalize, goal) ->
-        normalize = if normalize then 'Simplified' else 'Instantiated'
-        @sendCommand "NonInteractive", "Cmd_context #{normalize} #{goal.index} noRange \"\""
-    goalTypeAndContext: (normalize, goal) ->
-        normalize = if normalize then 'Simplified' else 'Instantiated'
-        @sendCommand "NonInteractive", "Cmd_goal_type_context #{normalize} #{goal.index} noRange \"\""
-    goalTypeAndInferredType: (normalize, goal) ->
-        normalize = if normalize then 'Simplified' else 'Instantiated'
+    goalType: (normalization, goal) ->
+        @sendCommand "NonInteractive", "Cmd_goal_type #{normalization} #{goal.index} noRange \"\""
+    context: (normalization, goal) ->
+        @sendCommand "NonInteractive", "Cmd_context #{normalization} #{goal.index} noRange \"\""
+    goalTypeAndContext: (normalization, goal) ->
+        @sendCommand "NonInteractive", "Cmd_goal_type_context #{normalization} #{goal.index} noRange \"\""
+    goalTypeAndInferredType: (normalization, goal) ->
         content = escape goal.getContent()
         if content
-            @sendCommand "NonInteractive", "Cmd_goal_type_context_infer #{normalize} #{goal.index} noRange \"#{content}\""
+            @sendCommand "NonInteractive", "Cmd_goal_type_context_infer #{normalization} #{goal.index} noRange \"#{content}\""
 
 module.exports = Executable
