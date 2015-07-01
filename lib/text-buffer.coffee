@@ -123,42 +123,6 @@ class TextBuffer
         if positions.length isnt 0
             @core.editor.setCursorBufferPosition previousGoal
 
-    give: -> @getCurrentGoal().done (goal) =>
-            @warnCurrentGoalIfEmpty goal, 'Nothing to give'
-            @core.executable.give goal
-        , @warnOutOfGoal
-
-    refine: -> @getCurrentGoal().done (goal) =>
-            @core.executable.refine goal
-        , @warnOutOfGoal
-
-    auto: -> @getCurrentGoal().done (goal) =>
-            @core.executable.auto goal
-        , @warnOutOfGoal
-
-    case: -> @getCurrentGoal().done (goal) =>
-            @warnCurrentGoalIfEmpty goal, 'Nothing to make case'
-            @core.executable.case goal
-        , @warnOutOfGoal
-
-    goalType: (normalization) -> @getCurrentGoal().done (goal) =>
-            @core.executable.goalType normalization, goal
-        , @warnOutOfGoal
-
-    context: (normalization) -> @getCurrentGoal().done (goal) =>
-            @core.executable.context normalization, goal
-        , @warnOutOfGoal
-
-    goalTypeAndContext: (normalization) -> @getCurrentGoal().done (goal) =>
-            @core.executable.goalTypeAndContext normalization, goal
-        , @warnOutOfGoal
-
-    goalTypeAndInferredType: (normalization) -> @getCurrentGoal().done (goal) =>
-            @warnCurrentGoalIfEmpty goal, 'Nothing to infer'
-            @core.executable.goalTypeAndInferredType normalization, goal
-        , @warnOutOfGoal
-
-
     ########################
     #   Command Handlers   #
     ########################

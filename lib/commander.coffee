@@ -137,29 +137,40 @@ class Commander
                 @executable.computeNormalFormIgnoreAbstract expr
                 @textBuffer.focus()
 
-    give: ->
-        @textBuffer.give()
+    give: -> @textBuffer.getCurrentGoal().done (goal) =>
+            @textBuffer.warnCurrentGoalIfEmpty goal, 'Nothing to give'
+            @executable.give goal
+        , @textBuffer.warnOutOfGoal
 
-    refine: ->
-        @textBuffer.refine()
+    refine: -> @textBuffer.getCurrentGoal().done (goal) =>
+            @executable.refine goal
+        , @textBuffer.warnOutOfGoal
 
-    auto: ->
-        @textBuffer.auto()
+    auto: -> @textBuffer.getCurrentGoal().done (goal) =>
+            @executable.auto goal
+        , @textBuffer.warnOutOfGoal
 
-    case: ->
-        @textBuffer.case()
+    case: -> @textBuffer.getCurrentGoal().done (goal) =>
+            @textBuffer.warnCurrentGoalIfEmpty goal, 'Nothing to make case'
+            @executable.case goal
+        , @textBuffer.warnOutOfGoal
 
-    goalType: (normalization) ->
-        @textBuffer.goalType normalization
+    goalType: (normalization) -> @textBuffer.getCurrentGoal().done (goal) =>
+            @executable.goalType normalization, goal
+        , @textBuffer.warnOutOfGoal
 
-    context: (normalization) ->
-        @textBuffer.context normalization
+    context: (normalization) -> @textBuffer.getCurrentGoal().done (goal) =>
+            @executable.context normalization, goal
+        , @textBuffer.warnOutOfGoal
 
-    goalTypeAndContext: (normalization) ->
-        @textBuffer.goalTypeAndContext normalization
+    goalTypeAndContext: (normalization) -> @textBuffer.getCurrentGoal().done (goal) =>
+            @executable.goalTypeAndContext normalization, goal
+        , @textBuffer.warnOutOfGoal
 
-    goalTypeAndInferredType: (normalization) ->
-        @textBuffer.goalTypeAndInferredType normalization
+    goalTypeAndInferredType: (normalization) -> @textBuffer.getCurrentGoal().done (goal) =>
+            @textBuffer.warnCurrentGoalIfEmpty goal, 'Nothing to infer'
+            @executable.goalTypeAndInferredType normalization, goal
+        , @textBuffer.warnOutOfGoal
 
     inputSymbol: ->
         unless @loaded
