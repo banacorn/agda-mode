@@ -2,6 +2,7 @@ Core = require './core'
 {log, warn, error} = require './logger'
 
 class Commander
+    loaded: false
     constructor: (@core) ->
         @panel          = @core.panel
         @highlight      = @core.highlight
@@ -15,13 +16,13 @@ class Commander
         @filepath       = @core.filepath
     command: (raw) ->
         {command, method, option} = @parse raw
-        log "Commander", "#{command} #{method} #{option}"
+        log "Commander", "#{@loaded} #{command} #{method} #{option}"
 
         switch command
             when 'load'
                 @load()
             else
-                if @core.loaded then @[method](option)
+                @[method](option) if @loaded
 
     parse: (raw) ->
         result = raw.match(/^agda-mode:((?:\w|\-)*)(?:\[(\w*)\])?/)
@@ -47,11 +48,11 @@ class Commander
         @highlight.destroyAllMarker()
         @executable.load().then (process) =>
             @panelModel.set 'Loading'
-            @core.loaded = true
+            @loaded = true
 
     quit: ->
         log 'Command', 'warn'
-        @core.loaded = false
+        @loaded = false
         @executable.quit()
         @panel.hide()
         @textBuffer.removeGoals()

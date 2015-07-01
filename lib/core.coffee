@@ -18,9 +18,6 @@ Config      = require './config'
 Handler     = require './handler'
 
 class Core
-
-    @loaded: false
-
     constructor: (@editor) ->
 
         # helper methods on @editor
