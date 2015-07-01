@@ -31,11 +31,11 @@ Commands listed below support 3 different levels of normalization.
 | Keymap            | Command                                 | Global | Goal-specific |
 |------------------:|:----------------------------------------|:------:|:-------------:|
 | `    C-c     C-d` | infer type                              |   ✓    |       ✓       |
-| `    C-c     C-t` | goal type                               |   ✓    |       ✓       |
-| `    C-c     C-e` | context                                 |   ✓    |       ✓       |
-| `    C-c     C-,` | goal type and context                   |   ✓    |       ✓       |
-| `    C-c     C-.` | goal type and inferred type             |   ✓    |       ✓       |
 | `    C-c     C-o` | module contents                         |   ✓    |       ✓       |
+| `    C-c     C-t` | goal type                               |        |       ✓       |
+| `    C-c     C-e` | context                                 |        |       ✓       |
+| `    C-c     C-,` | goal type and context                   |        |       ✓       |
+| `    C-c     C-.` | goal type and inferred type             |        |       ✓       |
 
 Levels of normalization
 
