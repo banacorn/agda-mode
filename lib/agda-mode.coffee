@@ -136,8 +136,8 @@ module.exports =
             atom.commands.add 'atom-text-editor.agda', command, =>
                 if isAgdaFile()
                     editor = atom.workspace.getActivePaneItem()
-                    editor.core[toCamalCase command]()
-
+                    # editor.core[toCamalCase command]()
+                    editor.core.commander.command command
 
 # if end with ".agda"
 isAgdaFile = (editor) ->
@@ -146,14 +146,3 @@ isAgdaFile = (editor) ->
     else
         filepath = atom.workspace.getActivePaneItem().getPath()
     /\.agda$|\.lagda$/.test filepath
-
-toCamalCase = (str) ->
-    str
-        .substr(10)   # strip "agda-mode:"
-        .split('-')
-        .map (str, i) =>
-            if i is 0
-                str
-            else
-                str.charAt(0).toUpperCase() + str.slice(1)
-        .join('')
