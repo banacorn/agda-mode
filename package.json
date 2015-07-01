@@ -1,7 +1,7 @@
 {
   "name": "agda-mode",
   "main": "./lib/agda-mode",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "agda-mode for Atom",
   "activationCommands": [],
   "repository": "https://github.com/banacorn/agda-mode",
