@@ -1,11 +1,13 @@
-{getHoles} = require './text-buffer/hole'
-Goal = require './text-buffer/goal'
-fs = require 'fs'
-_ = require 'lodash'
-{Point, Range} = require 'atom'
-Promise = require 'bluebird'
-{log, warn, error} = require './logger'
-{OutOfGoalError} = require './error'
+fs              = require 'fs'
+_               = require 'lodash'
+{Point, Range}  = require 'atom'
+Promise         = require 'bluebird'
+
+{getHoles}          = require './text-buffer/hole'
+Goal                = require './text-buffer/goal'
+{log, warn}         = require './logger'
+{OutOfGoalError}    = require './error'
+
 class TextBuffer
 
     goals: []
@@ -18,14 +20,13 @@ class TextBuffer
 
     protectCursor: (callback) ->
         position = @core.editor.getCursorBufferPosition()
-        result = callback()
+        callback()
         @getCurrentGoal position
             .then (goal) =>
                 newPosition = @core.editor.translate goal.range.start, 3
                 @core.editor.setCursorBufferPosition newPosition
-            .catch =>
+            .catch OutOfGoalError, =>
                 @core.editor.setCursorBufferPosition position
-        return result
 
     focus: ->
         textEditorElement = atom.views.getView(@core.editor)
@@ -68,6 +69,8 @@ class TextBuffer
     warnOutOfGoal: =>
         warn 'Text Buffer', 'out of goal'
         @core.panelModel.set 'Out of goal', ['For this command, please place the cursor in a goal'], 'warning'
+
+    checkGoalContent: (goal) =>
 
     warnCurrentGoalIfEmpty: (goal, warning) =>
         content = goal.getContent()

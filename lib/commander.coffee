@@ -141,30 +141,37 @@ class Commander
                 @executable.computeNormalFormIgnoreAbstract expr
                 @textBuffer.focus()
 
-    give: -> @textBuffer.getCurrentGoal().then (goal) =>
-        @executable.give goal
+    give: ->
+        @textBuffer.getCurrentGoal()
+            .then @executable.give
 
-    refine: -> @textBuffer.getCurrentGoal().then (goal) =>
-        @executable.refine goal
+    refine: ->
+        @textBuffer.getCurrentGoal()
+            .then @executable.refine
 
-    auto: -> @textBuffer.getCurrentGoal().then (goal) =>
-        @executable.auto goal
+    auto: ->
+        @textBuffer.getCurrentGoal()
+            .then @executable.auto
 
-    case: -> @textBuffer.getCurrentGoal().then (goal) =>
-        @executable.case goal
+    case: ->
+        @textBuffer.getCurrentGoal()
+            .then @executable.case
 
-    goalType: (normalization) -> @textBuffer.getCurrentGoal().then (goal) =>
-            @executable.goalType normalization, goal
+    goalType: (normalization) ->
+        @textBuffer.getCurrentGoal()
+            .then @executable.goalType normalization
 
-    context: (normalization) -> @textBuffer.getCurrentGoal().then (goal) =>
-            @executable.context normalization, goal
+    context: (normalization) ->
+        @textBuffer.getCurrentGoal()
+            .then @executable.context normalization
 
-    goalTypeAndContext: (normalization) -> @textBuffer.getCurrentGoal().then (goal) =>
-            @executable.goalTypeAndContext normalization, goal
+    goalTypeAndContext: (normalization) ->
+        @textBuffer.getCurrentGoal()
+            .then @executable.goalTypeAndContext normalization
 
-    goalTypeAndInferredType: (normalization) -> @textBuffer.getCurrentGoal().then (goal) =>
-            # @textBuffer.warnCurrentGoalIfEmpty goal, 'Nothing to infer'
-            @executable.goalTypeAndInferredType normalization, goal
+    goalTypeAndInferredType: (normalization) ->
+        @textBuffer.getCurrentGoal()
+            .then @executable.goalTypeAndInferredType normalization
 
     inputSymbol: ->
         unless @loaded

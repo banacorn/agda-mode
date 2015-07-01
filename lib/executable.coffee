@@ -118,61 +118,59 @@ class Executable
             process.stdin.write command
             return process
 
-    load: ->
+    load: =>
         # force save before load, since we are sending filepath but content
         @core.textBuffer.saveBuffer()
         @sendCommand "NonInteractive", "Cmd_load \"#{@core.filepath}\" [#{@core.config.libraryPath()}]"
 
-    quit: ->
+    quit: =>
         @process.kill()
         @processWired = false
         log 'Executable', 'process killed'
 
-    compile: ->
+    compile: =>
         @sendCommand "NonInteractive", "Cmd_compile MAlonzo \"#{@core.filepath}\" [#{@core.config.libraryPath()}]"
-    toggleDisplayOfImplicitArguments: ->
+    toggleDisplayOfImplicitArguments: =>
         @sendCommand "NonInteractive", "ToggleImplicitArgs"
-    showConstraints: ->
+    showConstraints: =>
         @sendCommand "NonInteractive", "Cmd_constraints"
-    showGoals: ->
+    showGoals: =>
         @sendCommand "NonInteractive", "Cmd_metas"
-    inferType: (normalization, content, goal) ->
+    inferType: (normalization, content, goal) =>
         if goal
             @sendCommand "NonInteractive", "Cmd_infer #{normalization} #{goal.index} noRange \"#{content}\""
         else
             @sendCommand "None", "Cmd_infer_toplevel #{normalization} \"#{content}\""
-    moduleContents: (normalization, content, goal) ->
+    moduleContents: (normalization, content, goal) =>
         if goal
             @sendCommand "NonInteractive", "Cmd_show_module_contents #{normalization} #{goal.index} noRange \"#{content}\""
         else
             @sendCommand "None", "Cmd_show_module_contents_toplevel #{normalization} \"#{content}\""
-    computeNormalForm: (content, goal) ->
+    computeNormalForm: (content, goal) =>
         if goal
             @sendCommand "NonInteractive", "Cmd_compute False #{goal.index} noRange \"#{content}\""
         else
             @sendCommand "None", "Cmd_compute_toplevel False \"#{content}\""
-    computeNormalFormIgnoreAbstract: (content, goal) ->
+    computeNormalFormIgnoreAbstract: (content, goal) =>
         if goal
             @sendCommand "NonInteractive", "Cmd_compute True #{goal.index} noRange \"#{content}\""
         else
             @sendCommand "None", "Cmd_compute_toplevel True \"#{content}\""
-    give: (goal) ->
+    give: (goal) =>
         @sendCommand "NonInteractive", "Cmd_give #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
-    refine: (goal) ->
+    refine: (goal) =>
         @sendCommand "NonInteractive", "Cmd_refine_or_intro False #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
-    auto: (goal) ->
+    auto: (goal) =>
         @sendCommand "NonInteractive", "Cmd_auto #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
-    case: (goal) ->
+    case: (goal) =>
         @sendCommand "NonInteractive", "Cmd_make_case #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
-    goalType: (normalization, goal) ->
+    goalType: (normalization) => (goal) =>
         @sendCommand "NonInteractive", "Cmd_goal_type #{normalization} #{goal.index} noRange \"\""
-    context: (normalization, goal) ->
+    context: (normalization) => (goal) =>
         @sendCommand "NonInteractive", "Cmd_context #{normalization} #{goal.index} noRange \"\""
-    goalTypeAndContext: (normalization, goal) ->
+    goalTypeAndContext: (normalization) => (goal) =>
         @sendCommand "NonInteractive", "Cmd_goal_type_context #{normalization} #{goal.index} noRange \"\""
-    goalTypeAndInferredType: (normalization, goal) ->
-        content = escape goal.getContent()
-        if content
-            @sendCommand "NonInteractive", "Cmd_goal_type_context_infer #{normalization} #{goal.index} noRange \"#{content}\""
+    goalTypeAndInferredType: (normalization) => (goal) =>
+        @sendCommand "NonInteractive", "Cmd_goal_type_context_infer #{normalization} #{goal.index} noRange \"#{escape goal.getContent()}\""
 
 module.exports = Executable
