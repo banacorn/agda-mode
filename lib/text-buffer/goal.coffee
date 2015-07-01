@@ -98,7 +98,10 @@ class Goal
         left = @editor.translate @range.start, 2
         right = @editor.translate @range.end, -2
         innerRange = new Range left, right
-        @editor.getTextInBufferRange(innerRange).trim()
+        @editor.getTextInBufferRange(innerRange)
+            .trim()
+            .replace(/\n/g, '\\n')
+            .replace(/\"/g, '\\"')
 
     setContent: (text) ->
         left = @editor.translate @range.start, 2

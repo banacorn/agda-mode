@@ -1,6 +1,6 @@
 Core = require './core'
 {log, warn, error} = require './logger'
-{OutOfGoalError} = require './error'
+{OutOfGoalError, EmptyGoalError} = require './error'
 
 toCamalCase = (str) ->
     str.split('-')
@@ -40,7 +40,8 @@ class Commander
                 if @loaded
                     @[method](option)
                         .catch OutOfGoalError, @textBuffer.warnOutOfGoal
-                        .catch (e) -> console.log
+                        .catch EmptyGoalError, @textBuffer.warnEmptyGoal
+                        .catch (e) -> throw e
 
     parse: (raw) ->
         result = raw.match(/^agda-mode:((?:\w|\-)*)(?:\[(\w*)\])?/)
@@ -143,10 +144,12 @@ class Commander
 
     give: ->
         @textBuffer.getCurrentGoal()
+            .then @textBuffer.checkGoalContent "Nothing to give"
             .then @executable.give
 
     refine: ->
         @textBuffer.getCurrentGoal()
+            .then @textBuffer.checkGoalContent "Nothing to refine"
             .then @executable.refine
 
     auto: ->
@@ -155,6 +158,7 @@ class Commander
 
     case: ->
         @textBuffer.getCurrentGoal()
+            .then @textBuffer.checkGoalContent "Nothing to case"
             .then @executable.case
 
     goalType: (normalization) ->

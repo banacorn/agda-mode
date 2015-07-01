@@ -6,7 +6,7 @@ Promise         = require 'bluebird'
 {getHoles}          = require './text-buffer/hole'
 Goal                = require './text-buffer/goal'
 {log, warn}         = require './logger'
-{OutOfGoalError}    = require './error'
+err    = require './error'
 
 class TextBuffer
 
@@ -25,7 +25,7 @@ class TextBuffer
             .then (goal) =>
                 newPosition = @core.editor.translate goal.range.start, 3
                 @core.editor.setCursorBufferPosition newPosition
-            .catch OutOfGoalError, =>
+            .catch err.OutOfGoalError, =>
                 @core.editor.setCursorBufferPosition position
 
     focus: ->
@@ -64,20 +64,22 @@ class TextBuffer
             if goals.length is 1
                 resolve goals[0]
             else
-                reject new OutOfGoalError
+                reject new err.OutOfGoalError
 
     warnOutOfGoal: =>
         warn 'Text Buffer', 'out of goal'
         @core.panelModel.set 'Out of goal', ['For this command, please place the cursor in a goal'], 'warning'
 
-    checkGoalContent: (goal) =>
+    warnEmptyGoal: (error) =>
+        warn 'Text Buffer', 'empty content'
+        @core.panelModel.set 'No content', [error.message], 'warning'
 
-    warnCurrentGoalIfEmpty: (goal, warning) =>
-        content = goal.getContent()
-        isEmpty = content.replace(/\s/g, '').length is 0
-        if isEmpty
-            warn 'Text Buffer', 'empty content'
-            @core.panelModel.set 'No content', [warning], 'warning'
+    checkGoalContent: (message) => (goal) =>
+        content = escape goal.getContent()
+        if content
+            Promise.resolve goal
+        else
+            Promise.reject new err.EmptyGoalError message
 
     ################
     #   Commands   #

@@ -6,11 +6,6 @@ Q.longStackSupport = true
 
 Stream = require './executable/stream'
 
-escape = (content) ->
-    content
-        .replace(/\n/g, '\\n')
-        .replace(/\"/g, '\\"')
-
 class Executable
 
     # instance wired the agda-mode executable
@@ -157,13 +152,13 @@ class Executable
         else
             @sendCommand "None", "Cmd_compute_toplevel True \"#{content}\""
     give: (goal) =>
-        @sendCommand "NonInteractive", "Cmd_give #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
+        @sendCommand "NonInteractive", "Cmd_give #{goal.index} #{@buildRange goal} \"#{goal.getContent()}\""
     refine: (goal) =>
-        @sendCommand "NonInteractive", "Cmd_refine_or_intro False #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
+        @sendCommand "NonInteractive", "Cmd_refine_or_intro False #{goal.index} #{@buildRange goal} \"#{goal.getContent()}\""
     auto: (goal) =>
-        @sendCommand "NonInteractive", "Cmd_auto #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
+        @sendCommand "NonInteractive", "Cmd_auto #{goal.index} #{@buildRange goal} \"#{goal.getContent()}\""
     case: (goal) =>
-        @sendCommand "NonInteractive", "Cmd_make_case #{goal.index} #{@buildRange goal} \"#{escape goal.getContent()}\""
+        @sendCommand "NonInteractive", "Cmd_make_case #{goal.index} #{@buildRange goal} \"#{goal.getContent()}\""
     goalType: (normalization) => (goal) =>
         @sendCommand "NonInteractive", "Cmd_goal_type #{normalization} #{goal.index} noRange \"\""
     context: (normalization) => (goal) =>
@@ -171,6 +166,6 @@ class Executable
     goalTypeAndContext: (normalization) => (goal) =>
         @sendCommand "NonInteractive", "Cmd_goal_type_context #{normalization} #{goal.index} noRange \"\""
     goalTypeAndInferredType: (normalization) => (goal) =>
-        @sendCommand "NonInteractive", "Cmd_goal_type_context_infer #{normalization} #{goal.index} noRange \"#{escape goal.getContent()}\""
+        @sendCommand "NonInteractive", "Cmd_goal_type_context_infer #{normalization} #{goal.index} noRange \"#{goal.getContent()}\""
 
 module.exports = Executable
