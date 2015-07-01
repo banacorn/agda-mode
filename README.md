@@ -67,4 +67,3 @@ See [Agda:Issue 850](https://code.google.com/p/agda/issues/detail?id=850) for mo
 For general syntax highlighting, please install [language-agda](https://atom.io/packages/language-agda)
 
 ![This gif looks cute so i'm keeping it](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)
-## Syntax Highlighting
