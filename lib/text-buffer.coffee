@@ -3,10 +3,9 @@ Goal = require './text-buffer/goal'
 fs = require 'fs'
 _ = require 'lodash'
 {Point, Range} = require 'atom'
-Q = require 'q'
-Q.longStackSupport = true
+Promise = require 'bluebird'
 {log, warn, error} = require './logger'
-
+{OutOfGoalError} = require './error'
 class TextBuffer
 
     goals: []
@@ -24,7 +23,7 @@ class TextBuffer
             .then (goal) =>
                 newPosition = @core.editor.translate goal.range.start, 3
                 @core.editor.setCursorBufferPosition newPosition
-            .fail =>
+            .catch =>
                 @core.editor.setCursorBufferPosition position
         return result
 
@@ -58,13 +57,13 @@ class TextBuffer
         return goals[0]
 
     getCurrentGoal: (cursor = @core.editor.getCursorBufferPosition()) =>
-        Q.Promise (resolve, reject, notify) =>
+        new Promise (resolve, reject) =>
             goals = @goals.filter (goal) =>
                 goal.range.containsPoint cursor
             if goals.length is 1
                 resolve goals[0]
             else
-                reject()
+                reject new OutOfGoalError
 
     warnOutOfGoal: =>
         warn 'Text Buffer', 'out of goal'
@@ -76,7 +75,6 @@ class TextBuffer
         if isEmpty
             warn 'Text Buffer', 'empty content'
             @core.panelModel.set 'No content', [warning], 'warning'
-
 
     ################
     #   Commands   #
@@ -153,7 +151,7 @@ class TextBuffer
     onMakeCaseAction: (content) ->  @protectCursor =>
          @getCurrentGoal().then (goal) =>
                 goal.writeLines content
-            , @warnOutOfGoal
+            .catch @warnOutOfGoal
 
     onGoto: (filepath, charIndex) ->
         if @core.filepath is filepath

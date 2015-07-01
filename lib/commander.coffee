@@ -1,5 +1,6 @@
 Core = require './core'
 {log, warn, error} = require './logger'
+{OutOfGoalError} = require './error'
 
 toCamalCase = (str) ->
     str.split('-')
@@ -36,7 +37,10 @@ class Commander
             when 'load'
                 @load()
             else
-                @[method](option) if @loaded
+                if @loaded
+                    @[method](option)
+                        .catch OutOfGoalError, @textBuffer.warnOutOfGoal
+                        .catch (e) -> console.log
 
     parse: (raw) ->
         result = raw.match(/^agda-mode:((?:\w|\-)*)(?:\[(\w*)\])?/)
@@ -137,40 +141,30 @@ class Commander
                 @executable.computeNormalFormIgnoreAbstract expr
                 @textBuffer.focus()
 
-    give: -> @textBuffer.getCurrentGoal().done (goal) =>
-            @textBuffer.warnCurrentGoalIfEmpty goal, 'Nothing to give'
-            @executable.give goal
-        , @textBuffer.warnOutOfGoal
+    give: -> @textBuffer.getCurrentGoal().then (goal) =>
+        @executable.give goal
 
-    refine: -> @textBuffer.getCurrentGoal().done (goal) =>
-            @executable.refine goal
-        , @textBuffer.warnOutOfGoal
+    refine: -> @textBuffer.getCurrentGoal().then (goal) =>
+        @executable.refine goal
 
-    auto: -> @textBuffer.getCurrentGoal().done (goal) =>
-            @executable.auto goal
-        , @textBuffer.warnOutOfGoal
+    auto: -> @textBuffer.getCurrentGoal().then (goal) =>
+        @executable.auto goal
 
-    case: -> @textBuffer.getCurrentGoal().done (goal) =>
-            @textBuffer.warnCurrentGoalIfEmpty goal, 'Nothing to make case'
-            @executable.case goal
-        , @textBuffer.warnOutOfGoal
+    case: -> @textBuffer.getCurrentGoal().then (goal) =>
+        @executable.case goal
 
-    goalType: (normalization) -> @textBuffer.getCurrentGoal().done (goal) =>
+    goalType: (normalization) -> @textBuffer.getCurrentGoal().then (goal) =>
             @executable.goalType normalization, goal
-        , @textBuffer.warnOutOfGoal
 
-    context: (normalization) -> @textBuffer.getCurrentGoal().done (goal) =>
+    context: (normalization) -> @textBuffer.getCurrentGoal().then (goal) =>
             @executable.context normalization, goal
-        , @textBuffer.warnOutOfGoal
 
-    goalTypeAndContext: (normalization) -> @textBuffer.getCurrentGoal().done (goal) =>
+    goalTypeAndContext: (normalization) -> @textBuffer.getCurrentGoal().then (goal) =>
             @executable.goalTypeAndContext normalization, goal
-        , @textBuffer.warnOutOfGoal
 
-    goalTypeAndInferredType: (normalization) -> @textBuffer.getCurrentGoal().done (goal) =>
-            @textBuffer.warnCurrentGoalIfEmpty goal, 'Nothing to infer'
+    goalTypeAndInferredType: (normalization) -> @textBuffer.getCurrentGoal().then (goal) =>
+            # @textBuffer.warnCurrentGoalIfEmpty goal, 'Nothing to infer'
             @executable.goalTypeAndInferredType normalization, goal
-        , @textBuffer.warnOutOfGoal
 
     inputSymbol: ->
         unless @loaded
