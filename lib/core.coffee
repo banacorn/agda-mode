@@ -74,6 +74,6 @@ class Core
         @panel.hide()
     destroy: ->
         log 'Core', 'destroyed:', @filepath
-        @quit()
+        @commander.quit()
 
 module.exports = Core

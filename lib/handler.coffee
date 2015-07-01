@@ -92,7 +92,7 @@ class Handler
     makeCaseAction: (tokens) ->
         log 'Handler', 'agda2-make-case-action'
         @textBuffer.onMakeCaseAction tokens[1]
-            .then => @core.load()
+            .then => @core.commander.load()
 
     # agda2-highlight-clear
     highlightClear: (tokens) ->

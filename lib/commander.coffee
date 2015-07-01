@@ -30,7 +30,7 @@ class Commander
         @filepath       = @core.filepath
     command: (raw) ->
         {command, method, option} = @parse raw
-        log "Commander", "#{@loaded} #{command} #{method} #{option}"
+        log "Commander", "loaded: #{@loaded}\n command: #{command}\n normalization: #{option}"
 
         switch command
             when 'load'
