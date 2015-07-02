@@ -1,4 +1,5 @@
 _ = require 'lodash'
+{OutOfGoalError} = require './error'
 {log, warn, error} = require './logger'
 
 
@@ -76,7 +77,9 @@ class Handler
         filepath = tokens[1][0]
         position = tokens[1][2]
         @textBuffer.onGoto filepath, position
-
+        @textBuffer.getCurrentGoal()
+            .then (goal) => goal.selectContent()
+            .catch OutOfGoalError
     # agda2-give-action
     giveAction: (tokens) ->
         log 'Handler', 'agda2-give-action'

@@ -110,6 +110,12 @@ class Goal
         paddingSpaces = ' '.repeat(@index.toString().length)
         @editor.setTextInBufferRange innerRange, " #{text} #{paddingSpaces}"
 
+    selectContent: ->
+        left = @editor.translate @range.start, 3
+        right = @editor.translate @range.end, -(3 + @index.toString().length)
+        innerRange = new Range left, right
+        @editor.setSelectedBufferRange innerRange
+
     # helper functions
     toIndex  : (pos) -> @editor.getBuffer().characterIndexForPosition pos
     fromIndex: (ind) -> @editor.getBuffer().positionForCharacterIndex ind
