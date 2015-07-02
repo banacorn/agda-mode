@@ -64,7 +64,7 @@ class Commander
             @panelModel.set 'Loading'
             @loaded = true
 
-    quit: ->
+    quit: -> if @loaded
         @loaded = false
         @executable.quit()
         @panel.hide()
