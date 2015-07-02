@@ -1,12 +1,12 @@
 # Keybindings require three things to be fully defined: A selector that is
 # matched against the focused element, the keystroke and the command to
 # execute.
-#}
+#
 # Below is a basic keybinding which registers on all platforms by applying to
 # the root workspace element.
 
 # For more detailed documentation see
-# https://atom.io/docs/latest/advanced/keymaps
+# https://atom.io/docs/latest/behind-atom-keymaps-in-depth
 'atom-text-editor.agda':
     # Global commands
     'ctrl-c        ctrl-l': 'agda-mode:load'
