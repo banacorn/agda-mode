@@ -1,4 +1,5 @@
 Core = require './core'
+Promise = require 'bluebird'
 {log, warn, error} = require './logger'
 {OutOfGoalError, EmptyGoalError, QueryCancelledError} = require './error'
 
@@ -38,7 +39,7 @@ class Commander
                 @load()
             else
                 if @loaded
-                    @[method](option)
+                    Promise.resolve @[method](option)
                         .catch OutOfGoalError, @textBuffer.warnOutOfGoal
                         .catch EmptyGoalError, @textBuffer.warnEmptyGoal
                         .catch QueryCancelledError, => console.log 'query cancelled'
