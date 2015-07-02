@@ -3,13 +3,28 @@
   {
     'label': 'Packages'
     'submenu': [
-      'label': 'agda-mode'
+      'label': 'Agda Mode'
       'submenu': [
           { 'label': 'Load', 'command': 'agda-mode:load' }
           { 'label': 'Quit', 'command': 'agda-mode:quit' }
-          { 'label': 'Kill and restart', 'command': 'agda-mode:restart' }
-          { 'label': 'Next goal', 'command': 'agda-mode:next-goal' }
-          { 'label': 'Previous goal', 'command': 'agda-mode:previous-goal' }
+          { 'label': 'Kill and Restart', 'command': 'agda-mode:restart' }
+          { 'label': 'Give', 'command': 'agda-mode:give' }
+          { 'label': 'Refine', 'command': 'agda-mode:refine' }
+          { 'label': 'Auto', 'command': 'agda-mode:auto' }
+          { 'label': 'Case', 'command': 'agda-mode:case' }
+          { 'label': 'Compile', 'command': 'agda-mode:compile' }
+          { 'label': 'Toggle Display of Implicit Arguments', 'command': 'agda-mode:toggle-display-of-implicit-arguments' }
+          { 'label': 'Show Constraints', 'command': 'agda-mode:show-constraints' }
+          { 'label': 'Show Goals', 'command': 'agda-mode:show-goals' }
+          { 'label': 'Next Goal', 'command': 'agda-mode:next-goal' }
+          { 'label': 'Previous Goal', 'command': 'agda-mode:previous-goal' }
+          { 'label': 'Infer Type', 'command': 'agda-mode:infer-type[Simplified]' }
+          { 'label': 'Module Contents', 'command': 'agda-mode:module-contents[Simplified]' }
+          { 'label': 'Compute Normal Form', 'command': 'agda-mode:compute-normal-form' }
+          { 'label': 'Goal Type', 'command': 'agda-mode:goal-type[Simplified]' }
+          { 'label': 'Context', 'command': 'agda-mode:context[Simplified]' }
+          { 'label': 'Goal Type and Context', 'command': 'agda-mode:goal-type-and-context[Simplified]' }
+          { 'label': 'Goal Type and Inferred Type', 'command': 'agda-mode:goal-type-and-inferred-type[Simplified]' }
       ]
     ]
   }
