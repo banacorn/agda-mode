@@ -93,8 +93,7 @@ class Commander
         @textBuffer.previousGoal()
 
     inferType: (normalization) ->
-        @panelModel.set "Infer type #{toDescription normalization}", [], 'info'
-        @panelModel.placeholder = 'expression to infer:'
+        @panelModel.set "Infer type #{toDescription normalization}", [], 'info', 'expression to infer:'
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
@@ -106,8 +105,7 @@ class Commander
                 @textBuffer.focus()
 
     moduleContents: (normalization) ->
-        @panelModel.set "Module contents #{toDescription normalization}", [], 'info'
-        @panelModel.placeholder = 'module name:'
+        @panelModel.set "Module contents #{toDescription normalization}", [], 'info', 'module name:'
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
@@ -119,8 +117,7 @@ class Commander
                 @textBuffer.focus()
 
     computeNormalForm: ->
-        @panelModel.set "Compute normal form", [], 'info'
-        @panelModel.placeholder = 'expression to normalize:'
+        @panelModel.set "Compute normal form", [], 'info', 'expression to normalize:'
         @panelModel.query()
             .then (expr) =>
                 @textBuffer.getCurrentGoal().done (goal) =>
@@ -133,8 +130,7 @@ class Commander
                     @textBuffer.focus()
 
     computeNormalFormIgnoreAbstract: ->
-        @panelModel.set 'Compute normal form (ignoring abstract)', [], 'info'
-        @panelModel.placeholder = 'expression to normalize:'
+        @panelModel.set 'Compute normal form (ignoring abstract)', [], 'info', 'expression to normalize:'
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
@@ -147,12 +143,18 @@ class Commander
 
     give: ->
         @textBuffer.getCurrentGoal()
-            .then @textBuffer.checkGoalContent "Nothing to give"
+            .then @textBuffer.checkGoalContent
+                title: "Give"
+                placeholder: "expression to give:"
+                error: "Nothing to give"
             .then @executable.give
 
     refine: ->
         @textBuffer.getCurrentGoal()
-            .then @textBuffer.checkGoalContent "Nothing to refine"
+            .then @textBuffer.checkGoalContent
+                title: "Refine"
+                placeholder: "expression to refine:"
+                error: "Nothing to refine"
             .then @executable.refine
 
     auto: ->
@@ -161,7 +163,10 @@ class Commander
 
     case: ->
         @textBuffer.getCurrentGoal()
-            .then @textBuffer.checkGoalContent "Nothing to case"
+            .then @textBuffer.checkGoalContent
+                title: "Case"
+                placeholder: "expression to case:"
+                error: "Nothing to case"
             .then @executable.case
 
     goalType: (normalization) ->
