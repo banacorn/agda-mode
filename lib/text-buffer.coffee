@@ -74,12 +74,23 @@ class TextBuffer
         warn 'Text Buffer', 'empty content'
         @core.panelModel.set 'No content', [error.message], 'warning'
 
+    # query for expression if the goal is empty
     checkGoalContent: (message) => (goal) =>
         content = escape goal.getContent()
         if content
             Promise.resolve goal
         else
-            Promise.reject new err.EmptyGoalError message
+            @core.panelModel.set "Give", [], 'info', 'expression to give:'
+            @core.panelModel
+                .query()
+                .then (expr) =>
+                    if expr
+                        goal.setContent expr
+                        Promise.resolve goal
+                    else
+                        Promise.reject new err.EmptyGoalError message
+                , =>
+                    Promise.reject new err.EmptyGoalError message
 
     ################
     #   Commands   #

@@ -23,6 +23,7 @@ class PanelView extends View
                 @model.queryString = @inputBox.getText().trim()
                 @inputBox.hide()
                 @model.resolveQuery()
+                atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
             'core:cancel': =>
                 @cancelQuery()
                 @model.rejectQuery()

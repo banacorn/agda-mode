@@ -19,7 +19,7 @@ class PanelModel
     # promise
     queryPromise: null
 
-    set: (@title = '', @content = [], @type = '', placeholder = '') ->
+    set: (@title = '', @content = [], @type = '', @placeholder = '') ->
 
     setInputMethod: (input = '', candidateKeys = [], candidateSymbols = []) ->
         @inputMethod =
