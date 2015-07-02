@@ -11,8 +11,8 @@ class PanelView extends View
             @div outlet: 'head', class: 'inset-panel padded', =>
                 @span outlet: 'title'
                 @span outlet: 'inputMethod'
-            @div outlet: 'body', class: "block padded native-key-bindings", tabindex: "-1", =>
-                @div outlet: 'content', class: 'agda-panel-content', =>
+            @div outlet: 'body', class: "block padded", =>
+                @div outlet: 'content', class: 'agda-panel-content native-key-bindings', tabindex: "-1", =>
                     @ul outlet: 'contentList', class: 'list-group'
                 @subview 'inputBox', new TextEditorView mini: true
 
