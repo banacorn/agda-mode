@@ -1,6 +1,6 @@
 Core = require './core'
 {log, warn, error} = require './logger'
-{OutOfGoalError, EmptyGoalError} = require './error'
+{OutOfGoalError, EmptyGoalError, QueryCancelledError} = require './error'
 
 toCamalCase = (str) ->
     str.split('-')
@@ -41,6 +41,7 @@ class Commander
                     @[method](option)
                         .catch OutOfGoalError, @textBuffer.warnOutOfGoal
                         .catch EmptyGoalError, @textBuffer.warnEmptyGoal
+                        .catch QueryCancelledError, => console.log 'query cancelled'
                         .catch (e) -> throw e
 
     parse: (raw) ->
@@ -116,18 +117,19 @@ class Commander
                 @executable.moduleContents normalization, expr
                 @textBuffer.focus()
 
-    computeNormalForm: (normalization) ->
-        @panelModel.set "Compute normal form #{toDescription normalization}", [], 'info'
+    computeNormalForm: ->
+        @panelModel.set "Compute normal form", [], 'info'
         @panelModel.placeholder = 'expression to normalize:'
-        @panelModel.query().then (expr) =>
-            @textBuffer.getCurrentGoal().done (goal) =>
-                # goal-specific
-                @executable.computeNormalForm expr, goal
-                @textBuffer.focus()
-            , =>
-                # global command
-                @executable.computeNormalForm expr
-                @textBuffer.focus()
+        @panelModel.query()
+            .then (expr) =>
+                @textBuffer.getCurrentGoal().done (goal) =>
+                    # goal-specific
+                    @executable.computeNormalForm expr, goal
+                    @textBuffer.focus()
+                , =>
+                    # global command
+                    @executable.computeNormalForm expr
+                    @textBuffer.focus()
 
     computeNormalFormIgnoreAbstract: ->
         @panelModel.set 'Compute normal form (ignoring abstract)', [], 'info'

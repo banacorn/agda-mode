@@ -1,6 +1,5 @@
-Q = require 'q'
-Q.longStackSupport = true
-
+Promise = require 'bluebird'
+{QueryCancelledError} = require '../error'
 class PanelModel
 
     # data
@@ -15,8 +14,10 @@ class PanelModel
         candidateSymbols: []
 
     # flag
-    queryOn: false
     inputMethodOn: false
+
+    # promise
+    queryPromise: null
 
     set: (@title = '', @content = [], @type = '', placeholder = '') ->
 
@@ -27,10 +28,19 @@ class PanelModel
             candidateSymbols: candidateSymbols
 
     query: ->
-        @queryOn = true
-        Q.Promise (resolve, reject, notify) =>
-            Object.observe @, (changes) => changes.forEach (change) =>
-                if change.name is 'queryOn'
-                    resolve @queryString
+        # reject old promise if it already exists
+        @rejectQuery()
+        new Promise (resolve, reject) =>
+            @queryPromise =
+                resolve: resolve
+                reject: reject
+
+    rejectQuery: -> if @queryPromise
+        @queryPromise.reject new QueryCancelledError
+        delete @queryPromise
+
+    resolveQuery: (message) -> if @queryPromise
+        @queryPromise.resolve @queryString
+        delete @queryPromise
 
 module.exports = PanelModel

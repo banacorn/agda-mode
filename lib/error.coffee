@@ -9,6 +9,11 @@ class EmptyGoalError extends Error
         @name = "EmptyGoalERror"
         Error.captureStackTrace(this, OutOfGoalError)
 
+class QueryCancelledError extends Error
+    constructor: (@message) ->
+        @name = "QueryCancelledError"
+        Error.captureStackTrace(this, QueryCancelledError)
 module.exports =
     OutOfGoalError: OutOfGoalError
     EmptyGoalError: EmptyGoalError
+    QueryCancelledError: QueryCancelledError

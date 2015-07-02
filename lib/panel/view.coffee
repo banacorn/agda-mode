@@ -1,8 +1,7 @@
 {View, TextEditorView} = require 'atom-space-pen-views'
 {log, warn, error} = require '../logger'
+{QueryCancelledError} = require '../error'
 
-Q = require 'q'
-Q.longStackSupport = true
 _ = require 'lodash'
 
 class PanelView extends View
@@ -17,6 +16,17 @@ class PanelView extends View
                     @ul outlet: 'contentList', class: 'list-group'
                 @subview 'inputBox', new TextEditorView mini: true
 
+    initialize: ->
+        atom.commands.add 'atom-text-editor',
+            'core:confirm': =>
+                log 'Panel', "queried string: #{@inputBox.getText()}"
+                @model.queryString = @inputBox.getText().trim()
+                @inputBox.hide()
+                @model.resolveQuery()
+            'core:cancel': =>
+                @cancelQuery()
+                @model.rejectQuery()
+
     hideAll: ->
         @head.hide()
         @title.hide()
@@ -25,15 +35,16 @@ class PanelView extends View
         @content.hide()
         @inputBox.hide()
 
-    setModel: (@panel) ->
+    setModel: (@model) ->
         log 'Panel', 'Setting Panel Model'
-        Object.observe @panel, (changes) => changes.forEach (change) =>
+        Object.observe @model, (changes) => changes.forEach (change) =>
             switch change.name
                 when 'title'            then @setTitle()
                 when 'type'             then @setType()
                 when 'content'          then @setContent()
                 when 'placeholder'      then @setPlaceholder()
-                when 'queryOn'          then @query()
+                when 'queryPromise'
+                    @query() if change.type is 'add'
                 when 'inputMethodOn'    then @activateInputMethod()
                 when 'inputMethod'      then @setInputMethod()
         @hideAll()
@@ -47,21 +58,21 @@ class PanelView extends View
 
     # title
     setTitle: ->
-        content = _.escape @panel.title
+        content = _.escape @model.title
         @title.text content
 
         @head.show()
         @title.show()
 
     setType: ->
-        @title.attr 'class', 'text-' + @panel.type
+        @title.attr 'class', 'text-' + @model.type
 
     setPlaceholder: ->
-        content = _.escape @panel.placeholder
+        content = _.escape @model.placeholder
         @inputBox[0].getModel().placeholderText = content
 
     setContent: ->
-        content = @panel.content.map (s) => _.escape s
+        content = @model.content.map (s) => _.escape s
         @contentList.empty()
 
         if content.length > 0
@@ -89,7 +100,7 @@ class PanelView extends View
 
 
     activateInputMethod: ->
-        if @panel.inputMethodOn
+        if @model.inputMethodOn
             @title.hide()
             @inputMethod.show()
         else
@@ -98,20 +109,20 @@ class PanelView extends View
 
 
     setInputMethod: ->
-        @inputMethod.text "#{@panel.inputMethod.input}[#{@panel.inputMethod.candidateKeys.join('')}]"
+        @inputMethod.text "#{@model.inputMethod.input}[#{@model.inputMethod.candidateKeys.join('')}]"
 
 
-    query: -> if @panel.queryOn
+    query: ->
         log 'Panel', 'querying ...'
         @head.show()
         @body.show()
         @inputBox.show()
         @inputBox.focus()
-        atom.commands.add 'atom-text-editor',
-            'core:confirm': =>
-                log 'Panel', "queried string: #{@inputBox.getText()}"
-                @panel.queryString = @inputBox.getText().trim()
-                @inputBox.hide()
-                @panel.queryOn = false
+
+    cancelQuery: ->
+        log 'Panel', 'stop querying'
+        @inputBox.hide()
+        atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+
 
 module.exports = PanelView
