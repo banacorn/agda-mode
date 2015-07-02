@@ -13,7 +13,14 @@ class QueryCancelledError extends Error
     constructor: (@message) ->
         @name = "QueryCancelledError"
         Error.captureStackTrace(this, QueryCancelledError)
+
+class InvalidExecutablePathError extends Error
+    constructor: (@message) ->
+        @name = "InvalidExecutablePathError"
+        Error.captureStackTrace(this, InvalidExecutablePathError)
+
 module.exports =
     OutOfGoalError: OutOfGoalError
     EmptyGoalError: EmptyGoalError
     QueryCancelledError: QueryCancelledError
+    InvalidExecutablePathError: InvalidExecutablePathError

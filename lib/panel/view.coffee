@@ -19,14 +19,16 @@ class PanelView extends View
     initialize: ->
         atom.commands.add 'atom-text-editor',
             'core:confirm': =>
-                log 'Panel', "queried string: #{@inputBox.getText()}"
-                @model.queryString = @inputBox.getText().trim()
-                @inputBox.hide()
-                @model.resolveQuery()
-                atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+                if @model.queryPromise
+                    log 'Panel', "queried string: #{@inputBox.getText()}"
+                    @model.queryString = @inputBox.getText().trim()
+                    @inputBox.hide()
+                    @model.resolveQuery()
+                    atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
             'core:cancel': =>
-                @cancelQuery()
-                @model.rejectQuery()
+                if @model.queryPromise
+                    @cancelQuery()
+                    @model.rejectQuery()
 
     hideAll: ->
         @head.hide()

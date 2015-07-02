@@ -1,10 +1,8 @@
 {spawn, exec} = require 'child_process'
-Q = require 'q'
-Q.longStackSupport = true
+Promise = require 'bluebird'
 {log, warn, error} = require './logger'
-
-
 Stream = require './executable/stream'
+{InvalidExecutablePathError} = require './error'
 
 class Executable
 
@@ -15,14 +13,14 @@ class Executable
     constructor: (@core) ->
 
     # locate the path and see if it is Agda executable
-    validateExecutablePath: (path) -> Q.Promise (resolve, reject, notify) =>
+    validateExecutablePath: (path) -> new Promise (resolve, reject) =>
         command = path + ' -V'
         exec command, (error, stdout, stderr) =>
             if /^Agda version/.test stdout
                 resolve path
             else
-                reject error if error
-                reject stderr if stderr
+                reject new InvalidExecutablePathError error if error
+                reject new InvalidExecutablePathError stderr if error
 
     # keep banging the user until we got the right path
     queryExecutablePathUntilSuccess: ->
@@ -36,7 +34,7 @@ class Executable
                 log 'Executable', "path validated: #{path}"
                 atom.config.set 'agda-mode.executablePath', path
                 return path
-            .fail =>
+            .catch InvalidExecutablePathError, =>
                 warn 'Executable', "path failed"
                 @queryExecutablePathUntilSuccess()
 
@@ -45,9 +43,9 @@ class Executable
         path = @core.config.executablePath()
         @validateExecutablePath path
             .then (path) => path
-            .fail        => @queryExecutablePathUntilSuccess()
+            .catch InvalidExecutablePathError, => @queryExecutablePathUntilSuccess()
 
-    getProcess: -> Q.Promise (resolve, reject, notify) =>
+    getProcess: -> new Promise (resolve, reject) =>
         if @processWired
             resolve @process
         else
