@@ -151,10 +151,6 @@ class Commander
 
     refine: ->
         @textBuffer.getCurrentGoal()
-            .then @textBuffer.checkGoalContent
-                title: "Refine"
-                placeholder: "expression to refine:"
-                error: "Nothing to refine"
             .then @executable.refine
 
     auto: ->
