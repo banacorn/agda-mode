@@ -8,9 +8,9 @@ class PanelView extends View
 
     @content: ->
         @div =>
-            @div outlet: 'head', class: 'inset-panel padded', =>
-                @span outlet: 'title'
-                @span outlet: 'inputMethod'
+            @div outlet: 'head', id: 'head', class: 'inset-panel padded', =>
+                @div outlet: 'title'
+                @div outlet: 'inputMethod', id: 'input-method'
             @div outlet: 'body', class: "block padded", =>
                 @div outlet: 'content', class: 'agda-panel-content native-key-bindings', tabindex: "-1", =>
                     @ul outlet: 'contentList', class: 'list-group'
@@ -112,7 +112,11 @@ class PanelView extends View
 
 
     setInputMethod: ->
-        @inputMethod.text "#{@model.inputMethod.input}[#{@model.inputMethod.candidateKeys.join('')}]"
+        @inputMethod.text "#{@model.inputMethod.input}"
+        @model.inputMethod.candidateKeys.forEach (key) =>
+            @inputMethod.append "<kbd class='key-binding'>#{key}</kbd>"
+
+        # @inputMethod.text "#{@model.inputMethod.input}[#{@model.inputMethod.candidateKeys.join('')}][#{@model.inputMethod.candidateSymbols.join(', ')}]"
 
 
     query: ->

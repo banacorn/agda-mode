@@ -30,6 +30,7 @@ class InputMethod extends EventEmitter
             log 'IM', "insert '#{char}'"
             {output, further, candidateKeys, candidateSymbols} = @translate @inputBuffer
             log 'IM', "@inputBuffer: '#{@inputBuffer}' translates to '#{output}'"
+            log 'IM', "candidateSymbols: #{candidateSymbols}" if candidateSymbols.length > 1
             @updateOutputBuffer output
             if further
                 @core.panelModel.setInputMethod @inputBuffer, candidateKeys, candidateSymbols
@@ -166,6 +167,8 @@ class InputMethod extends EventEmitter
                 return {
                     output: output
                     further: false
+                    candidateKeys: []
+                    candidateSymbols: []
                 }
             else
                 if candidateSymbols.length is 0
@@ -186,6 +189,8 @@ class InputMethod extends EventEmitter
             return {
                 output: @outputBuffer
                 further: false
+                candidateKeys: []
+                candidateSymbols: []
             }
 
 module.exports = InputMethod
