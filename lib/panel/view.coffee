@@ -113,7 +113,7 @@ class PanelView extends View
 
     setInputMethod: ->
         @inputMethod.text "#{@model.inputMethod.input}"
-        @model.inputMethod.candidateKeys.forEach (key) =>
+        @model.inputMethod.candidateKeys.sort().forEach (key) =>
             @inputMethod.append "<kbd class='key-binding'>#{key}</kbd>"
 
         # @inputMethod.text "#{@model.inputMethod.input}[#{@model.inputMethod.candidateKeys.join('')}][#{@model.inputMethod.candidateSymbols.join(', ')}]"
