@@ -1,5 +1,6 @@
 Core = require './core'
 Promise = require 'bluebird'
+_ = require 'lodash'
 {log, warn, error} = require './logger'
 {OutOfGoalError, EmptyGoalError, QueryCancelledError} = require './error'
 
@@ -34,16 +35,14 @@ class Commander
         {command, method, option} = @parse raw
         log "Commander", "loaded: #{@loaded}\n command: #{command}\n normalization: #{option}"
 
-        switch command
-            when 'load'
-                @load()
-            else
-                if @loaded
-                    Promise.resolve @[method](option)
-                        .catch OutOfGoalError, @textBuffer.warnOutOfGoal
-                        .catch EmptyGoalError, @textBuffer.warnEmptyGoal
-                        .catch QueryCancelledError, => console.log 'query cancelled'
-                        .catch (e) -> throw e
+        # some commands can only be executed after "loaded"
+        exception = ['load', 'input-symbol']
+        if @loaded or _.contains exception, command
+            Promise.resolve @[method](option)
+                .catch OutOfGoalError, @textBuffer.warnOutOfGoal
+                .catch EmptyGoalError, @textBuffer.warnEmptyGoal
+                .catch QueryCancelledError, => console.log 'query cancelled'
+                .catch (e) -> throw e
 
     parse: (raw) ->
         result = raw.match(/^agda-mode:((?:\w|\-)*)(?:\[(\w*)\])?/)
