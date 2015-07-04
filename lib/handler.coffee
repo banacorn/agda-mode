@@ -59,6 +59,8 @@ class Handler
                 @panelModel.set 'Auto', ['No solution found']
             when '*Constraints*'
                 @panelModel.set 'Constraints', content
+            when '*Scope Info*'
+                @panelModel.set 'Scope Info', content
 
     # agda2-status-action
     statusAction: (tokens) ->

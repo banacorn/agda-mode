@@ -91,6 +91,18 @@ class Commander
     previousGoal: ->
         @textBuffer.previousGoal()
 
+    whyInScope: ->
+        @panelModel.set "Scope info", [], 'info', 'name:'
+        @panelModel.query().then (expr) =>
+            @textBuffer.getCurrentGoal().done (goal) =>
+                # goal-specific
+                @executable.whyInScope expr, goal
+                @textBuffer.focus()
+            , =>
+                # global command
+                @executable.whyInScope expr
+                @textBuffer.focus()
+
     inferType: (normalization) ->
         @panelModel.set "Infer type #{toDescription normalization}", [], 'info', 'expression to infer:'
         @panelModel.query().then (expr) =>

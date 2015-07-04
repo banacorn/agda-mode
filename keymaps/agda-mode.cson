@@ -19,6 +19,7 @@
     'ctrl-c        ctrl-f': 'agda-mode:next-goal'
     'ctrl-c        ctrl-b': 'agda-mode:previous-goal'
     # the commands below may have a goal-specific version
+    'ctrl-c               ctrl-w': 'agda-mode:why-in-scope'
     'ctrl-c               ctrl-d': 'agda-mode:infer-type[Simplified]'
     'ctrl-u ctrl-c        ctrl-d': 'agda-mode:infer-type[Instantiated]'
     'ctrl-u ctrl-u ctrl-c ctrl-d': 'agda-mode:infer-type[Normalised]'

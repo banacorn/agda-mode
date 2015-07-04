@@ -102,6 +102,7 @@ module.exports =
         'agda-mode:show-goals'
         'agda-mode:next-goal'
         'agda-mode:previous-goal'
+        'agda-mode:why-in-scope'
         'agda-mode:infer-type[Simplified]'
         'agda-mode:infer-type[Instantiated]'
         'agda-mode:infer-type[Normalised]'

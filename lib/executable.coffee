@@ -129,6 +129,12 @@ class Executable
         @sendCommand "NonInteractive", "Cmd_constraints"
     showGoals: =>
         @sendCommand "NonInteractive", "Cmd_metas"
+    whyInScope: (expr, goal) =>
+        if goal
+            @sendCommand "NonInteractive", "Cmd_why_in_scope #{goal.index} noRange \"#{expr}\""
+        else
+            @sendCommand "None", "Cmd_why_in_scope_toplevel \"#{expr}\""
+
     inferType: (normalization, content, goal) =>
         if goal
             @sendCommand "NonInteractive", "Cmd_infer #{normalization} #{goal.index} noRange \"#{content}\""
