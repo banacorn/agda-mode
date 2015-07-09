@@ -21,6 +21,7 @@ This is an exhaustive list of available commands.
 | `    C-c     C-b` | previous goal (back)                    |   ✓    |               |
 | `    C-c     C-n` | compute normal form                     |   ✓    |       ✓       |
 | `C-u C-c     C-n` | compute normal form (ignoring abstract) |   ✓    |       ✓       |
+| `    C-c     C-w` | why in scope                            |   ✓    |       ✓       |
 | `    C-c     C-SPC` | give                                  |        |       ✓       |
 | `    C-c     C-r` | refine                                  |        |       ✓       |
 | `    C-c     C-a` | auto                                    |        |       ✓       |
