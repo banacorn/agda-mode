@@ -10,7 +10,7 @@ class PanelModel
     queryString: ''
     inputMethod:
         input: ''
-        candidateKeys: []
+        suggestionKeys: []
         candidateSymbols: []
 
     # flag
@@ -21,10 +21,10 @@ class PanelModel
 
     set: (@title = '', @content = [], @type = '', @placeholder = '') ->
 
-    setInputMethod: (input = '', candidateKeys = [], candidateSymbols = []) ->
+    setInputMethod: (input = '', suggestionKeys = [], candidateSymbols = []) ->
         @inputMethod =
             input: input
-            candidateKeys: candidateKeys
+            suggestionKeys: suggestionKeys
             candidateSymbols: candidateSymbols
 
     query: ->

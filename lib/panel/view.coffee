@@ -10,7 +10,10 @@ class PanelView extends View
         @div =>
             @div outlet: 'head', id: 'head', class: 'inset-panel padded', =>
                 @div outlet: 'title'
-                @div outlet: 'inputMethod', id: 'input-method'
+                @div outlet: 'inputMethod', id: 'input-method', =>
+                    @div =>
+                        @div outlet: 'inputBuffer', id: 'input-buffer', class: 'inline-block'
+                        @div outlet: 'suggestionKeys', id: 'suggestion-keys', class: 'btn-group btn-group-sm'
             @div outlet: 'body', class: "block padded", =>
                 @div outlet: 'content', class: 'agda-panel-content native-key-bindings', tabindex: "-1", =>
                     @ul outlet: 'contentList', class: 'list-group'
@@ -112,12 +115,11 @@ class PanelView extends View
 
 
     setInputMethod: ->
-        @inputMethod.text "#{@model.inputMethod.input}"
-        @model.inputMethod.candidateKeys.sort().forEach (key) =>
-            @inputMethod.append "<kbd class='key-binding'>#{key}</kbd>"
-
-        # @inputMethod.text "#{@model.inputMethod.input}[#{@model.inputMethod.candidateKeys.join('')}][#{@model.inputMethod.candidateSymbols.join(', ')}]"
-
+        @suggestionKeys.empty()
+        @inputBuffer.text "#{@model.inputMethod.input}"
+        @model.inputMethod.suggestionKeys.sort().forEach (key) =>
+            @suggestionKeys.append "<button class='btn'>#{key}</button>"
+        # @suggestionKeys.append "<btn class='key-binding'>#{key}</kbd>"
 
     query: ->
         log 'Panel', 'querying ...'

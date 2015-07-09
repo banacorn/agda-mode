@@ -28,20 +28,20 @@ class InputMethod extends EventEmitter
 
         @on 'insert', (range, char) =>
             log 'IM', "insert '#{char}'"
-            {output, further, candidateKeys, candidateSymbols} = @translate @inputBuffer
+            {output, further, suggestionKeys, candidateSymbols} = @translate @inputBuffer
             log 'IM', "@inputBuffer: '#{@inputBuffer}' translates to '#{output}'"
             log 'IM', "candidateSymbols: #{candidateSymbols}" if candidateSymbols.length > 1
             @updateOutputBuffer output
             if further
-                @core.panelModel.setInputMethod @inputBuffer, candidateKeys, candidateSymbols
+                @core.panelModel.setInputMethod @inputBuffer, suggestionKeys, candidateSymbols
             else
                 @deactivate()
 
         @on 'delete', (range, textBuffer) =>
-            {output, further, candidateKeys, candidateSymbols} = @translate @inputBuffer
+            {output, further, suggestionKeys, candidateSymbols} = @translate @inputBuffer
             log 'IM', "delete #{range} #{textBuffer} #{@inputBuffer}"
             if further
-                @core.panelModel.setInputMethod @inputBuffer, candidateKeys, candidateSymbols
+                @core.panelModel.setInputMethod @inputBuffer, suggestionKeys, candidateSymbols
 
 
     activate: ->
@@ -68,7 +68,7 @@ class InputMethod extends EventEmitter
 
             # initial input suggestion
             @core.panelModel.inputMethodOn = true
-            @core.panelModel.setInputMethod '', @getCandidateKeys InputMethod.trie, []
+            @core.panelModel.setInputMethod '', @getSuggestionKeys InputMethod.trie, []
 
         else
             # input method already activated
@@ -132,7 +132,7 @@ class InputMethod extends EventEmitter
     ###   Keymap   ###
     ##################
 
-    getCandidateKeys: (trie) -> Object.keys(_.omit trie, '>>')
+    getSuggestionKeys: (trie) -> Object.keys(_.omit trie, '>>')
     getCandidateSymbols: (trie) -> trie['>>']
 
     # see if input is in the keymap
@@ -156,10 +156,10 @@ class InputMethod extends EventEmitter
     # converts characters to symbol, and tells if there's any further possible combinations
     translate: (input) ->
         {valid, trie} = @validate input
-        candidateKeys    = @getCandidateKeys trie
+        suggestionKeys    = @getSuggestionKeys trie
         candidateSymbols = @getCandidateSymbols trie
         if valid
-            if candidateKeys.length is 0
+            if suggestionKeys.length is 0
                 if candidateSymbols.length is 0
                     output = '\\' + input
                 else
@@ -167,7 +167,7 @@ class InputMethod extends EventEmitter
                 return {
                     output: output
                     further: false
-                    candidateKeys: []
+                    suggestionKeys: []
                     candidateSymbols: []
                 }
             else
@@ -178,7 +178,7 @@ class InputMethod extends EventEmitter
                 return {
                     output: output
                     further: true
-                    candidateKeys: candidateKeys
+                    suggestionKeys: suggestionKeys
                     candidateSymbols: candidateSymbols
                 }
 
@@ -189,7 +189,7 @@ class InputMethod extends EventEmitter
             return {
                 output: @outputBuffer
                 further: false
-                candidateKeys: []
+                suggestionKeys: []
                 candidateSymbols: []
             }
 
