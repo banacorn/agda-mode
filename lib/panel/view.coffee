@@ -1,7 +1,7 @@
 {View, TextEditorView} = require 'atom-space-pen-views'
 {log, warn, error} = require '../logger'
 {QueryCancelledError} = require '../error'
-
+{CompositeDisposable} = require 'atom'
 _ = require 'lodash'
 
 class PanelView extends View
@@ -20,18 +20,16 @@ class PanelView extends View
                 @subview 'inputBox', new TextEditorView mini: true
 
     initialize: ->
-        atom.commands.add 'atom-text-editor',
-            'core:confirm': =>
-                if @model.queryPromise
-                    log 'Panel', "queried string: #{@inputBox.getText()}"
-                    @model.queryString = @inputBox.getText().trim()
-                    @inputBox.hide()
-                    @model.resolveQuery()
-                    atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
-            'core:cancel': =>
-                if @model.queryPromise
-                    @cancelQuery()
-                    @model.rejectQuery()
+        @disposables = new CompositeDisposable
+        @disposables.add atom.commands.add @inputBox.element, 'core:confirm', =>
+            log 'Panel', "queried string: #{@inputBox.getText()}"
+            @model.queryString = @inputBox.getText().trim()
+            @inputBox.hide()
+            @model.resolveQuery()
+            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+        @disposables.add atom.commands.add @inputBox.element, 'core:confirm', =>
+            @cancelQuery()
+            @model.rejectQuery()
 
     hideAll: ->
         @head.hide()
@@ -133,5 +131,8 @@ class PanelView extends View
         @inputBox.hide()
         atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
 
+    destroy: ->
+        log 'Panel', 'destroyed'
+        @disposables.dispose()
 
 module.exports = PanelView

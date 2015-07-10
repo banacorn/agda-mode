@@ -1,7 +1,7 @@
 _ = require 'lodash'
 {$} = require 'atom-space-pen-views'
 {log, warn, error} = require './logger'
-{Range} = require 'atom'
+{Range, CompositeDisposable} = require 'atom'
 
 
 # Components
@@ -29,6 +29,8 @@ class Core
 
 
         # initialize all components
+        @disposables    = new CompositeDisposable
+
         @executable     = new Executable    @
         @panelModel     = new PanelModel    @
         @textBuffer     = new TextBuffer    @
@@ -47,7 +49,7 @@ class Core
         #############
 
         # register panel view, fuck Atom's everchanging always outdated documentation
-        atom.views.addViewProvider PanelModel, (model) =>
+        @disposables.add atom.views.addViewProvider PanelModel, (model) =>
             view = new PanelView
             view.setModel model
             return $(view).get(0)
@@ -73,5 +75,7 @@ class Core
     destroy: ->
         log 'Core', 'destroyed:', @filepath
         @commander.quit()
+        @panel.destroy()
+        @disposables.dispose()
 
 module.exports = Core
