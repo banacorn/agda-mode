@@ -21,6 +21,19 @@
     }
     #input-method {
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
+        #input-buffer {
+            vertical-align: middle;
+            background: @input-background-color;
+            border-radius: @component-border-radius;
+            padding: 0 @component-padding;
+            float: left;
+        }
+
+        #suggestion-keys {
+            position: relative;
+            top: -2px;
+        }
+
         kbd {
             font-family: inherit;
             padding: 0 0.375em;
