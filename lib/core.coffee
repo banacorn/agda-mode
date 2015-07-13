@@ -29,13 +29,13 @@ class Core
 
 
         # initialize all components
+        @config         = new Config
         @disposables    = new CompositeDisposable
-
+    
         @executable     = new Executable    @
         @panelModel     = new PanelModel    @
         @textBuffer     = new TextBuffer    @
         @inputMethod    = new InputMethod   @
-        @config         = new Config
         @highlight      = new Highlight     @
         @handler        = new Handler       @
         # initialize informations about this editor

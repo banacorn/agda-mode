@@ -20,6 +20,11 @@ module.exports =
             default: []
             items:
                 type: 'string'
+        inputMethod:
+            title: 'Input Method'
+            description: 'Enable input method'
+            type: 'boolean'
+            default: true
         logLevel:
             title: 'Log Level'
             description: '0: error, 1: warn, 2: debug'

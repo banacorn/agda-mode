@@ -14,5 +14,7 @@ module.exports = class Config
         log 'Executable', "loading #{paths}"
         paths.unshift '.'
         return paths.map((path) -> '\"' + path + '\"').join(', ')
+    inputMethod: ->
+        atom.config.get 'agda-mode.inputMethod'
     improveMessage: ->
         atom.config.get 'agda-mode.improveMessage'
