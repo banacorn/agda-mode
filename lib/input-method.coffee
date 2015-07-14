@@ -12,9 +12,7 @@ class InputMethod extends EventEmitter
     mute: false
 
     # raw characters
-    inputBuffer: ''
-    # synchonize with the text buffer
-    outputBuffer: ''
+    rawInput: ''
     # visual marker
     textBufferMarker: null
 
@@ -22,35 +20,12 @@ class InputMethod extends EventEmitter
 
     constructor: (@core) ->
 
-        @on 'deactivate', (range) =>
-            log 'IM', "deactivate #{range}"
-            @deactivate()
-
-        @on 'insert', (range, char) =>
-            log 'IM', "insert '#{char}'"
-            {output, further, suggestionKeys, candidateSymbols} = @translate @inputBuffer
-            log 'IM', "@inputBuffer: '#{@inputBuffer}' translates to '#{output}'"
-            log 'IM', "candidateSymbols: #{candidateSymbols}" if candidateSymbols.length > 1
-            @updateOutputBuffer output
-            if further
-                @core.panelModel.setInputMethod @inputBuffer, suggestionKeys, candidateSymbols
-            else
-                @deactivate()
-
-        @on 'delete', (range, textBuffer) =>
-            {output, further, suggestionKeys, candidateSymbols} = @translate @inputBuffer
-            log 'IM', "delete #{range} #{textBuffer} #{@inputBuffer}"
-            if further
-                @core.panelModel.setInputMethod @inputBuffer, suggestionKeys, candidateSymbols
-
-
     activate: ->
         if not @activated
 
             # initializations
             log 'IM', 'activated'
-            @inputBuffer = ''
-            @outputBuffer = ''
+            @rawInput = ''
             @activated = true
 
             # monitors raw text buffer and figures out what happend
@@ -63,8 +38,9 @@ class InputMethod extends EventEmitter
                 type: 'highlight'
                 class: 'agda-input-method'
 
-            # insert '\' at the cursor
-            @updateOutputBuffer '\\'
+            # insert '\' at the cursor quitely without triggering any shit
+            @muteEvent =>
+                @insertChar '\\'
 
             # initial input suggestion
             @core.panelModel.inputMethodOn = true
@@ -96,37 +72,54 @@ class InputMethod extends EventEmitter
 
     dispatchEvent: (ev) =>
 
-        range = @textBufferMarker.getBufferRange()
-        textBuffer = @core.editor.getBuffer().getTextInRange range
-
         unless @mute
-            if textBuffer.length is 0
-                # got wiped out
-                @emit 'deactivate', range
-            else
-                if textBuffer.length > @outputBuffer.length
-                    @inputBuffer += textBuffer.substr -1
-                    @outputBuffer = textBuffer
-                    @emit 'insert', range, textBuffer.substr -1
-                if textBuffer.length < @outputBuffer.length
-                    @inputBuffer = @inputBuffer.substr(0, @inputBuffer.length - 1)
-                    @outputBuffer = textBuffer
-                    @emit 'delete', range, textBuffer
+
+            rangeOld = new Range ev.oldTailBufferPosition, ev.oldHeadBufferPosition
+            rangeNew = new Range ev.newTailBufferPosition, ev.newHeadBufferPosition
+            textBuffer = @core.editor.getBuffer().getTextInRange rangeNew
+            char = textBuffer.substr -1
+
+            # const for result of Range::compare()
+            INSERT = -1
+            DELETE = 1
+            change = rangeNew.compare rangeOld
+
+
+            if rangeNew.isEmpty()
+                @deactivate()
+            else if change is INSERT
+                char = textBuffer.substr -1
+                @rawInput += char
+                log 'IM', "insert '#{char}' #{@rawInput}"
+                {translation, further, suggestionKeys, candidateSymbols} = @translate @rawInput
+                log 'IM', "raw input '#{@rawInput}' translates to '#{translation}'"
+
+                # reflects current translation to the text buffer
+                if translation
+                    @muteEvent => @replaceString translation
+
+                # update view
+                if further
+                    @core.panelModel.setInputMethod @inputBuffer, suggestionKeys, candidateSymbols
+                else
+                    @deactivate()
+
+            else if change is DELETE
+                @rawInput = @rawInput.substr(0, @rawInput.length - 1)
+                log 'IM', "delete #{@rawInput}"
 
 
     #######################
     ###   Text Buffer   ###
     #######################
 
-    updateOutputBuffer: (text) ->
+    # inserts 1 character to the text buffer (may trigger some events)
+    insertChar: (char) ->
+        @core.editor.getBuffer().insert @textBufferMarker.getBufferRange().end, char
 
-        # update text buffer
-        @muteEvent =>
-            @core.editor.getBuffer().delete @textBufferMarker.getBufferRange()
-            @core.editor.getBuffer().insert @textBufferMarker.getBufferRange().start, text
-
-        # update output buffer
-        @outputBuffer = text
+    # replace content of the marker with supplied string (may trigger some events)
+    replaceString: (str) ->
+        @core.editor.getBuffer().setTextInRange @textBufferMarker.getBufferRange(), str
 
     ##################
     ###   Keymap   ###
@@ -156,27 +149,19 @@ class InputMethod extends EventEmitter
     # converts characters to symbol, and tells if there's any further possible combinations
     translate: (input) ->
         {valid, trie} = @validate input
-        suggestionKeys    = @getSuggestionKeys trie
+        suggestionKeys   = @getSuggestionKeys trie
         candidateSymbols = @getCandidateSymbols trie
         if valid
             if suggestionKeys.length is 0
-                if candidateSymbols.length is 0
-                    output = '\\' + input
-                else
-                    output = candidateSymbols[0]
                 return {
-                    output: output
+                    translation: candidateSymbols[0]
                     further: false
                     suggestionKeys: []
                     candidateSymbols: []
                 }
             else
-                if candidateSymbols.length is 0
-                    output = @outputBuffer
-                else
-                    output = candidateSymbols[0]
                 return {
-                    output: output
+                    translation: candidateSymbols[0]
                     further: true
                     suggestionKeys: suggestionKeys
                     candidateSymbols: candidateSymbols
@@ -185,9 +170,8 @@ class InputMethod extends EventEmitter
         else
             # key combination out of keymap
             # replace with closest the symbol possible
-            # log 'IM!', "input buffer: #{@inputBuffer} \n output buffer #{@outputBuffer} \n input #{input}"
             return {
-                output: @outputBuffer
+                translation: undefined
                 further: false
                 suggestionKeys: []
                 candidateSymbols: []
