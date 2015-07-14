@@ -4,6 +4,7 @@
 {Point} = require 'atom'
 {$, View} = require 'atom-space-pen-views'
 {log, warn, error} = require './logger'
+Keymap = require './input-method/keymap'
 
 # Input Method Singleton (initialized only once per editor, activaed or not)
 class InputMethod extends EventEmitter
@@ -15,8 +16,6 @@ class InputMethod extends EventEmitter
     rawInput: ''
     # visual marker
     textBufferMarker: null
-
-    @trie: require './input-method/keymap.js'
 
     constructor: (@core) ->
 
@@ -44,7 +43,7 @@ class InputMethod extends EventEmitter
 
             # initial input suggestion
             @core.panelModel.inputMethodOn = true
-            @core.panelModel.setInputMethod '', @getSuggestionKeys InputMethod.trie, []
+            @core.panelModel.setInputMethod '', Keymap.getSuggestionKeys Keymap.trie, []
 
         else
             # input method already activated
@@ -91,7 +90,7 @@ class InputMethod extends EventEmitter
                 char = textBuffer.substr -1
                 @rawInput += char
                 log 'IM', "insert '#{char}' #{@rawInput}"
-                {translation, further, suggestionKeys, candidateSymbols} = @translate @rawInput
+                {translation, further, suggestionKeys, candidateSymbols} = Keymap.translate @rawInput
                 log 'IM', "raw input '#{@rawInput}' translates to '#{translation}'"
 
                 # reflects current translation to the text buffer
@@ -120,61 +119,5 @@ class InputMethod extends EventEmitter
     # replace content of the marker with supplied string (may trigger some events)
     replaceString: (str) ->
         @core.editor.getBuffer().setTextInRange @textBufferMarker.getBufferRange(), str
-
-    ##################
-    ###   Keymap   ###
-    ##################
-
-    getSuggestionKeys: (trie) -> Object.keys(_.omit trie, '>>')
-    getCandidateSymbols: (trie) -> trie['>>']
-
-    # see if input is in the keymap
-    validate: (input) ->
-        valid = true
-        trie = InputMethod.trie
-        for i in [0 .. input.length - 1]
-            char = input.charAt i
-            next = trie[char]
-            if next
-                trie = next
-            else
-                valid = false
-                break
-
-        return {
-            valid: valid
-            trie: trie
-        }
-
-    # converts characters to symbol, and tells if there's any further possible combinations
-    translate: (input) ->
-        {valid, trie} = @validate input
-        suggestionKeys   = @getSuggestionKeys trie
-        candidateSymbols = @getCandidateSymbols trie
-        if valid
-            if suggestionKeys.length is 0
-                return {
-                    translation: candidateSymbols[0]
-                    further: false
-                    suggestionKeys: []
-                    candidateSymbols: []
-                }
-            else
-                return {
-                    translation: candidateSymbols[0]
-                    further: true
-                    suggestionKeys: suggestionKeys
-                    candidateSymbols: candidateSymbols
-                }
-
-        else
-            # key combination out of keymap
-            # replace with closest the symbol possible
-            return {
-                translation: undefined
-                further: false
-                suggestionKeys: []
-                candidateSymbols: []
-            }
 
 module.exports = InputMethod
