@@ -9,7 +9,8 @@ class PanelModel
     placeholder: ''
     queryString: ''
     inputMethod:
-        input: ''
+        clicked: ''   # to indicate the input method about which suggested key was clicked in the view
+        rawInput: ''
         suggestionKeys: []
         candidateSymbols: []
 
@@ -22,10 +23,9 @@ class PanelModel
     set: (@title = '', @content = [], @type = '', @placeholder = '') ->
 
     setInputMethod: (input = '', suggestionKeys = [], candidateSymbols = []) ->
-        @inputMethod =
-            input: input
-            suggestionKeys: suggestionKeys
-            candidateSymbols: candidateSymbols
+        @inputMethod.rawInput = input
+        @inputMethod.suggestionKeys = suggestionKeys
+        @inputMethod.candidateSymbols = candidateSymbols
 
     query: ->
         # reject old promise if it already exists

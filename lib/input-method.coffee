@@ -1,13 +1,9 @@
-{Range, Point} = require 'atom'
-{_} = require 'lodash'
-{EventEmitter} = require 'events'
-{Point} = require 'atom'
-{$, View} = require 'atom-space-pen-views'
-{log, warn, error} = require './logger'
+{Range} = require 'atom'
+{log} = require './logger'
 Keymap = require './input-method/keymap'
 
 # Input Method Singleton (initialized only once per editor, activaed or not)
-class InputMethod extends EventEmitter
+class InputMethod
 
     activated: false
     mute: false
@@ -18,6 +14,13 @@ class InputMethod extends EventEmitter
     textBufferMarker: null
 
     constructor: (@core) ->
+
+        # monitors @core.panelModel.inputMethod.clicked
+        Object.observe @core.panelModel.inputMethod, (changes) =>
+            changes.forEach (change) =>
+                if change.name is "clicked"
+                    @insertChar change.object.clicked
+
 
     activate: ->
         if not @activated
@@ -99,13 +102,15 @@ class InputMethod extends EventEmitter
 
                 # update view
                 if further
-                    @core.panelModel.setInputMethod @inputBuffer, suggestionKeys, candidateSymbols
+                    @core.panelModel.setInputMethod @rawInput, suggestionKeys, candidateSymbols
                 else
                     @deactivate()
 
             else if change is DELETE
                 @rawInput = @rawInput.substr(0, @rawInput.length - 1)
                 log 'IM', "delete #{@rawInput}"
+                {translation, further, suggestionKeys, candidateSymbols} = Keymap.translate @rawInput
+                @core.panelModel.setInputMethod @rawInput, suggestionKeys, candidateSymbols
 
 
     #######################

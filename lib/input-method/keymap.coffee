@@ -1,9 +1,4 @@
-# {Range, Point} = require 'atom'
 {_} = require 'lodash'
-# {EventEmitter} = require 'events'
-# {Point} = require 'atom'
-# {$, View} = require 'atom-space-pen-views'
-# {log, warn, error} = require './logger'
 
 class Keymap
 

@@ -1,4 +1,4 @@
-{View, TextEditorView} = require 'atom-space-pen-views'
+{$, View, TextEditorView} = require 'atom-space-pen-views'
 {log, warn, error} = require '../logger'
 {QueryCancelledError} = require '../error'
 {CompositeDisposable} = require 'atom'
@@ -20,6 +20,11 @@ class PanelView extends View
                 @subview 'inputBox', new TextEditorView mini: true
 
     initialize: ->
+
+
+        @buttons = []
+
+
         @disposables = new CompositeDisposable
         @disposables.add atom.commands.add @inputBox.element, 'core:confirm', =>
             log 'Panel', "queried string: #{@inputBox.getText()}"
@@ -50,9 +55,8 @@ class PanelView extends View
                 when 'queryPromise'
                     @query() if change.type is 'add'
                 when 'inputMethodOn'    then @activateInputMethod()
-                when 'inputMethod'      then @setInputMethod()
+        Object.observe @model.inputMethod, => @setInputMethod()
         @hideAll()
-
     ############################################################################
 
 
@@ -113,11 +117,22 @@ class PanelView extends View
 
 
     setInputMethod: ->
+
+        # remove all event handlers on old buttons
+        @buttons.forEach ({button, key}) =>
+            button.off 'click'
+
         @suggestionKeys.empty()
-        @inputBuffer.text "#{@model.inputMethod.input}"
+        @inputBuffer.text "#{@model.inputMethod.rawInput}"
         @model.inputMethod.suggestionKeys.sort().forEach (key) =>
-            @suggestionKeys.append "<button class='btn'>#{key}</button>"
-        # @suggestionKeys.append "<btn class='key-binding'>#{key}</kbd>"
+            button = $ "<button class='btn'>#{key}</button>"
+            @suggestionKeys.append button
+            @buttons.push
+                button: button
+                key: key
+        @buttons.forEach ({button, key}) =>
+            button.on 'click', =>
+                @model.inputMethod.clicked = key
 
     query: ->
         log 'Panel', 'querying ...'
