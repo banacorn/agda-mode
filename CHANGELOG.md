@@ -1,8 +1,11 @@
+## 0.3.3
+* Input method: key suggestions now are clickable buttons.
+
 ## 0.3.2
-* Supports command `Ctrl-c Ctrl-w` *why in scope*
-* Fix when sometimes input box won't show
-* Now we can select and copy texts in the panel
-* Better input method suggestion looking
+* Supports command `Ctrl-c Ctrl-w` *why in scope*.
+* Fix when sometimes input box won't show.
+* Now we can select and copy texts in the panel.
+* Better input method suggestion looking.
 
 ## 0.3.1
 
