@@ -2,7 +2,7 @@ _ = require 'lodash'
 {$} = require 'atom-space-pen-views'
 {log, warn, error} = require './logger'
 {Range, CompositeDisposable} = require 'atom'
-
+{allowUnsafeNewFunction, allowUnsafeEval} = require 'loophole'
 
 # Components
 Commander   = require './commander'
@@ -14,7 +14,7 @@ InputMethod = require './input-method'
 Highlight   = require './highlight'
 Config      = require './config'
 Handler     = require './handler'
-
+Panel       = require './panel'
 class Core
     constructor: (@editor) ->
 
@@ -31,7 +31,8 @@ class Core
         # initialize all components
         @config         = new Config
         @disposables    = new CompositeDisposable
-    
+        allowUnsafeNewFunction =>
+            @panel          = new Panel
         @executable     = new Executable    @
         @panelModel     = new PanelModel    @
         @textBuffer     = new TextBuffer    @
@@ -48,6 +49,18 @@ class Core
         #   Views   #
         #############
 
+        # instantiate
+        # @atomPanel = atom.workspace.addBottomPanel
+        #     item: document.createElement 'dummy'
+        #     visible: true
+        #     className: 'agda-panel'
+        # allowUnsafeNewFunction =>
+        #     @panel.$mount @atomPanel.item
+            # @panel.inputMethodMode = true
+            # @panel.$watch 'inputMethodMode', =>
+            #     console.log arguments
+            # , true
+
         # register panel view, fuck Atom's everchanging always outdated documentation
         @disposables.add atom.views.addViewProvider PanelModel, (model) =>
             view = new PanelView
@@ -55,7 +68,7 @@ class Core
             return $(view).get(0)
 
         # instantiate
-        @panel = atom.workspace.addBottomPanel
+        @panelOld = atom.workspace.addBottomPanel
             item: atom.views.getView @panelModel
             visible: false
             className: 'agda-panel'
@@ -68,14 +81,17 @@ class Core
 
     activate: ->
         log 'Core', 'activated:', @filepath
-        @panel.show()
+        @panelOld.show()
+        # @atomPanel.show()
     deactivate: ->
         log 'Core', 'deactivated:', @filepath
-        @panel.hide()
+        @panelOld.hide()
+        # @atomPanel.hide()
     destroy: ->
         log 'Core', 'destroyed:', @filepath
         @commander.quit()
-        @panel.destroy()
+        @panelOld.destroy()
+        # @atomPanel.destroy()
         @disposables.dispose()
 
 module.exports = Core

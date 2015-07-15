@@ -21,7 +21,7 @@ toDescription = (normalization) ->
 class Commander
     loaded: false
     constructor: (@core) ->
-        @panel          = @core.panel
+        @panelOld       = @core.panelOld
         @highlight      = @core.highlight
         @executable     = @core.executable
         @panelModel     = @core.panelModel
@@ -57,7 +57,7 @@ class Commander
     ################
 
     load: ->
-        @panel.show()
+        @panelOld.show()
         @highlight.destroyAllMarker()
         @executable.load().then (process) =>
             @panelModel.set 'Loading'
@@ -66,7 +66,7 @@ class Commander
     quit: -> if @loaded
         @loaded = false
         @executable.quit()
-        @panel.hide()
+        @panelOld.hide()
         @textBuffer.removeGoals()
 
     restart: ->
@@ -194,7 +194,7 @@ class Commander
 
     inputSymbol: ->
         unless @loaded
-            @panel.show()
+            @panelOld.show()
             @panelModel.set 'Input Method only, Agda not loaded', [], 'warning'
         @inputMethod.activate()
 

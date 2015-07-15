@@ -2,9 +2,6 @@ Core = require './core'
 {log, warn, error} = require './logger'
 {$} = require 'atom-space-pen-views'
 
-goalBackground = "#246"
-goalForeground = "orange"
-
 module.exports =
 
     config:
@@ -40,16 +37,7 @@ module.exports =
             description: 'cosmetic surgery on some message such as "ℕ → ℕ → ℕ !=< ℕ of type Set"'
             type: 'boolean'
             default: true
-        # goalColor:
-        #     title: 'Goal Background Color'
-        #     description: 'background color of a goal'
-        #     type: 'color'
-        #     default: goalBackground
-        # goalIndexColor:
-        #     title: 'Goal Index Color'
-        #     description: 'color of a goal index'
-        #     type: 'color'
-        #     default: goalForeground
+
 
     activate: (state) ->
         atom.workspace.observeTextEditors @instantiateCore

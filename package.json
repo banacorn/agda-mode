@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "atom-space-pen-views": "^2.0.5",
+    "bluebird": "^2.9.30",
     "lisp-to-array": "^0.2.0",
     "lodash": "^3.10.0",
-    "bluebird": "^2.9.30"
+    "loophole": "^1.0.0",
+    "vue": "^0.12.7"
   }
 }

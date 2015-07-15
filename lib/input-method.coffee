@@ -48,6 +48,12 @@ class InputMethod
             @core.panelModel.inputMethodOn = true
             @core.panelModel.setInputMethod '', Keymap.getSuggestionKeys Keymap.trie, []
 
+            # @core.panel.inputMethodMode = true
+            # @core.panel.inputMethod =
+            #     rawInput: ''
+            #     suggestionKeys: Keymap.getSuggestionKeys Keymap.trie
+            #     candidateSymbols: []
+
         else
             # input method already activated
             # this will happen when the 2nd backslash '\' got punched in
@@ -59,6 +65,7 @@ class InputMethod
         if @activated
             log 'IM', 'deactivated'
             @core.panelModel.inputMethodOn = false
+            # @core.panel.inputMethodMode = false
             @textBufferMarker.destroy()
             @decoration.destroy()
             @activated = false
