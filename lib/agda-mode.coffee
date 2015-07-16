@@ -1,6 +1,5 @@
 Core = require './core'
 {log, warn, error} = require './logger'
-{$} = require 'atom-space-pen-views'
 
 module.exports =
 
@@ -38,7 +37,6 @@ module.exports =
             type: 'boolean'
             default: true
 
-
     activate: (state) ->
         atom.workspace.observeTextEditors @instantiateCore
         @registerEditorActivation()
@@ -55,14 +53,14 @@ module.exports =
                 # if the file is not .agda anymore,
                 # and there exists a core, then destroy it
                 editor.core.destroy()
-                $(editorElement).removeClass 'agda'
+                editorElement.classList.remove 'agda'
 
             else if isAgdaFile editor
 
                 # add 'agda' class to the editor element
                 # so that keymaps and styles know what to select
 
-                $(editorElement).addClass 'agda'
+                editorElement.classList.add 'agda'
 
                 editor.core = new Core editor
                 ev = editor.onDidDestroy =>

@@ -1,5 +1,4 @@
 _ = require 'lodash'
-{$} = require 'atom-space-pen-views'
 {log, warn, error} = require './logger'
 {Range, CompositeDisposable} = require 'atom'
 
@@ -12,6 +11,7 @@ Highlight   = require './highlight'
 Config      = require './config'
 Handler     = require './handler'
 Panel       = require './panel'
+
 class Core
     constructor: (@editor) ->
 
