@@ -8,12 +8,12 @@ class PanelView extends View
 
     @content: ->
         @div =>
-            @div outlet: 'head', id: 'head', class: 'inset-panel padded', =>
+            @div outlet: 'head', id: 'head_', class: 'inset-panel padded', =>
                 @div outlet: 'title'
-                @div outlet: 'inputMethod', id: 'input-method', =>
+                @div outlet: 'inputMethod', id: 'input-method_', =>
                     @div =>
-                        @div outlet: 'inputBuffer', id: 'input-buffer', class: 'inline-block'
-                        @div outlet: 'suggestionKeys', id: 'suggestion-keys', class: 'btn-group btn-group-sm'
+                        @div outlet: 'inputBuffer', id: 'input-buffer_', class: 'inline-block'
+                        @div outlet: 'suggestionKeys', id: 'suggestion-keys_', class: 'btn-group btn-group-sm'
             @div outlet: 'body', class: "block padded", =>
                 @div outlet: 'content', class: 'agda-panel-content native-key-bindings', tabindex: "-1", =>
                     @ul outlet: 'contentList', class: 'list-group'

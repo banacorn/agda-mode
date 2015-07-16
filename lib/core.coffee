@@ -2,7 +2,6 @@ _ = require 'lodash'
 {$} = require 'atom-space-pen-views'
 {log, warn, error} = require './logger'
 {Range, CompositeDisposable} = require 'atom'
-{allowUnsafeNewFunction, allowUnsafeEval} = require 'loophole'
 
 # Components
 Commander   = require './commander'
@@ -31,8 +30,7 @@ class Core
         # initialize all components
         @config         = new Config
         @disposables    = new CompositeDisposable
-        allowUnsafeNewFunction =>
-            @panel          = new Panel
+        @panel          = new Panel
         @executable     = new Executable    @
         @panelModel     = new PanelModel    @
         @textBuffer     = new TextBuffer    @
@@ -50,16 +48,13 @@ class Core
         #############
 
         # instantiate
-        # @atomPanel = atom.workspace.addBottomPanel
-        #     item: document.createElement 'dummy'
-        #     visible: true
-        #     className: 'agda-panel'
-        # allowUnsafeNewFunction =>
-        #     @panel.$mount @atomPanel.item
-            # @panel.inputMethodMode = true
-            # @panel.$watch 'inputMethodMode', =>
-            #     console.log arguments
-            # , true
+        @atomPanel = atom.workspace.addBottomPanel
+            item: document.createElement 'dummy'
+            visible: true
+            className: 'agda-panel'
+
+        @panel.$mount @atomPanel.item
+        @panel.inputMethodMode = true
 
         # register panel view, fuck Atom's everchanging always outdated documentation
         @disposables.add atom.views.addViewProvider PanelModel, (model) =>
@@ -82,16 +77,16 @@ class Core
     activate: ->
         log 'Core', 'activated:', @filepath
         @panelOld.show()
-        # @atomPanel.show()
+        @atomPanel.show()
     deactivate: ->
         log 'Core', 'deactivated:', @filepath
         @panelOld.hide()
-        # @atomPanel.hide()
+        @atomPanel.hide()
     destroy: ->
         log 'Core', 'destroyed:', @filepath
         @commander.quit()
         @panelOld.destroy()
-        # @atomPanel.destroy()
+        @atomPanel.destroy()
         @disposables.dispose()
 
 module.exports = Core

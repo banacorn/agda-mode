@@ -16,10 +16,10 @@ class InputMethod
     constructor: (@core) ->
 
         # monitors @core.panelModel.inputMethod.clicked
-        Object.observe @core.panelModel.inputMethod, (changes) =>
-            changes.forEach (change) =>
-                if change.name is "clicked"
-                    @insertChar change.object.clicked
+        # Object.observe @core.panelModel.inputMethod, (changes) =>
+        #     changes.forEach (change) =>
+        #         if change.name is "clicked"
+        #             @insertChar change.object.clicked
 
 
     activate: ->
@@ -44,15 +44,12 @@ class InputMethod
             @muteEvent =>
                 @insertChar '\\'
 
-            # initial input suggestion
-            @core.panelModel.inputMethodOn = true
-            @core.panelModel.setInputMethod '', Keymap.getSuggestionKeys Keymap.trie, []
-
-            # @core.panel.inputMethodMode = true
-            # @core.panel.inputMethod =
-            #     rawInput: ''
-            #     suggestionKeys: Keymap.getSuggestionKeys Keymap.trie
-            #     candidateSymbols: []
+            # initialize input suggestion
+            @core.panel.inputMethodMode = true
+            @core.panel.inputMethod =
+                rawInput: ''
+                suggestionKeys: Keymap.getSuggestionKeys(Keymap.trie).sort()
+                candidateSymbols: []
 
         else
             # input method already activated
@@ -64,8 +61,7 @@ class InputMethod
 
         if @activated
             log 'IM', 'deactivated'
-            @core.panelModel.inputMethodOn = false
-            # @core.panel.inputMethodMode = false
+            @core.panel.inputMethodMode = false
             @textBufferMarker.destroy()
             @decoration.destroy()
             @activated = false
@@ -109,7 +105,10 @@ class InputMethod
 
                 # update view
                 if further
-                    @core.panelModel.setInputMethod @rawInput, suggestionKeys, candidateSymbols
+                    @core.panel.inputMethod =
+                        rawInput: @rawInput
+                        suggestionKeys: suggestionKeys
+                        candidateSymbols: candidateSymbols
                 else
                     @deactivate()
 
@@ -117,7 +116,10 @@ class InputMethod
                 @rawInput = @rawInput.substr(0, @rawInput.length - 1)
                 log 'IM', "delete #{@rawInput}"
                 {translation, further, suggestionKeys, candidateSymbols} = Keymap.translate @rawInput
-                @core.panelModel.setInputMethod @rawInput, suggestionKeys, candidateSymbols
+                @core.panel.inputMethod =
+                    rawInput: @rawInput
+                    suggestionKeys: suggestionKeys
+                    candidateSymbols: candidateSymbols
 
 
     #######################

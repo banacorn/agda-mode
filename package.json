@@ -15,6 +15,6 @@
     "lisp-to-array": "^0.2.0",
     "lodash": "^3.10.0",
     "loophole": "^1.0.0",
-    "vue": "^0.12.7"
+    "vue": "yyx990803/vue#csp"
   }
 }
