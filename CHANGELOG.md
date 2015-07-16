@@ -1,3 +1,6 @@
+## 0.3.4
+* View System rewritten with `Vue`, to prevent memory leaks in `v0.3.3`
+
 ## 0.3.3
 * Input method: key suggestions now are clickable buttons.
 
