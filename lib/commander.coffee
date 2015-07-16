@@ -21,10 +21,10 @@ toDescription = (normalization) ->
 class Commander
     loaded: false
     constructor: (@core) ->
-        @panelOld       = @core.panelOld
         @highlight      = @core.highlight
         @executable     = @core.executable
-        @panelModel     = @core.panelModel
+        @panel          = @core.panel
+        @atomPanel      = @core.atomPanel
         @textBuffer     = @core.textBuffer
         @inputMethod    = @core.inputMethod
         @config         = @core.config
@@ -57,16 +57,16 @@ class Commander
     ################
 
     load: ->
-        @panelOld.show()
+        @atomPanel.show()
         @highlight.destroyAllMarker()
         @executable.load().then (process) =>
-            @panelModel.set 'Loading'
+            @panel.totle = 'Loading'
             @loaded = true
 
     quit: -> if @loaded
         @loaded = false
         @executable.quit()
-        @panelOld.hide()
+        @atomPanel.hide()
         @textBuffer.removeGoals()
 
     restart: ->
@@ -92,19 +92,22 @@ class Commander
         @textBuffer.previousGoal()
 
     whyInScope: ->
-        @panelModel.set "Scope info", [], 'info', 'name:'
-        @panelModel.query().then (expr) =>
-            @textBuffer.getCurrentGoal().done (goal) =>
-                # goal-specific
-                @executable.whyInScope expr, goal
-                @textBuffer.focus()
-            , =>
-                # global command
-                @executable.whyInScope expr
-                @textBuffer.focus()
+        @panel.setContent "Scope info", [], 'info', 'name:'
+        @panel.queryMode = true;
+
+        console.log @panel.queryMode
+        # @panelModel.query().then (expr) =>
+        #     @textBuffer.getCurrentGoal().done (goal) =>
+        #         # goal-specific
+        #         @executable.whyInScope expr, goal
+        #         @textBuffer.focus()
+        #     , =>
+        #         # global command
+        #         @executable.whyInScope expr
+        #         @textBuffer.focus()
 
     inferType: (normalization) ->
-        @panelModel.set "Infer type #{toDescription normalization}", [], 'info', 'expression to infer:'
+        @panel.setContent "Infer type #{toDescription normalization}", [], 'info', 'expression to infer:'
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
@@ -116,7 +119,7 @@ class Commander
                 @textBuffer.focus()
 
     moduleContents: (normalization) ->
-        @panelModel.set "Module contents #{toDescription normalization}", [], 'info', 'module name:'
+        @panel.setContent "Module contents #{toDescription normalization}", [], 'info', 'module name:'
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
@@ -128,7 +131,7 @@ class Commander
                 @textBuffer.focus()
 
     computeNormalForm: ->
-        @panelModel.set "Compute normal form", [], 'info', 'expression to normalize:'
+        @panel.setContent "Compute normal form", [], 'info', 'expression to normalize:'
         @panelModel.query()
             .then (expr) =>
                 @textBuffer.getCurrentGoal().done (goal) =>
@@ -141,7 +144,7 @@ class Commander
                     @textBuffer.focus()
 
     computeNormalFormIgnoreAbstract: ->
-        @panelModel.set 'Compute normal form (ignoring abstract)', [], 'info', 'expression to normalize:'
+        @panel.setContent 'Compute normal form (ignoring abstract)', [], 'info', 'expression to normalize:'
         @panelModel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
@@ -194,8 +197,8 @@ class Commander
 
     inputSymbol: ->
         unless @loaded
-            @panelOld.show()
-            @panelModel.set 'Input Method only, Agda not loaded', [], 'warning'
+            @atomPanel.show()
+            @panel.setContent 'Input Method only, Agda not loaded', [], 'warning'
         @inputMethod.activate()
 
 module.exports = Commander

@@ -50,23 +50,9 @@ class Core
         # instantiate
         @atomPanel = atom.workspace.addBottomPanel
             item: document.createElement 'dummy'
-            visible: true
-            className: 'agda-panel'
-
-        @panel.$mount @atomPanel.item
-        @panel.inputMethodMode = true
-
-        # register panel view, fuck Atom's everchanging always outdated documentation
-        @disposables.add atom.views.addViewProvider PanelModel, (model) =>
-            view = new PanelView
-            view.setModel model
-            return $(view).get(0)
-
-        # instantiate
-        @panelOld = atom.workspace.addBottomPanel
-            item: atom.views.getView @panelModel
             visible: false
             className: 'agda-panel'
+        @panel.$mount @atomPanel.item
 
         @commander      = new Commander     @
 
@@ -76,16 +62,13 @@ class Core
 
     activate: ->
         log 'Core', 'activated:', @filepath
-        @panelOld.show()
         @atomPanel.show()
     deactivate: ->
         log 'Core', 'deactivated:', @filepath
-        @panelOld.hide()
         @atomPanel.hide()
     destroy: ->
         log 'Core', 'destroyed:', @filepath
         @commander.quit()
-        @panelOld.destroy()
         @atomPanel.destroy()
         @disposables.dispose()
 

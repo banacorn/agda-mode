@@ -7,7 +7,7 @@ _ = require 'lodash'
 class Handler
     constructor: (@core) ->
         # alias
-        @panelModel = @core.panelModel
+        @panel      = @core.panel
         @textBuffer = @core.textBuffer
         @config     = @core.config
         @highlight  = @core.highlight
@@ -23,9 +23,9 @@ class Handler
         switch type
             when '*All Goals*'
                 if content.length > 0
-                    @panelModel.set 'Goals', content, 'info'
+                    @panel.setContent 'Goals', content, 'info'
                 else
-                    @panelModel.set 'No Goals', [], 'success'
+                    @panel.setContent 'No Goals', [], 'success'
             when '*Error*'
 
                 # the first line with !=< we want to do cosmetic surgery with, -1 if not found
@@ -36,37 +36,37 @@ class Handler
                     got       = '      got: ' + content[index].split(/!=</)[0].trim()
                     post      = _.drop content, index + 1
                     result = pre.concat([expecting, got]).concat(post)
-                    @panelModel.set 'Error', result, 'error'
+                    @panel.setContent 'Error', result, 'error'
                 else
-                    @panelModel.set 'Error', content, 'error'
+                    @panel.setContent 'Error', content, 'error'
             when '*Type-checking*'
-                @panelModel.set 'Type Checking', content
+                @panel.setContent 'Type Checking', content
             when '*Current Goal*'
-                @panelModel.set 'Current Goal', content
+                @panel.setContent 'Current Goal', content
             when '*Inferred Type*'
-                @panelModel.set 'Inferred Type', content
+                @panel.setContent 'Inferred Type', content
             when '*Module contents*'
-                @panelModel.set 'Module Contents', content
+                @panel.setContent 'Module Contents', content
             when '*Context*'
-                @panelModel.set 'Context', content
+                @panel.setContent 'Context', content
             when '*Goal type etc.*'
-                @panelModel.set 'Goal Type and Context', content
+                @panel.setContent 'Goal Type and Context', content
             when '*Normal Form*'
-                @panelModel.set 'Normal Form', content
+                @panel.setContent 'Normal Form', content
             when '*Intro*'
-                @panelModel.set 'Intro', ['No introduction forms found']
+                @panel.setContent 'Intro', ['No introduction forms found']
             when '*Auto*'
-                @panelModel.set 'Auto', ['No solution found']
+                @panel.setContent 'Auto', ['No solution found']
             when '*Constraints*'
-                @panelModel.set 'Constraints', content
+                @panel.setContent 'Constraints', content
             when '*Scope Info*'
-                @panelModel.set 'Scope Info', content
+                @panel.setContent 'Scope Info', content
 
     # agda2-status-action
     statusAction: (tokens) ->
         log 'Handler', 'agda2-status-action'
         if tokens.length isnt 1
-            @panelModel.set 'Status', [tokens[1]], 'info'
+            @panel.setContent 'Status', [tokens[1]], 'info'
 
     # agda2-goals-action
     goalsAction: (tokens) ->
