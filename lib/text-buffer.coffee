@@ -68,11 +68,11 @@ class TextBuffer
 
     warnOutOfGoal: =>
         warn 'Text Buffer', 'out of goal'
-        @core.panelModel.set 'Out of goal', ['For this command, please place the cursor in a goal'], 'warning'
+        @core.panel.setContent 'Out of goal', ['For this command, please place the cursor in a goal'], 'warning'
 
     warnEmptyGoal: (error) =>
         warn 'Text Buffer', 'empty content'
-        @core.panelModel.set 'No content', [error.message], 'warning'
+        @core.panel.setContent 'No content', [error.message], 'warning'
 
     # query for expression if the goal is empty
     checkGoalContent: (messages) => (goal) =>
@@ -80,8 +80,8 @@ class TextBuffer
         if content
             Promise.resolve goal
         else
-            @core.panelModel.set messages.title, [], 'info', messages.placeholder
-            @core.panelModel
+            @core.panel.setContent messages.title, [], 'info', messages.placeholder
+            @core.panel
                 .query()
                 .then (expr) =>
                     if expr

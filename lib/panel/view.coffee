@@ -139,12 +139,12 @@ class PanelView extends View
         @head.show()
         @body.show()
         @inputBox.show()
-        @inputBox.focus()
+        # @inputBox.focus()
 
     cancelQuery: ->
         log 'Panel', 'stop querying'
         @inputBox.hide()
-        atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+        # atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
 
     destroy: ->
         log 'Panel', 'destroyed'

@@ -6,8 +6,6 @@ _ = require 'lodash'
 # Components
 Commander   = require './commander'
 Executable  = require './executable'
-PanelModel  = require './panel/model'
-PanelView   = require './panel/view'
 TextBuffer  = require './text-buffer'
 InputMethod = require './input-method'
 Highlight   = require './highlight'
@@ -32,7 +30,6 @@ class Core
         @disposables    = new CompositeDisposable
         @panel          = new Panel
         @executable     = new Executable    @
-        @panelModel     = new PanelModel    @
         @textBuffer     = new TextBuffer    @
         @inputMethod    = new InputMethod   @
         @highlight      = new Highlight     @

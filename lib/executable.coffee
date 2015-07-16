@@ -24,9 +24,8 @@ class Executable
 
     # keep banging the user until we got the right path
     queryExecutablePathUntilSuccess: ->
-        @core.panelModel.set 'Agda executable not found', [], 'warning'
-        @core.panelModel.placeholder = 'path of executable here'
-        @core.panelModel.query()
+        @core.panel.setContent 'Agda executable not found', [], 'warning', 'path of executable here'
+        @core.panel.query()
             .then (path) =>
                 log 'Executable', "got path: #{path}"
                 @validateExecutablePath path

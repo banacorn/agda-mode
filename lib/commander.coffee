@@ -93,22 +93,19 @@ class Commander
 
     whyInScope: ->
         @panel.setContent "Scope info", [], 'info', 'name:'
-        @panel.queryMode = true;
-
-        console.log @panel.queryMode
-        # @panelModel.query().then (expr) =>
-        #     @textBuffer.getCurrentGoal().done (goal) =>
-        #         # goal-specific
-        #         @executable.whyInScope expr, goal
-        #         @textBuffer.focus()
-        #     , =>
-        #         # global command
-        #         @executable.whyInScope expr
-        #         @textBuffer.focus()
+        @panel.queryMode = true
+        @panel.query().then (expr) =>
+                # goal-specific
+                @executable.whyInScope expr, goal
+                @textBuffer.focus()
+            , =>
+                # global command
+                @executable.whyInScope expr
+                @textBuffer.focus()
 
     inferType: (normalization) ->
         @panel.setContent "Infer type #{toDescription normalization}", [], 'info', 'expression to infer:'
-        @panelModel.query().then (expr) =>
+        @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
                 @executable.inferType normalization, expr, goal
@@ -120,7 +117,7 @@ class Commander
 
     moduleContents: (normalization) ->
         @panel.setContent "Module contents #{toDescription normalization}", [], 'info', 'module name:'
-        @panelModel.query().then (expr) =>
+        @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
                 @executable.moduleContents normalization, expr, goal
@@ -132,7 +129,7 @@ class Commander
 
     computeNormalForm: ->
         @panel.setContent "Compute normal form", [], 'info', 'expression to normalize:'
-        @panelModel.query()
+        @panel.query()
             .then (expr) =>
                 @textBuffer.getCurrentGoal().done (goal) =>
                     # goal-specific
@@ -145,7 +142,7 @@ class Commander
 
     computeNormalFormIgnoreAbstract: ->
         @panel.setContent 'Compute normal form (ignoring abstract)', [], 'info', 'expression to normalize:'
-        @panelModel.query().then (expr) =>
+        @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
                 @executable.computeNormalFormIgnoreAbstract expr, goal
