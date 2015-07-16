@@ -28,7 +28,7 @@ class Core
         # initialize all components
         @config         = new Config
         @disposables    = new CompositeDisposable
-        @panel          = new Panel
+        @panel          = new Panel         @
         @executable     = new Executable    @
         @textBuffer     = new TextBuffer    @
         @inputMethod    = new InputMethod   @

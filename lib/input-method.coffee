@@ -15,13 +15,6 @@ class InputMethod
 
     constructor: (@core) ->
 
-        # monitors @core.panelModel.inputMethod.clicked
-        # Object.observe @core.panelModel.inputMethod, (changes) =>
-        #     changes.forEach (change) =>
-        #         if change.name is "clicked"
-        #             @insertChar change.object.clicked
-
-
     activate: ->
         if not @activated
 
