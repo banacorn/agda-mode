@@ -95,6 +95,7 @@ class Commander
         @panel.setContent "Scope info", [], 'info', 'name:'
         @panel.queryMode = true
         @panel.query().then (expr) =>
+            @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
                 @executable.whyInScope expr, goal
                 @textBuffer.focus()
