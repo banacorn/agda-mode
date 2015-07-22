@@ -1,8 +1,6 @@
-Core = require './core'
 {log, warn, error} = require './logger'
-
+Core = null
 module.exports =
-
     config:
         executablePath:
             title: 'Agda Executable'
@@ -38,37 +36,32 @@ module.exports =
             default: true
 
     activate: (state) ->
+        Core = require './core'
         atom.workspace.observeTextEditors @instantiateCore
         @registerEditorActivation()
         @registerCommands()
 
-
     instantiateCore: (editor) =>
 
-        instantiate = =>
+        editorElement = atom.views.getView editor
 
-            editorElement = atom.views.getView editor
+        if editor.core
+            # if the file is not .agda anymore,
+            # and there exists a core, then destroy it
+            editor.core.destroy()
+            editorElement.classList.remove 'agda'
 
-            if editor.core
-                # if the file is not .agda anymore,
-                # and there exists a core, then destroy it
+        else if isAgdaFile editor
+
+            # add 'agda' class to the editor element
+            # so that keymaps and styles know what to select
+
+            editorElement.classList.add 'agda'
+
+            editor.core = new Core editor
+            ev = editor.onDidDestroy =>
                 editor.core.destroy()
-                editorElement.classList.remove 'agda'
-
-            else if isAgdaFile editor
-
-                # add 'agda' class to the editor element
-                # so that keymaps and styles know what to select
-
-                editorElement.classList.add 'agda'
-
-                editor.core = new Core editor
-                ev = editor.onDidDestroy =>
-                    editor.core.destroy()
-                    ev.dispose()
-
-        instantiate()
-        editor.onDidChangePath => instantiate()
+                ev.dispose()
 
     # editor active/inactive event register, fuck Atom's event clusterfuck
     registerEditorActivation: ->
@@ -128,7 +121,6 @@ module.exports =
             atom.commands.add 'atom-text-editor.agda', command, =>
                 if isAgdaFile()
                     editor = atom.workspace.getActivePaneItem()
-                    # editor.core[toCamalCase command]()
                     editor.core.commander.command command
 
 # if end with ".agda"

@@ -7,9 +7,13 @@
 
 # For more detailed documentation see
 # https://atom.io/docs/latest/behind-atom-keymaps-in-depth
-'atom-text-editor.agda':
+'atom-workspace':
     # Global commands
     'ctrl-c        ctrl-l': 'agda-mode:load'
+
+'atom-text-editor.agda':
+    # Global commands
+    # 'ctrl-c        ctrl-l': 'agda-mode:load'
     'ctrl-c ctrl-x ctrl-q': 'agda-mode:quit'
     'ctrl-c ctrl-x ctrl-r': 'agda-mode:restart'
     'ctrl-c ctrl-x ctrl-c': 'agda-mode:compile'

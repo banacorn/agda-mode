@@ -1,19 +1,23 @@
 {
-  "name": "agda-mode",
-  "main": "./lib/agda-mode",
-  "version": "0.3.4",
-  "description": "agda-mode for Atom",
-  "activationCommands": [],
-  "repository": "https://github.com/banacorn/agda-mode",
-  "license": "MIT",
-  "engines": {
-    "atom": ">0.180.0"
-  },
-  "dependencies": {
-    "atom-space-pen-views": "^2.0.5",
-    "bluebird": "^2.9.34",
-    "lisp-to-array": "^0.2.0",
-    "lodash": "^3.10.0",
-    "vue": "git+https://git@github.com/yyx990803/vue.git#csp"
-  }
+    "name": "agda-mode",
+    "main": "./lib/agda-mode",
+    "version": "0.3.4",
+    "description": "agda-mode for Atom",
+    "activationCommands": {
+        "atom-workspace": [
+            "agda-mode:load"
+        ]
+    },
+    "repository": "https://github.com/banacorn/agda-mode",
+    "license": "MIT",
+    "engines": {
+        "atom": ">0.180.0"
+    },
+    "dependencies": {
+        "atom-space-pen-views": "^2.0.5",
+        "bluebird": "^2.9.34",
+        "lisp-to-array": "^0.2.0",
+        "lodash": "^3.10.0",
+        "vue": "git+https://git@github.com/yyx990803/vue.git#csp"
+    }
 }
