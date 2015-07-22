@@ -137,6 +137,15 @@ class TextBuffer
         if positions.length isnt 0
             @core.editor.setCursorBufferPosition previousGoal
 
+    jumpToGoal: (index) ->
+        goal = @goals.filter((goal) => goal.index is index)[0]
+
+        if goal
+            start = goal.range.start
+            position = @core.editor.translate start, 3
+            @core.editor.setCursorBufferPosition position
+            @focus()
+
     ########################
     #   Command Handlers   #
     ########################
