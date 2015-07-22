@@ -1,3 +1,6 @@
+## 0.3.6
+* Fix goal parsing 
+
 ## 0.3.5
 * Fix when `ctrl-c ctrl-w` failed to query current goal
 * Jump to a goal by clicking on it's index
