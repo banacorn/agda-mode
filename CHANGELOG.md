@@ -1,3 +1,8 @@
+## 0.3.5
+* Fix when `ctrl-c ctrl-w` failed to query current goal
+* Jump to a goal by clicking on it's index
+* Postpone package activation until `agda-mode:load` for better editor startup time
+
 ## 0.3.4
 * View System rewritten with `Vue`, to prevent memory leaks in `v0.3.3`
 
