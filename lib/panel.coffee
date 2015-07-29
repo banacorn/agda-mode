@@ -1,7 +1,9 @@
 Vue     = require 'vue'
 _       = require 'lodash'
 {QueryCancelledError} = require './error'
+Promise = require 'bluebird'
 require './view/input-editor'
+require './view/body'
 
 
 template = '''
@@ -15,13 +17,7 @@ template = '''
     </div>
 </div>
 <div id="body" class="padded" v-show="content.length || queryMode">
-    <div class="agda-panel-content native-key-bindings" tabindex="-1"  v-show="!queryMode">
-        <ul class="list-group">
-            <li class="list-item text-info" v-repeat="contentHeader">{{$value}}</li>
-            <li class="list-item" v-repeat="contentBody">{{$value}}</li>
-            <li class="list-item" v-repeat="contentGoal"><template v-if="isGoal"><button class='no-btn text-info' v-on="click: jumpToGoal(index)">{{index}}</button> {{type}}</template><template v-if="!isGoal">{{raw}}</template></li>
-        </ul>
-    </div>
+    <panel-body raw-content="{{content}}" title="{{title}}" jump-to-goal="{{jumpToGoal}}"></panel-body>
     <div id="input-editor" v-show="queryMode">
         <input-editor v-ref="inputEditor"></input-editor>
     </div>
@@ -36,9 +32,7 @@ class Panel extends Vue
             data:
                 title: ''
 
-                contentHeader: []
-                contentBody: []
-                contentGoal: []
+                content: []
 
                 type: ''
                 placeholderText: ''
@@ -74,42 +68,5 @@ class Panel extends Vue
 
                 jumpToGoal: (index) ->
                     core.textBuffer.jumpToGoal parseInt(index)
-
-            computed:
-                content:
-                    set: (raw) ->
-                        content = raw
-
-                        @contentHeader = []
-                        @contentBody   = []
-                        @contentGoal   = []
-
-                        # divide content into 2 parts and style them differently
-                        if content.length > 0
-                            index = content.indexOf '————————————————————————————————————————————————————————————'
-                            sectioned = index isnt -1
-                            if sectioned
-                                @contentHeader = content.slice 0, index
-                                @contentBody   = content.slice index + 1, content.length
-                            else
-                                @contentBody   = content
-
-                        # style goal list differently
-                        if @title is 'Goals'
-                            @contentGoal = @contentBody.map (item) =>
-                                result = item.match /^\?(\d*) \: (.*)/
-                                if result
-                                    isGoal: true
-                                    index: result[1]
-                                    type: result[2]
-                                    raw: item
-                                else
-                                    isGoal: false
-                                    raw: item
-
-                            @contentBody = []
-
-                    get: ->
-                        @contentHeader.concat(@contentBody).concat(@contentGoal)
 
 module.exports = Panel

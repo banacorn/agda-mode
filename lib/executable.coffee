@@ -3,6 +3,7 @@ Promise = require 'bluebird'
 {log, warn, error} = require './logger'
 Stream = require './executable/stream'
 {InvalidExecutablePathError} = require './error'
+Promise.longStackTraces()
 
 class Executable
 
