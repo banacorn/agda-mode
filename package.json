@@ -4,8 +4,13 @@
   "version": "0.3.6",
   "description": "agda-mode for Atom",
   "activationCommands": {
-    "atom-workspace": [
-      "agda-mode:load"
+    "atom-text-editor[data-grammar='source agda']": [
+      "agda-mode:load",
+      "agda-mode:input-symbol"
+    ],
+    "atom-text-editor[data-grammar='source lagda']": [
+        "agda-mode:load",
+        "agda-mode:input-symbol"
     ]
   },
   "repository": "https://github.com/banacorn/agda-mode",

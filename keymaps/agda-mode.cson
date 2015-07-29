@@ -7,9 +7,17 @@
 
 # For more detailed documentation see
 # https://atom.io/docs/latest/behind-atom-keymaps-in-depth
-'atom-workspace':
-    # Global commands
+'atom-text-editor[data-grammar="source agda"]':
     'ctrl-c        ctrl-l': 'agda-mode:load'
+    # invoke input method
+    '\\': 'agda-mode:input-symbol'
+    'alt-/': 'agda-mode:input-symbol'
+
+'atom-text-editor[data-grammar="source lagda"]':
+    'ctrl-c        ctrl-l': 'agda-mode:load'
+    # invoke input method
+    '\\': 'agda-mode:input-symbol'
+    'alt-/': 'agda-mode:input-symbol'
 
 'atom-text-editor.agda':
     # Global commands
@@ -52,5 +60,5 @@
     'ctrl-u ctrl-u ctrl-c ctrl-.': 'agda-mode:goal-type-and-inferred-type[Normalised]'
 
     # invoke input method
-    '\\': 'agda-mode:input-symbol'
-    'alt-/': 'agda-mode:input-symbol'
+    # '\\': 'agda-mode:input-symbol'
+    # 'alt-/': 'agda-mode:input-symbol'

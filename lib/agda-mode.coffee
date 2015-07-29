@@ -40,6 +40,7 @@ module.exports =
         atom.workspace.observeTextEditors @instantiateCore
         @registerEditorActivation()
         @registerCommands()
+        log 'Agda Mode', 'activated'
 
     instantiateCore: (editor) =>
 
