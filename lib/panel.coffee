@@ -1,9 +1,8 @@
 Vue     = require 'vue'
-Promise = require 'bluebird'
 _       = require 'lodash'
 {QueryCancelledError} = require './error'
-{TextEditorView}      = require 'atom-space-pen-views'
-{CompositeDisposable} = require 'atom'
+require './view/input-editor'
+
 
 template = '''
 <div id="head" class="inset-panel padded" v-show="title">
@@ -24,17 +23,14 @@ template = '''
         </ul>
     </div>
     <div id="input-editor" v-show="queryMode">
+        <input-editor v-ref="inputEditor"></input-editor>
     </div>
 </div>
 '''
-# <li class="list-item" v-repeat="contentGoal"><span class='badge'>{{index}}</span>   {{type}}</li>
 
 class Panel extends Vue
 
-    subscriptions: new CompositeDisposable
-
     constructor: (core) ->
-        editor = new TextEditorView mini: true
         super
             template: template
             data:
@@ -45,8 +41,7 @@ class Panel extends Vue
                 contentGoal: []
 
                 type: ''
-                placeholder: ''
-                queryString: ''
+                placeholderText: ''
                 inputMethodMode: false
                 queryMode: false
                 inputMethod:
@@ -54,34 +49,25 @@ class Panel extends Vue
                     suggestionKeys: []
                     candidateSymbols: []
             methods:
-                setContent: (title = '', content = [], type = '', placeholder = '') =>
+                setContent: (@title = '', @content = [], @type = '', @placeholderText = '') =>
                     @queryMode      = false
-                    @title          = title
-                    @content        = content
-                    @type           = type
-                    @placeholder    = placeholder
 
-                query: () ->
-                    # show the input box
+                # returns a Promise
+                query: ->
+                    # initialize the input editor component
+                    @$.inputEditor.initialize()
+                    # show input box, as it would had been hidden when initialized
                     @queryMode = true
-                    # reject old promise if it already exists
-                    @rejectQuery()
-                    # focus the input box (with setTimeout quirk)
-                    setTimeout => @inputEditor.focus()
+
                     new Promise (resolve, reject) =>
-                        @queryPromise =
-                            resolve: resolve
-                            reject: reject
-
-                rejectQuery: () ->
-                    if @queryPromise
-                        @queryPromise.reject new QueryCancelledError
-                        delete @queryPromise
-
-                resolveQuery: (message) ->
-                    if @queryPromise
-                        @queryPromise.resolve message
-                        delete @queryPromise
+                        @$once 'input-editor:confirm', (expr) =>
+                            resolve expr
+                            @queryMode = false
+                            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+                        @$once 'input-editor:cancel', =>
+                            reject new QueryCancelledError
+                            @queryMode = false
+                            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
 
                 selectKey: (key) ->
                     core.inputMethod.insertChar key
@@ -123,28 +109,7 @@ class Panel extends Vue
 
                             @contentBody = []
 
-                    get: () ->
+                    get: ->
                         @contentHeader.concat(@contentBody).concat(@contentGoal)
-
-            attached: () ->
-                @$el.parentElement.querySelector('#input-editor').appendChild(editor.element)
-                @inputEditor = editor
-
-                # input editor event subscriptions
-                @subscriptions.add atom.commands.add(@inputEditor.element, 'core:confirm', () =>
-                    @queryMode = false
-                    @resolveQuery @inputEditor.getText().trim()
-                    # give focus back
-                    atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
-                )
-                @subscriptions.add atom.commands.add(@inputEditor.element, 'core:cancel', () =>
-                    @queryMode = false
-                    @rejectQuery()
-                    # give focus back
-                    atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
-                )
-
-    destroy: () ->
-        @subscriptions.destroy()
 
 module.exports = Panel
