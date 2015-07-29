@@ -20,7 +20,7 @@ class Executable
                 resolve path
             else
                 reject new InvalidExecutablePathError error if error
-                reject new InvalidExecutablePathError stderr if error
+                reject new InvalidExecutablePathError stderr if stderr
 
     # keep banging the user until we got the right path
     queryExecutablePathUntilSuccess: ->
@@ -29,6 +29,8 @@ class Executable
             .then (path) =>
                 log 'Executable', "got path: #{path}"
                 @validateExecutablePath path
+                    .then (path) => path
+                    .catch InvalidExecutablePathError, => @queryExecutablePathUntilSuccess()
             .then (path) =>
                 log 'Executable', "path validated: #{path}"
                 atom.config.set 'agda-mode.executablePath', path
@@ -43,7 +45,6 @@ class Executable
         @validateExecutablePath path
             .then (path) => path
             .catch InvalidExecutablePathError, => @queryExecutablePathUntilSuccess()
-
     getProcess: -> new Promise (resolve, reject) =>
         if @processWired
             resolve @process
@@ -69,7 +70,7 @@ class Executable
                     .pipe new Stream.ParseSExpr
                     .pipe new Stream.ParseCommand @core
                 log 'Executable', 'process.stdout stream established'
-
+            .catch (e) -> error e
     ################
     #   COMMANDS   #
     ################
