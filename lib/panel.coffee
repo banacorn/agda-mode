@@ -3,18 +3,14 @@ _       = require 'lodash'
 {QueryCancelledError} = require './error'
 Promise = require 'bluebird'
 require './view/input-editor'
+require './view/input-method'
 require './view/body'
 
 
 template = '''
 <div id="head" class="inset-panel padded" v-show="title">
     <div class="text-{{type}}" v-show="!inputMethodMode">{{title}}</div>
-    <div id="input-method" v-show="inputMethodMode">
-        <div id="input-buffer" class="inline-block">{{inputMethod.rawInput}}</div>
-        <div id="suggestion-keys" class="btn-group btn-group-sm">
-            <button class="btn" v-repeat="inputMethod.suggestionKeys" v-on="click: selectKey($value)">{{$value}}</button>
-        </div>
-    </div>
+    <panel-input-method v-show="inputMethodMode" input="{{inputMethod}}" select-key="{{selectKey}}"></panel-input-method>
 </div>
 <div id="body" class="padded" v-show="content.length || queryMode">
     <panel-body raw-content="{{content}}" title="{{title}}" jump-to-goal="{{jumpToGoal}}"></panel-body>
@@ -24,6 +20,17 @@ template = '''
 </div>
 '''
 
+Vue.component 'panel-input-method',
+    props: ['input', 'select-key']
+    template: '''
+        <div id="input-method" >
+            <div id="input-buffer" class="inline-block">{{input.rawInput}}</div>
+            <div id="suggestion-keys" class="btn-group btn-group-sm">
+                <button class="btn" v-repeat="input.suggestionKeys" v-on="click: selectKey($value)">{{$value}}</button>
+            </div>
+        </div>
+        '''
+
 class Panel extends Vue
 
     constructor: (core) ->
@@ -31,17 +38,14 @@ class Panel extends Vue
             template: template
             data:
                 title: ''
-
                 content: []
-
                 type: ''
                 placeholderText: ''
+
                 inputMethodMode: false
                 queryMode: false
-                inputMethod:
-                    rawInput: ''
-                    suggestionKeys: []
-                    candidateSymbols: []
+
+                inputMethod: null
             methods:
                 setContent: (@title = '', @content = [], @type = '', @placeholderText = '') =>
                     @queryMode      = false
