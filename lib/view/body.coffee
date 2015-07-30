@@ -1,5 +1,5 @@
-Vue     = require 'vue'
-_       = require 'lodash'
+Vue = require 'vue'
+_   = require 'lodash'
 
 Vue.component 'panel-body',
     props: ['raw-content', 'title', 'jump-to-goal']

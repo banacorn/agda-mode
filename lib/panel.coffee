@@ -1,7 +1,5 @@
 Vue     = require 'vue'
 _       = require 'lodash'
-{QueryCancelledError} = require './error'
-Promise = require 'bluebird'
 require './view/input-editor'
 require './view/input-method'
 require './view/body'
@@ -9,7 +7,7 @@ require './view/body'
 
 template = '''
 <div id="head" class="inset-panel padded" v-show="title">
-    <div class="text-{{type}}" v-show="!inputMethodMode">{{title}}</div>
+    <panel-title class="text-{{type}}" v-show="!inputMethodMode">{{title}}</panel-title>
     <panel-input-method v-show="inputMethodMode" input="{{inputMethod}}" select-key="{{selectKey}}"></panel-input-method>
 </div>
 <div id="body" class="padded" v-show="content.length || queryMode">
@@ -39,21 +37,22 @@ class Panel extends Vue
 
                 # returns a Promise
                 query: ->
-                    # initialize the input editor component
-                    @$.inputEditor.initialize()
+
+                    # hide input editor and give focus back
+                    @$once 'input-editor:confirm', =>
+                        @queryMode = false
+                        atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+                    @$once 'input-editor:cancel', =>
+                        @queryMode = false
+                        atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+
+                    promise = @$.inputEditor.query()
+
                     # show input box, as it would had been hidden when initialized
                     @queryMode = true
 
-                    new Promise (resolve, reject) =>
-                        @$once 'input-editor:confirm', (expr) =>
-                            resolve expr
-                            @queryMode = false
-                            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
-                        @$once 'input-editor:cancel', =>
-                            reject new QueryCancelledError
-                            @queryMode = false
-                            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
-
+                    return promise
+                    
                 selectKey: (key) ->
                     core.inputMethod.insertChar key
 

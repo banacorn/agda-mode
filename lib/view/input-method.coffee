@@ -1,4 +1,4 @@
-Vue     = require 'vue'
+Vue = require 'vue'
 
 Vue.component 'panel-input-method',
     props: ['input', 'select-key']
