@@ -9,7 +9,7 @@ module.exports =
             default: ''
         libraryPath:
             title: 'Libraries'
-            description: 'paths to include (such as agda-stdlib), eperate with comma'
+            description: 'paths to include (such as agda-stdlib), seperate with comma'
             type: 'array'
             default: []
             items:
