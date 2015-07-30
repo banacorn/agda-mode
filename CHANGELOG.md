@@ -1,5 +1,8 @@
+## 0.3.7
+* Now we can invoke input method and type unicode symbols in the input box
+
 ## 0.3.6
-* Fix goal parsing 
+* Fix goal parsing
 
 ## 0.3.5
 * Fix when `ctrl-c ctrl-w` failed to query current goal
