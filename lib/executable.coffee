@@ -93,12 +93,12 @@ class Executable
         endIndex    = @core.editor.toIndex end
         "( Range [Interval
             (Pn
-                (Just (mkAbsolute \"#{@core.filepath}\"))
+                (Just (mkAbsolute \"#{@core.editor.getPath()}\"))
                 #{startIndex}
                 #{start.row + 1}
                 #{start.column + 1})
             (Pn
-                (Just (mkAbsolute \"#{@core.filepath}\"))
+                (Just (mkAbsolute \"#{@core.editor.getPath()}\"))
                 #{endIndex}
                 #{end.row + 1}
                 #{end.column + 1})
@@ -106,7 +106,7 @@ class Executable
 
     sendCommand: (highlightingLevel, interaction) ->
         @getProcess().then (process) =>
-            filepath = @core.filepath
+            filepath = @core.editor.getPath()
             highlightingMethod = @core.config.directHighlighting()
             command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction} )\n"
             process.stdin.write command
@@ -115,7 +115,7 @@ class Executable
     load: =>
         # force save before load, since we are sending filepath but content
         @core.textBuffer.saveBuffer()
-        @sendCommand "NonInteractive", "Cmd_load \"#{@core.filepath}\" [#{@core.config.libraryPath()}]"
+        @sendCommand "NonInteractive", "Cmd_load \"#{@core.editor.getPath()}\" [#{@core.config.libraryPath()}]"
 
     quit: =>
         @process.kill()
@@ -123,7 +123,7 @@ class Executable
         log 'Executable', 'process killed'
 
     compile: =>
-        @sendCommand "NonInteractive", "Cmd_compile MAlonzo \"#{@core.filepath}\" [#{@core.config.libraryPath()}]"
+        @sendCommand "NonInteractive", "Cmd_compile MAlonzo \"#{@core.editor.getPath()}\" [#{@core.config.libraryPath()}]"
     toggleDisplayOfImplicitArguments: =>
         @sendCommand "NonInteractive", "ToggleImplicitArgs"
     showConstraints: =>

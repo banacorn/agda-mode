@@ -30,7 +30,6 @@ class Commander
         @config         = @core.config
         @highlight      = @core.highlight
         @handler        = @core.handler
-        @filepath       = @core.filepath
     command: (raw) ->
         {command, method, option} = @parse raw
         log "Commander", "loaded: #{@loaded}\n command: #{command}\n normalization: #{option}"

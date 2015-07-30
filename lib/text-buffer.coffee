@@ -179,7 +179,7 @@ class TextBuffer
             .catch @warnOutOfGoal
 
     onGoto: (filepath, charIndex) ->
-        if @core.filepath is filepath
+        if @core.editor.getPath() is filepath
             position = @core.editor.fromIndex charIndex + 3
             @core.editor.setCursorBufferPosition position
             # scroll down a bit further, or it would be shadowed by the panel

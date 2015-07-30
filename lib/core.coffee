@@ -35,9 +35,8 @@ class Core
         @highlight      = new Highlight     @
         @handler        = new Handler       @
         # initialize informations about this editor
-        @filepath = @editor.getPath()
 
-        log 'Core', 'initialized:', @filepath
+        log 'Core', 'initialized:', @editor.getPath()
 
 
         #############
@@ -58,13 +57,13 @@ class Core
     #####################
 
     activate: ->
-        log 'Core', 'activated:', @filepath
+        log 'Core', 'activated:', @editor.getPath()
         @atomPanel.show()
     deactivate: ->
-        log 'Core', 'deactivated:', @filepath
+        log 'Core', 'deactivated:', @editor.getPath()
         @atomPanel.hide()
     destroy: ->
-        log 'Core', 'destroyed:', @filepath
+        log 'Core', 'destroyed:', @editor.getPath()
         @commander.quit()
         @atomPanel.destroy()
         @disposables.dispose()
