@@ -8,12 +8,17 @@ Vue.component 'panel-input-editor',
     template: '<atom-text-editor mini></atom-text-editor>'
     methods:
         initialize: ->
+            # set grammar: agda
+            textEditor = @$el.getModel()
+            agdaGrammar = atom.grammars.grammarForScopeName 'source.agda'
+            textEditor.setGrammar agdaGrammar
+
             # reject old queries
             @$dispatch 'input-editor:cancel'
             # focus the input box (with setTimeout quirk)
             setTimeout => @$el.focus()
             # set placeholder text
-            @$el.getModel().setPlaceholderText @placeholderText
+            textEditor.setPlaceholderText @placeholderText
         query: ->
             @initialize()
             new Promise (resolve, reject) =>
