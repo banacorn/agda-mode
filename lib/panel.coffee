@@ -14,9 +14,7 @@ template = '''
 </div>
 <div id="body" class="padded" v-show="content.length || queryMode">
     <panel-body raw-content="{{content}}" title="{{title}}" jump-to-goal="{{jumpToGoal}}"></panel-body>
-    <div id="input-editor" v-show="queryMode">
-        <input-editor v-ref="inputEditor"></input-editor>
-    </div>
+    <panel-input-editor v-ref="inputEditor" id="input-editor" v-show="queryMode"></panel-input-editor>
 </div>
 '''
 

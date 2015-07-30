@@ -1,28 +1,22 @@
 Vue     = require 'vue'
-{TextEditorView}      = require 'atom-space-pen-views'
-{CompositeDisposable} = require 'atom'
+{CompositeDisposable, TextEditor} = require 'atom'
 
-Vue.component 'input-editor',
+Vue.component 'panel-input-editor',
     inherit: true
+    template: '<atom-text-editor mini></atom-text-editor>'
     methods:
         initialize: ->
             # reject old queries
             @$dispatch 'input-editor:cancel'
-
             # focus the input box (with setTimeout quirk)
-            setTimeout => @editor.focus()
-
-            @editor.getModel().setPlaceholderText @placeholderText
+            setTimeout => @$el.focus()
+            # set placeholder text
+            @$el.getModel().setPlaceholderText @placeholderText
     ready: ->
-        # instantiate and attach element
-        @editor = new TextEditorView
-            mini: true
-        @$el.parentElement.appendChild @editor.element
-
         # event clusterfuck
-        confirmDisposable = atom.commands.add @editor.element, 'core:confirm', =>
-            @$dispatch 'input-editor:confirm', @editor.getText().trim()
-        cancelDisposable = atom.commands.add @editor.element, 'core:cancel', =>
+        confirmDisposable = atom.commands.add @$el, 'core:confirm', =>
+            @$dispatch 'input-editor:confirm', @$el.getModel().getText().trim()
+        cancelDisposable = atom.commands.add @$el, 'core:cancel', =>
             @$dispatch 'input-editor:cancel'
 
         # event subscriptions
