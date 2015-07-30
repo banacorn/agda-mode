@@ -1,15 +1,4 @@
 {Point, Range} = require 'atom'
-{$, View} = require 'atom-space-pen-views'
-
-class GoalIndexView extends View
-    @content: (editor, index) ->
-        @div class: 'agda-goal-index', index
-    initialize: (@editor, @index) ->
-        # adjust the position, outlet not functioning
-        element = $(@)[0]
-        indexWidth = @index.toString().length
-        element.style.left = (- @editor.getDefaultCharWidth() * (indexWidth + 2)) + 'px'
-        element.style.top  = (- @editor.getLineHeightInPixels()) + 'px'
 
 class Goal
 
@@ -22,6 +11,14 @@ class Goal
         @content = @editor.getTextInRange @range
         @marker = @editor.markBufferRange @range
 
+        # overlay element
+        indexWidth = @index.toString().length
+        element = document.createElement 'div'
+        element.innerHTML = @index.toString()
+        element.classList.add 'agda-goal-index'
+        element.style.left = (- @editor.getDefaultCharWidth() * (indexWidth + 2)) + 'px'
+        element.style.top  = (- @editor.getLineHeightInPixels()) + 'px'
+
         # decoration
         holeDecoration = @editor.decorateMarker @marker,
             type: 'highlight'
@@ -29,7 +26,7 @@ class Goal
 
         indexDecoration = @editor.decorateMarker @marker,
             type: 'overlay'
-            item: new GoalIndexView @editor, @index
+            item: element
 
         # event
         @marker.onDidChange (event) =>
