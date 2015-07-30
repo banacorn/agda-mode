@@ -1,3 +1,4 @@
+_ = require 'lodash'
 Vue = require 'vue'
 {QueryCancelledError} = require './../error'
 Promise = require 'bluebird'
@@ -23,11 +24,11 @@ Vue.component 'panel-input-editor',
             @initialize()
             new Promise (resolve, reject) =>
                 @$once 'confirm', (expr) =>
-                    console.log expr
                     resolve expr
                 @$once 'cancel', =>
                     reject new QueryCancelledError
-
+        isFocused: ->
+            _.contains @$el.classList, 'is-focused'
     ready: ->
         # event clusterfuck
         confirmDisposable = atom.commands.add @$el, 'core:confirm', =>

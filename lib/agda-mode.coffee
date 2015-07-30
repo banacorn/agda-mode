@@ -76,7 +76,6 @@ module.exports =
                 currentEditor = nextEditor
                 log 'Editor', "#{current} => #{next}"
 
-
     commands: [
         'agda-mode:load'
         'agda-mode:quit'
@@ -115,15 +114,12 @@ module.exports =
         'agda-mode:input-symbol'
     ]
 
-
     # register keymap bindings and emit commands
     registerCommands: ->
         @commands.forEach (command) =>
-            atom.commands.add 'atom-text-editor.agda', command, =>
-                if isAgdaFile()
-                    editor = atom.workspace.getActivePaneItem()
-                    editor.core.commander.command command
-
+            atom.commands.add 'atom-text-editor', command, =>
+                editor = atom.workspace.getActivePaneItem()
+                editor.core.commander.command command
 # if end with ".agda"
 isAgdaFile = (editor) ->
     if editor

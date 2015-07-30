@@ -37,6 +37,7 @@ class Panel extends Vue
 
                 # returns a Promise
                 query: ->
+                    promise = @$.inputEditor.query()
 
                     # hide input editor and give focus back
                     @$once 'input-editor:confirm', =>
@@ -46,13 +47,12 @@ class Panel extends Vue
                         @queryMode = false
                         atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
 
-                    promise = @$.inputEditor.query()
 
                     # show input box, as it would had been hidden when initialized
                     @queryMode = true
 
                     return promise
-                    
+
                 selectKey: (key) ->
                     core.inputMethod.insertChar key
 

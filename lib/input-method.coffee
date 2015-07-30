@@ -14,7 +14,6 @@ class InputMethod
     textBufferMarker: null
 
     constructor: (@core) ->
-
     activate: ->
         if not @activated
 
@@ -23,13 +22,18 @@ class InputMethod
             @rawInput = ''
             @activated = true
 
+
+            # editor: the main text editor or the mini text editor
+            inputEditorFocused = @core.panel.$.inputEditor.isFocused()
+            @editor = if inputEditorFocused then @core.panel.$.inputEditor.$el.getModel() else @core.editor
+
             # monitors raw text buffer and figures out what happend
-            startPosition = @core.editor.getCursorBufferPosition()
-            @textBufferMarker = @core.editor.markBufferRange(new Range startPosition, startPosition)
+            startPosition = @editor.getCursorBufferPosition()
+            @textBufferMarker = @editor.markBufferRange(new Range startPosition, startPosition)
             @textBufferMarker.onDidChange @dispatchEvent
 
             # decoration
-            @decoration = @core.editor.decorateMarker @textBufferMarker,
+            @decoration = @editor.decorateMarker @textBufferMarker,
                 type: 'highlight'
                 class: 'agda-input-method'
 
@@ -74,7 +78,7 @@ class InputMethod
 
             rangeOld = new Range ev.oldTailBufferPosition, ev.oldHeadBufferPosition
             rangeNew = new Range ev.newTailBufferPosition, ev.newHeadBufferPosition
-            textBuffer = @core.editor.getBuffer().getTextInRange rangeNew
+            textBuffer = @editor.getBuffer().getTextInRange rangeNew
             char = textBuffer.substr -1
 
             # const for result of Range::compare()
@@ -121,10 +125,10 @@ class InputMethod
 
     # inserts 1 character to the text buffer (may trigger some events)
     insertChar: (char) ->
-        @core.editor.getBuffer().insert @textBufferMarker.getBufferRange().end, char
+        @editor.getBuffer().insert @textBufferMarker.getBufferRange().end, char
 
     # replace content of the marker with supplied string (may trigger some events)
     replaceString: (str) ->
-        @core.editor.getBuffer().setTextInRange @textBufferMarker.getBufferRange(), str
+        @editor.getBuffer().setTextInRange @textBufferMarker.getBufferRange(), str
 
 module.exports = InputMethod

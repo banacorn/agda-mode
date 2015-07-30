@@ -60,7 +60,7 @@ class Commander
         @atomPanel.show()
         @highlight.destroyAllMarker()
         @executable.load().then (process) =>
-            @panel.totle = 'Loading'
+            @panel.title = 'Loading'
             @loaded = true
 
     quit: -> if @loaded
