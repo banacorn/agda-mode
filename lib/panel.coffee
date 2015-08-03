@@ -11,7 +11,7 @@ template = '''
     <panel-input-method v-show="inputMethodMode" input="{{inputMethod}}" select-key="{{selectKey}}"></panel-input-method>
 </div>
 <div id="body" class="padded" v-show="content.length || queryMode">
-    <panel-body raw-content="{{content}}" title="{{title}}" jump-to-goal="{{jumpToGoal}}"></panel-body>
+    <panel-body raw-content="{{content}}" jump-to-goal="{{jumpToGoal}}"></panel-body>
     <panel-input-editor v-ref="inputEditor" id="input-editor" v-show="queryMode"></panel-input-editor>
 </div>
 '''
