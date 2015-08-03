@@ -68,7 +68,11 @@ class Goal
         @editor.setTextInBufferRange @range, @content
 
     removeBoundary: ->
-        @editor.setTextInBufferRange @range, @getContent()
+        left = @editor.translate @range.start, 2
+        right = @editor.translate @range.end, -2
+        innerRange = new Range left, right
+        rawContent = @editor.getTextInBufferRange(innerRange)
+        @editor.setTextInBufferRange @range, rawContent.trim()
 
     # replace and insert one or more lines of content at the goal
     # usage: spliting case
@@ -97,9 +101,9 @@ class Goal
         innerRange = new Range left, right
         @editor.getTextInBufferRange(innerRange)
             .trim()
-            .replace(/\n/g, '\\n')
+            .replace(/\\/g, '\\\\')
             .replace(/\"/g, '\\"')
-
+            
     setContent: (text) ->
         left = @editor.translate @range.start, 2
         right = @editor.translate @range.end, -2
