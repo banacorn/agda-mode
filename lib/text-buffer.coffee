@@ -160,10 +160,8 @@ class TextBuffer
             @goals.push goal
 
     onGiveAction: (index, content, paran) -> @protectCursor =>
-
         goal = @findGoal index
         if content.length > 0
-            content = content.replace(/\\n/g, ' ').replace(/\s{2,}/g, ' ')
             log 'Text Buffer', "handling give-action #{paran} #{content}"
             goal.setContent content
         if paran
