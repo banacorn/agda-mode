@@ -45,10 +45,12 @@ Vue.component 'panel-body',
     props: ['raw-content', 'jump-to-goal']
     template: '''
         <div class="agda-panel-content native-key-bindings" tabindex="-1"  v-show="!queryMode">
-            <ul class="list-group">
+            <ul class="list-group" id="panel-body-header">
                 <li class="list-item" v-repeat="contentHeader">
-                    <span class="inline-block highlight">{{label}}</span><template v-repeat="typeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template>
+                    <span class="text-info">{{label}}</span><span> : </span><template v-repeat="typeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template>
                 </li>
+            </ul>
+            <ul class="list-group">
                 <li class="list-item" v-repeat="contentBodyGoals">
                     <button class='no-btn text-info' v-on="click: jumpToGoal(goalIndex)">{{goalIndex}}</button><span> : </span><template v-repeat="goalTypeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template>
                 </li>
