@@ -13,21 +13,25 @@ parseType = (str) ->
         meta: metas[i]
         sort: sorts[i]
 
-parseBodyRegex = /(?:(\?\d+) \: (.+))|(?:(?:Sort (.+))|(?:(.+) : ([^\[]*))) \[ at ((?:\/[a-zA-Z_\-\s0-9\.]+)+)\.agda\:(\d+)\,(\d+)\-(\d+) \]/
+parseBodyRegex = /(?:^(\?\d+) \: (.+))|(?:^([^\_].*) \: (.+))|(?:(?:^Sort (.+))|(?:^(.+) : ([^\[]*))) \[ at ((?:\/[a-zA-Z_\-\s0-9\.]+)+)\.agda\:(\d+)\,(\d+)\-(\d+) \]/
 parseBody = (str) ->
     result = str.match parseBodyRegex
     if result
         goalTypeSoup = parseType result[2] if result[2]
-        metaTypeSoup = parseType result[5] if result[5]
+        termTypeSoup = parseType result[4] if result[4]
+        metaTypeSoup = parseType result[7] if result[7]
+
         goalIndex: result[1]
         goalTypeSoup: goalTypeSoup
-        sortIndex: result[3]
-        metaIndex: result[4]
+        termIndex: result[3]
+        termTypeSoup: termTypeSoup
+        sortIndex: result[5]
+        metaIndex: result[6]
         metaTypeSoup: metaTypeSoup
-        filepath: result[6]
-        lineNo: result[7]
-        charStart: result[8]
-        charEnd: result[9]
+        filepath: result[8]
+        lineNo: result[9]
+        charStart: result[10]
+        charEnd: result[11]
     else
         raw: str
 
@@ -40,8 +44,11 @@ Vue.component 'panel-body',
                 <li class="list-item" v-repeat="contentBodyGoals">
                     <button class='no-btn text-info' v-on="click: jumpToGoal(goalIndex)">{{goalIndex}}</button> : <template v-repeat="goalTypeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template>
                 </li>
+                <li class="list-item" v-repeat="contentBodyTerms">
+                    <span class="text-success">{{termIndex}}</span> : <template v-repeat="termTypeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template>
+                </li>
                 <li class="list-item" v-repeat="contentBodyMetas">
-                    <span class="text-success">{{metaIndex}}</span> : <template v-repeat="metaTypeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template>
+                    <span class="text-success">{{metaIndex}}</span> : <template v-repeat="metaTypeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template><span class="location text-subtle">{{filepath}}:{{lineNo}},{{charStart}}-{{charEnd}}</span>
                 </li>
                 <li class="list-item" v-repeat="contentBodySorts">
                     <span class="text-warning">Sort {{sortIndex}}</span><span class="location text-subtle">{{filepath}}:{{lineNo}},{{charStart}}-{{charEnd}}</span>
@@ -55,6 +62,7 @@ Vue.component 'panel-body',
         title: ''
         contentHeader: ['']
         contentBodyGoals: []
+        contentBodyTerms: []
         contentBodyMetas: []
         contentBodySorts: []
         contentBodyOthers: []
@@ -73,10 +81,11 @@ Vue.component 'panel-body',
                         contentBody   = content.slice index + 1, content.length
                     else
                         contentBody   = content
-
+                contentBody.forEach (s) -> console.log s
                 items = contentBody.map parseBody
 
                 @contentBodyGoals = _.filter(items, 'goalIndex')
+                @contentBodyTerms = _.filter(items, 'termIndex')
                 @contentBodyMetas = _.filter(items, 'metaIndex')
                 @contentBodySorts = _.filter(items, 'sortIndex')
                 @contentBodyOthers = _.filter(items, 'raw')
