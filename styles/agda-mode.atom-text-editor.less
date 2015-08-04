@@ -7,16 +7,18 @@
 .agda-panel {
     font-size: 125%;
     .agda-panel-content {
-        max-height: @component-line-height * 6;  // at most 5 rows high
+        max-height: (@component-line-height + 2) * 6;  // at most 5 rows high
         overflow: scroll;
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
         li {
-            height: 30px;
-            line-height: 30px;
+            min-height: 30px;
+            line-height: 30px !important;
             span {
                 white-space: pre; // preserves whitespaces
             }
-
+            * {
+                vertical-align: middle;
+            }
             .location {
                 float: right;
             }

@@ -19,7 +19,7 @@ parseHeader = (str) ->
     label: result[1]
     typeSoup: parseType result[2]
 
-parseBodyRegex = /(?:^(\?\d+) \: (.+))|(?:^([^\_].*) \: (.+))|(?:(?:^Sort (.+))|(?:^(.+) : ([^\[]*))) \[ at ((?:\/[a-zA-Z_\-\s0-9\.]+)+)\.agda\:(\d+)\,(\d+)\-(\d+) \]/
+parseBodyRegex = /(?:^(\?\d+) \: ((?:\n|.)+))|(?:^([^\_].*) \: ((?:\n|.)+))|(?:(?:^Sort (.+))|(?:^(.+) : ([^\[]*))) \[ at ((?:\/[a-zA-Z_\-\s0-9\.]+)+)\.agda\:(\d+)\,(\d+)\-(\d+) \]/
 parseBody = (str) ->
     result = str.match parseBodyRegex
     if result
@@ -50,13 +50,13 @@ Vue.component 'panel-body',
                     <span class="inline-block highlight">{{label}}</span><template v-repeat="typeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template>
                 </li>
                 <li class="list-item" v-repeat="contentBodyGoals">
-                    <button class='no-btn text-info' v-on="click: jumpToGoal(goalIndex)">{{goalIndex}}</button> : <template v-repeat="goalTypeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template>
+                    <button class='no-btn text-info' v-on="click: jumpToGoal(goalIndex)">{{goalIndex}}</button><span> : </span><template v-repeat="goalTypeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template>
                 </li>
                 <li class="list-item" v-repeat="contentBodyTerms">
-                    <span class="text-success">{{termIndex}}</span> : <template v-repeat="termTypeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template>
+                    <span class="text-success">{{termIndex}}</span><span> : </span><template v-repeat="termTypeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template>
                 </li>
                 <li class="list-item" v-repeat="contentBodyMetas">
-                    <span class="text-success">{{metaIndex}}</span> : <template v-repeat="metaTypeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template><span class="location text-subtle">{{filepath}}:{{lineNo}},{{charStart}}-{{charEnd}}</span>
+                    <span class="text-success">{{metaIndex}}</span><span> : </span><template v-repeat="metaTypeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template><span class="location text-subtle">{{filepath}}:{{lineNo}},{{charStart}}-{{charEnd}}</span>
                 </li>
                 <li class="list-item" v-repeat="contentBodySorts">
                     <span class="text-warning">Sort {{sortIndex}}</span><span class="location text-subtle">{{filepath}}:{{lineNo}},{{charStart}}-{{charEnd}}</span>
@@ -78,30 +78,40 @@ Vue.component 'panel-body',
         rawContent:
             set: (content) ->
                 contentHeader = []
-                contentBody = []
+                contentBodyRaw = []
 
-                content.forEach (s) -> console.log s
                 # divide content into 2 parts and style them differently
                 if content.length > 0
                     index = content.indexOf '————————————————————————————————————————————————————————————'
                     sectioned = index isnt -1
                     if sectioned
                         contentHeader = content.slice 0, index
-                        contentBody   = content.slice index + 1, content.length
+                        contentBodyRaw = content.slice index + 1, content.length
                     else
                         contentHeader = []
-                        contentBody   = content
+                        contentBodyRaw = content
 
 
                 # header part
                 @contentHeader = contentHeader.map parseHeader
-                
+
+                # concatenate multiline types
+                currentLine = 0 # the line we are concatenating to
+                contentBody = []
+                contentBodyRaw.forEach (item, i) ->
+                    if item.charAt(0) isnt ' '
+                        currentLine = i
+                        contentBody[i] = item
+                    else
+                        if contentBody[currentLine]
+                            contentBody[currentLine] = contentBody[currentLine].concat('\n' + item)
+                        else
+                            contentBody[currentLine] = item
+
                 # body part
                 items = contentBody.map parseBody
-
                 @contentBodyGoals = _.filter(items, 'goalIndex')
                 @contentBodyTerms = _.filter(items, 'termIndex')
                 @contentBodyMetas = _.filter(items, 'metaIndex')
                 @contentBodySorts = _.filter(items, 'sortIndex')
                 @contentBodyOthers = _.filter(items, 'raw')
-                # console.log @contentBodyGoals
