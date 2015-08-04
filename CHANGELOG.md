@@ -1,3 +1,7 @@
+## 0.3.8
+* Better type info presentation
+* Fix #20
+
 ## 0.3.7
 * Now we can invoke input method and type unicode symbols in the input box
 
