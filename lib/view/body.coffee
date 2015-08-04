@@ -13,6 +13,12 @@ parseType = (str) ->
         meta: metas[i]
         sort: sorts[i]
 
+parseHeaderRegex = /^(Goal|Have)\: (.+)/
+parseHeader = (str) ->
+    result = str.match parseHeaderRegex
+    label: result[1]
+    typeSoup: parseType result[2]
+
 parseBodyRegex = /(?:^(\?\d+) \: (.+))|(?:^([^\_].*) \: (.+))|(?:(?:^Sort (.+))|(?:^(.+) : ([^\[]*))) \[ at ((?:\/[a-zA-Z_\-\s0-9\.]+)+)\.agda\:(\d+)\,(\d+)\-(\d+) \]/
 parseBody = (str) ->
     result = str.match parseBodyRegex
@@ -40,7 +46,9 @@ Vue.component 'panel-body',
     template: '''
         <div class="agda-panel-content native-key-bindings" tabindex="-1"  v-show="!queryMode">
             <ul class="list-group">
-                <li class="list-item text-info" v-repeat="contentHeader">{{$value}}</li>
+                <li class="list-item" v-repeat="contentHeader">
+                    <span class="inline-block highlight">{{label}}</span><template v-repeat="typeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template>
+                </li>
                 <li class="list-item" v-repeat="contentBodyGoals">
                     <button class='no-btn text-info' v-on="click: jumpToGoal(goalIndex)">{{goalIndex}}</button> : <template v-repeat="goalTypeSoup"><span class="text-highlight">{{unmarked}}</span><button class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template>
                 </li>
@@ -69,19 +77,26 @@ Vue.component 'panel-body',
     computed:
         rawContent:
             set: (content) ->
-                @contentHeader = []
+                contentHeader = []
                 contentBody = []
 
+                content.forEach (s) -> console.log s
                 # divide content into 2 parts and style them differently
                 if content.length > 0
                     index = content.indexOf '————————————————————————————————————————————————————————————'
                     sectioned = index isnt -1
                     if sectioned
-                        @contentHeader = content.slice 0, index
+                        contentHeader = content.slice 0, index
                         contentBody   = content.slice index + 1, content.length
                     else
+                        contentHeader = []
                         contentBody   = content
-                contentBody.forEach (s) -> console.log s
+
+
+                # header part
+                @contentHeader = contentHeader.map parseHeader
+                
+                # body part
                 items = contentBody.map parseBody
 
                 @contentBodyGoals = _.filter(items, 'goalIndex')

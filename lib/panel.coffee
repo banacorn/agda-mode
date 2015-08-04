@@ -57,6 +57,6 @@ class Panel extends Vue
                     core.inputMethod.insertChar key
 
                 jumpToGoal: (index) ->
-                    core.textBuffer.jumpToGoal parseInt(index)
+                    core.textBuffer.jumpToGoal parseInt(index.substr(1))
 
 module.exports = Panel
