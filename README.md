@@ -4,6 +4,19 @@ For people who don't wanna use Emacs for whatever reasons.
 
 [![Join the chat at https://gitter.im/banacorn/agda-mode](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/banacorn/agda-mode?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+## Requirements
+
+* Atom Packages: [language-agda](https://atom.io/packages/language-agda)
+* Binaries: [agda](http://wiki.portal.chalmers.se/agda/pmwiki.php?n=Main.Download)
+
+## Installation
+
+1. Ensure you have the Atom package [language-agda](https://atom.io/packages/language-agda) installed and enabled.
+2. Ensure you have [agda](http://wiki.portal.chalmers.se/agda/pmwiki.php?n=Main.Download) properly installed. Try `agda` in your console.
+3. Install the package:
+  * from the editor: `Atom > Preferences... > Install`, search for `agda-mode` and install
+  * or from a shell: `apm install agda-mode`
+
 ## Commands
 
 This is an exhaustive list of available commands.
