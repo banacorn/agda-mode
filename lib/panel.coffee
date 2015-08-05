@@ -11,7 +11,7 @@ template = '''
     <panel-input-method v-show="inputMethodMode" input="{{inputMethod}}" select-key="{{selectKey}}"></panel-input-method>
 </div>
 <div id="body" class="padded" v-show="content.length || queryMode">
-    <panel-body raw-content="{{content}}" jump-to-goal="{{jumpToGoal}}"></panel-body>
+    <panel-body raw-content="{{content}}"></panel-body>
     <panel-input-editor v-ref="inputEditor" id="input-editor" v-show="queryMode"></panel-input-editor>
 </div>
 '''
@@ -31,6 +31,10 @@ class Panel extends Vue
                 queryMode: false
 
                 inputMethod: null
+            ready: ->
+                @$on 'jump-to-goal', (index) ->
+                    core.textBuffer.jumpToGoal parseInt(index.substr(1))
+
             methods:
                 setContent: (@title = '', @content = [], @type = '', @placeholderText = '') =>
                     @queryMode      = false
@@ -55,8 +59,5 @@ class Panel extends Vue
 
                 selectKey: (key) ->
                     core.inputMethod.insertChar key
-
-                jumpToGoal: (index) ->
-                    core.textBuffer.jumpToGoal parseInt(index.substr(1))
 
 module.exports = Panel
