@@ -34,14 +34,14 @@ parseBody = (str) ->
 Vue.component 'panel-body',
     props: ['raw-content']
     template: '''
-        <div class="agda-panel-content native-key-bindings" tabindex="-1"  v-show="!queryMode">
-            <ul class="list-group" id="panel-body-header">
+        <div class="native-key-bindings" tabindex="-1"  v-show="!queryMode">
+            <ul id="panel-content-header" class="list-group">
                 <li class="list-item" v-repeat="contentHeader">
                     <span class="text-info">{{label}}</span><span> : </span>
                     <type raw="{{type}}"></type>
                 </li>
             </ul>
-            <ul class="list-group">
+            <ul id="panel-content-body" class="list-group">
                 <li class="list-item" v-repeat="contentBodyGoals">
                     <button class='no-btn text-info' v-on="click: jumpToGoal(goalIndex)">{{goalIndex}}</button><span> : </span>
                     <type raw="{{goalType}}"></type>
@@ -58,7 +58,7 @@ Vue.component 'panel-body',
                     <span class="text-warning">Sort {{sortIndex}}</span><span class="location text-subtle">{{filepath}}:{{lineNo}},{{charStart}}-{{charEnd}}</span>
                 </li>
                 <li class="list-item" v-repeat="contentBodyOthers">
-                    <span>{{raw}}</span>
+                    <type raw="{{raw}}"></type>
                 </li>
             </ul>
         </div>'''
@@ -78,7 +78,6 @@ Vue.component 'panel-body',
             set: (content) ->
                 contentHeader = []
                 contentBodyRaw = []
-
                 # divide content into 2 parts and style them differently
                 if content.length > 0
                     index = content.indexOf '————————————————————————————————————————————————————————————'
@@ -92,7 +91,7 @@ Vue.component 'panel-body',
 
 
                 # header part
-                @contentHeader = [] # contentHeader.map parseHeader
+                @contentHeader = contentHeader.map parseHeader
 
                 # concatenate multiline types
                 currentLine = 0 # the line we are concatenating to

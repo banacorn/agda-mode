@@ -5,7 +5,6 @@ Promise = require 'bluebird'
 {CompositeDisposable, TextEditor} = require 'atom'
 
 Vue.component 'panel-input-editor',
-    inherit: true
     template: '<atom-text-editor mini></atom-text-editor>'
     methods:
         initialize: ->

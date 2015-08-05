@@ -7,38 +7,11 @@
 .agda-panel {
     font-size: 125%;
 
-    #panel-body-header {
-        background: @base-background-color;
-    }
-
-    .agda-panel-content {
-        max-height: (@component-line-height + 2) * 6;  // at most 5 rows high
-        overflow: scroll;
-        font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
-        li {
-            min-height: 30px;
-            line-height: 30px !important;
-            padding: 0 @component-padding;
-            span {
-                white-space: pre;       // preserves whitespaces
-            }
-
-            * {
-                float: left;            // prevents newline in html from becoming space
-                vertical-align: middle;
-            }
-            .location {
-                float: right;
-            }
-            .no-btn {
-                padding: 0;
-            }
-        }
-    }
-    #head {
+    #panel-header {
         line-height: 2;
     }
-    #input-method {
+
+    #panel-input-method {
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
         #input-buffer {
             vertical-align: middle;
@@ -47,18 +20,44 @@
             padding: 0 @component-padding;
             float: left;
         }
-
         #suggestion-keys {
             position: relative;
             top: -2px;
         }
+    }
 
-        kbd {
-            font-family: inherit;
-            padding: 0 0.375em;
-            line-height: 1.4;
+    #panel-content {
+        max-height: @component-line-height * 6;  // at most 5 rows high
+        overflow: scroll;
+        font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
+
+        #panel-content-header {
+            background: @base-background-color;
+        }
+
+        li {
+            min-height: 30px;
+            line-height: 30px !important;
+            padding: 0 @component-padding;
+
+            span {
+                white-space: pre;       // preserves whitespaces
+            }
+
+            * {
+                float: left;            // prevents newline in html from becoming space
+                vertical-align: middle;
+            }
+
+            .location {
+                float: right;
+            }
+            .no-btn {
+                padding: 0;
+            }
         }
     }
+
 
     button.no-btn {
         background: inherit;
@@ -67,7 +66,7 @@
         padding: 0 0.5em;
     }
     button.no-btn:hover {
-        background: @base-background-color ; // darken(inherit, 10%);
+        background: @base-background-color;
     }
 }
 

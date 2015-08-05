@@ -6,13 +6,13 @@ require './view/body'
 
 
 template = '''
-<div id="head" class="inset-panel padded" v-show="title">
-    <panel-title class="text-{{type}}" v-show="!inputMethodMode">{{title}}</panel-title>
-    <panel-input-method v-show="inputMethodMode" input="{{inputMethod}}" select-key="{{selectKey}}"></panel-input-method>
+<div id="panel-header" class="inset-panel padded" v-show="title">
+    <panel-title id="panel-title" class="text-{{type}}" v-show="!inputMethodMode">{{title}}</panel-title>
+    <panel-input-method id="panel-input-method" v-show="inputMethodMode" input="{{inputMethod}}" select-key="{{selectKey}}"></panel-input-method>
 </div>
-<div id="body" class="padded" v-show="content.length || queryMode">
-    <panel-body raw-content="{{content}}"></panel-body>
-    <panel-input-editor v-ref="inputEditor" id="input-editor" v-show="queryMode"></panel-input-editor>
+<div id="panel-body" class="padded" v-show="content.length || queryMode">
+    <panel-body id="panel-content" raw-content="{{content}}"></panel-body>
+    <panel-input-editor id="panel-input-editor" v-ref="inputEditor" id="input-editor" v-show="queryMode"></panel-input-editor>
 </div>
 '''
 
