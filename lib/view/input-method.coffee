@@ -1,7 +1,7 @@
 Vue = require 'vue'
 
 Vue.component 'panel-input-method',
-    props: ['input', 'select-key']
+    props: ['input']
     template: '''
         <div>
             <div id="input-buffer" class="inline-block">{{input.rawInput}}</div>
@@ -10,3 +10,6 @@ Vue.component 'panel-input-method',
             </div>
         </div>
         '''
+    methods:
+        selectKey: (key) ->
+            @$dispatch 'select-key', key

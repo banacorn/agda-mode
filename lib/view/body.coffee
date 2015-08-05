@@ -32,7 +32,7 @@ parseBody = (str) ->
         raw: str
 
 Vue.component 'panel-body',
-    props: ['raw-content']
+    props: ['raw']
     template: '''
         <div class="native-key-bindings" tabindex="-1"  v-show="!queryMode">
             <ul id="panel-content-header" class="list-group">
@@ -74,7 +74,7 @@ Vue.component 'panel-body',
         jumpToGoal: (index) ->
             @$dispatch 'jump-to-goal', index
     computed:
-        rawContent:
+        raw:
             set: (content) ->
                 contentHeader = []
                 contentBodyRaw = []

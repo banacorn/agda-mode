@@ -17,8 +17,8 @@ Vue.component 'type',
             @$dispatch 'jump-to-goal', index
     computed:
         type: ->
-            #                    1       2       3
-            tokens = @raw.split(/(\?\d+)|(\_\S+)|Set (\_\S+)/g)
+            #                    1       2            3
+            tokens = @raw.split(/(\?\d+)|(\_[^\.]\S*)|Set (\_\S+)/g)
             unmarked = tokens.filter (_, i) => i % 4 is 0
             goals    = tokens.filter (_, i) => i % 4 is 1
             metas    = tokens.filter (_, i) => i % 4 is 2
