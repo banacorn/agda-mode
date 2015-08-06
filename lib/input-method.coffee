@@ -127,6 +127,11 @@ class InputMethod
     insertChar: (char) ->
         @editor.getBuffer().insert @textBufferMarker.getBufferRange().end, char
 
+    # inserts 1 symbol to the text buffer and deactivate
+    insertSymbol: (symbol) ->
+        @replaceString symbol
+        @deactivate()
+
     # replace content of the marker with supplied string (may trigger some events)
     replaceString: (str) ->
         @editor.getBuffer().setTextInRange @textBufferMarker.getBufferRange(), str

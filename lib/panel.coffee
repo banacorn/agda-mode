@@ -37,6 +37,9 @@ class Panel extends Vue
                 @$on 'select-key', (key) ->
                     core.inputMethod.insertChar key
                     atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+                @$on 'select-symbol', (symbol) ->
+                    core.inputMethod.insertSymbol symbol
+                    atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
 
             methods:
                 setContent: (@title = '', @content = [], @type = '', @placeholderText = '') =>
