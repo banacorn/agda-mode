@@ -31,7 +31,6 @@ Vue.component 'panel-input-method',
             else
                 []
 
-
         selectedLeft:   -> _.take(@partialCandidateSymbols, @n)
-        selected:       -> [@partialCandidateSymbols[@n]]
+        selected:       -> _.compact(@partialCandidateSymbols[@n])
         selectedRight:  -> _.drop(@partialCandidateSymbols, @n + 1)
