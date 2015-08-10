@@ -22,6 +22,9 @@ class InputMethod
             @rawInput = ''
             @activated = true
 
+            # add class 'agda-mode-input-method-activated'
+            editorElement = atom.views.getView(atom.workspace.getActiveTextEditor())
+            editorElement.classList.add 'agda-mode-input-method-activated'
 
             # editor: the main text editor or the mini text editor
             inputEditorFocused = @core.panel.$.inputEditor.isFocused()
@@ -31,6 +34,10 @@ class InputMethod
             startPosition = @editor.getCursorBufferPosition()
             @textBufferMarker = @editor.markBufferRange(new Range startPosition, startPosition)
             @textBufferMarker.onDidChange @dispatchEvent
+
+            # atom.commands.add 'atom-text-editor[data-grammar="source agda"]', 'core:move-up', (ev) ->
+                # console.log 'up'
+                # console.log ev.stopImmediatePropagation?()
 
             # decoration
             @decoration = @editor.decorateMarker @textBufferMarker,
@@ -58,6 +65,11 @@ class InputMethod
 
         if @activated
             log 'IM', 'deactivated'
+
+            # add class 'agda-mode-input-method-activated'
+            editorElement = atom.views.getView(atom.workspace.getActiveTextEditor())
+            editorElement.classList.remove 'agda-mode-input-method-activated'
+
             @core.panel.inputMethodMode = false
             @textBufferMarker.destroy()
             @decoration.destroy()
