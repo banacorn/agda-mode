@@ -1,4 +1,4 @@
-{Range} = require 'atom'
+{CompositeDisposable, Range} = require 'atom'
 {log} = require './logger'
 Keymap = require './input-method/keymap'
 
@@ -8,12 +8,27 @@ class InputMethod
     activated: false
     mute: false
 
+    subscriptions: null
     # raw characters
     rawInput: ''
     # visual marker
     textBufferMarker: null
 
     constructor: (@core) ->
+
+        # intercept newline `\n` as confirm
+        commands =
+            'editor:newline': (ev) =>
+                if @activated
+                    @deactivate()
+                    ev.stopImmediatePropagation()
+
+        @subscriptions = new CompositeDisposable
+        @subscriptions.add atom.commands.add 'atom-text-editor.agda-mode-input-method-activated', commands
+
+    destroy: ->
+        @subscriptions.destroy()
+
     activate: ->
         if not @activated
 
@@ -21,6 +36,7 @@ class InputMethod
             log 'IM', 'activated'
             @rawInput = ''
             @activated = true
+
 
             # add class 'agda-mode-input-method-activated'
             editorElement = atom.views.getView(atom.workspace.getActiveTextEditor())
@@ -34,10 +50,6 @@ class InputMethod
             startPosition = @editor.getCursorBufferPosition()
             @textBufferMarker = @editor.markBufferRange(new Range startPosition, startPosition)
             @textBufferMarker.onDidChange @dispatchEvent
-
-            # atom.commands.add 'atom-text-editor[data-grammar="source agda"]', 'core:move-up', (ev) ->
-                # console.log 'up'
-                # console.log ev.stopImmediatePropagation?()
 
             # decoration
             @decoration = @editor.decorateMarker @textBufferMarker,
