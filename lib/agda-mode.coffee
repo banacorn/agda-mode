@@ -66,18 +66,19 @@ module.exports =
             editor.core.destroy()
             editorElement.classList.remove 'agda'
             subscription.dispose()
-            
-    # editor active/inactive event register, fuck Atom's event clusterfuck
+
+    # editor active/inactive event 
     registerEditorActivation: ->
-        currentEditor = atom.workspace.getActivePaneItem()
+        previousEditor = atom.workspace.getActivePaneItem()
         atom.workspace.onDidChangeActivePaneItem (nextEditor) =>
-            current = currentEditor?.getPath?()
-            next = nextEditor?.getPath?()
-            if next isnt current
-                currentEditor?.core?.deactivate()
-                nextEditor?.core?.activate()
-                currentEditor = nextEditor
-                log 'Editor', "#{current} => #{next}"
+            if nextEditor
+                log 'Editor', "#{previousEditor.getPath()} == switch to => #{nextEditor.getPath()}"
+                previousEditor.core?.deactivate()
+                nextEditor.core?.activate()
+                previousEditor = nextEditor
+            else
+                log 'Editor', "#{previousEditor.getPath()} == switch to => NONE"
+                previousEditor.core?.deactivate()
 
     commands: [
         'agda-mode:load'
