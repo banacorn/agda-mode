@@ -67,17 +67,17 @@ module.exports =
             editorElement.classList.remove 'agda'
             subscription.dispose()
 
-    # editor active/inactive event 
+    # editor active/inactive event
     registerEditorActivation: ->
         previousEditor = atom.workspace.getActivePaneItem()
         atom.workspace.onDidChangeActivePaneItem (nextEditor) =>
             if nextEditor
-                log 'Editor', "#{previousEditor.getPath()} == switch to => #{nextEditor.getPath()}"
+                log 'Editor', "#{previousEditor.getPath?()} == switch to => #{nextEditor.getPath?()}"
                 previousEditor.core?.deactivate()
                 nextEditor.core?.activate()
                 previousEditor = nextEditor
             else
-                log 'Editor', "#{previousEditor.getPath()} == switch to => NONE"
+                log 'Editor', "#{previousEditor.getPath?()} == switch to => NONE"
                 previousEditor.core?.deactivate()
 
     commands: [
