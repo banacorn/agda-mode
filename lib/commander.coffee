@@ -57,7 +57,7 @@ class Commander
 
     load: ->
         @atomPanel.show()
-        @highlight.destroyAllMarker()
+        @highlight.destroy()
         @executable.load().then (process) =>
             @panel.title = 'Loading'
             @loaded = true
@@ -66,6 +66,7 @@ class Commander
         @loaded = false
         @executable.quit()
         @atomPanel.hide()
+        @highlight.destroy()
         @textBuffer.removeGoals()
 
     restart: ->

@@ -14,7 +14,7 @@ class Highlight
             type: 'highlight'
             class: "agda-highlight #{obj.type}"
 
-    destroyAllMarker: ->
+    destroy: ->
         @markers.forEach (marker) -> marker.destroy()
 
 module.exports = Highlight
