@@ -5,7 +5,7 @@ Vue.component 'type',
         <template v-repeat="type">
             <span v-if="unmarked" class="text-highlight">{{unmarked}}</span>
             <button v-if="goal" class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button>
-            <span v-if="metea" class="text-success">{{meta}}</span>
+            <span v-if="meta" class="text-success">{{meta}}</span>
             <template v-if="sort">
                 <span class="text-highlight">Set </span>
                 <span class="text-warning">{{sort}}</span>
