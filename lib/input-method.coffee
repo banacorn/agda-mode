@@ -1,4 +1,4 @@
-{Range} = require 'atom'
+{CompositeDisposable, Range} = require 'atom'
 {log} = require './logger'
 Keymap = require './input-method/keymap'
 
@@ -8,12 +8,27 @@ class InputMethod
     activated: false
     mute: false
 
+    subscriptions: null
     # raw characters
     rawInput: ''
     # visual marker
     textBufferMarker: null
 
     constructor: (@core) ->
+
+        # intercept newline `\n` as confirm
+        commands =
+            'editor:newline': (ev) =>
+                if @activated
+                    @deactivate()
+                    ev.stopImmediatePropagation()
+
+        @subscriptions = new CompositeDisposable
+        @subscriptions.add atom.commands.add 'atom-text-editor.agda-mode-input-method-activated', commands
+
+    destroy: ->
+        @subscriptions.destroy()
+
     activate: ->
         if not @activated
 
@@ -22,6 +37,10 @@ class InputMethod
             @rawInput = ''
             @activated = true
 
+
+            # add class 'agda-mode-input-method-activated'
+            editorElement = atom.views.getView(atom.workspace.getActiveTextEditor())
+            editorElement.classList.add 'agda-mode-input-method-activated'
 
             # editor: the main text editor or the mini text editor
             inputEditorFocused = @core.panel.$.inputEditor.isFocused()
@@ -58,6 +77,11 @@ class InputMethod
 
         if @activated
             log 'IM', 'deactivated'
+
+            # add class 'agda-mode-input-method-activated'
+            editorElement = atom.views.getView(atom.workspace.getActiveTextEditor())
+            editorElement.classList.remove 'agda-mode-input-method-activated'
+
             @core.panel.inputMethodMode = false
             @textBufferMarker.destroy()
             @decoration.destroy()
@@ -126,6 +150,11 @@ class InputMethod
     # inserts 1 character to the text buffer (may trigger some events)
     insertChar: (char) ->
         @editor.getBuffer().insert @textBufferMarker.getBufferRange().end, char
+
+    # inserts 1 symbol to the text buffer and deactivate
+    insertSymbol: (symbol) ->
+        @replaceString symbol
+        @deactivate()
 
     # replace content of the marker with supplied string (may trigger some events)
     replaceString: (str) ->

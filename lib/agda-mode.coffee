@@ -37,44 +37,48 @@ module.exports =
 
     activate: (state) ->
         Core = require './core'
-        atom.workspace.observeTextEditors @instantiateCore
+        atom.workspace.observeTextEditors (editor) =>
+
+            # instantiate core if it's .agda
+            @instantiateCore editor if isAgdaFile editor
+            # instantiate core if it becomes .agda
+            editor.onDidChangePath =>
+                if isAgdaFile editor
+                    @instantiateCore editor
+                else if editor.core
+                    editor.core.destroy()
+                    editorElement = atom.views.getView editor
+                    editorElement.classList.remove 'agda'
+
         @registerEditorActivation()
         @registerCommands()
         log 'Agda Mode', 'activated'
 
     instantiateCore: (editor) =>
 
+        # add 'agda' class to the editor element
+        # so that keymaps and styles know what to select
         editorElement = atom.views.getView editor
+        editorElement.classList.add 'agda'
 
-        if editor.core
-            # if the file is not .agda anymore,
-            # and there exists a core, then destroy it
+        editor.core = new Core editor
+        subscription = editor.onDidDestroy =>
             editor.core.destroy()
             editorElement.classList.remove 'agda'
+            subscription.dispose()
 
-        else if isAgdaFile editor
-
-            # add 'agda' class to the editor element
-            # so that keymaps and styles know what to select
-
-            editorElement.classList.add 'agda'
-
-            editor.core = new Core editor
-            ev = editor.onDidDestroy =>
-                editor.core.destroy()
-                ev.dispose()
-
-    # editor active/inactive event register, fuck Atom's event clusterfuck
+    # editor active/inactive event
     registerEditorActivation: ->
-        currentEditor = atom.workspace.getActivePaneItem()
+        previousEditor = atom.workspace.getActivePaneItem()
         atom.workspace.onDidChangeActivePaneItem (nextEditor) =>
-            current = currentEditor?.getPath?()
-            next = nextEditor?.getPath?()
-            if next isnt current
-                currentEditor?.core?.deactivate()
-                nextEditor?.core?.activate()
-                currentEditor = nextEditor
-                log 'Editor', "#{current} => #{next}"
+            if nextEditor
+                log 'Editor', "#{previousEditor.getPath?()} == switch to => #{nextEditor.getPath?()}"
+                previousEditor.core?.deactivate()
+                nextEditor.core?.activate()
+                previousEditor = nextEditor
+            else
+                log 'Editor', "#{previousEditor.getPath?()} == switch to => NONE"
+                previousEditor.core?.deactivate()
 
     commands: [
         'agda-mode:load'

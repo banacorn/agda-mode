@@ -6,13 +6,13 @@ require './view/body'
 
 
 template = '''
-<div id="head" class="inset-panel padded" v-show="title">
-    <panel-title class="text-{{type}}" v-show="!inputMethodMode">{{title}}</panel-title>
-    <panel-input-method v-show="inputMethodMode" input="{{inputMethod}}" select-key="{{selectKey}}"></panel-input-method>
+<div id="panel-header" class="inset-panel padded" v-show="title">
+    <panel-title id="panel-title" class="text-{{type}}" v-show="!inputMethodMode">{{title}}</panel-title>
+    <panel-input-method id="panel-input-method" v-show="inputMethodMode" input="{{inputMethod}}"></panel-input-method>
 </div>
-<div id="body" class="padded" v-show="content.length || queryMode">
-    <panel-body raw-content="{{content}}" jump-to-goal="{{jumpToGoal}}"></panel-body>
-    <panel-input-editor v-ref="inputEditor" id="input-editor" v-show="queryMode"></panel-input-editor>
+<div id="panel-body" class="padded" v-show="content.length || queryMode">
+    <panel-body id="panel-content" raw="{{content}}"></panel-body>
+    <panel-input-editor id="panel-input-editor" v-ref="inputEditor" v-show="queryMode"></panel-input-editor>
 </div>
 '''
 
@@ -31,6 +31,18 @@ class Panel extends Vue
                 queryMode: false
 
                 inputMethod: null
+            ready: ->
+                @$on 'jump-to-goal', (index) ->
+                    core.textBuffer.jumpToGoal parseInt(index.substr(1))
+                @$on 'select-key', (key) ->
+                    core.inputMethod.insertChar key
+                    atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+                @$on 'select-symbol', (symbol) ->
+                    core.inputMethod.insertSymbol symbol
+                    atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+                @$on 'replace-symbol', (symbol) ->
+                    core.inputMethod.replaceString symbol
+
             methods:
                 setContent: (@title = '', @content = [], @type = '', @placeholderText = '') =>
                     @queryMode      = false
@@ -53,10 +65,5 @@ class Panel extends Vue
 
                     return promise
 
-                selectKey: (key) ->
-                    core.inputMethod.insertChar key
-
-                jumpToGoal: (index) ->
-                    core.textBuffer.jumpToGoal parseInt(index.substr(1))
 
 module.exports = Panel

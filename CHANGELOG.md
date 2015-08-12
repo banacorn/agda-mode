@@ -1,3 +1,9 @@
+## 0.3.9
+* Input method:
+    * Candidate symbols
+    * Deactivate and left the text-buffer as-is when a user types `return` ('enter')
+* Fix #21
+
 ## 0.3.8
 * Better type info presentation
 * Fix #20
