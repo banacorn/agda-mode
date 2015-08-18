@@ -7,6 +7,12 @@
 #
 #   display log when level <= atom.config.get 'agda-mode.logLevel'
 
+toLevel = (l) ->
+    switch l
+        when 'Error' then 0
+        when 'Warn' then 1
+        when 'Debug' then 2
+
 class Logger
     printMessage: (level) ->
         message = ''
@@ -29,11 +35,11 @@ class Logger
                 message = "#{namespace}#{paddingSpace}#{content}#{paddingSpace2}#{filepath}"
             else throw "Logger: too few arguments"
 
-        if level <= atom.config.get 'agda-mode.logLevel'
+        if level <= toLevel(atom.config.get('agda-mode.logLevel'))
             switch level
-                when 'Error'
+                when 0
                     console.error message
-                when 'Warn'
+                when 1
                     console.warn message
                 else
                     console.log message
