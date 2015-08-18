@@ -7,6 +7,7 @@ module.exports =
             description: 'try "which agda" in your terminal to get the path'
             type: 'string'
             default: ''
+            order: 0
         libraryPath:
             title: 'Libraries'
             description: 'paths to include (such as agda-stdlib), seperate with comma'
@@ -14,26 +15,26 @@ module.exports =
             default: []
             items:
                 type: 'string'
+            order: 1
         inputMethod:
             title: 'Input Method'
             description: 'Enable input method'
             type: 'boolean'
             default: true
-        logLevel:
-            title: 'Log Level'
-            description: '0: error, 1: warn, 2: debug'
-            type: 'integer'
-            default: 0
+            order: 2
         directHighlighting:
             title: 'Direct Highlighting'
             description: 'Receive the parsing result from Agda, directly from stdio, or indirectly from temporary files (which requires frequent disk access)'
             type: 'boolean'
             default: true
-        improveMessage:
-            title: 'Improve Message'
-            description: 'cosmetic surgery on some message such as "ℕ → ℕ → ℕ !=< ℕ of type Set"'
-            type: 'boolean'
-            default: true
+            order: 3
+        logLevel:
+            title: 'Log Level'
+            description: 'For purpose of development'
+            type: 'string'
+            default: 'error'
+            enum: ['Error', 'Warn', 'Debug']
+            order: 4
 
     activate: (state) ->
         Core = require './core'

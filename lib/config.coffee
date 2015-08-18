@@ -16,5 +16,3 @@ module.exports = class Config
         return paths.map((path) -> '\"' + path + '\"').join(', ')
     inputMethod: ->
         atom.config.get 'agda-mode.inputMethod'
-    improveMessage: ->
-        atom.config.get 'agda-mode.improveMessage'
