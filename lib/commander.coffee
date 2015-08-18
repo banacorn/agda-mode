@@ -26,7 +26,7 @@ class Commander
         @panel          = @core.panel
         @atomPanel      = @core.atomPanel
         @textBuffer     = @core.textBuffer
-        @inputMethod    = @core.inputMethod
+        @inputMethod    = @core.inputMethod if atom.config.get('agda-mode.inputMethod')
         @highlight      = @core.highlight
         @handler        = @core.handler
     command: (raw) ->
@@ -193,9 +193,13 @@ class Commander
             .then @executable.goalTypeAndInferredType normalization
 
     inputSymbol: ->
-        unless @loaded
-            @atomPanel.show()
-            @panel.setContent 'Input Method only, Agda not loaded', [], 'warning'
-        @inputMethod.activate()
+        # activate if input method enabled, else insert '\\'
+        if atom.config.get('agda-mode.inputMethod')
+            unless @loaded
+                @atomPanel.show()
+                @panel.setContent 'Input Method only, Agda not loaded', [], 'warning'
+            @inputMethod.activate()
+        else
+            @core.editor.insertText '\\'
 
 module.exports = Commander

@@ -29,7 +29,7 @@ class Core
         @panel          = new Panel         @
         @executable     = new Executable    @
         @textBuffer     = new TextBuffer    @
-        @inputMethod    = new InputMethod   @
+        @inputMethod    = new InputMethod   @ if atom.config.get('agda-mode.inputMethod')
         @highlight      = new Highlight     @
         @handler        = new Handler       @
         # initialize informations about this editor
