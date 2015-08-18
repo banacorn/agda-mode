@@ -9,7 +9,6 @@ class Handler
         # alias
         @panel      = @core.panel
         @textBuffer = @core.textBuffer
-        @config     = @core.config
         @highlight  = @core.highlight
 
     # agda2-info-action

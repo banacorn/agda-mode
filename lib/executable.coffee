@@ -13,6 +13,11 @@ class Executable
 
     constructor: (@core) ->
 
+    getLibraryPath: ->
+        path = atom.config.get('agda-mode.libraryPath')
+        path.unshift('.')
+        return path.map((p) -> '\"' + p + '\"').join(', ')
+
     # locate the path and see if it is Agda executable
     validateExecutablePath: (path) -> new Promise (resolve, reject) =>
         command = path + ' -V'
@@ -42,7 +47,7 @@ class Executable
 
     # get executable path from config, query the user if failed
     getExecutablePath: ->
-        path = @core.config.executablePath()
+        path = atom.config.get 'agda-mode.executablePath'
         @validateExecutablePath path
             .then (path) => path
             .catch InvalidExecutablePathError, => @queryExecutablePathUntilSuccess()
@@ -72,6 +77,7 @@ class Executable
                     .pipe new Stream.ParseCommand @core
                 log 'Executable', 'process.stdout stream established'
             .catch (e) -> error e
+
     ################
     #   COMMANDS   #
     ################
@@ -107,7 +113,7 @@ class Executable
     sendCommand: (highlightingLevel, interaction) ->
         @getProcess().then (process) =>
             filepath = @core.editor.getPath()
-            highlightingMethod = @core.config.directHighlighting()
+            highlightingMethod = atom.config.get 'agda-mode.highlightingMethod'
             command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction} )\n"
             process.stdin.write command
             return process
@@ -115,7 +121,7 @@ class Executable
     load: =>
         # force save before load, since we are sending filepath but content
         @core.textBuffer.saveBuffer()
-        @sendCommand "NonInteractive", "Cmd_load \"#{@core.editor.getPath()}\" [#{@core.config.libraryPath()}]"
+        @sendCommand "NonInteractive", "Cmd_load \"#{@core.editor.getPath()}\" [#{@getLibraryPath()}]"
 
     quit: =>
         @process.kill()
@@ -123,7 +129,7 @@ class Executable
         log 'Executable', 'process killed'
 
     compile: =>
-        @sendCommand "NonInteractive", "Cmd_compile MAlonzo \"#{@core.editor.getPath()}\" [#{@core.config.libraryPath()}]"
+        @sendCommand "NonInteractive", "Cmd_compile MAlonzo \"#{@core.editor.getPath()}\" [#{@getLibraryPath()}]"
     toggleDisplayOfImplicitArguments: =>
         @sendCommand "NonInteractive", "ToggleImplicitArgs"
     showConstraints: =>

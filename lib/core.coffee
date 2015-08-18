@@ -8,7 +8,6 @@ Executable  = require './executable'
 TextBuffer  = require './text-buffer'
 InputMethod = require './input-method'
 Highlight   = require './highlight'
-Config      = require './config'
 Handler     = require './handler'
 Panel       = require './panel'
 
@@ -26,7 +25,6 @@ class Core
 
 
         # initialize all components
-        @config         = new Config
         @disposables    = new CompositeDisposable
         @panel          = new Panel         @
         @executable     = new Executable    @

@@ -27,7 +27,6 @@ class Commander
         @atomPanel      = @core.atomPanel
         @textBuffer     = @core.textBuffer
         @inputMethod    = @core.inputMethod
-        @config         = @core.config
         @highlight      = @core.highlight
         @handler        = @core.handler
     command: (raw) ->

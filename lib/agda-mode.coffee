@@ -16,15 +16,16 @@ module.exports =
             items:
                 type: 'string'
             order: 1
+        highlightingMethod:
+            title: 'Highlighting Information Passing'
+            description: 'Receive parsed result from Agda, directly from stdio, or indirectly from temporary files (which requires frequent disk access)'
+            type: 'string'
+            default: 'Direct',
+            enum: ['Indirect', 'Direct']
+            order: 2
         inputMethod:
             title: 'Input Method'
             description: 'Enable input method'
-            type: 'boolean'
-            default: true
-            order: 2
-        directHighlighting:
-            title: 'Direct Highlighting'
-            description: 'Receive the parsing result from Agda, directly from stdio, or indirectly from temporary files (which requires frequent disk access)'
             type: 'boolean'
             default: true
             order: 3
@@ -32,7 +33,7 @@ module.exports =
             title: 'Log Level'
             description: 'For purpose of development'
             type: 'string'
-            default: 'error'
+            default: 'Error'
             enum: ['Error', 'Warn', 'Debug']
             order: 4
 

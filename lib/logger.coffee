@@ -31,9 +31,9 @@ class Logger
 
         if level <= atom.config.get 'agda-mode.logLevel'
             switch level
-                when 0
+                when 'Error'
                     console.error message
-                when 1
+                when 'Warn'
                     console.warn message
                 else
                     console.log message
