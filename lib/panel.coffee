@@ -4,14 +4,24 @@ require './view/input-editor'
 require './view/input-method'
 require './view/body'
 
+# toStyle : ContentType -> TextStyle
+toStyle = (type) ->
+    switch type
+        when 'error' then 'error'
+        when 'warning' then 'warning'
+        when 'type-judgement' then 'info'   # term : type
+        when 'term' then 'success'
+        when 'plain-text' then ''
+        else ''
+
 
 template = '''
-<div id="panel-header" class="inset-panel padded" v-show="title">
-    <panel-title id="panel-title" class="text-{{type}}" v-show="!inputMethodMode">{{title}}</panel-title>
+<div id="panel-header" class="inset-panel padded" v-show="content.title">
+    <panel-title id="panel-title" class="text-{{style}}" v-show="!inputMethodMode">{{content.title}}</panel-title>
     <panel-input-method id="panel-input-method" v-show="inputMethodMode" input="{{inputMethod}}"></panel-input-method>
 </div>
-<div id="panel-body" class="padded" v-show="content.length || queryMode">
-    <panel-body id="panel-content" raw="{{content}}"></panel-body>
+<div id="panel-body" class="padded" v-show="content.body.length || queryMode">
+    <panel-body id="panel-content" content="{{content}}"></panel-body>
     <panel-input-editor id="panel-input-editor" v-ref="inputEditor" v-show="queryMode"></panel-input-editor>
 </div>
 '''
@@ -22,15 +32,20 @@ class Panel extends Vue
         super
             template: template
             data:
-                title: ''
-                content: []
-                type: ''
-                placeholderText: ''
-
+                # input
+                content:
+                    title: ''
+                    body: []
+                    type: null
+                    placeholder: ''
                 inputMethodMode: false
                 queryMode: false
-
                 inputMethod: null
+
+                # computed output
+                style: ''
+
+
             ready: ->
                 @$on 'jump-to-goal', (index) ->
                     core.textBuffer.jumpToGoal parseInt(index.substr(1))
@@ -44,8 +59,14 @@ class Panel extends Vue
                     core.inputMethod.replaceString symbol
 
             methods:
-                setContent: (@title = '', @content = [], @type = '', @placeholderText = '') =>
-                    @queryMode      = false
+                setContent: (title = '', body = [], type = 'plain-text', placeholder = '') =>
+                    @content =
+                        title: title
+                        body: body
+                        type: type
+                        placeholder: placeholder
+                    @queryMode = false
+                    @style = toStyle @contentType
 
                 # returns a Promise
                 query: ->

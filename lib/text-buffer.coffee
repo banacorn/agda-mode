@@ -80,7 +80,7 @@ class TextBuffer
         if content
             Promise.resolve goal
         else
-            @core.panel.setContent messages.title, [], 'info', messages.placeholder
+            @core.panel.setContent messages.title, [], 'plain-text', messages.placeholder
             @core.panel
                 .query()
                 .then (expr) =>

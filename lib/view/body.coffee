@@ -31,16 +31,32 @@ parseBody = (str) ->
     else
         raw: str
 
+# concatenate multiline types
+concatLines = (lines) ->
+    currentLine = 0 # the line we are concatenating to
+    result = []
+    lines.body.forEach (item, i) ->
+        if item.charAt(0) isnt ' '
+            currentLine = i
+            result[i] = item
+        else
+            if result[currentLine]
+                result[currentLine] = result[currentLine].concat('\n' + item)
+            else
+                result[currentLine] = item
+    return result
+
+
+            # <ul id="panel-content-header" class="list-group">
+            #     <li class="list-item" v-repeat="contentHeader">
+            #         <span class="text-info">{{label}}</span><span> : </span>
+            #         <type raw="{{content.type}}"></type>
+            #     </li>
+            # </ul>
 Vue.component 'panel-body',
-    props: ['raw']
+    props: ['content']
     template: '''
         <div class="native-key-bindings" tabindex="-1"  v-show="!queryMode">
-            <ul id="panel-content-header" class="list-group">
-                <li class="list-item" v-repeat="contentHeader">
-                    <span class="text-info">{{label}}</span><span> : </span>
-                    <type raw="{{type}}"></type>
-                </li>
-            </ul>
             <ul id="panel-content-body" class="list-group">
                 <li class="list-item" v-repeat="contentBodyGoals">
                     <button class='no-btn text-info' v-on="click: jumpToGoal(goalIndex)">{{goalIndex}}</button><span> : </span>
@@ -58,12 +74,12 @@ Vue.component 'panel-body',
                     <span class="text-warning">Sort {{sortIndex}}</span><span class="location text-subtle">{{filepath}}:{{lineNo}},{{charStart}}-{{charEnd}}</span>
                 </li>
                 <li class="list-item" v-repeat="contentBodyOthers">
-                    <type raw="{{raw}}"></type>
+                    <span>{{$value}}</span>
                 </li>
             </ul>
         </div>'''
     data: ->
-        title: ''
+        contentType: ''
         contentHeader: []
         contentBodyGoals: []
         contentBodyTerms: []
@@ -74,42 +90,41 @@ Vue.component 'panel-body',
         jumpToGoal: (index) ->
             @$dispatch 'jump-to-goal', index
     computed:
-        raw:
+        content:
             set: (content) ->
-                contentHeader = []
-                contentBodyRaw = []
-                # divide content into 2 parts and style them differently
-                if content.length > 0
-                    index = content.indexOf '————————————————————————————————————————————————————————————'
-                    sectioned = index isnt -1
-                    if sectioned
-                        contentHeader = content.slice 0, index
-                        contentBodyRaw = content.slice index + 1, content.length
-                    else
-                        contentHeader = []
-                        contentBodyRaw = content
+                # console.log @contentType
+                console.log content.type
+                console.log content.body
+
+                # if content.type is 'term' or content.type is 'type-judgement'
+                #
+                # else
+
+                @contentBodyOthers = content.body
 
 
-                # header part
-                @contentHeader = contentHeader.map parseHeader
-
-                # concatenate multiline types
-                currentLine = 0 # the line we are concatenating to
-                contentBody = []
-                contentBodyRaw.forEach (item, i) ->
-                    if item.charAt(0) isnt ' '
-                        currentLine = i
-                        contentBody[i] = item
-                    else
-                        if contentBody[currentLine]
-                            contentBody[currentLine] = contentBody[currentLine].concat('\n' + item)
-                        else
-                            contentBody[currentLine] = item
-
-                # body part
-                items = contentBody.map parseBody
-                @contentBodyGoals = _.filter(items, 'goalIndex')
-                @contentBodyTerms = _.filter(items, 'termIndex')
-                @contentBodyMetas = _.filter(items, 'metaIndex')
-                @contentBodySorts = _.filter(items, 'sortIndex')
-                @contentBodyOthers = _.filter(items, 'raw')
+                # contentHeader = []
+                # contentBodyRaw = []
+                # # divide content into 2 parts and style them differently
+                # if content.length > 0
+                #     index = content.indexOf '————————————————————————————————————————————————————————————'
+                #     sectioned = index isnt -1
+                #     if sectioned
+                #         contentHeader = content.slice 0, index
+                #         contentBodyRaw = content.slice index + 1, content.length
+                #     else
+                #         contentHeader = []
+                #         contentBodyRaw = content
+                #
+                #
+                # # header part
+                # @contentHeader = contentHeader.map parseHeader
+                #
+                #
+                # # body part
+                # items = contentBody.map parseBody
+                # @contentBodyGoals = _.filter(items, 'goalIndex')
+                # @contentBodyTerms = _.filter(items, 'termIndex')
+                # @contentBodyMetas = _.filter(items, 'metaIndex')
+                # @contentBodySorts = _.filter(items, 'sortIndex')
+                # @contentBodyOthers = _.filter(items, 'raw')

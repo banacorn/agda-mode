@@ -91,7 +91,7 @@ class Commander
         @textBuffer.previousGoal()
 
     whyInScope: ->
-        @panel.setContent "Scope info", [], 'info', 'name:'
+        @panel.setContent "Scope info", [], 'plain-text', 'name:'
         @panel.queryMode = true
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
@@ -104,7 +104,7 @@ class Commander
                 @textBuffer.focus()
 
     inferType: (normalization) ->
-        @panel.setContent "Infer type #{toDescription normalization}", [], 'info', 'expression to infer:'
+        @panel.setContent "Infer type #{toDescription normalization}", [], 'term', 'expression to infer:'
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
@@ -116,7 +116,7 @@ class Commander
                 @textBuffer.focus()
 
     moduleContents: (normalization) ->
-        @panel.setContent "Module contents #{toDescription normalization}", [], 'info', 'module name:'
+        @panel.setContent "Module contents #{toDescription normalization}", [], 'plain-text', 'module name:'
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
@@ -128,7 +128,7 @@ class Commander
                 @textBuffer.focus()
 
     computeNormalForm: ->
-        @panel.setContent "Compute normal form", [], 'info', 'expression to normalize:'
+        @panel.setContent "Compute normal form", [], 'term', 'expression to normalize:'
         @panel.query()
             .then (expr) =>
                 @textBuffer.getCurrentGoal().done (goal) =>
@@ -141,7 +141,7 @@ class Commander
                     @textBuffer.focus()
 
     computeNormalFormIgnoreAbstract: ->
-        @panel.setContent 'Compute normal form (ignoring abstract)', [], 'info', 'expression to normalize:'
+        @panel.setContent 'Compute normal form (ignoring abstract)', [], 'term', 'expression to normalize:'
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific

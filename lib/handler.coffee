@@ -22,31 +22,31 @@ class Handler
         switch type
             when '*All Goals*'
                 if content.length > 0
-                    @panel.setContent 'Goals', content, 'info'
+                    @panel.setContent 'Goals', content, 'type-judgement'
                 else
-                    @panel.setContent 'No Goals', [], 'success'
+                    @panel.setContent 'No Goals', []
             when '*Error*'
                 @panel.setContent 'Error', content, 'error'
             when '*Type-checking*'
                 @panel.setContent 'Type Checking', content
             when '*Current Goal*'
-                @panel.setContent 'Current Goal', content
+                @panel.setContent 'Current Goal', content, 'term'
             when '*Inferred Type*'
-                @panel.setContent 'Inferred Type', content
+                @panel.setContent 'Inferred Type', content, 'term'
             when '*Module contents*'
                 @panel.setContent 'Module Contents', content
             when '*Context*'
-                @panel.setContent 'Context', content
+                @panel.setContent 'Context', content, 'type-judgement'
             when '*Goal type etc.*'
-                @panel.setContent 'Goal Type and Context', content
+                @panel.setContent 'Goal Type and Context', content, 'type-judgement'
             when '*Normal Form*'
-                @panel.setContent 'Normal Form', content
+                @panel.setContent 'Normal Form', content, 'term'
             when '*Intro*'
                 @panel.setContent 'Intro', ['No introduction forms found']
             when '*Auto*'
                 @panel.setContent 'Auto', ['No solution found']
             when '*Constraints*'
-                @panel.setContent 'Constraints', content
+                @panel.setContent 'Constraints', content, 'type-judgement'
             when '*Scope Info*'
                 @panel.setContent 'Scope Info', content
 
@@ -54,7 +54,7 @@ class Handler
     statusAction: (tokens) ->
         log 'Handler', 'agda2-status-action'
         if tokens.length isnt 1
-            @panel.setContent 'Status', [tokens[1]], 'info'
+            @panel.setContent 'Status', [tokens[1]]
 
     # agda2-goals-action
     goalsAction: (tokens) ->
