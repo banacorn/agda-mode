@@ -101,7 +101,6 @@ Vue.component 'panel-body',
         content:
             set: (content) ->
                 if content.type is 'value' or content.type is 'type-judgement'
-                    console.log content.body
                     # divide content into 2 parts and style them differently
                     contentHeaderRaw = []
                     contentBodyRaw = []
