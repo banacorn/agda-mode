@@ -43,19 +43,21 @@
             line-height: 30px !important;
             padding: 0 @component-padding;
 
-            span {
+            span, button {
                 white-space: pre;       // preserves whitespaces
+                vertical-align: top;
             }
 
-            * {
-                float: left;            // prevents newline in html from becoming space
-                vertical-align: middle;
-            }
-            &:after { 
+            // prevents parent <li> from collapsing
+            &:after {
                content: " ";
                display: block;
                height: 0;
                clear: both;
+            }
+
+            div {
+                display: inline-block;
             }
 
             .location {

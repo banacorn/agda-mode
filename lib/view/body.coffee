@@ -8,7 +8,7 @@ parseHeader = (str) ->
     label: result[1]
     type: result[2]
 
-parseBodyRegex = /(?:^(\?\d+) \: ((?:\n|.)+))|(?:^([^\_].*) \: ((?:\n|.)+))|(?:(?:^Sort (.+))|(?:^(.+) : ([^\[]*))) \[ at ((?:\/[a-zA-Z_\-\s0-9\.]+)+)\.agda\:(\d+)\,(\d+)\-(\d+) \]/
+parseBodyRegex = /(?:^(\?\d+) \: ((?:\n|.)+))|(?:^([^\_].*) \: ((?:\n|.)+))|(?:(?:^Sort (.+))|(?:^(.+) : ([^\[]*))) \[ at (((?:\/[a-zA-Z_\-\s0-9\.]+)+)\.agda\:(?:(\d+)\,(\d+)\-(\d+)|(\d+)\,(\d+)\-(\d+)\,(\d+))) \]/
 parseBody = (str) ->
     result = str.match parseBodyRegex
     if result
@@ -24,10 +24,11 @@ parseBody = (str) ->
         metaIndex: result[6]
         metaType: result[7]
         # location
-        filepath: result[8]
-        lineNo: result[9]
-        charStart: result[10]
-        charEnd: result[11]
+        location: result[8]
+        # filepath: result[8]
+        # lineNo: result[9]
+        # charStart: result[10]
+        # charEnd: result[11]
     else
         value: str
 
@@ -53,25 +54,29 @@ Vue.component 'panel-body',
         <div class="native-key-bindings" tabindex="-1"  v-show="!queryMode">
             <ul id="panel-content-header" class="list-group">
                 <li class="list-item" v-repeat="contentHeader">
-                    <span class="text-info">{{label}}</span><span> : </span>
+                    <span class="text-info">{{label}}</span>
+                    <span>:</span>
                     <type input="{{type}}"></type>
                 </li>
             </ul>
             <ul id="panel-content-body" class="list-group">
                 <li class="list-item" v-repeat="contentBodyGoals">
-                    <button class='no-btn text-info' v-on="click: jumpToGoal(goalIndex)">{{goalIndex}}</button><span> : </span>
+                    <button class='no-btn text-info' v-on="click: jumpToGoal(goalIndex)">{{goalIndex}}</button>
+                    <span>:</span>
                     <type input="{{goalType}}"></type>
                 </li>
                 <li class="list-item" v-repeat="contentBodyTerms">
-                    <span class="text-success">{{termIndex}}</span><span> : </span>
+                    <span class="text-success">{{termIndex}}</span>
+                    <span>:</span>
                     <type input="{{termType}}"></type>
                 </li>
                 <li class="list-item" v-repeat="contentBodyMetas">
-                    <span class="text-success">{{metaIndex}}</span><span> : </span>
-                    <type input="{{metaType}}"></type>
+                    <span class="text-success">{{metaIndex}}</span>
+                    <span>:</span>
+                    <type input="{{metaType}}"></type><span class="location text-subtle">{{location}}</span>
                 </li>
                 <li class="list-item" v-repeat="contentBodySorts">
-                    <span class="text-warning">Sort {{sortIndex}}</span><span class="location text-subtle">{{filepath}}:{{lineNo}},{{charStart}}-{{charEnd}}</span>
+                    <span class="text-highlight">Sort</span> <span class="text-warning">{{sortIndex}}</span><span class="location text-subtle">{{location}}</span>
                 </li>
                 <li class="list-item" v-repeat="contentBodyValue">
                     <type input="{{value}}"></type>
@@ -95,8 +100,8 @@ Vue.component 'panel-body',
     computed:
         content:
             set: (content) ->
-
                 if content.type is 'value' or content.type is 'type-judgement'
+                    console.log content.body
                     # divide content into 2 parts and style them differently
                     contentHeaderRaw = []
                     contentBodyRaw = []
