@@ -30,9 +30,9 @@ class Handler
             when '*Type-checking*'
                 @panel.setContent 'Type Checking', content
             when '*Current Goal*'
-                @panel.setContent 'Current Goal', content, 'term'
+                @panel.setContent 'Current Goal', content, 'value'
             when '*Inferred Type*'
-                @panel.setContent 'Inferred Type', content, 'term'
+                @panel.setContent 'Inferred Type', content, 'value'
             when '*Module contents*'
                 @panel.setContent 'Module Contents', content
             when '*Context*'
@@ -40,7 +40,7 @@ class Handler
             when '*Goal type etc.*'
                 @panel.setContent 'Goal Type and Context', content, 'type-judgement'
             when '*Normal Form*'
-                @panel.setContent 'Normal Form', content, 'term'
+                @panel.setContent 'Normal Form', content, 'value'
             when '*Intro*'
                 @panel.setContent 'Intro', ['No introduction forms found']
             when '*Auto*'

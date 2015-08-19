@@ -104,7 +104,7 @@ class Commander
                 @textBuffer.focus()
 
     inferType: (normalization) ->
-        @panel.setContent "Infer type #{toDescription normalization}", [], 'term', 'expression to infer:'
+        @panel.setContent "Infer type #{toDescription normalization}", [], 'value', 'expression to infer:'
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
@@ -128,7 +128,7 @@ class Commander
                 @textBuffer.focus()
 
     computeNormalForm: ->
-        @panel.setContent "Compute normal form", [], 'term', 'expression to normalize:'
+        @panel.setContent "Compute normal form", [], 'value', 'expression to normalize:'
         @panel.query()
             .then (expr) =>
                 @textBuffer.getCurrentGoal().done (goal) =>
@@ -141,7 +141,7 @@ class Commander
                     @textBuffer.focus()
 
     computeNormalFormIgnoreAbstract: ->
-        @panel.setContent 'Compute normal form (ignoring abstract)', [], 'term', 'expression to normalize:'
+        @panel.setContent 'Compute normal form (ignoring abstract)', [], 'value', 'expression to normalize:'
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific

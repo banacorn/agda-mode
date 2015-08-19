@@ -10,10 +10,9 @@ toStyle = (type) ->
         when 'error' then 'error'
         when 'warning' then 'warning'
         when 'type-judgement' then 'info'   # term : type
-        when 'term' then 'success'
+        when 'value' then 'success'
         when 'plain-text' then ''
         else ''
-
 
 template = '''
 <div id="panel-header" class="inset-panel padded" v-show="content.title">
@@ -32,7 +31,6 @@ class Panel extends Vue
         super
             template: template
             data:
-                # input
                 content:
                     title: ''
                     body: []
@@ -41,8 +39,6 @@ class Panel extends Vue
                 inputMethodMode: false
                 queryMode: false
                 inputMethod: null
-
-                # computed output
                 style: ''
 
 

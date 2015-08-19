@@ -51,6 +51,12 @@
                 float: left;            // prevents newline in html from becoming space
                 vertical-align: middle;
             }
+            &:after { 
+               content: " ";
+               display: block;
+               height: 0;
+               clear: both;
+            }
 
             .location {
                 float: right;

@@ -1,6 +1,6 @@
 Vue = require 'vue'
 Vue.component 'type',
-    props: ['raw']
+    props: ['input']
     template: '''
         <template v-repeat="type">
             <span v-if="unmarked" class="text-highlight">{{unmarked}}</span>
@@ -18,7 +18,7 @@ Vue.component 'type',
     computed:
         type: ->
             #                    1       2            3
-            tokens = @raw.split(/(\?\d+)|(\_[^\.]\S*)|Set (\_\S+)/g)
+            tokens = @input.split(/(\?\d+)|(\_[^\.]\S*)|Set (\_\S+)/g)
             unmarked = tokens.filter (_, i) => i % 4 is 0
             goals    = tokens.filter (_, i) => i % 4 is 1
             metas    = tokens.filter (_, i) => i % 4 is 2
