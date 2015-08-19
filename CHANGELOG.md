@@ -1,3 +1,7 @@
+## 0.3.10
+* Make Input Method optional, enable or disable it in the settings
+* Fix #22
+
 ## 0.3.9
 * Input method:
     * Candidate symbols
