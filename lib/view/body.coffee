@@ -32,6 +32,21 @@ parseBody = (str) ->
     else
         value: str
 
+# divide content into header and body
+# divideContent : [String] -> { header :: [String], body :: [String] }
+divideContent = (content) ->
+
+    notEmpty = content.length > 0
+    index = content.indexOf '————————————————————————————————————————————————————————————'
+    isSectioned = index isnt -1
+
+    if notEmpty and isSectioned
+        header: content.slice 0, index
+        body: content.slice index + 1, content.length
+    else
+        header: []
+        body: content
+
 # concatenate multiline judgements
 concatJudgements = (lines) ->
     lineStartRegex = /^(?:Goal|Have|.+ )\:|Sort /
@@ -49,87 +64,63 @@ concatJudgements = (lines) ->
     return _.compact result
 
 Vue.component 'panel-body',
-    props: ['content']
+    props: ['raw-content']
     template: '''
         <div class="native-key-bindings" tabindex="-1"  v-show="!queryMode">
             <ul id="panel-content-header" class="list-group">
-                <li class="list-item" v-repeat="contentHeader">
+                <li class="list-item" v-repeat="header">
                     <span class="text-info">{{label}}</span>
                     <span>:</span>
                     <type input="{{type}}"></type>
                 </li>
             </ul>
             <ul id="panel-content-body" class="list-group">
-                <li class="list-item" v-repeat="contentBodyGoals">
+                <li class="list-item" v-repeat="body.goal">
                     <button class='no-btn text-info' v-on="click: jumpToGoal(goalIndex)">{{goalIndex}}</button>
                     <span>:</span>
                     <type input="{{goalType}}"></type>
                 </li>
-                <li class="list-item" v-repeat="contentBodyTerms">
+                <li class="list-item" v-repeat="body.term">
                     <span class="text-success">{{termIndex}}</span>
                     <span>:</span>
                     <type input="{{termType}}"></type>
                 </li>
-                <li class="list-item" v-repeat="contentBodyMetas">
+                <li class="list-item" v-repeat="body.meta">
                     <span class="text-success">{{metaIndex}}</span>
                     <span>:</span>
                     <type input="{{metaType}}"></type><span class="location text-subtle">{{location}}</span>
                 </li>
-                <li class="list-item" v-repeat="contentBodySorts">
+                <li class="list-item" v-repeat="body.sort">
                     <span class="text-highlight">Sort</span> <span class="text-warning">{{sortIndex}}</span><span class="location text-subtle">{{location}}</span>
                 </li>
-                <li class="list-item" v-repeat="contentBodyValue">
+                <li class="list-item" v-repeat="body.value">
                     <type input="{{value}}"></type>
                 </li>
-                <li class="list-item" v-repeat="contentPlainText">
+                <li class="list-item" v-repeat="body.plainText">
                     <span>{{$value}}</span>
                 </li>
             </ul>
         </div>'''
     data: ->
-        contentPlainText: []
-        contentHeader: []
-        contentBodyGoals: []
-        contentBodyTerms: []
-        contentBodyMetas: []
-        contentBodySorts: []
-        contentBodyValue: []
+        header: null
+        body: null
     methods:
         jumpToGoal: (index) ->
             @$dispatch 'jump-to-goal', index
     computed:
-        content:
+        rawContent:
             set: (content) ->
                 if content.type is 'value' or content.type is 'type-judgement'
-                    # divide content into 2 parts and style them differently
-                    contentHeaderRaw = []
-                    contentBodyRaw = []
-                    if content.body.length > 0
-                        index = content.body.indexOf '————————————————————————————————————————————————————————————'
-                        sectioned = index isnt -1
-                        if sectioned
-                            contentHeaderRaw = content.body.slice 0, index
-                            contentBodyRaw = content.body.slice index + 1, content.body.length
-                        else
-                            contentHeaderRaw = []
-                            contentBodyRaw = content.body
-
-                    @contentPlainText = []
-                    # header part
-                    @contentHeader = concatJudgements(contentHeaderRaw).map parseHeader
-                    # body part
-                    items = concatJudgements(contentBodyRaw).map parseBody
-                    @contentBodyGoals = _.filter(items, 'goalIndex')
-                    @contentBodyTerms = _.filter(items, 'termIndex')
-                    @contentBodyMetas = _.filter(items, 'metaIndex')
-                    @contentBodySorts = _.filter(items, 'sortIndex')
-                    @contentBodyValue = _.filter(items, 'value')
+                    {header, body} = divideContent content.body
+                    @header = concatJudgements(header).map parseHeader
+                    items = concatJudgements(body).map parseBody
+                    @body =
+                        goal: _.filter(items, 'goalIndex')
+                        term: _.filter(items, 'termIndex')
+                        meta: _.filter(items, 'metaIndex')
+                        sort: _.filter(items, 'sortIndex')
+                        value: _.filter(items, 'value')
 
                 else
-                    @contentPlainText = content.body
-                    @contentHeader = []
-                    @contentBodyGoals = []
-                    @contentBodyTerms = []
-                    @contentBodyMetas = []
-                    @contentBodySorts = []
-                    @contentBodyValue = []
+                    @header = []
+                    @body = plainText: content.body

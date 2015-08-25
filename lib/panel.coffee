@@ -20,7 +20,7 @@ template = '''
     <panel-input-method id="panel-input-method" v-show="inputMethodMode" input="{{inputMethod}}"></panel-input-method>
 </div>
 <div id="panel-body" class="padded" v-show="content.body.length || queryMode">
-    <panel-body id="panel-content" content="{{content}}"></panel-body>
+    <panel-body id="panel-content" raw-content="{{content}}"></panel-body>
     <panel-input-editor id="panel-input-editor" v-ref="inputEditor" v-show="queryMode"></panel-input-editor>
 </div>
 '''
