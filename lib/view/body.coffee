@@ -87,13 +87,13 @@ Vue.component 'panel-body',
             </ul>
         </div>'''
     data: ->
+        contentPlainText: []
         contentHeader: []
         contentBodyGoals: []
         contentBodyTerms: []
         contentBodyMetas: []
         contentBodySorts: []
         contentBodyValue: []
-        contentPlainText: []
     methods:
         jumpToGoal: (index) ->
             @$dispatch 'jump-to-goal', index
@@ -127,3 +127,9 @@ Vue.component 'panel-body',
 
                 else
                     @contentPlainText = content.body
+                    @contentHeader = []
+                    @contentBodyGoals = []
+                    @contentBodyTerms = []
+                    @contentBodyMetas = []
+                    @contentBodySorts = []
+                    @contentBodyValue = []
