@@ -2,7 +2,7 @@ Vue = require 'vue'
 Vue.component 'type',
     props: ['input']
     template: '''
-        <div>
+        <div class="type">
             <template v-repeat="type">
                 <span v-if="unmarked" class="text-highlight">{{unmarked}}</span>
                 <button v-if="goal" class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button>

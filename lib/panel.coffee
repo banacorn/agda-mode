@@ -64,7 +64,7 @@ class Panel extends Vue
                         type: type
                         placeholder: placeholder
                     @queryMode = false
-                    @style = toStyle @contentType
+                    @style = toStyle type
 
                 # returns a Promise
                 query: ->

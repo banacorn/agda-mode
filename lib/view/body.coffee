@@ -2,62 +2,8 @@ Vue = require 'vue'
 _   = require 'lodash'
 require './body/type'
 require './body/location'
-
-regexHeader = /^(Goal|Have)\: ((?:\n|.)+)/
-parseHeader = (str) ->
-    result = str.match regexHeader
-    label: result[1]
-    type: result[2]
-
-regexLocation = /((?:\n|.)*\S+)\s*\[ at (.+):(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+)) \]/
-parseLocation = (str) ->
-    result = str.match regexLocation
-    if result
-        body: result[1]
-        location:
-            path: result[2]
-            rowStart: if result[3] then result[3] else result[7]
-            rowEnd: if result[5] then result[5] else result[7]
-            colStart: if result[4] then result[4] else result[8]
-            colEnd: if result[6] then result[6] else result[9]
-            isSameLine: result[3] is undefined
-
-regexGoal = /^(\?\d+) \: ((?:\n|.)+)/
-parseGoal = (str) ->
-    result = str.match regexGoal
-    if result
-        index: result[1]
-        body: result[2]
-        type: 'goal'
-
-regexTerm = /^([^\_\?].*) \: ((?:\n|.)+)/
-parseTerm = (str) ->
-    result = str.match regexTerm
-    if result
-        index: result[1]
-        body: result[2]
-        type: 'term'
-
-regexMeta = /^(.+) \: ((?:\n|.)+)/
-parseMeta = (str) ->
-    {body, location} = parseLocation str
-    result = body.match regexMeta
-    if result
-        index: result[1]
-        body: result[2]
-        location: location
-        type: 'meta'
-
-regexSort = /^Sort ((?:\n|.)+)/
-parseSort = (str) ->
-    {body, location} = parseLocation str
-    result = body.match regexSort
-    if result
-        index: result[1]
-        location: location
-        type: 'sort'
-
-parseBody = (str) -> parseGoal(str) || parseTerm(str) || parseMeta(str) || parseSort(str)
+require './body/error'
+parser = require './body/parser'
 
 # divide content into header and body
 # divideContent : [String] -> { header :: [String], body :: [String] }
@@ -128,6 +74,9 @@ Vue.component 'panel-body',
                 <li class="list-item" v-repeat="body.plainText">
                     <span>{{$value}}</span>
                 </li>
+                <li class="list-item" v-if="body.error">
+                    <error error="{{body.error}}"></error>
+                </li>
             </ul>
         </div>'''
     data: ->
@@ -139,18 +88,21 @@ Vue.component 'panel-body',
     computed:
         rawContent:
             set: (content) ->
-                if content.type is 'value' or content.type is 'type-judgement'
-                    {header, body} = divideContent content.body
+                switch content.type
+                    when 'value', 'type-judgement'
+                        {header, body} = divideContent content.body
 
-                    @header = concatJudgements(header).map parseHeader
+                        @header = concatJudgements(header).map parser.parseHeader
 
-                    items = concatJudgements(body).map(parseBody)
-                    @body =
-                        goal: _.filter(items, type: 'goal')
-                        term: _.filter(items, type: 'term')
-                        meta: _.filter(items, type: 'meta')
-                        sort: _.filter(items, type: 'sort')
-
-                else
-                    @header = []
-                    @body = plainText: content.body
+                        items = concatJudgements(body).map(parser.parseBody)
+                        @body =
+                            goal: _.filter(items, type: 'goal')
+                            term: _.filter(items, type: 'term')
+                            meta: _.filter(items, type: 'meta')
+                            sort: _.filter(items, type: 'sort')
+                    when 'error'
+                        @header = []
+                        @body = error: parser.parseError(content.body)
+                    else
+                        @header = []
+                        @body = plainText: content.body
