@@ -1,3 +1,5 @@
+"using babel"
+
 regexHeader = /^(Goal|Have)\: ((?:\n|.)+)/
 parseHeader = (str) ->
     result = str.match regexHeader
@@ -77,7 +79,7 @@ parseNotInScope = (str) ->
         term: result[1]
         errorType: 'not in scope'
 
-regexTypeMismatch = /\n\s*((?:\n|.)*)\s* \!\=\< \s*((?:\n|.)*)\s* of type \s*((?:\n|.)*)\s*\nwhen checking that the expression \s*((?:\n|.)*)\s* has type\n\s*((?:\n|.)*)\s*/
+regexTypeMismatch = /\n\s*((?:\n|.)*)\s*\!\=\<?\s*((?:\n|.)*)\s*of type \s*((?:\n|.)*)\s*when checking that the expression\s*((?:\n|.)*)\s*has type\s*((?:\n|.)*)\s*/
 parseTypeMismatch = (str) ->
     result = str.match regexTypeMismatch
     if result
@@ -89,7 +91,7 @@ parseTypeMismatch = (str) ->
         termType: result[5]
         errorType: 'type mismatch'
 
-regexWrongConstructor = /The constructor \s*((?:\n|.)*)\s* does not construct an element of \s*((?:\n|.)*)\s*\nwhen checking that the expression \s*((?:\n|.)*)\s* has type \s*((?:\n|.)*)\s*/
+regexWrongConstructor = /The constructor\s*((?:\n|.)*)\s*does not construct an element of\s*((?:\n|.)*)\s*when checking that the expression\s*((?:\n|.)*)\s*has type\s*((?:\n|.)*)\s*/
 parseWrongConstructor = (str) ->
     result = str.match regexWrongConstructor
     if result
