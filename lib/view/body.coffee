@@ -2,35 +2,60 @@ Vue = require 'vue'
 _   = require 'lodash'
 require './body/type'
 
-parseHeaderRegex = /^(Goal|Have)\: ((?:\n|.)+)/
+regexHeader = /^(Goal|Have)\: ((?:\n|.)+)/
 parseHeader = (str) ->
-    result = str.match parseHeaderRegex
+    result = str.match regexHeader
     label: result[1]
     type: result[2]
 
-parseBodyRegex = /(?:^(\?\d+) \: ((?:\n|.)+))|(?:^([^\_].*) \: ((?:\n|.)+))|(?:(?:^Sort (.+))|(?:^(.+) : ([^\[]*))) \[ at (((?:\/[a-zA-Z_\-\s0-9\.]+)+)\.agda\:(?:(\d+)\,(\d+)\-(\d+)|(\d+)\,(\d+)\-(\d+)\,(\d+))) \]/
-parseBody = (str) ->
-    result = str.match parseBodyRegex
+regexLocation = /((?:\n|.)*\S+)\s*\[ at (.+):(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+)) \]/
+parseLocation = (str) ->
+    result = str.match regexLocation
     if result
-        # goal
-        goalIndex: result[1]
-        goalType: result[2]
-        # term
-        termIndex: result[3]
-        termType: result[4]
-        # sort
-        sortIndex: result[5]
-        # meta
-        metaIndex: result[6]
-        metaType: result[7]
-        # location
-        location: result[8]
-        # filepath: result[8]
-        # lineNo: result[9]
-        # charStart: result[10]
-        # charEnd: result[11]
-    else
-        value: str
+        body: result[1]
+        location:
+            path: result[2]
+            rowStart: if result[3] then result[3] else result[7]
+            rowEnd: if result[5] then result[5] else result[7]
+            colStart: if result[4] then result[4] else result[8]
+            colEnd: if result[6] then result[6] else result[9]
+
+regexGoal = /^(\?\d+) \: ((?:\n|.)+)/
+parseGoal = (str) ->
+    result = str.match regexGoal
+    if result
+        index: result[1]
+        body: result[2]
+        type: 'goal'
+
+regexTerm = /^([^\_\?].*) \: ((?:\n|.)+)/
+parseTerm = (str) ->
+    result = str.match regexTerm
+    if result
+        index: result[1]
+        body: result[2]
+        type: 'term'
+
+regexMeta = /^(.+) \: ((?:\n|.)+)/
+parseMeta = (str) ->
+    {body, location} = parseLocation str
+    result = body.match regexMeta
+    if result
+        index: result[1]
+        body: result[2]
+        location: location
+        type: 'meta'
+
+regexSort = /^Sort ((?:\n|.)+)/
+parseSort = (str) ->
+    {body, location} = parseLocation str
+    result = body.match regexSort
+    if result
+        index: result[1]
+        location: location
+        type: 'sort'
+
+parseBody = (str) -> parseGoal(str) || parseTerm(str) || parseMeta(str) || parseSort(str)
 
 # divide content into header and body
 # divideContent : [String] -> { header :: [String], body :: [String] }
@@ -76,22 +101,22 @@ Vue.component 'panel-body',
             </ul>
             <ul id="panel-content-body" class="list-group">
                 <li class="list-item" v-repeat="body.goal">
-                    <button class='no-btn text-info' v-on="click: jumpToGoal(goalIndex)">{{goalIndex}}</button>
+                    <button class='no-btn text-info' v-on="click: jumpToGoal(index)">{{index}}</button>
                     <span>:</span>
-                    <type input="{{goalType}}"></type>
+                    <type input="{{body}}"></type>
                 </li>
                 <li class="list-item" v-repeat="body.term">
-                    <span class="text-success">{{termIndex}}</span>
+                    <span class="text-success">{{index}}</span>
                     <span>:</span>
-                    <type input="{{termType}}"></type>
+                    <type input="{{body}}"></type>
                 </li>
                 <li class="list-item" v-repeat="body.meta">
-                    <span class="text-success">{{metaIndex}}</span>
+                    <span class="text-success">{{index}}</span>
                     <span>:</span>
-                    <type input="{{metaType}}"></type><span class="location text-subtle">{{location}}</span>
+                    <type input="{{body}}"></type><span class="location text-subtle">{{location}}</span>
                 </li>
                 <li class="list-item" v-repeat="body.sort">
-                    <span class="text-highlight">Sort</span> <span class="text-warning">{{sortIndex}}</span><span class="location text-subtle">{{location}}</span>
+                    <span class="text-highlight">Sort</span> <span class="text-warning">{{index}}</span><span class="location text-subtle">{{location}}</span>
                 </li>
                 <li class="list-item" v-repeat="body.value">
                     <type input="{{value}}"></type>
@@ -112,14 +137,15 @@ Vue.component 'panel-body',
             set: (content) ->
                 if content.type is 'value' or content.type is 'type-judgement'
                     {header, body} = divideContent content.body
+
                     @header = concatJudgements(header).map parseHeader
-                    items = concatJudgements(body).map parseBody
+
+                    items = concatJudgements(body).map(parseBody)
                     @body =
-                        goal: _.filter(items, 'goalIndex')
-                        term: _.filter(items, 'termIndex')
-                        meta: _.filter(items, 'metaIndex')
-                        sort: _.filter(items, 'sortIndex')
-                        value: _.filter(items, 'value')
+                        goal: _.filter(items, type: 'goal')
+                        term: _.filter(items, type: 'term')
+                        meta: _.filter(items, type: 'meta')
+                        sort: _.filter(items, type: 'sort')
 
                 else
                     @header = []
