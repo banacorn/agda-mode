@@ -102,11 +102,20 @@ parseWrongConstructor = (str) ->
         termType: result[4]
         errorType: 'wrong constructor'
 
+regexApplicationParseError = /\s*Could not parse the application\s*((?:\n|.)*)\s*when scope checking\s*((?:\n|.)*)\s*/
+parseApplicationParseError = (str) ->
+    result = str.match regexApplicationParseError
+    if result
+        location: parseLocation str
+        term: result[1]
+        errorType: 'application parse error'
+
 parseError = (str) ->
     bulk = str.join('\n')
     parseNotInScope(bulk) ||
     parseTypeMismatch(bulk) ||
     parseWrongConstructor(bulk) ||
+    parseApplicationParseError(bulk) ||
     raw: str
 
 module.exports =

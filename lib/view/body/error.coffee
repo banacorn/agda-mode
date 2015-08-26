@@ -11,10 +11,8 @@ Vue.component 'error',
         <template v-if="notInScope">
             <li class="list-item">
                 <span class="text-error">Not in scope:</span>
-                <location location="{{error.location}}"></location>
-            </li>
-            <li class="list-item">
                 <type input={{error.term}}></type>
+                <location location="{{error.location}}"></location>
             </li>
         </template>
         <template v-if="typeMismatch">
@@ -55,8 +53,17 @@ Vue.component 'error',
                 <type input={{error.termType}}></type>
             </li>
         </template>
+
+        <template v-if="applicationParseError">
+            <li class="list-item">
+                <span>Could not parse the application</span>
+                <type input={{error.term}}></type>
+                <location location="{{error.location}}"></location>
+            </li>
+        </template>
     '''
     computed:
         notInScope: -> @error.errorType is 'not in scope'
         typeMismatch: -> @error.errorType is 'type mismatch'
         wrongConstructor: -> @error.errorType is 'wrong constructor'
+        applicationParseError: -> @error.errorType is 'application parse error'
