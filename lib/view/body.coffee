@@ -1,6 +1,7 @@
 Vue = require 'vue'
 _   = require 'lodash'
 require './body/type'
+require './body/location'
 
 regexHeader = /^(Goal|Have)\: ((?:\n|.)+)/
 parseHeader = (str) ->
@@ -19,6 +20,7 @@ parseLocation = (str) ->
             rowEnd: if result[5] then result[5] else result[7]
             colStart: if result[4] then result[4] else result[8]
             colEnd: if result[6] then result[6] else result[9]
+            isSameLine: result[3] is undefined
 
 regexGoal = /^(\?\d+) \: ((?:\n|.)+)/
 parseGoal = (str) ->
@@ -113,13 +115,15 @@ Vue.component 'panel-body',
                 <li class="list-item" v-repeat="body.meta">
                     <span class="text-success">{{index}}</span>
                     <span>:</span>
-                    <type input="{{body}}"></type><span class="location text-subtle">{{location}}</span>
+                    <type input="{{body}}"></type>
+                    <location location="{{location}}"></location>
                 </li>
                 <li class="list-item" v-repeat="body.sort">
-                    <span class="text-highlight">Sort</span> <span class="text-warning">{{index}}</span><span class="location text-subtle">{{location}}</span>
+                    <span class="text-highlight">Sort</span> <span class="text-warning">{{index}}</span>
+                    <location location="{{location}}"></location>
                 </li>
                 <li class="list-item" v-repeat="body.value">
-                    <type input="{{value}}"></type>
+                    <type location="{{value}}"></type>
                 </li>
                 <li class="list-item" v-repeat="body.plainText">
                     <span>{{$value}}</span>
