@@ -120,6 +120,14 @@ parseTerminationError = (str) ->
         callLocation: parseLocation result[3]
         errorType: 'termination error'
 
+regexMissingDefinition = /\s*Missing definition for\s*((?:\n|.)*)\s*/
+parseMissingDefinition = (str) ->
+    result = str.match regexMissingDefinition
+    if result
+        location: parseLocation str
+        term: result[1]
+        errorType: 'missing definition'
+
 parseError = (str) ->
     bulk = str.join('\n')
     parseNotInScope(bulk) ||
@@ -127,6 +135,7 @@ parseError = (str) ->
     parseWrongConstructor(bulk) ||
     parseApplicationParseError(bulk) ||
     parseTerminationError(bulk) ||
+    parseMissingDefinition(bulk) ||
     raw: str
 
 module.exports =

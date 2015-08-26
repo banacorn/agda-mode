@@ -79,6 +79,14 @@ Vue.component 'error',
                 <location no-float location="{{error.callLocation}}"></location>
             </li>
         </template>
+
+        <template v-if="missingDefinition">
+            <li class="list-item">
+                <span>Missing definition for</span>
+                <type input={{error.term}}></type>
+                <location location="{{error.location}}"></location>
+            </li>
+        </template>
     '''
     computed:
         notInScope: -> @error.errorType is 'not in scope'
@@ -86,3 +94,4 @@ Vue.component 'error',
         wrongConstructor: -> @error.errorType is 'wrong constructor'
         applicationParseError: -> @error.errorType is 'application parse error'
         terminationError: -> @error.errorType is 'termination error'
+        missingDefinition: -> @error.errorType is 'missing definition'
