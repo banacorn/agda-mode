@@ -10,7 +10,7 @@ Vue.component 'error',
         </template>
         <template v-if="notInScope">
             <li class="list-item">
-                <span class="text-error">Not in scope:</span>
+                <span>Not in scope:</span>
                 <type input={{error.term}}></type>
                 <location location="{{error.location}}"></location>
             </li>
@@ -61,9 +61,28 @@ Vue.component 'error',
                 <location location="{{error.location}}"></location>
             </li>
         </template>
+
+        <template v-if="terminationError">
+            <li class="list-item">
+                <span>Termination checking failed for the following functions:</span>
+                <location location="{{error.location}}"></location>
+            </li>
+            <li class="list-item">
+                <type input={{error.term}}></type>
+            </li>
+            <li class="list-item">
+                <span>Problematic calls:</span>
+            </li>
+            <li class="list-item">
+                <type input={{error.call}}></type>
+                <span>at</span>
+                <location no-float location="{{error.callLocation}}"></location>
+            </li>
+        </template>
     '''
     computed:
         notInScope: -> @error.errorType is 'not in scope'
         typeMismatch: -> @error.errorType is 'type mismatch'
         wrongConstructor: -> @error.errorType is 'wrong constructor'
         applicationParseError: -> @error.errorType is 'application parse error'
+        terminationError: -> @error.errorType is 'termination error'

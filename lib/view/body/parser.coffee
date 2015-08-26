@@ -110,12 +110,23 @@ parseApplicationParseError = (str) ->
         term: result[1]
         errorType: 'application parse error'
 
+regexTerminationError = /\s*Termination checking failed for the following functions:\s*((?:\n|.)*)\s*Problematic calls:\s*((?:\n|.)*)\s*\(at (.*)\)/
+parseTerminationError = (str) ->
+    result = str.match regexTerminationError
+    if result
+        location: parseLocation str
+        term: result[1]
+        call: result[2]
+        callLocation: parseLocation result[3]
+        errorType: 'termination error'
+
 parseError = (str) ->
     bulk = str.join('\n')
     parseNotInScope(bulk) ||
     parseTypeMismatch(bulk) ||
     parseWrongConstructor(bulk) ||
     parseApplicationParseError(bulk) ||
+    parseTerminationError(bulk) ||
     raw: str
 
 module.exports =
