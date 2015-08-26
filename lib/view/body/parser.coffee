@@ -65,6 +65,10 @@ parseLocation = (str) ->
         colEnd: if result[5] then result[5] else result[8]
         isSameLine: result[2] is undefined
 
+################################################################################
+#   Error
+################################################################################
+
 regexNotInScope = /Not in scope\:\s*((?:\n|.)*)\s*at/
 parseNotInScope = (str) ->
     result = str.match regexNotInScope
@@ -85,7 +89,23 @@ parseTypeMismatch = (str) ->
         termType: result[5]
         errorType: 'type mismatch'
 
-parseError = (str) -> parseNotInScope(str.join('\n')) || parseTypeMismatch(str.join('\n')) || raw: str
+regexWrongConstructor = /The constructor \s*((?:\n|.)*)\s* does not construct an element of \s*((?:\n|.)*)\s*\nwhen checking that the expression \s*((?:\n|.)*)\s* has type \s*((?:\n|.)*)\s*/
+parseWrongConstructor = (str) ->
+    result = str.match regexWrongConstructor
+    if result
+        location: parseLocation str
+        constructor: result[1]
+        constructorType: result[2]
+        term: result[3]
+        termType: result[4]
+        errorType: 'wrong constructor'
+
+parseError = (str) ->
+    bulk = str.join('\n')
+    parseNotInScope(bulk) ||
+    parseTypeMismatch(bulk) ||
+    parseWrongConstructor(bulk) ||
+    raw: str
 
 module.exports =
     parseHeader: parseHeader

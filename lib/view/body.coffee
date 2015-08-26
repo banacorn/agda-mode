@@ -74,9 +74,7 @@ Vue.component 'panel-body',
                 <li class="list-item" v-repeat="body.plainText">
                     <span>{{$value}}</span>
                 </li>
-                <li class="list-item" v-if="body.error">
-                    <error error="{{body.error}}"></error>
-                </li>
+                <error v-if="body.error" error="{{body.error}}"></error>
             </ul>
         </div>'''
     data: ->

@@ -39,7 +39,24 @@ Vue.component 'error',
                 <type input={{error.termType}}></type>
             </li>
         </template>
+
+        <template v-if="wrongConstructor">
+            <li class="list-item">
+                <span>The constructor</span>
+                <type input={{error.constructor}}></type>
+                <span>does not construct an element of</span>
+                <type input={{error.constructorType}}></type>
+                <location location="{{error.location}}"></location>
+            </li>
+            <li class="list-item">
+                <span>when checking that the expression</span>
+                <type input={{error.term}}></type>
+                <span>has type</span>
+                <type input={{error.termType}}></type>
+            </li>
+        </template>
     '''
     computed:
         notInScope: -> @error.errorType is 'not in scope'
         typeMismatch: -> @error.errorType is 'type mismatch'
+        wrongConstructor: -> @error.errorType is 'wrong constructor'
