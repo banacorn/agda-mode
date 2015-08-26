@@ -87,6 +87,18 @@ Vue.component 'error',
                 <location location="{{error.location}}"></location>
             </li>
         </template>
+
+        <template v-if="rhsOmitted">
+            <li class="list-item">
+                <span>The right-hand side can only be omitted if there is an absurd pattern, () or {}, in the left-hand side.</span>
+            </li>
+            <li class="list-item">
+                <span>when checking that the clause</span>
+                <type input={{error.term}}></type>
+                <span>has type</span>
+                <type input={{error.type}}></type>
+            </li>
+        </template>
     '''
     computed:
         notInScope: -> @error.errorType is 'not in scope'
@@ -95,3 +107,4 @@ Vue.component 'error',
         applicationParseError: -> @error.errorType is 'application parse error'
         terminationError: -> @error.errorType is 'termination error'
         missingDefinition: -> @error.errorType is 'missing definition'
+        rhsOmitted: -> @error.errorType is 'rhs omitted'

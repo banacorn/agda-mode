@@ -71,7 +71,7 @@ parseLocation = (str) ->
 #   Error
 ################################################################################
 
-regexNotInScope = /Not in scope\:\s*((?:\n|.)*)\s*at/
+regexNotInScope = /Not in scope\:\s+((?:\n|.)*)\s+at/
 parseNotInScope = (str) ->
     result = str.match regexNotInScope
     if result
@@ -79,7 +79,7 @@ parseNotInScope = (str) ->
         term: result[1]
         errorType: 'not in scope'
 
-regexTypeMismatch = /\n\s*((?:\n|.)*)\s*\!\=\<?\s*((?:\n|.)*)\s*of type \s*((?:\n|.)*)\s*when checking that the expression\s*((?:\n|.)*)\s*has type\s*((?:\n|.)*)\s*/
+regexTypeMismatch = /\s+((?:\n|.)*)\s+\!\=\<?\s+((?:\n|.)*)\s+of type\s+((?:\n|.)*)\s+when checking that the expression\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/
 parseTypeMismatch = (str) ->
     result = str.match regexTypeMismatch
     if result
@@ -91,7 +91,7 @@ parseTypeMismatch = (str) ->
         termType: result[5]
         errorType: 'type mismatch'
 
-regexWrongConstructor = /The constructor\s*((?:\n|.)*)\s*does not construct an element of\s*((?:\n|.)*)\s*when checking that the expression\s*((?:\n|.)*)\s*has type\s*((?:\n|.)*)\s*/
+regexWrongConstructor = /The constructor\s+((?:\n|.)*)\s+does not construct an element of\s+((?:\n|.)*)\s+when checking that the expression\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/
 parseWrongConstructor = (str) ->
     result = str.match regexWrongConstructor
     if result
@@ -102,7 +102,7 @@ parseWrongConstructor = (str) ->
         termType: result[4]
         errorType: 'wrong constructor'
 
-regexApplicationParseError = /\s*Could not parse the application\s*((?:\n|.)*)\s*when scope checking\s*((?:\n|.)*)\s*/
+regexApplicationParseError = /\s*Could not parse the application\s+((?:\n|.)*)\s+when scope checking\s+((?:\n|.)*)/
 parseApplicationParseError = (str) ->
     result = str.match regexApplicationParseError
     if result
@@ -110,7 +110,7 @@ parseApplicationParseError = (str) ->
         term: result[1]
         errorType: 'application parse error'
 
-regexTerminationError = /\s*Termination checking failed for the following functions:\s*((?:\n|.)*)\s*Problematic calls:\s*((?:\n|.)*)\s*\(at (.*)\)/
+regexTerminationError = /\s*Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)\s+\(at (.*)\)/
 parseTerminationError = (str) ->
     result = str.match regexTerminationError
     if result
@@ -120,13 +120,22 @@ parseTerminationError = (str) ->
         callLocation: parseLocation result[3]
         errorType: 'termination error'
 
-regexMissingDefinition = /\s*Missing definition for\s*((?:\n|.)*)\s*/
+regexMissingDefinition = /\s*Missing definition for\s+((?:\n|.)*)/
 parseMissingDefinition = (str) ->
     result = str.match regexMissingDefinition
     if result
         location: parseLocation str
         term: result[1]
         errorType: 'missing definition'
+
+regexRhsOmitted = /\s*The right-hand side can only be omitted if there is an absurd\s*pattern\, \(\) or \{\}\, in the left-hand side\.\s*when checking that the clause\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/
+parseRhsOmitted = (str) ->
+    result = str.match regexRhsOmitted
+    if result
+        location: parseLocation str
+        term: result[1]
+        type: result[2]
+        errorType: 'rhs omitted'
 
 parseError = (str) ->
     bulk = str.join('\n')
@@ -136,6 +145,7 @@ parseError = (str) ->
     parseApplicationParseError(bulk) ||
     parseTerminationError(bulk) ||
     parseMissingDefinition(bulk) ||
+    parseRhsOmitted(bulk) ||
     raw: str
 
 module.exports =
