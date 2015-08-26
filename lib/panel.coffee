@@ -45,6 +45,8 @@ class Panel extends Vue
             ready: ->
                 @$on 'jump-to-goal', (index) ->
                     core.textBuffer.jumpToGoal parseInt(index.substr(1))
+                @$on 'jump-to-location', (location) ->
+                    core.textBuffer.jumpToLocation location
                 @$on 'select-key', (key) ->
                     core.inputMethod.insertChar key
                     atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
