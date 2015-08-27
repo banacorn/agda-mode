@@ -75,84 +75,78 @@ regexNotInScope = /Not in scope\:\s+((?:\n|.)*)\s+at/
 parseNotInScope = (str) ->
     result = str.match regexNotInScope
     if result
-        location: parseLocation str
-        term: result[1]
         errorType: 'not in scope'
+        term: result[1]
 
-regexTypeMismatch = /\s+((?:\n|.)*)\s+\!\=\<?\s+((?:\n|.)*)\s+of type\s+((?:\n|.)*)\s+when checking that the expression\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/
+regexTypeMismatch = /((?:\n|.)*)\s+\!\=\<?\s+((?:\n|.)*)\s+of type\s+((?:\n|.)*)\s+when checking that the expression\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/
 parseTypeMismatch = (str) ->
     result = str.match regexTypeMismatch
     if result
-        location: parseLocation str
+        errorType: 'type mismatch'
         expected: result[2]
         actual: result[1]
         type: result[3]
         term: result[4]
         termType: result[5]
-        errorType: 'type mismatch'
 
 regexWrongConstructor = /The constructor\s+((?:\n|.)*)\s+does not construct an element of\s+((?:\n|.)*)\s+when checking that the expression\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/
 parseWrongConstructor = (str) ->
     result = str.match regexWrongConstructor
     if result
-        location: parseLocation str
+        errorType: 'wrong constructor'
         constructor: result[1]
         constructorType: result[2]
         term: result[3]
         termType: result[4]
-        errorType: 'wrong constructor'
 
-regexApplicationParseError = /\s*Could not parse the application\s+((?:\n|.)*)\s+when scope checking\s+((?:\n|.)*)/
+regexApplicationParseError = /Could not parse the application\s+((?:\n|.)*)\s+when scope checking\s+((?:\n|.)*)/
 parseApplicationParseError = (str) ->
     result = str.match regexApplicationParseError
     if result
-        location: parseLocation str
-        term: result[1]
         errorType: 'application parse error'
+        term: result[1]
 
-regexTerminationError = /\s*Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)\s+\(at (.*)\)/
+regexTerminationError = /Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)\s+\(at (.*)\)/
 parseTerminationError = (str) ->
     result = str.match regexTerminationError
     if result
-        location: parseLocation str
+        errorType: 'termination error'
         term: result[1]
         call: result[2]
         callLocation: parseLocation result[3]
-        errorType: 'termination error'
 
-regexMissingDefinition = /\s*Missing definition for\s+((?:\n|.)*)/
+regexMissingDefinition = /Missing definition for\s+((?:\n|.)*)/
 parseMissingDefinition = (str) ->
     result = str.match regexMissingDefinition
     if result
-        location: parseLocation str
-        term: result[1]
         errorType: 'missing definition'
+        term: result[1]
 
-regexRhsOmitted = /\s*The right-hand side can only be omitted if there is an absurd\s*pattern\, \(\) or \{\}\, in the left-hand side\.\s*when checking that the clause\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/
+regexRhsOmitted = /The right-hand side can only be omitted if there is an absurd\s*pattern\, \(\) or \{\}\, in the left-hand side\.\s*when checking that the clause\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/
 parseRhsOmitted = (str) ->
     result = str.match regexRhsOmitted
     if result
-        location: parseLocation str
+        errorType: 'rhs omitted'
         term: result[1]
         type: result[2]
-        errorType: 'rhs omitted'
 
-parseUnknownError = (strings) ->
-    location: parseLocation strings[0]
-    raw: _.rest(strings).join('\n')
+parseUnknownError = (str) ->
     errorType: 'unknown'
+    raw: str
 
-parseError = (str) ->
-    bulk = str.join('\n')
+parseError = (strings) ->
+    bulk = _.rest(strings).join('\n')
 
-    parseNotInScope(bulk) ||
-    parseTypeMismatch(bulk) ||
-    parseWrongConstructor(bulk) ||
-    parseApplicationParseError(bulk) ||
-    parseTerminationError(bulk) ||
-    parseMissingDefinition(bulk) ||
-    parseRhsOmitted(bulk) ||
-    parseUnknownError(str)
+    result = parseNotInScope(bulk) ||
+        parseTypeMismatch(bulk) ||
+        parseWrongConstructor(bulk) ||
+        parseApplicationParseError(bulk) ||
+        parseTerminationError(bulk) ||
+        parseMissingDefinition(bulk) ||
+        parseRhsOmitted(bulk) ||
+        parseUnknownError(bulk)
+    result.location = parseLocation strings[0]
+    return result
 
 module.exports =
     parseHeader: parseHeader
