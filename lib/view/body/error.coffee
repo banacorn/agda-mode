@@ -5,9 +5,6 @@ require './location'
 Vue.component 'error',
     props: ['error']
     template: '''
-        <template v-repeat="error.raw">
-            <li class="list-item">{{$value}}</li>
-        </template>
         <template v-if="notInScope">
             <li class="list-item">
                 <span>Not in scope:</span>
@@ -91,12 +88,20 @@ Vue.component 'error',
         <template v-if="rhsOmitted">
             <li class="list-item">
                 <span>The right-hand side can only be omitted if there is an absurd pattern, () or {}, in the left-hand side.</span>
+                <location location="{{error.location}}"></location>
             </li>
             <li class="list-item">
                 <span>when checking that the clause</span>
                 <type input={{error.term}}></type>
                 <span>has type</span>
                 <type input={{error.type}}></type>
+            </li>
+        </template>
+
+        <template v-if="unknown">
+            <li class="list-item">
+                <span>{{error.raw}}</span>
+                <location location="{{error.location}}"></location>
             </li>
         </template>
     '''
@@ -108,3 +113,4 @@ Vue.component 'error',
         terminationError: -> @error.errorType is 'termination error'
         missingDefinition: -> @error.errorType is 'missing definition'
         rhsOmitted: -> @error.errorType is 'rhs omitted'
+        unknown: -> @error.errorType is 'unknown'

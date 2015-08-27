@@ -2,7 +2,7 @@ Vue = require 'vue'
 Vue.component 'location',
     props: ['location', 'no-float']
     template: '''
-        <span class="{{classes}} text-subtle" v-on="click: jump(location)">{{location.path}}:<template v-if="location.isSameLine">{{location.rowStart}},{{location.colStart}}-{{location.colEnd}}</template><template v-if="!location.isSameLine">{{location.rowStart}},{{location.colStart}}-{{location.rowEnd}},{{location.colEnd}}</template></span>
+        <span class="{{classes}} text-subtle" v-on="click: jump(location)"><template v-if="location.path">{{location.path}}:</template><template v-if="location.isSameLine">{{location.rowStart}},{{location.colStart}}-{{location.colEnd}}</template><template v-if="!location.isSameLine">{{location.rowStart}},{{location.colStart}}-{{location.rowEnd}},{{location.colEnd}}</template></span>
     '''
     methods:
         jump: (location) ->

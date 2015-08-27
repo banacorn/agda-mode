@@ -1,4 +1,4 @@
-"using babel"
+_ = require 'lodash'
 
 regexHeader = /^(Goal|Have)\: ((?:\n|.)+)/
 parseHeader = (str) ->
@@ -137,8 +137,14 @@ parseRhsOmitted = (str) ->
         type: result[2]
         errorType: 'rhs omitted'
 
+parseUnknownError = (strings) ->
+    location: parseLocation strings[0]
+    raw: _.rest(strings).join('\n')
+    errorType: 'unknown'
+
 parseError = (str) ->
     bulk = str.join('\n')
+
     parseNotInScope(bulk) ||
     parseTypeMismatch(bulk) ||
     parseWrongConstructor(bulk) ||
@@ -146,7 +152,7 @@ parseError = (str) ->
     parseTerminationError(bulk) ||
     parseMissingDefinition(bulk) ||
     parseRhsOmitted(bulk) ||
-    raw: str
+    parseUnknownError(str)
 
 module.exports =
     parseHeader: parseHeader
