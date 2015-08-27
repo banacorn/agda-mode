@@ -130,6 +130,14 @@ parseRhsOmitted = (str) ->
         term: result[1]
         type: result[2]
 
+regexParseError = /Parse error\s+((?:\n|.)*)\<ERROR\>\s+((?:\n|.)*)\.\.\./
+parseParseError = (str) ->
+    result = str.match regexParseError
+    if result
+        errorType: 'parse error'
+        term: result[1]
+        post: result[2]
+
 parseUnknownError = (str) ->
     errorType: 'unknown'
     raw: str
@@ -144,6 +152,7 @@ parseError = (strings) ->
         parseTerminationError(bulk) ||
         parseMissingDefinition(bulk) ||
         parseRhsOmitted(bulk) ||
+        parseParseError(bulk) ||
         parseUnknownError(bulk)
     result.location = parseLocation strings[0]
     return result

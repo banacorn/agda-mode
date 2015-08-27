@@ -98,6 +98,15 @@ Vue.component 'error',
             </li>
         </template>
 
+        <template v-if="parseError">
+            <li class="list-item">
+                <span>Parse error:</span>
+                <span class="text-error">{{error.term}}</span>
+                <span>{{error.post}}</span>
+                <location location="{{error.location}}"></location>
+            </li>
+        </template>
+
         <template v-if="unknown">
             <li class="list-item">
                 <span>{{error.raw}}</span>
@@ -113,4 +122,5 @@ Vue.component 'error',
         terminationError: -> @error.errorType is 'termination error'
         missingDefinition: -> @error.errorType is 'missing definition'
         rhsOmitted: -> @error.errorType is 'rhs omitted'
+        parseError: -> @error.errorType is 'parse error'
         unknown: -> @error.errorType is 'unknown'
