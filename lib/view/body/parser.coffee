@@ -27,7 +27,7 @@ parseGoal = (str) ->
         body: result[2]
         type: 'goal'
 
-regexTerm = /^([^\_\?].*) \: ((?:\n|.)+)/
+regexTerm = /^(?:([^\_\?].*) \: )?((?:\n|.)+)/
 parseTerm = (str) ->
     result = str.match regexTerm
     if result
@@ -37,24 +37,27 @@ parseTerm = (str) ->
 
 regexMeta = /^(.+) \: ((?:\n|.)+)/
 parseMeta = (str) ->
-    {body, location} = parseOccurence str
-    result = body.match regexMeta
-    if result
-        index: result[1]
-        body: result[2]
-        location: location
-        type: 'meta'
+    occurence = parseOccurence str
+    if occurence
+        result = occurence.body.match regexMeta
+        if result
+            index: result[1]
+            body: result[2]
+            location: occurence.location
+            type: 'meta'
 
 regexSort = /^Sort ((?:\n|.)+)/
 parseSort = (str) ->
-    {body, location} = parseOccurence str
-    result = body.match regexSort
-    if result
-        index: result[1]
-        location: location
-        type: 'sort'
+    occurence = parseOccurence str
+    if occurence
+        result = occurence.body.match regexSort
+        if result
+            index: result[1]
+            location: occurence.location
+            type: 'sort'
 
-parseBody = (str) -> parseGoal(str) || parseTerm(str) || parseMeta(str) || parseSort(str)
+parseBody = (str) ->
+    parseGoal(str) || parseTerm(str) || parseMeta(str) || parseSort(str)
 
 regexLocation = /(?:(.+):)?(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+))/
 parseLocation = (str) ->

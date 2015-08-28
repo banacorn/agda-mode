@@ -55,7 +55,7 @@ Vue.component 'panel-body',
                 </li>
                 <li class="list-item" v-repeat="body.term">
                     <span class="text-success">{{index}}</span>
-                    <span>:</span>
+                    <span v-if="index">:</span>
                     <type input="{{body}}"></type>
                 </li>
                 <li class="list-item" v-repeat="body.meta">
@@ -91,7 +91,6 @@ Vue.component 'panel-body',
                         {header, body} = divideContent content.body
 
                         @header = concatJudgements(header).map parser.parseHeader
-
                         items = concatJudgements(body).map(parser.parseBody)
                         @body =
                             goal: _.filter(items, type: 'goal')
