@@ -43,14 +43,18 @@ module.exports =
 
             # instantiate core if it's .agda
             @instantiateCore editor if isAgdaFile editor
-            # instantiate core if it becomes .agda
+
             editor.onDidChangePath =>
-                if isAgdaFile editor
-                    @instantiateCore editor
-                else if editor.core
-                    editor.core.destroy()
+                # agda => not agda
+                if editor.core and not isAgdaFile(editor)
                     editorElement = atom.views.getView editor
                     editorElement.classList.remove 'agda'
+                    editor.core.destroy()
+                    delete editor.core
+
+                # not agda => agda
+                if not editor.core and isAgdaFile(editor)
+                    @instantiateCore editor
 
         @registerEditorActivation()
         @registerCommands()
