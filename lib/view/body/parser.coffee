@@ -64,7 +64,7 @@ parseSort = (str) ->
             type: 'sort'
 
 parseBody = (str) ->
-    parseGoal(str) || parseTerm(str) || parseMeta(str) || parseTerm2(str) || parseSort(str)
+    parseGoal(str) || parseTerm(str) || parseMeta(str) || parseSort(str) || parseTerm2(str)
 
 regexLocation = /(?:(.+):)?(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+))/
 parseLocation = (str) ->

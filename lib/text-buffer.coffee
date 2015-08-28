@@ -147,6 +147,7 @@ class TextBuffer
             @focus()
 
     jumpToLocation: (location) ->
+        @focus()
         range = new Range [location.rowStart - 1, location.colStart - 1], [location.rowEnd - 1, location.colEnd - 1]
         @core.editor.setSelectedBufferRange range, true
 
