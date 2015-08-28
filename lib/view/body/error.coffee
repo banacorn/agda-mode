@@ -8,7 +8,7 @@ Vue.component 'error',
         <template v-if="notInScope">
             <li class="list-item">
                 <span>Not in scope:</span>
-                <type input={{error.term}}></type>
+                <type input={{error.expr}}></type>
                 <location location="{{error.location}}"></location>
             </li>
         </template>
@@ -29,9 +29,9 @@ Vue.component 'error',
             </li>
             <li class="list-item">
                 <span>when checking that the expression</span>
-                <type input={{error.term}}></type>
+                <type input={{error.expr}}></type>
                 <span>has type</span>
-                <type input={{error.termType}}></type>
+                <type input={{error.exprType}}></type>
             </li>
         </template>
 
@@ -45,16 +45,16 @@ Vue.component 'error',
             </li>
             <li class="list-item">
                 <span>when checking that the expression</span>
-                <type input={{error.term}}></type>
+                <type input={{error.expr}}></type>
                 <span>has type</span>
-                <type input={{error.termType}}></type>
+                <type input={{error.exprType}}></type>
             </li>
         </template>
 
         <template v-if="applicationParseError">
             <li class="list-item">
                 <span>Could not parse the application</span>
-                <type input={{error.term}}></type>
+                <type input={{error.expr}}></type>
                 <location location="{{error.location}}"></location>
             </li>
         </template>
@@ -65,7 +65,7 @@ Vue.component 'error',
                 <location location="{{error.location}}"></location>
             </li>
             <li class="list-item">
-                <type input={{error.term}}></type>
+                <type input={{error.expr}}></type>
             </li>
             <li class="list-item">
                 <span>Problematic calls:</span>
@@ -80,7 +80,7 @@ Vue.component 'error',
         <template v-if="missingDefinition">
             <li class="list-item">
                 <span>Missing definition for</span>
-                <type input={{error.term}}></type>
+                <type input={{error.expr}}></type>
                 <location location="{{error.location}}"></location>
             </li>
         </template>
@@ -92,7 +92,7 @@ Vue.component 'error',
             </li>
             <li class="list-item">
                 <span>when checking that the clause</span>
-                <type input={{error.term}}></type>
+                <type input={{error.expr}}></type>
                 <span>has type</span>
                 <type input={{error.type}}></type>
             </li>
@@ -101,7 +101,7 @@ Vue.component 'error',
         <template v-if="parseError">
             <li class="list-item">
                 <span>Parse error:</span>
-                <span class="text-error">{{error.term}}</span>
+                <span class="text-error">{{error.expr}}</span>
                 <span>{{error.post}}</span>
                 <location location="{{error.location}}"></location>
             </li>

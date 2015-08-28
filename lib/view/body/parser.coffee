@@ -76,7 +76,7 @@ parseNotInScope = (str) ->
     result = str.match regexNotInScope
     if result
         errorType: 'not in scope'
-        term: result[1]
+        expr: result[1]
 
 regexTypeMismatch = /((?:\n|.)*)\s+\!\=\<?\s+((?:\n|.)*)\s+of type\s+((?:\n|.)*)\s+when checking that the expression\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/
 parseTypeMismatch = (str) ->
@@ -86,8 +86,8 @@ parseTypeMismatch = (str) ->
         expected: result[2]
         actual: result[1]
         type: result[3]
-        term: result[4]
-        termType: result[5]
+        expr: result[4]
+        exprType: result[5]
 
 regexWrongConstructor = /The constructor\s+((?:\n|.)*)\s+does not construct an element of\s+((?:\n|.)*)\s+when checking that the expression\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/
 parseWrongConstructor = (str) ->
@@ -96,22 +96,22 @@ parseWrongConstructor = (str) ->
         errorType: 'wrong constructor'
         constructor: result[1]
         constructorType: result[2]
-        term: result[3]
-        termType: result[4]
+        expr: result[3]
+        exprType: result[4]
 
 regexApplicationParseError = /Could not parse the application\s+((?:\n|.)*)\s+when scope checking\s+((?:\n|.)*)/
 parseApplicationParseError = (str) ->
     result = str.match regexApplicationParseError
     if result
         errorType: 'application parse error'
-        term: result[1]
+        expr: result[1]
 
 regexTerminationError = /Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)\s+\(at (.*)\)/
 parseTerminationError = (str) ->
     result = str.match regexTerminationError
     if result
         errorType: 'termination error'
-        term: result[1]
+        expr: result[1]
         call: result[2]
         callLocation: parseLocation result[3]
 
@@ -120,14 +120,14 @@ parseMissingDefinition = (str) ->
     result = str.match regexMissingDefinition
     if result
         errorType: 'missing definition'
-        term: result[1]
+        expr: result[1]
 
 regexRhsOmitted = /The right-hand side can only be omitted if there is an absurd\s*pattern\, \(\) or \{\}\, in the left-hand side\.\s*when checking that the clause\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/
 parseRhsOmitted = (str) ->
     result = str.match regexRhsOmitted
     if result
         errorType: 'rhs omitted'
-        term: result[1]
+        expr: result[1]
         type: result[2]
 
 regexParseError = /Parse error\s+((?:\n|.)*)\<ERROR\>\s+((?:\n|.)*)\.\.\./
@@ -135,7 +135,7 @@ parseParseError = (str) ->
     result = str.match regexParseError
     if result
         errorType: 'parse error'
-        term: result[1]
+        expr: result[1]
         post: result[2]
 
 parseUnknownError = (str) ->
@@ -143,7 +143,13 @@ parseUnknownError = (str) ->
     raw: str
 
 parseError = (strings) ->
-    bulk = _.rest(strings).join('\n')
+
+    location = parseLocation strings[0]
+    if location
+        bulk = _.rest(strings).join('\n')
+    else
+        # the first line does not contains Location
+        bulk = strings.join('\n')
 
     result = parseNotInScope(bulk) ||
         parseTypeMismatch(bulk) ||
@@ -154,7 +160,7 @@ parseError = (strings) ->
         parseRhsOmitted(bulk) ||
         parseParseError(bulk) ||
         parseUnknownError(bulk)
-    result.location = parseLocation strings[0]
+    result.location = location
     return result
 
 module.exports =
