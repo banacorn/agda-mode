@@ -1,4 +1,8 @@
-## 0.3.10
+## 0.3.12
+* Better error message
+* Message locations are now clickable
+
+## 0.3.11
 * Make Input Method optional, enable or disable it in the settings
 * Fix #22
 
