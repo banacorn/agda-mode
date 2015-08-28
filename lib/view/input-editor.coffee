@@ -23,6 +23,10 @@ Vue.component 'panel-input-editor',
             @initialize()
             new Promise (resolve, reject) =>
                 @$once 'confirm', (expr) =>
+                    expr = expr
+                        .trim()
+                        .replace(/\\/g, '\\\\')
+                        .replace(/\"/g, '\\"')
                     resolve expr
                 @$once 'cancel', =>
                     reject new QueryCancelledError
