@@ -23,17 +23,17 @@ regexGoal = /^(\?\d+) \: ((?:\n|.)+)/
 parseGoal = (str) ->
     result = str.match regexGoal
     if result
+        judgementType: 'goal'
         index: result[1]
-        body: result[2]
-        type: 'goal'
+        type: result[2]
 
-regexTypeJudgement = /^([^\_\?].*) \: ((?:\n|.)+)/
-parseTypeJudgement = (str) ->
-    result = str.match regexTypeJudgement
+regexType = /^([^\_\?].*) \: ((?:\n|.)+)/
+regexType = (str) ->
+    result = str.match regexType
     if result
-        index: result[1]
-        body: result[2]
-        type: 'type judgement'
+        judgementType: 'type judgement'
+        expr: result[1]
+        type: result[2]
 
 regexMeta = /^(.+) \: ((?:\n|.)+)/
 parseMeta = (str) ->
@@ -41,17 +41,17 @@ parseMeta = (str) ->
     if occurence
         result = occurence.body.match regexMeta
         if result
+            judgementType: 'meta'
             index: result[1]
-            body: result[2]
+            type: result[2]
             location: occurence.location
-            type: 'meta'
 
 regexTerm = /^((?:\n|.)+)/
 parseTerm = (str) ->
     result = str.match regexTerm
     if result
+        judgementType: 'term'
         expr: result[1]
-        type: 'term'
 
 regexSort = /^Sort ((?:\n|.)+)/
 parseSort = (str) ->
@@ -59,12 +59,12 @@ parseSort = (str) ->
     if occurence
         result = occurence.body.match regexSort
         if result
+            judgementType: 'sort'
             index: result[1]
             location: occurence.location
-            type: 'sort'
 
-parseBody = (str) ->
-    parseGoal(str) || parseTypeJudgement(str) || parseMeta(str) || parseSort(str) || parseTerm(str)
+parseJudgement = (str) ->
+    parseGoal(str) || regexType(str) || parseMeta(str) || parseSort(str) || parseTerm(str)
 
 regexLocation = /(?:(.+):)?(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+))/
 parseLocation = (str) ->
@@ -116,9 +116,9 @@ parseApplicationParseError = (str) ->
         errorType: 'application parse error'
         expr: result[1]
 
-regexTypeJudgementinationError = /Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)\s+\(at (.*)\)/
+regexTypeinationError = /Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)\s+\(at (.*)\)/
 parseTerminationError = (str) ->
-    result = str.match regexTypeJudgementinationError
+    result = str.match regexTypeinationError
     if result
         errorType: 'termination error'
         expr: result[1]
@@ -176,4 +176,4 @@ parseError = (strings) ->
 module.exports =
     parseHeader: parseHeader
     parseError: parseError
-    parseBody: parseBody
+    parseJudgement: parseJudgement
