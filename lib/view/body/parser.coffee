@@ -71,10 +71,10 @@ parseLocation = (str) ->
     result = str.match regexLocation
     if result
         path: result[1]
-        rowStart: if result[2] then result[2] else result[6]
-        rowEnd: if result[4] then result[4] else result[6]
-        colStart: if result[3] then result[3] else result[7]
-        colEnd: if result[5] then result[5] else result[8]
+        rowStart: if parseInt result[2] then parseInt result[2] else parseInt result[6]
+        rowEnd: if parseInt result[4] then parseInt result[4] else parseInt result[6]
+        colStart: if parseInt result[3] then parseInt result[3] else parseInt result[7]
+        colEnd: if parseInt result[5] then parseInt result[5] else parseInt result[8]
         isSameLine: result[2] is undefined
 
 ################################################################################
