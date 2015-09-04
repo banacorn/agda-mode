@@ -1,4 +1,5 @@
 _ = require 'lodash'
+{Point, Range}  = require 'atom'
 
 regexHeader = /^(Goal|Have)\: ((?:\n|.)+)/
 parseHeader = (str) ->
@@ -10,13 +11,16 @@ regexOccurence = /((?:\n|.)*\S+)\s*\[ at (.+):(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+
 parseOccurence = (str) ->
     result = str.match regexOccurence
     if result
+        rowStart = if parseInt result[2] then parseInt result[2] else parseInt result[6]
+        rowEnd   = if parseInt result[4] then parseInt result[4] else parseInt result[6]
+        colStart = if parseInt result[3] then parseInt result[3] else parseInt result[7]
+        colEnd   = if parseInt result[5] then parseInt result[5] else parseInt result[8]
+        range = new Range [rowStart - 1, colStart - 1], [rowEnd - 1, colEnd - 1]
+
         body: result[1]
         location:
             path: result[2]
-            rowStart: if result[3] then result[3] else result[7]
-            rowEnd: if result[5] then result[5] else result[7]
-            colStart: if result[4] then result[4] else result[8]
-            colEnd: if result[6] then result[6] else result[9]
+            range: range
             isSameLine: result[3] is undefined
 
 regexGoal = /^(\?\d+) \: ((?:\n|.)+)/
@@ -70,11 +74,14 @@ regexLocation = /(?:(.+):)?(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+))/
 parseLocation = (str) ->
     result = str.match regexLocation
     if result
+        rowStart = if parseInt result[2] then parseInt result[2] else parseInt result[6]
+        rowEnd   = if parseInt result[4] then parseInt result[4] else parseInt result[6]
+        colStart = if parseInt result[3] then parseInt result[3] else parseInt result[7]
+        colEnd   = if parseInt result[5] then parseInt result[5] else parseInt result[8]
+        range = new Range [rowStart - 1, colStart - 1], [rowEnd - 1, colEnd - 1]
+
         path: result[1]
-        rowStart: if parseInt result[2] then parseInt result[2] else parseInt result[6]
-        rowEnd: if parseInt result[4] then parseInt result[4] else parseInt result[6]
-        colStart: if parseInt result[3] then parseInt result[3] else parseInt result[7]
-        colEnd: if parseInt result[5] then parseInt result[5] else parseInt result[8]
+        range: range
         isSameLine: result[2] is undefined
 
 ################################################################################

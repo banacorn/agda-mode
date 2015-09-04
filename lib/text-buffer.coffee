@@ -149,12 +149,21 @@ class TextBuffer
     jumpToLocation: (location) ->
         @focus()
         if location.path
-            range = new Range [location.rowStart - 1, location.colStart - 1], [location.rowEnd - 1, location.colEnd - 1]
-            @core.editor.setSelectedBufferRange range, true
+            goals = @goals.filter (goal) =>
+                goal.range.containsRange location.range
+
+            # in certain goal
+            if goals.length is 1
+                range = location.range.translate [0, 3]
+                @core.editor.setSelectedBufferRange range, true
+
+            # not in certain goal
+            else
+                @core.editor.setSelectedBufferRange location.range, true
         else
             @getCurrentGoal().then (goal) =>
-                    startDelta = new Point location.rowStart - 1, location.colStart + 1
-                    endDelta = new Point location.rowEnd - 1, location.colEnd + 1
+                    startDelta = location.range.start.translate [0, 3]
+                    endDelta = location.range.end.translate [0, 3]
                     goalRangeStart = goal.range.start.translate startDelta
                     goalRangeEnd = goal.range.start.translate endDelta
                     range = new Range goalRangeStart, goalRangeEnd
