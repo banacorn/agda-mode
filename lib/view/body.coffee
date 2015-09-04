@@ -53,10 +53,13 @@ Vue.component 'panel-body',
                     <span>:</span>
                     <type input="{{body}}"></type>
                 </li>
-                <li class="list-item" v-repeat="body.term">
+                <li class="list-item" v-repeat="body.judgement">
                     <span class="text-success">{{index}}</span>
                     <span v-if="index">:</span>
                     <type input="{{body}}"></type>
+                </li>
+                <li class="list-item" v-repeat="body.term">
+                    <type input="{{expr}}"></type>
                 </li>
                 <li class="list-item" v-repeat="body.meta">
                     <span class="text-success">{{index}}</span>
@@ -94,6 +97,7 @@ Vue.component 'panel-body',
                         items = concatJudgements(body).map(parser.parseBody)
                         @body =
                             goal: _.filter(items, type: 'goal')
+                            judgement: _.filter(items, type: 'type judgement')
                             term: _.filter(items, type: 'term')
                             meta: _.filter(items, type: 'meta')
                             sort: _.filter(items, type: 'sort')

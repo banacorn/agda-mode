@@ -27,13 +27,13 @@ parseGoal = (str) ->
         body: result[2]
         type: 'goal'
 
-regexTerm = /^([^\_\?].*) \: ((?:\n|.)+)/
-parseTerm = (str) ->
-    result = str.match regexTerm
+regexTypeJudgement = /^([^\_\?].*) \: ((?:\n|.)+)/
+parseTypeJudgement = (str) ->
+    result = str.match regexTypeJudgement
     if result
         index: result[1]
         body: result[2]
-        type: 'term'
+        type: 'type judgement'
 
 regexMeta = /^(.+) \: ((?:\n|.)+)/
 parseMeta = (str) ->
@@ -46,11 +46,11 @@ parseMeta = (str) ->
             location: occurence.location
             type: 'meta'
 
-regexTerm2 = /^((?:\n|.)+)/
-parseTerm2 = (str) ->
-    result = str.match regexTerm2
+regexTerm = /^((?:\n|.)+)/
+parseTerm = (str) ->
+    result = str.match regexTerm
     if result
-        index: result[1]
+        expr: result[1]
         type: 'term'
 
 regexSort = /^Sort ((?:\n|.)+)/
@@ -64,7 +64,7 @@ parseSort = (str) ->
             type: 'sort'
 
 parseBody = (str) ->
-    parseGoal(str) || parseTerm(str) || parseMeta(str) || parseSort(str) || parseTerm2(str)
+    parseGoal(str) || parseTypeJudgement(str) || parseMeta(str) || parseSort(str) || parseTerm(str)
 
 regexLocation = /(?:(.+):)?(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+))/
 parseLocation = (str) ->
@@ -116,9 +116,9 @@ parseApplicationParseError = (str) ->
         errorType: 'application parse error'
         expr: result[1]
 
-regexTerminationError = /Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)\s+\(at (.*)\)/
+regexTypeJudgementinationError = /Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)\s+\(at (.*)\)/
 parseTerminationError = (str) ->
-    result = str.match regexTerminationError
+    result = str.match regexTypeJudgementinationError
     if result
         errorType: 'termination error'
         expr: result[1]
