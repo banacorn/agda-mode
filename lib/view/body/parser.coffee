@@ -1,4 +1,5 @@
 _ = require 'lodash'
+{Point, Range}  = require 'atom'
 
 regexHeader = /^(Goal|Have)\: ((?:\n|.)+)/
 parseHeader = (str) ->
@@ -10,30 +11,33 @@ regexOccurence = /((?:\n|.)*\S+)\s*\[ at (.+):(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+
 parseOccurence = (str) ->
     result = str.match regexOccurence
     if result
+        rowStart = if parseInt result[2] then parseInt result[2] else parseInt result[6]
+        rowEnd   = if parseInt result[4] then parseInt result[4] else parseInt result[6]
+        colStart = if parseInt result[3] then parseInt result[3] else parseInt result[7]
+        colEnd   = if parseInt result[5] then parseInt result[5] else parseInt result[8]
+        range = new Range [rowStart - 1, colStart - 1], [rowEnd - 1, colEnd - 1]
+
         body: result[1]
         location:
             path: result[2]
-            rowStart: if result[3] then result[3] else result[7]
-            rowEnd: if result[5] then result[5] else result[7]
-            colStart: if result[4] then result[4] else result[8]
-            colEnd: if result[6] then result[6] else result[9]
+            range: range
             isSameLine: result[3] is undefined
 
 regexGoal = /^(\?\d+) \: ((?:\n|.)+)/
 parseGoal = (str) ->
     result = str.match regexGoal
     if result
+        judgementType: 'goal'
         index: result[1]
-        body: result[2]
-        type: 'goal'
+        type: result[2]
 
-regexTerm = /^([^\_\?].*) \: ((?:\n|.)+)/
-parseTerm = (str) ->
-    result = str.match regexTerm
+regexType = /^([^\_\?].*) \: ((?:\n|.)+)/
+regexType = (str) ->
+    result = str.match regexType
     if result
-        index: result[1]
-        body: result[2]
-        type: 'term'
+        judgementType: 'type judgement'
+        expr: result[1]
+        type: result[2]
 
 regexMeta = /^(.+) \: ((?:\n|.)+)/
 parseMeta = (str) ->
@@ -41,17 +45,17 @@ parseMeta = (str) ->
     if occurence
         result = occurence.body.match regexMeta
         if result
+            judgementType: 'meta'
             index: result[1]
-            body: result[2]
+            type: result[2]
             location: occurence.location
-            type: 'meta'
 
-regexTerm2 = /^((?:\n|.)+)/
-parseTerm2 = (str) ->
-    result = str.match regexTerm2
+regexTerm = /^((?:\n|.)+)/
+parseTerm = (str) ->
+    result = str.match regexTerm
     if result
-        index: result[1]
-        type: 'term'
+        judgementType: 'term'
+        expr: result[1]
 
 regexSort = /^Sort ((?:\n|.)+)/
 parseSort = (str) ->
@@ -59,22 +63,25 @@ parseSort = (str) ->
     if occurence
         result = occurence.body.match regexSort
         if result
+            judgementType: 'sort'
             index: result[1]
             location: occurence.location
-            type: 'sort'
 
-parseBody = (str) ->
-    parseGoal(str) || parseTerm(str) || parseMeta(str) || parseSort(str) || parseTerm2(str)
+parseJudgement = (str) ->
+    parseGoal(str) || regexType(str) || parseMeta(str) || parseSort(str) || parseTerm(str)
 
 regexLocation = /(?:(.+):)?(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+))/
 parseLocation = (str) ->
     result = str.match regexLocation
     if result
+        rowStart = if parseInt result[2] then parseInt result[2] else parseInt result[6]
+        rowEnd   = if parseInt result[4] then parseInt result[4] else parseInt result[6]
+        colStart = if parseInt result[3] then parseInt result[3] else parseInt result[7]
+        colEnd   = if parseInt result[5] then parseInt result[5] else parseInt result[8]
+        range = new Range [rowStart - 1, colStart - 1], [rowEnd - 1, colEnd - 1]
+
         path: result[1]
-        rowStart: if result[2] then result[2] else result[6]
-        rowEnd: if result[4] then result[4] else result[6]
-        colStart: if result[3] then result[3] else result[7]
-        colEnd: if result[5] then result[5] else result[8]
+        range: range
         isSameLine: result[2] is undefined
 
 ################################################################################
@@ -116,9 +123,9 @@ parseApplicationParseError = (str) ->
         errorType: 'application parse error'
         expr: result[1]
 
-regexTerminationError = /Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)\s+\(at (.*)\)/
+regexTypeinationError = /Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)\s+\(at (.*)\)/
 parseTerminationError = (str) ->
-    result = str.match regexTerminationError
+    result = str.match regexTypeinationError
     if result
         errorType: 'termination error'
         expr: result[1]
@@ -176,4 +183,4 @@ parseError = (strings) ->
 module.exports =
     parseHeader: parseHeader
     parseError: parseError
-    parseBody: parseBody
+    parseJudgement: parseJudgement

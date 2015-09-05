@@ -103,7 +103,7 @@ class Goal
             .trim()
             .replace(/\\/g, '\\\\')
             .replace(/\"/g, '\\"')
-            
+
     setContent: (text) ->
         left = @editor.translate @range.start, 2
         right = @editor.translate @range.end, -2
