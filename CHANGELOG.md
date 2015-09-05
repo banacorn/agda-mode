@@ -1,3 +1,7 @@
+## 0.3.13
+* Fix message parsing
+* Fix message location jumps
+
 ## 0.3.12
 * Better error message
 * Message locations are now clickable
