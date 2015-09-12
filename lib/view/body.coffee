@@ -22,7 +22,7 @@ divideContent = (content) ->
 
 # concatenate multiline judgements
 concatJudgements = (lines) ->
-    lineStartRegex = /^(?:Goal|Have|.+ )\:|Sort /
+    lineStartRegex = /^(?:Goal|Have|\S+ )\:|Sort /
     result = []
     currentLine = 0
     lines.forEach (item, i) ->
