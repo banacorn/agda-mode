@@ -22,7 +22,7 @@ class Executable
     validateExecutablePath: (path) -> new Promise (resolve, reject) =>
         command = path + ' -V'
         exec command, (error, stdout, stderr) =>
-            if /^Agda version/.test stdout
+            if /^Agda/.test stdout
                 resolve path
             else
                 reject new InvalidExecutablePathError error if error
