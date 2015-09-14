@@ -23,10 +23,6 @@ Vue.component 'panel-input-editor',
             @initialize()
             new Promise (resolve, reject) =>
                 @$once 'confirm', (expr) =>
-                    expr = expr
-                        .trim()
-                        .replace(/\\/g, '\\\\')
-                        .replace(/\"/g, '\\"')
                     resolve expr
                 @$once 'cancel', =>
                     reject new QueryCancelledError
@@ -35,8 +31,12 @@ Vue.component 'panel-input-editor',
     ready: ->
         # event clusterfuck
         confirmDisposable = atom.commands.add @$el, 'core:confirm', =>
-            @$emit 'confirm', @$el.getModel().getText().trim()     # to local
-            @$dispatch 'input-editor:confirm', @$el.getModel().getText().trim() # to parent
+            expr = @$el.getModel().getText()
+                        .replace(/\\/g, '\\\\')
+                        .replace(/\"/g, '\\"')
+                        .replace(/\n/g, '\\n')
+            @$emit 'confirm', expr     # to local
+            @$dispatch 'input-editor:confirm', expr # to parent
         cancelDisposable = atom.commands.add @$el, 'core:cancel', =>
             @$emit 'cancel'
             @$dispatch 'input-editor:cancel'
