@@ -123,14 +123,25 @@ parseApplicationParseError = (str) ->
         errorType: 'application parse error'
         expr: result[1]
 
-regexTypeinationError = /Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)\s+\(at (.*)\)/
+# fuck javascript
+parseCallLocation = (str) ->
+    result = []
+    tokens = str.split /\(at (.*)\)/
+    tokens.forEach (token, i) ->
+        if token isnt "" and i % 2 is 0
+            result[Math.floor(i/2)] = term: token.trim()
+        else if token
+            result[Math.floor(i/2)].location = parseLocation token
+    return result
+
+
+regexTypeinationError = /Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)/
 parseTerminationError = (str) ->
     result = str.match regexTypeinationError
     if result
         errorType: 'termination error'
         expr: result[1]
-        call: result[2]
-        callLocation: parseLocation result[3]
+        calls: parseCallLocation result[2]
 
 regexMissingDefinition = /Missing definition for\s+((?:\n|.)*)/
 parseMissingDefinition = (str) ->

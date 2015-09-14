@@ -70,10 +70,9 @@ Vue.component 'error',
             <li class="list-item">
                 <span>Problematic calls:</span>
             </li>
-            <li class="list-item">
-                <type input={{error.call}}></type>
-                <span>at</span>
-                <location no-float location="{{error.callLocation}}"></location>
+            <li class="list-item" v-repeat="error.calls">
+                <type input={{term}}></type>
+                <location location="{{location}}"></location>
             </li>
         </template>
 
