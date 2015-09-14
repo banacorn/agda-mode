@@ -201,7 +201,7 @@ class TextBuffer
 
     onGoto: (filepath, charIndex) ->
         if @core.editor.getPath() is filepath
-            position = @core.editor.fromIndex charIndex + 3
+            position = @core.editor.fromIndex charIndex - 1
             @core.editor.setCursorBufferPosition position
             # scroll down a bit further, or it would be shadowed by the panel
             @core.editor.scrollToBufferPosition position.translate(new Point(10, 0))
