@@ -1,5 +1,6 @@
-{spawn, exec} = require 'child_process'
+{execFile} = require 'child_process'
 Promise = require 'bluebird'
+Path = require 'path'
 {log, warn, error} = require './logger'
 Stream = require './executable/stream'
 {InvalidExecutablePathError} = require './error'
@@ -13,6 +14,17 @@ class Executable
 
     constructor: (@core) ->
 
+
+    parsePath: (str) ->
+        # sanitize by path.parse first
+        parsed = Path.parse str
+        # join the path back and replace Windows' stupid backslash with slash
+        path = Path.join(parsed.dir, parsed.base).split(Path.sep).join('/')
+        # fuck Windows Bidi control character
+        path = path.substr(1) if path.charCodeAt(0) is 8234
+        return path
+
+
     getLibraryPath: ->
         path = atom.config.get('agda-mode.libraryPath')
         path.unshift('.')
@@ -20,8 +32,8 @@ class Executable
 
     # locate the path and see if it is Agda executable
     validateExecutablePath: (path) -> new Promise (resolve, reject) =>
-        command = path + ' -V'
-        exec command, (error, stdout, stderr) =>
+        path = @parsePath path
+        execFile path, ['-V'], (error, stdout, stderr) =>
             if /^Agda/.test stdout
                 resolve path
             else
@@ -51,20 +63,19 @@ class Executable
         @validateExecutablePath path
             .then (path) => path
             .catch InvalidExecutablePathError, => @queryExecutablePathUntilSuccess()
+
     getProcess: -> new Promise (resolve, reject) =>
         if @processWired
             resolve @process
         else
             @getExecutablePath().then (path) =>
-                process = spawn path, ['--interaction']
+                process = execFile path, ['--interaction']
 
                 # catch other forms of errors
                 process.on 'error', (error) =>
                     reject error
 
-                # see if it is really agda
-                process.stdout.once 'data', (data) =>
-                  if /^Agda2/.test data
+                process.stdout.once 'data', =>
                     @processWired = true
                     @process = process
                     resolve process
