@@ -1,7 +1,7 @@
 {execFile} = require 'child_process'
 Promise = require 'bluebird'
-Path = require 'path'
 {log, warn, error} = require './logger'
+{parsePath} = require './util'
 Stream = require './executable/stream'
 {InvalidExecutablePathError} = require './error'
 Promise.longStackTraces()
@@ -14,17 +14,6 @@ class Executable
 
     constructor: (@core) ->
 
-
-    parsePath: (str) ->
-        # sanitize by path.parse first
-        parsed = Path.parse str
-        # join the path back and replace Windows' stupid backslash with slash
-        path = Path.join(parsed.dir, parsed.base).split(Path.sep).join('/')
-        # fuck Windows Bidi control character
-        path = path.substr(1) if path.charCodeAt(0) is 8234
-        return path
-
-
     getLibraryPath: ->
         path = atom.config.get('agda-mode.libraryPath')
         path.unshift('.')
@@ -32,7 +21,7 @@ class Executable
 
     # locate the path and see if it is Agda executable
     validateExecutablePath: (path) -> new Promise (resolve, reject) =>
-        path = @parsePath path
+        path = parsePath path
         execFile path, ['-V'], (error, stdout, stderr) =>
             if /^Agda/.test stdout
                 resolve path
@@ -110,12 +99,12 @@ class Executable
         endIndex    = @core.editor.toIndex end
         "( Range [Interval
             (Pn
-                (Just (mkAbsolute \"#{@core.editor.getPath()}\"))
+                (Just (mkAbsolute \"#{@core.getPath()}\"))
                 #{startIndex}
                 #{start.row + 1}
                 #{start.column + 1})
             (Pn
-                (Just (mkAbsolute \"#{@core.editor.getPath()}\"))
+                (Just (mkAbsolute \"#{@core.getPath()}\"))
                 #{endIndex}
                 #{end.row + 1}
                 #{end.column + 1})
@@ -123,7 +112,7 @@ class Executable
 
     sendCommand: (highlightingLevel, interaction) ->
         @getProcess().then (process) =>
-            filepath = @core.editor.getPath()
+            filepath = @core.getPath()
             highlightingMethod = atom.config.get 'agda-mode.highlightingMethod'
             command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction} )\n"
             process.stdin.write command
@@ -132,7 +121,7 @@ class Executable
     load: =>
         # force save before load, since we are sending filepath but content
         @core.textBuffer.saveBuffer()
-        @sendCommand "NonInteractive", "Cmd_load \"#{@core.editor.getPath()}\" [#{@getLibraryPath()}]"
+        @sendCommand "NonInteractive", "Cmd_load \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
 
     quit: =>
         @process.kill()
@@ -140,7 +129,7 @@ class Executable
         log 'Executable', 'process killed'
 
     compile: =>
-        @sendCommand "NonInteractive", "Cmd_compile MAlonzo \"#{@core.editor.getPath()}\" [#{@getLibraryPath()}]"
+        @sendCommand "NonInteractive", "Cmd_compile MAlonzo \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
     toggleDisplayOfImplicitArguments: =>
         @sendCommand "NonInteractive", "ToggleImplicitArgs"
     showConstraints: =>
