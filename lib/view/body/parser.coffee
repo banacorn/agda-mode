@@ -1,5 +1,6 @@
 _ = require 'lodash'
 {Point, Range}  = require 'atom'
+{parsePath} = require '../../util'
 
 regexHeader = /^(Goal|Have)\: ((?:\n|.)+)/
 parseHeader = (str) ->
@@ -19,7 +20,7 @@ parseOccurence = (str) ->
 
         body: result[1]
         location:
-            path: result[2]
+            path: parsePath result[2]
             range: range
             isSameLine: result[3] is undefined
 
@@ -80,7 +81,7 @@ parseLocation = (str) ->
         colEnd   = if parseInt result[5] then parseInt result[5] else parseInt result[8]
         range = new Range [rowStart - 1, colStart - 1], [rowEnd - 1, colEnd - 1]
 
-        path: result[1]
+        path: parsePath result[1]
         range: range
         isSameLine: result[2] is undefined
 

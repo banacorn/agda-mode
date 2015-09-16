@@ -16,7 +16,7 @@ class Executable
     getLibraryPath: ->
         path = atom.config.get('agda-mode.libraryPath')
         path.unshift('.')
-        return path.map((p) -> '\"' + p + '\"').join(', ')
+        return path.map((p) -> '\"' + parsePath p + '\"').join(', ')
 
     # locate the path and see if it is Agda executable
     validateExecutablePath: (path) -> new Promise (resolve, reject) =>
