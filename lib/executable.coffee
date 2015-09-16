@@ -1,4 +1,4 @@
-{execFile} = require 'child_process'
+{exec, spawn} = require 'child_process'
 Promise = require 'bluebird'
 {log, warn, error} = require './logger'
 {parsePath} = require './util'
@@ -22,7 +22,8 @@ class Executable
     # locate the path and see if it is Agda executable
     validateExecutablePath: (path) -> new Promise (resolve, reject) =>
         path = parsePath path
-        execFile path, ['-V'], (error, stdout, stderr) =>
+
+        exec path, ['-V'], (error, stdout, stderr) =>
             if /^Agda/.test stdout
                 resolve path
             else
@@ -30,35 +31,35 @@ class Executable
                 reject new InvalidExecutablePathError stderr if stderr
 
     # keep banging the user until we got the right path
-    queryExecutablePathUntilSuccess: ->
-        @core.panel.setContent 'Agda executable not found', [], 'warning', 'path of executable here'
+    queryExecutablePathUntilSuccess: (path) ->
+        @core.panel.setContent "Agda executable not found: \"#{path}\"", [], 'warning', 'path of executable here'
         @core.panel.query()
             .then (path) =>
                 log 'Executable', "got path: #{path}"
                 @validateExecutablePath path
                     .then (path) => path
-                    .catch InvalidExecutablePathError, => @queryExecutablePathUntilSuccess()
+                    .catch InvalidExecutablePathError, => @queryExecutablePathUntilSuccess path
             .then (path) =>
                 log 'Executable', "path validated: #{path}"
                 atom.config.set 'agda-mode.executablePath', path
                 return path
             .catch InvalidExecutablePathError, =>
                 warn 'Executable', "path failed"
-                @queryExecutablePathUntilSuccess()
+                @queryExecutablePathUntilSuccess path
 
     # get executable path from config, query the user if failed
     getExecutablePath: ->
         path = atom.config.get 'agda-mode.executablePath'
         @validateExecutablePath path
             .then (path) => path
-            .catch InvalidExecutablePathError, => @queryExecutablePathUntilSuccess()
+            .catch InvalidExecutablePathError, => @queryExecutablePathUntilSuccess path
 
     getProcess: -> new Promise (resolve, reject) =>
         if @processWired
             resolve @process
         else
             @getExecutablePath().then (path) =>
-                process = execFile path, ['--interaction']
+                process = spawn path, ['--interaction']
 
                 # catch other forms of errors
                 process.on 'error', (error) =>
