@@ -1,6 +1,5 @@
-{exec, spawn} = require 'child_process'
+{spawn} = require 'child_process'
 Promise = require 'bluebird'
-{log, warn, error} = require './logger'
 {parsePath} = require './util'
 Stream = require './executable/stream'
 {InvalidExecutablePathError} = require './error'
@@ -23,28 +22,30 @@ class Executable
     validateExecutablePath: (path) -> new Promise (resolve, reject) =>
         path = parsePath path
 
-        exec path, ['-V'], (error, stdout, stderr) =>
-            if /^Agda/.test stdout
+        process = spawn path, ['-V']
+
+        process.on 'error', (error) =>
+            reject new InvalidExecutablePathError error
+
+        process.stdout.once 'data', (data) =>
+            if /^Agda/.test data.toString()
                 resolve path
             else
-                reject new InvalidExecutablePathError error if error
-                reject new InvalidExecutablePathError stderr if stderr
+                reject new InvalidExecutablePathError data.toString()
 
     # keep banging the user until we got the right path
     queryExecutablePathUntilSuccess: (path) ->
         @core.panel.setContent "Agda executable not found: \"#{path}\"", [], 'warning', 'path of executable here'
         @core.panel.query()
             .then (path) =>
-                log 'Executable', "got path: #{path}"
+                path = parsePath path
                 @validateExecutablePath path
                     .then (path) => path
                     .catch InvalidExecutablePathError, => @queryExecutablePathUntilSuccess path
             .then (path) =>
-                log 'Executable', "path validated: #{path}"
                 atom.config.set 'agda-mode.executablePath', path
                 return path
             .catch InvalidExecutablePathError, =>
-                warn 'Executable', "path failed"
                 @queryExecutablePathUntilSuccess path
 
     # get executable path from config, query the user if failed
@@ -70,14 +71,11 @@ class Executable
                     @process = process
                     resolve process
 
-                log 'Executable', 'process wired'
-
                 process.stdout
                     .pipe new Stream.Rectify
                     .pipe new Stream.ParseSExpr
                     .pipe new Stream.ParseCommand @core
-                log 'Executable', 'process.stdout stream established'
-            .catch (e) -> error e
+            .catch (e) -> console.error e
 
     ################
     #   COMMANDS   #
@@ -127,7 +125,6 @@ class Executable
     quit: =>
         @process.kill()
         @processWired = false
-        log 'Executable', 'process killed'
 
     compile: =>
         @sendCommand "NonInteractive", "Cmd_compile MAlonzo \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
