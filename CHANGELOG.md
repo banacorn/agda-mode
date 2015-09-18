@@ -1,3 +1,6 @@
+## 0.4.0
+* Fix file path related problems on Windows
+
 ## 0.3.13
 * Fix message parsing
 * Fix message location jumps
