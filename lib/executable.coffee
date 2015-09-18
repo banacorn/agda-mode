@@ -20,18 +20,22 @@ class Executable
 
     # locate the path and see if it is Agda executable
     validateExecutablePath: (path) -> new Promise (resolve, reject) =>
+
         path = parsePath path
 
-        process = spawn path, ['-V']
+        try
+            process = spawn path, ['-V']
 
-        process.on 'error', (error) =>
+            process.on 'error', (error) =>
+                reject new InvalidExecutablePathError error
+
+            process.stdout.once 'data', (data) =>
+                if /^Agda/.test data.toString()
+                    resolve path
+                else
+                    reject new InvalidExecutablePathError data.toString()
+        catch error
             reject new InvalidExecutablePathError error
-
-        process.stdout.once 'data', (data) =>
-            if /^Agda/.test data.toString()
-                resolve path
-            else
-                reject new InvalidExecutablePathError data.toString()
 
     # keep banging the user until we got the right path
     queryExecutablePathUntilSuccess: (path) ->
@@ -75,7 +79,6 @@ class Executable
                     .pipe new Stream.Rectify
                     .pipe new Stream.ParseSExpr
                     .pipe new Stream.ParseCommand @core
-            .catch (e) -> console.error e
 
     ################
     #   COMMANDS   #
