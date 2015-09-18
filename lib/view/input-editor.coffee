@@ -7,11 +7,14 @@ Promise = require 'bluebird'
 Vue.component 'panel-input-editor',
     template: '<atom-text-editor mini></atom-text-editor>'
     methods:
-        initialize: ->
-            # set grammar: agda
+        initialize: (enableIM) ->
             textEditor = @$el.getModel()
-            agdaGrammar = atom.grammars.grammarForScopeName 'source.agda'
-            textEditor.setGrammar agdaGrammar
+            # set grammar: agda to enable input method
+            if enableIM
+                agdaGrammar = atom.grammars.grammarForScopeName 'source.agda'
+                textEditor.setGrammar agdaGrammar
+            else
+                textEditor.setGrammar()
 
             # reject old queries
             @$dispatch 'input-editor:cancel'
@@ -19,8 +22,8 @@ Vue.component 'panel-input-editor',
             setTimeout => @$el.focus()
             # set placeholder text
             textEditor.setPlaceholderText @placeholderText
-        query: ->
-            @initialize()
+        query: (enableIM) ->
+            @initialize enableIM
             new Promise (resolve, reject) =>
                 @$once 'confirm', (expr) =>
                     resolve expr

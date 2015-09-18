@@ -20,7 +20,6 @@ class Executable
 
     # locate the path and see if it is Agda executable
     validateExecutablePath: (path) -> new Promise (resolve, reject) =>
-
         path = parsePath path
 
         try
@@ -40,7 +39,7 @@ class Executable
     # keep banging the user until we got the right path
     queryExecutablePathUntilSuccess: (path) ->
         @core.panel.setContent "Agda executable not found: \"#{path}\"", [], 'warning', 'path of executable here'
-        @core.panel.query()
+        @core.panel.query(false) # disable input method
             .then (path) =>
                 path = parsePath path
                 @validateExecutablePath path

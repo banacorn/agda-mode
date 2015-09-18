@@ -67,8 +67,8 @@ class Panel extends Vue
                     @style = toStyle type
 
                 # returns a Promise
-                query: ->
-                    promise = @$.inputEditor.query()
+                query: (enableIM = true) ->
+                    promise = @$.inputEditor.query enableIM
 
                     # hide input editor and give focus back
                     @$once 'input-editor:confirm', =>
