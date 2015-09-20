@@ -1,6 +1,7 @@
 _ = require 'lodash'
 Vue = require 'vue'
 {QueryCancelledError} = require './../error'
+parse = require './../parser'
 Promise = require 'bluebird'
 {CompositeDisposable, TextEditor} = require 'atom'
 
@@ -34,10 +35,7 @@ Vue.component 'panel-input-editor',
     ready: ->
         # event clusterfuck
         confirmDisposable = atom.commands.add @$el, 'core:confirm', =>
-            expr = @$el.getModel().getText()
-                        .replace(/\\/g, '\\\\')
-                        .replace(/\"/g, '\\"')
-                        .replace(/\n/g, '\\n')
+            expr = parse.inputContent @$el.getModel().getText()
             @$emit 'confirm', expr     # to local
             @$dispatch 'input-editor:confirm', expr # to parent
         cancelDisposable = atom.commands.add @$el, 'core:cancel', =>

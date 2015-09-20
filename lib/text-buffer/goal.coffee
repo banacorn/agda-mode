@@ -1,4 +1,5 @@
 {Point, Range} = require 'atom'
+parse = require './../parser'
 
 class Goal
 
@@ -99,10 +100,8 @@ class Goal
         left = @editor.translate @range.start, 2
         right = @editor.translate @range.end, -2
         innerRange = new Range left, right
-        @editor.getTextInBufferRange(innerRange)
-            .replace(/\\/g, '\\\\')
-            .replace(/\"/g, '\\"')
-            .replace(/\n/g, '\\n')
+        rawContent = @editor.getTextInBufferRange(innerRange)
+        parse.inputContent rawContent
 
     setContent: (text) ->
         left = @editor.translate @range.start, 2
