@@ -12,10 +12,10 @@ regexOccurence = /((?:\n|.)*\S+)\s*\[ at (.+):(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+
 parseOccurence = (str) ->
     result = str.match regexOccurence
     if result
-        rowStart = if parseInt result[2] then parseInt result[2] else parseInt result[6]
-        rowEnd   = if parseInt result[4] then parseInt result[4] else parseInt result[6]
-        colStart = if parseInt result[3] then parseInt result[3] else parseInt result[7]
-        colEnd   = if parseInt result[5] then parseInt result[5] else parseInt result[8]
+        rowStart = if parseInt result[3] then parseInt result[3] else parseInt result[7]
+        rowEnd   = if parseInt result[5] then parseInt result[5] else parseInt result[7]
+        colStart = if parseInt result[4] then parseInt result[4] else parseInt result[8]
+        colEnd   = if parseInt result[6] then parseInt result[6] else parseInt result[9]
         range = new Range [rowStart - 1, colStart - 1], [rowEnd - 1, colEnd - 1]
 
         body: result[1]
