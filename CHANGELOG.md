@@ -1,3 +1,7 @@
+## 0.4.1
+* Fix EOF error when refining a empty goal
+* Fix message location parsing error
+
 ## 0.4.0
 * Fix file path related problems on Windows
 
