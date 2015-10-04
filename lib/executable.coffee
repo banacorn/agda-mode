@@ -1,7 +1,7 @@
 {spawn} = require 'child_process'
 Promise = require 'bluebird'
 {parsePath} = require './util'
-Stream = require './executable/stream'
+Agda = require './parser/agda'
 {InvalidExecutablePathError} = require './error'
 Promise.longStackTraces()
 
@@ -75,9 +75,9 @@ class Executable
                     resolve process
 
                 process.stdout
-                    .pipe new Stream.Rectify
-                    .pipe new Stream.ParseSExpr
-                    .pipe new Stream.ParseCommand @core
+                    .pipe new Agda.Rectify
+                    .pipe new Agda.ParseSExpr
+                    .pipe new Agda.ParseCommand @core
 
     ################
     #   COMMANDS   #
