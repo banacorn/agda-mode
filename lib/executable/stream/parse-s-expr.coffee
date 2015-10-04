@@ -1,6 +1,5 @@
 {Transform} = require 'stream'
 lispToArray = require 'lisp-to-array'
-{log, warn, error} = require '../../logger'
 _ = require 'lodash'
 
 class ParseSExpr extends Transform
@@ -11,7 +10,6 @@ class ParseSExpr extends Transform
 
     _transform: (chunk, encoding, next) ->
         result = postprocess(lispToArray(preprocess(chunk)))
-        # log 'Parser', chunk
         # console.log result
         @push result
         next()

@@ -5,7 +5,6 @@ Promise         = require 'bluebird'
 
 {getHoles}          = require './text-buffer/hole'
 Goal                = require './text-buffer/goal'
-{log, warn}         = require './logger'
 err    = require './error'
 
 class TextBuffer
@@ -43,7 +42,6 @@ class TextBuffer
     #######################
 
     removeGoals: ->
-        log 'Text Buffer', 'remove goals'
         @goals.forEach (goal) -> goal.destroy()
         @goals = []
 
@@ -67,11 +65,9 @@ class TextBuffer
                 reject new err.OutOfGoalError
 
     warnOutOfGoal: =>
-        warn 'Text Buffer', 'out of goal'
         @core.panel.setContent 'Out of goal', ['For this command, please place the cursor in a goal'], 'warning'
 
     warnEmptyGoal: (error) =>
-        warn 'Text Buffer', 'empty content'
         @core.panel.setContent 'No content', [error.message], 'warning'
 
     # query for expression if the goal is empty
@@ -185,7 +181,6 @@ class TextBuffer
         goal = @findGoal index
         if content.length > 0
             content = content.replace(/\\n/g, '\n')
-            log 'Text Buffer', "handling give-action #{paran} #{content}"
             goal.setContent content
         if paran
             content = goal.getContent()

@@ -1,5 +1,4 @@
 _ = require 'lodash'
-{log, warn, error} = require './logger'
 {parsePath} = require './util'
 {Range, CompositeDisposable} = require 'atom'
 
@@ -38,8 +37,6 @@ class Core
         @handler        = new Handler       @
         # initialize informations about this editor
 
-        log 'Core', 'initialized:', @getPath()
-
 
         #############
         #   Views   #
@@ -59,13 +56,10 @@ class Core
     #####################
 
     activate: ->
-        log 'Core', 'activated:', @getPath()
         @atomPanel.show()
     deactivate: ->
-        log 'Core', 'deactivated:', @getPath()
         @atomPanel.hide()
     destroy: ->
-        log 'Core', 'destroyed:', @getPath()
         @commander.quit()
         @atomPanel.destroy()
         @disposables.dispose()
