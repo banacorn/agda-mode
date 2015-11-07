@@ -1,8 +1,9 @@
 Vue = require 'vue'
+
 Vue.component 'type',
     props: ['input']
     template: '''
-        <div class="type"><template v-repeat="type"><span v-if="unmarked" class="text-highlight">{{unmarked}}</span><button v-if="goal" class='no-btn text-info' v-on="click: jumpToGoal(goal)">{{goal}}</button><span v-if="meta" class="text-success">{{meta}}</span><template v-if="sort"><span class="text-highlight">Set </span><span class="text-warning">{{sort}}</span></template></template></div>
+        <div class="type"><template v-for="item in type"><span v-if="item.unmarked" class="text-highlight">{{item.unmarked}}</span><button v-if="item.goal" class='no-btn text-info' @click="jumpToGoal(item.goal)">{{item.goal}}</button><span v-if="item.meta" class="text-success">{{item.meta}}</span><template v-if="item.sort"><span class="text-highlight">Set </span><span class="text-warning">{{item.sort}}</span></template></template></div>
     '''
     methods:
         jumpToGoal: (index) ->

@@ -41,8 +41,8 @@ class InputMethod
             editorElement.classList.add 'agda-mode-input-method-activated'
 
             # editor: the main text editor or the mini text editor
-            inputEditorFocused = @core.panel.$.inputEditor.isFocused()
-            @editor = if inputEditorFocused then @core.panel.$.inputEditor.$el.getModel() else @core.editor
+            inputEditorFocused = @core.panel.$refs.inputEditor.isFocused()
+            @editor = if inputEditorFocused then @core.panel.$refs.inputEditor.$el.getModel() else @core.editor
 
             # monitors raw text buffer and figures out what happend
             startPosition = @editor.getCursorBufferPosition()

@@ -36,45 +36,84 @@ concatJudgements = (lines) ->
                 result[currentLine] = result[currentLine].concat('\n' + item)
     return _.compact result
 
+# template: '''
+#     <div class="native-key-bindings" tabindex="-1"  v-show="!queryMode">
+#         <ul id="panel-content-header" class="list-group">
+#             <li class="list-item" v-repeat="header">
+#                 <span class="text-info">{{label}}</span>
+#                 <span>:</span>
+#                 <type input="{{type}}"></type>
+#             </li>
+#         </ul>
+#         <ul id="panel-content-body" class="list-group">
+#             <li class="list-item" v-repeat="body.goal">
+#                 <button class='no-btn text-info' v-on="click: jumpToGoal(index)">{{index}}</button>
+#                 <span>:</span>
+#                 <type input="{{type}}"></type>
+#             </li>
+#             <li class="list-item" v-repeat="body.judgement">
+#                 <span class="text-success">{{expr}}</span>
+#                 <span v-if="index">:</span>
+#                 <type input="{{type}}"></type>
+#             </li>
+#             <li class="list-item" v-repeat="body.term">
+#                 <type input="{{expr}}"></type>
+#             </li>
+#             <li class="list-item" v-repeat="body.meta">
+#                 <span class="text-success">{{index}}</span>
+#                 <span>:</span>
+#                 <type input="{{type}}"></type>
+#                 <location location="{{location}}"></location>
+#             </li>
+#             <li class="list-item" v-repeat="body.sort">
+#                 <span class="text-highlight">Sort</span> <span class="text-warning">{{index}}</span>
+#                 <location location="{{location}}"></location>
+#             </li>
+#             <li class="list-item" v-repeat="body.plainText">
+#                 <span>{{$value}}</span>
+#             </li>
+#             <error v-if="body.error" error="{{body.error}}"></error>
+#         </ul>
+#     </div>'''
 Vue.component 'panel-body',
     props: ['raw-content']
     template: '''
         <div class="native-key-bindings" tabindex="-1"  v-show="!queryMode">
             <ul id="panel-content-header" class="list-group">
-                <li class="list-item" v-repeat="header">
-                    <span class="text-info">{{label}}</span>
+                <li class="list-item" v-for="item in header">
+                    <span class="text-info">{{item.label}}</span>
                     <span>:</span>
-                    <type input="{{type}}"></type>
+                    <type :input="item.type"></type>
                 </li>
             </ul>
             <ul id="panel-content-body" class="list-group">
-                <li class="list-item" v-repeat="body.goal">
-                    <button class='no-btn text-info' v-on="click: jumpToGoal(index)">{{index}}</button>
+                <li class="list-item" v-for="item in body.goal">
+                    <button class='no-btn text-info' @click="jumpToGoal(item.index)">{{item.index}}</button>
                     <span>:</span>
-                    <type input="{{type}}"></type>
+                    <type :input="item.type"></type>
                 </li>
-                <li class="list-item" v-repeat="body.judgement">
-                    <span class="text-success">{{expr}}</span>
-                    <span v-if="index">:</span>
-                    <type input="{{type}}"></type>
+                <li class="list-item" v-for="item in body.judgement">
+                    <span class="text-success">{{item.expr}}</span>
+                    <span v-if="item.index">:</span>
+                    <type :input="item.type"></type>
                 </li>
-                <li class="list-item" v-repeat="body.term">
-                    <type input="{{expr}}"></type>
+                <li class="list-item" v-for="item in body.term">
+                    <type :input="item.expr"></type>
                 </li>
-                <li class="list-item" v-repeat="body.meta">
-                    <span class="text-success">{{index}}</span>
+                <li class="list-item" v-for="item in body.meta">
+                    <span class="text-success">{{item.index}}</span>
                     <span>:</span>
-                    <type input="{{type}}"></type>
-                    <location location="{{location}}"></location>
+                    <type :input="item.type"></type>
+                    <location :location="item.location"></location>
                 </li>
-                <li class="list-item" v-repeat="body.sort">
-                    <span class="text-highlight">Sort</span> <span class="text-warning">{{index}}</span>
-                    <location location="{{location}}"></location>
+                <li class="list-item" v-for="item in body.sort">
+                    <span class="text-highlight">Sort</span> <span class="text-warning">{{item.index}}</span>
+                    <location :location="item.location"></location>
                 </li>
-                <li class="list-item" v-repeat="body.plainText">
-                    <span>{{$value}}</span>
+                <li class="list-item" v-for="item in body.plainText">
+                    <span>{{item}}</span>
                 </li>
-                <error v-if="body.error" error="{{body.error}}"></error>
+                <error v-if="body.error" :error="body.error"></error>
             </ul>
         </div>'''
     data: ->

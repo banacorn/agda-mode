@@ -44,7 +44,7 @@ class Core
 
         # instantiate
         @atomPanel = atom.workspace.addBottomPanel
-            item: document.createElement 'dummy'
+            item: document.createElement 'agda-panel'
             visible: false
             className: 'agda-panel'
         @panel.$mount @atomPanel.item
