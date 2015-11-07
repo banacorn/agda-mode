@@ -1,3 +1,7 @@
+## 0.4.2
+* Fix #12
+* Update dependencies
+
 ## 0.4.1
 * Fix EOF error when refining a empty goal
 * Fix message location parsing error

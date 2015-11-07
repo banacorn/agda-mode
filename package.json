@@ -19,9 +19,9 @@
     "atom": ">0.180.0"
   },
   "dependencies": {
-    "bluebird": "^2.9.34",
-    "lisp-to-array": "^0.2.0",
-    "lodash": "^3.10.0",
-    "vue": "git+https://git@github.com/yyx990803/vue.git#csp"
+    "bluebird": "^3.0",
+    "lisp-to-array": "^0.2",
+    "lodash": "^3.10",
+    "vue": "git+https://git@github.com/vuejs/vue.git#csp"
   }
 }
