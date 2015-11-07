@@ -36,45 +36,6 @@ concatJudgements = (lines) ->
                 result[currentLine] = result[currentLine].concat('\n' + item)
     return _.compact result
 
-# template: '''
-#     <div class="native-key-bindings" tabindex="-1"  v-show="!queryMode">
-#         <ul id="panel-content-header" class="list-group">
-#             <li class="list-item" v-repeat="header">
-#                 <span class="text-info">{{label}}</span>
-#                 <span>:</span>
-#                 <type input="{{type}}"></type>
-#             </li>
-#         </ul>
-#         <ul id="panel-content-body" class="list-group">
-#             <li class="list-item" v-repeat="body.goal">
-#                 <button class='no-btn text-info' v-on="click: jumpToGoal(index)">{{index}}</button>
-#                 <span>:</span>
-#                 <type input="{{type}}"></type>
-#             </li>
-#             <li class="list-item" v-repeat="body.judgement">
-#                 <span class="text-success">{{expr}}</span>
-#                 <span v-if="index">:</span>
-#                 <type input="{{type}}"></type>
-#             </li>
-#             <li class="list-item" v-repeat="body.term">
-#                 <type input="{{expr}}"></type>
-#             </li>
-#             <li class="list-item" v-repeat="body.meta">
-#                 <span class="text-success">{{index}}</span>
-#                 <span>:</span>
-#                 <type input="{{type}}"></type>
-#                 <location location="{{location}}"></location>
-#             </li>
-#             <li class="list-item" v-repeat="body.sort">
-#                 <span class="text-highlight">Sort</span> <span class="text-warning">{{index}}</span>
-#                 <location location="{{location}}"></location>
-#             </li>
-#             <li class="list-item" v-repeat="body.plainText">
-#                 <span>{{$value}}</span>
-#             </li>
-#             <error v-if="body.error" error="{{body.error}}"></error>
-#         </ul>
-#     </div>'''
 Vue.component 'panel-body',
     props: ['raw-content']
     template: '''

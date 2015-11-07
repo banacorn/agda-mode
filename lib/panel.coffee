@@ -37,26 +37,6 @@ Panel = Vue.extend
         inputMethod: null
         style: ''
 
-
-    ready: ->
-        @$on 'jump-to-goal', (index) ->
-            console.log 'jump-to-goal', index
-            # core.textBuffer.jumpToGoal parseInt(index.substr(1))
-        @$on 'jump-to-location', (location) ->
-            console.log 'jump-to-location', location
-            # core.textBuffer.jumpToLocation location
-        @$on 'select-key', (key) ->
-            console.log 'select-key', key
-            # core.inputMethod.insertChar key
-            # atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
-        @$on 'select-symbol', (symbol) ->
-            console.log 'select-symbol', symbol
-            # core.inputMethod.insertSymbol symbol
-            # atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
-        @$on 'replace-symbol', (symbol) ->
-            console.log 'replace-symbol', symbol
-            # core.inputMethod.replaceString symbol
-
     methods:
         setContent: (title = '', body = [], type = 'plain-text', placeholder = '') ->
             @content =
@@ -84,6 +64,6 @@ Panel = Vue.extend
             @queryMode = true
 
             return promise
-            
+
 Vue.component 'agda-panel', Panel
 module.exports = Panel

@@ -48,6 +48,19 @@ class Core
             visible: false
             className: 'agda-panel'
         @panel.$mount @atomPanel.item
+        @panel.$on 'jump-to-goal', (index) =>
+            @textBuffer.jumpToGoal parseInt(index.substr(1))
+        @panel.$on 'jump-to-location', (location) =>
+            @textBuffer.jumpToLocation location
+        @panel.$on 'select-key', (key) =>
+            @inputMethod.insertChar key
+            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+        @panel.$on 'select-symbol', (symbol) =>
+            @inputMethod.insertSymbol symbol
+            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+        @panel.$on 'replace-symbol', (symbol) =>
+            @inputMethod.replaceString symbol
+
 
         @commander      = new Commander     @
 
