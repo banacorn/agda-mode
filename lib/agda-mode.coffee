@@ -1,4 +1,3 @@
-{log, warn, error} = require './logger'
 Core = null
 module.exports =
     config:
@@ -58,7 +57,6 @@ module.exports =
 
         @registerEditorActivation()
         @registerCommands()
-        log 'Agda Mode', 'activated'
 
     instantiateCore: (editor) =>
 
@@ -78,12 +76,10 @@ module.exports =
         previousEditor = atom.workspace.getActivePaneItem()
         atom.workspace.onDidChangeActivePaneItem (nextEditor) =>
             if nextEditor
-                log 'Editor', "#{previousEditor.getPath?()} == switch to => #{nextEditor.getPath?()}"
                 previousEditor.core?.deactivate()
                 nextEditor.core?.activate()
                 previousEditor = nextEditor
             else
-                log 'Editor', "#{previousEditor.getPath?()} == switch to => NONE"
                 previousEditor.core?.deactivate()
 
     commands: [

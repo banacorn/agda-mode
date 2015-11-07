@@ -9,12 +9,12 @@ Vue.component 'panel-input-method',
         <div>
             <div id="input-buffer" class="inline-block">{{rawInput}}</div>
             <div id="suggestion-keys" class="btn-group btn-group-sm">
-                <button class="btn" v-repeat="suggestionKeys" v-on="click: selectKey($value)">{{$value}}</button>
+                <button class="btn" v-for="key in suggestionKeys" @click="selectKey(key)">{{key}}</button>
             </div>
             <div id="candidate-symbols" class="btn-group btn-group-sm">
-                <button class="btn" v-repeat="selectedLeft" v-on="click: selectSymbol($value)">{{$value}}</button>
-                <button class="btn selected" v-repeat="selected" v-on="click: selectSymbol($value)">{{$value}}</button>
-                <button class="btn" v-repeat="selectedRight" v-on="click: selectSymbol($value)">{{$value}}</button>
+                <button class="btn" v-for="symbol in selectedLeft" @click="selectSymbol(symbol)">{{symbol}}</button>
+                <button class="btn selected" v-for="symbol in selected" @click="selectSymbol(symbol)">{{symbol}}</button>
+                <button class="btn" v-for="symbol in selectedRight" @click="selectSymbol(symbol)">{{symbol}}</button>
             </div>
         </div>
         '''

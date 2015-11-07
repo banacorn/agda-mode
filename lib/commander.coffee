@@ -1,7 +1,6 @@
 Core = require './core'
 Promise = require 'bluebird'
 _ = require 'lodash'
-{log, warn, error} = require './logger'
 {OutOfGoalError, EmptyGoalError, QueryCancelledError} = require './error'
 
 toCamalCase = (str) ->
@@ -31,7 +30,6 @@ class Commander
         @handler        = @core.handler
     command: (raw) ->
         {command, method, option} = @parse raw
-        log "Commander", "loaded: #{@loaded}\n command: #{command}\n normalization: #{option}"
 
         # some commands can only be executed after "loaded"
         exception = ['load', 'input-symbol']
@@ -39,7 +37,7 @@ class Commander
             Promise.resolve @[method](option)
                 .catch OutOfGoalError, @textBuffer.warnOutOfGoal
                 .catch EmptyGoalError, @textBuffer.warnEmptyGoal
-                .catch QueryCancelledError, => console.log 'query cancelled'
+                .catch QueryCancelledError, => console.error 'query cancelled'
                 .catch (e) -> throw e
 
     parse: (raw) ->

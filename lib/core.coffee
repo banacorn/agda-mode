@@ -1,5 +1,4 @@
 _ = require 'lodash'
-{log, warn, error} = require './logger'
 {parsePath} = require './util'
 {Range, CompositeDisposable} = require 'atom'
 
@@ -38,8 +37,6 @@ class Core
         @handler        = new Handler       @
         # initialize informations about this editor
 
-        log 'Core', 'initialized:', @getPath()
-
 
         #############
         #   Views   #
@@ -47,10 +44,23 @@ class Core
 
         # instantiate
         @atomPanel = atom.workspace.addBottomPanel
-            item: document.createElement 'dummy'
+            item: document.createElement 'agda-panel'
             visible: false
             className: 'agda-panel'
         @panel.$mount @atomPanel.item
+        @panel.$on 'jump-to-goal', (index) =>
+            @textBuffer.jumpToGoal parseInt(index.substr(1))
+        @panel.$on 'jump-to-location', (location) =>
+            @textBuffer.jumpToLocation location
+        @panel.$on 'select-key', (key) =>
+            @inputMethod.insertChar key
+            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+        @panel.$on 'select-symbol', (symbol) =>
+            @inputMethod.insertSymbol symbol
+            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+        @panel.$on 'replace-symbol', (symbol) =>
+            @inputMethod.replaceString symbol
+
 
         @commander      = new Commander     @
 
@@ -59,13 +69,10 @@ class Core
     #####################
 
     activate: ->
-        log 'Core', 'activated:', @getPath()
         @atomPanel.show()
     deactivate: ->
-        log 'Core', 'deactivated:', @getPath()
         @atomPanel.hide()
     destroy: ->
-        log 'Core', 'destroyed:', @getPath()
         @commander.quit()
         @atomPanel.destroy()
         @disposables.dispose()

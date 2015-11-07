@@ -1,5 +1,4 @@
 {CompositeDisposable, Range} = require 'atom'
-{log} = require './logger'
 Keymap = require './input-method/keymap'
 
 # Input Method Singleton (initialized only once per editor, activaed or not)
@@ -33,7 +32,6 @@ class InputMethod
         if not @activated
 
             # initializations
-            log 'IM', 'activated'
             @rawInput = ''
             @activated = true
 
@@ -43,8 +41,8 @@ class InputMethod
             editorElement.classList.add 'agda-mode-input-method-activated'
 
             # editor: the main text editor or the mini text editor
-            inputEditorFocused = @core.panel.$.inputEditor.isFocused()
-            @editor = if inputEditorFocused then @core.panel.$.inputEditor.$el.getModel() else @core.editor
+            inputEditorFocused = @core.panel.$refs.inputEditor.isFocused()
+            @editor = if inputEditorFocused then @core.panel.$refs.inputEditor.$el.getModel() else @core.editor
 
             # monitors raw text buffer and figures out what happend
             startPosition = @editor.getCursorBufferPosition()
@@ -76,7 +74,6 @@ class InputMethod
     deactivate: ->
 
         if @activated
-            log 'IM', 'deactivated'
 
             # add class 'agda-mode-input-method-activated'
             editorElement = atom.views.getView(atom.workspace.getActiveTextEditor())
@@ -116,9 +113,7 @@ class InputMethod
             else if change is INSERT
                 char = textBuffer.substr -1
                 @rawInput += char
-                log 'IM', "insert '#{char}' #{@rawInput}"
                 {translation, further, suggestionKeys, candidateSymbols} = Keymap.translate @rawInput
-                log 'IM', "raw input '#{@rawInput}' translates to '#{translation}'"
 
                 # reflects current translation to the text buffer
                 if translation
@@ -135,7 +130,6 @@ class InputMethod
 
             else if change is DELETE
                 @rawInput = @rawInput.substr(0, @rawInput.length - 1)
-                log 'IM', "delete #{@rawInput}"
                 {translation, further, suggestionKeys, candidateSymbols} = Keymap.translate @rawInput
                 @core.panel.inputMethod =
                     rawInput: @rawInput

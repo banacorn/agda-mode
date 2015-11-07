@@ -1,6 +1,5 @@
 {Transform} = require 'stream'
 _ = require 'lodash'
-{log, warn, error} = require './../../logger'
 
 class ParseCommand extends Transform
 
@@ -25,6 +24,6 @@ class ParseCommand extends Transform
             when 'agda2-highlight-load-and-delete-action'
                 @core.handler.highlightLoadAndDeleteAction tokens
             else
-                error 'Parser', tokens.toString()
+                console.error 'Parser', tokens.toString()
         next()
 module.exports = ParseCommand

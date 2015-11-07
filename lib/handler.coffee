@@ -1,7 +1,5 @@
 _ = require 'lodash'
 {OutOfGoalError} = require './error'
-{log, warn, error} = require './logger'
-
 
 # Handles all events coming from Agda
 class Handler
@@ -13,7 +11,6 @@ class Handler
 
     # agda2-info-action
     infoAction: (tokens) ->
-        log 'Handler', 'agda2-info-action'
         # with content: ["agda2-info-action", "*Type-checking*", "Checking ...", "t"]
         # w/o  content:  ["agda2-info-action", "*Type-checking*", "nil"]
         type = tokens[1]
@@ -52,25 +49,21 @@ class Handler
 
     # agda2-status-action
     statusAction: (tokens) ->
-        log 'Handler', 'agda2-status-action'
         if tokens.length isnt 1
             @panel.setContent 'Status', [tokens[1]]
 
     # agda2-goals-action
     goalsAction: (tokens) ->
-        log 'Handler', 'agda2-goals-action'
         @textBuffer.onGoalsAction tokens[1]
 
     # agda2-goto
     goto: (tokens) ->
-        log 'Handler', 'agda2-goto'
         filepath = tokens[1][0]
         position = tokens[1][2]
         @textBuffer.onGoto filepath, position
 
     # agda2-give-action
     giveAction: (tokens) ->
-        log 'Handler', 'agda2-give-action'
         # with parenthesis: ["agda2-give-action", 1, "'paren"]
         # w/o  parenthesis: ["agda2-give-action", 1, "'no-paren"]
         # with content    : ["agda2-give-action", 0, ...]
@@ -81,17 +74,14 @@ class Handler
 
     # agda2-make-case-action
     makeCaseAction: (tokens) ->
-        log 'Handler', 'agda2-make-case-action'
         @textBuffer.onMakeCaseAction tokens[1]
             .then => @core.commander.load()
 
     # agda2-highlight-clear
     highlightClear: (tokens) ->
-        log 'Handler', 'agda2-highlight-clear'
 
     # agda2-highlight-add-annotations
     highlightAddAnnotations: (tokens) ->
-        log 'Handler', 'agda2-highlight-add-annotations'
         annotations = _.rest(tokens)
         annotations.forEach (obj) =>
             result =
@@ -110,11 +100,10 @@ class Handler
 
     # agda2-highlight-load-and-delete-action
     highlightLoadAndDeleteAction: (tokens) ->
-        log 'Handler', 'agda2-highlight-load-and-delete-action'
         @textBuffer.onHighlightLoadAndDelete tokens[1]
 
     # agda2-parse-error
     parseError: (tokens) ->
-        error 'Executable', JSON.stringify tokens
+        console.error 'Executable', JSON.stringify tokens
 
 module.exports = Handler
