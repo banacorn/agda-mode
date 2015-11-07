@@ -4,6 +4,8 @@ For people who don't wanna use Emacs for whatever reasons.
 
 [![Join the chat at https://gitter.im/banacorn/agda-mode](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/banacorn/agda-mode?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+**Feel free to open issues!!!!**
+
 ## Requirements
 
 * Atom Packages: [language-agda](https://atom.io/packages/language-agda)
