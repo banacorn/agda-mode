@@ -16,7 +16,7 @@ toStyle = (type) ->
 
 Panel = Vue.extend
     template: '''
-        <div id="panel-header" class="inset-panel padded">
+        <div id="panel-header" class="inset-panel padded" v-show="content.title">
             <div id="panel-title" class="text-{{style}}" v-show="!inputMethodMode">{{content.title}}</div>
             <panel-input-method id="panel-input-method" v-show="inputMethodMode" :input="inputMethod"></panel-input-method>
         </div>
