@@ -6,6 +6,7 @@
 
 .agda-panel {
     font-size: 125%;
+    z-index: 4;
 
     #panel-header {
         line-height: 2;
@@ -108,6 +109,10 @@
     color: @background-color-success;
     position: relative;
 }
+
+// prevents goal indices from floating above the status bar
+status-bar.status-bar           { z-index: 4 }
+atom-pane > [is="atom-tabs"]    { z-index: 5 }
 
 //
 // input method
