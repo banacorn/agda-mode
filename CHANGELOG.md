@@ -1,3 +1,7 @@
+## 0.4.3
+* Fix $14
+* Fix view: hide panel header when not in use
+
 ## 0.4.2
 * Fix #12
 * Update dependencies
