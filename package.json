@@ -22,6 +22,6 @@
     "bluebird": "^3.0",
     "lisp-to-array": "^0.2",
     "lodash": "^3.10",
-    "vue": "git+https://git@github.com/vuejs/vue.git#csp"
+    "vue": "1.0.10-csp"
   }
 }
