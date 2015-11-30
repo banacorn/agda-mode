@@ -65,7 +65,7 @@ Vue.component 'error',
                 <location :location="error.location"></location>
             </li>
             <li class="list-item">
-                <type input:"error.expr"></type>
+                <type :input="error.expr"></type>
             </li>
             <li class="list-item">
                 <span>Problematic calls:</span>

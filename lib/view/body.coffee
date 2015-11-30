@@ -79,7 +79,12 @@ Vue.component 'panel-body',
         </div>'''
     data: ->
         header: null
-        body: null
+        body:
+            goal: []
+            judgement: []
+            term: []
+            meta: []
+            sort: []
     methods:
         jumpToGoal: (index) ->
             @$dispatch 'jump-to-goal', index
