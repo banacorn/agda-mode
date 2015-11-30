@@ -109,7 +109,6 @@ Vue.component 'error',
         <template v-if="unknown">
             <li class="list-item">
                 <span>{{error.raw}}</span>
-                <location :location="error.location"></location>
             </li>
         </template>
     '''
