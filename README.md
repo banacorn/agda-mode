@@ -67,6 +67,8 @@ See [Agda:Issue 850](https://code.google.com/p/agda/issues/detail?id=850) for mo
 
 ### Unicode Input method (only invokable under `.agda` or `.lagda`)
 
+The key mapping of symbols are the same as in Emacs. For example: `\bn` for `ℕ`, `\all` for `∀`, `\r` or `\to` for `→`, etc.
+
 | Keymap            | Command                     |
 |------------------:|:----------------------------|
 | `\\` or `alt-/`   | input symbol                |
