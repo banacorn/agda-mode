@@ -3,7 +3,7 @@ Vue = require 'vue'
 {QueryCancelledError} = require './../error'
 parse = require './../parser'
 Promise = require 'bluebird'
-{CompositeDisposable, TextEditor} = require 'atom'
+{CompositeDisposable} = require 'atom'
 
 Vue.component 'panel-input-editor',
     template: '<atom-text-editor mini></atom-text-editor>'
