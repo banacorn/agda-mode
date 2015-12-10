@@ -15,7 +15,7 @@ class QueryCancelledError extends Error
         Error.captureStackTrace(this, QueryCancelledError)
 
 class InvalidExecutablePathError extends Error
-    constructor: (@message) ->
+    constructor: (@message, @path) ->
         @name = "InvalidExecutablePathError"
         Error.captureStackTrace(this, InvalidExecutablePathError)
 

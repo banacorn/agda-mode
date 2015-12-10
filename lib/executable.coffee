@@ -1,15 +1,16 @@
-{spawn} = require 'child_process'
+{spawn, exec} = require 'child_process'
 Promise = require 'bluebird'
 {parsePath} = require './util'
 Agda = require './parser/agda'
 {InvalidExecutablePathError} = require './error'
 Promise.longStackTraces()
 
+
 class Executable
 
     # instance wired the agda-mode executable
-    processWired: false
-    process: null
+    agdaProcessWired: false
+    agdaProcess: null
 
     constructor: (@core) ->
 
@@ -18,23 +19,21 @@ class Executable
         path.unshift('.')
         return path.map((p) -> '\"' + parsePath p + '\"').join(', ')
 
-    # locate the path and see if it is Agda executable
+    # locate the path and see if it is truly Agda executable
     validateExecutablePath: (path) -> new Promise (resolve, reject) =>
         path = parsePath path
-
         try
-            process = spawn path, ['-V']
-
-            process.on 'error', (error) =>
-                reject new InvalidExecutablePathError error
-
-            process.stdout.once 'data', (data) =>
+            agdaProcess = spawn path, ['-V']
+            agdaProcess.on 'error', (error) =>
+                reject new InvalidExecutablePathError error, path
+            agdaProcess.stdout.once 'data', (data) =>
                 if /^Agda/.test data.toString()
+                    atom.config.set 'agda-mode.executablePath', path
                     resolve path
                 else
-                    reject new InvalidExecutablePathError data.toString()
+                    reject new InvalidExecutablePathError data.toString(), path
         catch error
-            reject new InvalidExecutablePathError error
+            reject new InvalidExecutablePathError error, path
 
     # keep banging the user until we got the right path
     queryExecutablePathUntilSuccess: (path) ->
@@ -51,33 +50,50 @@ class Executable
             .catch InvalidExecutablePathError, =>
                 @queryExecutablePathUntilSuccess path
 
-    # get executable path from config, query the user if failed
+    # get executable path from the settings
+    # else by the commend which
+    # else query the user until success
     getExecutablePath: ->
+        @getPathFromSettings()                                              #1
+            .catch (error) => @getPathByWhich()                             #2
+            .catch (error) => @queryExecutablePathUntilSuccess error.path   #3
+
+    # get executable path from settings and validate it
+    getPathFromSettings: ->
         path = atom.config.get 'agda-mode.executablePath'
         @validateExecutablePath path
-            .then (path) => path
-            .catch InvalidExecutablePathError, => @queryExecutablePathUntilSuccess path
 
-    getProcess: -> new Promise (resolve, reject) =>
-        if @processWired
-            resolve @process
+    # get executable path by the command "which"
+    getPathByWhich: -> new Promise (resolve, reject) =>
+        exec 'which agda', (error, stdout, stderr) =>
+            if error
+                reject new InvalidExecutablePathError error, "agda"
+            else
+                resolve @validateExecutablePath stdout
+
+    wireAgdaProcess: -> new Promise (resolve, reject) =>
+        if @agdaProcessWired
+            resolve @agdaProcess
         else
             @getExecutablePath().then (path) =>
-                process = spawn path, ['--interaction']
+                agdaProcess = spawn path, ['--interaction']
 
                 # catch other forms of errors
-                process.on 'error', (error) =>
+                agdaProcess.on 'error', (error) =>
                     reject error
 
-                process.stdout.once 'data', =>
-                    @processWired = true
-                    @process = process
-                    resolve process
+                agdaProcess.stdout.once 'data', =>
+                    @agdaProcessWired = true
+                    @agdaProcess = agdaProcess
+                    resolve agdaProcess
 
-                process.stdout
+                agdaProcess.stdout
                     .pipe new Agda.Rectify
                     .pipe new Agda.ParseSExpr
                     .pipe new Agda.ParseCommand @core
+
+            .catch (error) =>
+                throw InvalidExecutablePathError "Failed miserably, please report this issue."
 
     ################
     #   COMMANDS   #
@@ -112,12 +128,12 @@ class Executable
             ])"
 
     sendCommand: (highlightingLevel, interaction) ->
-        @getProcess().then (process) =>
+        @wireAgdaProcess().then (agdaProcess) =>
             filepath = @core.getPath()
             highlightingMethod = atom.config.get 'agda-mode.highlightingMethod'
             command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction} )\n"
-            process.stdin.write command
-            return process
+            agdaProcess.stdin.write command
+            return agdaProcess
 
     load: =>
         # force save before load, since we are sending filepath but content
@@ -125,8 +141,8 @@ class Executable
         @sendCommand "NonInteractive", "Cmd_load \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
 
     quit: =>
-        @process.kill()
-        @processWired = false
+        @agdaProcess.kill()
+        @agdaProcessWired = false
 
     compile: =>
         @sendCommand "NonInteractive", "Cmd_compile MAlonzo \"#{@core.getPath()}\" [#{@getLibraryPath()}]"

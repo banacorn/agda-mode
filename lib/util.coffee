@@ -8,7 +8,7 @@ parsePath = (str) ->
         joined = path.join(parsed.dir, parsed.base).split(path.sep).join('/')
         # fuck Windows Bidi control character
         joined = joined.substr(1) if joined.charCodeAt(0) is 8234
-        return joined
+        return joined.trim()
 
 module.exports =
     parsePath: parsePath

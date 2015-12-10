@@ -2,8 +2,8 @@ Core = null
 module.exports =
     config:
         executablePath:
-            title: 'Agda Executable'
-            description: 'try "which agda" in your terminal to get the path'
+            title: 'Agda executable path'
+            description: 'overwrite to override (else automatically filled upon first load)'
             type: 'string'
             default: ''
             order: 0
@@ -16,25 +16,18 @@ module.exports =
                 type: 'string'
             order: 1
         highlightingMethod:
-            title: 'Highlighting Information Passing'
+            title: 'Highlighting information passing'
             description: 'Receive parsed result from Agda, directly from stdio, or indirectly from temporary files (which requires frequent disk access)'
             type: 'string'
             default: 'Direct',
             enum: ['Indirect', 'Direct']
             order: 2
-        inputMethod:
-            title: 'Input Method'
-            description: 'Enable input method'
-            type: 'boolean'
-            default: true
-            order: 3
-        logLevel:
-            title: 'Log Level'
-            description: 'For purpose of development'
-            type: 'string'
-            default: 'Error'
-            enum: ['Error', 'Warn', 'Debug']
-            order: 4
+        # inputMethod:
+        #     title: 'Input Method'
+        #     description: 'Enable input method'
+        #     type: 'boolean'
+        #     default: true
+        #     order: 3
 
     activate: (state) ->
         Core = require './core'
