@@ -7,6 +7,12 @@ module.exports =
             type: 'string'
             default: ''
             order: 0
+        programName:
+            title: 'Agda program name'
+            description: 'the name of the Agda executable'
+            type: 'string'
+            default: 'agda'
+            order: 1
         libraryPath:
             title: 'Libraries'
             description: 'paths to include (such as agda-stdlib), seperate with comma'
@@ -14,14 +20,14 @@ module.exports =
             default: []
             items:
                 type: 'string'
-            order: 1
+            order: 2
         highlightingMethod:
             title: 'Highlighting information passing'
             description: 'Receive parsed result from Agda, directly from stdio, or indirectly from temporary files (which requires frequent disk access)'
             type: 'string'
             default: 'Direct',
             enum: ['Indirect', 'Direct']
-            order: 2
+            order: 3
         # inputMethod:
         #     title: 'Input Method'
         #     description: 'Enable input method'

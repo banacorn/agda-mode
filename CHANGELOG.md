@@ -1,5 +1,6 @@
 ## 0.4.5
 * Search for Agda executable automatically, no need to fill this manually.
+* Allow users to specify Agda program name
 
 ## 0.4.4
 * Fix #12 and #24

@@ -65,9 +65,10 @@ class Executable
 
     # get executable path by the command "which"
     getPathByWhich: -> new Promise (resolve, reject) =>
-        exec 'which agda', (error, stdout, stderr) =>
+        programName = atom.config.get('agda-mode.programName')
+        exec "which #{programName}", (error, stdout, stderr) =>
             if error
-                reject new InvalidExecutablePathError error, "agda"
+                reject new InvalidExecutablePathError error, programName
             else
                 resolve @validateExecutablePath stdout
 
