@@ -1,7 +1,8 @@
 ## 0.4.5
-* Search for Agda executable automatically, no need to fill this manually.
+* Search for Agda executable automatically, no need to fill this manually
 * Allow users to specify Agda program name
 * Allow users to specify Agda program arguments
+* Allow users to specify compile backend
 
 ## 0.4.4
 * Fix #12 and #24

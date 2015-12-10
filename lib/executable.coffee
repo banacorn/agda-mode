@@ -24,8 +24,6 @@ class Executable
         args = atom.config.get('agda-mode.programArgs')
         return _.compact(args.split(' '))
 
-
-
     # locate the path and see if it is truly Agda executable
     validateExecutablePath: (path) -> new Promise (resolve, reject) =>
         path = parsePath path
@@ -157,7 +155,8 @@ class Executable
         @agdaProcessWired = false
 
     compile: =>
-        @sendCommand "NonInteractive", "Cmd_compile MAlonzo \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
+        backend = atom.config.get 'agda-mode.backend'
+        @sendCommand "NonInteractive", "Cmd_compile #{backend} \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
     toggleDisplayOfImplicitArguments: =>
         @sendCommand "NonInteractive", "ToggleImplicitArgs"
     showConstraints: =>

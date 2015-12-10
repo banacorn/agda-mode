@@ -2,12 +2,20 @@ Core = null
 module.exports =
     # https://atom.io/docs/api/latest/Config
     config:
+        libraryPath:
+            title: 'Libraries'
+            description: 'Paths to include (such as agda-stdlib), seperate with comma'
+            type: 'array'
+            default: []
+            items:
+                type: 'string'
+            order: 0
         executablePath:
             title: 'Agda executable path'
             description: 'Overwrite to override (else automatically filled upon first load)'
             type: 'string'
             default: ''
-            order: 0
+            order: 1
         programName:
             title: 'Agda program name'
             description: """
@@ -16,7 +24,7 @@ module.exports =
             """
             type: 'string'
             default: 'agda'
-            order: 1
+            order: 2
         programArgs:
             title: 'Agda program arguments'
             description: """
@@ -28,22 +36,21 @@ module.exports =
             """
             type: 'string'
             default: ''
-            order: 2
-        libraryPath:
-            title: 'Libraries'
-            description: 'Paths to include (such as agda-stdlib), seperate with comma'
-            type: 'array'
-            default: []
-            items:
-                type: 'string'
             order: 3
+        backend:
+            title: 'Backend'
+            description: 'The backend which is used to compile Agda programs.'
+            type: 'string'
+            default: 'MAlonzo',
+            enum: ['MAlonzo', 'MAlonzoNoMain', 'Epic', 'JS']
+            order: 4
         highlightingMethod:
             title: 'Highlighting information passing'
             description: 'Receive parsed result from Agda, directly from stdio, or indirectly from temporary files (which requires frequent disk access)'
             type: 'string'
             default: 'Direct',
             enum: ['Indirect', 'Direct']
-            order: 4
+            order: 5
         # inputMethod:
         #     title: 'Input Method'
         #     description: 'Enable input method'
