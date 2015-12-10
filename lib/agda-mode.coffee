@@ -1,33 +1,49 @@
 Core = null
 module.exports =
+    # https://atom.io/docs/api/latest/Config
     config:
         executablePath:
             title: 'Agda executable path'
-            description: 'overwrite to override (else automatically filled upon first load)'
+            description: 'Overwrite to override (else automatically filled upon first load)'
             type: 'string'
             default: ''
             order: 0
         programName:
             title: 'Agda program name'
-            description: 'the name of the Agda executable'
+            description: """
+                The name of the Agda executable, this will be used for execution
+                 and automatic path searching
+            """
             type: 'string'
             default: 'agda'
             order: 1
+        programArgs:
+            title: 'Agda program arguments'
+            description: """
+                Command-line arguments given to the Agda executable.<br>
+                Seperate with spaces as you would in command-line, For example:
+                `--no-termination-check --no-positivity-check`.<br>
+                The flag `--interaction` is always included as the first
+                 argument, and does not need to be added here.
+            """
+            type: 'string'
+            default: ''
+            order: 2
         libraryPath:
             title: 'Libraries'
-            description: 'paths to include (such as agda-stdlib), seperate with comma'
+            description: 'Paths to include (such as agda-stdlib), seperate with comma'
             type: 'array'
             default: []
             items:
                 type: 'string'
-            order: 2
+            order: 3
         highlightingMethod:
             title: 'Highlighting information passing'
             description: 'Receive parsed result from Agda, directly from stdio, or indirectly from temporary files (which requires frequent disk access)'
             type: 'string'
             default: 'Direct',
             enum: ['Indirect', 'Direct']
-            order: 3
+            order: 4
         # inputMethod:
         #     title: 'Input Method'
         #     description: 'Enable input method'

@@ -1,3 +1,4 @@
+_ = require 'lodash'
 {spawn, exec} = require 'child_process'
 Promise = require 'bluebird'
 {parsePath} = require './util'
@@ -18,6 +19,12 @@ class Executable
         path = atom.config.get('agda-mode.libraryPath')
         path.unshift('.')
         return path.map((p) -> '\"' + parsePath p + '\"').join(', ')
+
+    getProgramArgs: ->
+        args = atom.config.get('agda-mode.programArgs')
+        return _.compact(args.split(' '))
+
+
 
     # locate the path and see if it is truly Agda executable
     validateExecutablePath: (path) -> new Promise (resolve, reject) =>
@@ -77,7 +84,11 @@ class Executable
             resolve @agdaProcess
         else
             @getExecutablePath().then (path) =>
-                agdaProcess = spawn path, ['--interaction']
+
+                # Agda program arguments
+                args = @getProgramArgs()
+                args.unshift '--interaction'
+                agdaProcess = spawn path, args
 
                 # catch other forms of errors
                 agdaProcess.on 'error', (error) =>
