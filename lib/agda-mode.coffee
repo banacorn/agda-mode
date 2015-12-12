@@ -51,12 +51,12 @@ module.exports =
             default: 'Direct',
             enum: ['Indirect', 'Direct']
             order: 5
-        # inputMethod:
-        #     title: 'Input Method'
-        #     description: 'Enable input method'
-        #     type: 'boolean'
-        #     default: true
-        #     order: 3
+        inputMethod:
+            title: 'Input Method'
+            description: 'Enable input method'
+            type: 'boolean'
+            default: true
+            order: 6
 
     activate: (state) ->
         Core = require './core'
