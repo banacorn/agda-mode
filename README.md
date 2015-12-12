@@ -18,6 +18,7 @@ For people who don't wanna use Emacs for whatever reasons.
 3. Install the package:
   * from the editor: `Atom > Preferences... > Install`, search for `agda-mode` and install
   * or from a shell: `apm install agda-mode`
+4. If you have Agda installed properly (i.e. `agda` is in the [PATH](https://en.wikipedia.org/wiki/PATH_(variable)), check it in your console), then it's good to go.
 
 ## Commands
 
