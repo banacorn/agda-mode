@@ -12,4 +12,4 @@ branches:
     - spec
 
 env:
-  - APM_TEST_PACKAGES="language-agda"
+  - APM_TEST_PACKAGES="agda-mode language-agda"
