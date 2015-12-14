@@ -4,7 +4,7 @@ path = require 'path'
 fs = require 'fs'
 temp = require 'temp'
 
-AgdaMode = require '../lib/agda-mode'
+AgdaMode = require '../../lib/agda-mode'
 
 # Automatically track and cleanup files at exit
 temp.track()
