@@ -4,6 +4,10 @@
   "version": "0.4.6",
   "description": "agda-mode for Atom",
   "activationCommands": {
+    "atom-workspace": [
+      "agda-mode:load",
+      "agda-mode:input-symbol"
+    ],
     "atom-text-editor[data-grammar='source agda']": [
       "agda-mode:load",
       "agda-mode:input-symbol"
@@ -13,6 +17,7 @@
       "agda-mode:input-symbol"
     ]
   },
+  "atomTestRunner": "./spec/setup.coffee",
   "repository": "https://github.com/banacorn/agda-mode",
   "license": "MIT",
   "engines": {
@@ -23,5 +28,10 @@
     "lisp-to-array": "^0.2",
     "lodash": "^3.10",
     "vue": "1.0.10-csp"
+  },
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "mocha": "^2.3.4",
+    "temp": "^0.8.3"
   }
 }
