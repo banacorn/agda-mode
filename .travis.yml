@@ -10,3 +10,6 @@ script: 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.
 branches:
   only:
     - spec
+
+env:
+  - APM_TEST_PACKAGES="language-agda"
