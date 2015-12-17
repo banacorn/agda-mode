@@ -1,4 +1,4 @@
-Core = null
+Core = require './core'
 module.exports =
     # https://atom.io/docs/api/latest/Config
     config:
@@ -59,7 +59,6 @@ module.exports =
             order: 6
 
     activate: (state) ->
-        Core = require './core'
         atom.workspace.observeTextEditors (editor) =>
 
             # instantiate core if it's .agda
