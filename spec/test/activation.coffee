@@ -60,6 +60,8 @@ describe 'Spawn a group of files', ->
 
     describe 'activating agda-mode', ->
 
+        textEditor_ = null
+
         beforeEach ->
             atom.packages.deactivatePackage('agda-mode')
             atom.packages.activatePackage('agda-mode')
@@ -70,9 +72,11 @@ describe 'Spawn a group of files', ->
                 .then (textEditor) ->
                     element = atom.views.getView(textEditor)
                     atom.commands.dispatch(element, 'agda-mode:load')
+                    textEditor_ = textEditor
                     return atom.packages.activatePackage('agda-mode')
                 .then ->
                     getActivePackageNames().should.contain 'agda-mode'
+                    textEditor_.core.should.be.defined
                     done()
 
         it 'should be activated after triggering "agda-mode:load" in .lagda files', (done) ->
@@ -80,31 +84,33 @@ describe 'Spawn a group of files', ->
                 .then (textEditor) ->
                     element = atom.views.getView(textEditor)
                     atom.commands.dispatch(element, 'agda-mode:load')
+                    textEditor_ = textEditor
                     return atom.packages.activatePackage('agda-mode')
                 .then ->
                     getActivePackageNames().should.contain 'agda-mode'
-                    done()
-
-        it 'should have property `core` after triggering "agda-mode:load" in .agda files', (done) ->
-            textEditor_ = null
-            openFile agdaFD
-                .then (textEditor) ->
-                    element = atom.views.getView(textEditor)
-                    atom.commands.dispatch(element, 'agda-mode:load')
-                    textEditor_ = textEditor
-                    return atom.packages.activatePackage('agda-mode')
-                .then ->
                     textEditor_.core.should.be.defined
                     done()
 
-        it 'should have property `core` after triggering "agda-mode:load" in .lagda files', (done) ->
-            textEditor_ = null
-            openFile lagdaFD
+        it 'should be activated after triggering "agda-mode:input-symbol" in .agda files', (done) ->
+            openFile agdaFD
                 .then (textEditor) ->
                     element = atom.views.getView(textEditor)
-                    atom.commands.dispatch(element, 'agda-mode:load')
+                    atom.commands.dispatch(element, 'agda-mode:input-symbol')
                     textEditor_ = textEditor
                     return atom.packages.activatePackage('agda-mode')
                 .then ->
+                    getActivePackageNames().should.contain 'agda-mode'
+                    textEditor_.core.should.be.defined
+                    done()
+
+        it 'should be activated after triggering "agda-mode:input-symbol" in .lagda files', (done) ->
+            openFile lagdaFD
+                .then (textEditor) ->
+                    element = atom.views.getView(textEditor)
+                    atom.commands.dispatch(element, 'agda-mode:input-symbol')
+                    textEditor_ = textEditor
+                    return atom.packages.activatePackage('agda-mode')
+                .then ->
+                    getActivePackageNames().should.contain 'agda-mode'
                     textEditor_.core.should.be.defined
                     done()
