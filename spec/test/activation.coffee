@@ -1,10 +1,14 @@
-{expect} = require 'chai'
 {Promise} = require 'bluebird'
 path = require 'path'
 fs = require 'fs'
 temp = require 'temp'
 
 AgdaMode = require '../../lib/agda-mode'
+
+chai = require 'chai'
+chai.should()
+chai.use require 'chai-things'
+chai.use require 'chai-as-promised'
 
 # Automatically track and cleanup files at exit
 temp.track()
@@ -42,15 +46,17 @@ describe 'Spawn a group of files', ->
     describe 'loading language-agda', ->
         it 'should be loaded', (done) ->
             atom.packages.activatePackage('language-agda').then ->
-                loadedPackages = getLoadedPackageNames()
-                expect(loadedPackages).to.contain 'language-agda'
+                getLoadedPackageNames().should.contain 'language-agda'
                 done()
 
     describe 'before activating agda-mode', ->
 
         it 'should not be activated before triggering events', ->
-            activePackages = getActivePackageNames()
-            expect(activePackages).to.not.contain 'agda-mode'
+            getActivePackageNames().should.not.contain 'agda-mode'
+
+        it 'should not have property `core` before activation', ->
+            Promise.map([agdaFD, lagdaFD, potatoFD], openFile).
+                should.all.eventually.not.have.property 'core'
 
     describe 'activating agda-mode', ->
 
@@ -60,26 +66,45 @@ describe 'Spawn a group of files', ->
             return
 
         it 'should be activated after triggering "agda-mode:load" in .agda files', (done) ->
-
             openFile agdaFD
                 .then (textEditor) ->
                     element = atom.views.getView(textEditor)
                     atom.commands.dispatch(element, 'agda-mode:load')
                     return atom.packages.activatePackage('agda-mode')
                 .then ->
-                    activePackages = getActivePackageNames()
-                    expect(activePackages).to.contain 'agda-mode'
+                    getActivePackageNames().should.contain 'agda-mode'
                     done()
 
-
         it 'should be activated after triggering "agda-mode:load" in .lagda files', (done) ->
-
             openFile lagdaFD
                 .then (textEditor) ->
                     element = atom.views.getView(textEditor)
                     atom.commands.dispatch(element, 'agda-mode:load')
                     return atom.packages.activatePackage('agda-mode')
                 .then ->
-                    activePackages = getActivePackageNames()
-                    expect(activePackages).to.contain 'agda-mode'
+                    getActivePackageNames().should.contain 'agda-mode'
+                    done()
+
+        it 'should have property `core` after triggering "agda-mode:load" in .agda files', (done) ->
+            textEditor_ = null
+            openFile agdaFD
+                .then (textEditor) ->
+                    element = atom.views.getView(textEditor)
+                    atom.commands.dispatch(element, 'agda-mode:load')
+                    textEditor_ = textEditor
+                    return atom.packages.activatePackage('agda-mode')
+                .then ->
+                    textEditor_.core.should.be.defined
+                    done()
+
+        it 'should have property `core` after triggering "agda-mode:load" in .lagda files', (done) ->
+            textEditor_ = null
+            openFile lagdaFD
+                .then (textEditor) ->
+                    element = atom.views.getView(textEditor)
+                    atom.commands.dispatch(element, 'agda-mode:load')
+                    textEditor_ = textEditor
+                    return atom.packages.activatePackage('agda-mode')
+                .then ->
+                    textEditor_.core.should.be.defined
                     done()
