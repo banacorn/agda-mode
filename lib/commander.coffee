@@ -76,6 +76,9 @@ class Commander
     toggleDisplayOfImplicitArguments: ->
         @executable.toggleDisplayOfImplicitArguments()
 
+    info: ->
+        @executable.info()
+
     showConstraints: ->
         @executable.showConstraints()
 

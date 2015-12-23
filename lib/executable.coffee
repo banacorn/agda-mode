@@ -154,6 +154,24 @@ class Executable
         @agdaProcess.kill()
         @agdaProcessWired = false
 
+    info: =>
+        @getExecutablePath().then (path) =>
+            child = exec "#{path} -V", (error, stdout, stderr) =>
+                if error
+                    @core.panel.setContent "Error", "#{error}", 'error'
+                else
+                    result = stdout.toString().match /^Agda version (.*)\n$/
+                    args = @getProgramArgs()
+                    args.unshift '--interaction'
+                    if result
+                        @core.panel.setContent "Info", [
+                            "Agda version: #{result[1]}"
+                            "Agda executable path: #{path}"
+                            "Agda executable arguments: #{args.join(' ')}"
+                        ]
+                    else
+                        @core.panel.setContent "Error", ["unable to parse agda version message #{stdout.toString()}"], 'error'
+
     compile: =>
         backend = atom.config.get 'agda-mode.backend'
         @sendCommand "NonInteractive", "Cmd_compile #{backend} \"#{@core.getPath()}\" [#{@getLibraryPath()}]"

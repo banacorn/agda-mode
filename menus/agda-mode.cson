@@ -26,6 +26,7 @@
           { 'label': 'Context', 'command': 'agda-mode:context[Simplified]' }
           { 'label': 'Goal Type and Context', 'command': 'agda-mode:goal-type-and-context[Simplified]' }
           { 'label': 'Goal Type and Inferred Type', 'command': 'agda-mode:goal-type-and-inferred-type[Simplified]' }
+          { 'label': 'Info', 'command': 'agda-mode:info' }
       ]
     ]
   }
