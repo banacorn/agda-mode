@@ -3,7 +3,7 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 {parsePath} = require './util'
 Agda = require './parser/agda'
-{InvalidExecutablePathError} = require './error'
+{InvalidExecutablePathError, ProcExecError} = require './error'
 Promise.longStackTraces()
 
 
@@ -25,10 +25,12 @@ class Executable
         return _.compact(args.split(' '))
 
     # locate the path and see if it is truly Agda executable
-    validateExecutablePath: (path) -> new Promise (resolve, reject) =>
+    validateExecutablePath: (path = "") -> new Promise (resolve, reject) =>
         path = parsePath path
         try
-            agdaProcess = spawn path, ['-V']
+            args = @getProgramArgs()
+            args.push '-V'
+            agdaProcess = spawn path, args
             agdaProcess.on 'error', (error) =>
                 reject new InvalidExecutablePathError error, path
             agdaProcess.stdout.once 'data', (data) =>
@@ -37,23 +39,32 @@ class Executable
                     resolve path
                 else
                     reject new InvalidExecutablePathError data.toString(), path
+            agdaProcess.stderr.once 'data', (data) =>
+                reject new ProcExecError data.toString()
         catch error
-            reject new InvalidExecutablePathError error, path
+            if path is ""
+                reject new InvalidExecutablePathError "Path must not be empty", path
+            else
+                reject new InvalidExecutablePathError error, path
 
     # keep banging the user until we got the right path
-    queryExecutablePathUntilSuccess: (path) ->
-        @core.panel.setContent "Agda executable not found: \"#{path}\"", [], 'warning', 'path of executable here'
+    queryExecutablePathUntilSuccess: (error) ->
+        switch error.name
+            when "ProcExecError"
+                @core.panel.setContent "Process execution error", error.message.split('\n'), 'error'
+            when "InvalidExecutablePathError"
+                @core.panel.setContent "#{error.message}: \"#{error.path}\"", [], 'warning', 'path of executable here'
         @core.panel.query(false) # disable input method
             .then (path) =>
                 path = parsePath path
                 @validateExecutablePath path
                     .then (path) => path
-                    .catch InvalidExecutablePathError, => @queryExecutablePathUntilSuccess path
+                    .catch InvalidExecutablePathError, (error) => @queryExecutablePathUntilSuccess error
             .then (path) =>
                 atom.config.set 'agda-mode.executablePath', path
                 return path
-            .catch InvalidExecutablePathError, =>
-                @queryExecutablePathUntilSuccess path
+            .catch InvalidExecutablePathError, (error) => @queryExecutablePathUntilSuccess error
+
 
     # get executable path from the settings
     # else by the commend which
@@ -61,7 +72,7 @@ class Executable
     getExecutablePath: ->
         @getPathFromSettings()                                              #1
             .catch (error) => @getPathByWhich()                             #2
-            .catch (error) => @queryExecutablePathUntilSuccess error.path   #3
+            .catch (error) => @queryExecutablePathUntilSuccess error        #3
 
     # get executable path from settings and validate it
     getPathFromSettings: ->
@@ -82,10 +93,9 @@ class Executable
             resolve @agdaProcess
         else
             @getExecutablePath().then (path) =>
-
                 # Agda program arguments
                 args = @getProgramArgs()
-                args.unshift '--interaction'
+                args.push '--interaction'
                 agdaProcess = spawn path, args
 
                 # catch other forms of errors
@@ -153,6 +163,25 @@ class Executable
     quit: =>
         @agdaProcess.kill()
         @agdaProcessWired = false
+
+    info: =>
+        @getExecutablePath().then (path) =>
+            args = @getProgramArgs().join(' ')
+            child = exec "#{path} #{args} -V", (error, stdout, stderr) =>
+                if error
+                    @core.panel.setContent "Error", "#{error}", 'error'
+                else
+                    result = stdout.toString().match /^Agda version (.*)\n$/
+                    args = @getProgramArgs()
+                    args.unshift '--interaction'
+                    if result
+                        @core.panel.setContent "Info", [
+                            "Agda version: #{result[1]}"
+                            "Agda executable path: #{path}"
+                            "Agda executable arguments: #{args.join(' ')}"
+                        ]
+                    else
+                        @core.panel.setContent "Error", ["unable to parse agda version message #{stdout.toString()}"], 'error'
 
     compile: =>
         backend = atom.config.get 'agda-mode.backend'

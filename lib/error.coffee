@@ -19,8 +19,14 @@ class InvalidExecutablePathError extends Error
         @name = "InvalidExecutablePathError"
         Error.captureStackTrace(this, InvalidExecutablePathError)
 
+class ProcExecError extends Error
+    constructor: (@message) ->
+        @name = "ProcExecError"
+        Error.captureStackTrace(this, ProcExecError)
+
 module.exports =
     OutOfGoalError: OutOfGoalError
     EmptyGoalError: EmptyGoalError
     QueryCancelledError: QueryCancelledError
     InvalidExecutablePathError: InvalidExecutablePathError
+    ProcExecError: ProcExecError

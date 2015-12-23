@@ -1,3 +1,6 @@
+## 0.4.7
+* Add a new command "agda-mode:info"
+
 ## 0.4.6
 * Fix #27
 

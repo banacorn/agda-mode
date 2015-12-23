@@ -26,6 +26,7 @@
     'ctrl-c ctrl-x ctrl-r': 'agda-mode:restart'
     'ctrl-c ctrl-x ctrl-c': 'agda-mode:compile'
     'ctrl-c ctrl-x ctrl-h': 'agda-mode:toggle-display-of-implicit-arguments'
+    'ctrl-c ctrl-x ctrl-v': 'agda-mode:info'
     'ctrl-c        ctrl-=': 'agda-mode:show-constraints'
     'ctrl-c        ctrl-?': 'agda-mode:show-goals'
     'ctrl-c        ctrl-f': 'agda-mode:next-goal'

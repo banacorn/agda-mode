@@ -9,6 +9,7 @@ parsePath = (str) ->
         # fuck Windows Bidi control character
         joined = joined.substr(1) if joined.charCodeAt(0) is 8234
         return joined.trim()
-
+    else
+        ""
 module.exports =
     parsePath: parsePath
