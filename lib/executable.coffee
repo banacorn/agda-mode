@@ -3,7 +3,7 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 {parsePath} = require './util'
 Agda = require './parser/agda'
-{InvalidExecutablePathError} = require './error'
+{InvalidExecutablePathError, ProcExecError} = require './error'
 Promise.longStackTraces()
 
 
@@ -25,7 +25,7 @@ class Executable
         return _.compact(args.split(' '))
 
     # locate the path and see if it is truly Agda executable
-    validateExecutablePath: (path) -> new Promise (resolve, reject) =>
+    validateExecutablePath: (path = "") -> new Promise (resolve, reject) =>
         path = parsePath path
         try
             args = @getProgramArgs()
@@ -40,24 +40,31 @@ class Executable
                 else
                     reject new InvalidExecutablePathError data.toString(), path
             agdaProcess.stderr.once 'data', (data) =>
-                reject new InvalidExecutablePathError data.toString(), path
+                reject new ProcExecError data.toString()
         catch error
-            reject new InvalidExecutablePathError error, path
+            if path is ""
+                reject new InvalidExecutablePathError "Path must not be empty", path
+            else
+                reject new InvalidExecutablePathError error, path
 
     # keep banging the user until we got the right path
-    queryExecutablePathUntilSuccess: (path) ->
-        @core.panel.setContent "Agda executable not found: \"#{path}\"", [], 'warning', 'path of executable here'
+    queryExecutablePathUntilSuccess: (error) ->
+        switch error.name
+            when "ProcExecError"
+                @core.panel.setContent "Process execution error", error.message.split('\n'), 'error'
+            when "InvalidExecutablePathError"
+                @core.panel.setContent "#{error.message}: \"#{error.path}\"", [], 'warning', 'path of executable here'
         @core.panel.query(false) # disable input method
             .then (path) =>
                 path = parsePath path
                 @validateExecutablePath path
                     .then (path) => path
-                    .catch InvalidExecutablePathError, => @queryExecutablePathUntilSuccess path
+                    .catch InvalidExecutablePathError, (error) => @queryExecutablePathUntilSuccess error
             .then (path) =>
                 atom.config.set 'agda-mode.executablePath', path
                 return path
-            .catch InvalidExecutablePathError, =>
-                @queryExecutablePathUntilSuccess path
+            .catch InvalidExecutablePathError, (error) => @queryExecutablePathUntilSuccess error
+
 
     # get executable path from the settings
     # else by the commend which
@@ -65,7 +72,7 @@ class Executable
     getExecutablePath: ->
         @getPathFromSettings()                                              #1
             .catch (error) => @getPathByWhich()                             #2
-            .catch (error) => @queryExecutablePathUntilSuccess error.path   #3
+            .catch (error) => @queryExecutablePathUntilSuccess error        #3
 
     # get executable path from settings and validate it
     getPathFromSettings: ->
