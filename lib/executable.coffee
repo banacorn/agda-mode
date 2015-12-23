@@ -28,7 +28,9 @@ class Executable
     validateExecutablePath: (path) -> new Promise (resolve, reject) =>
         path = parsePath path
         try
-            agdaProcess = spawn path, ['-V']
+            args = @getProgramArgs()
+            args.push '-V'
+            agdaProcess = spawn path, args
             agdaProcess.on 'error', (error) =>
                 reject new InvalidExecutablePathError error, path
             agdaProcess.stdout.once 'data', (data) =>
@@ -37,6 +39,8 @@ class Executable
                     resolve path
                 else
                     reject new InvalidExecutablePathError data.toString(), path
+            agdaProcess.stderr.once 'data', (data) =>
+                reject new InvalidExecutablePathError data.toString(), path
         catch error
             reject new InvalidExecutablePathError error, path
 
@@ -82,10 +86,9 @@ class Executable
             resolve @agdaProcess
         else
             @getExecutablePath().then (path) =>
-
                 # Agda program arguments
                 args = @getProgramArgs()
-                args.unshift '--interaction'
+                args.push '--interaction'
                 agdaProcess = spawn path, args
 
                 # catch other forms of errors
@@ -156,7 +159,8 @@ class Executable
 
     info: =>
         @getExecutablePath().then (path) =>
-            child = exec "#{path} -V", (error, stdout, stderr) =>
+            args = @getProgramArgs().join(' ')
+            child = exec "#{path} #{args} -V", (error, stdout, stderr) =>
                 if error
                     @core.panel.setContent "Error", "#{error}", 'error'
                 else
