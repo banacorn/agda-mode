@@ -12,6 +12,7 @@ class Executable
     # instance wired the agda-mode executable
     agdaProcessWired: false
     agdaProcess: null
+    agdaVersion: null
 
     constructor: (@core) ->
 
@@ -34,7 +35,9 @@ class Executable
             agdaProcess.on 'error', (error) =>
                 reject new InvalidExecutablePathError error, path
             agdaProcess.stdout.once 'data', (data) =>
-                if /^Agda/.test data.toString()
+                result = data.toString().match /^Agda version (.*)\n$/
+                if result
+                    @agdaVersion = result[1]
                     atom.config.set 'agda-mode.executablePath', path
                     resolve path
                 else
@@ -165,23 +168,15 @@ class Executable
         @agdaProcessWired = false
 
     info: =>
-        @getExecutablePath().then (path) =>
-            args = @getProgramArgs().join(' ')
-            child = exec "#{path} #{args} -V", (error, stdout, stderr) =>
-                if error
-                    @core.panel.setContent "Error", "#{error}", 'error'
-                else
-                    result = stdout.toString().match /^Agda version (.*)\n$/
-                    args = @getProgramArgs()
-                    args.unshift '--interaction'
-                    if result
-                        @core.panel.setContent "Info", [
-                            "Agda version: #{result[1]}"
-                            "Agda executable path: #{path}"
-                            "Agda executable arguments: #{args.join(' ')}"
-                        ]
-                    else
-                        @core.panel.setContent "Error", ["unable to parse agda version message #{stdout.toString()}"], 'error'
+        path = atom.config.get('agda-mode.executablePath')
+        args = @getProgramArgs()
+        args.unshift '--interaction'
+
+        @core.panel.setContent "Info", [
+            "Agda version: #{@agdaVersion}"
+            "Agda executable path: #{path}"
+            "Agda executable arguments: #{args.join(' ')}"
+        ]
 
     compile: =>
         backend = atom.config.get 'agda-mode.backend'
