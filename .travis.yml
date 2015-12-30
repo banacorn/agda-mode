@@ -1,15 +1,32 @@
-language: objective-c
+script:
+    - docker pull banacorn/agda:$AGDA_VERSION
+    - 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | sh'
 
-notifications:
-  email:
-    on_success: never
-    on_failure: never
+language: node_js
+node_js: stable
 
-script: 'curl -s https://raw.githubusercontent.com/atom/ci/master/build-package.sh | sh'
-
-branches:
-  only:
-    - spec
+os:
+    - linux
 
 env:
-  - APM_TEST_PACKAGES="agda-mode language-agda"
+    # dependencies for Atom
+    global:
+        - APM_TEST_PACKAGES="agda-mode language-agda"
+
+    matrix:
+        - AGDA_VERSION=2.4.2.5
+        # - AGDA_VERSION=2.4.2.4
+        # - AGDA_VERSION=2.4.2.3
+        # - AGDA_VERSION=2.4.2.2
+
+services:
+    - docker
+
+addons:
+    apt:
+        packages:
+            # for Atom
+            - build-essential
+            - git
+            - libgnome-keyring-dev
+            - fakeroot
