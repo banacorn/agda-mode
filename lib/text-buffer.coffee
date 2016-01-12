@@ -19,13 +19,15 @@ class TextBuffer
 
     protectCursor: (callback) ->
         position = @core.editor.getCursorBufferPosition()
-        callback()
+        result = callback()
         @getCurrentGoal position
             .then (goal) =>
                 newPosition = @core.editor.translate goal.range.start, 3
                 @core.editor.setCursorBufferPosition newPosition
+                return result
             .catch err.OutOfGoalError, =>
                 @core.editor.setCursorBufferPosition position
+                return result
 
     focus: ->
         textEditorElement = atom.views.getView(@core.editor)
@@ -176,6 +178,11 @@ class TextBuffer
             @core.editor.setTextInBufferRange range, token.content
             goal = new Goal @core.editor, token.goalIndex, token.modifiedRange
             @goals.push goal
+
+    onSolveAllAction: (index, content) -> @protectCursor =>
+        goal = @findGoal index
+        goal.setContent content
+        return goal
 
     onGiveAction: (index, content, paran) -> @protectCursor =>
         goal = @findGoal index

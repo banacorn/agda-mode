@@ -15,6 +15,8 @@ class ParseCommand extends Transform
             when 'agda2-goto'           then @core.handler.goto tokens
             when 'agda2-give-action'    then @core.handler.giveAction tokens
             when 'agda2-parse-error'    then @core.handler.parseError tokens
+            when 'agda2-solveAll-action'
+                @core.handler.solveAllAction tokens
             when 'agda2-make-case-action'
                 @core.handler.makeCaseAction tokens
             when 'agda2-highlight-clear'

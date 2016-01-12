@@ -31,6 +31,7 @@ This is an exhaustive list of available commands.
 | `    C-c C-x C-r` | kill and restart Agda                   |   ✓    |               |
 | `    C-c C-x C-c` | compile                                 |   ✓    |               |
 | `    C-c C-x C-h` | toggle display of implicit arguments    |   ✓    |               |
+| `    C-c     C-s` | solve constraints                       |   ✓    |               |
 | `    C-c     C-=` | show constraints                        |   ✓    |               |
 | `    C-c     C-?` | show goals                              |   ✓    |               |
 | `    C-c     C-f` | next goal (forward)                     |   ✓    |               |
@@ -78,7 +79,6 @@ The key mapping of symbols are the same as in Emacs. For example: `\bn` for `ℕ
 | Keymap            | Command               | Reason               |
 |------------------:|:----------------------|:---------------------|
 | `    C-c C-x C-d` | remove goals and highlighting (deactivate) |
-| `    C-c     C-s` | solve constraints     | i have no idea what is this ◔_◔ |
 | `    C-c C-x M- ` | comment/uncomment the rest of the buffer | nope |
 
 ![This gif looks cute so i'm keeping it](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)

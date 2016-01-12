@@ -183,6 +183,8 @@ class Executable
         @sendCommand "NonInteractive", "Cmd_compile #{backend} \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
     toggleDisplayOfImplicitArguments: =>
         @sendCommand "NonInteractive", "ToggleImplicitArgs"
+    solveConstraints: =>
+        @sendCommand "NonInteractive", "Cmd_solveAll"
     showConstraints: =>
         @sendCommand "NonInteractive", "Cmd_constraints"
     showGoals: =>
