@@ -14,6 +14,7 @@
           { 'label': 'Case', 'command': 'agda-mode:case' }
           { 'label': 'Compile', 'command': 'agda-mode:compile' }
           { 'label': 'Toggle Display of Implicit Arguments', 'command': 'agda-mode:toggle-display-of-implicit-arguments' }
+          { 'label': 'Solve Constraints', 'command': 'agda-mode:solve-constraints' }
           { 'label': 'Show Constraints', 'command': 'agda-mode:show-constraints' }
           { 'label': 'Show Goals', 'command': 'agda-mode:show-goals' }
           { 'label': 'Next Goal', 'command': 'agda-mode:next-goal' }

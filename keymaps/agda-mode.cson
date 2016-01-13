@@ -28,6 +28,7 @@
     'ctrl-c ctrl-x ctrl-h': 'agda-mode:toggle-display-of-implicit-arguments'
     'ctrl-c ctrl-x ctrl-v': 'agda-mode:info'
     'ctrl-c        ctrl-=': 'agda-mode:show-constraints'
+    'ctrl-c        ctrl-s': 'agda-mode:solve-constraints'
     'ctrl-c        ctrl-?': 'agda-mode:show-goals'
     'ctrl-c        ctrl-f': 'agda-mode:next-goal'
     'ctrl-c        ctrl-b': 'agda-mode:previous-goal'

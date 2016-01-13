@@ -79,6 +79,9 @@ class Commander
     info: ->
         @executable.info()
 
+    solveConstraints: ->
+        @executable.solveConstraints()
+
     showConstraints: ->
         @executable.showConstraints()
 

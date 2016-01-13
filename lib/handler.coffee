@@ -6,6 +6,7 @@ class Handler
     constructor: (@core) ->
         # alias
         @panel      = @core.panel
+        @executable = @core.executable
         @textBuffer = @core.textBuffer
         @highlight  = @core.highlight
 
@@ -71,6 +72,13 @@ class Handler
             when "'paren"    then @textBuffer.onGiveAction tokens[1], [], true
             when "'no-paren" then @textBuffer.onGiveAction tokens[1], [], false
             else                  @textBuffer.onGiveAction tokens[1], tokens[2], false
+
+    # agda2-solveAll-action
+    solveAllAction: (tokens) ->
+        solutions = _.chunk tokens[1], 2
+        solutions.forEach (solution) =>
+            @textBuffer.onSolveAllAction solution[0], solution[1]
+                .then (goal) => @executable.give goal
 
     # agda2-make-case-action
     makeCaseAction: (tokens) ->
