@@ -1,3 +1,6 @@
+## 0.4.9
+* Make the maximum number of rows displayed in the panel adjustable
+
 ## 0.4.8
 * Add a new command "agda-mode:solve-constraints"
 

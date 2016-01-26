@@ -51,12 +51,20 @@ module.exports =
             default: 'Direct',
             enum: ['Indirect', 'Direct']
             order: 5
+        panelSize:
+            title: 'Panel size'
+            description: 'Decides how many rows will be displayed in the panel'
+            type: 'integer'
+            default: 5
+            minimum: 1
+            maximum: 20
+            order: 6
         inputMethod:
             title: 'Input Method'
             description: 'Enable input method'
             type: 'boolean'
             default: true
-            order: 6
+            order: 7
 
     activate: (state) ->
         atom.workspace.observeTextEditors (editor) =>

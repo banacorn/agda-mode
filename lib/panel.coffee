@@ -21,7 +21,7 @@ Panel = Vue.extend
             <panel-input-method id="panel-input-method" v-show="inputMethodMode" :input="inputMethod"></panel-input-method>
         </div>
         <div id="panel-body" class="padded" v-show="content.body.length || queryMode">
-            <panel-body id="panel-content" :raw-content="content"></panel-body>
+            <panel-body id="panel-content" :style="{ maxHeight: panelHeight * panelSize + 'px' }" :raw-content="content"></panel-body>
             <panel-input-editor id="panel-input-editor" v-ref:input-editor v-show="queryMode"></panel-input-editor>
         </div>
         '''
@@ -32,6 +32,8 @@ Panel = Vue.extend
             body: []
             type: null
             placeholder: ''
+        panelHeight: 30
+        panelSize: 5
         inputMethodMode: false
         queryMode: false
         inputMethod: null
@@ -64,6 +66,13 @@ Panel = Vue.extend
             @queryMode = true
 
             return promise
+
+    # initialize and bind configurations of panel size
+    ready: ->
+        @panelSize = atom.config.get('agda-mode.panelSize')
+        @panelHeight = 30
+        atom.config.observe 'agda-mode.panelSize', (newValue) =>
+            @panelSize = newValue
 
 Vue.component 'agda-panel', Panel
 module.exports = Panel
