@@ -140,14 +140,14 @@ class Executable
         "( Range [Interval
             (Pn
                 (Just (mkAbsolute \"#{@core.getPath()}\"))
-                #{startIndex}
+                #{startIndex + 3}
                 #{start.row + 1}
-                #{start.column + 1})
+                #{start.column + 3})
             (Pn
                 (Just (mkAbsolute \"#{@core.getPath()}\"))
-                #{endIndex}
+                #{endIndex - 1}
                 #{end.row + 1}
-                #{end.column + 1})
+                #{end.column - 1})
             ])"
 
     sendCommand: (highlightingLevel, interaction) ->
