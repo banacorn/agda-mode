@@ -1,5 +1,5 @@
 ## 0.4.9
-* Fix goal content positioning
+* Fix goal components (boundary/content/index) positioning
 * Make the maximum number of rows displayed in the panel adjustable
 
 ## 0.4.8

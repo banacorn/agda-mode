@@ -17,13 +17,18 @@ class TextBuffer
     #   Cursor Management   #
     #########################
 
+    # shift cursor if in certain goal
     protectCursor: (callback) ->
         position = @core.editor.getCursorBufferPosition()
         result = callback()
         @getCurrentGoal position
             .then (goal) =>
-                newPosition = @core.editor.translate goal.range.start, 3
-                @core.editor.setCursorBufferPosition newPosition
+                isEmpty = goal.getContent().replace(' ', '').length is 0
+                if isEmpty
+                    newPosition = @core.editor.translate goal.range.start, 3
+                    @core.editor.setCursorBufferPosition newPosition
+                else
+                    @core.editor.setCursorBufferPosition position
                 return result
             .catch err.OutOfGoalError, =>
                 @core.editor.setCursorBufferPosition position
@@ -196,7 +201,7 @@ class TextBuffer
         goal.removeBoundary()
         @removeGoal index
 
-    onMakeCaseAction: (content) ->  @protectCursor =>
+    onMakeCaseAction: (content) -> @protectCursor =>
          @getCurrentGoal().then (goal) =>
                 goal.writeLines content
             .catch @warnOutOfGoal
@@ -205,8 +210,6 @@ class TextBuffer
         if @core.getPath() is filepath
             position = @core.editor.fromIndex charIndex - 1
             @core.editor.setCursorBufferPosition position
-            # scroll down a bit further, or it would be shadowed by the panel
-            @core.editor.scrollToBufferPosition position.translate(new Point(10, 0))
 
     # Agda generates files with syntax highlighting notations,
     # those files are temporary and should be deleted once used.

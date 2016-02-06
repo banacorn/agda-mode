@@ -41,11 +41,25 @@ getHoles = (text, indices) ->
             # in case the goalIndex wasn't given, make it '*'
             # this happens when splitting case, agda2-goals-action is one index short
             goalIndex = indices[i] || '*'
-            paddingSpaces = ' '.repeat(goalIndex.toString().length)
-            # strip whitespaces in between {!<--space-->some data<---space-->!}
-            content = goalBracketContentRegex.exec(token.content)[1].trim()
-            # stuff whitespaces in
-            token.content = token.content.replace(/\{!.*!\}/, "{! #{content + paddingSpaces} !}")
+
+
+            # {! zero 42!}
+            #   <------>    hole content
+            #         <>    index
+            #        <->    space for index
+
+            # count how much space the index would take
+            requiredSpaces = goalIndex.toString().length
+
+            # count how much space we have
+            content = goalBracketContentRegex.exec(token.content)[1]
+            actualSpaces = content.match(/\s*$/)[0].length
+
+            # make room for the index, if there's not enough space
+            if actualSpaces < requiredSpaces
+                padding = ' '.repeat(requiredSpaces - actualSpaces)
+                token.content = token.content.replace(/\{!.*!\}/, "{!#{content + padding}!}")
+
             i += 1;
             return token
         .result
