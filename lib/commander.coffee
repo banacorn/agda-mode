@@ -109,15 +109,17 @@ class Commander
 
     inferType: (normalization) ->
         @panel.setContent "Infer type #{toDescription normalization}", [], 'value', 'expression to infer:'
-        @panel.query().then (expr) =>
-            @textBuffer.getCurrentGoal().done (goal) =>
-                # goal-specific
-                @executable.inferType normalization, expr, goal
-                @textBuffer.focus()
-            , =>
-                # global command
+        @textBuffer.getCurrentGoal().done (goal) =>
+            # goal-specific
+            if goal.isEmpty()
+                @panel.query().then (expr) =>
+                    @executable.inferType normalization, expr, goal
+            else
+                @executable.inferType normalization, goal.getContent(), goal
+        , =>
+            # global command
+            @panel.query().then (expr) =>
                 @executable.inferType normalization, expr
-                @textBuffer.focus()
 
     moduleContents: (normalization) ->
         @panel.setContent "Module contents #{toDescription normalization}", [], 'plain-text', 'module name:'

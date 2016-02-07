@@ -35,7 +35,7 @@ getHoles = (text, indices) ->
     modified = new Lexer _.cloneDeep original
         .mapOnly 'goal ?', (token) ->   # ? => {!  !}
             token.type = 'goal bracket'
-            token.content = '{!  !}'
+            token.content = '{!   !}'
             return token
         .mapOnly 'goal bracket', (token) => # {!!} => {!   !}
             # in case the goalIndex wasn't given, make it '*'

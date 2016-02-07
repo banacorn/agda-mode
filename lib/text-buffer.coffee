@@ -23,8 +23,10 @@ class TextBuffer
         result = callback()
         @getCurrentGoal position
             .then (goal) =>
-                isEmpty = goal.getContent().replace(' ', '').length is 0
-                if isEmpty
+                # reposition the cursor in the goal only if:
+                #   * it's a fresh hole (coming from "?")
+                isFreshHole = goal.isEmpty() and goal.getContent().length is 3
+                if isFreshHole
                     newPosition = @core.editor.translate goal.range.start, 3
                     @core.editor.setCursorBufferPosition newPosition
                 else
