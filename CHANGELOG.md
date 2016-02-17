@@ -1,7 +1,5 @@
-## 0.5.0
-* Get ready for the new library management system of Agda 2.5.0
-
 ## 0.4.9
+* Fix library loading for the new library management system after Agda 2.5.0
 * Fix goal components (boundary/content/index) positioning
 * Make the maximum number of rows displayed in the panel adjustable
 
