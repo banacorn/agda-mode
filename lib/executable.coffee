@@ -1,4 +1,5 @@
 _ = require 'lodash'
+semver = require 'semver'
 {spawn, exec} = require 'child_process'
 Promise = require 'bluebird'
 {parsePath} = require './util'
@@ -37,7 +38,13 @@ class Executable
             agdaProcess.stdout.once 'data', (data) =>
                 result = data.toString().match /^Agda version (.*)\n$/
                 if result
-                    @agdaVersion = result[1]
+                    # normalize version number to valid semver
+                    rawVerNum = result[1]
+                    semVerNum = _.take((result[1] + '.0.0.0').split('.'), 3).join('.')
+                    @agdaVersion =
+                        raw: rawVerNum
+                        sem: semVerNum
+
                     atom.config.set 'agda-mode.executablePath', path
                     resolve path
                 else
@@ -173,7 +180,7 @@ class Executable
         args.unshift '--interaction'
 
         @core.panel.setContent "Info", [
-            "Agda version: #{@agdaVersion}"
+            "Agda version: #{@agdaVersion.raw}"
             "Agda executable path: #{path}"
             "Agda executable arguments: #{args.join(' ')}"
         ]
