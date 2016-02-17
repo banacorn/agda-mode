@@ -39,8 +39,12 @@ class Goal
             left  = text.indexOf '{!'
             right = text.lastIndexOf '!}'
 
+            # special case: "{!}"
+            if left is 0 and right is 1
+                @restoreBoundary()
+
             # the entire goal got destroyed, so be it
-            if left is -1 and right is -1
+            else if left is -1 and right is -1
                 @destroy()
 
             # partially damaged
@@ -115,6 +119,8 @@ class Goal
         right = @editor.translate @range.end, -(3 + @index.toString().length)
         innerRange = new Range left, right
         @editor.setSelectedBufferRange innerRange
+
+    isEmpty: -> @getContent().replace(/(\s|\\n)*/, '').length is 0
 
     # helper functions
     toIndex  : (pos) -> @editor.getBuffer().characterIndexForPosition pos

@@ -1,4 +1,5 @@
 _ = require 'lodash'
+semver = require 'semver'
 {spawn, exec} = require 'child_process'
 Promise = require 'bluebird'
 {parsePath} = require './util'
@@ -37,7 +38,13 @@ class Executable
             agdaProcess.stdout.once 'data', (data) =>
                 result = data.toString().match /^Agda version (.*)\n$/
                 if result
-                    @agdaVersion = result[1]
+                    # normalize version number to valid semver
+                    rawVerNum = result[1]
+                    semVerNum = _.take((result[1] + '.0.0.0').split('.'), 3).join('.')
+                    @agdaVersion =
+                        raw: rawVerNum
+                        sem: semVerNum
+
                     atom.config.set 'agda-mode.executablePath', path
                     resolve path
                 else
@@ -140,28 +147,36 @@ class Executable
         "( Range [Interval
             (Pn
                 (Just (mkAbsolute \"#{@core.getPath()}\"))
-                #{startIndex}
+                #{startIndex + 3}
                 #{start.row + 1}
-                #{start.column + 1})
+                #{start.column + 3})
             (Pn
                 (Just (mkAbsolute \"#{@core.getPath()}\"))
-                #{endIndex}
+                #{endIndex - 1}
                 #{end.row + 1}
-                #{end.column + 1})
+                #{end.column - 1})
             ])"
 
     sendCommand: (highlightingLevel, interaction) ->
         @wireAgdaProcess().then (agdaProcess) =>
             filepath = @core.getPath()
             highlightingMethod = atom.config.get 'agda-mode.highlightingMethod'
-            command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction} )\n"
+            if typeof interaction is 'function' # it's a callback
+                command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction()} )\n"
+            else
+                command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction} )\n"
             agdaProcess.stdin.write command
             return agdaProcess
 
     load: =>
         # force save before load, since we are sending filepath but content
         @core.textBuffer.saveBuffer()
-        @sendCommand "NonInteractive", "Cmd_load \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
+        # if version > 2.5, ignore library path configuration
+        @sendCommand "NonInteractive", =>
+            if semver.gte(@agdaVersion.sem, '2.5.0')
+                "Cmd_load \"#{@core.getPath()}\" []"
+            else
+                "Cmd_load \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
 
     quit: =>
         @agdaProcess.kill()
@@ -173,14 +188,19 @@ class Executable
         args.unshift '--interaction'
 
         @core.panel.setContent "Info", [
-            "Agda version: #{@agdaVersion}"
+            "Agda version: #{@agdaVersion.raw}"
             "Agda executable path: #{path}"
             "Agda executable arguments: #{args.join(' ')}"
         ]
 
     compile: =>
         backend = atom.config.get 'agda-mode.backend'
-        @sendCommand "NonInteractive", "Cmd_compile #{backend} \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
+        # if version > 2.5, ignore library path configuration
+        @sendCommand "NonInteractive", =>
+            if semver.gte(@agdaVersion.sem, '2.5.0')
+                "Cmd_compile #{backend} \"#{@core.getPath()}\" []"
+            else
+                "Cmd_compile #{backend} \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
     toggleDisplayOfImplicitArguments: =>
         @sendCommand "NonInteractive", "ToggleImplicitArgs"
     solveConstraints: =>
