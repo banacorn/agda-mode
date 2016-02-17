@@ -161,14 +161,22 @@ class Executable
         @wireAgdaProcess().then (agdaProcess) =>
             filepath = @core.getPath()
             highlightingMethod = atom.config.get 'agda-mode.highlightingMethod'
-            command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction} )\n"
+            if typeof interaction is 'function' # it's a callback
+                command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction()} )\n"
+            else
+                command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction} )\n"
             agdaProcess.stdin.write command
             return agdaProcess
 
     load: =>
         # force save before load, since we are sending filepath but content
         @core.textBuffer.saveBuffer()
-        @sendCommand "NonInteractive", "Cmd_load \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
+        # if version > 2.5, ignore library path configuration
+        @sendCommand "NonInteractive", =>
+            if semver.gte(@agdaVersion.sem, '2.5.0')
+                "Cmd_load \"#{@core.getPath()}\" []"
+            else
+                "Cmd_load \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
 
     quit: =>
         @agdaProcess.kill()
@@ -187,7 +195,12 @@ class Executable
 
     compile: =>
         backend = atom.config.get 'agda-mode.backend'
-        @sendCommand "NonInteractive", "Cmd_compile #{backend} \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
+        # if version > 2.5, ignore library path configuration
+        @sendCommand "NonInteractive", =>
+            if semver.gte(@agdaVersion.sem, '2.5.0')
+                "Cmd_compile #{backend} \"#{@core.getPath()}\" []"
+            else
+                "Cmd_compile #{backend} \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
     toggleDisplayOfImplicitArguments: =>
         @sendCommand "NonInteractive", "ToggleImplicitArgs"
     solveConstraints: =>

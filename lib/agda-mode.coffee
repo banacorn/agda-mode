@@ -4,7 +4,7 @@ module.exports =
     config:
         libraryPath:
             title: 'Libraries'
-            description: 'Paths to include (such as agda-stdlib), seperate with comma'
+            description: 'Paths to include (such as agda-stdlib), seperate with comma. Useless after Agda 2.5.0'
             type: 'array'
             default: []
             items:
