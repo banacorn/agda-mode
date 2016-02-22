@@ -1,3 +1,6 @@
+## 0.4.10
+* Handles Emacs command 'agda2-maybe-goto'
+
 ## 0.4.9
 * Fix library loading for the new library management system after Agda 2.5.0
 * Fix goal components (boundary/content/index) positioning
