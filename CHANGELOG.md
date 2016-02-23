@@ -1,4 +1,5 @@
 ## 0.4.10
+* Case splitting in lambda expressions!
 * Handles Emacs command 'agda2-maybe-goto'
 
 ## 0.4.9

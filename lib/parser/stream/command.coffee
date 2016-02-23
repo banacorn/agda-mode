@@ -20,6 +20,8 @@ class ParseCommand extends Transform
                 @core.handler.solveAllAction tokens
             when 'agda2-make-case-action'
                 @core.handler.makeCaseAction tokens
+            when 'agda2-make-case-action-extendlam'
+                @core.handler.makeCaseActionExtendLam tokens
             when 'agda2-highlight-clear'
                 @core.handler.highlightClear tokens
             when 'agda2-highlight-add-annotations'
