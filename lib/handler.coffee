@@ -85,6 +85,10 @@ class Handler
         @textBuffer.onMakeCaseAction tokens[1]
             .then => @core.commander.load()
 
+    # agda2-make-case-action-extendlam
+    makeCaseActionExtendLam: (tokens) ->
+        @textBuffer.onMakeCaseActionExtendLam tokens[1]
+            .then => @core.commander.load()
     # agda2-highlight-clear
     highlightClear: (tokens) ->
 

@@ -208,6 +208,11 @@ class TextBuffer
                 goal.writeLines content
             .catch @warnOutOfGoal
 
+    onMakeCaseActionExtendLam: (content) -> @protectCursor =>
+         @getCurrentGoal().then (goal) =>
+                 goal.writeLambda content
+            .catch @warnOutOfGoal
+
     onGoto: (filepath, charIndex) ->
         if @core.getPath() is filepath
             position = @core.editor.fromIndex charIndex - 1
