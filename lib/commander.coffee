@@ -1,4 +1,4 @@
-Core = require './core'
+Command = require './command'
 Promise = require 'bluebird'
 _ = require 'lodash'
 {OutOfGoalError, EmptyGoalError, QueryCancelledError} = require './error'
@@ -28,12 +28,13 @@ class Commander
         @inputMethod    = @core.inputMethod if atom.config.get('agda-mode.inputMethod')
         @highlight      = @core.highlight
         @handler        = @core.handler
+
     command: (raw) ->
         {command, method, option} = @parse raw
-
         # some commands can only be executed after "loaded"
         exception = ['load', 'input-symbol']
         if @loaded or _.contains exception, command
+            @core.commandQueue.push(new Command command)
             Promise.resolve @[method](option)
                 .catch OutOfGoalError, @textBuffer.warnOutOfGoal
                 .catch EmptyGoalError, @textBuffer.warnEmptyGoal

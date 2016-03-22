@@ -8,6 +8,11 @@ class ParseCommand extends Transform
             objectMode: true
 
     _transform: (tokens, encoding, next) ->
+        # empty the command queue if there's error
+        if tokens[0] is "agda2-info-action" and tokens[1] is "*Error*"
+            @core.emptyCommandQueue()
+        else
+            @core.maintainCommandQueue(tokens[0])
         switch tokens[0]
             when 'agda2-info-action'    then @core.handler.infoAction tokens
             when 'agda2-status-action'  then @core.handler.statusAction tokens

@@ -13,6 +13,24 @@ Panel       = require './panel'
 
 class Core
 
+    commandQueue: []
+    maintainCommandQueue: (response) ->
+        if @commandQueue.length isnt 0
+            command = @commandQueue[0]
+            # command fullfilled
+            if command.expectGoalsAction
+                if response is 'agda2-goals-action'
+                    @commandQueue.shift()
+
+            # just trash it
+            else
+                @commandQueue.shift()
+
+    emptyCommandQueue: ->
+        @commandQueue = []
+
+
+
     getPath: -> parsePath @editor.getPath()
 
     constructor: (@editor) ->

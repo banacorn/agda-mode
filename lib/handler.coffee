@@ -6,7 +6,7 @@ class Handler
     constructor: (@core) ->
         # alias
         @panel      = @core.panel
-        @process = @core.process
+        @process    = @core.process
         @textBuffer = @core.textBuffer
         @highlight  = @core.highlight
 
