@@ -4,7 +4,7 @@ _ = require 'lodash'
 
 # Components
 Commander   = require './commander'
-Executable  = require './executable'
+Process     = require './process'
 TextBuffer  = require './text-buffer'
 InputMethod = require './input-method'
 Highlight   = require './highlight'
@@ -30,7 +30,7 @@ class Core
         # initialize all components
         @disposables    = new CompositeDisposable
         @panel          = new Panel         @
-        @executable     = new Executable    @
+        @process        = new Process       @
         @textBuffer     = new TextBuffer    @
         @inputMethod    = new InputMethod   @ if atom.config.get('agda-mode.inputMethod')
         @highlight      = new Highlight     @

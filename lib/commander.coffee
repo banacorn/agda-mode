@@ -21,7 +21,7 @@ class Commander
     loaded: false
     constructor: (@core) ->
         @highlight      = @core.highlight
-        @executable     = @core.executable
+        @process        = @core.process
         @panel          = @core.panel
         @atomPanel      = @core.atomPanel
         @textBuffer     = @core.textBuffer
@@ -55,13 +55,13 @@ class Commander
     load: ->
         @atomPanel.show()
         @highlight.destroy()
-        @executable.load().then (process) =>
+        @process.load().then (process) =>
             @panel.title = 'Loading'
             @loaded = true
 
     quit: -> if @loaded
         @loaded = false
-        @executable.quit()
+        @process.quit()
         @atomPanel.hide()
         @highlight.destroy()
         @textBuffer.removeGoals()
@@ -71,22 +71,22 @@ class Commander
         @load()
 
     compile: ->
-        @executable.compile()
+        @process.compile()
 
     toggleDisplayOfImplicitArguments: ->
-        @executable.toggleDisplayOfImplicitArguments()
+        @process.toggleDisplayOfImplicitArguments()
 
     info: ->
-        @executable.info()
+        @process.info()
 
     solveConstraints: ->
-        @executable.solveConstraints()
+        @process.solveConstraints()
 
     showConstraints: ->
-        @executable.showConstraints()
+        @process.showConstraints()
 
     showGoals: ->
-        @executable.showGoals()
+        @process.showGoals()
 
     nextGoal: ->
         @textBuffer.nextGoal()
@@ -100,11 +100,11 @@ class Commander
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.whyInScope expr, goal
+                @process.whyInScope expr, goal
                 @textBuffer.focus()
             , =>
                 # global command
-                @executable.whyInScope expr
+                @process.whyInScope expr
                 @textBuffer.focus()
 
     inferType: (normalization) ->
@@ -113,24 +113,24 @@ class Commander
             # goal-specific
             if goal.isEmpty()
                 @panel.query().then (expr) =>
-                    @executable.inferType normalization, expr, goal
+                    @process.inferType normalization, expr, goal
             else
-                @executable.inferType normalization, goal.getContent(), goal
+                @process.inferType normalization, goal.getContent(), goal
         , =>
             # global command
             @panel.query().then (expr) =>
-                @executable.inferType normalization, expr
+                @process.inferType normalization, expr
 
     moduleContents: (normalization) ->
         @panel.setContent "Module contents #{toDescription normalization}", [], 'plain-text', 'module name:'
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.moduleContents normalization, expr, goal
+                @process.moduleContents normalization, expr, goal
                 @textBuffer.focus()
             , =>
                 # global command
-                @executable.moduleContents normalization, expr
+                @process.moduleContents normalization, expr
                 @textBuffer.focus()
 
     computeNormalForm: ->
@@ -139,11 +139,11 @@ class Commander
             .then (expr) =>
                 @textBuffer.getCurrentGoal().done (goal) =>
                     # goal-specific
-                    @executable.computeNormalForm expr, goal
+                    @process.computeNormalForm expr, goal
                     @textBuffer.focus()
                 , =>
                     # global command
-                    @executable.computeNormalForm expr
+                    @process.computeNormalForm expr
                     @textBuffer.focus()
 
     computeNormalFormIgnoreAbstract: ->
@@ -151,11 +151,11 @@ class Commander
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @executable.computeNormalFormIgnoreAbstract expr, goal
+                @process.computeNormalFormIgnoreAbstract expr, goal
                 @textBuffer.focus()
             , =>
                 # global command
-                @executable.computeNormalFormIgnoreAbstract expr
+                @process.computeNormalFormIgnoreAbstract expr
                 @textBuffer.focus()
 
     give: ->
@@ -164,15 +164,15 @@ class Commander
                 title: "Give"
                 placeholder: "expression to give:"
                 error: "Nothing to give"
-            .then @executable.give
+            .then @process.give
 
     refine: ->
         @textBuffer.getCurrentGoal()
-            .then @executable.refine
+            .then @process.refine
 
     auto: ->
         @textBuffer.getCurrentGoal()
-            .then @executable.auto
+            .then @process.auto
 
     case: ->
         @textBuffer.getCurrentGoal()
@@ -180,23 +180,23 @@ class Commander
                 title: "Case"
                 placeholder: "expression to case:"
                 error: "Nothing to case"
-            .then @executable.case
+            .then @process.case
 
     goalType: (normalization) ->
         @textBuffer.getCurrentGoal()
-            .then @executable.goalType normalization
+            .then @process.goalType normalization
 
     context: (normalization) ->
         @textBuffer.getCurrentGoal()
-            .then @executable.context normalization
+            .then @process.context normalization
 
     goalTypeAndContext: (normalization) ->
         @textBuffer.getCurrentGoal()
-            .then @executable.goalTypeAndContext normalization
+            .then @process.goalTypeAndContext normalization
 
     goalTypeAndInferredType: (normalization) ->
         @textBuffer.getCurrentGoal()
-            .then @executable.goalTypeAndInferredType normalization
+            .then @process.goalTypeAndInferredType normalization
 
     inputSymbol: ->
         # activate if input method enabled, else insert '\\'

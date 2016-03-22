@@ -6,7 +6,7 @@ class Handler
     constructor: (@core) ->
         # alias
         @panel      = @core.panel
-        @executable = @core.executable
+        @process = @core.process
         @textBuffer = @core.textBuffer
         @highlight  = @core.highlight
 
@@ -78,7 +78,7 @@ class Handler
         solutions = _.chunk tokens[1], 2
         solutions.forEach (solution) =>
             @textBuffer.onSolveAllAction solution[0], solution[1]
-                .then (goal) => @executable.give goal
+                .then (goal) => @process.give goal
 
     # agda2-make-case-action
     makeCaseAction: (tokens) ->

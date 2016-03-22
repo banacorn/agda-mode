@@ -8,9 +8,8 @@ Agda = require './parser/agda'
 Promise.longStackTraces()
 
 
-class Executable
+class Process
 
-    # instance wired the agda-mode executable
     agdaProcessWired: false
     agdaProcess: null
     agdaVersion: null
@@ -26,7 +25,7 @@ class Executable
         args = atom.config.get('agda-mode.programArgs')
         return _.compact(args.split(' '))
 
-    # locate the path and see if it is truly Agda executable
+    # locate the path and see if it is truly a Agda process
     validateExecutablePath: (path = "") -> new Promise (resolve, reject) =>
         path = parsePath path
         try
@@ -252,4 +251,4 @@ class Executable
     goalTypeAndInferredType: (normalization) => (goal) =>
         @sendCommand "NonInteractive", "Cmd_goal_type_context_infer #{normalization} #{goal.index} noRange \"#{goal.getContent()}\""
 
-module.exports = Executable
+module.exports = Process
