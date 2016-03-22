@@ -1,7 +1,17 @@
-Command = require './command'
 Promise = require 'bluebird'
 _ = require 'lodash'
 {OutOfGoalError, EmptyGoalError, QueryCancelledError} = require './error'
+
+class Command
+    # promise
+    promise: null
+    resolve: null
+    reject: null
+
+    constructor: ->
+        @promise = new Promise (resolve, reject) =>
+            @resolve = resolve
+            @reject = reject
 
 toCamalCase = (str) ->
     str.split('-')
@@ -19,6 +29,26 @@ toDescription = (normalization) ->
 
 class Commander
     loaded: false
+
+    commandQueue: []
+    maintainCommandQueue: (response) ->
+        if @commandQueue.length isnt 0
+            command = @commandQueue[0]
+            if response is 'agda2-goals-action'
+                @commandQueue.shift()
+                command.resolve()
+    emptyCommandQueue: ->
+        @commandQueue.forEach (command) ->
+            command.reject()
+        @commandQueue = []
+
+    # pushes a new Command into the queue and returns its promise
+    newCommand: ->
+        command = new Command
+        @commandQueue.push(command)
+        return command.promise
+
+
     constructor: (@core) ->
         @highlight      = @core.highlight
         @process        = @core.process
@@ -34,7 +64,7 @@ class Commander
         # some commands can only be executed after "loaded"
         exception = ['load', 'input-symbol']
         if @loaded or _.contains exception, command
-            @core.commandQueue.push(new Command command)
+
             Promise.resolve @[method](option)
                 .catch OutOfGoalError, @textBuffer.warnOutOfGoal
                 .catch EmptyGoalError, @textBuffer.warnEmptyGoal
@@ -56,16 +86,16 @@ class Commander
     load: ->
         @atomPanel.show()
         @highlight.destroy()
-        @process.load().then (process) =>
-            @panel.title = 'Loading'
+        @process.load().then =>
             @loaded = true
+        .catch (e) ->
 
     quit: -> if @loaded
         @loaded = false
-        @process.quit()
         @atomPanel.hide()
         @highlight.destroy()
         @textBuffer.removeGoals()
+        @process.quit()
 
     restart: ->
         @quit()
@@ -75,25 +105,25 @@ class Commander
         @process.compile()
 
     toggleDisplayOfImplicitArguments: ->
-        @process.toggleDisplayOfImplicitArguments()
+        @process.toggleDisplayOfImplicitArguments().catch ->
 
     info: ->
-        @process.info()
+        @process.info().catch ->
 
     solveConstraints: ->
-        @process.solveConstraints()
+        @process.solveConstraints().catch ->
 
     showConstraints: ->
-        @process.showConstraints()
+        @process.showConstraints().catch ->
 
     showGoals: ->
-        @process.showGoals()
+        @process.showGoals().catch ->
 
     nextGoal: ->
-        @textBuffer.nextGoal()
+        @textBuffer.nextGoal().catch ->
 
     previousGoal: ->
-        @textBuffer.previousGoal()
+        @textBuffer.previousGoal().catch ->
 
     whyInScope: ->
         @panel.setContent "Scope info", [], 'plain-text', 'name:'
@@ -101,11 +131,11 @@ class Commander
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @process.whyInScope expr, goal
+                @process.whyInScope(expr, goal).catch ->
                 @textBuffer.focus()
             , =>
                 # global command
-                @process.whyInScope expr
+                @process.whyInScope(expr).catch ->
                 @textBuffer.focus()
 
     inferType: (normalization) ->
@@ -114,24 +144,24 @@ class Commander
             # goal-specific
             if goal.isEmpty()
                 @panel.query().then (expr) =>
-                    @process.inferType normalization, expr, goal
+                    @process.inferType(normalization, expr, goal).catch ->
             else
-                @process.inferType normalization, goal.getContent(), goal
+                @process.inferType(normalization, goal.getContent(), goal).catch ->
         , =>
             # global command
             @panel.query().then (expr) =>
-                @process.inferType normalization, expr
+                @process.inferType(normalization, expr).catch ->
 
     moduleContents: (normalization) ->
         @panel.setContent "Module contents #{toDescription normalization}", [], 'plain-text', 'module name:'
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @process.moduleContents normalization, expr, goal
+                @process.moduleContents(normalization, expr, goal).catch ->
                 @textBuffer.focus()
             , =>
                 # global command
-                @process.moduleContents normalization, expr
+                @process.moduleContents(normalization, expr).catch ->
                 @textBuffer.focus()
 
     computeNormalForm: ->
@@ -140,11 +170,11 @@ class Commander
             .then (expr) =>
                 @textBuffer.getCurrentGoal().done (goal) =>
                     # goal-specific
-                    @process.computeNormalForm expr, goal
+                    @process.computeNormalForm(expr, goal).catch ->
                     @textBuffer.focus()
                 , =>
                     # global command
-                    @process.computeNormalForm expr
+                    @process.computeNormalForm(expr).catch ->
                     @textBuffer.focus()
 
     computeNormalFormIgnoreAbstract: ->
@@ -152,11 +182,11 @@ class Commander
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @process.computeNormalFormIgnoreAbstract expr, goal
+                @process.computeNormalFormIgnoreAbstract(expr, goal).catch ->
                 @textBuffer.focus()
             , =>
                 # global command
-                @process.computeNormalFormIgnoreAbstract expr
+                @process.computeNormalFormIgnoreAbstract(expr).catch ->
                 @textBuffer.focus()
 
     give: ->
@@ -166,14 +196,17 @@ class Commander
                 placeholder: "expression to give:"
                 error: "Nothing to give"
             .then @process.give
+            .catch ->
 
     refine: ->
         @textBuffer.getCurrentGoal()
             .then @process.refine
+            .catch ->
 
     auto: ->
         @textBuffer.getCurrentGoal()
             .then @process.auto
+            .catch ->
 
     case: ->
         @textBuffer.getCurrentGoal()
@@ -182,22 +215,27 @@ class Commander
                 placeholder: "expression to case:"
                 error: "Nothing to case"
             .then @process.case
+            .catch ->
 
     goalType: (normalization) ->
         @textBuffer.getCurrentGoal()
-            .then @process.goalType normalization
+            .then @process.goalType(normalization)
+            .catch ->
 
     context: (normalization) ->
         @textBuffer.getCurrentGoal()
-            .then @process.context normalization
+            .then @process.context(normalization)
+            .catch ->
 
     goalTypeAndContext: (normalization) ->
         @textBuffer.getCurrentGoal()
-            .then @process.goalTypeAndContext normalization
+            .then @process.goalTypeAndContext(normalization)
+            .catch ->
 
     goalTypeAndInferredType: (normalization) ->
         @textBuffer.getCurrentGoal()
-            .then @process.goalTypeAndInferredType normalization
+            .then @process.goalTypeAndInferredType(normalization)
+            .catch ->
 
     inputSymbol: ->
         # activate if input method enabled, else insert '\\'
