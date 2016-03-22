@@ -84,11 +84,13 @@ class Commander
     ################
 
     load: ->
+        @core.transactStart()
         @atomPanel.show()
         @highlight.destroy()
-        @process.load().then =>
-            @loaded = true
-        .catch (e) ->
+        @process.load()
+            .then =>        @loaded = true
+            .finally =>     @core.transactEnd()
+            .catch (e) ->
 
     quit: -> if @loaded
         @loaded = false
@@ -105,25 +107,31 @@ class Commander
         @process.compile()
 
     toggleDisplayOfImplicitArguments: ->
-        @process.toggleDisplayOfImplicitArguments().catch ->
+        @process.toggleDisplayOfImplicitArguments()
+            .catch ->
+
 
     info: ->
-        @process.info().catch ->
+        @process.info()
 
     solveConstraints: ->
-        @process.solveConstraints().catch ->
+        @core.transactStart()
+        @process.solveConstraints()
+            .catch ->
 
     showConstraints: ->
-        @process.showConstraints().catch ->
+        @process.showConstraints()
+            .catch ->
 
     showGoals: ->
-        @process.showGoals().catch ->
+        @process.showGoals()
+            .catch ->
 
     nextGoal: ->
-        @textBuffer.nextGoal().catch ->
+        @textBuffer.nextGoal()
 
     previousGoal: ->
-        @textBuffer.previousGoal().catch ->
+        @textBuffer.previousGoal()
 
     whyInScope: ->
         @panel.setContent "Scope info", [], 'plain-text', 'name:'
@@ -131,11 +139,13 @@ class Commander
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @process.whyInScope(expr, goal).catch ->
+                @process.whyInScope(expr, goal)
+                    .catch ->
                 @textBuffer.focus()
             , =>
                 # global command
-                @process.whyInScope(expr).catch ->
+                @process.whyInScope(expr)
+                    .catch ->
                 @textBuffer.focus()
 
     inferType: (normalization) ->
@@ -144,24 +154,29 @@ class Commander
             # goal-specific
             if goal.isEmpty()
                 @panel.query().then (expr) =>
-                    @process.inferType(normalization, expr, goal).catch ->
+                    @process.inferType(normalization, expr, goal)
+                        .catch ->
             else
-                @process.inferType(normalization, goal.getContent(), goal).catch ->
+                @process.inferType(normalization, goal.getContent(), goal)
+                    .catch ->
         , =>
             # global command
             @panel.query().then (expr) =>
-                @process.inferType(normalization, expr).catch ->
+                @process.inferType(normalization, expr)
+                    .catch ->
 
     moduleContents: (normalization) ->
         @panel.setContent "Module contents #{toDescription normalization}", [], 'plain-text', 'module name:'
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @process.moduleContents(normalization, expr, goal).catch ->
+                @process.moduleContents(normalization, expr, goal)
+                    .catch ->
                 @textBuffer.focus()
             , =>
                 # global command
-                @process.moduleContents(normalization, expr).catch ->
+                @process.moduleContents(normalization, expr)
+                    .catch ->
                 @textBuffer.focus()
 
     computeNormalForm: ->
@@ -170,11 +185,13 @@ class Commander
             .then (expr) =>
                 @textBuffer.getCurrentGoal().done (goal) =>
                     # goal-specific
-                    @process.computeNormalForm(expr, goal).catch ->
+                    @process.computeNormalForm(expr, goal)
+                        .catch ->
                     @textBuffer.focus()
                 , =>
                     # global command
-                    @process.computeNormalForm(expr).catch ->
+                    @process.computeNormalForm(expr)
+                        .catch ->
                     @textBuffer.focus()
 
     computeNormalFormIgnoreAbstract: ->
@@ -182,33 +199,41 @@ class Commander
         @panel.query().then (expr) =>
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
-                @process.computeNormalFormIgnoreAbstract(expr, goal).catch ->
+                @process.computeNormalFormIgnoreAbstract(expr, goal)
+                    .catch ->
                 @textBuffer.focus()
             , =>
                 # global command
-                @process.computeNormalFormIgnoreAbstract(expr).catch ->
+                @process.computeNormalFormIgnoreAbstract(expr)
+                    .catch ->
                 @textBuffer.focus()
 
     give: ->
+        @core.transactStart()
         @textBuffer.getCurrentGoal()
             .then @textBuffer.checkGoalContent
                 title: "Give"
                 placeholder: "expression to give:"
                 error: "Nothing to give"
             .then @process.give
+            .finally => @core.transactEnd()
             .catch ->
 
     refine: ->
+        @core.transactStart()
         @textBuffer.getCurrentGoal()
             .then @process.refine
+            .finally => @core.transactEnd()
             .catch ->
-
     auto: ->
+        @core.transactStart()
         @textBuffer.getCurrentGoal()
             .then @process.auto
+            .finally => @core.transactEnd()
             .catch ->
 
     case: ->
+        @core.transactStart()
         @textBuffer.getCurrentGoal()
             .then @textBuffer.checkGoalContent
                 title: "Case"
