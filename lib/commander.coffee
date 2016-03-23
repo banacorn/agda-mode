@@ -79,17 +79,39 @@ class Commander
             option: result[2]
         }
 
+
+    ##################
+    #   Checkpoint   #
+    ##################
+
+    commandCheckpoint: null
+    commandStart: ->
+        # lock
+        unless @commandCheckpoint
+            # start history transaction for undo/redo
+            @commandCheckpoint = @core.editor.createCheckpoint()
+            # enable visual effects
+            @panel.isPending = true
+    commandEnd: ->
+        # unlock
+        if @commandCheckpoint
+            # group history transaction for undo/redo
+            @core.editor.groupChangesSinceCheckpoint(@commandCheckpoint)
+            @commandCheckpoint = null
+            # disable visual effects
+            @panel.isPending = false
+
     ################
     #   Commands   #
     ################
 
     load: ->
-        @core.transactStart()
+        @core.commander.commandStart()
         @atomPanel.show()
         @highlight.destroy()
         @process.load()
             .then =>        @loaded = true
-            .finally =>     @core.transactEnd()
+            .finally =>     @core.commander.commandEnd()
             .catch (e) ->
 
     quit: -> if @loaded
@@ -115,7 +137,7 @@ class Commander
         @process.info()
 
     solveConstraints: ->
-        @core.transactStart()
+        @core.commander.commandStart()
         @process.solveConstraints()
             .catch ->
 
@@ -209,31 +231,31 @@ class Commander
                 @textBuffer.focus()
 
     give: ->
-        @core.transactStart()
+        @core.commander.commandStart()
         @textBuffer.getCurrentGoal()
             .then @textBuffer.checkGoalContent
                 title: "Give"
                 placeholder: "expression to give:"
                 error: "Nothing to give"
             .then @process.give
-            .finally => @core.transactEnd()
+            .finally => @core.commander.commandEnd()
             .catch ->
 
     refine: ->
-        @core.transactStart()
+        @core.commander.commandStart()
         @textBuffer.getCurrentGoal()
             .then @process.refine
-            .finally => @core.transactEnd()
+            .finally => @core.commander.commandEnd()
             .catch ->
     auto: ->
-        @core.transactStart()
+        @core.commander.commandStart()
         @textBuffer.getCurrentGoal()
             .then @process.auto
-            .finally => @core.transactEnd()
+            .finally => @core.commander.commandEnd()
             .catch ->
 
     case: ->
-        @core.transactStart()
+        @core.commander.commandStart()
         @textBuffer.getCurrentGoal()
             .then @textBuffer.checkGoalContent
                 title: "Case"

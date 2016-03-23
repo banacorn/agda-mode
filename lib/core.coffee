@@ -64,21 +64,6 @@ class Core
 
         @commander      = new Commander     @
 
-    #########################
-    #   History (undo/redo) #
-    #########################
-
-    historyCheckpoint: null
-    transactStart: ->
-        # lock
-        unless @historyCheckpoint
-            @historyCheckpoint = @editor.createCheckpoint()
-    transactEnd: ->
-        # unlock
-        if @historyCheckpoint
-            @editor.groupChangesSinceCheckpoint(@historyCheckpoint)
-            @historyCheckpoint = null
-
     #####################
     #   Editor Events   #
     #####################

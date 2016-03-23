@@ -85,7 +85,7 @@ class Handler
         @textBuffer.onMakeCaseAction tokens[1]
             .then =>
                 @core.commander.load()
-                    .finally => @core.transactEnd()
+                    .finally => @core.commander.commandEnd()
                     .catch ->
 
     # agda2-make-case-action-extendlam
@@ -93,7 +93,7 @@ class Handler
         @textBuffer.onMakeCaseActionExtendLam tokens[1]
             .then =>
                 @core.commander.load()
-                    .finally => @core.transactEnd()
+                    .finally => @core.commander.commandEnd()
                     .catch ->
 
     # agda2-highlight-clear

@@ -13,7 +13,7 @@ class ParseCommand extends Transform
         #   2. release the history checkpoing lock
         if tokens[0] is "agda2-info-action" and tokens[1] is "*Error*"
             @core.commander.emptyCommandQueue()
-            @core.transactEnd()
+            @core.commander.commandEnd()
         else
             @core.commander.maintainCommandQueue(tokens[0])
         switch tokens[0]
