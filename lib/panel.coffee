@@ -17,7 +17,14 @@ toStyle = (type) ->
 Panel = Vue.extend
     template: '''
         <div id="panel-header" class="inset-panel padded" v-show="content.title">
-            <div id="panel-title" class="text-{{style}}" v-show="!inputMethodMode">{{content.title}}</div>
+            <div id="panel-header-container" v-show="!inputMethodMode">
+                <div id="panel-title" class="text-{{style}}">
+                    {{content.title}}
+                </div>
+                <div id="panel-widget">
+                    <span id="spinner" class='loading loading-spinner-tiny inline-block' v-bind:class="{ 'pending': isPending }"></span>
+                </div>
+            </div>
             <panel-input-method id="panel-input-method" v-show="inputMethodMode" :input="inputMethod"></panel-input-method>
         </div>
         <div id="panel-body" class="padded" v-show="content.body.length || queryMode">
@@ -36,6 +43,7 @@ Panel = Vue.extend
         panelSize: 5
         inputMethodMode: false
         queryMode: false
+        isPending: true
         inputMethod: null
         style: ''
 
