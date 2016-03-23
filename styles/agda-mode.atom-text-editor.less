@@ -8,8 +8,25 @@
     font-size: 125%;
     z-index: 4;
 
-    #panel-header {
-        line-height: 2;
+    #panel-header-container {
+        #panel-title {
+            line-height: 2;
+        }
+        // flex shit
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+
+        #spinner {
+            opacity: 0;
+        }
+        #spinner.pending {
+            opacity: inherit;
+            transition-property: opacity;
+            transition-delay: 0.3s;
+        }
+
     }
 
     #panel-input-method {
