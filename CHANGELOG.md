@@ -1,3 +1,7 @@
+## 0.4.11
+* Better undo/redo
+* Add a tiny spinner for time-consuming commands
+
 ## 0.4.10
 * Case splitting in lambda expressions!
 * Handles Emacs command 'agda2-maybe-goto'
