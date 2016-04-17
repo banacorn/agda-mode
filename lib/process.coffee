@@ -177,7 +177,6 @@ class Process
                 command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction()} )\n"
             else
                 command = "IOTCM \"#{filepath}\" #{highlightingLevel} #{highlightingMethod} ( #{interaction} )\n"
-            console.log command
             agdaProcess.stdin.write command
             return agdaProcess
 

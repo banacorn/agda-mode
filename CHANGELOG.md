@@ -1,3 +1,6 @@
+## 0.5.0
+* Fix #29
+
 ## 0.4.11
 * Better undo/redo
 * Add a tiny spinner for time-consuming commands
