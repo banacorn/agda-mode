@@ -65,6 +65,12 @@ module.exports =
             type: 'boolean'
             default: true
             order: 7
+        trimSpaces:
+            title: 'Trim spaces'
+            description: 'Remove leading and trailing spaces of an expression in an hole, when giving it to Agda. (Default to be False in Emacs, but True in here)'
+            type: 'boolean'
+            default: true,
+            order: 8
 
     activate: (state) ->
         atom.workspace.observeTextEditors (editor) =>
