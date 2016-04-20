@@ -25,10 +25,11 @@ class TextBuffer
             .then (goal) =>
                 # reposition the cursor in the goal only if:
                 #   * it's a fresh hole (coming from "?")
-                isFreshHole = goal.isEmpty() and goal.getContent().length is 3
+                isFreshHole = goal.isEmpty()
                 if isFreshHole
                     newPosition = @core.editor.translate goal.range.start, 3
-                    @core.editor.setCursorBufferPosition newPosition
+                    setTimeout =>
+                        @core.editor.setCursorBufferPosition newPosition
                 else
                     @core.editor.setCursorBufferPosition position
                 return result
