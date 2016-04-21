@@ -7,9 +7,11 @@ Vue.component 'panel-input-method',
     props: ['input']
     template: '''
         <div>
-            <div id="input-buffer" class="inline-block">{{rawInput}}</div>
-            <div id="suggestion-keys" class="btn-group btn-group-sm">
-                <button class="btn" v-for="key in suggestionKeys" @click="selectKey(key)">{{key}}</button>
+            <div id="input-buffer-container">
+                <div id="input-buffer" class="inline-block" v-show="rawInput">{{rawInput}}</div>
+                <div id="suggestion-keys" class="btn-group btn-group-sm">
+                    <button class="btn" v-for="key in suggestionKeys" @click="selectKey(key)">{{key}}</button>
+                </div>
             </div>
             <div id="candidate-symbols" class="btn-group btn-group-sm">
                 <button class="btn" v-for="symbol in selectedLeft" @click="selectSymbol(symbol)">{{symbol}}</button>

@@ -9,7 +9,7 @@ commentRegex =
         # multi line comment
         \{-(?:[^-]|[\r\n]|(-+(?:[^-\}]|[\r\n])))*-+\}
     )///
-goalBracketRegex = /(\{![^!\}]*!\})/
+goalBracketRegex = /(\{\!(?:(?!\!\}).)*\!\})/
 goalQuestionMarkRawRegex = /([\s\(\{\_\;\.\"@]\?)/
 goalQuestionMarkRegex = /(\?)/
 
@@ -17,7 +17,10 @@ empty = (content) -> content.replace(/\s/g, '').length is 0
 escape = (content) -> content.replace(/\n/g, '\\n')
 
 
-goalBracketContentRegex = /\{!([^!\}]*)!\}/
+goalBracketContentRegex = /\{\!((?:(?!\!\}).)*)\!\}/
+
+
+
 
 getHoles = (text, indices) ->
 

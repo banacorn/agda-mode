@@ -143,18 +143,31 @@ class Process
         startIndex  = @core.editor.toIndex start
         end         = goal.range.end
         endIndex    = @core.editor.toIndex end
-        "( Range [Interval
-            (Pn
-                (Just (mkAbsolute \"#{@core.getPath()}\"))
-                #{startIndex + 3}
-                #{start.row + 1}
-                #{start.column + 3})
-            (Pn
-                (Just (mkAbsolute \"#{@core.getPath()}\"))
-                #{endIndex - 1}
-                #{end.row + 1}
-                #{end.column - 1})
-            ])"
+
+        if semver.gte(@agdaVersion.sem, '2.5.1')
+            "(intervalsToRange (Just (mkAbsolute \"#{@core.getPath()}\")) [Interval
+                (Pn
+                    ()
+                    #{startIndex + 3}
+                    #{start.row + 1}
+                    #{start.column + 3})
+                (Pn
+                    ()
+                    #{endIndex - 1}
+                    #{end.row + 1}
+                    #{end.column - 1})])"
+        else
+            "(Range [Interval
+                (Pn
+                    (Just (mkAbsolute \"#{@core.getPath()}\"))
+                    #{startIndex + 3}
+                    #{start.row + 1}
+                    #{start.column + 3})
+                (Pn
+                    (Just (mkAbsolute \"#{@core.getPath()}\"))
+                    #{endIndex - 1}
+                    #{end.row + 1}
+                    #{end.column - 1})])"
 
     sendCommand: (highlightingLevel, interaction) ->
         @wireAgdaProcess().then (agdaProcess) =>

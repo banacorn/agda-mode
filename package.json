@@ -1,7 +1,7 @@
 {
   "name": "agda-mode",
   "main": "./lib/agda-mode",
-  "version": "0.4.10",
+  "version": "0.4.11",
   "description": "agda-mode for Atom",
   "activationCommands": {
     "atom-text-editor[data-grammar='source agda']": [

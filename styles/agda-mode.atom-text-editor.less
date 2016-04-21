@@ -30,21 +30,30 @@
     }
 
     #panel-input-method {
+        @height: 25px;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        button.btn {
+            font-size: 80%;
+            width: @height;
+            height: @height;
+        }
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
-        #input-buffer {
-            vertical-align: middle;
-            background: @input-background-color;
-            border-radius: @component-border-radius;
-            padding: 0 @component-padding;
-            float: left;
+        #input-buffer-container {
+            // as a container for #input-buffer and #suggestion-keys
+            display: flex;
+            #input-buffer {
+                height: @height;
+                line-height: @height;
+                background: @input-background-color;
+                border-radius: @component-border-radius;
+                padding: 0 @component-padding;
+            }
         }
-        #suggestion-keys {
-            position: relative;
-            top: -2px;
-        }
-        #candidate-symbols {
-            float: right;
-        }
+
     }
 
     #panel-content {
@@ -131,7 +140,7 @@ status-bar.status-bar           { z-index: 4 }
 atom-pane > [is="atom-tabs"]    { z-index: 5 }
 
 //
-// input method
+// highlighting
 //
 
 .agda-highlight.unsolvedmeta .region {
@@ -141,8 +150,9 @@ atom-pane > [is="atom-tabs"]    { z-index: 5 }
 .agda-highlight.terminationproblem .region {
     background: @background-color-error;
 }
+
 //
-// highlighting
+// input method
 //
 
 .agda-input-method .region {
