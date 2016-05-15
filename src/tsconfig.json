@@ -1,0 +1,36 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es5",
+        "noImplicitAny": false,
+        "sourceMap": false,
+        "outDir": "../lib"
+    },
+    "filesGlob": [
+        "**/*.ts",
+        "**/*.tsx",
+        "../typings/main.d.ts",
+        "!node_modules/**"
+    ],
+    "exclude": [
+        "node_modules"
+    ],
+    "atom": {
+        "rewriteTsconfig": true,
+        "formatOnSave": false
+    },
+    "files": [
+        "parser.ts",
+        "typings/atom/atom.d.ts",
+        "typings/emissary/emissary.d.ts",
+        "typings/jquery/jquery.d.ts",
+        "typings/mixto/mixto.d.ts",
+        "typings/node/node.d.ts",
+        "typings/pathwatcher/pathwatcher.d.ts",
+        "typings/q/Q.d.ts",
+        "typings/space-pen/space-pen.d.ts",
+        "typings/status-bar/status-bar.d.ts",
+        "typings/text-buffer/text-buffer.d.ts",
+        "typings/tsd.d.ts"
+    ]
+}
