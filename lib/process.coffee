@@ -4,9 +4,9 @@ semver = require 'semver'
 Promise = require 'bluebird'
 {parsePath} = require './util'
 Agda = require './parser/agda'
+{Writable} = require 'stream'
 {InvalidExecutablePathError, ProcExecError} = require './error'
 Promise.longStackTraces()
-
 
 class Process
 
@@ -98,31 +98,33 @@ class Process
                 resolve @validateExecutablePath stdout
 
     wireAgdaProcess: -> new Promise (resolve, reject) =>
-        if @agdaProcessWired
-            resolve @agdaProcess
-        else
-            @getExecutablePath().then (path) =>
-                # Agda program arguments
-                args = @getProgramArgs()
-                args.push '--interaction'
-                agdaProcess = spawn path, args
+            if @agdaProcessWired
+                resolve @agdaProcess
+            else
+                @getExecutablePath().then (path) =>
+                    # Agda program arguments
+                    args = @getProgramArgs()
+                    args.push '--interaction'
+                    agdaProcess = spawn path, args
 
-                # catch other forms of errors
-                agdaProcess.on 'error', (error) =>
-                    reject error
+                    # catch other forms of errors
+                    agdaProcess.on 'error', (error) =>
+                        reject error
 
-                agdaProcess.stdout.once 'data', =>
-                    @agdaProcessWired = true
-                    @agdaProcess = agdaProcess
-                    resolve agdaProcess
+                    agdaProcess.stdout.once 'data', =>
+                        @agdaProcessWired = true
+                        @agdaProcess = agdaProcess
+                        resolve agdaProcess
 
-                agdaProcess.stdout
-                    .pipe new Agda.Rectify
-                    .pipe new Agda.ParseSExpr
-                    .pipe new Agda.ParseCommand @core
+                    agdaProcess.stdout
+                        .pipe new Agda.Rectify
+                        .pipe new Agda.ParseSExpr
+                        .pipe new Agda.ParseAgdaResponse
+                        .on 'data', (data) ->
+                            console.log data
 
-            .catch (error) =>
-                throw InvalidExecutablePathError "Failed miserably, please report this issue."
+        .catch (error) =>
+            throw InvalidExecutablePathError "Failed miserably, please report this issue."
 
     ################
     #   COMMANDS   #

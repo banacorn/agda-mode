@@ -1,8 +1,8 @@
-Rectify = require './stream/rectify'
-ParseSExpr = require './stream/s-expression'
-ParseCommand = require './stream/command'
+{Rectify} = require './stream/rectify'
+{SExpression} = require './stream/s-expression'
+{ParseAgdaResponse} = require './stream/agda-response'
 
 module.exports =
-  Rectify:          Rectify
-  ParseSExpr:       ParseSExpr
-  ParseCommand:     ParseCommand
+    Rectify:            Rectify
+    ParseSExpr:         SExpression
+    ParseAgdaResponse:  ParseAgdaResponse

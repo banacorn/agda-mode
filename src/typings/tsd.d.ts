@@ -8,3 +8,4 @@
 /// <reference path="space-pen/space-pen.d.ts" />
 /// <reference path="status-bar/status-bar.d.ts" />
 /// <reference path="text-buffer/text-buffer.d.ts" />
+/// <reference path="lodash/lodash.d.ts" />
