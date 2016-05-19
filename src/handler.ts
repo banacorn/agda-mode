@@ -7,7 +7,11 @@ function handleAgdaResponse(core: any, response: Agda.Response) {
             break;
 
         case Agda.ResponseType.StatusAction:
-            core.panel.setContent("Status", (<Agda.StatusAction>response).content);
+            let status = <Agda.StatusAction>response;
+            if (status.content.length !== 0) {
+                console.log(status.content);
+                core.panel.setContent("Status", status.content);
+            }
             break;
 
         case Agda.ResponseType.GoalsAction:
