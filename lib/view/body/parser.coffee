@@ -175,7 +175,7 @@ parseError = (strings) ->
 
     location = parseLocation strings[0]
     if location
-        bulk = _.rest(strings).join('\n')
+        bulk = _.tail(strings).join('\n')
     else
         # the first line does not contains Location
         bulk = strings.join('\n')

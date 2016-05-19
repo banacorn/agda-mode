@@ -63,7 +63,7 @@ class Commander
         {command, method, option} = @parse raw
         # some commands can only be executed after "loaded"
         exception = ['load', 'input-symbol']
-        if @loaded or _.contains exception, command
+        if @loaded or _.includes exception, command
 
             Promise.resolve @[method](option)
                 .catch OutOfGoalError, @textBuffer.warnOutOfGoal
