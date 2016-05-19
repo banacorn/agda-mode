@@ -14,6 +14,7 @@ toStyle = (type) ->
         when 'plain-text' then ''
         else ''
 
+            # <span id="spinner" class='loading loading-spinner-tiny inline-block' v-bind:class="{ 'pending': isPending }"></span>
 Panel = Vue.extend
     template: '''
         <div id="panel-header" class="inset-panel padded" v-show="content.title">
@@ -22,7 +23,6 @@ Panel = Vue.extend
                     {{content.title}}
                 </div>
                 <div id="panel-widget">
-                    <span id="spinner" class='loading loading-spinner-tiny inline-block' v-bind:class="{ 'pending': isPending }"></span>
                 </div>
             </div>
             <panel-input-method id="panel-input-method" v-show="inputMethodMode" :input="inputMethod"></panel-input-method>
