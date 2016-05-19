@@ -16,7 +16,8 @@ function handleAgdaResponse(core: any, response: Agda.Response) {
             break;
 
         case Agda.ResponseType.GiveAction:
-            core.textBuffer.onGiveAction((<Agda.GoalsAction>response).content);
+            let give = <Agda.GiveAction>response;
+            core.textBuffer.onGiveAction(give.index, give.content, give.hasParenthesis);
             break;
 
         case Agda.ResponseType.ParseError:
@@ -43,7 +44,6 @@ function handleAgdaResponse(core: any, response: Agda.Response) {
             core.textBuffer.onMakeCaseAction((<Agda.SolveAllAction>response))
                 .then(() => {
                     core.commander.load()
-                        .finally(() => core.commander.commandEnd())
                         .catch(() => {})
                 });
             break;
@@ -52,7 +52,6 @@ function handleAgdaResponse(core: any, response: Agda.Response) {
             core.textBuffer.onMakeCaseActionExtendLam(<Agda.SolveAllAction>response)
                 .then(() => {
                     core.commander.load()
-                        .finally(() => core.commander.commandEnd())
                         .catch(() => {})
                 });
             break;

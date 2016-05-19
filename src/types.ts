@@ -35,7 +35,7 @@ namespace Agda {
         content: Array<string>;
     }
     export interface GiveAction extends Response {
-        index: Number;
+        index: number;
         content: Array<string>;
         hasParenthesis: boolean;
     }

@@ -30,23 +30,23 @@ toDescription = (normalization) ->
 class Commander
     loaded: false
 
-    commandQueue: []
-    maintainCommandQueue: (response) ->
-        if @commandQueue.length isnt 0
-            command = @commandQueue[0]
-            if response is 'agda2-goals-action'
-                @commandQueue.shift()
-                command.resolve()
-    emptyCommandQueue: ->
-        @commandQueue.forEach (command) ->
-            command.reject()
-        @commandQueue = []
+    # commandQueue: []
+    # maintainCommandQueue: (response) ->
+    #     if @commandQueue.length isnt 0
+    #         command = @commandQueue[0]
+    #         if response is 'agda2-goals-action'
+    #             @commandQueue.shift()
+    #             command.resolve()
+    # emptyCommandQueue: ->
+    #     @commandQueue.forEach (command) ->
+    #         command.reject()
+    #     @commandQueue = []
 
-    # pushes a new Command into the queue and returns its promise
-    newCommand: ->
-        command = new Command
-        @commandQueue.push(command)
-        return command.promise
+    # # pushes a new Command into the queue and returns its promise
+    # newCommand: ->
+    #     command = new Command
+    #     @commandQueue.push(command)
+    #     return command.promise
 
 
     constructor: (@core) ->
@@ -83,40 +83,38 @@ class Commander
     #   Checkpoint   #
     ##################
 
-    commandCheckpoint: null
-    commandStart: ->
-        # lock
-        unless @commandCheckpoint
-            # start history transaction for undo/redo
-            @commandCheckpoint = @core.editor.createCheckpoint()
-            # enable visual effects
-            @panel.isPending = true
-    commandEnd: ->
-        # unlock
-        if @commandCheckpoint
-            # group history transaction for undo/redo
-            @core.editor.groupChangesSinceCheckpoint(@commandCheckpoint)
-            @commandCheckpoint = null
-            # disable visual effects
-            @panel.isPending = false
+    # commandCheckpoint: null
+    # commandStart: ->
+    #     # lock
+    #     unless @commandCheckpoint
+    #         # start history transaction for undo/redo
+    #         @commandCheckpoint = @core.editor.createCheckpoint()
+    #         # enable visual effects
+    #         @panel.isPending = true
+    # commandEnd: ->
+    #     # unlock
+    #     if @commandCheckpoint
+    #         # group history transaction for undo/redo
+    #         @core.editor.groupChangesSinceCheckpoint(@commandCheckpoint)
+    #         @commandCheckpoint = null
+    #         # disable visual effects
+    #         @panel.isPending = false
 
     ################
     #   Commands   #
     ################
 
     load: ->
-        @core.commander.commandStart()
+        # @core.commander.commandStart()
         @atomPanel.show()
-        # @highlight.destroy()
         @process.load()
-            .then =>        @loaded = true
-            .finally =>     @core.commander.commandEnd()
+            .then =>    @loaded = true
+            # .finally =>     @core.commander.commandEnd()
             .catch (e) ->
 
     quit: -> if @loaded
         @loaded = false
         @atomPanel.hide()
-        # @highlight.destroy()
         @textBuffer.removeGoals()
         @process.quit()
 
@@ -136,7 +134,7 @@ class Commander
         @process.info()
 
     solveConstraints: ->
-        @core.commander.commandStart()
+        # @core.commander.commandStart()
         @process.solveConstraints()
             .catch ->
 
@@ -230,31 +228,31 @@ class Commander
                 @textBuffer.focus()
 
     give: ->
-        @core.commander.commandStart()
+        # @core.commander.commandStart()
         @textBuffer.getCurrentGoal()
             .then @textBuffer.checkGoalContent
                 title: "Give"
                 placeholder: "expression to give:"
                 error: "Nothing to give"
             .then @process.give
-            .finally => @core.commander.commandEnd()
+            # .finally => @core.commander.commandEnd()
             .catch ->
 
     refine: ->
-        @core.commander.commandStart()
+        # @core.commander.commandStart()
         @textBuffer.getCurrentGoal()
             .then @process.refine
-            .finally => @core.commander.commandEnd()
+            # .finally => @core.commander.commandEnd()
             .catch ->
     auto: ->
-        @core.commander.commandStart()
+        # @core.commander.commandStart()
         @textBuffer.getCurrentGoal()
             .then @process.auto
-            .finally => @core.commander.commandEnd()
+            # .finally => @core.commander.commandEnd()
             .catch ->
 
     case: ->
-        @core.commander.commandStart()
+        # @core.commander.commandStart()
         @textBuffer.getCurrentGoal()
             .then @textBuffer.checkGoalContent
                 title: "Case"

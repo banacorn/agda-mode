@@ -192,12 +192,12 @@ class TextBuffer
         goal.setContent content
         return goal
 
-    onGiveAction: (index, content, paran) -> @protectCursor =>
+    onGiveAction: (index, content, paren) -> @protectCursor =>
         goal = @findGoal index
         if content.length > 0
             content = content.replace(/\\n/g, '\n')
             goal.setContent content
-        if paran
+        if paren
             content = goal.getContent()
             goal.setContent "(#{content})"
 

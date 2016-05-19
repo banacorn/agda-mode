@@ -30,23 +30,23 @@ function parseAgdaResponse(tokens: Array<any>): Agda.Response {
             // with content    : ["agda2-give-action", 0, ...]
             switch (tokens[2]) {
                 case "'paren": return {
-                    type: Agda.ResponseType.GiveAction,
-                    index: index,
-                    content: [],
-                    hasParenthesis: true
-                } as Agda.GiveAction;
+                        type: Agda.ResponseType.GiveAction,
+                        index: index,
+                        content: [],
+                        hasParenthesis: true
+                    } as Agda.GiveAction;
                 case "'no-paren": return {
-                    type: Agda.ResponseType.GiveAction,
-                    index: index,
-                    content: [],
-                    hasParenthesis: false
-                } as Agda.GiveAction;
+                        type: Agda.ResponseType.GiveAction,
+                        index: index,
+                        content: [],
+                        hasParenthesis: false
+                    } as Agda.GiveAction;
                 default: return {
-                    type: Agda.ResponseType.GiveAction,
-                    index: index,
-                    content: tokens.slice(2),
-                    hasParenthesis: false
-                } as Agda.GiveAction;
+                        type: Agda.ResponseType.GiveAction,
+                        index: index,
+                        content: tokens[2],
+                        hasParenthesis: false
+                    } as Agda.GiveAction;
             }
         case "agda2-parse-error":
             return {

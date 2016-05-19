@@ -200,7 +200,7 @@ class Process
             else
                 "Cmd_load \"#{@core.getPath()}\" [#{@getLibraryPath()}]"
 
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
 
     quit: =>
         @agdaProcess.kill()
@@ -228,71 +228,71 @@ class Process
 
     toggleDisplayOfImplicitArguments: =>
         @sendCommand "NonInteractive", "ToggleImplicitArgs"
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
 
     solveConstraints: =>
         @sendCommand "NonInteractive", "Cmd_solveAll"
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     showConstraints: =>
         @sendCommand "NonInteractive", "Cmd_constraints"
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     showGoals: =>
         @sendCommand "NonInteractive", "Cmd_metas"
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     whyInScope: (expr, goal) =>
         if goal
             @sendCommand "NonInteractive", "Cmd_why_in_scope #{goal.index} noRange \"#{expr}\""
         else
             @sendCommand "None", "Cmd_why_in_scope_toplevel \"#{expr}\""
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
 
     inferType: (normalization, content, goal) =>
         if goal
             @sendCommand "NonInteractive", "Cmd_infer #{normalization} #{goal.index} noRange \"#{content}\""
         else
             @sendCommand "None", "Cmd_infer_toplevel #{normalization} \"#{content}\""
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     moduleContents: (normalization, content, goal) =>
         if goal
             @sendCommand "NonInteractive", "Cmd_show_module_contents #{normalization} #{goal.index} noRange \"#{content}\""
         else
             @sendCommand "None", "Cmd_show_module_contents_toplevel #{normalization} \"#{content}\""
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     computeNormalForm: (content, goal) =>
         if goal
             @sendCommand "NonInteractive", "Cmd_compute False #{goal.index} noRange \"#{content}\""
         else
             @sendCommand "None", "Cmd_compute_toplevel False \"#{content}\""
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     computeNormalFormIgnoreAbstract: (content, goal) =>
         if goal
             @sendCommand "NonInteractive", "Cmd_compute True #{goal.index} noRange \"#{content}\""
         else
             @sendCommand "None", "Cmd_compute_toplevel True \"#{content}\""
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     give: (goal) =>
         @sendCommand "NonInteractive", "Cmd_give #{goal.index} #{@buildRange goal} \"#{goal.getContent()}\""
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     refine: (goal) =>
         @sendCommand "NonInteractive", "Cmd_refine_or_intro False #{goal.index} #{@buildRange goal} \"#{goal.getContent()}\""
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     auto: (goal) =>
         @sendCommand "NonInteractive", "Cmd_auto #{goal.index} #{@buildRange goal} \"#{goal.getContent()}\""
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     case: (goal) =>
         @sendCommand "NonInteractive", "Cmd_make_case #{goal.index} #{@buildRange goal} \"#{goal.getContent()}\""
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     goalType: (normalization) => (goal) =>
         @sendCommand "NonInteractive", "Cmd_goal_type #{normalization} #{goal.index} noRange \"\""
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     context: (normalization) => (goal) =>
         @sendCommand "NonInteractive", "Cmd_context #{normalization} #{goal.index} noRange \"\""
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     goalTypeAndContext: (normalization) => (goal) =>
         @sendCommand "NonInteractive", "Cmd_goal_type_context #{normalization} #{goal.index} noRange \"\""
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
     goalTypeAndInferredType: (normalization) => (goal) =>
         @sendCommand "NonInteractive", "Cmd_goal_type_context_infer #{normalization} #{goal.index} noRange \"#{goal.getContent()}\""
-        @core.commander.newCommand()
+        # @core.commander.newCommand()
 
 module.exports = Process
