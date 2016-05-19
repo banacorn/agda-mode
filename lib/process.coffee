@@ -4,9 +4,8 @@ semver = require 'semver'
 Promise = require 'bluebird'
 {parsePath} = require './util'
 {Rectifier} = require './parser/stream/rectifier'
-{parseSExpression, parseAgdaResponse} = require './parser/agda'
+{parseSExpression, parseAgdaResponse} = require './parser'
 {handleAgdaResponse} = require './handler'
-# {Writable} = require 'stream'
 {InvalidExecutablePathError, ProcExecError} = require './error'
 Promise.longStackTraces()
 
