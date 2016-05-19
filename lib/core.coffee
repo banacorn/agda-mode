@@ -8,7 +8,6 @@ Process     = require './process'
 TextBuffer  = require './text-buffer'
 InputMethod = require './input-method'
 Highlight   = require './highlight'
-Handler     = require './handler'
 Panel       = require './panel'
 
 class Core
@@ -16,7 +15,6 @@ class Core
     getPath: -> parsePath @editor.getPath()
 
     constructor: (@editor) ->
-
         # helper methods on @editor
         @editor.fromIndex = (ind) => @editor.getBuffer().positionForCharacterIndex ind
         @editor.toIndex   = (pos) => @editor.getBuffer().characterIndexForPosition pos
@@ -34,7 +32,6 @@ class Core
         @textBuffer     = new TextBuffer    @
         @inputMethod    = new InputMethod   @ if atom.config.get('agda-mode.inputMethod')
         @highlight      = new Highlight     @
-        @handler        = new Handler       @
         # initialize informations about this editor
 
 

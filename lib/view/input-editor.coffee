@@ -31,7 +31,7 @@ Vue.component 'panel-input-editor',
                 @$once 'cancel', =>
                     reject new QueryCancelledError
         isFocused: ->
-            _.contains @$el.classList, 'is-focused'
+            _.includes @$el.classList, 'is-focused'
     ready: ->
         # event clusterfuck
         confirmDisposable = atom.commands.add @$el, 'core:confirm', =>

@@ -1,61 +1,104 @@
 // raw input string from text editor
 export type TextInput = string;
 
+namespace Agda {
 
-export type AgdaResponse =
-    AR.InfoAction |
-    AR.StatusAction |
-    AR.GoalsAction |
-    AR.GiveAction |
-    AR.ParseError |
-    AR.Goto |
-    AR.SolveAllAction |
-    AR.MakeCaseAction |
-    AR.MakeCaseActionExtendLam |
-    AR.HighlightClear |
-    AR.HighlightAddAnnotations |
-    AR.HighlightLoadAndDeleteAction |
-    AR.UnknownAction;
+    // base interface
+    export interface Response {
+        type: ResponseType
+    }
 
-export namespace AR {
-    export interface InfoAction                     {
-        type: InfoActionType;
+    export const enum ResponseType {
+        InfoAction,
+        StatusAction,
+        GoalsAction,
+        GiveAction,
+        ParseError,
+        Goto,
+        SolveAllAction,
+        MakeCaseAction,
+        MakeCaseActionExtendLam,
+        HighlightClear,
+        HighlightAddAnnotations,
+        HighlightLoadAndDeleteAction,
+        UnknownAction
+    }
+
+    export interface InfoAction extends Response {
+        infoActionType: InfoActionType;
         content: Array<string>;
     }
-    export interface StatusAction                   { content: Array<string>; }
-    export interface GoalsAction                    { content: Array<string>; }
-    export interface GiveAction                     {
+    export interface StatusAction extends Response {
+        content: Array<string>;
+    }
+    export interface GoalsAction extends Response {
+        content: Array<string>;
+    }
+    export interface GiveAction extends Response {
         index: Number;
         content: Array<string>;
         hasParenthesis: boolean;
     }
-    export interface ParseError                     { content: Array<string>; }
-    export interface Goto                           {
+
+    export interface ParseError extends Response {
+        content: Array<string>;
+    }
+
+    export interface Goto extends Response {
         filepath: string;
         position: string;
     }
-    export interface SolveAllAction                 { solution: Array<Array<string>>; }
-    export interface MakeCaseAction                 { content: string; }
-    export interface MakeCaseActionExtendLam        { content: string; }
-    export interface HighlightClear                 { content: Array<string>; }
-    export interface HighlightAddAnnotations        { content: Array<string>; }
-    export interface HighlightLoadAndDeleteAction   { content: string; }
-    export interface UnknownAction                  { content: Array<string>; }
+    export interface SolveAllAction extends Response {
+        solution: Array<Array<string>>;
+    }
+    export interface MakeCaseAction extends Response {
+        content: string;
+    }
+    export interface MakeCaseActionExtendLam extends Response {
+        content: string;
+    }
+    export interface HighlightClear extends Response {
+        content: Array<string>;
+    }
+    export interface HighlightAddAnnotations extends Response {
+        content: Array<Annotation>;
+    }
+
+    export interface HighlightLoadAndDeleteAction extends Response {
+        content: string;
+    }
+    export interface UnknownAction extends Response {
+        content: Array<string>;
+    }
+
+    export const enum InfoActionType {
+        AllGoals,
+        Error,
+        TypeChecking,
+        CurrentGoal,
+        InferredType,
+        ModuleContents,
+        Context,
+        GoalTypeEtc,
+        NormalForm,
+        Intro,
+        Auto,
+        Constraints,
+        ScopeInfo
+    }
+
+    export interface Annotation {
+        start: string,
+        end: string,
+        type: Array<string>
+        source?: {
+            filepath: string,
+            index: string
+        }
+    }
 }
 
 
-export const enum InfoActionType {
-    AllGoals,
-    Error,
-    TypeChecking,
-    CurrentGoal,
-    InferredType,
-    ModuleContents,
-    Context,
-    GoalTypeEtc,
-    NormalForm,
-    Intro,
-    Auto,
-    Constraints,
-    ScopeInfo
+export {
+    Agda
 }

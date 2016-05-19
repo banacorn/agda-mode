@@ -20,10 +20,11 @@
         "formatOnSave": false
     },
     "files": [
+        "handler.ts",
         "parser.ts",
+        "parser/agda.ts",
         "parser/stream/agda-response.ts",
-        "parser/stream/rectify.ts",
-        "parser/stream/s-expression.ts",
+        "parser/stream/rectifier.ts",
         "parser/text.ts",
         "types.ts",
         "typings/atom/atom.d.ts",

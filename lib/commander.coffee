@@ -57,13 +57,12 @@ class Commander
         @textBuffer     = @core.textBuffer
         @inputMethod    = @core.inputMethod if atom.config.get('agda-mode.inputMethod')
         @highlight      = @core.highlight
-        @handler        = @core.handler
 
     command: (raw) ->
         {command, method, option} = @parse raw
         # some commands can only be executed after "loaded"
         exception = ['load', 'input-symbol']
-        if @loaded or _.contains exception, command
+        if @loaded or _.includes exception, command
 
             Promise.resolve @[method](option)
                 .catch OutOfGoalError, @textBuffer.warnOutOfGoal
@@ -108,7 +107,7 @@ class Commander
     load: ->
         @core.commander.commandStart()
         @atomPanel.show()
-        @highlight.destroy()
+        # @highlight.destroy()
         @process.load()
             .then =>        @loaded = true
             .finally =>     @core.commander.commandEnd()
@@ -117,7 +116,7 @@ class Commander
     quit: -> if @loaded
         @loaded = false
         @atomPanel.hide()
-        @highlight.destroy()
+        # @highlight.destroy()
         @textBuffer.removeGoals()
         @process.quit()
 

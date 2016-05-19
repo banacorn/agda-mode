@@ -3,8 +3,10 @@ semver = require 'semver'
 {spawn, exec} = require 'child_process'
 Promise = require 'bluebird'
 {parsePath} = require './util'
-Agda = require './parser/agda'
-{Writable} = require 'stream'
+{Rectifier} = require './parser/stream/rectifier'
+{parseSExpression, parseAgdaResponse} = require './parser/agda'
+{handleAgdaResponse} = require './handler'
+# {Writable} = require 'stream'
 {InvalidExecutablePathError, ProcExecError} = require './error'
 Promise.longStackTraces()
 
@@ -117,11 +119,11 @@ class Process
                         resolve agdaProcess
 
                     agdaProcess.stdout
-                        .pipe new Agda.Rectify
-                        .pipe new Agda.ParseSExpr
-                        .pipe new Agda.ParseAgdaResponse
-                        .on 'data', (data) ->
-                            console.log data
+                        .pipe new Rectifier
+                        .on 'data', (data) =>
+                            expression = parseSExpression(data)
+                            response = parseAgdaResponse(expression)
+                            handleAgdaResponse(@core, response)
 
         .catch (error) =>
             throw InvalidExecutablePathError "Failed miserably, please report this issue."
