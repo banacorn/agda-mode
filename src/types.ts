@@ -98,7 +98,9 @@ namespace Agda {
     }
 }
 
+type TempGoalType = any;
 
 export {
-    Agda
+    Agda,
+    TempGoalType
 }

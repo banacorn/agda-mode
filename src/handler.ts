@@ -9,7 +9,6 @@ function handleAgdaResponse(core: any, response: Agda.Response) {
         case Agda.ResponseType.StatusAction:
             let status = <Agda.StatusAction>response;
             if (status.content.length !== 0) {
-                console.log(status.content);
                 core.panel.setContent("Status", status.content);
             }
             break;
@@ -45,7 +44,7 @@ function handleAgdaResponse(core: any, response: Agda.Response) {
             break;
 
         case Agda.ResponseType.MakeCaseAction:
-            core.textBuffer.onMakeCaseAction((<Agda.SolveAllAction>response))
+            core.textBuffer.onMakeCaseAction((<Agda.MakeCaseAction>response).content)
                 .then(() => {
                     core.commander.load()
                         .catch(() => {})
@@ -53,7 +52,7 @@ function handleAgdaResponse(core: any, response: Agda.Response) {
             break;
 
         case Agda.ResponseType.MakeCaseActionExtendLam:
-            core.textBuffer.onMakeCaseActionExtendLam(<Agda.SolveAllAction>response)
+            core.textBuffer.onMakeCaseActionExtendLam((<Agda.MakeCaseAction>response).content)
                 .then(() => {
                     core.commander.load()
                         .catch(() => {})

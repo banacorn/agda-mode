@@ -5,7 +5,7 @@ _ = require 'lodash'
 # Components
 Commander   = require './commander'
 Process     = require './process'
-TextBuffer  = require './text-buffer'
+{TextBuffer}  = require './text-buffer'
 InputMethod = require './input-method'
 Highlight   = require './highlight'
 Panel       = require './panel'
