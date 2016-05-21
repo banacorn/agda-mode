@@ -20,10 +20,10 @@ class TextBuffer {
     /////////////////////////
 
     // shift cursor if in certain goal
-    protectCursor(callback: Function) {
+    protectCursor<T>(callback: () => T): Promise<T> {
         let position = this.core.editor.getCursorBufferPosition();
         let result = callback();
-        this.getCurrentGoal(position)
+        return this.getCurrentGoal(position)
             .then((goal) => {
                 // reposition the cursor in the goal only if it's a fresh hole (coming from "?")
                 let isFreshHole = goal.isEmpty();
@@ -102,13 +102,13 @@ class TextBuffer {
     }
 
     // query for expression if the goal is empty
-    checkGoalContent(messages): Function {
+    checkGoalContent(msg): Function {
         return (goal) => {
             let content = goal.getContent();
             if (content) {
-                Promise.resolve(goal);
+                return Promise.resolve(goal);
             } else {
-                this.core.panel.setContent(messages.title, [], "plain-text", messages.placeholder);
+                this.core.panel.setContent(msg.title, [], "plain-text", msg.placeholder);
                 this.core.panel
                     .query()
                     .then((expr) => {
@@ -116,10 +116,10 @@ class TextBuffer {
                             goal.setContent(expr);
                             Promise.resolve(goal);
                         } else {
-                            Promise.reject(new err.EmptyGoalError(messages.error));
+                            Promise.reject(new err.EmptyGoalError(msg.error));
                         }
                     }, () => {
-                        Promise.reject(new err.EmptyGoalError(messages.error));
+                        Promise.reject(new err.EmptyGoalError(msg.error));
                     })
             }
         };
@@ -130,23 +130,23 @@ class TextBuffer {
     //  Commands  //
     ////////////////
     nextGoal() {
-        let cursor = this.core.editor.getCursorBufferPosition();
-        var nextGoal = null;
+        const cursor = this.core.editor.getCursorBufferPosition();
+        let nextGoal = null;
 
-        let positions = this.goals.map((goal) => {
-            let start = goal.range.start;
+        const positions = this.goals.map((goal) => {
+            const start = goal.range.start;
             return this.core.editor.translate(start, 3);
         });
 
         positions.forEach((position) => {
-            if (position.isGreaterThan(cursor)) {
+            if (position.isGreaterThan(cursor) && nextGoal === null) {
                 nextGoal = position;
             }
         });
 
         // no goal ahead of cursor, loop back
         if (nextGoal === null)
-            nextGoal = positions[0]
+            nextGoal = _.head(positions)
 
         // jump only when there are goals
         if (!_.isEmpty(positions))
@@ -154,23 +154,23 @@ class TextBuffer {
     }
 
     previousGoal() {
-        let cursor = this.core.editor.getCursorBufferPosition();
-        var previousGoal = null;
+        const cursor = this.core.editor.getCursorBufferPosition();
+        let previousGoal = null;
 
-        let positions = this.goals.map((goal) => {
-            let start = goal.range.start;
+        const positions = this.goals.map((goal) => {
+            const start = goal.range.start;
             return this.core.editor.translate(start, 3);
         });
 
         positions.forEach((position) => {
-            if (position.isGreaterThan(cursor)) {
+            if (position.isLessThan(cursor)) {
                 previousGoal = position;
             }
         });
 
         // no goal ahead of cursor, loop back
         if (previousGoal === null)
-            previousGoal = positions[0]
+            previousGoal = _.last(positions)
 
         // jump only when there are goals
         if (!_.isEmpty(positions))
@@ -221,8 +221,8 @@ class TextBuffer {
     //  Command Handlers  //
     ////////////////////////
 
-    onGoalsAction(indices: Array<number>) {
-        this.protectCursor(() => {
+    onGoalsAction(indices: Array<number>): Promise<void> {
+        return this.protectCursor(() => {
             let textRaw = this.core.editor.getText();
             this.removeGoals();
             getHoles(textRaw, indices).forEach((token) => {
@@ -234,16 +234,16 @@ class TextBuffer {
         });
     }
 
-    onSolveAllAction(index: number, content: Array<string>) {
-        this.protectCursor(() => {
+    onSolveAllAction(index: number, content: Array<string>): Promise<void> {
+        return this.protectCursor(() => {
             let goal = this.findGoal(index);
             goal.setContent(content);
             return goal;
         });
     }
 
-    onGiveAction(index: number, content: string, hasParenthesis: boolean) {
-        this.protectCursor(() => {
+    onGiveAction(index: number, content: string, hasParenthesis: boolean): Promise<void> {
+        return this.protectCursor(() => {
             let goal = this.findGoal(index);
             if (!_.isEmpty(content)) {
                 content = content.replace(/\\n/g, '\n');
@@ -258,16 +258,16 @@ class TextBuffer {
         });
     }
 
-    onMakeCaseAction(content: Array<string>) {
-        this.protectCursor(() => {
+    onMakeCaseAction(content: Array<string>): Promise<void> {
+        return this.protectCursor(() => {
             this.getCurrentGoal().then((goal) => {
                 goal.writeLines(content);
             }).catch(this.warnOutOfGoal);
         });
     }
 
-    onMakeCaseActionExtendLam(content: Array<string>) {
-        this.protectCursor(() => {
+    onMakeCaseActionExtendLam(content: Array<string>): Promise<void> {
+        return this.protectCursor(() => {
             this.getCurrentGoal().then((goal) => {
                 goal.writeLambda(content);
             }).catch(this.warnOutOfGoal);

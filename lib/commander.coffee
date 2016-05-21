@@ -109,8 +109,7 @@ class Commander
         @atomPanel.show()
         @process.load()
             .then =>    @loaded = true
-            # .finally =>     @core.commander.commandEnd()
-            .catch (e) ->
+            .catch (error) -> throw error
 
     quit: -> if @loaded
         @loaded = false
@@ -127,8 +126,7 @@ class Commander
 
     toggleDisplayOfImplicitArguments: ->
         @process.toggleDisplayOfImplicitArguments()
-            .catch ->
-
+            .catch (error) -> throw error
 
     info: ->
         @process.info()
@@ -136,15 +134,15 @@ class Commander
     solveConstraints: ->
         # @core.commander.commandStart()
         @process.solveConstraints()
-            .catch ->
+            .catch (error) -> throw error
 
     showConstraints: ->
         @process.showConstraints()
-            .catch ->
+            .catch (error) -> throw error
 
     showGoals: ->
         @process.showGoals()
-            .catch ->
+            .catch (error) -> throw error
 
     nextGoal: ->
         @textBuffer.nextGoal()
@@ -159,12 +157,12 @@ class Commander
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
                 @process.whyInScope(expr, goal)
-                    .catch ->
+                    .catch (error) -> throw error
                 @textBuffer.focus()
             , =>
                 # global command
                 @process.whyInScope(expr)
-                    .catch ->
+                    .catch (error) -> throw error
                 @textBuffer.focus()
 
     inferType: (normalization) ->
@@ -174,15 +172,15 @@ class Commander
             if goal.isEmpty()
                 @panel.query().then (expr) =>
                     @process.inferType(normalization, expr, goal)
-                        .catch ->
+                        .catch (error) -> throw error
             else
                 @process.inferType(normalization, goal.getContent(), goal)
-                    .catch ->
+                    .catch (error) -> throw error
         , =>
             # global command
             @panel.query().then (expr) =>
                 @process.inferType(normalization, expr)
-                    .catch ->
+                    .catch (error) -> throw error
 
     moduleContents: (normalization) ->
         @panel.setContent "Module contents #{toDescription normalization}", [], 'plain-text', 'module name:'
@@ -190,12 +188,12 @@ class Commander
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
                 @process.moduleContents(normalization, expr, goal)
-                    .catch ->
+                    .catch (error) -> throw error
                 @textBuffer.focus()
             , =>
                 # global command
                 @process.moduleContents(normalization, expr)
-                    .catch ->
+                    .catch (error) -> throw error
                 @textBuffer.focus()
 
     computeNormalForm: ->
@@ -205,12 +203,12 @@ class Commander
                 @textBuffer.getCurrentGoal().done (goal) =>
                     # goal-specific
                     @process.computeNormalForm(expr, goal)
-                        .catch ->
+                        .catch (error) -> throw error
                     @textBuffer.focus()
                 , =>
                     # global command
                     @process.computeNormalForm(expr)
-                        .catch ->
+                        .catch (error) -> throw error
                     @textBuffer.focus()
 
     computeNormalFormIgnoreAbstract: ->
@@ -219,12 +217,12 @@ class Commander
             @textBuffer.getCurrentGoal().done (goal) =>
                 # goal-specific
                 @process.computeNormalFormIgnoreAbstract(expr, goal)
-                    .catch ->
+                    .catch (error) -> throw error
                 @textBuffer.focus()
             , =>
                 # global command
                 @process.computeNormalFormIgnoreAbstract(expr)
-                    .catch ->
+                    .catch (error) -> throw error
                 @textBuffer.focus()
 
     give: ->
@@ -236,20 +234,21 @@ class Commander
                 error: "Nothing to give"
             .then @process.give
             # .finally => @core.commander.commandEnd()
-            .catch ->
+            .catch (error) -> throw error
 
     refine: ->
         # @core.commander.commandStart()
         @textBuffer.getCurrentGoal()
             .then @process.refine
             # .finally => @core.commander.commandEnd()
-            .catch ->
+            .catch (error) -> throw error
+
     auto: ->
         # @core.commander.commandStart()
         @textBuffer.getCurrentGoal()
             .then @process.auto
             # .finally => @core.commander.commandEnd()
-            .catch ->
+            .catch (error) -> throw error
 
     case: ->
         # @core.commander.commandStart()
@@ -259,27 +258,27 @@ class Commander
                 placeholder: "expression to case:"
                 error: "Nothing to case"
             .then @process.case
-            .catch ->
+            .catch (error) -> throw error
 
     goalType: (normalization) ->
         @textBuffer.getCurrentGoal()
             .then @process.goalType(normalization)
-            .catch ->
+            .catch (error) -> throw error
 
     context: (normalization) ->
         @textBuffer.getCurrentGoal()
             .then @process.context(normalization)
-            .catch ->
+            .catch (error) -> throw error
 
     goalTypeAndContext: (normalization) ->
         @textBuffer.getCurrentGoal()
             .then @process.goalTypeAndContext(normalization)
-            .catch ->
+            .catch (error) -> throw error
 
     goalTypeAndInferredType: (normalization) ->
         @textBuffer.getCurrentGoal()
             .then @process.goalTypeAndInferredType(normalization)
-            .catch ->
+            .catch (error) -> throw error
 
     inputSymbol: ->
         # activate if input method enabled, else insert '\\'

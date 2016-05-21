@@ -1,6 +1,4 @@
-import { TextInput } from 'Type'
-
-export function inputContent(data: TextInput): string {
+export function inputContent(data: string): string {
     let expr = data.toString()
         .replace(/\\/g, '\\\\')
         .replace(/\\/g, '\\\\')     // \           => \\

@@ -40,14 +40,16 @@ function handleAgdaResponse(core: any, response: Agda.Response) {
                 )
                 .then((goal) => {
                     return core.process.give(goal);
-                });
+                })
+                .catch((error) => { throw error; });
             break;
 
         case Agda.ResponseType.MakeCaseAction:
-            core.textBuffer.onMakeCaseAction((<Agda.MakeCaseAction>response).content)
+            core.textBuffer
+                .onMakeCaseAction((<Agda.MakeCaseAction>response).content)
                 .then(() => {
                     core.commander.load()
-                        .catch(() => {})
+                        .catch((error) => { throw error; });
                 });
             break;
 
@@ -55,7 +57,7 @@ function handleAgdaResponse(core: any, response: Agda.Response) {
             core.textBuffer.onMakeCaseActionExtendLam((<Agda.MakeCaseAction>response).content)
                 .then(() => {
                     core.commander.load()
-                        .catch(() => {})
+                        .catch((error) => { throw error; });
                 });
             break;
 
