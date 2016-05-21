@@ -23,7 +23,6 @@
         "handler.ts",
         "parser.ts",
         "parser/agda.ts",
-        "parser/stream/agda-response.ts",
         "parser/stream/rectifier.ts",
         "parser/text.ts",
         "text-buffer.ts",

@@ -226,15 +226,19 @@ class Commander
                 @textBuffer.focus()
 
     give: ->
-        # @core.commander.commandStart()
-        @textBuffer.getCurrentGoal()
-            .then @textBuffer.checkGoalContent
-                title: "Give"
-                placeholder: "expression to give:"
-                error: "Nothing to give"
+        @textBuffer.getCurrentGoal().then (goal) =>
+                if goal.getContent()
+                    return goal
+                else
+                    @panel.setContent("Give", [], "plain-text", "expression to give:")
+                    @panel.query()
+                        .then (expr) ->
+                            goal.setContent(expr)
+                            return goal
             .then @process.give
-            # .finally => @core.commander.commandEnd()
-            .catch (error) -> throw error
+            .catch (error) ->
+                console.log error
+
 
     refine: ->
         # @core.commander.commandStart()

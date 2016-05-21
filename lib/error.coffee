@@ -5,7 +5,7 @@ class OutOfGoalError extends Error
         Error.captureStackTrace(this, OutOfGoalError)
 
 class EmptyGoalError extends Error
-    constructor: (@message) ->
+    constructor: (@goal) ->
         @name = "EmptyGoalERror"
         Error.captureStackTrace(this, OutOfGoalError)
 

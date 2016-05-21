@@ -82,14 +82,15 @@ class TextBuffer {
 
     getCurrentGoal(cursor = this.core.editor.getCursorBufferPosition()): Promise<TempGoalType> {
         return new Promise((resolve, reject) => {
-            let goals = this.goals.filter((goal) => {
+
+            const goals = this.goals.filter((goal) => {
                 return goal.range.containsPoint(cursor);
             });
-            if (_.isEmpty(goals)) {
+
+            if (_.isEmpty(goals))
                 reject(new err.OutOfGoalError);
-            } else {
+            else
                 resolve(goals[0]);
-            }
         });
     }
 
@@ -101,28 +102,13 @@ class TextBuffer {
         this.core.panel.setContent("No content", [error.message], "warning");
     }
 
-    // query for expression if the goal is empty
-    checkGoalContent(msg): Function {
-        return (goal) => {
-            let content = goal.getContent();
-            if (content) {
-                return Promise.resolve(goal);
-            } else {
-                this.core.panel.setContent(msg.title, [], "plain-text", msg.placeholder);
-                this.core.panel
-                    .query()
-                    .then((expr) => {
-                        if (expr) {
-                            goal.setContent(expr);
-                            Promise.resolve(goal);
-                        } else {
-                            Promise.reject(new err.EmptyGoalError(msg.error));
-                        }
-                    }, () => {
-                        Promise.reject(new err.EmptyGoalError(msg.error));
-                    })
-            }
-        };
+    // reject if goal is empty
+    guardGoalHasContent(goal : TempGoalType): Promise<TempGoalType> {
+        if (goal.getContent()) {
+            return goal;
+        } else {
+            return Promise.reject(new err.EmptyGoalError(goal));
+        }
     }
 
 
