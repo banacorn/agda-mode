@@ -100,7 +100,41 @@ namespace Agda {
 
 type TempGoalType = any;
 
+namespace Command {
+
+    export interface GoalSpecific {
+        type: GoalSpecificCommandType
+        goal: TempGoalType
+    }
+
+    export const enum GoalSpecificCommandType {
+        Give
+    }
+
+
+    // export interface Response {
+    //     type: ResponseType
+    // }
+
+    // export const enum ResponseType {
+    //     InfoAction,
+    //     StatusAction,
+    //     GoalsAction,
+    //     GiveAction,
+    //     ParseError,
+    //     Goto,
+    //     SolveAllAction,
+    //     MakeCaseAction,
+    //     MakeCaseActionExtendLam,
+    //     HighlightClear,
+    //     HighlightAddAnnotations,
+    //     HighlightLoadAndDeleteAction,
+    //     UnknownAction
+    // }
+}
+
 export {
     Agda,
+    Command,
     TempGoalType
 }
