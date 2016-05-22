@@ -22,14 +22,26 @@
     "files": [
         "goal.ts",
         "handler.ts",
+        "hole.ts",
         "parser.ts",
         "parser/agda.ts",
+        "parser/lexer.ts",
         "parser/stream/rectifier.ts",
         "parser/text.ts",
         "text-buffer.ts",
         "types.ts",
         "typings/globals/atom/index.d.ts",
+        "typings/globals/emissary/index.d.ts",
+        "typings/globals/jquery/index.d.ts",
+        "typings/globals/mixto/index.d.ts",
+        "typings/globals/node/index.d.ts",
+        "typings/globals/pathwatcher/index.d.ts",
+        "typings/globals/q/index.d.ts",
+        "typings/globals/space-pen/index.d.ts",
+        "typings/globals/status-bar/index.d.ts",
+        "typings/globals/text-buffer/index.d.ts",
         "typings/index.d.ts",
-        "typings/modules/bluebird/index.d.ts"
+        "typings/modules/bluebird/index.d.ts",
+        "typings/modules/lodash/index.d.ts"
     ]
 }

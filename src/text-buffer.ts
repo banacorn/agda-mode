@@ -1,8 +1,9 @@
-import { Agda, Goal } from "./types";
 import * as fs from "fs";
 import * as Promise from "bluebird";
+import * as _ from "lodash";
+import { Agda, Goal } from "./types";
+
 var err = require("./error");
-// var Promise = require("bluebird");
 const hole = require("./text-buffer/hole");
 const getHoles = hole.getHoles;
 

@@ -3,6 +3,19 @@ import Goal from "./goal";
 
 export type TextInput = string;
 
+export interface Token {
+    content: string,
+    range: {
+        start: number,
+        end: number
+    },
+    type: TokenType
+}
+
+export const enum TokenType {
+    Raw
+}
+
 namespace Agda {
 
     // base interface

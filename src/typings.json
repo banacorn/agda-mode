@@ -1,8 +1,18 @@
 {
   "dependencies": {
-    "bluebird": "registry:npm/bluebird#3.3.4+20160515010139"
+    "bluebird": "registry:npm/bluebird#3.3.4+20160515010139",
+    "lodash": "registry:npm/lodash#4.0.0+20160416211519"
   },
   "globalDependencies": {
-    "atom": "registry:dt/atom#0.0.0+20160505173316"
+    "atom": "registry:dt/atom#0.0.0+20160505173316",
+    "emissary": "registry:dt/emissary#0.0.0+20160317120654",
+    "jquery": "registry:dt/jquery#1.10.0+20160417213236",
+    "mixto": "registry:dt/mixto#0.0.0+20160317120654",
+    "node": "registry:dt/node#6.0.0+20160514165920",
+    "pathwatcher": "registry:dt/pathwatcher#0.0.0+20160317120654",
+    "q": "registry:dt/q#0.0.0+20160417152954",
+    "space-pen": "registry:dt/space-pen#0.0.0+20160316155526",
+    "status-bar": "registry:dt/status-bar#0.0.0+20160317120654",
+    "text-buffer": "registry:dt/text-buffer#0.0.0+20160317120654"
   }
 }

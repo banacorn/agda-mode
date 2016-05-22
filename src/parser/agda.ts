@@ -1,6 +1,6 @@
-import * as _ from 'lodash';
-var lispToArray = require('lisp-to-array');
-import { Agda } from '../types';
+import * as _ from "lodash";
+import { Agda } from "../types";
+var lispToArray = require("lisp-to-array");
 
 
 function parseAgdaResponse(tokens: Array<any>): Agda.Response {
