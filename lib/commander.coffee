@@ -255,14 +255,19 @@ class Commander
             .catch (error) -> throw error
 
     case: ->
-        # @core.commander.commandStart()
-        @textBuffer.getCurrentGoal()
-            .then @textBuffer.checkGoalContent
-                title: "Case"
-                placeholder: "expression to case:"
-                error: "Nothing to case"
+        @textBuffer.getCurrentGoal().then (goal) =>
+                if goal.getContent()
+                    return goal
+                else
+                    @panel.setContent("Case", [], "plain-text", "expression to case:")
+                    @panel.query()
+                        .then (expr) ->
+                            goal.setContent(expr)
+                            return goal
             .then @process.case
-            .catch (error) -> throw error
+            .catch (error) ->
+                console.log error
+
 
     goalType: (normalization) ->
         @textBuffer.getCurrentGoal()
