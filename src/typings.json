@@ -1,18 +1,8 @@
 {
-  "globalDependencies": {
-    "Q": "github:DefinitelyTyped/DefinitelyTyped/q/Q.d.ts#398bd742115e2b071ab3edf8b543b6df6fa62dc2",
-    "atom": "github:DefinitelyTyped/DefinitelyTyped/atom/atom.d.ts#398bd742115e2b071ab3edf8b543b6df6fa62dc2",
-    "emissary": "github:DefinitelyTyped/DefinitelyTyped/emissary/emissary.d.ts#398bd742115e2b071ab3edf8b543b6df6fa62dc2",
-    "jquery": "github:DefinitelyTyped/DefinitelyTyped/jquery/jquery.d.ts#398bd742115e2b071ab3edf8b543b6df6fa62dc2",
-    "lodash": "github:DefinitelyTyped/DefinitelyTyped/lodash/lodash.d.ts#398bd742115e2b071ab3edf8b543b6df6fa62dc2",
-    "mixto": "github:DefinitelyTyped/DefinitelyTyped/mixto/mixto.d.ts#398bd742115e2b071ab3edf8b543b6df6fa62dc2",
-    "node": "github:DefinitelyTyped/DefinitelyTyped/node/node.d.ts#398bd742115e2b071ab3edf8b543b6df6fa62dc2",
-    "pathwatcher": "github:DefinitelyTyped/DefinitelyTyped/pathwatcher/pathwatcher.d.ts#398bd742115e2b071ab3edf8b543b6df6fa62dc2",
-    "space-pen": "github:DefinitelyTyped/DefinitelyTyped/space-pen/space-pen.d.ts#398bd742115e2b071ab3edf8b543b6df6fa62dc2",
-    "status-bar": "github:DefinitelyTyped/DefinitelyTyped/status-bar/status-bar.d.ts#398bd742115e2b071ab3edf8b543b6df6fa62dc2",
-    "text-buffer": "github:DefinitelyTyped/DefinitelyTyped/text-buffer/text-buffer.d.ts#398bd742115e2b071ab3edf8b543b6df6fa62dc2"
-  },
   "dependencies": {
     "bluebird": "registry:npm/bluebird#3.3.4+20160515010139"
+  },
+  "globalDependencies": {
+    "atom": "registry:dt/atom#0.0.0+20160505173316"
   }
 }

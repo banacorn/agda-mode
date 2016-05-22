@@ -28,18 +28,8 @@
         "parser/text.ts",
         "text-buffer.ts",
         "types.ts",
-        "typings/atom/atom.d.ts",
-        "typings/bluebird/bluebird.d.ts",
-        "typings/emissary/emissary.d.ts",
-        "typings/jquery/jquery.d.ts",
-        "typings/lodash/lodash.d.ts",
-        "typings/mixto/mixto.d.ts",
-        "typings/node/node.d.ts",
-        "typings/pathwatcher/pathwatcher.d.ts",
-        "typings/q/Q.d.ts",
-        "typings/space-pen/space-pen.d.ts",
-        "typings/status-bar/status-bar.d.ts",
-        "typings/text-buffer/text-buffer.d.ts",
-        "typings/tsd.d.ts"
+        "typings/globals/atom/index.d.ts",
+        "typings/index.d.ts",
+        "typings/modules/bluebird/index.d.ts"
     ]
 }

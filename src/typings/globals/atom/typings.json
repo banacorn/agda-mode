@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/2eaeb872aa33a5f90215ca02d467be7286e741a7/atom/atom.d.ts",
+    "raw": "registry:dt/atom#0.0.0+20160505173316",
+    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/2eaeb872aa33a5f90215ca02d467be7286e741a7/atom/atom.d.ts"
+  }
+}

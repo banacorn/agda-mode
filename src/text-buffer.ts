@@ -1,7 +1,8 @@
 import { Agda, Goal } from "./types";
 import * as fs from "fs";
+import * as Promise from "bluebird";
 var err = require("./error");
-var Promise = require("bluebird");
+// var Promise = require("bluebird");
 const hole = require("./text-buffer/hole");
 const getHoles = hole.getHoles;
 
@@ -80,17 +81,14 @@ class TextBuffer {
     }
 
     getCurrentGoal(cursor = this.core.editor.getCursorBufferPosition()): Promise<Goal> {
-        return new Promise((resolve, reject) => {
-
-            const goals = this.goals.filter((goal) => {
-                return goal.range.containsPoint(cursor, false);
-            });
-
-            if (_.isEmpty(goals))
-                reject(new err.OutOfGoalError);
-            else
-                resolve(goals[0]);
+        const goals = this.goals.filter((goal) => {
+            return goal.range.containsPoint(cursor, false);
         });
+
+        if (_.isEmpty(goals))
+            return Promise.reject(new err.OutOfGoalError);
+        else
+            return Promise.resolve(goals[0]);
     }
 
     warnOutOfGoal() {
@@ -224,11 +222,11 @@ class TextBuffer {
         });
     }
 
-    onSolveAllAction(index: number, content: string): Promise<void> {
+    onSolveAllAction(index: number, content: string): Promise<Goal> {
         return this.protectCursor(() => {
             let goal = this.findGoal(index);
             goal.setContent(content);
-            return Promise.resolve(goal);
+            return goal;
         });
     }
 
