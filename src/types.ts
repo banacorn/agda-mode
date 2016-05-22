@@ -3,17 +3,30 @@ import Goal from "./goal";
 
 export type TextInput = string;
 
-export interface Token {
+interface IndexRange {
+    start: number,
+    end: number
+}
+
+interface Token {
     content: string,
-    range: {
-        start: number,
-        end: number
-    },
+    range: IndexRange,
     type: TokenType
 }
 
-export const enum TokenType {
-    Raw
+const enum TokenType {
+    Raw,
+    Comment,
+    GoalBracket,
+    GoalQMRaw, // ? + ?
+    GoalQM // ?
+}
+
+interface Hole {
+    index: number,
+    modifiedRange: IndexRange,
+    originalRange: IndexRange,
+    content: string
 }
 
 namespace Agda {
@@ -148,6 +161,9 @@ namespace Command {
 
 export {
     Agda,
+    Command,
+    Hole,
     Goal,
-    Command
+    Token,
+    TokenType
 }

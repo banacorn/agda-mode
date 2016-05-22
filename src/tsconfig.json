@@ -22,9 +22,9 @@
     "files": [
         "goal.ts",
         "handler.ts",
-        "hole.ts",
         "parser.ts",
         "parser/agda.ts",
+        "parser/hole.ts",
         "parser/lexer.ts",
         "parser/stream/rectifier.ts",
         "parser/text.ts",

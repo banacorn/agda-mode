@@ -2,10 +2,9 @@ import * as fs from "fs";
 import * as Promise from "bluebird";
 import * as _ from "lodash";
 import { Agda, Goal } from "./types";
+import { parseHole } from "./parser";
 
 var err = require("./error");
-const hole = require("./text-buffer/hole");
-const getHoles = hole.getHoles;
 
 class TextBuffer {
     private goals: Goal[]
@@ -209,14 +208,14 @@ class TextBuffer {
         return this.protectCursor(() => {
             let textRaw = this.core.editor.getText();
             this.removeGoals();
-            getHoles(textRaw, indices).forEach((token) => {
-                let range = this.core.editor.fromCIRange(token.originalRange);
-                this.core.editor.setTextInBufferRange(range, token.content);
+            parseHole(textRaw, indices).forEach((hole) => {
+                let range = this.core.editor.fromCIRange(hole.originalRange);
+                this.core.editor.setTextInBufferRange(range, hole.content);
                 let goal = new Goal(
                     this.core.editor,
-                    token.goalIndex,
-                    token.modifiedRange.start,
-                    token.modifiedRange.end
+                    hole.index,
+                    hole.modifiedRange.start,
+                    hole.modifiedRange.end
                 );
                 this.goals.push(goal);
             });

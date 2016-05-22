@@ -35,7 +35,7 @@ Vue.component 'panel-input-editor',
     ready: ->
         # event clusterfuck
         confirmDisposable = atom.commands.add @$el, 'core:confirm', =>
-            expr = parser.inputContent @$el.getModel().getText()
+            expr = parser.parseInputContent @$el.getModel().getText()
             @$emit 'confirm', expr     # to local
             @$dispatch 'input-editor:confirm', expr # to parent
         cancelDisposable = atom.commands.add @$el, 'core:cancel', =>

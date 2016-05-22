@@ -1,4 +1,4 @@
-export function inputContent(data: string): string {
+export function parseInputContent(data: string): string {
     let expr = data.toString()
         .replace(/\\/g, '\\\\')
         .replace(/\\/g, '\\\\')     // \           => \\
