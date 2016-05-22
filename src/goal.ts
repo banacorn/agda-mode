@@ -62,7 +62,9 @@ export default class Goal {
 
             else if (left !== -1 && right !== -1) {
                 // update states
-                this.range = newRange.translate(new Point(0, left), new Point(0, right + 2));
+                const newStart = this.range.start.translate(new Point(0, left));
+                const newEnd   = this.range.start.translate(new Point(0, right + 2));
+                this.range = new Range(newStart, newEnd)
                 this.content = this.editor.getTextInRange(this.range);
                 this.marker.setBufferRange(this.range, {});
 
@@ -145,7 +147,6 @@ export default class Goal {
             new Point(0, -2)
         );
         const rawContent = this.editor.getTextInBufferRange(range);
-        console.log(inputContent(rawContent));
         return inputContent(rawContent);
     }
 
@@ -158,7 +159,6 @@ export default class Goal {
         const paddingSpaces = _.repeat(" ", indexWidth);
         this.editor.setTextInBufferRange(range, ` ${text} ${paddingSpaces}`);
     }
-
 
     selectContent() {
         const indexWidth = this.index === -1 ? 1 : this.index.toString().length;
