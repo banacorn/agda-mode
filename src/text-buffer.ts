@@ -1,13 +1,12 @@
-import { Agda, TempGoalType } from "./types";
+import { Agda, Goal } from "./types";
 import * as fs from "fs";
 var err = require("./error");
 var Promise = require("bluebird");
 const hole = require("./text-buffer/hole");
 const getHoles = hole.getHoles;
-const Goal = require("./text-buffer/goal");
 
 class TextBuffer {
-    private goals: Array<TempGoalType>
+    private goals: Goal[]
     private core: any
 
     constructor(core) {
@@ -75,16 +74,16 @@ class TextBuffer {
                 .filter((goal) => { return goal.index !== index; })
     }
 
-    findGoal(index: number): TempGoalType {
+    findGoal(index: number): Goal {
         let goals = this.goals.filter((goal) => { return goal.index === index; })
         return goals[0];
     }
 
-    getCurrentGoal(cursor = this.core.editor.getCursorBufferPosition()): Promise<TempGoalType> {
+    getCurrentGoal(cursor = this.core.editor.getCursorBufferPosition()): Promise<Goal> {
         return new Promise((resolve, reject) => {
 
             const goals = this.goals.filter((goal) => {
-                return goal.range.containsPoint(cursor);
+                return goal.range.containsPoint(cursor, false);
             });
 
             if (_.isEmpty(goals))
@@ -103,9 +102,9 @@ class TextBuffer {
     }
 
     // reject if goal is empty
-    guardGoalHasContent(goal : TempGoalType): Promise<TempGoalType> {
+    guardGoalHasContent(goal : Goal): Promise<Goal> {
         if (goal.getContent()) {
-            return goal;
+            return Promise.resolve(goal);
         } else {
             return Promise.reject(new err.EmptyGoalError(goal));
         }
@@ -207,24 +206,29 @@ class TextBuffer {
     //  Command Handlers  //
     ////////////////////////
 
-    onGoalsAction(indices: Array<number>): Promise<void> {
+    onGoalsAction(indices: number[]): Promise<void> {
         return this.protectCursor(() => {
             let textRaw = this.core.editor.getText();
             this.removeGoals();
             getHoles(textRaw, indices).forEach((token) => {
                 let range = this.core.editor.fromCIRange(token.originalRange);
                 this.core.editor.setTextInBufferRange(range, token.content);
-                let goal = new Goal(this.core.editor, token.goalIndex, token.modifiedRange);
+                let goal = new Goal(
+                    this.core.editor,
+                    token.goalIndex,
+                    token.modifiedRange.start,
+                    token.modifiedRange.end
+                );
                 this.goals.push(goal);
             });
         });
     }
 
-    onSolveAllAction(index: number, content: Array<string>): Promise<void> {
+    onSolveAllAction(index: number, content: string): Promise<void> {
         return this.protectCursor(() => {
             let goal = this.findGoal(index);
             goal.setContent(content);
-            return goal;
+            return Promise.resolve(goal);
         });
     }
 
@@ -244,7 +248,7 @@ class TextBuffer {
         });
     }
 
-    onMakeCaseAction(content: Array<string>): Promise<void> {
+    onMakeCaseAction(content: string[]): Promise<void> {
         return this.protectCursor(() => {
             this.getCurrentGoal().then((goal) => {
                 goal.writeLines(content);
@@ -252,7 +256,7 @@ class TextBuffer {
         });
     }
 
-    onMakeCaseActionExtendLam(content: Array<string>): Promise<void> {
+    onMakeCaseActionExtendLam(content: string[]): Promise<void> {
         return this.protectCursor(() => {
             this.getCurrentGoal().then((goal) => {
                 goal.writeLambda(content);

@@ -20,6 +20,7 @@
         "formatOnSave": false
     },
     "files": [
+        "goal.ts",
         "handler.ts",
         "parser.ts",
         "parser/agda.ts",

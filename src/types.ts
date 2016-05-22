@@ -1,4 +1,6 @@
-// raw input string from text editor
+import Goal from "./goal";
+
+
 export type TextInput = string;
 
 namespace Agda {
@@ -98,13 +100,11 @@ namespace Agda {
     }
 }
 
-type TempGoalType = any;
-
 namespace Command {
 
     export interface GoalSpecific {
         type: GoalSpecificCommandType
-        goal: TempGoalType
+        goal: Goal
     }
 
     export const enum GoalSpecificCommandType {
@@ -135,6 +135,6 @@ namespace Command {
 
 export {
     Agda,
-    Command,
-    TempGoalType
+    Goal,
+    Command
 }

@@ -673,8 +673,8 @@ declare namespace AtomCore {
 		lineForBufferRow(row:number):string;
 		lineLengthForBufferRow(row:number):number;
 		scan():any;
-		scanInBufferRange():any;
-		backwardsScanInBufferRange():any;
+		scanInBufferRange(regex: RegExp, range: TextBuffer.IRange, iterator: Function):any;
+		backwardsScanInBufferRange(regex: RegExp, range: TextBuffer.IRange, iterator: Function):any;
 		isModified():boolean;
 		isEmpty():boolean;
 		shouldPromptToSave():boolean;
@@ -747,7 +747,7 @@ declare namespace AtomCore {
 		mutateSelectedText(fn:(selection:ISelection)=>any):any;
 		replaceSelectedText(options:any, fn:(selection:string)=>any):any;
 		decorationsForScreenRowRange(startScreenRow:any, endScreenRow:any):{[id:number]: IDecoration[]};
-		decorateMarker(marker:IDisplayBufferMarker, decorationParams: {type:string; class: string;}):IDecoration;
+		decorateMarker(marker:IDisplayBufferMarker, decorationParams: any):IDecoration;
 		decorationForId(id:number):IDecoration;
 		getMarker(id:number):IDisplayBufferMarker;
 		getMarkers():IDisplayBufferMarker[];
@@ -1487,6 +1487,8 @@ declare namespace AtomCore {
 		inspect():string;
 		destroyed():any;
 		notifyObservers(_arg:any):any;
+        onDidChange(callback: Function): Disposable;
+
 	}
 
 	interface ITransaction {
