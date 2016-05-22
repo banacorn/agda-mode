@@ -28,22 +28,22 @@ namespace Agda {
 
     export interface InfoAction extends Response {
         infoActionType: InfoActionType;
-        content: Array<string>;
+        content: string[];
     }
     export interface StatusAction extends Response {
-        content: Array<string>;
+        content: string[];
     }
     export interface GoalsAction extends Response {
-        content: Array<string>;
+        content: string[];
     }
     export interface GiveAction extends Response {
         index: number;
-        content: Array<string>;
+        content: string[];
         hasParenthesis: boolean;
     }
 
     export interface ParseError extends Response {
-        content: Array<string>;
+        content: string[];
     }
 
     export interface Goto extends Response {
@@ -51,7 +51,7 @@ namespace Agda {
         position: string;
     }
     export interface SolveAllAction extends Response {
-        solution: Array<Array<string>>;
+        solution: Array<string[]>;
     }
     export interface MakeCaseAction extends Response {
         content: string;
@@ -60,7 +60,7 @@ namespace Agda {
         content: string;
     }
     export interface HighlightClear extends Response {
-        content: Array<string>;
+        content: string[];
     }
     export interface HighlightAddAnnotations extends Response {
         content: Array<Annotation>;
@@ -70,7 +70,7 @@ namespace Agda {
         content: string;
     }
     export interface UnknownAction extends Response {
-        content: Array<string>;
+        content: string[];
     }
 
     export const enum InfoActionType {
@@ -92,7 +92,7 @@ namespace Agda {
     export interface Annotation {
         start: string,
         end: string,
-        type: Array<string>
+        type: string[]
         source?: {
             filepath: string,
             index: string
