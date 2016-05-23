@@ -1,5 +1,5 @@
 _ = require 'lodash'
-{parsePath} = require './util'
+{parseFilepath} = require './parser'
 {Range, CompositeDisposable} = require 'atom'
 
 # Components
@@ -12,7 +12,7 @@ Panel       = require './panel'
 
 class Core
 
-    getPath: -> parsePath @editor.getPath()
+    getPath: -> parseFilepath @editor.getPath()
 
     constructor: (@editor) ->
         # helper methods on @editor

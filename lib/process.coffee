@@ -2,7 +2,7 @@ _ = require 'lodash'
 semver = require 'semver'
 {spawn, exec} = require 'child_process'
 Promise = require 'bluebird'
-{parsePath} = require './util'
+{parseFilepath} = require './parser'
 {Rectifier} = require './parser/stream/rectifier'
 {parseSExpression, parseAgdaResponse} = require './parser'
 {handleAgdaResponse} = require './handler'
@@ -20,7 +20,7 @@ class Process
     getLibraryPath: ->
         path = atom.config.get('agda-mode.libraryPath')
         path.unshift('.')
-        return path.map((p) -> '\"' + parsePath p + '\"').join(', ')
+        return path.map((p) -> '\"' + parseFilepath p + '\"').join(', ')
 
     getProgramArgs: ->
         args = atom.config.get('agda-mode.programArgs')
@@ -28,7 +28,7 @@ class Process
 
     # locate the path and see if it is truly a Agda process
     validateExecutablePath: (path = "") -> new Promise (resolve, reject) =>
-        path = parsePath path
+        path = parseFilepath path
         try
             args = @getProgramArgs()
             args.push '-V'
@@ -66,7 +66,7 @@ class Process
                 @core.panel.setContent "#{error.message}: \"#{error.path}\"", [], 'warning', 'path of executable here'
         @core.panel.query(false) # disable input method
             .then (path) =>
-                path = parsePath path
+                path = parseFilepath path
                 @validateExecutablePath path
                     .then (path) => path
                     .catch InvalidExecutablePathError, (error) => @queryExecutablePathUntilSuccess error

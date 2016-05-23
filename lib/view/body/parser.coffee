@@ -1,6 +1,6 @@
 _ = require 'lodash'
 {Point, Range}  = require 'atom'
-{parsePath} = require '../../util'
+{parseFilepath} = require '../../parser'
 
 regexHeader = /^(Goal|Have)\: ((?:\n|.)+)/
 parseHeader = (str) ->

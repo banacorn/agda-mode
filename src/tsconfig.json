@@ -27,7 +27,7 @@
         "parser/hole.ts",
         "parser/lexer.ts",
         "parser/stream/rectifier.ts",
-        "parser/text.ts",
+        "parser/util.ts",
         "text-buffer.ts",
         "types.ts",
         "typings/globals/atom/index.d.ts",
