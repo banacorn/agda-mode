@@ -21,8 +21,8 @@ export default function parseHole(text: string, indices: number[]): Hole[] {
     const original = new Lexer(text)
         .lex(commentRegex, TokenType.Raw, TokenType.Comment)
         .lex(goalBracketRegex, TokenType.Raw, TokenType.GoalBracket)
-        .lex(goalBracketRegex, TokenType.Raw, TokenType.GoalQMRaw)
-        .lex(goalBracketRegex, TokenType.GoalQMRaw, TokenType.GoalQM)
+        .lex(goalQuestionMarkRawRegex, TokenType.Raw, TokenType.GoalQMRaw)
+        .lex(goalQuestionMarkRegex, TokenType.GoalQMRaw, TokenType.GoalQM)
         .result;
 
     const modified = new Lexer(_.cloneDeep(original))

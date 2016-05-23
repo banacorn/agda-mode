@@ -2,6 +2,16 @@ import { Range, Point } from "atom";
 import * as _ from "lodash";
 import { parseInputContent } from "./parser";
 
+function translate(textBuffer: TextBuffer.ITextBuffer, p: TextBuffer.IPoint, n: number): TextBuffer.IPoint {
+    return textBuffer.positionForCharacterIndex(textBuffer.characterIndexForPosition(p) + n)
+}
+
+function resizeRange(textBuffer: TextBuffer.ITextBuffer, range: TextBuffer.IRange, left: number, right: number): TextBuffer.IRange {
+    const start = translate(textBuffer, range.start, left );
+    const end   = translate(textBuffer, range.end  , right);
+    return new Range(start, end);
+}
+
 export default class Goal {
     public  range: TextBuffer.IRange;
     private marker: AtomCore.IDisplayBufferMarker;
@@ -50,24 +60,24 @@ export default class Goal {
 
             // special case: "{!}"
             if (left === 0 && right === 1)
-                this.restoreBoundary();
+                this.restoreBoundary(newRange);
 
             // the entire goal got destroyed, so be it
             else if (left === -1 && right === -1)
                 this.destroy();
 
             // partially damaged
-            else if (left === -1 || right === -1)
-                this.restoreBoundary();
+            else if (left === -1 || right === -1) {
+                this.restoreBoundary(newRange);
+            }
 
             else if (left !== -1 && right !== -1) {
-                // update states
-                const newStart = this.range.start.translate(new Point(0, left));
-                const newEnd   = this.range.start.translate(new Point(0, right + 2));
-                this.range = new Range(newStart, newEnd)
+                const textBuffer = this.editor.getBuffer();
+                const contentLength = text.length;
+                const stretchRight = right - contentLength + 2;
+                this.range = resizeRange(textBuffer, newRange, left, stretchRight);
                 this.content = this.editor.getTextInRange(this.range);
                 this.marker.setBufferRange(this.range, {});
-
             } else {
                 throw "Goal: WTF!!???"
             }
@@ -78,15 +88,13 @@ export default class Goal {
         this.marker.destroy();
     }
 
-    restoreBoundary() {
-        this.editor.setTextInBufferRange(this.range, this.content);
+    restoreBoundary(newRange: TextBuffer.IRange) {
+        this.editor.setTextInBufferRange(newRange, this.content);
     }
 
     removeBoundary() {
-        const range = this.range.translate(
-                new Point(0, 2),
-                new Point(0, -2)
-        );
+        const textBuffer = this.editor.getBuffer();
+        const range = resizeRange(textBuffer, this.range, 2, -2)
         const rawContent = this.editor.getTextInBufferRange(range);
         this.editor.setTextInBufferRange(this.range, rawContent.trim());
     }
