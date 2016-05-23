@@ -13,7 +13,7 @@ function isHole(token: Token) {
     return token.type === TokenType.GoalQM || token.type === TokenType.GoalBracket;
 }
 
-export default function parseHole(text: string, indices: number[]): Hole[] {
+function parseHole(text: string, indices: number[]): Hole[] {
     // counter for indices
     let i = 0;
 
@@ -78,4 +78,8 @@ export default function parseHole(text: string, indices: number[]): Hole[] {
             content: modifiedHole.content
         };
     });
+}
+
+export {
+    parseHole
 }

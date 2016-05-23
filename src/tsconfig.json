@@ -28,6 +28,7 @@
         "parser/lexer.ts",
         "parser/stream/rectifier.ts",
         "parser/util.ts",
+        "parser/view.ts",
         "text-buffer.ts",
         "types.ts",
         "typings/globals/atom/index.d.ts",

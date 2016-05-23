@@ -3,7 +3,7 @@ _   = require 'lodash'
 require './body/type'
 require './body/location'
 require './body/error'
-parser = require './body/parser'
+{parseHeader, parseJudgement, parseError} = require '../parser'
 
 # divide content into header and body
 # divideContent : [String] -> { header :: [String], body :: [String] }
@@ -95,8 +95,8 @@ Vue.component 'panel-body',
                     when 'value', 'type-judgement'
                         {header, body} = divideContent content.body
 
-                        @header = concatJudgements(header).map parser.parseHeader
-                        items = concatJudgements(body).map(parser.parseJudgement)
+                        @header = concatJudgements(header).map parseHeader
+                        items = concatJudgements(body).map(parseJudgement)
                         @body =
                             goal: _.filter(items, judgementType: 'goal')
                             judgement: _.filter(items, judgementType: 'type judgement')
@@ -105,7 +105,7 @@ Vue.component 'panel-body',
                             sort: _.filter(items, judgementType: 'sort')
                     when 'error'
                         @header = []
-                        @body = error: parser.parseError(content.body)
+                        @body = error: parseError(content.body)
                     else
                         @header = []
                         @body = plainText: content.body
