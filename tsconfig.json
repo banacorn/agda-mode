@@ -18,6 +18,7 @@
     "files": [
         "src/goal.ts",
         "src/handler.ts",
+        "src/input-method.ts",
         "src/parser.ts",
         "src/parser/agda.ts",
         "src/parser/hole.ts",

@@ -3,7 +3,7 @@
 declare namespace atom {
   namespace Typings {
     export interface AtomEnvironment {
-      command: CommandRegistry;
+      commands: CommandRegistry;
       config: Config;
       clipboard: Clipboard;
       contextMenu: ContextMenuManager;
@@ -768,7 +768,7 @@ declare namespace atom {
       traverse(delta: Point): Range;
 
 
-      compare(otherRange: Range): Range;
+      compare(otherRange: Range): number;
       isEqual(otherRange: Range): boolean;
       coversSameRows(otherRange: Range): boolean;
       intersectsWith(otherRange: Range, exclusive?: boolean): boolean;
@@ -1516,11 +1516,12 @@ declare namespace atom {
     }
 
     export interface Workspace {
+      getActiveTextEditor(): TextEditor;
       addModalPanel(option: any);
     }
   }
 
-  export var command: Typings.CommandRegistry;
+  export var commands: Typings.CommandRegistry;
   export var config: Typings.Config;
   export var clipboard: Typings.Clipboard;
   export var contextMenu: Typings.ContextMenuManager;
