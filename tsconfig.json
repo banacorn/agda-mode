@@ -1,0 +1,39 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es5",
+        "noImplicitAny": false,
+        "sourceMap": false,
+        "outDir": "lib"
+    },
+    "exclude": [
+        "node_modules"
+    ],
+    "filesGlob": [
+        "**/*.ts",
+        "**/*.tsx",
+        "typings/main.d.ts",
+        "!node_modules/**"
+    ],
+    "files": [
+        "src/goal.ts",
+        "src/handler.ts",
+        "src/parser.ts",
+        "src/parser/agda.ts",
+        "src/parser/hole.ts",
+        "src/parser/lexer.ts",
+        "src/parser/stream/rectifier.ts",
+        "src/parser/util.ts",
+        "src/parser/view.ts",
+        "src/text-buffer.ts",
+        "src/types.ts",
+        "typings/globals/atom/index.d.ts",
+        "typings/globals/node/index.d.ts",
+        "typings/index.d.ts",
+        "typings/modules/bluebird/index.d.ts",
+        "typings/modules/lodash/index.d.ts"
+    ],
+    "atom": {
+        "rewriteTsconfig": true
+    }
+}

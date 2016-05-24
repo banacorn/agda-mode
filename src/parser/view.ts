@@ -1,5 +1,5 @@
 import * as _ from "lodash";;
-import { Range, Point } from "atom";
+import Atom = atom.Typings;
 import { parseFilepath } from "./util";
 
 function parseHeader(str: string): any {
@@ -20,7 +20,10 @@ function parseOccurence(str: string): any {
         const rowEnd   = parseInt(result[5]) ? parseInt(result[5]) : parseInt(result[7]);
         const colStart = parseInt(result[4]) ? parseInt(result[4]) : parseInt(result[8]);
         const colEnd   = parseInt(result[6]) ? parseInt(result[6]) : parseInt(result[9]);
-        const range = new Range([rowStart - 1, colStart - 1], [rowEnd - 1, colEnd - 1]);
+        const range = new atom.Typings.Range(
+            new Atom.Point(rowStart - 1, colStart - 1),
+            new Atom.Point(rowEnd - 1, colEnd - 1)
+        );
         return {
             body: result[1],
             location: {
@@ -114,7 +117,10 @@ function parseLocation(str: string): any {
         const rowEnd   = parseInt(result[4]) ? parseInt(result[4]) : parseInt(result[6]);
         const colStart = parseInt(result[3]) ? parseInt(result[3]) : parseInt(result[7]);
         const colEnd   = parseInt(result[5]) ? parseInt(result[5]) : parseInt(result[8]);
-        const range = new Range([rowStart - 1, colStart - 1], [rowEnd - 1, colEnd - 1]);
+        const range = new atom.Typings.Range(
+            new Atom.Point(rowStart - 1, colStart - 1),
+            new Atom.Point(rowEnd - 1, colEnd - 1)
+        );
         return {
             path: parseFilepath(result[1]),
             range: range,
