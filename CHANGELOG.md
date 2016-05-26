@@ -1,3 +1,7 @@
+## 0.5.1
+* Fix the problem when a hole spans multiple lines (which arose from fixing #29)
+* Upgrade lodash to v4.12
+
 ## 0.5.0
 * Fix #29
 * Fix hole parsing. Bangs '!' and curly brackets '}' are allowed inside a hole now
