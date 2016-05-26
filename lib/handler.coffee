@@ -101,7 +101,7 @@ class Handler
 
     # agda2-highlight-add-annotations
     highlightAddAnnotations: (tokens) ->
-        annotations = _.rest(tokens)
+        annotations = _.tail(tokens)
         annotations.forEach (obj) =>
             result =
                 start: obj[0]
