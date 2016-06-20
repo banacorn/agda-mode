@@ -1,5 +1,7 @@
 import * as path from "path";
 
+var atom:any;
+
 function parseFilepath(s: string): string {
     if (s) {
         // sanitize with path.parse first

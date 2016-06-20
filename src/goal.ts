@@ -1,24 +1,24 @@
 import * as _ from "lodash";
-import Atom = atom.Typings;
 import { parseInputContent } from "./parser";
+// import { Point, Range, TextBuffer, TextEditor, TextEditorMarker } from "atom";
 
-function translate(textBuffer: Atom.TextBuffer, p: Atom.Point, n: number): Atom.Point {
+function translate(textBuffer: TextBuffer, p: Point, n: number): Point {
     return textBuffer.positionForCharacterIndex(textBuffer.characterIndexForPosition(p) + n)
 }
 
-function resizeRange(textBuffer: Atom.TextBuffer, range: Atom.Range, left: number, right: number): Atom.Range {
+function resizeRange(textBuffer: TextBuffer, range: Range, left: number, right: number): Range {
     const start = translate(textBuffer, range.start, left );
     const end   = translate(textBuffer, range.end  , right);
-    return new Atom.Range(start, end);
+    return new Range(start, end);
 }
 
 export default class Goal {
-    public  range: Atom.Range;
-    private marker: Atom.TextEditorMarker;
+    public  range: Range;
+    private marker: TextEditorMarker;
     private content: string;
 
     constructor(
-        private editor: Atom.TextEditor,
+        private editor: TextEditor,
         public index: number = -1,         // -1 as Nothing, fuck TypeScript
         startIndex: number,
         endIndex: number
@@ -27,7 +27,7 @@ export default class Goal {
         const textBuffer = this.editor.getBuffer();
         const startPoint = textBuffer.positionForCharacterIndex(startIndex);
         const endPoint   = textBuffer.positionForCharacterIndex(  endIndex);
-        this.range = new Atom.Range(startPoint, endPoint);
+        this.range = new Range(startPoint, endPoint);
         this.content = textBuffer.getTextInRange(this.range);
         this.marker = this.editor.markBufferRange(this.range, {});
 
@@ -91,7 +91,7 @@ export default class Goal {
         this.marker.destroy();
     }
 
-    restoreBoundary(newRange: Atom.Range) {
+    restoreBoundary(newRange: Range) {
         this.editor.setTextInBufferRange(newRange, this.content);
     }
 
@@ -135,8 +135,8 @@ export default class Goal {
 
         // range to scan
         const textBuffer = this.editor.getBuffer();
-        const beforeRange = new Atom.Range(textBuffer.getFirstPosition(), this.range.start);
-        const afterRange = new Atom.Range(this.range.end, textBuffer.getEndPosition());
+        const beforeRange = new Range(textBuffer.getFirstPosition(), this.range.start);
+        const afterRange = new Range(this.range.end, textBuffer.getEndPosition());
 
         // scan and build the range to replace text with
         this.editor.backwardsScanInBufferRange(/\;\s*|\{\s*/, beforeRange, (result) => {
@@ -145,7 +145,7 @@ export default class Goal {
             this.editor.scanInBufferRange(/\s*\;|\s*\}/, afterRange, (result) => {
                 const rewriteRangeEnd = result.range.start;
                 result.stop();
-                const rewriteRange = new Atom.Range(rewriteRangeStart, rewriteRangeEnd);
+                const rewriteRange = new Range(rewriteRangeStart, rewriteRangeEnd);
                 this.editor.setTextInBufferRange(rewriteRange, contents.join(" ; "));
             });
         });
@@ -154,8 +154,8 @@ export default class Goal {
 
     getContent(): string {
         const range = this.range.translate(
-            new Atom.Point(0, 2),
-            new Atom.Point(0, -2)
+            new Point(0, 2),
+            new Point(0, -2)
         );
         const rawContent = this.editor.getTextInBufferRange(range);
         return parseInputContent(rawContent);
@@ -163,8 +163,8 @@ export default class Goal {
 
     setContent(text: string) {
         const range = this.range.translate(
-            new Atom.Point(0, 2),
-            new Atom.Point(0, -2)
+            new Point(0, 2),
+            new Point(0, -2)
         );
         const indexWidth = this.index === -1 ? 1 : this.index.toString().length;
         const paddingSpaces = _.repeat(" ", indexWidth);
@@ -174,8 +174,8 @@ export default class Goal {
     selectContent() {
         const indexWidth = this.index === -1 ? 1 : this.index.toString().length;
         const range = this.range.translate(
-            new Atom.Point(0, 3),
-            new Atom.Point(0, -(3 + indexWidth))
+            new Point(0, 3),
+            new Point(0, -(3 + indexWidth))
         );
         this.editor.setSelectedBufferRange(range, {
             reversed: false,

@@ -1,5 +1,4 @@
-import { CompositeDisposable } from "atom";
-import Atom = atom.Typings;
+import { TextEditor, Decoration, TextEditorMarker, CompositeDisposable } from "atom";
 var Keymap = require("./input-method/keymap");
 
 // Input Method Singleton (initialized only once per editor, activated or not)
@@ -7,13 +6,13 @@ export default class InputMethod {
     private activated: boolean;
     private mute: boolean;
     private subscriptions: CompositeDisposable;
-    private editor: Atom.TextEditor;
-    private decoration: Atom.Decoration;
+    private editor: TextEditor;
+    private decoration: Decoration;
     // raw characters
     rawInput: string;
 
     // visual marker
-    textBufferMarker: Atom.Marker;
+    textEditorMarker: TextEditorMarker;
 
 
     constructor(private core: any) {
@@ -55,11 +54,11 @@ export default class InputMethod {
 
             // monitors raw text buffer and figures out what happend
             const startPosition = this.editor.getCursorBufferPosition();
-            this.textBufferMarker = this.editor.markBufferRange(new Atom.Range(startPosition, startPosition), {});
-            this.textBufferMarker.onDidChange(this.dispatchEvent);
+            this.textEditorMarker = this.editor.markBufferRange(new Range(startPosition, startPosition), {});
+            this.textEditorMarker.onDidChange(this.dispatchEvent);
 
             // decoration
-            this.decoration = this.editor.decorateMarker(this.textBufferMarker, {
+            this.decoration = this.editor.decorateMarker(this.textEditorMarker, {
                 type: "highlight",
                 class: "agda-input-method"
             });
@@ -91,7 +90,7 @@ export default class InputMethod {
             editorElement.classList.remove("agda-mode-input-method-activated");
 
             this.core.panel.inputMethodMode = false;
-            this.textBufferMarker.destroy();
+            this.textEditorMarker.destroy();
             this.decoration.destroy();
             this.activated = false;
         }
@@ -109,8 +108,8 @@ export default class InputMethod {
 
     dispatchEvent(event: any) {
         if (!this.mute) {
-            const rangeOld = new Atom.Range(event.oldTailBufferPosition, event.oldHeadBufferPosition);
-            const rangeNew = new Atom.Range(event.newTailBufferPosition, event.newHeadBufferPosition);
+            const rangeOld = new Range(event.oldTailBufferPosition, event.oldHeadBufferPosition);
+            const rangeNew = new Range(event.newTailBufferPosition, event.newHeadBufferPosition);
             const buffer = this.editor.getBuffer().getTextInRange(rangeNew);
             const char = buffer.substr(-1);
 
@@ -163,7 +162,7 @@ export default class InputMethod {
 
     // inserts 1 character to the text buffer (may trigger some events)
     insertChar(char: string) {
-        this.editor.getBuffer().insert(this.textBufferMarker.getBufferRange().end, char);
+        this.editor.getBuffer().insert(this.textEditorMarker.getBufferRange().end, char);
     }
 
     //  inserts 1 symbol to the text buffer and deactivate
@@ -175,6 +174,6 @@ export default class InputMethod {
 
     // replace content of the marker with supplied string (may trigger some events)
     replaceString(str: string) {
-        this.editor.getBuffer().setTextInRange(this.textBufferMarker.getBufferRange(), str);
+        this.editor.getBuffer().setTextInRange(this.textEditorMarker.getBufferRange(), str);
     }
 }

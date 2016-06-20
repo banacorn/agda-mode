@@ -2,7 +2,6 @@ import * as _ from "lodash";
 import { Agda } from "../types";
 var lispToArray = require("lisp-to-array");
 
-
 function parseAgdaResponse(tokens: Array<any>): Agda.Response {
     switch (tokens[0]) {
         case "agda2-info-action":

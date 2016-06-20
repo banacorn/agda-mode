@@ -4,7 +4,6 @@
     "lodash": "registry:npm/lodash#4.0.0+20160416211519"
   },
   "globalDependencies": {
-    "atom": "registry:env/atom#1.6.0+20160321005638",
     "node": "registry:dt/node#6.0.0+20160523035754"
   }
 }
