@@ -126,44 +126,58 @@ namespace Agda {
     }
 }
 
-namespace Command {
+//
+//  agda-mode commands
+//
 
-    export interface GoalSpecific {
-        type: GoalSpecificCommandType
-        goal: Goal
-    }
+// base interface
+interface Command {
+    type: CommandType;
+    normalization?: Normalization;
+}
 
-    export const enum GoalSpecificCommandType {
-        Give
-    }
+const enum CommandType {
+    Load,
+    Quit,
+    Restart,
+    Compile,
+    ToggleDisplayOfImplicitArguments,
+    Info,
+    ShowConstraints,
+    SolveConstraints,
+    ShowGoals,
+    NextGoal,
+    PreviousGoal,
+    WhyInScope,
+    InferType,
+    ModuleContents,
+    ComputeNormalForm,
+    ComputeNormalFormIgnoreAbstract,
+    Give,
+    Refine,
+    Auto,
+    Case,
+    GoalType,
+    Context,
+    GoalTypeAndContext,
+    GoalTypeAndInferredType,
+    InputSymbol
+}
 
-
-    // export interface Response {
-    //     type: ResponseType
-    // }
-
-    // export const enum ResponseType {
-    //     InfoAction,
-    //     StatusAction,
-    //     GoalsAction,
-    //     GiveAction,
-    //     ParseError,
-    //     Goto,
-    //     SolveAllAction,
-    //     MakeCaseAction,
-    //     MakeCaseActionExtendLam,
-    //     HighlightClear,
-    //     HighlightAddAnnotations,
-    //     HighlightLoadAndDeleteAction,
-    //     UnknownAction
-    // }
+const enum Normalization {
+    Simplified,
+    Instantiated,
+    Normalised
 }
 
 export {
     Agda,
-    Command,
     Hole,
     Goal,
     Token,
-    TokenType
+    TokenType,
+    // commands
+    Command,
+    CommandType,
+    Normalization
 }

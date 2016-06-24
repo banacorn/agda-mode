@@ -1,5 +1,14 @@
 import { Goal } from "./types";
 
+
+class NotLoadedError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "NotLoadedError";
+        Error.captureStackTrace(this, NotLoadedError);
+    }
+}
+
 class OutOfGoalError extends Error {
     constructor(message: string) {
         super(message);
@@ -41,6 +50,7 @@ class ProcExecError extends Error {
 }
 
 export {
+    NotLoadedError,
     OutOfGoalError,
     EmptyGoalError,
     QueryCancelledError,

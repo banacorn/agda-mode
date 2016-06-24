@@ -1,4 +1,6 @@
 Core = require './core'
+{parseCommand} = require './parser'
+
 module.exports =
     # https://atom.io/docs/api/latest/Config
     config:
@@ -162,7 +164,7 @@ module.exports =
         @commands.forEach (command) =>
             atom.commands.add 'atom-text-editor', command, =>
                 editor = atom.workspace.getActivePaneItem()
-                editor.core.commander.command command
+                editor.core.commander.activate(parseCommand(command))
 # if end with ".agda"
 isAgdaFile = (editor) ->
     if editor

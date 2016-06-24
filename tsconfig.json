@@ -16,6 +16,7 @@
         "!node_modules/**"
     ],
     "files": [
+        "src/commander.ts",
         "src/error.ts",
         "src/goal.ts",
         "src/handler.ts",
@@ -24,6 +25,7 @@
         "src/keymap.ts",
         "src/parser.ts",
         "src/parser/agda.ts",
+        "src/parser/command.ts",
         "src/parser/hole.ts",
         "src/parser/lexer.ts",
         "src/parser/stream/rectifier.ts",

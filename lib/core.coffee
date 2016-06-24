@@ -3,7 +3,7 @@ _ = require 'lodash'
 {Range, CompositeDisposable} = require 'atom'
 
 # Components
-Commander   = require './commander'
+{Commander}   = require './commander'
 Process     = require './process'
 {TextBuffer}  = require './text-buffer'
 {InputMethod} = require './input-method'

@@ -50,7 +50,6 @@ class Commander
 
 
     constructor: (@core) ->
-        @highlightManager      = @core.highlightManager
         @process        = @core.process
         @panel          = @core.panel
         @atomPanel      = @core.atomPanel
