@@ -4,7 +4,8 @@ import * as _ from "lodash";
 import { Agda, Goal } from "./types";
 import { parseHole } from "./parser";
 
-var err = require("./error");
+import { OutOfGoalError, EmptyGoalError } from "./error";
+
 declare var atom: any;
 
 class TextBuffer {
@@ -37,7 +38,7 @@ class TextBuffer {
                     this.core.editor.setCursorBufferPosition(position);
                 }
                 return result;
-            }).catch(err.OutOfGoalError, () => {
+            }).catch(OutOfGoalError, () => {
                 this.core.editor.setCursorBufferPosition(position);
                 return result;
             })
@@ -87,7 +88,7 @@ class TextBuffer {
         });
 
         if (_.isEmpty(goals))
-            return Promise.reject(new err.OutOfGoalError);
+            return Promise.reject(new OutOfGoalError("out of goal"));
         else
             return Promise.resolve(goals[0]);
     }
@@ -105,7 +106,7 @@ class TextBuffer {
         if (goal.getContent()) {
             return Promise.resolve(goal);
         } else {
-            return Promise.reject(new err.EmptyGoalError(goal));
+            return Promise.reject(new EmptyGoalError("goal is empty", goal));
         }
     }
 

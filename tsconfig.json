@@ -16,6 +16,7 @@
         "!node_modules/**"
     ],
     "files": [
+        "src/error.ts",
         "src/goal.ts",
         "src/handler.ts",
         "src/highlight-manager.ts",
