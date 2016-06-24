@@ -4,7 +4,7 @@ type Range = any;
 var { Range } = require("atom");
 import { Agda } from "./types";
 
-class HighlightManager {
+export default class HighlightManager {
     private core: any;
     private markers: any[];
 
@@ -29,8 +29,4 @@ class HighlightManager {
         this.markers.forEach((marker) => { marker.destroy(); });
         this.markers = [];
     }
-}
-
-export {
-    HighlightManager
 }

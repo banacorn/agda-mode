@@ -24,7 +24,7 @@ function toDescription(normalization: Normalization): string {
 }
 
 
-class Commander {
+export default class Commander {
     private loaded: boolean;
 
     constructor(private core: any) {}
@@ -247,8 +247,4 @@ class Commander {
     //         .catch (error) ->
     //             console.log error
 
-}
-
-export {
-    Commander
 }

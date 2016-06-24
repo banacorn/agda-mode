@@ -1,4 +1,4 @@
-Core = require './core'
+{Core} = require './core'
 {parseCommand} = require './parser'
 
 module.exports =

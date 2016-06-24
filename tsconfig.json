@@ -17,6 +17,7 @@
     ],
     "files": [
         "src/commander.ts",
+        "src/core.ts",
         "src/error.ts",
         "src/goal.ts",
         "src/handler.ts",

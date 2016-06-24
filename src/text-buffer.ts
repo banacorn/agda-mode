@@ -8,7 +8,7 @@ import { OutOfGoalError, EmptyGoalError } from "./error";
 
 declare var atom: any;
 
-class TextBuffer {
+export default class TextBuffer {
     private goals: Goal[]
     private core: any
 
@@ -277,8 +277,4 @@ class TextBuffer {
     onHighlightLoadAndDelete(filepath: string) {
         fs.unlink(filepath);
     }
-}
-
-export {
-    TextBuffer
 }
