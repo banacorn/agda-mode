@@ -1,7 +1,8 @@
 import * as Promise from "bluebird";
 import * as _ from "lodash";
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError } from "./error";
-import { Command, CommandType, Normalization } from "./types";
+import { Command, CommandType, Normalization, Result } from "./types";
+import { Core } from "./core";
 
 function toCamalCase(str: string): string {
     return str.split("-")
@@ -27,7 +28,7 @@ function toDescription(normalization: Normalization): string {
 export default class Commander {
     private loaded: boolean;
 
-    constructor(private core: any) {}
+    constructor(private core: Core) {}
 
     activate(command: Command) {
         // some commands can only be executed after "loaded"
@@ -45,7 +46,7 @@ export default class Commander {
         }
     }
 
-    dispatchCommand(command: Command): Promise<any> {
+    dispatchCommand(command: Command): Promise<Result> {
         switch(command.type) {
             case CommandType.Load:          return this.load();
             case CommandType.Quit:          return this.quit();
@@ -73,7 +74,7 @@ export default class Commander {
             // .catch((error) => { throw error; });
 
 
-    load(): Promise<any> {
+    load(): Promise<Result> {
         this.core.atomPanel.show();
         return this.core.process.load()
             .then(() => {
@@ -81,7 +82,7 @@ export default class Commander {
             });
     }
 
-    quit(): Promise<any> {
+    quit(): Promise<Result> {
         if (this.loaded) {
             this.loaded = false;
             this.core.atomPanel.hide();
@@ -92,45 +93,45 @@ export default class Commander {
         }
     }
 
-    restart(): Promise<any> {
+    restart(): Promise<Result> {
         this.quit();
         return this.load();
     }
 
 
-    compile(): Promise<any> {
+    compile(): Promise<Result> {
         return this.core.process.compile();
     }
 
-    toggleDisplayOfImplicitArguments(): Promise<any> {
+    toggleDisplayOfImplicitArguments(): Promise<Result> {
         return this.core.process.toggleDisplayOfImplicitArguments();
     }
 
-    info(): Promise<any> {
+    info(): Promise<Result> {
         return this.core.process.info();
     }
 
-    solveConstraints(): Promise<any> {
+    solveConstraints(): Promise<Result> {
         return this.core.process.solveConstraints();
     }
 
-    showConstraints(): Promise<any> {
+    showConstraints(): Promise<Result> {
         return this.core.process.showConstraints();
     }
 
-    showGoals(): Promise<any> {
+    showGoals(): Promise<Result> {
         return this.core.process.showGoals();
     }
 
-    nextGoal(): Promise<any> {
+    nextGoal(): Promise<Result> {
         return this.core.textBuffer.nextGoal();
     }
 
-    previousGoal(): Promise<any> {
+    previousGoal(): Promise<Result> {
         return this.core.textBuffer.previousGoal();
     }
 
-    whyInScope(): Promise<any> {
+    whyInScope(): Promise<Result> {
         this.core.panel.setContent("Scope info", [], "plain-text", "name:");
         this.core.panel.queryMode = true;
 
@@ -149,11 +150,11 @@ export default class Commander {
             });
     }
 
-    inferType(normalization: Normalization): Promise<any> {
+    inferType(normalization: Normalization): Promise<Result> {
         this.core.panel.setContent(`Infer type ${toDescription(normalization)}`, [], "value", "expression to infer:");
         this.core.panel.queryMode = true;
         return this.core.textBuffer.getCurrentGoal()
-            .done((goal) => {
+            .then((goal) => {
                 // goal-specific
                 if (goal.isEmpty()) {
                     return this.core.panel.query()
@@ -163,13 +164,14 @@ export default class Commander {
                 } else {
                     return this.core.process.inferType(normalization, goal.getContent(), goal);
                 }
-            }, () => {
+            })
+            .catch(() => {
                 // global command
                 return this.core.panel.query()
                     .then((expr) => {
                         return this.core.process.inferType(normalization, expr);
                     });
-            });
+            })
     }
 
 

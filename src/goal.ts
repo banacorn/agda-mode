@@ -42,9 +42,12 @@ export default class Goal {
         const element = document.createElement("div");
         element.innerHTML = this.index.toString();
         element.classList.add("agda-goal-index");
-        // probably deprecated
-        element.style.left = `${- this.editor.getDefaultCharWidth() * (indexWidth + 2)}px`;
-        element.style.top = `${- this.editor.getLineHeightInPixels()}px`;
+        // those measurement functions are no longer part of the public API
+        // we should come up with a new way to steal those measurements
+        element.style.left = `${- indexWidth - 2}ex`;
+        element.style.top = `-1.5em`;
+        // element.style.left = `${- this.editor.getDefaultCharWidth() * (indexWidth + 2)}px`;
+        // element.style.top = `${- this.editor.getLineHeightInPixels()}px`;
 
         // decoration
         const holeDecoration = this.editor.decorateMarker(this.marker, {

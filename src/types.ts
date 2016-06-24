@@ -170,6 +170,12 @@ const enum Normalization {
     Normalised
 }
 
+type Result = Command | Error;
+
+// interface Result {
+//     command: Command
+// }
+
 export {
     Agda,
     Hole,
@@ -179,5 +185,6 @@ export {
     // commands
     Command,
     CommandType,
-    Normalization
+    Normalization,
+    Result
 }

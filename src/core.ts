@@ -16,14 +16,14 @@ var Panel = require("./panel");
 
 class Core {
     private disposables: CompositeDisposable;
-    private panel: any;
-    private process: any;
-    private textBuffer: TextBuffer;
-    private inputMethod: InputMethod;
-    private highlightManager: HighlightManager;
-    private commander: Commander;
+    public panel: any;
+    public process: any;
+    public textBuffer: TextBuffer;
+    public inputMethod: InputMethod;
+    public highlightManager: HighlightManager;
+    public commander: Commander;
 
-    private atomPanel: any;
+    public atomPanel: any;
 
     constructor(private editor: any) {
 
