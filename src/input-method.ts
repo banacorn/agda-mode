@@ -10,7 +10,7 @@ declare var atom: any;
 var { Range, CompositeDisposable } = require('atom');
 
 // Input Method Singleton (initialized only once per editor, activated or not)
-export default class InputMethod {
+class InputMethod {
     private activated: boolean;
     private mute: boolean;
     private subscriptions: CompositeDisposable;
@@ -184,4 +184,8 @@ export default class InputMethod {
     replaceString(str: string) {
         this.editor.getBuffer().setTextInRange(this.textEditorMarker.getBufferRange(), str);
     }
+}
+
+export {
+    InputMethod
 }
