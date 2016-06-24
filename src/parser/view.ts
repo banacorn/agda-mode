@@ -30,7 +30,7 @@ function parseOccurence(str: string): any {
             body: result[1],
             location: {
                 path: parseFilepath(result[2]),
-                range: [],
+                range: range,
                 isSameLine: result[3] === undefined
             }
         };
