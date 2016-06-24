@@ -1,5 +1,13 @@
-import { TextEditor, Decoration, TextEditorMarker, CompositeDisposable } from "atom";
+// import { TextEditor, Decoration, TextEditorMarker, CompositeDisposable } from "atom";
 var Keymap = require("./input-method/keymap");
+
+type TextEditor = any;
+type CompositeDisposable = any;
+type Decoration = any;
+type TextEditorMarker = any;
+type Range = any;
+declare var atom: any;
+var { Range, CompositeDisposable } = require('atom');
 
 // Input Method Singleton (initialized only once per editor, activated or not)
 export default class InputMethod {

@@ -1,6 +1,12 @@
 import * as _ from "lodash";
 import { parseInputContent } from "./parser";
 // import { Point, Range, TextBuffer, TextEditor, TextEditorMarker } from "atom";
+type TextBuffer = any;
+type Point = any;
+type Range = any;
+type TextEditorMarker = any;
+type TextEditor = any;
+var { Point, Range } = require('atom');
 
 function translate(textBuffer: TextBuffer, p: Point, n: number): Point {
     return textBuffer.positionForCharacterIndex(textBuffer.characterIndexForPosition(p) + n)

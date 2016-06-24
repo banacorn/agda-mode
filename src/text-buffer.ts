@@ -5,6 +5,7 @@ import { Agda, Goal } from "./types";
 import { parseHole } from "./parser";
 
 var err = require("./error");
+declare var atom: any;
 
 class TextBuffer {
     private goals: Goal[]

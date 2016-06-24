@@ -1,10 +1,7 @@
 import * as _ from "lodash";;
 import { parseFilepath } from "./util";
 
-// var { Point, Range } = require('atom');
-var Point: any;
-var Range: any;
-// var atom: any = require('atom');
+var { Point, Range } = require('atom');
 
 
 function parseHeader(str: string): any {
