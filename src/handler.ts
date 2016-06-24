@@ -63,7 +63,7 @@ function handleAgdaResponse(core: any, response: Agda.Response) {
             break;
 
         case Agda.ResponseType.HighlightClear:
-            core.highlight.destroy();
+            core.highlightManager.destroyAll();
             break;
 
         case Agda.ResponseType.HighlightAddAnnotations:
@@ -72,7 +72,7 @@ function handleAgdaResponse(core: any, response: Agda.Response) {
                 let unsolvedmeta = _.includes(annotation.type, "unsolvedmeta");
                 let terminationproblem = _.includes(annotation.type, "terminationproblem")
                 if (unsolvedmeta || terminationproblem) {
-                    core.highlight.highlight(annotation);
+                    core.highlightManager.highlight(annotation);
                 }
             });
             break;

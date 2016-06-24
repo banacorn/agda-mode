@@ -7,7 +7,7 @@ Commander   = require './commander'
 Process     = require './process'
 {TextBuffer}  = require './text-buffer'
 {InputMethod} = require './input-method'
-Highlight   = require './highlight'
+{HighlightManager}   = require './highlight-manager'
 Panel       = require './panel'
 
 class Core
@@ -26,12 +26,12 @@ class Core
 
 
         # initialize all components
-        @disposables    = new CompositeDisposable
-        @panel          = new Panel         @
-        @process        = new Process       @
-        @textBuffer     = new TextBuffer    @
-        @inputMethod    = new InputMethod   @ if atom.config.get('agda-mode.inputMethod')
-        @highlight      = new Highlight     @
+        @disposables        = new CompositeDisposable
+        @panel              = new Panel             @
+        @process            = new Process           @
+        @textBuffer         = new TextBuffer        @
+        @inputMethod        = new InputMethod       @ if atom.config.get('agda-mode.inputMethod')
+        @highlightManager   = new HighlightManager  @
         # initialize informations about this editor
 
 

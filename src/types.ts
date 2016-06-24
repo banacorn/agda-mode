@@ -77,7 +77,7 @@ namespace Agda {
         position: string;
     }
     export interface SolveAllAction extends Response {
-        solution: Array<string[]>;
+        solution: string[][];
     }
     export interface MakeCaseAction extends Response {
         content: string;
@@ -89,7 +89,7 @@ namespace Agda {
         content: string[];
     }
     export interface HighlightAddAnnotations extends Response {
-        content: Array<Annotation>;
+        content: Annotation[];
     }
 
     export interface HighlightLoadAndDeleteAction extends Response {

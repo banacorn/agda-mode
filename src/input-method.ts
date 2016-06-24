@@ -114,7 +114,7 @@ class InputMethod {
         this.mute = false;
     }
 
-    dispatchEvent(event: any) {
+    public dispatchEvent = (event: any) => {
         if (!this.mute) {
             const rangeOld = new Range(event.oldTailBufferPosition, event.oldHeadBufferPosition);
             const rangeNew = new Range(event.newTailBufferPosition, event.newHeadBufferPosition);

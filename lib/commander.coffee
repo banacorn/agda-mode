@@ -50,13 +50,12 @@ class Commander
 
 
     constructor: (@core) ->
-        @highlight      = @core.highlight
+        @highlightManager      = @core.highlightManager
         @process        = @core.process
         @panel          = @core.panel
         @atomPanel      = @core.atomPanel
         @textBuffer     = @core.textBuffer
         @inputMethod    = @core.inputMethod if atom.config.get('agda-mode.inputMethod')
-        @highlight      = @core.highlight
 
     command: (raw) ->
         {command, method, option} = @parse raw

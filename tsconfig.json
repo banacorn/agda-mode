@@ -18,6 +18,7 @@
     "files": [
         "src/goal.ts",
         "src/handler.ts",
+        "src/highlight-manager.ts",
         "src/input-method.ts",
         "src/keymap.ts",
         "src/parser.ts",

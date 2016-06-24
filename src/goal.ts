@@ -42,8 +42,9 @@ export default class Goal {
         const element = document.createElement("div");
         element.innerHTML = this.index.toString();
         element.classList.add("agda-goal-index");
-        // element.style.left = `${- this.editor.getDefaultCharWidth() * (indexWidth + 2)}px`;
-        // element.style.top = `${- this.editor.getLineHeightInPixels()}px`;
+        // probably deprecated
+        element.style.left = `${- this.editor.getDefaultCharWidth() * (indexWidth + 2)}px`;
+        element.style.top = `${- this.editor.getLineHeightInPixels()}px`;
 
         // decoration
         const holeDecoration = this.editor.decorateMarker(this.marker, {
@@ -52,7 +53,7 @@ export default class Goal {
         });
         const indexDecoration = this.editor.decorateMarker(this.marker, {
             type: "overlay",
-            class: "",
+            position: "head",
             item: element
         });
 
