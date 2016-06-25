@@ -1,7 +1,8 @@
 import * as _ from "lodash";
 import { Agda } from "./types";
-// import Core from "./core";
+import Core from "./core";
 
+// function handleAgdaResponse(core: Core, response: Agda.Response) {
 function handleAgdaResponse(core: any, response: Agda.Response) {
     switch (response.type) {
         case Agda.ResponseType.InfoAction:
@@ -35,17 +36,12 @@ function handleAgdaResponse(core: any, response: Agda.Response) {
             break;
 
         case Agda.ResponseType.SolveAllAction:
-            core.textBuffer
-                .onSolveAllAction(
-                    (<Agda.SolveAllAction>response).solution[0],
-                    (<Agda.SolveAllAction>response).solution[1]
-                )
-                .then((goal) => {
-                    return core.process.give(goal);
-                })
-                .catch((error) => { throw error; });
+            const solutions = (<Agda.SolveAllAction>response).solutions;
+            solutions.forEach((solution) => {
+                core.textBuffer.onSolveAllAction(solution.index, solution.expression)
+                    .then(core.process.give);
+            });
             break;
-
         case Agda.ResponseType.MakeCaseAction:
             core.textBuffer
                 .onMakeCaseAction((<Agda.MakeCaseAction>response).content)

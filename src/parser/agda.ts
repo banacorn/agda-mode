@@ -34,13 +34,13 @@ function parseAgdaResponse(raw: string): Agda.Response {
                 case "'paren": return {
                         type: Agda.ResponseType.GiveAction,
                         index: index,
-                        content: [],
+                        content: "",
                         hasParenthesis: true
                     } as Agda.GiveAction;
                 case "'no-paren": return {
                         type: Agda.ResponseType.GiveAction,
                         index: index,
-                        content: [],
+                        content: "",
                         hasParenthesis: false
                     } as Agda.GiveAction;
                 default: return {
@@ -60,12 +60,14 @@ function parseAgdaResponse(raw: string): Agda.Response {
             return {
                 type: Agda.ResponseType.Goto,
                 filepath: tokens[1][0],
-                position: tokens[1][2]
+                position: parseInt(tokens[1][2])
             } as Agda.Goto;
         case "agda2-solveAll-action":
             return {
                 type: Agda.ResponseType.SolveAllAction,
-                solution: _.chunk(tokens[1], 2)
+                solutions: _.chunk(tokens[1], 2).map((arr) => {
+                    return { index: arr[0], expression: arr[1] }
+                })
             } as Agda.SolveAllAction;
         case "agda2-make-case-action":
             return {

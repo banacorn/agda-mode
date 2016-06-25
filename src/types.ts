@@ -64,7 +64,7 @@ namespace Agda {
     }
     export interface GiveAction extends Response {
         index: number;
-        content: string[];
+        content: string;
         hasParenthesis: boolean;
     }
 
@@ -74,10 +74,13 @@ namespace Agda {
 
     export interface Goto extends Response {
         filepath: string;
-        position: string;
+        position: number;
     }
     export interface SolveAllAction extends Response {
-        solution: string[][];
+        solutions: {
+            index: number,
+            expression: string
+        }[];
     }
     export interface MakeCaseAction extends Response {
         content: string;
