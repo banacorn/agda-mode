@@ -14,7 +14,7 @@ import InputMethod from "./input-method";
 import HighlightManager from "./highlight-manager";
 var Panel = require("./panel");
 
-class Core {
+export default class Core {
     private disposables: CompositeDisposable;
     public panel: any;
     public process: Process;
@@ -102,8 +102,4 @@ class Core {
         this.atomPanel.destroy();
         this.disposables.dispose();
     }
-}
-
-export {
-    Core
 }

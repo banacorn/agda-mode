@@ -16,6 +16,7 @@
         "!node_modules/**"
     ],
     "files": [
+        "src/agda-mode.ts",
         "src/commander.ts",
         "src/core.ts",
         "src/error.ts",

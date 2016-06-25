@@ -2,7 +2,7 @@ import * as Promise from "bluebird";
 import * as _ from "lodash";
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError } from "./error";
 import { Command, CommandType, Normalization, Result } from "./types";
-import { Core } from "./core";
+import Core from "./core";
 
 
 function resolveCommand(commandType: CommandType): (any) => Promise<Result> {

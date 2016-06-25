@@ -2,11 +2,11 @@ import * as Promise from "bluebird";
 import * as _ from "lodash";
 import { spawn, exec, ChildProcess } from "child_process";
 import { parseFilepath, parseAgdaResponse } from "./parser";
-import { Rectifier } from "./parser/stream/rectifier";
+import Rectifier from "./parser/stream/rectifier";
 import { handleAgdaResponse } from "./handler";
 import { InvalidExecutablePathError, ProcExecError } from "./error";
 import { Goal, Normalization } from "./types";
-import { Core } from "./core";
+import Core from "./core";
 
 var semver = require("semver");
 declare var atom: any;

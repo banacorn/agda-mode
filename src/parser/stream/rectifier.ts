@@ -2,7 +2,7 @@
 import { Transform } from "stream";
 import * as _ from 'lodash';
 
-export class Rectifier extends Transform {
+export default class Rectifier extends Transform {
     private buffer: String;
     constructor() {
         super({ objectMode: true });
