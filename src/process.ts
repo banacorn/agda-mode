@@ -191,35 +191,14 @@ export default class Process {
         const end         = goal.range.end;
         const endIndex    = this.core.editor.toIndex(end);
         if (semver.gte(this.agdaVersion.sem, "2.5.1")) {
-            return `(intervalsToRange (Just (mkAbsolute \"${this.core.getPath()}\")) [Interval
-                (Pn
-                    ()
-                    ${startIndex + 3}
-                    ${start.row + 1}
-                    ${start.column + 3})
-                (Pn
-                    ()
-                    ${endIndex - 1}
-                    ${end.row + 1}
-                    ${end.column - 1})])`
+            return `(intervalsToRange (Just (mkAbsolute \"${this.core.getPath()}\")) [Interval (Pn () ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn () ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
         } else {
-            return `
-                (Range [Interval
-                    (Pn
-                        (Just (mkAbsolute \"${this.core.getPath()}\"))
-                        ${startIndex + 3}
-                        ${start.row + 1}
-                        ${start.column + 3})
-                    (Pn
-                        (Just (mkAbsolute \"${this.core.getPath()}\"))
-                        ${endIndex - 1}
-                        ${end.row + 1}
-                        ${end.column - 1})])`
+            return `(Range [Interval (Pn (Just (mkAbsolute \"${this.core.getPath()}\")) ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn (Just (mkAbsolute \"${this.core.getPath()}\")) ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
         }
     }
 
 
-    sendCommand(highlightingLevel: string, interaction: string | (() => string)): Promise<ChildProcess> {
+    private sendCommand = (highlightingLevel: string, interaction: string | (() => string)): Promise<ChildProcess> => {
         return this.wireAgdaProcess().then((agdaProcess) => {
             const filepath = this.core.getPath();
             const highlightingMethod = atom.config.get("agda-mode.highlightingMethod");
@@ -229,12 +208,13 @@ export default class Process {
             } else {    // interaction is a callback
                 command = `IOTCM \"${filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction()} )\n`;
             }
+            console.log(command);
             agdaProcess.stdin.write(command);
             return agdaProcess;
         });
     }
 
-    load(): Promise<ChildProcess> {
+    load = (): Promise<ChildProcess> => {
         // force save before load, since we are sending filepath but content
         this.core.textBuffer.saveBuffer();
         // if version > 2.5, ignore library path configuration
@@ -246,13 +226,13 @@ export default class Process {
         });
     }
 
-    quit(): Promise<void> {
+    quit = (): Promise<void> => {
         this.agdaProcess.kill();
         this.agdaProcessWired = false;
         return Promise.resolve();
     }
 
-    info(): Promise<void> {
+    info = (): Promise<void> => {
         const path = atom.config.get("agda-mode.executablePath");
         const args = this.getProgramArgs();
         args.unshift("--interaction");
@@ -266,7 +246,7 @@ export default class Process {
         return Promise.resolve();
     }
 
-    compile(): Promise<ChildProcess> {
+    compile = (): Promise<ChildProcess> => {
         const backend = atom.config.get("agda-mode.backend");
         return this.sendCommand("NonInteractive", () => {
             if (semver.gte(this.agdaVersion.sem, "2.5.0"))
@@ -276,23 +256,23 @@ export default class Process {
         })
     }
 
-    toggleDisplayOfImplicitArguments(): Promise<ChildProcess> {
+    toggleDisplayOfImplicitArguments = (): Promise<ChildProcess> => {
         return this.sendCommand("NonInteractive", "ToggleImplicitArgs");
     }
 
-    solveConstraints(): Promise<ChildProcess> {
+    solveConstraints = (): Promise<ChildProcess> => {
         return this.sendCommand("NonInteractive", "Cmd_solveAll");
     }
 
-    showConstraints(): Promise<ChildProcess> {
+    showConstraints = (): Promise<ChildProcess> => {
         return this.sendCommand("NonInteractive", "Cmd_constraints");
     }
 
-    showGoals(): Promise<ChildProcess> {
+    showGoals = (): Promise<ChildProcess> => {
         return this.sendCommand("NonInteractive", "Cmd_metas");
     }
 
-    whyInScope(expr: string, goal?: Goal): Promise<ChildProcess> {
+    whyInScope = (expr: string, goal?: Goal): Promise<ChildProcess> => {
         if (goal) {
             return this.sendCommand("NonInteractive", `Cmd_why_in_scope ${goal.index} noRange \"${expr}\"`);
         } else {
@@ -301,7 +281,7 @@ export default class Process {
     }
 
 
-    inferType(normalization: Normalization, expr: string, goal?: Goal): Promise<ChildProcess> {
+    inferType = (normalization: Normalization, expr: string, goal?: Goal): Promise<ChildProcess> => {
         if (goal) {
             return this.sendCommand("NonInteractive", `Cmd_infer ${normalization} ${goal.index} noRange \"${expr}\"`);
         } else {
@@ -309,7 +289,7 @@ export default class Process {
         }
     }
 
-    moduleContents(normalization: Normalization, expr: string, goal?: Goal): Promise<ChildProcess> {
+    moduleContents = (normalization: Normalization, expr: string, goal?: Goal): Promise<ChildProcess> => {
         if (goal) {
             return this.sendCommand("NonInteractive", `Cmd_show_module_contents ${normalization} ${goal.index} noRange \"${expr}\"`);
         } else {
@@ -317,7 +297,7 @@ export default class Process {
         }
     }
 
-    computeNormalForm(expr: string, goal?: Goal): Promise<ChildProcess> {
+    computeNormalForm = (expr: string, goal?: Goal): Promise<ChildProcess> => {
         if (goal) {
             return this.sendCommand("NonInteractive", `Cmd_compute False ${goal.index} noRange \"${expr}\"`);
         } else {
@@ -325,7 +305,7 @@ export default class Process {
         }
     }
 
-    computeNormalFormIgnoreAbstract(expr: string, goal?: Goal): Promise<ChildProcess> {
+    computeNormalFormIgnoreAbstract = (expr: string, goal?: Goal): Promise<ChildProcess> => {
         if (goal) {
             return this.sendCommand("NonInteractive", `Cmd_compute True ${goal.index} noRange \"${expr}\"`);
         } else {
@@ -333,35 +313,45 @@ export default class Process {
         }
     }
 
-    give(goal: Goal): Promise<ChildProcess> {
+    give = (goal: Goal): Promise<ChildProcess> => {
         return this.sendCommand("NonInteractive", `Cmd_give ${goal.index} ${this.buildRange(goal)} \"${goal.getContent()}\"`);
     }
 
-    refine(goal: Goal): Promise<ChildProcess> {
+    refine = (goal: Goal): Promise<ChildProcess> => {
+        console.log(this);
         return this.sendCommand("NonInteractive", `Cmd_refine_or_intro False ${goal.index} ${this.buildRange(goal)} \"${goal.getContent()}\"`);
     }
 
-    auto(goal: Goal): Promise<ChildProcess> {
+    auto = (goal: Goal): Promise<ChildProcess> => {
         return this.sendCommand("NonInteractive", `Cmd_auto ${goal.index} ${this.buildRange(goal)} \"${goal.getContent()}\"`);
     }
 
-    case(goal: Goal): Promise<ChildProcess> {
+    "case" = (goal: Goal): Promise<ChildProcess> => {
         return this.sendCommand("NonInteractive", `Cmd_make_case ${goal.index} ${this.buildRange(goal)} \"${goal.getContent()}\"`);
     }
 
-    goalType(normalization: Normalization, goal: Goal): Promise<ChildProcess> {
-        return this.sendCommand("NonInteractive", `Cmd_goal_type ${normalization} ${goal.index} noRange \"\"`);
+    goalType = (normalization: Normalization): (Goal) => Promise<ChildProcess> => {
+        return (goal) => {
+            return this.sendCommand("NonInteractive", `Cmd_goal_type ${normalization} ${goal.index} noRange \"\"`);
+        };
     }
 
-    context(normalization: Normalization, goal: Goal): Promise<ChildProcess> {
-        return this.sendCommand("NonInteractive", `Cmd_context ${normalization} ${goal.index} noRange \"\"`);
+    context = (normalization: Normalization): (Goal) => Promise<ChildProcess> => {
+        return (goal) => {
+            return this.sendCommand("NonInteractive", `Cmd_context ${normalization} ${goal.index} noRange \"\"`);
+        };
     }
 
-    goalTypeAndContext(normalization: Normalization, goal: Goal): Promise<ChildProcess> {
-        return this.sendCommand("NonInteractive", `Cmd_goal_type_context ${normalization} ${goal.index} noRange \"\"`);
+    goalTypeAndContext = (normalization: Normalization): (Goal) => Promise<ChildProcess> => {
+        return (goal) => {
+            return this.sendCommand("NonInteractive", `Cmd_goal_type_context ${normalization} ${goal.index} noRange \"\"`);
+        };
     }
 
-    goalTypeAndInferredType(normalization: Normalization, goal: Goal): Promise<ChildProcess> {
-        return this.sendCommand("NonInteractive", `Cmd_goal_type_context_infer ${normalization} ${goal.index} noRange \"${goal.getContent()}\"`);
+    goalTypeAndInferredType = (normalization: Normalization): (Goal) => Promise<ChildProcess> => {
+        return (goal) => {
+            return this.sendCommand("NonInteractive", `Cmd_goal_type_context_infer ${normalization} ${goal.index} noRange \"${goal.getContent()}\"`);
+        };
     }
+
 }

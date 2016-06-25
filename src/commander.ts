@@ -4,6 +4,7 @@ import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError } f
 import { Command, CommandType, Normalization, Result } from "./types";
 import Core from "./core";
 
+declare var atom: any;
 
 function resolveCommand(commandType: CommandType): (any) => Promise<Result> {
     return () => {
@@ -24,9 +25,9 @@ function toCamalCase(str: string): string {
 
 function toDescription(normalization: Normalization): string {
     switch(normalization) {
-        case Normalization.Simplified:      return "";
-        case Normalization.Instantiated:    return "(no normalization)";
-        case Normalization.Normalised:      return "(full normalization)";
+        case "Simplified":      return "";
+        case "Instantiated":    return "(no normalization)";
+        case "Normalised":      return "(full normalization)";
         default:                throw `unknown normalization: ${normalization}`;
     }
 }
@@ -71,16 +72,32 @@ export default class Commander {
             case CommandType.WhyInScope:    return this.whyInScope();
             case CommandType.InferType:
                 return this.inferType(command.normalization);
+            case CommandType.ModuleContents:
+                return this.moduleContents(command.normalization);
+            case CommandType.ComputeNormalForm:
+                return this.computeNormalForm();
+            case CommandType.ComputeNormalFormIgnoreAbstract:
+                return this.computeNormalFormIgnoreAbstract();
+            case CommandType.Give:          return this.give();
+            case CommandType.Refine:        return this.refine();
+            case CommandType.Auto:          return this.auto();
+            case CommandType.Case:          return this.case();
+            case CommandType.GoalType:
+                return this.goalType(command.normalization);
+            case CommandType.Context:
+                return this.context(command.normalization);
+            case CommandType.GoalTypeAndContext:
+                return this.goalTypeAndContext(command.normalization);
+            case CommandType.GoalTypeAndInferredType:
+                return this.goalTypeAndInferredType(command.normalization);
+            case CommandType.InputSymbol:   return this.inputSymbol();
+            default:    throw `unknown command type ${command}`
         }
     }
 
     //
     //  Commands
     //
-
-            // .catch((error) => { throw error; });
-
-
 
     load(): Promise<Result> {
         this.core.atomPanel.show();
@@ -264,4 +281,70 @@ export default class Commander {
             .then(resolveCommand(CommandType.Give));
     }
 
+    refine(): Promise<Result> {
+        return this.core.textBuffer.getCurrentGoal()
+            .then(this.core.process.refine)
+            .then(resolveCommand(CommandType.Refine));
+    }
+
+    auto(): Promise<Result> {
+        return this.core.textBuffer.getCurrentGoal()
+            .then(this.core.process.auto)
+            .then(resolveCommand(CommandType.Auto));
+    }
+
+    case(): Promise<Result> {
+        return this.core.textBuffer.getCurrentGoal()
+            .then((goal) => {
+                if (goal.isEmpty()) {
+                    this.core.panel.setContent("Case", [], "plain-text", "expression to case:");
+                    this.core.panel.query()
+                        .then((expr) => {
+                            goal.setContent(expr);
+                            return goal
+                        });
+                } else {
+                    return goal;
+                }
+            })
+            .then(this.core.process.case)
+            .then(resolveCommand(CommandType.Case));
+    }
+
+    goalType(normalization: Normalization): Promise<Result> {
+        return this.core.textBuffer.getCurrentGoal()
+            .then(this.core.process.goalType(normalization))
+            .then(resolveCommand(CommandType.GoalType));
+    }
+
+    context(normalization: Normalization): Promise<Result> {
+        return this.core.textBuffer.getCurrentGoal()
+            .then(this.core.process.context(normalization))
+            .then(resolveCommand(CommandType.Context));
+    }
+
+    goalTypeAndContext(normalization: Normalization): Promise<Result> {
+        return this.core.textBuffer.getCurrentGoal()
+            .then(this.core.process.goalTypeAndContext(normalization))
+            .then(resolveCommand(CommandType.GoalTypeAndContext));
+    }
+
+    goalTypeAndInferredType(normalization: Normalization): Promise<Result> {
+        return this.core.textBuffer.getCurrentGoal()
+            .then(this.core.process.goalTypeAndInferredType(normalization))
+            .then(resolveCommand(CommandType.GoalTypeAndInferredType));
+    }
+
+    inputSymbol(): Promise<Result> {
+        if (atom.config.get("agda-mode.inputMethod")) {
+            if (!this.loaded) {
+                this.core.atomPanel.show();
+                this.core.panel.setContent("Not loaded", [], "warning");
+            }
+            this.core.inputMethod.activate();
+        } else {
+            this.core.editor.insertText("\\");
+        }
+        return Promise.resolve({ type: CommandType.InputSymbol });
+    }
 }

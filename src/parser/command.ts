@@ -3,9 +3,9 @@ import { Command, CommandType, Normalization } from "../types";
 
 function parseNormalization(raw: string): Normalization {
     switch (raw) {
-        case "Simplified":      return Normalization.Simplified;
-        case "Instantiated":    return Normalization.Instantiated;
-        case "Normalised":      return Normalization.Normalised;
+        case "Simplified":      return "Simplified";
+        case "Instantiated":    return "Instantiated";
+        case "Normalised":      return "Normalised";
         default:                throw `unknown normalization: ${raw}`;
     }
 }

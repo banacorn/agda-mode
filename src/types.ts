@@ -164,17 +164,14 @@ const enum CommandType {
     InputSymbol
 }
 
-const enum Normalization {
-    Simplified,
-    Instantiated,
-    Normalised
-}
+type Normalization = "Simplified" | "Instantiated" | "Normalised";
+// const enum Normalization {
+//     Simplified,
+//     Instantiated,
+//     Normalised
+// }
 
 type Result = Command;
-
-// interface Result {
-//     command: Command
-// }
 
 export {
     Agda,
