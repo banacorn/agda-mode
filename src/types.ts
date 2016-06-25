@@ -60,7 +60,7 @@ namespace Agda {
         content: string[];
     }
     export interface GoalsAction extends Response {
-        content: string[];
+        content: number[];
     }
     export interface GiveAction extends Response {
         index: number;

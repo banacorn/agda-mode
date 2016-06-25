@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import { Agda } from "./types";
+// import Core from "./core";
 
 function handleAgdaResponse(core: any, response: Agda.Response) {
     switch (response.type) {

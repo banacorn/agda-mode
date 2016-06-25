@@ -42,15 +42,8 @@ export default class Commander {
         // some commands can only be executed after "loaded"
         const exception = [CommandType.Load, CommandType.InputSymbol];
         if(this.loaded || _.includes(exception, command.type)) {
-            console.log(`${command.type} start`);
-
             let test = this.dispatchCommand(command)
-            if (test) {
-                test.then((arg) => {
-                        console.log(`${command.type} done`);
-                    })
-                    .catch((error) => { throw error; });
-            }
+            test.catch((error) => { throw error; });
         }
     }
 

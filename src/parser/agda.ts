@@ -23,7 +23,7 @@ function parseAgdaResponse(raw: string): Agda.Response {
         case "agda2-goals-action":
             return {
                 type: Agda.ResponseType.GoalsAction,
-                content: tokens[1]
+                content: tokens[1].map((s) => parseInt(s))
             } as Agda.GoalsAction;
         case "agda2-give-action":
             let index = parseInt(tokens[1]);

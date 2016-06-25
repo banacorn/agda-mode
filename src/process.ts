@@ -208,7 +208,6 @@ export default class Process {
             } else {    // interaction is a callback
                 command = `IOTCM \"${filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction()} )\n`;
             }
-            console.log(command);
             agdaProcess.stdin.write(command);
             return agdaProcess;
         });
@@ -318,7 +317,6 @@ export default class Process {
     }
 
     refine = (goal: Goal): Promise<ChildProcess> => {
-        console.log(this);
         return this.sendCommand("NonInteractive", `Cmd_refine_or_intro False ${goal.index} ${this.buildRange(goal)} \"${goal.getContent()}\"`);
     }
 
