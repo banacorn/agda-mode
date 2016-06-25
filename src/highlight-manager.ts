@@ -3,13 +3,12 @@ type Point = any;
 type Range = any;
 var { Range } = require("atom");
 import { Agda } from "./types";
+import Core from "./core";
 
 export default class HighlightManager {
-    private core: any;
     private markers: any[];
 
-    constructor(core) {
-        this.core = core;
+    constructor(private core: Core) {
         this.markers = [];
     }
 

@@ -3,7 +3,7 @@ import * as Promise from "bluebird";
 import * as _ from "lodash";
 import { Agda, Goal } from "./types";
 import { parseHole } from "./parser";
-
+import Core from "./core";
 import { OutOfGoalError, EmptyGoalError } from "./error";
 import { Command, CommandType, Result } from "./types";
 
@@ -11,9 +11,8 @@ declare var atom: any;
 
 export default class TextBuffer {
     private goals: Goal[]
-    private core: any
 
-    constructor(core) {
+    constructor(private core: Core) {
         this.goals = [];
         this.core = core;
     }

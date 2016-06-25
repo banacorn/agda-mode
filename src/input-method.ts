@@ -1,6 +1,8 @@
 // import { TextEditor, Decoration, TextEditorMarker, CompositeDisposable } from "atom";
 var Keymap = require("./input-method/keymap");
 
+import Core from "./core";
+
 type TextEditor = any;
 type CompositeDisposable = any;
 type Decoration = any;
@@ -23,7 +25,7 @@ export default class InputMethod {
     textEditorMarker: TextEditorMarker;
 
 
-    constructor(private core: any) {
+    constructor(private core: Core) {
         this.activated = false;
         this.mute = false;
         this.subscriptions = new CompositeDisposable;

@@ -87,7 +87,7 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
     }
 }
 
-function handleInfoAction(core: any, action: Agda.InfoAction)  {
+function handleInfoAction(core: Core, action: Agda.InfoAction)  {
     switch (action.infoActionType) {
         case Agda.InfoActionType.AllGoals:
             if (action.content.length === 0)
