@@ -36,6 +36,9 @@ function parseCommand(raw: string): Command {
         case "show-constraints": return {
             type: CommandType.ShowConstraints
         };
+        case "show-goals": return {
+            type: CommandType.ShowGoals,
+        };
         case "solve-constraints": return {
             type: CommandType.SolveConstraints
         };

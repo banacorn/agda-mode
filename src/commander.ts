@@ -60,6 +60,8 @@ export default class Commander {
                 return this.solveConstraints();
             case CommandType.ShowConstraints:
                 return this.showConstraints();
+            case CommandType.ShowGoals:
+                return this.showGoals();
             case CommandType.NextGoal:      return this.nextGoal();
             case CommandType.PreviousGoal:  return this.previousGoal();
             case CommandType.WhyInScope:    return this.whyInScope();
@@ -84,7 +86,7 @@ export default class Commander {
             case CommandType.GoalTypeAndInferredType:
                 return this.goalTypeAndInferredType(command.normalization);
             case CommandType.InputSymbol:   return this.inputSymbol();
-            default:    throw `unknown command type ${command}`
+            default:    throw `undispatched command type ${command}`
         }
     }
 
