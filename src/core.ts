@@ -8,7 +8,7 @@ import { parseFilepath } from "./parser";
 
 // # Components
 import Commander from "./commander";
-var Process = require("./process");
+import Process from "./process";
 import TextBuffer from "./text-buffer";
 import InputMethod from "./input-method";
 import HighlightManager from "./highlight-manager";
@@ -17,7 +17,7 @@ var Panel = require("./panel");
 class Core {
     private disposables: CompositeDisposable;
     public panel: any;
-    public process: any;
+    public process: Process;
     public textBuffer: TextBuffer;
     public inputMethod: InputMethod;
     public highlightManager: HighlightManager;
@@ -25,7 +25,7 @@ class Core {
 
     public atomPanel: any;
 
-    constructor(private editor: any) {
+    constructor(public editor: any) {
 
         // helper methods on this.editor
         this.editor.fromIndex = (ind: number): number => {

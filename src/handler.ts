@@ -83,7 +83,8 @@ function handleAgdaResponse(core: any, response: Agda.Response) {
             break;
 
         case Agda.ResponseType.UnknownAction:
-            console.error(`Agda.ResponseType.UnknownAction: ${response}`);
+            console.error(`Agda.ResponseType.UnknownAction:`);
+            console.error(response);
             break;
         default:
             console.error(`Agda.ResponseType: ${JSON.stringify(response)}`);

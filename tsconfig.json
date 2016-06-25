@@ -32,6 +32,7 @@
         "src/parser/stream/rectifier.ts",
         "src/parser/util.ts",
         "src/parser/view.ts",
+        "src/process.ts",
         "src/text-buffer.ts",
         "src/types.ts",
         "typings/globals/node/index.d.ts",

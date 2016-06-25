@@ -4,6 +4,13 @@ import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError } f
 import { Command, CommandType, Normalization, Result } from "./types";
 import { Core } from "./core";
 
+
+function resolveCommand(commandType: CommandType): (any) => Promise<Result> {
+    return () => {
+        return Promise.resolve({ type: commandType });
+    }
+}
+
 function toCamalCase(str: string): string {
     return str.split("-")
         .map((str, i) => {
@@ -74,12 +81,14 @@ export default class Commander {
             // .catch((error) => { throw error; });
 
 
+
     load(): Promise<Result> {
         this.core.atomPanel.show();
         return this.core.process.load()
             .then(() => {
                 this.loaded = true;
-            });
+            })
+            .then(resolveCommand(CommandType.Load));
     }
 
     quit(): Promise<Result> {
@@ -87,7 +96,8 @@ export default class Commander {
             this.loaded = false;
             this.core.atomPanel.hide();
             this.core.textBuffer.removeGoals();
-            return this.core.process.quit();
+            return this.core.process.quit()
+                .then(resolveCommand(CommandType.Quit));
         } else {
             return Promise.reject(new NotLoadedError("the file is not loaded"));
         }
@@ -100,35 +110,43 @@ export default class Commander {
 
 
     compile(): Promise<Result> {
-        return this.core.process.compile();
+        return this.core.process.compile()
+            .then(resolveCommand(CommandType.Compile));
     }
 
     toggleDisplayOfImplicitArguments(): Promise<Result> {
-        return this.core.process.toggleDisplayOfImplicitArguments();
+        return this.core.process.toggleDisplayOfImplicitArguments()
+            .then(resolveCommand(CommandType.ToggleDisplayOfImplicitArguments));
     }
 
     info(): Promise<Result> {
-        return this.core.process.info();
+        return this.core.process.info()
+            .then(resolveCommand(CommandType.Info));
     }
 
     solveConstraints(): Promise<Result> {
-        return this.core.process.solveConstraints();
+        return this.core.process.solveConstraints()
+            .then(resolveCommand(CommandType.SolveConstraints));
     }
 
     showConstraints(): Promise<Result> {
-        return this.core.process.showConstraints();
+        return this.core.process.showConstraints()
+            .then(resolveCommand(CommandType.ShowConstraints));
     }
 
     showGoals(): Promise<Result> {
-        return this.core.process.showGoals();
+        return this.core.process.showGoals()
+            .then(resolveCommand(CommandType.ShowGoals));
     }
 
     nextGoal(): Promise<Result> {
-        return this.core.textBuffer.nextGoal();
+        return this.core.textBuffer.nextGoal()
+            .then(resolveCommand(CommandType.NextGoal));
     }
 
     previousGoal(): Promise<Result> {
-        return this.core.textBuffer.previousGoal();
+        return this.core.textBuffer.previousGoal()
+            .then(resolveCommand(CommandType.PreviousGoal));
     }
 
     whyInScope(): Promise<Result> {
@@ -175,78 +193,75 @@ export default class Commander {
     }
 
 
-    // inferType: (normalization) ->
-    //     @panel.setContent "Infer type #{toDescription normalization}", [], "value", "expression to infer:"
-    //     @textBuffer.getCurrentGoal().done (goal) =>
-    //         # goal-specific
-    //         if goal.isEmpty()
-    //             @panel.query().then (expr) =>
-    //                 @process.inferType(normalization, expr, goal)
-    //                     .catch (error) -> throw error
-    //         else
-    //             @process.inferType(normalization, goal.getContent(), goal)
-    //                 .catch (error) -> throw error
-    //     , =>
-    //         # global command
-    //         @panel.query().then (expr) =>
-    //             @process.inferType(normalization, expr)
-    //                 .catch (error) -> throw error
-    //
-    // moduleContents: (normalization) ->
-    //     @panel.setContent "Module contents #{toDescription normalization}", [], "plain-text", "module name:"
-    //     @panel.query().then (expr) =>
-    //         @textBuffer.getCurrentGoal().done (goal) =>
-    //             # goal-specific
-    //             @process.moduleContents(normalization, expr, goal)
-    //                 .catch (error) -> throw error
-    //             @textBuffer.focus()
-    //         , =>
-    //             # global command
-    //             @process.moduleContents(normalization, expr)
-    //                 .catch (error) -> throw error
-    //             @textBuffer.focus()
-    //
-    // computeNormalForm: ->
-    //     @panel.setContent "Compute normal form", [], "value", "expression to normalize:"
-    //     @panel.query()
-    //         .then (expr) =>
-    //             @textBuffer.getCurrentGoal().done (goal) =>
-    //                 # goal-specific
-    //                 @process.computeNormalForm(expr, goal)
-    //                     .catch (error) -> throw error
-    //                 @textBuffer.focus()
-    //             , =>
-    //                 # global command
-    //                 @process.computeNormalForm(expr)
-    //                     .catch (error) -> throw error
-    //                 @textBuffer.focus()
-    //
-    // computeNormalFormIgnoreAbstract: ->
-    //     @panel.setContent "Compute normal form (ignoring abstract)", [], "value", "expression to normalize:"
-    //     @panel.query().then (expr) =>
-    //         @textBuffer.getCurrentGoal().done (goal) =>
-    //             # goal-specific
-    //             @process.computeNormalFormIgnoreAbstract(expr, goal)
-    //                 .catch (error) -> throw error
-    //             @textBuffer.focus()
-    //         , =>
-    //             # global command
-    //             @process.computeNormalFormIgnoreAbstract(expr)
-    //                 .catch (error) -> throw error
-    //             @textBuffer.focus()
-    //
-    // give: ->
-    //     @textBuffer.getCurrentGoal().then (goal) =>
-    //             if goal.getContent()
-    //                 return goal
-    //             else
-    //                 @panel.setContent("Give", [], "plain-text", "expression to give:")
-    //                 @panel.query()
-    //                     .then (expr) ->
-    //                         goal.setContent(expr)
-    //                         return goal
-    //         .then @process.give
-    //         .catch (error) ->
-    //             console.log error
+    moduleContents(normalization: Normalization): Promise<Result> {
+        this.core.panel.setContent(`Module contents ${toDescription(normalization)}`, [], "plain-text", "module name:");
+        return this.core.panel.query()
+            .then((expr) => {
+                return this.core.textBuffer.getCurrentGoal()
+                    .done((goal) => {
+                        // goal-specific
+                        this.core.textBuffer.focus();
+                        return this.core.process.moduleContents(normalization, expr, goal);
+                    }, () => {
+                        // global command
+                        this.core.textBuffer.focus();
+                        return this.core.process.moduleContents(normalization, expr);
+                    });
+            });
+    }
+
+
+    computeNormalForm(): Promise<Result> {
+        this.core.panel.setContent("Compute normal form", [], "value", "expression to normalize:");
+        return this.core.panel.query()
+            .then((expr) => {
+                return this.core.textBuffer.getCurrentGoal()
+                    .done((goal) => {
+                        // goal-specific
+                        this.core.textBuffer.focus();
+                        return this.core.process.computeNormalForm(expr, goal);
+                    }, () => {
+                        // global command
+                        this.core.textBuffer.focus();
+                        return this.core.process.computeNormalForm(expr);
+                    });
+            });
+    }
+
+
+    computeNormalFormIgnoreAbstract(): Promise<Result> {
+        this.core.panel.setContent("Compute normal form (ignoring abstract)", [], "value", "expression to normalize:");
+        return this.core.panel.query()
+            .then((expr) => {
+                return this.core.textBuffer.getCurrentGoal()
+                    .done((goal) => {
+                        // goal-specific
+                        this.core.textBuffer.focus();
+                        return this.core.process.computeNormalFormIgnoreAbstract(expr, goal);
+                    }, () => {
+                        // global command
+                        this.core.textBuffer.focus();
+                        return this.core.process.computeNormalFormIgnoreAbstract(expr);
+                    });
+            });
+    }
+
+    give(): Promise<Result> {
+        return this.core.textBuffer.getCurrentGoal()
+            .then((goal) => {
+                if (goal.isEmpty()) {
+                    this.core.panel.setContent("Give", [], "plain-text", "expression to give:");
+                    this.core.panel.query()
+                        .then((expr) => {
+                            goal.setContent(expr);
+                            return goal;
+                        });
+                } else {
+                    return goal;
+                }
+            })
+            .then(this.core.process.give)
+            .then(resolveCommand(CommandType.Give));
+    }
 
 }

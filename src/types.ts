@@ -170,7 +170,7 @@ const enum Normalization {
     Normalised
 }
 
-type Result = Command | Error;
+type Result = Command;
 
 // interface Result {
 //     command: Command

@@ -2,7 +2,10 @@ import * as _ from "lodash";
 import { Agda } from "../types";
 var lispToArray = require("lisp-to-array");
 
-function parseAgdaResponse(tokens: Array<any>): Agda.Response {
+function parseAgdaResponse(raw: string): Agda.Response {
+
+    const tokens: any[] = parseSExpression(raw);
+
     switch (tokens[0]) {
         case "agda2-info-action":
             let type = parseInfoActionType(tokens[1]);
@@ -79,7 +82,7 @@ function parseAgdaResponse(tokens: Array<any>): Agda.Response {
                 type: Agda.ResponseType.HighlightClear,
             } as Agda.HighlightClear;
         case "agda2-highlight-add-annotations":
-            let annotations: Array<Agda.Annotation> = _
+            let annotations: Agda.Annotation[] = _
                 .tail(tokens)
                 .map((obj) => {
                     if (obj[4]) {
@@ -139,18 +142,19 @@ function parseInfoActionType(s: String): Agda.InfoActionType {
 ////////////////////////////////////////////////////////////////////////////////
 //  Parsing S-Expressions
 ////////////////////////////////////////////////////////////////////////////////
-function parseSExpression(s: string): string {
+function parseSExpression(s: string): any {
     return postprocess(lispToArray(preprocess(s)));
 }
 
-function preprocess(chunk) {
-    if (chunk.startsWith("((last")) {
+function preprocess(chunk: string): string {
+    // polyfill String::startsWith
+    if (chunk.substr(0, 6) === "((last") {
         // drop wierd prefix like ((last . 1))
         let index = chunk.indexOf("(agda");
         let length = chunk.length
         chunk = chunk.substring(index, length - 1);
     }
-    if (chunk.startsWith("cannot read: ")) {
+    if (chunk.substr(0, 13) === "cannot read: ") {
         // handles Agda parse error
         chunk = chunk.substring(12);
         chunk = `(agda2-parse-error${chunk})`;
@@ -164,7 +168,7 @@ function preprocess(chunk) {
 }
 
 // recursive cosmetic surgery
-function postprocess(node) {
+function postprocess(node: string | string[]): any {
     if (node instanceof Array) {
         switch (node[0]) {
             case "`":           // ["`", "some string"] => "some string"
@@ -188,6 +192,5 @@ function postprocess(node) {
 }
 
 export {
-    parseSExpression,
     parseAgdaResponse
 }
