@@ -2,8 +2,7 @@ import * as _ from "lodash";
 import { Agda } from "./types";
 import Core from "./core";
 
-// function handleAgdaResponse(core: Core, response: Agda.Response) {
-function handleAgdaResponse(core: any, response: Agda.Response) {
+function handleAgdaResponse(core: Core, response: Agda.Response) {
     switch (response.type) {
         case Agda.ResponseType.InfoAction:
             handleInfoAction(core, <Agda.InfoAction>response);

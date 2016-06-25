@@ -83,7 +83,7 @@ namespace Agda {
         }[];
     }
     export interface MakeCaseAction extends Response {
-        content: string;
+        content: string[];
     }
     export interface MakeCaseActionExtendLam extends Response {
         content: string;
