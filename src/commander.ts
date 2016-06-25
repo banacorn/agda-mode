@@ -164,7 +164,6 @@ export default class Commander {
     whyInScope(): Promise<Result> {
         this.core.panel.setContent("Scope info", [], "plain-text", "name:");
         this.core.panel.queryMode = true;
-
         return this.core.panel.query()
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
@@ -181,12 +180,12 @@ export default class Commander {
     }
 
     inferType(normalization: Normalization): Promise<Result> {
-        this.core.panel.setContent(`Infer type ${toDescription(normalization)}`, [], "value", "expression to infer:");
-        this.core.panel.queryMode = true;
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 // goal-specific
                 if (goal.isEmpty()) {
+                    this.core.panel.setContent(`Infer type ${toDescription(normalization)}`, [], "value", "expression to infer:");
+                    this.core.panel.queryMode = true;
                     return this.core.panel.query()
                         .then((expr) => {
                             this.core.process.inferType(normalization, expr, goal);
@@ -197,6 +196,8 @@ export default class Commander {
             })
             .catch(() => {
                 // global command
+                this.core.panel.setContent(`Infer type ${toDescription(normalization)}`, [], "value", "expression to infer:");
+                this.core.panel.queryMode = true;
                 return this.core.panel.query()
                     .then((expr) => {
                         return this.core.process.inferType(normalization, expr);
