@@ -37,6 +37,7 @@
         "src/text-buffer.ts",
         "src/types.ts",
         "src/view.ts",
+        "src/view/panel-body.ts",
         "typings/globals/node/index.d.ts",
         "typings/globals/vue/index.d.ts",
         "typings/index.d.ts",

@@ -45,9 +45,7 @@ export default class Core {
 
         // initialize all components
         this.disposables        = new CompositeDisposable();
-        console.log('hey');
         this.view               = new View(this);
-        console.log('hey');
         this.process            = new Process(this);
         this.textBuffer         = new TextBuffer(this);
         if (atom.config.get("agda-mode.inputMethod"))
@@ -56,9 +54,9 @@ export default class Core {
 
         // instantiate views
         this.atomPanel = atom.workspace.addBottomPanel({
-            item: document.createElement("agda-panel"),
+            item: document.createElement("agda-view"),
             visible: false,
-            className: "agda-panel"
+            className: "agda-view"
         });
         this.view.$mount(this.atomPanel.item);
         this.view.$on("jump-to-goal", (index) => {

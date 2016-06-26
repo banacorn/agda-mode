@@ -2,6 +2,7 @@ import * as Promise from "bluebird";
 import * as Vue from "vue";
 import Core from "./core";
 import Component from "vue-class-component";
+import "./view/panel-body";
 
 declare var atom: any;
 
@@ -28,8 +29,8 @@ function toStyle(type: string): string {
             </div>
             <panel-input-method id="panel-input-method" v-show="inputMethodMode" :input="inputMethod"></panel-input-method>
         </div>
-        <div id="panel-body" class="padded" v-show="content.body.length || queryMode">
-            <panel-body id="panel-content" :style="{ maxHeight: panelHeight * panelSize + 'px' }" :raw-content="content"></panel-body>
+        <div id="panel-panel-body" class="padded" v-show="content.body.length || queryMode">
+            <agda-panel-body id="panel-content" :style="{ maxHeight: panelHeight * panelSize + 'px' }" :raw-content="content"></agda-panel-body>
             <panel-input-editor id="panel-input-editor" v-ref:input-editor v-show="queryMode"></panel-input-editor>
         </div>
         `
@@ -55,10 +56,6 @@ class View {
     $once: any;
     $mount: any;
     $on: any;
-
-    constructor(private core: Core) {
-        console.log("fuck")
-    }
 
     data() {
         return {
@@ -119,5 +116,5 @@ class View {
     }
 }
 
-Vue.component("agda-panel", View);
+Vue.component("agda-view", View);
 export default View;
