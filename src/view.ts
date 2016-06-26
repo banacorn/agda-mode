@@ -2,10 +2,14 @@ import * as Promise from "bluebird";
 import * as Vue from "vue";
 import Core from "./core";
 import Component from "vue-class-component";
-import "./view/panel-body";                     // for component registration
-import "./view/input-method";                   // for component registration
-import "./view/input-editor";                   // for component registration
-import InputEditor from "./view/input-editor";  // for types
+
+// for component registration
+import "./view/panel-body";
+import "./view/input-method";
+import "./view/input-editor";
+import "./view/component/type";
+// for types
+import InputEditor from "./view/input-editor";
 
 
 declare var atom: any;
