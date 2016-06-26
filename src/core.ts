@@ -1,5 +1,4 @@
 import * as _ from "lodash";
-
 type CompositeDisposable = any;
 type Range = any;
 declare var atom: any;
@@ -16,7 +15,7 @@ import View from "./view";
 
 export default class Core {
     private disposables: CompositeDisposable;
-    public view: any;
+    public view: View;
     public process: Process;
     public textBuffer: TextBuffer;
     public inputMethod: InputMethod;
@@ -46,7 +45,9 @@ export default class Core {
 
         // initialize all components
         this.disposables        = new CompositeDisposable();
+        console.log('hey');
         this.view               = new View(this);
+        console.log('hey');
         this.process            = new Process(this);
         this.textBuffer         = new TextBuffer(this);
         if (atom.config.get("agda-mode.inputMethod"))

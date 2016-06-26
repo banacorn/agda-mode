@@ -90,13 +90,13 @@ export default class Process {
         this.core.view.query(false)    // disable input method
             .then((path) => {
                 path = parseFilepath(path);
-                this.validateExecutablePath(path)
+                return this.validateExecutablePath(path)
                     .then((path) => { return path; })
                     .catch(InvalidExecutablePathError, (error) => { this.queryExecutablePathUntilSuccess(error) });
             })
             .then((path) => {
                 path = parseFilepath(path);
-                this.validateExecutablePath(path)
+                return this.validateExecutablePath(path)
                     .then((path) => { return path; })
                     .catch(InvalidExecutablePathError, (error) => { this.queryExecutablePathUntilSuccess(error) });
             })

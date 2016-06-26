@@ -167,14 +167,17 @@ export default class Commander {
         return this.core.view.query()
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
-                    .done((goal) => {
+                    .then((goal) => {
                         // goal-specific
                         this.core.textBuffer.focus();
-                        return this.core.process.whyInScope(expr, goal);
-                    }, () => {
+                        return this.core.process.whyInScope(expr, goal)
+                            .then(resolveCommand(CommandType.WhyInScope));
+                    })
+                    .catch((error) => {
                         // global command
                         this.core.textBuffer.focus();
-                        return this.core.process.whyInScope(expr);
+                        return this.core.process.whyInScope(expr)
+                            .then(resolveCommand(CommandType.WhyInScope));
                     });
             });
     }
@@ -189,9 +192,11 @@ export default class Commander {
                     return this.core.view.query()
                         .then((expr) => {
                             this.core.process.inferType(normalization, expr, goal);
-                        });
+                        })
+                        .then(resolveCommand(CommandType.InferType));
                 } else {
-                    return this.core.process.inferType(normalization, goal.getContent(), goal);
+                    return this.core.process.inferType(normalization, goal.getContent(), goal)
+                        .then(resolveCommand(CommandType.InferType));
                 }
             })
             .catch(() => {
@@ -200,8 +205,9 @@ export default class Commander {
                 this.core.view.queryMode = true;
                 return this.core.view.query()
                     .then((expr) => {
-                        return this.core.process.inferType(normalization, expr);
-                    });
+                        return this.core.process.inferType(normalization, expr)
+                    })
+                    .then(resolveCommand(CommandType.InferType));
             })
     }
 
@@ -211,14 +217,16 @@ export default class Commander {
         return this.core.view.query()
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
-                    .done((goal) => {
+                    .then((goal) => {
                         // goal-specific
                         this.core.textBuffer.focus();
-                        return this.core.process.moduleContents(normalization, expr, goal);
+                        return this.core.process.moduleContents(normalization, expr, goal)
+                            .then(resolveCommand(CommandType.ModuleContents));
                     }, () => {
                         // global command
                         this.core.textBuffer.focus();
-                        return this.core.process.moduleContents(normalization, expr);
+                        return this.core.process.moduleContents(normalization, expr)
+                            .then(resolveCommand(CommandType.ModuleContents));
                     });
             });
     }
@@ -229,16 +237,18 @@ export default class Commander {
         return this.core.view.query()
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
-                    .done((goal) => {
+                    .then((goal) => {
                         // goal-specific
                         this.core.textBuffer.focus();
                         return this.core.process.computeNormalForm(expr, goal);
-                    }, () => {
+                    })
+                    .catch((error) => {
                         // global command
                         this.core.textBuffer.focus();
                         return this.core.process.computeNormalForm(expr);
                     });
-            });
+            })
+            .then(resolveCommand(CommandType.ComputeNormalForm));
     }
 
 
@@ -247,16 +257,18 @@ export default class Commander {
         return this.core.view.query()
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
-                    .done((goal) => {
+                    .then((goal) => {
                         // goal-specific
                         this.core.textBuffer.focus();
                         return this.core.process.computeNormalFormIgnoreAbstract(expr, goal);
-                    }, () => {
+                    })
+                    .catch((error) => {
                         // global command
                         this.core.textBuffer.focus();
                         return this.core.process.computeNormalFormIgnoreAbstract(expr);
                     });
-            });
+            })
+            .then(resolveCommand(CommandType.ComputeNormalFormIgnoreAbstract));
     }
 
     give(): Promise<Result> {

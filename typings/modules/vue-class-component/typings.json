@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/vuejs/vue-class-component/98f4079c6d2c8647d5f438b7821853869df81e2b/index.d.ts",
+    "raw": "github:vuejs/vue-class-component/index.d.ts#98f4079c6d2c8647d5f438b7821853869df81e2b",
+    "typings": "https://raw.githubusercontent.com/vuejs/vue-class-component/98f4079c6d2c8647d5f438b7821853869df81e2b/index.d.ts"
+  }
+}

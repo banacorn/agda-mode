@@ -23,6 +23,7 @@
     "lisp-to-array": "^0.2",
     "lodash": "^4.12",
     "semver": "^5.1.1",
-    "vue": "1.0.10-csp"
+    "vue": "1.0.10-csp",
+    "vue-class-component": "^3.2.0"
   }
 }

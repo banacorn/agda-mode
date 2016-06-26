@@ -1,5 +1,8 @@
 import * as Promise from "bluebird";
+import * as Vue from "vue";
 import Core from "./core";
+import Component from "vue-class-component";
+
 declare var atom: any;
 
 function toStyle(type: string): string {
@@ -13,7 +16,7 @@ function toStyle(type: string): string {
     }
 }
 
-const View = Vue.extend({
+@Component({
     template: `
         <div id="panel-header" class="inset-panel padded" v-show="content.title">
             <div id="panel-header-container" v-show="!inputMethodMode">
@@ -29,9 +32,35 @@ const View = Vue.extend({
             <panel-body id="panel-content" :style="{ maxHeight: panelHeight * panelSize + 'px' }" :raw-content="content"></panel-body>
             <panel-input-editor id="panel-input-editor" v-ref:input-editor v-show="queryMode"></panel-input-editor>
         </div>
-        `,
+        `
+})
 
-    data: () => {
+class View {
+    content: {
+        title: string,
+        body: string[],
+        type: string,
+        placeholder: string
+    }
+    panelHeight: number;
+    panelSize: number;
+    inputMethodMode: boolean;
+    queryMode: boolean;
+    isPending: boolean;
+    inputMethod: any;
+    style: string;
+
+    // hack
+    $refs: any;
+    $once: any;
+    $mount: any;
+    $on: any;
+
+    constructor(private core: Core) {
+        console.log("fuck")
+    }
+
+    data() {
         return {
             content: {
                 title: "",
@@ -47,47 +76,48 @@ const View = Vue.extend({
             inputMethod: null,
             style: ""
         };
-    },
-    methods: {
-        setContent: (title = "", body = [], type = "plain-text", placeholder = "") => {
-            this.content = {
-                title: title,
-                body: body,
-                type: type,
-                placeholder: placeholder
-            };
-            this.queryMode = false;
-            this.style = toStyle(type);
-        },
-        query: (enableIM = true): Promise<any> => {
-            const promise = this.$refs.inputEditor.query(enableIM);
-
-            // hide input editor and give focus back
-            this.$once("input-editor:confirm", () => {
-                this.queryMode = false;
-                atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
-            });
-            this.$once("input-editor:cancel", () => {
-                this.queryMode = false;
-                atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
-            });
-
-            // show input box, as it would had been hidden when initialized
-            this.queryMode = true;
-
-            return promise;
-        }
-    },
+    }
 
     //  initialize and bind configurations of panel size
-    ready: () => {
+    ready () {
         this.panelSize = atom.config.get("agda-mode.panelSize");
         this.panelHeight = 30;
         atom.config.observe("agda-mode.panelSize", (newValue) => {
             this.panelSize = newValue;
         });
     }
-});
+
+    // methods
+    setContent(title = "", body = [], type = "plain-text", placeholder = "") {
+        this.content = {
+            title: title,
+            body: body,
+            type: type,
+            placeholder: placeholder
+        };
+        this.queryMode = false;
+        this.style = toStyle(type);
+    }
+
+    query(enableIM = true): Promise<string> {
+        const promise = this.$refs.inputEditor.query(enableIM);
+
+        // hide input editor and give focus back
+        this.$once("input-editor:confirm", () => {
+            this.queryMode = false;
+            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+        });
+        this.$once("input-editor:cancel", () => {
+            this.queryMode = false;
+            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+        });
+
+        // show input box, as it would had been hidden when initialized
+        this.queryMode = true;
+
+        return promise;
+    }
+}
 
 Vue.component("agda-panel", View);
 export default View;
