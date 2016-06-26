@@ -12,11 +12,11 @@ import Process from "./process";
 import TextBuffer from "./text-buffer";
 import InputMethod from "./input-method";
 import HighlightManager from "./highlight-manager";
-var Panel = require("./panel");
+import View from "./view";
 
 export default class Core {
     private disposables: CompositeDisposable;
-    public panel: any;
+    public view: any;
     public process: Process;
     public textBuffer: TextBuffer;
     public inputMethod: InputMethod;
@@ -46,7 +46,7 @@ export default class Core {
 
         // initialize all components
         this.disposables        = new CompositeDisposable();
-        this.panel              = new Panel(this);
+        this.view               = new View(this);
         this.process            = new Process(this);
         this.textBuffer         = new TextBuffer(this);
         if (atom.config.get("agda-mode.inputMethod"))
@@ -59,22 +59,22 @@ export default class Core {
             visible: false,
             className: "agda-panel"
         });
-        this.panel.$mount(this.atomPanel.item);
-        this.panel.$on("jump-to-goal", (index) => {
+        this.view.$mount(this.atomPanel.item);
+        this.view.$on("jump-to-goal", (index) => {
             this.textBuffer.jumpToGoal(parseInt(index.substr(1)));
         });
-        this.panel.$on("jump-to-location", (location) => {
+        this.view.$on("jump-to-location", (location) => {
             this.textBuffer.jumpToLocation(location);
         });
-        this.panel.$on("select-key", (key) => {
+        this.view.$on("select-key", (key) => {
             this.inputMethod.insertChar(key);
             atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
         });
-        this.panel.$on("select-symbol", (symbol) => {
+        this.view.$on("select-symbol", (symbol) => {
             this.inputMethod.insertSymbol(symbol);
             atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
         });
-        this.panel.$on("replace-symbol", (symbol) => {
+        this.view.$on("replace-symbol", (symbol) => {
             this.inputMethod.replaceString(symbol);
         });
 

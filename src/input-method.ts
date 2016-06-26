@@ -59,8 +59,8 @@ export default class InputMethod {
             editorElement.classList.add("agda-mode-input-method-activated");
 
             // editor: the main text editor or the mini text editor
-            const inputEditorFocused = this.core.panel.$refs.inputEditor.isFocused();
-            this.editor = inputEditorFocused ? this.core.panel.$refs.inputEditor.$el.getModel() : this.core.editor;
+            const inputEditorFocused = this.core.view.$refs.inputEditor.isFocused();
+            this.editor = inputEditorFocused ? this.core.view.$refs.inputEditor.$el.getModel() : this.core.editor;
 
             // monitors raw text buffer and figures out what happend
             const startPosition = this.editor.getCursorBufferPosition();
@@ -79,8 +79,8 @@ export default class InputMethod {
             });
 
             // initialize input suggestion
-            this.core.panel.inputMethodMode = true;
-            this.core.panel.inputMethod = {
+            this.core.view.inputMethodMode = true;
+            this.core.view.inputMethod = {
                 rawInput: "",
                 suggestionKeys: Keymap.getSuggestionKeys(Keymap.trie).sort(),
                 candidateSymbols: []
@@ -99,7 +99,7 @@ export default class InputMethod {
             const editorElement = atom.views.getView(atom.workspace.getActiveTextEditor());
             editorElement.classList.remove("agda-mode-input-method-activated");
 
-            this.core.panel.inputMethodMode = false;
+            this.core.view.inputMethodMode = false;
             this.textEditorMarker.destroy();
             this.decoration.destroy();
             this.activated = false;
@@ -145,7 +145,7 @@ export default class InputMethod {
 
                 // update view
                 if (further) {
-                    this.core.panel.inputMethod = {
+                    this.core.view.inputMethod = {
                         rawInput: this.rawInput,
                         suggestionKeys: suggestionKeys,
                         candidateSymbols: candidateSymbols
@@ -156,7 +156,7 @@ export default class InputMethod {
             } else if (change === DELETE) {
                 this.rawInput = this.rawInput.substr(0, this.rawInput.length - 1);
                 const {translation, further, suggestionKeys, candidateSymbols} = Keymap.translate(this.rawInput);
-                this.core.panel.inputMethod = {
+                this.core.view.inputMethod = {
                     rawInput: this.rawInput,
                     suggestionKeys: suggestionKeys,
                     candidateSymbols: candidateSymbols

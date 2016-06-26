@@ -4,6 +4,7 @@
     "lodash": "registry:npm/lodash#4.0.0+20160416211519"
   },
   "globalDependencies": {
-    "node": "registry:dt/node#6.0.0+20160523035754"
+    "node": "registry:dt/node#6.0.0+20160523035754",
+    "vue": "registry:dt/vue#1.0.21+20160423143248"
   }
 }

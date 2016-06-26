@@ -11,7 +11,7 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
         case Agda.ResponseType.StatusAction:
             let status = <Agda.StatusAction>response;
             if (status.content.length !== 0) {
-                core.panel.setContent("Status", status.content);
+                core.view.setContent("Status", status.content);
             }
             break;
 
@@ -91,45 +91,45 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
     switch (action.infoActionType) {
         case Agda.InfoActionType.AllGoals:
             if (action.content.length === 0)
-                core.panel.setContent("No Goals", []);
+                core.view.setContent("No Goals", []);
             else
-                core.panel.setContent("Goals", action.content, "type-judgement");
+                core.view.setContent("Goals", action.content, "type-judgement");
             break;
         case Agda.InfoActionType.Error:
-            core.panel.setContent("Error", action.content, "error");
+            core.view.setContent("Error", action.content, "error");
             break;
         case Agda.InfoActionType.TypeChecking:
-            core.panel.setContent("Type Checking", action.content);
+            core.view.setContent("Type Checking", action.content);
             break;
         case Agda.InfoActionType.CurrentGoal:
-            core.panel.setContent("Current Goal", action.content, "value");
+            core.view.setContent("Current Goal", action.content, "value");
             break;
         case Agda.InfoActionType.InferredType:
-            core.panel.setContent("Inferred Type", action.content);
+            core.view.setContent("Inferred Type", action.content);
             break;
         case Agda.InfoActionType.ModuleContents:
-            core.panel.setContent("Module Contents", action.content);
+            core.view.setContent("Module Contents", action.content);
             break;
         case Agda.InfoActionType.Context:
-            core.panel.setContent("Context", action.content, "type-judgement");
+            core.view.setContent("Context", action.content, "type-judgement");
             break;
         case Agda.InfoActionType.GoalTypeEtc:
-            core.panel.setContent("Goal Type and Context", action.content, "type-judgement");
+            core.view.setContent("Goal Type and Context", action.content, "type-judgement");
             break;
         case Agda.InfoActionType.NormalForm:
-            core.panel.setContent("Normal Form", action.content, "value");
+            core.view.setContent("Normal Form", action.content, "value");
             break;
         case Agda.InfoActionType.Intro:
-            core.panel.setContent("Intro", ['No introduction forms found']);
+            core.view.setContent("Intro", ['No introduction forms found']);
             break;
         case Agda.InfoActionType.Auto:
-            core.panel.setContent("Auto", ['No solution found']);
+            core.view.setContent("Auto", ['No solution found']);
             break;
         case Agda.InfoActionType.Constraints:
-            core.panel.setContent("Constraints", action.content, "type-judgement");
+            core.view.setContent("Constraints", action.content, "type-judgement");
             break;
         case Agda.InfoActionType.ScopeInfo:
-            core.panel.setContent("Scope Info", action.content);
+            core.view.setContent("Scope Info", action.content);
             break;
         default:
             console.error(`unknown info action ${action}`);
