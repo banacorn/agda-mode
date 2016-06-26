@@ -39,6 +39,7 @@
         "src/types.ts",
         "src/view.ts",
         "src/view/input-editor.ts",
+        "src/view/input-method.ts",
         "src/view/panel-body.ts",
         "typings/globals/node/index.d.ts",
         "typings/globals/vue/index.d.ts",

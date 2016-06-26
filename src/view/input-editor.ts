@@ -24,6 +24,7 @@ class InputEditor extends Vue {
 
     data() {
         return {
+            placeholderText: ""
         };
     }
 
@@ -86,8 +87,6 @@ class InputEditor extends Vue {
     isFocused() {
         return _.includes(this.$el.classList, "is-focused");
     }
-
-    // computed
 
 }
 

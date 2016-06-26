@@ -2,12 +2,15 @@ import * as Promise from "bluebird";
 import * as Vue from "vue";
 import Core from "./core";
 import Component from "vue-class-component";
-import "./view/panel-body";
+import "./view/panel-body";                     // for component registration
+import "./view/input-method";                   // for component registration
 import "./view/input-editor";                   // for component registration
 import InputEditor from "./view/input-editor";  // for types
 
 
 declare var atom: any;
+
+// Vue.config.debug = true;
 
 function toStyle(type: string): string {
     switch (type) {
@@ -30,7 +33,7 @@ function toStyle(type: string): string {
                 <div id="panel-widget">
                 </div>
             </div>
-            <panel-input-method id="panel-input-method" v-show="inputMethodMode" :input="inputMethod"></panel-input-method>
+            <agda-input-method id="panel-input-method" v-show="inputMethodMode" :input="inputMethodInput"></agda-input-method>
         </div>
         <div id="panel-panel-body" class="padded" v-show="content.body.length || queryMode">
             <agda-panel-body id="panel-content" :style="{ maxHeight: panelHeight * panelSize + 'px' }" :raw-content="content"></agda-panel-body>
@@ -51,7 +54,11 @@ class View extends Vue {
     inputMethodMode: boolean;
     queryMode: boolean;
     isPending: boolean;
-    inputMethod: any;
+    inputMethodInput: {
+        candidateSymbols: string[],
+        suggestionKeys: string[],
+        rawInput: string,
+    };
     style: string;
 
     // reference to other components
@@ -74,7 +81,7 @@ class View extends Vue {
             inputMethodMode: false,
             queryMode: false,
             isPending: true,
-            inputMethod: null,
+            inputMethodInput: null,
             style: ""
         };
     }

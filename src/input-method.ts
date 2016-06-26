@@ -80,7 +80,7 @@ export default class InputMethod {
 
             // initialize input suggestion
             this.core.view.inputMethodMode = true;
-            this.core.view.inputMethod = {
+            this.core.view.inputMethodInput = {
                 rawInput: "",
                 suggestionKeys: Keymap.getSuggestionKeys(Keymap.trie).sort(),
                 candidateSymbols: []
@@ -145,7 +145,7 @@ export default class InputMethod {
 
                 // update view
                 if (further) {
-                    this.core.view.inputMethod = {
+                    this.core.view.inputMethodInput = {
                         rawInput: this.rawInput,
                         suggestionKeys: suggestionKeys,
                         candidateSymbols: candidateSymbols
@@ -156,7 +156,7 @@ export default class InputMethod {
             } else if (change === DELETE) {
                 this.rawInput = this.rawInput.substr(0, this.rawInput.length - 1);
                 const {translation, further, suggestionKeys, candidateSymbols} = Keymap.translate(this.rawInput);
-                this.core.view.inputMethod = {
+                this.core.view.inputMethodInput = {
                     rawInput: this.rawInput,
                     suggestionKeys: suggestionKeys,
                     candidateSymbols: candidateSymbols
