@@ -1,5 +1,6 @@
 import Goal from "./goal";
 
+type Range = any;
 
 export type TextInput = string;
 
@@ -182,53 +183,75 @@ type Result = Command;
 
 namespace View {
 
-    type Location = any;
+    export type JudgementForm = "goal" |
+        "type judgement" |
+        "meta" |
+        "term" |
+        "sort" ;
 
-    export interface HeaderItem {
+    // Occurence & Location
+    export interface Location {
+        path: string,
+        range: Range,
+        isSameLine: boolean
+    }
+
+    export interface Occurence {
+        location: Location,
+        body: string
+    }
+
+    export interface Header {
         type: string,
         label: string
     }
 
-    export interface GoalItem {
+    export interface Goal {
+        judgementForm: JudgementForm,
         type: string,
         index: number
     }
 
-    export interface JudgementItem {
+    export interface Judgement {
+        judgementForm: JudgementForm,
         type: string,
         expr: string,
-        index: number
+        index?: number
     }
 
-    export interface TermItem {
+    export interface Term {
+        judgementForm: JudgementForm,
         expr: string
     }
 
-    export interface MetaItem {
+    export interface Meta {
+        judgementForm: JudgementForm,
         type: string,
         location: Location,
         index: number
     }
 
-    export interface SortItem {
+    export interface Sort {
+        judgementForm: JudgementForm,
         location: Location,
         index: number
     }
 
+    export type Item = Goal | Judgement | Term | Meta | Sort;
 
     export interface Body {
-        goal: GoalItem[],
-        judgement: JudgementItem[],
-        term: TermItem[],
-        meta: MetaItem[],
-        sort: SortItem[]
+        goal: Goal[],
+        judgement: Judgement[],
+        term: Term[],
+        meta: Meta[],
+        sort: Sort[]
     }
 
     export type BodyError = {
         error: any
     }
 
-    export type BodyUnknownItem = {
+    export type BodyUnknown = {
         plainText: any
     }
 

@@ -1,7 +1,7 @@
 import Component from "vue-class-component";
 import * as Vue from "vue";
 import * as _ from "lodash";
-import { parseHeaderItem, parseJudgement, parseError} from "../parser";
+import { parseHeaderItem, parseItem, parseError} from "../parser";
 import { View } from "../types";
 
 // divide content into header and body
@@ -28,7 +28,7 @@ function divideContent(content: string[]): {
 }
 
 // concatenate multiline judgements
-function concatJudgements(lines: string[]): string[] {
+function concatItems(lines: string[]): string[] {
     const lineStartRegex = /^(?:Goal|Have|\S+ )\:|Sort /;
     let result: string[] = [];
     let currentLine = 0;
@@ -92,8 +92,8 @@ function concatJudgements(lines: string[]): string[] {
         `
 })
 class PanelBody extends Vue {
-    header: View.HeaderItem[];
-    body: View.Body | View.BodyError | View.BodyUnknownItem;
+    header: View.Header[];
+    body: View.Body | View.BodyError | View.BodyUnknown;
 
     // hack
     $refs: any;
@@ -122,14 +122,14 @@ class PanelBody extends Vue {
             case "value":
             case "type-judgement":
                 const {header, body} = divideContent(content.body);
-                this.header = concatJudgements(header).map(parseHeaderItem);
-                const items = concatJudgements(body).map(parseJudgement);
+                this.header = concatItems(header).map(parseHeaderItem);
+                const items = concatItems(body).map(parseItem);
                 this.body = {
-                    goal: _.filter(items, {judgementType: "goal"}),
-                    judgement: _.filter(items, {judgementType: "type judgement"}),
-                    term: _.filter(items, {judgementType: "term"}),
-                    meta: _.filter(items, {judgementType: "meta"}),
-                    sort: _.filter(items, {judgementType: "sort"})
+                    goal: _.filter(items, {judgementForm: "goal"}) as View.Goal[],
+                    judgement: _.filter(items, {judgementForm: "type judgement"}) as View.Judgement[],
+                    term: _.filter(items, {judgementForm: "term"}) as View.Term[],
+                    meta: _.filter(items, {judgementForm: "meta"}) as View.Meta[],
+                    sort: _.filter(items, {judgementForm: "sort"}) as View.Sort[]
                 }
                 break;
             case "error":

@@ -5,7 +5,7 @@ import { View } from "../types";
 var { Point, Range } = require('atom');
 
 
-function parseHeaderItem(str: string): View.HeaderItem {
+function parseHeaderItem(str: string): View.Header {
     const regex = /^(Goal|Have)\: ((?:\n|.)+)/;
     const result = str.match(regex);
     return {
@@ -14,7 +14,7 @@ function parseHeaderItem(str: string): View.HeaderItem {
     };
 }
 
-function parseOccurence(str: string): any {
+function parseOccurence(str: string): View.Occurence {
     const regex = /((?:\n|.)*\S+)\s*\[ at (.+):(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+)) \]/;
     const result = str.match(regex);
 
@@ -39,31 +39,31 @@ function parseOccurence(str: string): any {
 }
 
 
-function parseGoal(str: string): any {
+function parseGoal(str: string): View.Goal {
     const regex = /^(\?\d+) \: ((?:\n|.)+)/;
     const result = str.match(regex);
     if (result) {
         return {
-            judgementType: "goal",
-            index: result[1],
+            judgementForm: "goal",
+            index: parseInt(result[1]),
             type: result[2]
         };
     }
 }
 
-function parseType(str: string): any {
+function parseJudgement(str: string): View.Judgement {
     const regex = /^([^\_\?].*) \: ((?:\n|.)+)/;
     const result = str.match(regex);
     if (result) {
         return {
-            judgementType: "type judgement",
+            judgementForm: "type judgement",
             expr: result[1],
             type: result[2]
         };
     }
 }
 
-function parseMeta(str: string): any {
+function parseMeta(str: string): View.Meta {
     const regex = /^(.+) \: ((?:\n|.)+)/;
     const result = str.match(regex);
 
@@ -72,8 +72,8 @@ function parseMeta(str: string): any {
         const result = occurence.body.match(regex);
         if (result) {
             return {
-                judgementType: "meta",
-                index: result[1],
+                judgementForm: "meta",
+                index: parseInt(result[1]),
                 type: result[2],
                 location: occurence.location
             };
@@ -81,38 +81,38 @@ function parseMeta(str: string): any {
     }
 }
 
-function parseTerm(str: string): any {
+function parseTerm(str: string): View.Term {
     const regex = /^((?:\n|.)+)/;
     const result = str.match(regex);
     if (result) {
         return {
-            judgementType: "term",
+            judgementForm: "term",
             expr: result[1]
         };
     }
 }
 
-function parseSort(str: string): any {
+function parseSort(str: string): View.Sort {
     const regex = /^Sort ((?:\n|.)+)/;
     const occurence = parseOccurence(str);
     if (occurence) {
         const result = occurence.body.match(regex);
         if (result) {
             return {
-                judgementType: "sort",
-                index: result[1],
+                judgementForm: "sort",
+                index: parseInt(result[1]),
                 location: occurence.location
             };
         }
     }
 }
 
-function parseJudgement(str: string): any {
-    return parseGoal(str) || parseType(str) || parseMeta(str) || parseSort(str) || parseTerm(str);
+function parseItem(str: string): View.Item {
+    return parseGoal(str) || parseJudgement(str) || parseMeta(str) || parseSort(str) || parseTerm(str);
 }
 
 
-function parseLocation(str: string): any {
+function parseLocation(str: string): View.Location {
     const regex = /(?:(.+):)?(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+))/;
     const result = str.match(regex);
     if (result) {
@@ -280,6 +280,6 @@ function parseError(strings: string[]): any {
 
 export {
     parseHeaderItem,
-    parseJudgement,
+    parseItem,
     parseError
 }

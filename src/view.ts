@@ -8,6 +8,7 @@ import "./view/panel-body";
 import "./view/input-method";
 import "./view/input-editor";
 import "./view/component/type";
+import "./view/component/location";
 // for types
 import InputEditor from "./view/input-editor";
 
