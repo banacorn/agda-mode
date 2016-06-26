@@ -176,6 +176,65 @@ type Normalization = "Simplified" | "Instantiated" | "Normalised";
 
 type Result = Command;
 
+//
+//  View
+//
+
+namespace View {
+
+    type Location = any;
+
+    export interface HeaderItem {
+        type: string,
+        label: string
+    }
+
+    export interface GoalItem {
+        type: string,
+        index: number
+    }
+
+    export interface JudgementItem {
+        type: string,
+        expr: string,
+        index: number
+    }
+
+    export interface TermItem {
+        expr: string
+    }
+
+    export interface MetaItem {
+        type: string,
+        location: Location,
+        index: number
+    }
+
+    export interface SortItem {
+        location: Location,
+        index: number
+    }
+
+
+    export interface Body {
+        goal: GoalItem[],
+        judgement: JudgementItem[],
+        term: TermItem[],
+        meta: MetaItem[],
+        sort: SortItem[]
+    }
+
+    export type BodyError = {
+        error: any
+    }
+
+    export type BodyUnknownItem = {
+        plainText: any
+    }
+
+}
+
+
 export {
     Agda,
     Hole,
@@ -186,5 +245,7 @@ export {
     Command,
     CommandType,
     Normalization,
-    Result
+    Result,
+    // view
+    View
 }

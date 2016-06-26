@@ -1,7 +1,8 @@
 import Component from "vue-class-component";
 import * as Vue from "vue";
 import * as _ from "lodash";
-import {parseHeader, parseJudgement, parseError} from "../parser";
+import { parseHeaderItem, parseJudgement, parseError} from "../parser";
+import { View } from "../types";
 
 // divide content into header and body
 function divideContent(content: string[]): {
@@ -91,8 +92,8 @@ function concatJudgements(lines: string[]): string[] {
         `
 })
 class PanelBody extends Vue {
-    header: any;
-    body: any;
+    header: View.HeaderItem[];
+    body: View.Body | View.BodyError | View.BodyUnknownItem;
 
     // hack
     $refs: any;
@@ -121,7 +122,7 @@ class PanelBody extends Vue {
             case "value":
             case "type-judgement":
                 const {header, body} = divideContent(content.body);
-                this.header = concatJudgements(header).map(parseHeader);
+                this.header = concatJudgements(header).map(parseHeaderItem);
                 const items = concatJudgements(body).map(parseJudgement);
                 this.body = {
                     goal: _.filter(items, {judgementType: "goal"}),

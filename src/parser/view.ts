@@ -1,10 +1,11 @@
 import * as _ from "lodash";;
 import { parseFilepath } from "./util";
+import { View } from "../types";
 
 var { Point, Range } = require('atom');
 
 
-function parseHeader(str: string): any {
+function parseHeaderItem(str: string): View.HeaderItem {
     const regex = /^(Goal|Have)\: ((?:\n|.)+)/;
     const result = str.match(regex);
     return {
@@ -278,7 +279,7 @@ function parseError(strings: string[]): any {
 }
 
 export {
-    parseHeader,
+    parseHeaderItem,
     parseJudgement,
     parseError
 }
