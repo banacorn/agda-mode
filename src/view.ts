@@ -9,6 +9,7 @@ import "./view/input-method";
 import "./view/input-editor";
 import "./view/component/type";
 import "./view/component/location";
+import "./view/component/error";
 // for types
 import InputEditor from "./view/input-editor";
 

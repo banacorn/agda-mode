@@ -255,6 +255,10 @@ namespace View {
         plainText: any
     }
 
+    // Errors
+
+    export type Error = any;
+
 }
 
 
