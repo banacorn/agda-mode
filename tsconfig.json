@@ -4,7 +4,8 @@
         "target": "es5",
         "noImplicitAny": false,
         "sourceMap": false,
-        "outDir": "lib"
+        "outDir": "lib",
+        "experimentalDecorators": true
     },
     "exclude": [
         "node_modules"
@@ -37,6 +38,7 @@
         "src/text-buffer.ts",
         "src/types.ts",
         "src/view.ts",
+        "src/view/input-editor.ts",
         "src/view/panel-body.ts",
         "typings/globals/node/index.d.ts",
         "typings/globals/vue/index.d.ts",

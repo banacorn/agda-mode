@@ -47,7 +47,7 @@ function concatJudgements(lines: string[]): string[] {
 
 @Component({
     props: {
-        "raw-content": String
+        "raw-content": Object
     },
     template: `
         <div class="native-key-bindings" tabindex="-1"  v-show="!queryMode">
@@ -90,20 +90,12 @@ function concatJudgements(lines: string[]): string[] {
         </div>
         `
 })
-class PanelBody {
+class PanelBody extends Vue {
     header: any;
     body: any;
 
     // hack
     $refs: any;
-    $once: any;
-    $mount: any;
-    $on: any;
-    $dispatch: any;
-
-    // constructor(private core: Core) {
-    //     console.log("fuck")
-    // }
 
     data() {
         return {
@@ -118,46 +110,38 @@ class PanelBody {
         };
     }
 
-    //  initialize and bind configurations of panel size
-    ready () {
-    }
-
     // methods
     jumpToGoal(index: number) {
         this.$dispatch("jump-to-goal", index);
     }
     // computed
 
-    get rawContent() {
-        return {
-            set: (content) => {
-                switch (content.type) {
-                    case "value":
-                    case "type-judgement":
-                        const {header, body} = divideContent(content.body);
-                        this.header = concatJudgements(header).map(parseHeader);
-                        const items = concatJudgements(body).map(parseJudgement);
-                        this.body = {
-                            goal: _.filter(items, {judgementType: "goal"}),
-                            judgement: _.filter(items, {judgementType: "type judgement"}),
-                            term: _.filter(items, {judgementType: "term"}),
-                            meta: _.filter(items, {judgementType: "meta"}),
-                            sort: _.filter(items, {judgementType: "sort"})
-                        }
-                        break;
-                    case "error":
-                        this.header = [];
-                        this.body = {
-                            error: parseError(content.body)
-                        };
-                        break;
-                    default:
-                        this.header = [];
-                        this.body = {
-                            plainText: content.body
-                        };
+    set rawContent(content) {
+        switch (content.type) {
+            case "value":
+            case "type-judgement":
+                const {header, body} = divideContent(content.body);
+                this.header = concatJudgements(header).map(parseHeader);
+                const items = concatJudgements(body).map(parseJudgement);
+                this.body = {
+                    goal: _.filter(items, {judgementType: "goal"}),
+                    judgement: _.filter(items, {judgementType: "type judgement"}),
+                    term: _.filter(items, {judgementType: "term"}),
+                    meta: _.filter(items, {judgementType: "meta"}),
+                    sort: _.filter(items, {judgementType: "sort"})
                 }
-            }
+                break;
+            case "error":
+                this.header = [];
+                this.body = {
+                    error: parseError(content.body)
+                };
+                break;
+            default:
+                this.header = [];
+                this.body = {
+                    plainText: content.body
+                };
         }
     }
 

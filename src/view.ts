@@ -3,6 +3,9 @@ import * as Vue from "vue";
 import Core from "./core";
 import Component from "vue-class-component";
 import "./view/panel-body";
+import "./view/input-editor";                   // for component registration
+import InputEditor from "./view/input-editor";  // for types
+
 
 declare var atom: any;
 
@@ -31,12 +34,12 @@ function toStyle(type: string): string {
         </div>
         <div id="panel-panel-body" class="padded" v-show="content.body.length || queryMode">
             <agda-panel-body id="panel-content" :style="{ maxHeight: panelHeight * panelSize + 'px' }" :raw-content="content"></agda-panel-body>
-            <panel-input-editor id="panel-input-editor" v-ref:input-editor v-show="queryMode"></panel-input-editor>
+            <agda-input-editor id="panel-input-editor" v-ref:input-editor v-show="queryMode"></agda-input-editor>
         </div>
         `
 })
 
-class View {
+class View extends Vue {
     content: {
         title: string,
         body: string[],
@@ -51,11 +54,12 @@ class View {
     inputMethod: any;
     style: string;
 
-    // hack
-    $refs: any;
-    $once: any;
-    $mount: any;
-    $on: any;
+    // reference to other components
+    $refs: {
+        inputEditor: InputEditor
+    };
+
+    // constructor(private core: Core) {}
 
     data() {
         return {

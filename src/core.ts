@@ -45,7 +45,7 @@ export default class Core {
 
         // initialize all components
         this.disposables        = new CompositeDisposable();
-        this.view               = new View(this);
+        this.view               = new View;
         this.process            = new Process(this);
         this.textBuffer         = new TextBuffer(this);
         if (atom.config.get("agda-mode.inputMethod"))
