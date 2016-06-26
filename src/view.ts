@@ -16,7 +16,7 @@ import InputEditor from "./view/input-editor";
 
 declare var atom: any;
 
-// Vue.config.debug = true;
+Vue.config.debug = true;
 
 function toStyle(type: string): string {
     switch (type) {

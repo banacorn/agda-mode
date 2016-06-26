@@ -67,7 +67,7 @@ function concatItems(lines: string[]): string[] {
                 </li>
                 <li class="list-item" v-for="item in body.judgement">
                     <span class="text-success">{{item.expr}}</span>
-                    <span v-if="item.index">:</span>
+                    <span>:</span>
                     <type :input="item.type"></type>
                 </li>
                 <li class="list-item" v-for="item in body.term">

@@ -209,14 +209,14 @@ namespace View {
     export interface Goal {
         judgementForm: JudgementForm,
         type: string,
-        index: number
+        index: string
     }
 
     export interface Judgement {
         judgementForm: JudgementForm,
         type: string,
         expr: string,
-        index?: number
+        index?: string
     }
 
     export interface Term {
@@ -228,13 +228,13 @@ namespace View {
         judgementForm: JudgementForm,
         type: string,
         location: Location,
-        index: number
+        index: string
     }
 
     export interface Sort {
         judgementForm: JudgementForm,
         location: Location,
-        index: number
+        index: string
     }
 
     export type Item = Goal | Judgement | Term | Meta | Sort;

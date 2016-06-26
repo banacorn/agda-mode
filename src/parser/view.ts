@@ -45,7 +45,7 @@ function parseGoal(str: string): View.Goal {
     if (result) {
         return {
             judgementForm: "goal",
-            index: parseInt(result[1]),
+            index: result[1],
             type: result[2]
         };
     }
@@ -73,7 +73,7 @@ function parseMeta(str: string): View.Meta {
         if (result) {
             return {
                 judgementForm: "meta",
-                index: parseInt(result[1]),
+                index: result[1],
                 type: result[2],
                 location: occurence.location
             };
@@ -100,7 +100,7 @@ function parseSort(str: string): View.Sort {
         if (result) {
             return {
                 judgementForm: "sort",
-                index: parseInt(result[1]),
+                index: result[1],
                 location: occurence.location
             };
         }
