@@ -1,7 +1,8 @@
 import * as Promise from "bluebird";
 import * as Vue from "vue";
-import Core from "./core";
 import Component from "vue-class-component";
+import Core from "./core";
+import { View as V } from "./types";
 
 // for component registration
 import "./view/panel-body";
@@ -18,13 +19,13 @@ declare var atom: any;
 
 Vue.config.debug = true;
 
-function toStyle(type: string): string {
+function toHeaderStyle(type: V.Type): string {
     switch (type) {
-        case "error":           return "error";
-        case "warning":         return "warning";
-        case "type-judgement":  return "info";
-        case "value":           return "success";
-        case "plain-text":      return "plain-text";
+        case V.Type.Error:     return "error";
+        case V.Type.Warning:   return "warning";
+        case V.Type.Judgement: return "info";
+        case V.Type.Value:     return "success";
+        case V.Type.PlainText: return "plain-text";
         default:                return "";
     }
 }
@@ -33,7 +34,7 @@ function toStyle(type: string): string {
     template: `
         <div id="panel-header" class="inset-panel padded" v-show="content.title">
             <div id="panel-header-container" v-show="!inputMethodMode">
-                <div id="panel-title" class="text-{{style}}">
+                <div id="panel-title" class="text-{{headerStyle}}">
                     {{content.title}}
                 </div>
                 <div id="panel-widget">
@@ -52,9 +53,9 @@ class View extends Vue {
     content: {
         title: string,
         body: string[],
-        type: string,
+        type: V.Type,
         placeholder: string
-    }
+    };
     panelHeight: number;
     panelSize: number;
     inputMethodMode: boolean;
@@ -65,7 +66,7 @@ class View extends Vue {
         suggestionKeys: string[],
         rawInput: string,
     };
-    style: string;
+    headerStyle: string;
 
     // reference to other components
     $refs: {
@@ -88,7 +89,7 @@ class View extends Vue {
             queryMode: false,
             isPending: true,
             inputMethodInput: null,
-            style: ""
+            headerStyle: ""
         };
     }
 
@@ -102,7 +103,7 @@ class View extends Vue {
     }
 
     // methods
-    setContent(title = "", body = [], type = "plain-text", placeholder = "") {
+    setContent(title = "", body = [], type = V.Type.PlainText, placeholder = "") {
         this.content = {
             title: title,
             body: body,
@@ -110,7 +111,7 @@ class View extends Vue {
             placeholder: placeholder
         };
         this.queryMode = false;
-        this.style = toStyle(type);
+        this.headerStyle = toHeaderStyle(type);
     }
 
     query(enableIM = true): Promise<string> {

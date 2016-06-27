@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as Promise from "bluebird";
 import * as _ from "lodash";
-import { Agda, Goal } from "./types";
+import { Agda, Goal, View } from "./types";
 import { parseHole } from "./parser";
 import Core from "./core";
 import { OutOfGoalError, EmptyGoalError } from "./error";
@@ -94,11 +94,11 @@ export default class TextBuffer {
     }
 
     warnOutOfGoal() {
-        this.core.view.setContent("Out of goal", ["For this command, please place the cursor in a goal"], "warning");
+        this.core.view.setContent("Out of goal", ["For this command, please place the cursor in a goal"], View.Type.Warning);
     }
 
     warnEmptyGoal(error: any) {
-        this.core.view.setContent("No content", [error.message], "warning");
+        this.core.view.setContent("No content", [error.message], View.Type.Warning);
     }
 
     // reject if goal is empty

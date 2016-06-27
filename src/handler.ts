@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Agda } from "./types";
+import { Agda, View } from "./types";
 import Core from "./core";
 
 function handleAgdaResponse(core: Core, response: Agda.Response) {
@@ -93,16 +93,16 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
             if (action.content.length === 0)
                 core.view.setContent("No Goals", []);
             else
-                core.view.setContent("Goals", action.content, "type-judgement");
+                core.view.setContent("Goals", action.content, View.Type.Judgement);
             break;
         case Agda.InfoActionType.Error:
-            core.view.setContent("Error", action.content, "error");
+            core.view.setContent("Error", action.content, View.Type.Error);
             break;
         case Agda.InfoActionType.TypeChecking:
             core.view.setContent("Type Checking", action.content);
             break;
         case Agda.InfoActionType.CurrentGoal:
-            core.view.setContent("Current Goal", action.content, "value");
+            core.view.setContent("Current Goal", action.content, View.Type.Value);
             break;
         case Agda.InfoActionType.InferredType:
             core.view.setContent("Inferred Type", action.content);
@@ -111,13 +111,13 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
             core.view.setContent("Module Contents", action.content);
             break;
         case Agda.InfoActionType.Context:
-            core.view.setContent("Context", action.content, "type-judgement");
+            core.view.setContent("Context", action.content, View.Type.Judgement);
             break;
         case Agda.InfoActionType.GoalTypeEtc:
-            core.view.setContent("Goal Type and Context", action.content, "type-judgement");
+            core.view.setContent("Goal Type and Context", action.content, View.Type.Judgement);
             break;
         case Agda.InfoActionType.NormalForm:
-            core.view.setContent("Normal Form", action.content, "value");
+            core.view.setContent("Normal Form", action.content, View.Type.Value);
             break;
         case Agda.InfoActionType.Intro:
             core.view.setContent("Intro", ['No introduction forms found']);
@@ -126,7 +126,7 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
             core.view.setContent("Auto", ['No solution found']);
             break;
         case Agda.InfoActionType.Constraints:
-            core.view.setContent("Constraints", action.content, "type-judgement");
+            core.view.setContent("Constraints", action.content, View.Type.Judgement);
             break;
         case Agda.InfoActionType.ScopeInfo:
             core.view.setContent("Scope Info", action.content);

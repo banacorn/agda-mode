@@ -5,7 +5,7 @@ import { parseFilepath, parseAgdaResponse } from "./parser";
 import Rectifier from "./parser/stream/rectifier";
 import { handleAgdaResponse } from "./handler";
 import { InvalidExecutablePathError, ProcExecError } from "./error";
-import { Goal, Normalization } from "./types";
+import { Goal, Normalization, View } from "./types";
 import Core from "./core";
 
 var semver = require("semver");
@@ -79,10 +79,10 @@ export default class Process {
     queryExecutablePathUntilSuccess(error: Error) {
         switch (error.name) {
             case "ProcExecError":
-                this.core.view.setContent("Process execution error", error.message.split("\n"), "error");
+                this.core.view.setContent("Process execution error", error.message.split("\n"), View.Type.Error);
                 break;
             case "InvalidExecutablePathError":
-                this.core.view.setContent(error.message, [], "warning", "path of executable here");
+                this.core.view.setContent(error.message, [], View.Type.Warning, "path of executable here");
                 break;
             default:
                 throw `unknown error: ${error.name}`;

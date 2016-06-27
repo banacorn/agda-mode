@@ -183,6 +183,14 @@ type Result = Command;
 
 namespace View {
 
+    export const enum Type {
+        PlainText,
+        Error,
+        Warning,
+        Judgement,
+        Value
+    }
+
     export type JudgementForm = "goal" |
         "type judgement" |
         "meta" |
@@ -343,6 +351,7 @@ namespace View {
         type: ErrorType,
         raw: string,
     }
+
 
 }
 

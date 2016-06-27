@@ -122,10 +122,15 @@ class PanelBody extends Vue {
     }
     // computed
 
-    set rawContent(content) {
+    set rawContent(content:{
+        title: string,
+        body: string[],
+        type: View.Type,
+        placeholder: string
+    }) {
         switch (content.type) {
-            case "value":
-            case "type-judgement":
+            case View.Type.Value:
+            case View.Type.Judgement:
                 const {header, body} = divideContent(content.body);
                 this.header = concatItems(header).map(parseHeaderItem);
                 const items = concatItems(body).map(parseItem);
@@ -137,7 +142,7 @@ class PanelBody extends Vue {
                     sort: _.filter(items, {judgementForm: "sort"}) as View.Sort[]
                 }
                 break;
-            case "error":
+            case View.Type.Error:
                 this.header = [];
                 this.body = {
                     error: parseError(content.body)
