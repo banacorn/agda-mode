@@ -1,55 +1,8 @@
 import Component from "vue-class-component";
 import * as Vue from "vue";
 import * as _ from "lodash";
-import { parseHeaderItem, parseItem, parseError} from "../parser";
+import { parseContent, parseError} from "../parser";
 import { View } from "../types";
-
-// divide content into header and body
-function divideContent(content: string[]): {
-    header: string[],
-    body: string[]
-} {
-    const notEmpty = content.length > 0;
-    const index = content.indexOf("————————————————————————————————————————————————————————————");
-    const isSectioned = index !== -1;
-
-    if (notEmpty && isSectioned) {
-        return {
-            header: content.slice(0, index),
-            body: content.slice(index + 1, content.length)
-        }
-    }
-    else {
-        return {
-            header: [],
-            body: content
-        }
-    }
-}
-
-// concatenate multiline judgements
-function concatItems(lines: string[]): string[] {
-    const newlineRegex = /^(?:Goal\:|Have\:|\S+\s+\:\s*|Sort) \S*/;
-
-    let result = [];
-    let currentLine = 0;
-    lines.forEach((line, i) => {
-        const notTheLastLine = i + 1 < lines.length;
-        const preemptLine = notTheLastLine ? line + "\n" + lines[i + 1] : line;
-        if (line.match(newlineRegex) || preemptLine.match(newlineRegex)) {
-            // is a new line
-            currentLine = i;
-            result[currentLine] = line;
-        } else {
-            // is not a new line, concat to the previous line
-            if (result[currentLine])
-                result[currentLine] = result[currentLine].concat("\n" + line);
-            else
-                result[currentLine] = line;
-        }
-    });
-    return _.compact(result);
-}
 
 @Component({
     props: {
@@ -97,7 +50,7 @@ function concatItems(lines: string[]): string[] {
         `
 })
 class PanelBody extends Vue {
-    header: View.Header[];
+    header: View.BannerItem[];
     body: View.Body | View.BodyError | View.BodyUnknown;
 
     data() {
@@ -128,15 +81,15 @@ class PanelBody extends Vue {
         switch (content.type) {
             case View.Type.Value:
             case View.Type.Judgement:
-                const {header, body} = divideContent(content.body);
-                this.header = concatItems(header).map(parseHeaderItem);
-                const items = concatItems(body).map(parseItem);
+                const { banner, body } = parseContent(content.body);
+
+                this.header = banner;
                 this.body = {
-                    goal: _.filter(items, {judgementForm: "goal"}) as View.Goal[],
-                    judgement: _.filter(items, {judgementForm: "type judgement"}) as View.Judgement[],
-                    term: _.filter(items, {judgementForm: "term"}) as View.Term[],
-                    meta: _.filter(items, {judgementForm: "meta"}) as View.Meta[],
-                    sort: _.filter(items, {judgementForm: "sort"}) as View.Sort[]
+                    goal: _.filter(body, {judgementForm: "goal"}) as View.Goal[],
+                    judgement: _.filter(body, {judgementForm: "type judgement"}) as View.Judgement[],
+                    term: _.filter(body, {judgementForm: "term"}) as View.Term[],
+                    meta: _.filter(body, {judgementForm: "meta"}) as View.Meta[],
+                    sort: _.filter(body, {judgementForm: "sort"}) as View.Sort[]
                 }
                 break;
             case View.Type.Error:

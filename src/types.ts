@@ -209,7 +209,17 @@ namespace View {
         body: string
     }
 
-    export interface Header {
+
+    ////////////////////////////////////////////
+    // Body components
+    ////////////////////////////////////////////
+
+    export interface Content {
+        banner: BannerItem[],
+        body: Item[]
+    }
+
+    export interface BannerItem {
         type: string,
         label: string
     }
@@ -245,6 +255,7 @@ namespace View {
         index: string
     }
 
+
     export type Item = Goal | Judgement | Term | Meta | Sort;
 
     export interface Body {
@@ -263,7 +274,10 @@ namespace View {
         plainText: any
     }
 
+    ////////////////////////////////////////////
     // Errors
+    ////////////////////////////////////////////
+
     export type Error = NotInScopeError |
         TypeMismatch |
         WrongConstructor |

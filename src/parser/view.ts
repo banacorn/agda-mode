@@ -5,7 +5,72 @@ import { View } from "../types";
 var { Point, Range } = require('atom');
 
 
-function parseHeaderItem(str: string): View.Header {
+
+function parseContent(lines: string[]): View.Content {
+    const {banner, body} = divideContent(lines);
+    const bannerItems = concatItems(banner).map(parseBannerItem);
+    const bodyItems = concatItems(body).map(parseItem);
+    return {
+        banner: bannerItems,
+        body: bodyItems
+    }
+}
+
+
+// divide content into header and body
+function divideContent(lines: string[]): {
+    banner: string[],
+    body: string[]
+} {
+    const notEmpty = lines.length > 0;
+    const index = lines.indexOf("————————————————————————————————————————————————————————————");
+    const isSectioned = index !== -1;
+
+    if (notEmpty && isSectioned) {
+        return {
+            banner: lines.slice(0, index),
+            body: lines.slice(index + 1, lines.length)
+        }
+    }
+    else {
+        return {
+            banner: [],
+            body: lines
+        }
+    }
+}
+
+// concatenate multiline judgements
+function concatItems(lines: string[]): string[] {
+    const newlineRegex = /^(?:Goal\:|Have\:|\S+\s+\:\s*|Sort) \S*/;
+
+    let result = [];
+    let currentLine = 0;
+    lines.forEach((line, i) => {
+        const notTheLastLine = i + 1 < lines.length;
+        const preemptLine = notTheLastLine ? line + "\n" + lines[i + 1] : line;
+        if (line.match(newlineRegex) || preemptLine.match(newlineRegex)) {
+            // is a new line
+            currentLine = i;
+            result[currentLine] = line;
+        } else {
+            // is not a new line, concat to the previous line
+            if (result[currentLine])
+                result[currentLine] = result[currentLine].concat("\n" + line);
+            else
+                result[currentLine] = line;
+        }
+    });
+    return _.compact(result);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  Components
+////////////////////////////////////////////////////////////////////////////////
+
+
+function parseBannerItem(str: string): View.BannerItem {
     const regex = /^(Goal|Have)\: ((?:\n|.)+)/;
     const result = str.match(regex);
     return {
@@ -284,7 +349,7 @@ function parseError(strings: string[]): View.Error {
 }
 
 export {
-    parseHeaderItem,
+    parseContent,
     parseItem,
     parseError
 }
