@@ -115,6 +115,13 @@ class InputMethod extends Vue {
             this.index += 1;
     }
 
+    row(): number {
+        return Math.floor(this.index / 10);
+    }
+    col(): number {
+        return this.index % 10;
+    }
+
     // computed
     set input(input: {
         candidateSymbols: string[],
@@ -127,23 +134,17 @@ class InputMethod extends Vue {
         this.index = 0;
     }
 
-    get partialCandidateSymbols() {
-        return _.take(_.drop(this.candidateSymbols, this.row * 10), 10);
-    }
     get selectedLeft() {
-        return _.take(this.partialCandidateSymbols, this.col)
+        const currentRow = _.take(_.drop(this.candidateSymbols, this.row() * 10), 10);
+        return _.take(currentRow, this.col());
     }
     get selected() {
-        return _.compact(this.partialCandidateSymbols[this.col])
+        const currentRow = _.take(_.drop(this.candidateSymbols, this.row() * 10), 10);
+        return _.compact(currentRow[this.col()]);
     }
     get selectedRight() {
-        return _.drop(this.partialCandidateSymbols, this.col + 1)
-    }
-    get row() {
-        return Math.floor(this.index / 10);
-    }
-    get col() {
-        return this.index % 10;
+        const currentRow = _.take(_.drop(this.candidateSymbols, this.row() * 10), 10);
+        return _.drop(currentRow, this.col() + 1);
     }
 }
 
