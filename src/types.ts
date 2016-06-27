@@ -216,7 +216,7 @@ namespace View {
 
     export interface Content {
         banner: BannerItem[],
-        body: Item[]
+        body: BodyItem[]
     }
 
     export interface BannerItem {
@@ -256,7 +256,7 @@ namespace View {
     }
 
 
-    export type Item = Goal | Judgement | Term | Meta | Sort;
+    export type BodyItem = Goal | Judgement | Term | Meta | Sort;
 
     export interface Body {
         goal: Goal[],
@@ -264,14 +264,6 @@ namespace View {
         term: Term[],
         meta: Meta[],
         sort: Sort[]
-    }
-
-    export type BodyError = {
-        error: any
-    }
-
-    export type BodyUnknown = {
-        plainText: any
     }
 
     ////////////////////////////////////////////

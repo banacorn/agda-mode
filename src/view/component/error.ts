@@ -23,7 +23,7 @@ import { View } from "../../types";
                 <span>expected:</span>
                 <type :input="error.expected"></type>
                 <span>of type</span>
-                <type :input="error.type"></type>
+                <type :input="error.expectedType"></type>
             </li>
             <li class="list-item">
                 <span>  actual:</span>
@@ -95,7 +95,7 @@ import { View } from "../../types";
                 <span>when checking that the clause</span>
                 <type :input="error.expr"></type>
                 <span>has type</span>
-                <type :input="error.type"></type>
+                <type :input="error.exprType"></type>
             </li>
         </template>
 

@@ -9,7 +9,7 @@ var { Point, Range } = require('atom');
 function parseContent(lines: string[]): View.Content {
     const {banner, body} = divideContent(lines);
     const bannerItems = concatItems(banner).map(parseBannerItem);
-    const bodyItems = concatItems(body).map(parseItem);
+    const bodyItems = concatItems(body).map(parseBodyItem);
     return {
         banner: bannerItems,
         body: bodyItems
@@ -172,7 +172,7 @@ function parseSort(str: string): View.Sort {
     }
 }
 
-function parseItem(str: string): View.Item {
+function parseBodyItem(str: string): View.BodyItem {
     return parseGoal(str) || parseJudgement(str) || parseMeta(str) || parseSort(str) || parseTerm(str);
 }
 
@@ -350,6 +350,5 @@ function parseError(strings: string[]): View.Error {
 
 export {
     parseContent,
-    parseItem,
     parseError
 }

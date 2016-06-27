@@ -32,10 +32,10 @@ function toHeaderStyle(type: V.Type): string {
 
 @Component({
     template: `
-        <div id="panel-header" class="inset-panel padded" v-show="content.header">
+        <div id="panel-header" class="inset-panel padded" v-show="header">
             <div id="panel-header-container" v-show="!inputMethodMode">
                 <div id="panel-title" class="text-{{headerStyle}}">
-                    {{content.header}}
+                    {{header}}
                 </div>
                 <div id="panel-widget">
                 </div>
@@ -50,9 +50,9 @@ function toHeaderStyle(type: V.Type): string {
 })
 
 class View extends Vue {
+    header: string;
     content: {
-        header: string,
-        body: string[],
+        body: string[]
         type: V.Type,
         placeholder: string
     };
@@ -77,8 +77,8 @@ class View extends Vue {
 
     data() {
         return {
+            header: "",
             content: {
-                header: "",
                 body: [],
                 type: null,
                 placeholder: ""
@@ -104,8 +104,8 @@ class View extends Vue {
 
     // methods
     set(header = "", body = [], type = V.Type.PlainText, placeholder = "") {
+        this.header = header;
         this.content = {
-            header: header,
             body: body,
             type: type,
             placeholder: placeholder
@@ -115,8 +115,8 @@ class View extends Vue {
     }
 
     query(header: string, type: V.Type, placeholder: string, enableIM = true): Promise<string> {
+        this.header = header;
         this.content = {
-            header: header,
             body: [],
             type: type,
             placeholder: placeholder
