@@ -120,15 +120,15 @@ class Error extends Vue {
     error: View.Error;
 
     // computed
-    get notInScope(): boolean { return this.error.errorType === "not in scope"; }
-    get typeMismatch(): boolean { return this.error.errorType === "type mismatch"; }
-    get wrongConstructor(): boolean { return this.error.errorType === "wrong constructor"; }
-    get applicationParseError(): boolean { return this.error.errorType === "application parse error"; }
-    get terminationError(): boolean { return this.error.errorType === "termination error"; }
-    get missingDefinition(): boolean { return this.error.errorType === "missing definition"; }
-    get rhsOmitted(): boolean { return this.error.errorType === "rhs omitted"; }
-    get parseError(): boolean { return this.error.errorType === "parse error"; }
-    get unknown(): boolean { return this.error.errorType === "unknown"; }
+    get notInScope(): boolean { return this.error.type === View.ErrorType.NotInScope; }
+    get typeMismatch(): boolean { return this.error.type === View.ErrorType.TypeMismatch; }
+    get wrongConstructor(): boolean { return this.error.type === View.ErrorType.WrongConstructor; }
+    get applicationParseError(): boolean { return this.error.type === View.ErrorType.ApplicationParseError; }
+    get terminationError(): boolean { return this.error.type === View.ErrorType.TerminationError; }
+    get missingDefinition(): boolean { return this.error.type === View.ErrorType.MissingDefinition; }
+    get rhsOmitted(): boolean { return this.error.type === View.ErrorType.RhsOmitted; }
+    get parseError(): boolean { return this.error.type === View.ErrorType.ParseError; }
+    get unknown(): boolean { return this.error.type === View.ErrorType.Unknown; }
 }
 
 Vue.component("error", Error);

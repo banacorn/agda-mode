@@ -136,145 +136,150 @@ function parseLocation(str: string): View.Location {
 //  Error
 ////////////////////////////////////////////////////////////////////////////////
 
-function parseNotInScope(str: string): any {
+function parseNotInScope(str: string, loc: View.Location): View.NotInScopeError {
     const regex = /Not in scope\:\s+((?:\n|.)*)\s+at/;
     const result = str.match(regex);
     if (result) {
         return {
-            errorType: "not in scope",
-            expr: result[1]
+            type: View.ErrorType.NotInScope,
+            expr: result[1],
+            location: loc
         };
     }
 }
 
-function parseTypeMismatch(str: string): any {
+function parseTypeMismatch(str: string, loc: View.Location): View.TypeMismatch {
     const regex = /((?:\n|.)*)\s+\!\=\<?\s+((?:\n|.)*)\s+of type\s+((?:\n|.)*)\s+when checking that the expression\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/;
     const result = str.match(regex);
     if (result) {
         return {
-            errorType: "type mismatch",
-            expected: result[2],
+            type: View.ErrorType.TypeMismatch,
             actual: result[1],
-            type: result[3],
+            expected: result[2],
+            expectedType: result[3],
             expr: result[4],
-            exprType: result[5]
+            exprType: result[5],
+            location: loc
         };
     }
 }
 
-function parseWrongConstructor(str: string): any {
+function parseWrongConstructor(str: string, loc: View.Location): View.WrongConstructor {
     const regex = /The constructor\s+((?:\n|.)*)\s+does not construct an element of\s+((?:\n|.)*)\s+when checking that the expression\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/;
     const result = str.match(regex);
     if (result) {
         return {
-            errorType: "wrong constructor",
+            type: View.ErrorType.WrongConstructor,
             constructor: result[1],
             constructorType: result[2],
             expr: result[3],
-            exprType: result[4]
+            exprType: result[4],
+            location: loc
         };
     }
 }
 
-function parseApplicationParseError(str: string): any {
+function parseApplicationParseError(str: string, loc: View.Location): View.ApplicationParseError {
     const regex = /Could not parse the application\s+((?:\n|.)*)\s+when scope checking\s+((?:\n|.)*)/;
     const result = str.match(regex);
     if (result) {
         return {
-            errorType: "application parse error",
-            expr: result[1]
+            type: View.ErrorType.ApplicationParseError,
+            expr: result[1],
+            location: loc
         };
     }
 }
 
-function parseCallLocation(str: string): any {
-    let result = [];
+function parseCallLocation(str: string): {
+    term: string,
+    location: View.Location
+}[] {
     const tokens = str.split(/\(at (.*)\)/);
-    tokens.forEach((token, i) => {
-        if (token !== "" && i % 2 === 0) {
-            result[Math.floor(i/2)] = {
-                term: token.trim()
-            };
-        } else if (token) {
-            result[Math.floor(i/2)].location = parseLocation(token)
-        }
+    return _.chunk(tokens, 2).filter((arr) => arr[0] !== "" ).map((arr) => {
+        return {
+            term: arr[0].trim(),
+            location: parseLocation(arr[1])
+        };
     });
-    return result;
 }
 
 
-function parseTerminationError(str: string): any {
+function parseTerminationError(str: string, loc: View.Location): View.TerminationError {
     const regex = /Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)/;
     const result = str.match(regex);
     if (result) {
         return {
-            errorType: "termination error",
+            type: View.ErrorType.TerminationError,
             expr: result[1],
-            calls: parseCallLocation(result[2])
+            calls: parseCallLocation(result[2]),
+            location: loc
         };
     }
 }
 
-function parseMissingDefinition(str: string): any {
+function parseMissingDefinition(str: string, loc: View.Location): View.MissingDefinition {
     const regex = /Missing definition for\s+((?:\n|.)*)/;
     const result = str.match(regex);
     if (result) {
         return {
-            errorType: "missing definition",
-            expr: result[1]
+            type: View.ErrorType.MissingDefinition,
+            expr: result[1],
+            location: loc
         };
     }
 }
 
-function parseRhsOmitted(str: string): any {
+function parseRhsOmitted(str: string, loc: View.Location): View.RhsOmitted {
     const regex = /The right-hand side can only be omitted if there is an absurd\s*pattern\, \(\) or \{\}\, in the left-hand side\.\s*when checking that the clause\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/;
     const result = str.match(regex);
     if (result) {
         return {
-            errorType: "rhs omitted",
+            type: View.ErrorType.RhsOmitted,
             expr: result[1],
-            type: result[2]
+            exprType: result[2],
+            location: loc
         };
     }
 }
 
 
-function parseParseError(str: string): any {
+function parseParseError(str: string, loc: View.Location): View.ParseError {
     const regex = /Parse error\s+((?:\n|.)*)\<ERROR\>\s+((?:\n|.)*)\.\.\./
     const result = str.match(regex);
     if (result) {
         return {
-            errorType: "parse error",
+            type: View.ErrorType.ParseError,
             expr: result[1],
-            post: result[2]
+            post: result[2],
+            location: loc
         };
     }
 }
 
-function parseUnknownError(str: string): any {
+function parseUnknownError(str: string): View.Unknown {
     return {
-        errorType: 'unknown',
+        type: View.ErrorType.Unknown,
         raw: str
     };
 }
 
-function parseError(strings: string[]): any {
+function parseError(strings: string[]): View.Error {
     const location = parseLocation(strings[0]);
 
 
     // the first line does not contains Location
     const bulk = location ? _.tail(strings).join('\n') : strings.join('\n');
 
-    const result = parseNotInScope(bulk) ||
-        parseTypeMismatch(bulk) ||
-        parseWrongConstructor(bulk) ||
-        parseApplicationParseError(bulk) ||
-        parseTerminationError(bulk) ||
-        parseMissingDefinition(bulk) ||
-        parseRhsOmitted(bulk) ||
-        parseParseError(bulk) ||
+    const result = parseNotInScope(bulk, location) ||
+        parseTypeMismatch(bulk, location) ||
+        parseWrongConstructor(bulk, location) ||
+        parseApplicationParseError(bulk, location) ||
+        parseTerminationError(bulk, location) ||
+        parseMissingDefinition(bulk, location) ||
+        parseRhsOmitted(bulk, location) ||
+        parseParseError(bulk, location) ||
         parseUnknownError(bulk);
-    result.location = location;
     return result;
 }
 

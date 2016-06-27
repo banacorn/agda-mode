@@ -256,8 +256,93 @@ namespace View {
     }
 
     // Errors
+    export type Error = NotInScopeError |
+        TypeMismatch |
+        WrongConstructor |
+        ApplicationParseError |
+        TerminationError |
+        MissingDefinition |
+        RhsOmitted |
+        ParseError |
+        Unknown;
 
-    export type Error = any;
+    export const enum ErrorType {
+        NotInScope,
+        TypeMismatch,
+        WrongConstructor,
+        ApplicationParseError,
+        TerminationError,
+        MissingDefinition,
+        RhsOmitted,
+        ParseError,
+        Unknown
+    }
+
+    export interface NotInScopeError {
+        type: ErrorType,
+        expr: string,
+        location: Location
+    }
+
+    export interface TypeMismatch {
+        type: ErrorType,
+        expected: string,
+        expectedType: string,
+        actual: string,
+        expr: string,
+        exprType: string,
+        location: Location
+    }
+
+    export interface WrongConstructor {
+        type: ErrorType,
+        constructor: string,
+        constructorType: string,
+        expr: string,
+        exprType: string,
+        location: Location
+    }
+
+    export interface ApplicationParseError {
+        type: ErrorType,
+        expr: string,
+        location: Location
+    }
+
+    export interface TerminationError {
+        type: ErrorType,
+        expr: string,
+        calls: {
+            term: string,
+            location: Location
+        }[],
+        location: Location
+    }
+
+    export interface MissingDefinition {
+        type: ErrorType,
+        expr: string,
+        location: Location
+    }
+
+    export interface RhsOmitted {
+        type: ErrorType,
+        expr: string,
+        exprType: string,
+        location: Location
+    }
+
+    export interface ParseError {
+        type: ErrorType,
+        expr: string,
+        post: string,
+        location: Location
+    }
+
+    export interface Unknown {
+        type: ErrorType,
+        raw: string,
+    }
 
 }
 
