@@ -42,7 +42,10 @@ function concatItems(lines: string[]): string[] {
             result[currentLine] = line;
         } else {
             // is not a new line, concat to the previous line
-            result[currentLine] = result[currentLine].concat("\n" + line);
+            if (result[currentLine])
+                result[currentLine] = result[currentLine].concat("\n" + line);
+            else
+                result[currentLine] = line;
         }
     });
     return _.compact(result);

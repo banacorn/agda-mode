@@ -163,23 +163,20 @@ export default class Commander {
 
     whyInScope(): Promise<Result> {
         this.core.view.setContent("Scope info", [], "plain-text", "name:");
-        this.core.view.queryMode = true;
         return this.core.view.query()
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
                     .then((goal) => {
                         // goal-specific
-                        this.core.textBuffer.focus();
-                        return this.core.process.whyInScope(expr, goal)
-                            .then(resolveCommand(CommandType.WhyInScope));
+                        return this.core.process.whyInScope(expr, goal);
                     })
                     .catch((error) => {
                         // global command
-                        this.core.textBuffer.focus();
-                        return this.core.process.whyInScope(expr)
-                            .then(resolveCommand(CommandType.WhyInScope));
+                        return this.core.process.whyInScope(expr);
                     });
-            });
+            })
+            .then(resolveCommand(CommandType.WhyInScope));
+
     }
 
     inferType(normalization: Normalization): Promise<Result> {
@@ -188,25 +185,19 @@ export default class Commander {
                 // goal-specific
                 if (goal.isEmpty()) {
                     this.core.view.setContent(`Infer type ${toDescription(normalization)}`, [], "value", "expression to infer:");
-                    this.core.view.queryMode = true;
                     return this.core.view.query()
-                        .then((expr) => {
-                            this.core.process.inferType(normalization, expr, goal);
-                        })
+                        .then(this.core.process.inferType(normalization, goal))
                         .then(resolveCommand(CommandType.InferType));
                 } else {
-                    return this.core.process.inferType(normalization, goal.getContent(), goal)
+                    return this.core.process.inferType(normalization, goal)(goal.getContent())
                         .then(resolveCommand(CommandType.InferType));
                 }
             })
             .catch(() => {
                 // global command
                 this.core.view.setContent(`Infer type ${toDescription(normalization)}`, [], "value", "expression to infer:");
-                this.core.view.queryMode = true;
                 return this.core.view.query()
-                    .then((expr) => {
-                        return this.core.process.inferType(normalization, expr)
-                    })
+                    .then(this.core.process.inferType(normalization))
                     .then(resolveCommand(CommandType.InferType));
             })
     }
@@ -217,18 +208,12 @@ export default class Commander {
         return this.core.view.query()
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
-                    .then((goal) => {
-                        // goal-specific
-                        this.core.textBuffer.focus();
-                        return this.core.process.moduleContents(normalization, expr, goal)
-                            .then(resolveCommand(CommandType.ModuleContents));
-                    }, () => {
-                        // global command
-                        this.core.textBuffer.focus();
-                        return this.core.process.moduleContents(normalization, expr)
-                            .then(resolveCommand(CommandType.ModuleContents));
+                    .then(this.core.process.moduleContents(normalization, expr))
+                    .catch((error) => {
+                        return this.core.process.moduleContents(normalization, expr)();
                     });
-            });
+            })
+            .then(resolveCommand(CommandType.ModuleContents));
     }
 
 
@@ -237,15 +222,9 @@ export default class Commander {
         return this.core.view.query()
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
-                    .then((goal) => {
-                        // goal-specific
-                        this.core.textBuffer.focus();
-                        return this.core.process.computeNormalForm(expr, goal);
-                    })
+                    .then(this.core.process.computeNormalForm(expr))
                     .catch((error) => {
-                        // global command
-                        this.core.textBuffer.focus();
-                        return this.core.process.computeNormalForm(expr);
+                        return this.core.process.computeNormalForm(expr)();
                     });
             })
             .then(resolveCommand(CommandType.ComputeNormalForm));
@@ -257,15 +236,9 @@ export default class Commander {
         return this.core.view.query()
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
-                    .then((goal) => {
-                        // goal-specific
-                        this.core.textBuffer.focus();
-                        return this.core.process.computeNormalFormIgnoreAbstract(expr, goal);
-                    })
+                    .then(this.core.process.computeNormalFormIgnoreAbstract(expr))
                     .catch((error) => {
-                        // global command
-                        this.core.textBuffer.focus();
-                        return this.core.process.computeNormalFormIgnoreAbstract(expr);
+                        return this.core.process.computeNormalFormIgnoreAbstract(expr)();
                     });
             })
             .then(resolveCommand(CommandType.ComputeNormalFormIgnoreAbstract));

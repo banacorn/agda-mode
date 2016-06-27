@@ -280,35 +280,43 @@ export default class Process {
     }
 
 
-    inferType = (normalization: Normalization, expr: string, goal?: Goal): Promise<ChildProcess> => {
-        if (goal) {
-            return this.sendCommand("NonInteractive", `Cmd_infer ${normalization} ${goal.index} noRange \"${expr}\"`);
-        } else {
-            return this.sendCommand("None", `Cmd_infer_toplevel ${normalization} \"${expr}\"`);
+    inferType = (normalization: Normalization, goal?: Goal): (expr: string) => Promise<ChildProcess> => {
+        return (expr) => {
+            if (goal) {
+                return this.sendCommand("NonInteractive", `Cmd_infer ${normalization} ${goal.index} noRange \"${expr}\"`);
+            } else {
+                return this.sendCommand("None", `Cmd_infer_toplevel ${normalization} \"${expr}\"`);
+            }
         }
     }
 
-    moduleContents = (normalization: Normalization, expr: string, goal?: Goal): Promise<ChildProcess> => {
-        if (goal) {
-            return this.sendCommand("NonInteractive", `Cmd_show_module_contents ${normalization} ${goal.index} noRange \"${expr}\"`);
-        } else {
-            return this.sendCommand("None", `Cmd_show_module_contents_toplevel ${normalization} \"${expr}\"`);
+    moduleContents = (normalization: Normalization, expr: string): (goal?: Goal) => Promise<ChildProcess> => {
+        return (goal) => {
+            if (goal) {
+                return this.sendCommand("NonInteractive", `Cmd_show_module_contents ${normalization} ${goal.index} noRange \"${expr}\"`);
+            } else {
+                return this.sendCommand("None", `Cmd_show_module_contents_toplevel ${normalization} \"${expr}\"`);
+            }
         }
     }
 
-    computeNormalForm = (expr: string, goal?: Goal): Promise<ChildProcess> => {
-        if (goal) {
-            return this.sendCommand("NonInteractive", `Cmd_compute False ${goal.index} noRange \"${expr}\"`);
-        } else {
-            return this.sendCommand("None", `Cmd_compute_toplevel False \"${expr}\"`);
+    computeNormalForm = (expr: string): (goal?: Goal) => Promise<ChildProcess> => {
+        return (goal) => {
+            if (goal) {
+                return this.sendCommand("NonInteractive", `Cmd_compute False ${goal.index} noRange \"${expr}\"`);
+            } else {
+                return this.sendCommand("None", `Cmd_compute_toplevel False \"${expr}\"`);
+            }
         }
     }
 
-    computeNormalFormIgnoreAbstract = (expr: string, goal?: Goal): Promise<ChildProcess> => {
-        if (goal) {
-            return this.sendCommand("NonInteractive", `Cmd_compute True ${goal.index} noRange \"${expr}\"`);
-        } else {
-            return this.sendCommand("None", `Cmd_compute_toplevel True \"${expr}\"`);
+    computeNormalFormIgnoreAbstract = (expr: string): (goal?: Goal) => Promise<ChildProcess> => {
+        return (goal) => {
+            if (goal) {
+                return this.sendCommand("NonInteractive", `Cmd_compute True ${goal.index} noRange \"${expr}\"`);
+            } else {
+                return this.sendCommand("None", `Cmd_compute_toplevel True \"${expr}\"`);
+            }
         }
     }
 
