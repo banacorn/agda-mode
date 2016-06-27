@@ -32,17 +32,17 @@ function toHeaderStyle(type: V.Type): string {
 
 @Component({
     template: `
-        <div id="panel-header" class="inset-panel padded" v-show="content.title">
+        <div id="panel-header" class="inset-panel padded" v-show="content.header">
             <div id="panel-header-container" v-show="!inputMethodMode">
                 <div id="panel-title" class="text-{{headerStyle}}">
-                    {{content.title}}
+                    {{content.header}}
                 </div>
                 <div id="panel-widget">
                 </div>
             </div>
             <agda-input-method id="panel-input-method" v-show="inputMethodMode" :input="inputMethodInput"></agda-input-method>
         </div>
-        <div id="panel-panel-body" class="padded" v-show="content.body.length || queryMode">
+        <div id="panel-body" class="padded" v-show="content.body.length || queryMode">
             <agda-panel-body id="panel-content" :style="{ maxHeight: panelHeight * panelSize + 'px' }" :raw-content="content"></agda-panel-body>
             <agda-input-editor id="panel-input-editor" v-ref:input-editor v-show="queryMode"></agda-input-editor>
         </div>
@@ -51,7 +51,7 @@ function toHeaderStyle(type: V.Type): string {
 
 class View extends Vue {
     content: {
-        title: string,
+        header: string,
         body: string[],
         type: V.Type,
         placeholder: string
@@ -78,7 +78,7 @@ class View extends Vue {
     data() {
         return {
             content: {
-                title: "",
+                header: "",
                 body: [],
                 type: null,
                 placeholder: ""
@@ -103,9 +103,9 @@ class View extends Vue {
     }
 
     // methods
-    setContent(title = "", body = [], type = V.Type.PlainText, placeholder = "") {
+    set(header = "", body = [], type = V.Type.PlainText, placeholder = "") {
         this.content = {
-            title: title,
+            header: header,
             body: body,
             type: type,
             placeholder: placeholder
@@ -114,7 +114,18 @@ class View extends Vue {
         this.headerStyle = toHeaderStyle(type);
     }
 
-    query(enableIM = true): Promise<string> {
+    query(header: string, type: V.Type, placeholder: string, enableIM = true): Promise<string> {
+        this.content = {
+            header: header,
+            body: [],
+            type: type,
+            placeholder: placeholder
+        };
+        this.headerStyle = toHeaderStyle(type);
+        // show input box, as it would had been hidden when initialized
+        this.queryMode = true;
+
+
         const promise = this.$refs.inputEditor.query(enableIM);
 
         // hide input editor and give focus back
@@ -127,8 +138,6 @@ class View extends Vue {
             atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
         });
 
-        // show input box, as it would had been hidden when initialized
-        this.queryMode = true;
 
         return promise;
     }

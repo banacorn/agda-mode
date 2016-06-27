@@ -162,8 +162,7 @@ export default class Commander {
     }
 
     whyInScope(): Promise<Result> {
-        this.core.view.setContent("Scope info", [], View.Type.PlainText, "name:");
-        return this.core.view.query()
+        return this.core.view.query("Scope info", View.Type.PlainText, "name:")
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
                     .then((goal) => {
@@ -184,8 +183,7 @@ export default class Commander {
             .then((goal) => {
                 // goal-specific
                 if (goal.isEmpty()) {
-                    this.core.view.setContent(`Infer type ${toDescription(normalization)}`, [], View.Type.Value, "expression to infer:");
-                    return this.core.view.query()
+                    return this.core.view.query(`Infer type ${toDescription(normalization)}`, View.Type.Value, "expression to infer:")
                         .then(this.core.process.inferType(normalization, goal))
                         .then(resolveCommand(CommandType.InferType));
                 } else {
@@ -195,8 +193,7 @@ export default class Commander {
             })
             .catch(() => {
                 // global command
-                this.core.view.setContent(`Infer type ${toDescription(normalization)}`, [], View.Type.Value, "expression to infer:");
-                return this.core.view.query()
+                return this.core.view.query(`Infer type ${toDescription(normalization)}`, View.Type.Value, "expression to infer:")
                     .then(this.core.process.inferType(normalization))
                     .then(resolveCommand(CommandType.InferType));
             })
@@ -204,8 +201,7 @@ export default class Commander {
 
 
     moduleContents(normalization: Normalization): Promise<Result> {
-        this.core.view.setContent(`Module contents ${toDescription(normalization)}`, [], View.Type.PlainText, "module name:");
-        return this.core.view.query()
+        return this.core.view.query(`Module contents ${toDescription(normalization)}`, View.Type.PlainText, "module name:")
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
                     .then(this.core.process.moduleContents(normalization, expr))
@@ -218,8 +214,7 @@ export default class Commander {
 
 
     computeNormalForm(): Promise<Result> {
-        this.core.view.setContent("Compute normal form", [], View.Type.Value, "expression to normalize:");
-        return this.core.view.query()
+        return this.core.view.query("Compute normal form", View.Type.Value, "expression to normalize:")
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
                     .then(this.core.process.computeNormalForm(expr))
@@ -232,8 +227,7 @@ export default class Commander {
 
 
     computeNormalFormIgnoreAbstract(): Promise<Result> {
-        this.core.view.setContent("Compute normal form (ignoring abstract)", [], View.Type.Value, "expression to normalize:");
-        return this.core.view.query()
+        return this.core.view.query("Compute normal form (ignoring abstract)", View.Type.Value, "expression to normalize:")
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
                     .then(this.core.process.computeNormalFormIgnoreAbstract(expr))
@@ -248,8 +242,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    this.core.view.setContent("Give", [], View.Type.PlainText, "expression to give:");
-                    this.core.view.query()
+                    this.core.view.query("Give", View.Type.PlainText, "expression to give:")
                         .then((expr) => {
                             goal.setContent(expr);
                             return goal;
@@ -278,8 +271,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    this.core.view.setContent("Case", [], View.Type.PlainText, "expression to case:");
-                    return this.core.view.query()
+                    return this.core.view.query("Case", View.Type.PlainText, "expression to case:")
                         .then((expr) => {
                             goal.setContent(expr);
                             return goal;
@@ -320,7 +312,7 @@ export default class Commander {
         if (atom.config.get("agda-mode.inputMethod")) {
             if (!this.loaded) {
                 this.core.atomPanel.show();
-                this.core.view.setContent("Not loaded", [], View.Type.Warning);
+                this.core.view.set("Not loaded", [], View.Type.Warning);
             }
             this.core.inputMethod.activate();
         } else {

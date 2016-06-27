@@ -100,9 +100,6 @@ class PanelBody extends Vue {
     header: View.Header[];
     body: View.Body | View.BodyError | View.BodyUnknown;
 
-    // hack
-    $refs: any;
-
     data() {
         return {
             header: null,
@@ -122,8 +119,8 @@ class PanelBody extends Vue {
     }
     // computed
 
-    set rawContent(content:{
-        title: string,
+    set rawContent(content: {
+        header: string,
         body: string[],
         type: View.Type,
         placeholder: string

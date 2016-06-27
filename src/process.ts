@@ -77,17 +77,24 @@ export default class Process {
 
     // keep banging the user until we got the right path
     queryExecutablePathUntilSuccess(error: Error) {
+        let header: string;
+        let type: View.Type;
+        let placeholder: string;
         switch (error.name) {
             case "ProcExecError":
-                this.core.view.setContent("Process execution error", error.message.split("\n"), View.Type.Error);
+                header = "Process execution error";
+                type = View.Type.Error;
+                placeholder = "";
                 break;
             case "InvalidExecutablePathError":
-                this.core.view.setContent(error.message, [], View.Type.Warning, "path of executable here");
+                header = error.message;
+                type = View.Type.Warning;
+                placeholder = "path of executable here";
                 break;
             default:
                 throw `unknown error: ${error.name}`;
         }
-        this.core.view.query(false)    // disable input method
+        this.core.view.query(header, type, placeholder, false)    // disable input method
             .then((path) => {
                 path = parseFilepath(path);
                 return this.validateExecutablePath(path)
@@ -236,7 +243,7 @@ export default class Process {
         const args = this.getProgramArgs();
         args.unshift("--interaction");
 
-        this.core.view.setContent("Info", [
+        this.core.view.set("Info", [
             `Agda version: ${this.agdaVersion.raw}`,
             `Agda executable path: ${path}`,
             `Agda executable arguments: ${args.join(" ")}`

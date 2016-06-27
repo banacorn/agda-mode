@@ -19,7 +19,6 @@ class InputEditor extends Vue {
     placeholderText: string;
 
     // hack
-    $refs: any;
     $el: any;
 
     data() {
