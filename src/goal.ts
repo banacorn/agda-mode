@@ -171,7 +171,7 @@ export default class Goal {
         return parseInputContent(rawContent);
     }
 
-    setContent(text: string) {
+    setContent = (text: string): Goal => {
         const range = this.range.translate(
             new Point(0, 2),
             new Point(0, -2)
@@ -179,6 +179,7 @@ export default class Goal {
         const indexWidth = this.index === -1 ? 1 : this.index.toString().length;
         const paddingSpaces = _.repeat(" ", indexWidth);
         this.editor.setTextInBufferRange(range, ` ${text} ${paddingSpaces}`);
+        return this;
     }
 
     selectContent() {

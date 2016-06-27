@@ -123,8 +123,6 @@ class View extends Vue {
         };
         this.headerStyle = toHeaderStyle(type);
         // show input box, as it would had been hidden when initialized
-        this.queryMode = true;
-
 
         const promise = this.$refs.inputEditor.query(enableIM);
 
@@ -138,6 +136,7 @@ class View extends Vue {
             atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
         });
 
+        this.queryMode = true;
 
         return promise;
     }

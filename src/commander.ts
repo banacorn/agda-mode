@@ -42,8 +42,14 @@ export default class Commander {
         // some commands can only be executed after "loaded"
         const exception = [CommandType.Load, CommandType.InputSymbol];
         if(this.loaded || _.includes(exception, command.type)) {
-            let test = this.dispatchCommand(command)
-            test.catch((error) => { throw error; });
+            this.dispatchCommand(command)
+                .catch(QueryCancelledError, () => {
+                    this.core.view.set("Query cancelled", [], View.Type.Warning);
+                })
+                .catch((error) => { // catch all the rest
+                    console.error(command);
+                    throw error;
+                });
         }
     }
 
@@ -161,6 +167,10 @@ export default class Commander {
             .then(resolveCommand(CommandType.PreviousGoal));
     }
 
+    //
+    //  The following commands may have a goal-specific version
+    //
+
     whyInScope(): Promise<Result> {
         return this.core.view.query("Scope info", View.Type.PlainText, "name:")
             .then((expr) => {
@@ -169,7 +179,7 @@ export default class Commander {
                         // goal-specific
                         return this.core.process.whyInScope(expr, goal);
                     })
-                    .catch((error) => {
+                    .catch(OutOfGoalError, () => {
                         // global command
                         return this.core.process.whyInScope(expr);
                     });
@@ -214,56 +224,77 @@ export default class Commander {
 
 
     computeNormalForm(): Promise<Result> {
-        return this.core.view.query("Compute normal form", View.Type.Value, "expression to normalize:")
-            .then((expr) => {
-                return this.core.textBuffer.getCurrentGoal()
-                    .then(this.core.process.computeNormalForm(expr))
-                    .catch((error) => {
-                        return this.core.process.computeNormalForm(expr)();
-                    });
+        return this.core.textBuffer.getCurrentGoal()
+            .then((goal) => {
+                if (goal.isEmpty()) {
+                    return this.core.view.query(`Compute normal form`, View.Type.Value, "expression to normalize:")
+                        .then(this.core.process.computeNormalForm(goal))
+                } else {
+                    return this.core.process.computeNormalForm(goal)(goal.getContent())
+                }
+            })
+            .catch(OutOfGoalError, () => {
+                return this.core.view.query(`Compute normal form`, View.Type.Value, "expression to normalize:")
+                    .then(this.core.process.computeNormalForm())
             })
             .then(resolveCommand(CommandType.ComputeNormalForm));
+
     }
 
 
     computeNormalFormIgnoreAbstract(): Promise<Result> {
-        return this.core.view.query("Compute normal form (ignoring abstract)", View.Type.Value, "expression to normalize:")
-            .then((expr) => {
-                return this.core.textBuffer.getCurrentGoal()
-                    .then(this.core.process.computeNormalFormIgnoreAbstract(expr))
-                    .catch((error) => {
-                        return this.core.process.computeNormalFormIgnoreAbstract(expr)();
-                    });
+        return this.core.textBuffer.getCurrentGoal()
+            .then((goal) => {
+                if (goal.isEmpty()) {
+                    return this.core.view.query(`Compute normal form (ignoring abstract)`, View.Type.Value, "expression to normalize:")
+                        .then(this.core.process.computeNormalFormIgnoreAbstract(goal))
+                } else {
+                    return this.core.process.computeNormalFormIgnoreAbstract(goal)(goal.getContent())
+                }
+            })
+            .catch(OutOfGoalError, () => {
+                return this.core.view.query(`Compute normal form (ignoring abstract)`, View.Type.Value, "expression to normalize:")
+                    .then(this.core.process.computeNormalFormIgnoreAbstract())
             })
             .then(resolveCommand(CommandType.ComputeNormalFormIgnoreAbstract));
     }
+
+    //
+    //  The following commands only working in the context of a specific goal
+    //
 
     give(): Promise<Result> {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    this.core.view.query("Give", View.Type.PlainText, "expression to give:")
-                        .then((expr) => {
-                            goal.setContent(expr);
-                            return goal;
-                        });
+                    return this.core.view.query("Give", View.Type.PlainText, "expression to give:")
+                        .then(goal.setContent);
                 } else {
                     return goal;
                 }
             })
             .then(this.core.process.give)
+            .catch(OutOfGoalError, () => {
+                this.core.view.set("Error", ["\"Give\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+            })
             .then(resolveCommand(CommandType.Give));
     }
 
     refine(): Promise<Result> {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.refine)
+            .catch(OutOfGoalError, () => {
+                this.core.view.set("Error", ["\"Refine\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+            })
             .then(resolveCommand(CommandType.Refine));
     }
 
     auto(): Promise<Result> {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.auto)
+            .catch(OutOfGoalError, () => {
+                this.core.view.set("Error", ["\"Auto\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+            })
             .then(resolveCommand(CommandType.Auto));
     }
 
@@ -272,39 +303,51 @@ export default class Commander {
             .then((goal) => {
                 if (goal.isEmpty()) {
                     return this.core.view.query("Case", View.Type.PlainText, "expression to case:")
-                        .then((expr) => {
-                            goal.setContent(expr);
-                            return goal;
-                        });
+                        .then(goal.setContent);
                 } else {
                     return goal;
                 }
             })
             .then(this.core.process.case)
+            .catch(OutOfGoalError, () => {
+                this.core.view.set("Error", ["\"Case\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+            })
             .then(resolveCommand(CommandType.Case));
     }
 
     goalType(normalization: Normalization): Promise<Result> {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.goalType(normalization))
+            .catch(OutOfGoalError, () => {
+                this.core.view.set("Error", ["\"Goal Type\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+            })
             .then(resolveCommand(CommandType.GoalType));
     }
 
     context(normalization: Normalization): Promise<Result> {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.context(normalization))
+            .catch(OutOfGoalError, () => {
+                this.core.view.set("Error", ["\"Context\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+            })
             .then(resolveCommand(CommandType.Context));
     }
 
     goalTypeAndContext(normalization: Normalization): Promise<Result> {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.goalTypeAndContext(normalization))
+            .catch(OutOfGoalError, () => {
+                this.core.view.set("Error", ["\"Goal Type & Context\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+            })
             .then(resolveCommand(CommandType.GoalTypeAndContext));
     }
 
     goalTypeAndInferredType(normalization: Normalization): Promise<Result> {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.goalTypeAndInferredType(normalization))
+            .catch(OutOfGoalError, () => {
+                this.core.view.set("Error", ["\"Goal Type & Inferred Type\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+            })
             .then(resolveCommand(CommandType.GoalTypeAndInferredType));
     }
 

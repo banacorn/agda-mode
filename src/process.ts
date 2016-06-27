@@ -102,12 +102,6 @@ export default class Process {
                     .catch(InvalidExecutablePathError, (error) => { this.queryExecutablePathUntilSuccess(error) });
             })
             .then((path) => {
-                path = parseFilepath(path);
-                return this.validateExecutablePath(path)
-                    .then((path) => { return path; })
-                    .catch(InvalidExecutablePathError, (error) => { this.queryExecutablePathUntilSuccess(error) });
-            })
-            .then((path) => {
                 atom.config.set("agda-mode.executablePath", path)
                 return path;
             })
@@ -307,8 +301,8 @@ export default class Process {
         }
     }
 
-    computeNormalForm = (expr: string): (goal?: Goal) => Promise<ChildProcess> => {
-        return (goal) => {
+    computeNormalForm = (goal?: Goal): (expr: string) => Promise<ChildProcess> => {
+        return (expr) => {
             if (goal) {
                 return this.sendCommand("NonInteractive", `Cmd_compute False ${goal.index} noRange \"${expr}\"`);
             } else {
@@ -317,8 +311,8 @@ export default class Process {
         }
     }
 
-    computeNormalFormIgnoreAbstract = (expr: string): (goal?: Goal) => Promise<ChildProcess> => {
-        return (goal) => {
+    computeNormalFormIgnoreAbstract = (goal?: Goal): (expr: string) => Promise<ChildProcess> => {
+        return (expr) => {
             if (goal) {
                 return this.sendCommand("NonInteractive", `Cmd_compute True ${goal.index} noRange \"${expr}\"`);
             } else {
