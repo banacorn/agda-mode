@@ -29,18 +29,20 @@ function divideContent(content: string[]): {
 
 // concatenate multiline judgements
 function concatItems(lines: string[]): string[] {
-    const lineStartRegex = /^(?:Goal|Have|\S+ )\:|Sort /;
-    let result: string[] = [];
+    const newlineRegex = /^(?:Goal\:|Have\:|\S+\s+\:\s*|Sort) \S*/;
+
+    let result = [];
     let currentLine = 0;
-    lines.forEach((item, i) => {
-        if (item.match(lineStartRegex)) {
+    lines.forEach((line, i) => {
+        const notTheLastLine = i + 1 < lines.length;
+        const preemptLine = notTheLastLine ? line + "\n" + lines[i + 1] : line;
+        if (line.match(newlineRegex) || preemptLine.match(newlineRegex)) {
+            // is a new line
             currentLine = i;
-            result[currentLine] = item;
+            result[currentLine] = line;
         } else {
-            if (result.length === 0) // predicate only, no subject
-                result[currentLine] = item;
-            else
-                result[currentLine] = result[currentLine].concat("\n" + item);
+            // is not a new line, concat to the previous line
+            result[currentLine] = result[currentLine].concat("\n" + line);
         }
     });
     return _.compact(result);

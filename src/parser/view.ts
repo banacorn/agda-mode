@@ -52,7 +52,7 @@ function parseGoal(str: string): View.Goal {
 }
 
 function parseJudgement(str: string): View.Judgement {
-    const regex = /^([^\_\?].*) \: ((?:\n|.)+)/;
+    const regex = /^(?:([^\_\?](?:\n|.)*)) \: ((?:\n|.)+)/;
     const result = str.match(regex);
     if (result) {
         return {

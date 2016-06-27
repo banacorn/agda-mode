@@ -33,7 +33,7 @@ export default class Lexer {
                 let cursor = token.range.start // tracing ranges
                 return token.content
                     .split(regex)
-                    .filter((t) => { return t !== undefined || t !== null; })
+                    .filter((t) => { return t !== undefined && t !== null; })
                     .map((t, i) => {
                         const type = regex.test(t) ? targetType : sourceType;
                         const cursorOld = cursor;

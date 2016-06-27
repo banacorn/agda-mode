@@ -306,10 +306,10 @@ export default class Commander {
             .then((goal) => {
                 if (goal.isEmpty()) {
                     this.core.view.setContent("Case", [], "plain-text", "expression to case:");
-                    this.core.view.query()
+                    return this.core.view.query()
                         .then((expr) => {
                             goal.setContent(expr);
-                            return goal
+                            return goal;
                         });
                 } else {
                     return goal;
