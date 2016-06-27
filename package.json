@@ -19,10 +19,11 @@
     "atom": ">0.180.0"
   },
   "dependencies": {
-    "bluebird": "^3.0",
+    "bluebird": "^3.4",
     "lisp-to-array": "^0.2",
     "lodash": "^4.12",
-    "semver": "^5.1.0",
-    "vue": "1.0.10-csp"
+    "semver": "^5.1.1",
+    "vue": "1.0.10-csp",
+    "vue-class-component": "^3.2.0"
   }
 }
