@@ -103,7 +103,7 @@ export default class Process {
     // 3. else query the user until success
     getExecutablePath(): Promise<string> {
         return this.getPathFromSettings()                                                   //  1
-            .catch(InvalidExecutablePathError, () => { return this.getPathByWhich(); })     //  2
+            .catch(InvalidExecutablePathError, () => { return this.autoGetPath(); })        //  2
             .catch((error) => { return this.queryExecutablePathUntilSuccess(error); })      //  3
     }
 
@@ -114,15 +114,20 @@ export default class Process {
     }
 
     // get executable path by the command "which"
-    getPathByWhich(): Promise<string> {
+    autoGetPath(): Promise<string> {
         return new Promise((resolve: (string) => void, reject) => {
+            const onWindows = process.platform === "win32";
             const programName = atom.config.get("agda-mode.programName");
-            exec(`which ${programName}`, (error, stdout, stderr) => {
-                if (error)
+            if (onWindows) {
+                reject(new AutoExecPathSearchError("", programName));
+            } else {
+                exec(`which ${programName}`, (error, stdout, stderr) => {
+                    if (error)
                     reject(new AutoExecPathSearchError(error.name, programName));
-                else
+                    else
                     resolve(this.validateExecutablePath(stdout));
-            });
+                });
+            }
         });
     }
 
