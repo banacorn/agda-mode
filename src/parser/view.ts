@@ -295,6 +295,21 @@ function parseMissingDefinition(str: string, loc: View.Location): View.MissingDe
     }
 }
 
+
+function parseMultipleDefinition(str: string, loc: View.Location): View.MultipleDefinition {
+    const regex = /Multiple definitions of ((?:\n|.)*)\. Previous definition at\n(?:\n|.)*\ scope checking the declaration\n\W*((?:\n|.)*)/;
+    const result = str.match(regex);
+    if (result) {
+        const judgement = parseJudgement(result[2]);
+        return {
+            type: View.ErrorType.MultipleDefinition,
+            expr: judgement.expr,
+            exprType: judgement.type,
+            location: loc
+        };
+    }
+}
+
 function parseRhsOmitted(str: string, loc: View.Location): View.RhsOmitted {
     const regex = /The right-hand side can only be omitted if there is an absurd\s*pattern\, \(\) or \{\}\, in the left-hand side\.\s*when checking that the clause\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/;
     const result = str.match(regex);
@@ -342,6 +357,7 @@ function parseError(strings: string[]): View.Error {
         parseApplicationParseError(bulk, location) ||
         parseTerminationError(bulk, location) ||
         parseMissingDefinition(bulk, location) ||
+        parseMultipleDefinition(bulk, location) ||
         parseRhsOmitted(bulk, location) ||
         parseParseError(bulk, location) ||
         parseUnknownError(bulk);

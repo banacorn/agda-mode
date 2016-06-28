@@ -4,8 +4,7 @@ import { View } from "../../types";
 
 @Component({
     props: {
-        location: Object,
-        noFloat: Boolean
+        location: Object
     },
     template: `<span class="{{classes}} text-subtle" @click="jump(location)"><template v-if="location.path">{{location.path}}:</template><template v-if="isSameLine">{{location.range.start.row + 1}},{{location.range.start.column + 1}}-{{location.range.end.column + 1}}</template><template v-if="notSameLine">{{location.range.start.row + 1}},{{location.range.start.column + 1}}-{{location.range.end.row + 1}},{{location.range.end.column + 1}}</template></span>`
 })
@@ -13,7 +12,6 @@ class Location extends Vue {
 
     // props
     location: View.Location;
-    noFloat: boolean;
 
     // methods
     jump(index: number) {
@@ -21,7 +19,8 @@ class Location extends Vue {
     }
 
     get classes(): string {
-        if (this.noFloat)
+        const attr = this.$el.attributes.getNamedItem('no-float');
+        if (attr)
             return "location no-float";
         else
             return "location";

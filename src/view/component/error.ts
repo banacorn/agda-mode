@@ -86,6 +86,14 @@ import { View } from "../../types";
             </li>
         </template>
 
+        <template v-if="multipleDefinition">
+            <li class="list-item">
+                <span>Multiple definitions of </span>
+                <type :input="error.expr"></type><span> : </span><type :input="error.exprType"></type>
+                <location :location="error.location"></location>
+            </li>
+        </template>
+
         <template v-if="rhsOmitted">
             <li class="list-item">
                 <span>The right-hand side can only be omitted if there is an absurd pattern, () or {}, in the left-hand side.</span>
@@ -126,6 +134,7 @@ class Error extends Vue {
     get applicationParseError(): boolean { return this.error.type === View.ErrorType.ApplicationParseError; }
     get terminationError(): boolean { return this.error.type === View.ErrorType.TerminationError; }
     get missingDefinition(): boolean { return this.error.type === View.ErrorType.MissingDefinition; }
+    get multipleDefinition(): boolean { return this.error.type === View.ErrorType.MultipleDefinition; }
     get rhsOmitted(): boolean { return this.error.type === View.ErrorType.RhsOmitted; }
     get parseError(): boolean { return this.error.type === View.ErrorType.ParseError; }
     get unknown(): boolean { return this.error.type === View.ErrorType.Unknown; }
