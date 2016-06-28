@@ -124,7 +124,7 @@ class View extends Vue {
         this.headerStyle = toHeaderStyle(type);
         // show input box, as it would had been hidden when initialized
 
-        const promise = this.$refs.inputEditor.query(enableIM);
+        const promise = this.$refs.inputEditor.query(enableIM, placeholder);
 
         // hide input editor and give focus back
         this.$once("input-editor:confirm", () => {

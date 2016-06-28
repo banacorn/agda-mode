@@ -12,7 +12,7 @@ var { CompositeDisposable } = require("atom");
 declare var atom: any;
 
 @Component({
-    template: `<atom-text-editor mini></atom-text-editor>`
+    template: `<atom-text-editor mini placeholder-text="placeholderText"></atom-text-editor>`
 })
 class InputEditor extends Vue {
     subscriptions: CompositeDisposable;
@@ -53,6 +53,7 @@ class InputEditor extends Vue {
     // methods
     initialize(enableIM: boolean) {
         const textEditor = this.$el.getModel();
+
         // set grammar: agda to enable input method
         if (enableIM) {
             const agdaGrammar = atom.grammars.grammarForScopeName("source.agda");
@@ -71,7 +72,9 @@ class InputEditor extends Vue {
         textEditor.setPlaceholderText(this.placeholderText);
     }
 
-    query(enableIM: boolean): Promise<string> {
+    query(enableIM: boolean, placeholder: string): Promise<string> {
+        this.placeholderText = placeholder;
+
         this.initialize(enableIM);
         return new Promise((resolve: (string) => void, reject) => {
             this.$once("confirm", (expr) => {
