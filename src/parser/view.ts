@@ -345,23 +345,26 @@ function parseUnknownError(str: string): View.Unknown {
 }
 
 function parseError(strings: string[]): View.Error {
-    const location = parseLocation(strings[0]);
+    if (strings.length > 0) {
+        const location = parseLocation(strings[0]);
 
 
-    // the first line does not contains Location
-    const bulk = location ? _.tail(strings).join('\n') : strings.join('\n');
+        // the first line does not contains Location
+        const bulk = location ? _.tail(strings).join('\n') : strings.join('\n');
 
-    const result = parseNotInScope(bulk, location) ||
-        parseTypeMismatch(bulk, location) ||
-        parseWrongConstructor(bulk, location) ||
-        parseApplicationParseError(bulk, location) ||
-        parseTerminationError(bulk, location) ||
-        parseMissingDefinition(bulk, location) ||
-        parseMultipleDefinition(bulk, location) ||
-        parseRhsOmitted(bulk, location) ||
-        parseParseError(bulk, location) ||
-        parseUnknownError(bulk);
-    return result;
+        return parseNotInScope(bulk, location) ||
+            parseTypeMismatch(bulk, location) ||
+            parseWrongConstructor(bulk, location) ||
+            parseApplicationParseError(bulk, location) ||
+            parseTerminationError(bulk, location) ||
+            parseMissingDefinition(bulk, location) ||
+            parseMultipleDefinition(bulk, location) ||
+            parseRhsOmitted(bulk, location) ||
+            parseParseError(bulk, location) ||
+            parseUnknownError(bulk);
+    } else {
+        return null;
+    }
 }
 
 export {

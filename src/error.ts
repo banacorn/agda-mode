@@ -41,6 +41,16 @@ class InvalidExecutablePathError extends Error {
     }
 }
 
+class AutoExecPathSearchError extends Error {
+    programName: string;
+    constructor(message: string, programName: string) {
+        super(message);
+        this.name = "AutoExecPathSearchError";
+        this.programName = programName;
+        Error.captureStackTrace(this, AutoExecPathSearchError);
+    }
+}
+
 class ProcExecError extends Error {
     constructor(message: string) {
         super(message);
@@ -55,5 +65,6 @@ export {
     EmptyGoalError,
     QueryCancelledError,
     InvalidExecutablePathError,
+    AutoExecPathSearchError,
     ProcExecError
 }

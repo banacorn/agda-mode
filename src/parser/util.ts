@@ -4,6 +4,8 @@ declare var atom: any;
 
 function parseFilepath(s: string): string {
     if (s) {
+        // remove newlines
+        s = s.replace("\\n", "");
         // sanitize with path.parse first
         const parsed = path.parse(s);
         // join it back and replace Windows' stupid backslash with slash
