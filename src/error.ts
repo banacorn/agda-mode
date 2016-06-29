@@ -54,6 +54,7 @@ class AutoExecPathSearchError extends Error {
 class ProcExecError extends Error {
     constructor(message: string) {
         super(message);
+        this.message = message;
         this.name = "ProcExecError";
         Error.captureStackTrace(this, ProcExecError);
     }

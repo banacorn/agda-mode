@@ -116,8 +116,6 @@ export default class Commander {
             this.core.textBuffer.removeGoals();
             return this.core.process.quit()
                 .then(resolveCommand(CommandType.Quit));
-        } else {
-            return Promise.reject(new NotLoadedError("the file is not loaded"));
         }
     }
 

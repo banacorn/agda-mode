@@ -25,7 +25,6 @@ export default class Core {
     public atomPanel: any;
 
     constructor(public editor: any) {
-
         // helper methods on this.editor
         this.editor.fromIndex = (ind: number): number => {
             return this.editor.getBuffer().positionForCharacterIndex(ind);

@@ -74,13 +74,17 @@ export default class Process {
     }
 
     // keep banging the user until we got the right path
-    queryExecutablePathUntilSuccess(error: AutoExecPathSearchError | InvalidExecutablePathError): Promise<string> {
+    queryExecutablePathUntilSuccess(error: AutoExecPathSearchError | InvalidExecutablePathError | ProcExecError): Promise<string> {
         let header: string;
         let type: View.Type;
         let placeholder: string;
 
         if (error instanceof AutoExecPathSearchError) {
             header = `Automatic executable path searching failed (when searching for the name \"${ error.programName }\")`;
+            type = View.Type.Warning;
+            placeholder = "please enter the path by manual";
+        } else if (error instanceof ProcExecError) {
+            header = `Process execution error: ${error.message}`;
             type = View.Type.Warning;
             placeholder = "please enter the path by manual";
         } else {
@@ -145,10 +149,14 @@ export default class Process {
 
                         // catch other forms of errors
                         agdaProcess.on("error", (error) => {
-                            reject(new InvalidExecutablePathError("Failed miserably, please report this issue."));
+                            reject(new ProcExecError(error.message));
                         });
 
-                        agdaProcess.stdout.once("data", () => {
+                        agdaProcess.on("close", (signal) => {
+                            reject(new ProcExecError(`exit with signal ${signal.toString()}`));
+                        });
+
+                        agdaProcess.stdout.once("data", (data) => {
                             this.agdaProcessWired = true;
                             this.agdaProcess = agdaProcess;
                             resolve(agdaProcess);
@@ -161,7 +169,7 @@ export default class Process {
                                 handleAgdaResponse(this.core, response);
                             });
                     });
-                })
+                });
         }
     }
 
@@ -190,29 +198,33 @@ export default class Process {
 
 
     private sendCommand = (highlightingLevel: string, interaction: string | (() => string)): Promise<ChildProcess> => {
-        return this.wireAgdaProcess().then((agdaProcess) => {
-            const filepath = this.core.getPath();
-            const highlightingMethod = atom.config.get("agda-mode.highlightingMethod");
-            let command: string;
-            if (typeof interaction === "string") {
-                command = `IOTCM \"${filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction} )\n`
-            } else {    // interaction is a callback
-                command = `IOTCM \"${filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction()} )\n`;
-            }
-            agdaProcess.stdin.write(command);
-            return agdaProcess;
-        });
+        const filepath = this.core.getPath();
+        const highlightingMethod = atom.config.get("agda-mode.highlightingMethod");
+        let command: string;
+        if (typeof interaction === "string") {
+            command = `IOTCM \"${filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction} )\n`
+        } else {    // interaction is a callback
+            command = `IOTCM \"${filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction()} )\n`;
+        }
+        this.agdaProcess.stdin.write(command);
+        return Promise.resolve(this.agdaProcess);
     }
 
     load = (): Promise<ChildProcess> => {
-        // force save before load, since we are sending filepath but content
-        this.core.textBuffer.saveBuffer();
-        // if version > 2.5, ignore library path configuration
-        return this.sendCommand("NonInteractive", () => {
-            if (semver.gte(this.agdaVersion.sem, "2.5.0"))
-                return `Cmd_load \"${this.core.getPath()}\" []`
-            else
-                return `Cmd_load \"${this.core.getPath()}\" [${this.getLibraryPath()}]`
+        return this.wireAgdaProcess().then((agdaProcess) => {
+            this.agdaProcess = agdaProcess;
+            this.agdaProcessWired = true;
+            // force save before load, since we are sending filepath but content
+            this.core.textBuffer.saveBuffer();
+            // if version > 2.5, ignore library path configuration
+            return this.sendCommand("NonInteractive", () => {
+                if (semver.gte(this.agdaVersion.sem, "2.5.0"))
+                    return `Cmd_load \"${this.core.getPath()}\" []`
+                else
+                    return `Cmd_load \"${this.core.getPath()}\" [${this.getLibraryPath()}]`
+            });
+        }).catch(ProcExecError, (error) => {
+            this.queryExecutablePathUntilSuccess(error);
         });
     }
 
