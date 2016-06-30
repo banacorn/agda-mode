@@ -141,19 +141,26 @@ const config = {
         default: "",
         order: 1
     },
-    programName: {
-        title: "Agda program name",
-        description: "The name of the Agda executable, this will be used for execution\n and automatic path searching",
-        type: "string",
-        default: "agda",
-        order: 2
-    },
     programArgs: {
         title: "Agda program arguments",
         description: "Command-line arguments given to the Agda executable.<br>\nSeperate with spaces as you would in command-line, For example:\n`--no-termination-check --no-positivity-check`.<br>\nThe flag `--interaction` is always included as the first\n argument, and does not need to be added here.",
         type: "string",
         default: "",
+        order: 2
+    },
+    autoSearchPath: {
+        title: "Automatically search for executable path",
+        description: "Automatically search for executable path with the program name given below (not working for Windows)",
+        type: "boolean",
+        default: true,
         order: 3
+    },
+    programName: {
+        title: "Agda program name",
+        description: "The name of the Agda executable, this will be used for execution\n and automatic path searching",
+        type: "string",
+        default: "agda",
+        order: 4
     },
     backend: {
         title: "Backend",
@@ -161,7 +168,7 @@ const config = {
         type: "string",
         default: "MAlonzo",
         "enum": ["MAlonzo", "MAlonzoNoMain", "Epic", "JS"],
-        order: 4
+        order: 5
     },
     highlightingMethod: {
         title: "Highlighting information passing",
@@ -169,7 +176,7 @@ const config = {
         type: "string",
         default: "Direct",
         "enum": ["Indirect", "Direct"],
-        order: 5
+        order: 6
     },
     panelSize: {
         title: "Panel size",
@@ -178,21 +185,21 @@ const config = {
         default: 5,
         minimum: 1,
         maximum: 20,
-        order: 6
+        order: 7
     },
     inputMethod: {
         title: "Input Method",
         description: "Enable input method",
         type: "boolean",
         default: true,
-        order: 7
+        order: 8
     },
     trimSpaces: {
         title: "Trim spaces",
         description: "Remove leading and trailing spaces of an expression in an hole, when giving it to Agda. (Default to be False in Emacs, but True in here)",
         type: "boolean",
         default: true,
-        order: 8
+        order: 9
     }
 }
 

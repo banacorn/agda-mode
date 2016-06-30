@@ -28,14 +28,18 @@ class EmptyGoalError extends Error {
 class QueryCancelledError extends Error {
     constructor(message: string) {
         super(message);
+        this.message = message;
         this.name = "QueryCancelledError";
         Error.captureStackTrace(this, QueryCancelledError);
     }
 }
 
 class InvalidExecutablePathError extends Error {
-    constructor(message: string) {
+    path: string;
+    constructor(message: string, path: string) {
         super(message);
+        this.message = message;
+        this.path = path;
         this.name = "InvalidExecutablePathError";
         Error.captureStackTrace(this, InvalidExecutablePathError);
     }
@@ -45,6 +49,7 @@ class AutoExecPathSearchError extends Error {
     programName: string;
     constructor(message: string, programName: string) {
         super(message);
+        this.message = message;
         this.name = "AutoExecPathSearchError";
         this.programName = programName;
         Error.captureStackTrace(this, AutoExecPathSearchError);

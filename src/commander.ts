@@ -40,7 +40,7 @@ export default class Commander {
 
     activate(command: Command) {
         // some commands can only be executed after "loaded"
-        const exception = [CommandType.Load, CommandType.InputSymbol];
+        const exception = [CommandType.Load, CommandType.Info, CommandType.InputSymbol];
         if(this.loaded || _.includes(exception, command.type)) {
             this.dispatchCommand(command)
                 .catch(QueryCancelledError, () => {
@@ -170,7 +170,7 @@ export default class Commander {
     //
 
     whyInScope(): Promise<Result> {
-        return this.core.view.query("Scope info", View.Type.PlainText, "name:")
+        return this.core.view.query("Scope info", [], View.Type.PlainText, "name:")
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
                     .then((goal) => {
@@ -191,7 +191,7 @@ export default class Commander {
             .then((goal) => {
                 // goal-specific
                 if (goal.isEmpty()) {
-                    return this.core.view.query(`Infer type ${toDescription(normalization)}`, View.Type.Value, "expression to infer:")
+                    return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Type.Value, "expression to infer:")
                         .then(this.core.process.inferType(normalization, goal))
                         .then(resolveCommand(CommandType.InferType));
                 } else {
@@ -201,7 +201,7 @@ export default class Commander {
             })
             .catch(() => {
                 // global command
-                return this.core.view.query(`Infer type ${toDescription(normalization)}`, View.Type.Value, "expression to infer:")
+                return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Type.Value, "expression to infer:")
                     .then(this.core.process.inferType(normalization))
                     .then(resolveCommand(CommandType.InferType));
             })
@@ -209,7 +209,7 @@ export default class Commander {
 
 
     moduleContents(normalization: Normalization): Promise<Result> {
-        return this.core.view.query(`Module contents ${toDescription(normalization)}`, View.Type.PlainText, "module name:")
+        return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], View.Type.PlainText, "module name:")
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
                     .then(this.core.process.moduleContents(normalization, expr))
@@ -225,14 +225,14 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query(`Compute normal form`, View.Type.Value, "expression to normalize:")
+                    return this.core.view.query(`Compute normal form`, [], View.Type.Value, "expression to normalize:")
                         .then(this.core.process.computeNormalForm(goal))
                 } else {
                     return this.core.process.computeNormalForm(goal)(goal.getContent())
                 }
             })
             .catch(OutOfGoalError, () => {
-                return this.core.view.query(`Compute normal form`, View.Type.Value, "expression to normalize:")
+                return this.core.view.query(`Compute normal form`, [], View.Type.Value, "expression to normalize:")
                     .then(this.core.process.computeNormalForm())
             })
             .then(resolveCommand(CommandType.ComputeNormalForm));
@@ -244,14 +244,14 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query(`Compute normal form (ignoring abstract)`, View.Type.Value, "expression to normalize:")
+                    return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Type.Value, "expression to normalize:")
                         .then(this.core.process.computeNormalFormIgnoreAbstract(goal))
                 } else {
                     return this.core.process.computeNormalFormIgnoreAbstract(goal)(goal.getContent())
                 }
             })
             .catch(OutOfGoalError, () => {
-                return this.core.view.query(`Compute normal form (ignoring abstract)`, View.Type.Value, "expression to normalize:")
+                return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Type.Value, "expression to normalize:")
                     .then(this.core.process.computeNormalFormIgnoreAbstract())
             })
             .then(resolveCommand(CommandType.ComputeNormalFormIgnoreAbstract));
@@ -265,7 +265,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query("Give", View.Type.PlainText, "expression to give:")
+                    return this.core.view.query("Give", [], View.Type.PlainText, "expression to give:")
                         .then(goal.setContent);
                 } else {
                     return goal;
@@ -300,7 +300,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query("Case", View.Type.PlainText, "expression to case:")
+                    return this.core.view.query("Case", [], View.Type.PlainText, "expression to case:")
                         .then(goal.setContent);
                 } else {
                     return goal;

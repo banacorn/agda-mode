@@ -103,21 +103,21 @@ class View extends Vue {
     }
 
     // methods
-    set(header = "", body = [], type = V.Type.PlainText, placeholder = "") {
+    set(header: string, body: string[], type = V.Type.PlainText) {
         this.header = header;
         this.content = {
             body: body,
             type: type,
-            placeholder: placeholder
+            placeholder: ""
         };
         this.queryMode = false;
         this.headerStyle = toHeaderStyle(type);
     }
 
-    query(header: string, type: V.Type, placeholder: string, enableIM = true): Promise<string> {
+    query(header: string, message: string[], type: V.Type, placeholder: string, enableIM = true): Promise<string> {
         this.header = header;
         this.content = {
-            body: [],
+            body: message,
             type: type,
             placeholder: placeholder
         };

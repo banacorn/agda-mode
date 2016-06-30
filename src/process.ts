@@ -40,17 +40,21 @@ export default class Process {
         return new Promise((resolve: (string) => void, reject) => {
             path = parseFilepath(path) || "";
             if (path === "") {
-                reject(new InvalidExecutablePathError(`Path must not be empty: ${path}`));
+                reject(new InvalidExecutablePathError(`Path must not be empty`, path));
             } else {
                 try {
                     const args = this.getProgramArgs()
                     args.push("-V");
                     const agdaProcess = spawn(path, args);
                     agdaProcess.on("error", (error) => {
-                        reject(new InvalidExecutablePathError(`unable to spawn Agda process: ${path}`));
+                        reject(new InvalidExecutablePathError(`unable to spawn Agda process`, path));
                     })
-                    agdaProcess.stdout.once("data", (data) => {
+                    agdaProcess.stderr.once("data", (data) => {
+                        let message = `Spawned process returned with the following result (from stderr):\n\"${data.toString()}\"`;
+                        reject(new InvalidExecutablePathError(message, path));
+                    });
 
+                    agdaProcess.stdout.once("data", (data) => {
                         const result = data.toString().match(/^Agda version (.*)\n$/);
                         if (result) {
                             // normalize version number to valid semver
@@ -63,11 +67,12 @@ export default class Process {
                             atom.config.set("agda-mode.executablePath", path);
                             resolve(path);
                         } else {
-                            reject(new InvalidExecutablePathError(`Spawned process is not Agda: ${path}`));
+                            let message = `Spawned process returned with the following result (from stdout):\n\"${data.toString()}\"`;
+                            reject(new InvalidExecutablePathError(message, path));
                         }
                     });
                 } catch (error) {
-                    reject(new InvalidExecutablePathError(`${error}: ${path}`));
+                    reject(new InvalidExecutablePathError(error.toString(), path));
                 }
             }
         });
@@ -75,25 +80,30 @@ export default class Process {
 
     // keep banging the user until we got the right path
     queryExecutablePathUntilSuccess(error: AutoExecPathSearchError | InvalidExecutablePathError | ProcExecError): Promise<string> {
-        let header: string;
+        let name: string;
+        let message: string[];
         let type: View.Type;
         let placeholder: string;
 
         if (error instanceof AutoExecPathSearchError) {
-            header = `Automatic executable path searching failed (when searching for the name \"${ error.programName }\")`;
+            // header = `Automatic executable path searching failed (when searching for the name \"${ error.programName }\")`;
+            name = error.name;
+            message = error.message.split("\n");
             type = View.Type.Warning;
             placeholder = "please enter the path by manual";
         } else if (error instanceof ProcExecError) {
-            header = `Process execution error: ${error.message}`;
+            name = `Process execution error`;
+            message = error.message.split("\n");
             type = View.Type.Warning;
             placeholder = "please enter the path by manual";
-        } else {
-            header = "Invalid executable path";
-            type = View.Type.Warning;
+        } else if (error instanceof InvalidExecutablePathError) {
+            name = `Invalid executable path`;
+            message = [`Path: ${error.path}`].concat(error.message.split("\n"));
+            type = View.Type.Error;
             placeholder = "path of executable here";
         }
 
-        return this.core.view.query(header, type, placeholder, false)    // disable input method
+        return this.core.view.query(name, message, type, placeholder, false)    // disable input method
             .then(this.validateExecutablePath)
             .then((path) => {
                 atom.config.set("agda-mode.executablePath", path)
@@ -102,13 +112,25 @@ export default class Process {
             .catch(InvalidExecutablePathError, (error) => { return this.queryExecutablePathUntilSuccess(error) });
     }
 
-    // 1. get executable path from the settings
-    // 2. else by the command "which"
-    // 3. else query the user until success
+    // if auto path searching is on,
+    // then:
+    //  1. get executable path from the settings
+    //  2. else by the command "which"
+    //  3. else query the user until success
+    // else:
+    //  1. get executable path from the settings
+    //  2. else query the user until success
     getExecutablePath(): Promise<string> {
-        return this.getPathFromSettings()                                                   //  1
+        if (atom.config.get("agda-mode.autoSearchPath")) {
+            return this.getPathFromSettings()                                               //  1
             .catch(InvalidExecutablePathError, () => { return this.autoGetPath(); })        //  2
             .catch((error) => { return this.queryExecutablePathUntilSuccess(error); })      //  3
+        } else {
+            return this.getPathFromSettings()                                               //  1
+            .catch((error) => { return this.queryExecutablePathUntilSuccess(error); })      //  2
+        }
+
+
     }
 
     // get executable path from settings and validate it
@@ -153,7 +175,7 @@ export default class Process {
                         });
 
                         agdaProcess.on("close", (signal) => {
-                            reject(new ProcExecError(`exit with signal ${signal.toString()}`));
+                            reject(new ProcExecError(`exit with signal ${signal}`));
                         });
 
                         agdaProcess.stdout.once("data", (data) => {
@@ -237,13 +259,13 @@ export default class Process {
     info = (): Promise<void> => {
         const path = atom.config.get("agda-mode.executablePath");
         const args = this.getProgramArgs();
-        args.unshift("--interaction");
-
+        args.push("--interaction");
+        const agdaVersion = this.agdaVersion ? this.agdaVersion.raw : "null";
         this.core.view.set("Info", [
-            `Agda version: ${this.agdaVersion.raw}`,
+            `Agda version: ${agdaVersion}`,
             `Agda executable path: ${path}`,
             `Agda executable arguments: ${args.join(" ")}`
-        ]);
+        ], View.Type.PlainText);
 
         return Promise.resolve();
     }
