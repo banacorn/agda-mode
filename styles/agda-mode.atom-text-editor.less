@@ -4,7 +4,7 @@
 // for a full listing of what's available.
 @import "ui-variables";
 
-.agda-panel {
+.agda-view {
     font-size: 125%;
     z-index: 4;
 
@@ -16,16 +16,16 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-
-
-        #spinner {
-            opacity: 0;
-        }
-        #spinner.pending {
-            opacity: inherit;
-            transition-property: opacity;
-            transition-delay: 0.3s;
-        }
+        //
+        //
+        // #spinner {
+        //     opacity: 0;
+        // }
+        // #spinner.pending {
+        //     opacity: inherit;
+        //     transition-property: opacity;
+        //     transition-delay: 0.3s;
+        // }
 
     }
 
@@ -60,7 +60,7 @@
         overflow: scroll;
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
 
-        #panel-content-header {
+        #panel-content-banner {
             background: @base-background-color;
             span {  // cancel out Emacs' layout for Goal & Have
                 white-space:pre-line;

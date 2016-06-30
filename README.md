@@ -81,4 +81,31 @@ The key mapping of symbols are the same as in Emacs. For example: `\bn` for `ℕ
 | `    C-c C-x C-d` | remove goals and highlighting (deactivate) |
 | `    C-c C-x M- ` | comment/uncomment the rest of the buffer | nope |
 
+
+
+## How to contribute
+
+### Environment Setup
+
+1. clone the repo and load it as a development package
+2. open the repo in the development mode
+3. install dependencies
+```
+apm develop agda-mode
+atom -d ~/github/agda-mode
+npm install
+```
+
+The project is written in TypeScript so you would probably need these:
+```
+npm install -g typescript
+apm install atom-typescript
+```
+
+
+
+
+
+
+
 ![This gif looks cute so i'm keeping it](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)
