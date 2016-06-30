@@ -90,17 +90,17 @@ export default class Process {
             name = error.name;
             message = error.message.split("\n");
             type = View.Type.Warning;
-            placeholder = "please enter the path by manual";
+            placeholder = "please enter the path by manual or change the settings again";
         } else if (error instanceof ProcExecError) {
             name = `Process execution error`;
             message = error.message.split("\n");
             type = View.Type.Warning;
-            placeholder = "please enter the path by manual";
+            placeholder = "please enter the path by manual or change the settings again";
         } else if (error instanceof InvalidExecutablePathError) {
             name = `Invalid executable path`;
             message = [`Path: ${error.path}`].concat(error.message.split("\n"));
             type = View.Type.Error;
-            placeholder = "path of executable here";
+            placeholder = "try another path";
         }
 
         return this.core.view.query(name, message, type, placeholder, false)    // disable input method
@@ -148,10 +148,12 @@ export default class Process {
                 reject(new AutoExecPathSearchError("", programName));
             } else {
                 exec(`which ${programName}`, (error, stdout, stderr) => {
-                    if (error)
-                    reject(new AutoExecPathSearchError(error.name, programName));
-                    else
-                    resolve(this.validateExecutablePath(stdout));
+                    if (error) {
+                        console.error(error);
+                        reject(new AutoExecPathSearchError(error.toString(), programName));
+                    } else {
+                        resolve(this.validateExecutablePath(stdout));
+                    }
                 });
             }
         });
