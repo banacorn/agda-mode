@@ -1,3 +1,11 @@
+## 0.5.2
+* Rewrite everything with TypeScript
+* Fix tons of shit with the aid of types
+* Fix #31
+* Fix #23 ?
+* Upgrade dependencies
+
+
 ## 0.5.1
 * Fix the problem when a hole spans multiple lines (which arose from fixing #29)
 * Upgrade lodash to v4.12
