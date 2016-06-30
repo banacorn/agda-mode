@@ -40,7 +40,7 @@ export default class Commander {
 
     activate(command: Command) {
         // some commands can only be executed after "loaded"
-        const exception = [CommandType.Load, CommandType.Info, CommandType.InputSymbol];
+        const exception = [CommandType.Load, CommandType.Quit, CommandType.Info, CommandType.InputSymbol];
         if(this.loaded || _.includes(exception, command.type)) {
             this.dispatchCommand(command)
                 .catch(QueryCancelledError, () => {
@@ -110,12 +110,14 @@ export default class Commander {
     }
 
     quit(): Promise<Result> {
+        this.core.atomPanel.hide();
         if (this.loaded) {
             this.loaded = false;
-            this.core.atomPanel.hide();
             this.core.textBuffer.removeGoals();
             return this.core.process.quit()
                 .then(resolveCommand(CommandType.Quit));
+        } else {
+            return Promise.resolve({ type: CommandType.Quit });
         }
     }
 

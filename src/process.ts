@@ -15,9 +15,9 @@ Promise.longStackTraces();  // for debugging
 
 export default class Process {
 
-    agdaProcessWired: boolean
-    agdaProcess: ChildProcess
-    agdaVersion: {
+    private agdaProcessWired: boolean
+    private agdaProcess: ChildProcess
+    public agdaVersion: {
         raw: string,
         sem: string
     }
