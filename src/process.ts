@@ -4,7 +4,7 @@ import { spawn, exec, ChildProcess } from "child_process";
 import { parseFilepath, parseAgdaResponse } from "./parser";
 import Rectifier from "./parser/stream/rectifier";
 import { handleAgdaResponse } from "./handler";
-import { InvalidExecutablePathError, ProcExecError, AutoExecPathSearchError } from "./error";
+import { InvalidExecutablePathError, ProcExecError, AutoExecPathSearchError, AgdaParseError } from "./error";
 import { Goal, Normalization, View } from "./types";
 import Core from "./core";
 
@@ -181,17 +181,29 @@ export default class Process {
                         });
 
                         agdaProcess.stdout.once("data", (data) => {
-                            this.agdaProcessWired = true;
-                            this.agdaProcess = agdaProcess;
-                            resolve(agdaProcess);
+                            const result = data.toString().match(/^Agda2>/);
+                            if (result) {
+                                this.agdaProcessWired = true;
+                                this.agdaProcess = agdaProcess;
+                                resolve(agdaProcess);
+                            } else {
+                                reject(new AgdaParseError(data.toString()));
+                            }
                         });
 
                         agdaProcess.stdout
                             .pipe(new Rectifier)
                             .on("data", (data) => {
-                                const response = parseAgdaResponse(data);
-                                handleAgdaResponse(this.core, response);
-                            });
+                                try {
+                                    const response = parseAgdaResponse(data);
+                                    handleAgdaResponse(this.core, response);
+                                } catch (error) {
+                                    // show some message
+                                    this.core.view.set("Agda Parse Error",
+                                        [`Message from agda:`].concat(data.toString()),
+                                        View.Type.Error);
+                                }
+                            })
                     });
                 });
         }
@@ -249,6 +261,16 @@ export default class Process {
             });
         }).catch(ProcExecError, (error) => {
             this.queryExecutablePathUntilSuccess(error);
+        }).catch(AgdaParseError, (error) => {
+            const args = this.getProgramArgs()
+            args.push("-V");
+            this.core.view.set(
+                "Agda Parse Error", [
+                    `Arguments passed to Agda: \"${args.join(" ")}\"`,
+                    `Message from agda:`
+                ].concat(error.message),
+                View.Type.Error
+            );
         });
     }
 
