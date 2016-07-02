@@ -1,6 +1,15 @@
 import { Goal } from "./types";
 
 
+class AgdaParseError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.message = message;
+        this.name = "AgdaParseError";
+        Error.captureStackTrace(this, AgdaParseError);
+    }
+}
+
 class NotLoadedError extends Error {
     constructor(message: string) {
         super(message);
@@ -66,6 +75,7 @@ class ProcExecError extends Error {
 }
 
 export {
+    AgdaParseError,
     NotLoadedError,
     OutOfGoalError,
     EmptyGoalError,

@@ -4,7 +4,7 @@ import { spawn, exec, ChildProcess } from "child_process";
 import { parseFilepath, parseAgdaResponse } from "./parser";
 import Rectifier from "./parser/stream/rectifier";
 import { handleAgdaResponse } from "./handler";
-import { InvalidExecutablePathError, ProcExecError, AutoExecPathSearchError } from "./error";
+import { InvalidExecutablePathError, ProcExecError, AutoExecPathSearchError, AgdaParseError } from "./error";
 import { Goal, Normalization, View } from "./types";
 import Core from "./core";
 
@@ -55,7 +55,7 @@ export default class Process {
                     });
 
                     agdaProcess.stdout.once("data", (data) => {
-                        const result = data.toString().match(/^Agda version (.*)\n$/);
+                        const result = data.toString().match(/^Agda version (.*)(?:\r\n?|\n)$/);
                         if (result) {
                             // normalize version number to valid semver
                             const rawVerNum = result[1];
@@ -86,9 +86,10 @@ export default class Process {
         let placeholder: string;
 
         if (error instanceof AutoExecPathSearchError) {
-            // header = `Automatic executable path searching failed (when searching for the name \"${ error.programName }\")`;
-            name = error.name;
-            message = error.message.split("\n");
+            name = `Automatic executable path searching failed`;
+            message = [
+                `searching for: \"${ error.programName }\" in the environment`
+            ].concat(_.compact(error.message.split("\n")));
             type = View.Type.Warning;
             placeholder = "please enter the path by manual or change the settings again";
         } else if (error instanceof ProcExecError) {
@@ -181,17 +182,29 @@ export default class Process {
                         });
 
                         agdaProcess.stdout.once("data", (data) => {
-                            this.agdaProcessWired = true;
-                            this.agdaProcess = agdaProcess;
-                            resolve(agdaProcess);
+                            const result = data.toString().match(/^A/);
+                            if (result) {
+                                this.agdaProcessWired = true;
+                                this.agdaProcess = agdaProcess;
+                                resolve(agdaProcess);
+                            } else {
+                                reject(new AgdaParseError(data.toString()));
+                            }
                         });
 
                         agdaProcess.stdout
                             .pipe(new Rectifier)
                             .on("data", (data) => {
-                                const response = parseAgdaResponse(data);
-                                handleAgdaResponse(this.core, response);
-                            });
+                                try {
+                                    const response = parseAgdaResponse(data);
+                                    handleAgdaResponse(this.core, response);
+                                } catch (error) {
+                                    // show some message
+                                    this.core.view.set("Agda Parse Error",
+                                        [`Message from agda:`].concat(data.toString()),
+                                        View.Type.Error);
+                                }
+                            })
                     });
                 });
         }
@@ -249,6 +262,16 @@ export default class Process {
             });
         }).catch(ProcExecError, (error) => {
             this.queryExecutablePathUntilSuccess(error);
+        }).catch(AgdaParseError, (error) => {
+            const args = this.getProgramArgs()
+            args.push("-V");
+            this.core.view.set(
+                "Agda Parse Error", [
+                    `Arguments passed to Agda: \"${args.join(" ")}\"`,
+                    `Message from agda:`
+                ].concat(error.message),
+                View.Type.Error
+            );
         });
     }
 
