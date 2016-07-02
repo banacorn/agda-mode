@@ -86,9 +86,10 @@ export default class Process {
         let placeholder: string;
 
         if (error instanceof AutoExecPathSearchError) {
-            // header = `Automatic executable path searching failed (when searching for the name \"${ error.programName }\")`;
-            name = error.name;
-            message = error.message.split("\n");
+            name = `Automatic executable path searching failed`;
+            message = [
+                `searching for: \"${ error.programName }\" in the environment`
+            ].concat(_.compact(error.message.split("\n")));
             type = View.Type.Warning;
             placeholder = "please enter the path by manual or change the settings again";
         } else if (error instanceof ProcExecError) {

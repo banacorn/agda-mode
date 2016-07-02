@@ -275,7 +275,7 @@ export default class Commander {
             })
             .then(this.core.process.give)
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Error", ["\"Give\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Give\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
             })
             .then(resolveCommand(CommandType.Give));
     }
@@ -284,7 +284,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.refine)
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Error", ["\"Refine\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Refine\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
             })
             .then(resolveCommand(CommandType.Refine));
     }
@@ -293,7 +293,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.auto)
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Error", ["\"Auto\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Auto\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
             })
             .then(resolveCommand(CommandType.Auto));
     }
@@ -310,7 +310,7 @@ export default class Commander {
             })
             .then(this.core.process.case)
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Error", ["\"Case\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Case\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
             })
             .then(resolveCommand(CommandType.Case));
     }
@@ -319,7 +319,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.goalType(normalization))
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Error", ["\"Goal Type\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Goal Type\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
             })
             .then(resolveCommand(CommandType.GoalType));
     }
@@ -328,7 +328,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.context(normalization))
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Error", ["\"Context\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Context\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
             })
             .then(resolveCommand(CommandType.Context));
     }
@@ -337,7 +337,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.goalTypeAndContext(normalization))
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Error", ["\"Goal Type & Context\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Goal Type & Context\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
             })
             .then(resolveCommand(CommandType.GoalTypeAndContext));
     }
@@ -346,7 +346,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.goalTypeAndInferredType(normalization))
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Error", ["\"Goal Type & Inferred Type\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Goal Type & Inferred Type\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
             })
             .then(resolveCommand(CommandType.GoalTypeAndInferredType));
     }
