@@ -55,7 +55,7 @@ export default class Process {
                     });
 
                     agdaProcess.stdout.once("data", (data) => {
-                        const result = data.toString().match(/^Agda version (.*)\n$/);
+                        const result = data.toString().match(/^Agda version (.*)(?:\r\n?|\n)$/);
                         if (result) {
                             // normalize version number to valid semver
                             const rawVerNum = result[1];
@@ -181,7 +181,7 @@ export default class Process {
                         });
 
                         agdaProcess.stdout.once("data", (data) => {
-                            const result = data.toString().match(/^Agda2>/);
+                            const result = data.toString().match(/^A/);
                             if (result) {
                                 this.agdaProcessWired = true;
                                 this.agdaProcess = agdaProcess;
