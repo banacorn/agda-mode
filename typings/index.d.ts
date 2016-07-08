@@ -1,4 +1,5 @@
 /// <reference path="globals/node/index.d.ts" />
+/// <reference path="globals/parsimmon/index.d.ts" />
 /// <reference path="globals/vue/index.d.ts" />
 /// <reference path="modules/bluebird/index.d.ts" />
 /// <reference path="modules/lodash/index.d.ts" />

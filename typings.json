@@ -7,6 +7,7 @@
   },
   "globalDependencies": {
     "node": "registry:dt/node#6.0.0+20160523035754",
+    "parsimmon": "registry:dt/parsimmon#0.5.0+20160317120654",
     "vue": "registry:dt/vue#1.0.21+20160423143248"
   }
 }

@@ -1,10 +1,12 @@
 import * as _ from "lodash";;
+import { normalize } from "path";
 import { parseFilepath } from "./util";
 import { View } from "../types";
+import { Parser, seq, alt, takeWhile,
+    regex, digits, string
+    } from "parsimmon";
 
 var { Point, Range } = require('atom');
-
-
 
 function parseContent(lines: string[]): View.Content {
     const {banner, body} = divideContent(lines);
@@ -201,19 +203,74 @@ function parseLocation(str: string): View.Location {
 //  Error
 ////////////////////////////////////////////////////////////////////////////////
 
-function parseNotInScope(str: string, loc: View.Location): View.NotInScopeError {
-    const regex = /Not in scope\:\s+((?:\n|.)*)\s+at/;
-    const result = str.match(regex);
-    if (result) {
+const spaces = regex(/(\s|\{|\}|\(|\))*/);
+
+const identifier = regex(/\S+/).skip(spaces);
+
+const singleLineRange: Parser<[Range, Boolean]> = seq(
+        digits,
+        string(","),
+        digits,
+        string("-"),
+        digits
+    ).map((result) => {
+        const row = parseInt(result[0]) - 1;
+        const start = new Point(row, parseInt(result[2]) - 1);
+        const end   = new Point(row, parseInt(result[4]) - 1);
+        return <[Range, Boolean]>[new Range(start, end), false];
+    });
+
+const multiLineRange: Parser<[Range, Boolean]> = seq(
+        digits,
+        string(","),
+        digits,
+        string("-"),
+        digits,
+        string(","),
+        digits
+    ).map((result) => {
+        const start = new Point(parseInt(result[0]) - 1, parseInt(result[2]) - 1);
+        const end   = new Point(parseInt(result[4]) - 1, parseInt(result[6]) - 1);
+        return <[Range, Boolean]>[new Range(start, end), false];
+    });
+
+const range = alt(multiLineRange, singleLineRange);
+const location: Parser<View.Location> = seq(
+        takeWhile((c) => c !== ":"),
+        string(":"),
+        range
+    ).map((result) => {
+        return {
+            path: normalize(result[0]),
+            range: result[2][0],
+            isSameLine: result[2][1]
+        };
+    });
+
+const notInScope: Parser<View.NotInScopeError> = seq(
+        string("Not in scope:").skip(spaces).then(identifier),
+        string("at").skip(spaces).then(location).skip(spaces),
+        string("when scope checking ").then(identifier)
+    ).map((result) => {
         return {
             type: View.ErrorType.NotInScope,
-            expr: result[1],
-            location: loc
-        };
-    }
+            expr: result[0],
+            location: result[1]
+        }
+    });
+
+// const typeMismatch: Parser<View.TypeMismatch> = seq(
+//
+//     )
+
+function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Location): View.Error {
+    return parser.parse(input).value;
 }
 
+// Set !=< ℕ of type Set₁
+// when checking that the expression ℕ has type ℕ
 function parseTypeMismatch(str: string, loc: View.Location): View.TypeMismatch {
+    console.log(str);
     const regex = /((?:\n|.)*)\s+\!\=\<?\s+((?:\n|.)*)\s+of type\s+((?:\n|.)*)\s+when checking that the expression\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/;
     const result = str.match(regex);
     if (result) {
@@ -352,7 +409,7 @@ function parseError(strings: string[]): View.Error {
         // the first line does not contains Location
         const bulk = location ? _.tail(strings).join('\n') : strings.join('\n');
 
-        return parseNotInScope(bulk, location) ||
+        return tempAdapter(notInScope, bulk, location) ||
             parseTypeMismatch(bulk, location) ||
             parseWrongConstructor(bulk, location) ||
             parseApplicationParseError(bulk, location) ||

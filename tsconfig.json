@@ -45,6 +45,7 @@
         "src/view/input-method.ts",
         "src/view/panel-body.ts",
         "typings/globals/node/index.d.ts",
+        "typings/globals/parsimmon/index.d.ts",
         "typings/globals/vue/index.d.ts",
         "typings/index.d.ts",
         "typings/modules/bluebird/index.d.ts",

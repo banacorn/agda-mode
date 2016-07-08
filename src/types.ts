@@ -1,6 +1,8 @@
 import Goal from "./goal";
 
+import { ParsedPath } from "path";
 type Range = any;
+
 
 export type TextInput = string;
 
