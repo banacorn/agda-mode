@@ -110,7 +110,7 @@ class PanelBody extends Vue {
                     meta: [],
                     sort: []
                 };
-                this.error = parseError(content.body);
+                this.error = parseError(content.body.join("\n"));
                 this.plainText = [];
                 break;
             default:

@@ -2,7 +2,7 @@ import * as _ from "lodash";;
 import { normalize } from "path";
 import { parseFilepath } from "./util";
 import { View } from "../types";
-import { Parser, seq, alt, takeWhile,
+import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom,
     regex, digits, string
     } from "parsimmon";
 
@@ -203,6 +203,27 @@ function parseLocation(str: string): View.Location {
 //  Error
 ////////////////////////////////////////////////////////////////////////////////
 
+function beforePrim(f: (string) => string, s: string) {
+    return custom((success, failure) => {
+        return (stream, i) => {
+            const index = stream.substr(i).indexOf(s);
+            if (index !== -1 && i <= stream.length) {
+                return success(i + index, f(stream.substr(i, index)));
+            } else {
+                return failure(i, `'${s}' not found`);
+            }
+        }
+    });
+}
+const before = (s: string) => beforePrim((x) => x, s);
+const beforeAndSkip = (s: string) => before(s).skip(string(s));
+const trimBefore = (s: string) => beforePrim((x) => x.trim(), s);
+const trimBeforeAndSkip = (s: string) => trimBefore(s).skip(string(s));
+
+const trimResults = (xs: string[]) => xs.map((s) => s.trim());
+
+
+
 const spaces = regex(/(\s|\{|\}|\(|\))*/);
 
 const identifier = regex(/\S+/).skip(spaces);
@@ -217,7 +238,7 @@ const singleLineRange: Parser<[Range, Boolean]> = seq(
         const row = parseInt(result[0]) - 1;
         const start = new Point(row, parseInt(result[2]) - 1);
         const end   = new Point(row, parseInt(result[4]) - 1);
-        return <[Range, Boolean]>[new Range(start, end), false];
+        return <[Range, Boolean]>[new Range(start, end), true];
     });
 
 const multiLineRange: Parser<[Range, Boolean]> = seq(
@@ -248,42 +269,38 @@ const location: Parser<View.Location> = seq(
     });
 
 const notInScope: Parser<View.NotInScopeError> = seq(
-        string("Not in scope:").skip(spaces).then(identifier),
-        string("at").skip(spaces).then(location).skip(spaces),
-        string("when scope checking ").then(identifier)
+        location.skip(spaces),
+        string("Not in scope:").then(spaces).then(trimBeforeAndSkip("at")).skip(all)
     ).map((result) => {
-        return {
+        return <View.NotInScopeError>{
             type: View.ErrorType.NotInScope,
-            expr: result[0],
-            location: result[1]
+            expr: result[1],
+            location: result[0]
         }
     });
 
-// const typeMismatch: Parser<View.TypeMismatch> = seq(
-//
-//     )
-
-function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Location): View.Error {
-    return parser.parse(input).value;
-}
-
-// Set !=< ℕ of type Set₁
-// when checking that the expression ℕ has type ℕ
-function parseTypeMismatch(str: string, loc: View.Location): View.TypeMismatch {
-    console.log(str);
-    const regex = /((?:\n|.)*)\s+\!\=\<?\s+((?:\n|.)*)\s+of type\s+((?:\n|.)*)\s+when checking that the expression\s+((?:\n|.)*)\s+has type\s+((?:\n|.)*)/;
-    const result = str.match(regex);
-    if (result) {
-        return {
+const typeMismatch: Parser<View.TypeMismatch> = seq(
+        location.skip(spaces),
+        alt(trimBeforeAndSkip("!=<"), trimBeforeAndSkip("=<")),
+        trimBeforeAndSkip("of type"),
+        trimBeforeAndSkip("when checking that the expression"),
+        trimBeforeAndSkip("has type"),
+        all
+    ).map((result) => {
+        console.log(result);
+        return <View.TypeMismatch>{
             type: View.ErrorType.TypeMismatch,
             actual: result[1],
             expected: result[2],
             expectedType: result[3],
             expr: result[4],
             exprType: result[5],
-            location: loc
+            location: result[0]
         };
-    }
+    });
+
+function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Location): View.Error {
+    return parser.parse(input).value;
 }
 
 function parseWrongConstructor(str: string, loc: View.Location): View.WrongConstructor {
@@ -401,27 +418,36 @@ function parseUnknownError(str: string): View.Unknown {
     };
 }
 
-function parseError(strings: string[]): View.Error {
-    if (strings.length > 0) {
-        const location = parseLocation(strings[0]);
+const errorParser: Parser<View.Error> = alt(
+    notInScope,
+    typeMismatch
+);
 
-
-        // the first line does not contains Location
-        const bulk = location ? _.tail(strings).join('\n') : strings.join('\n');
-
-        return tempAdapter(notInScope, bulk, location) ||
-            parseTypeMismatch(bulk, location) ||
-            parseWrongConstructor(bulk, location) ||
-            parseApplicationParseError(bulk, location) ||
-            parseTerminationError(bulk, location) ||
-            parseMissingDefinition(bulk, location) ||
-            parseMultipleDefinition(bulk, location) ||
-            parseRhsOmitted(bulk, location) ||
-            parseParseError(bulk, location) ||
-            parseUnknownError(bulk);
-    } else {
-        return null;
-    }
+function parseError(input: string): View.Error {
+    console.log(input)
+    console.log(errorParser.parse(input));
+    return errorParser.parse(input).value;
+    // if (strings.length > 0) {
+    //     console.log(strings)
+    //     const location = parseLocation(strings[0]);
+    //
+    //
+    //     // the first line does not contains Location
+    //     const bulk = location ? _.tail(strings).join('\n') : strings.join('\n');
+    //
+    //     return tempAdapter(notInScope, bulk, location) ||
+    //         parseTypeMismatch(bulk, location) ||
+    //         parseWrongConstructor(bulk, location) ||
+    //         parseApplicationParseError(bulk, location) ||
+    //         parseTerminationError(bulk, location) ||
+    //         parseMissingDefinition(bulk, location) ||
+    //         parseMultipleDefinition(bulk, location) ||
+    //         parseRhsOmitted(bulk, location) ||
+    //         parseParseError(bulk, location) ||
+    //         parseUnknownError(bulk);
+    // } else {
+    //     return null;
+    // }
 }
 
 export {

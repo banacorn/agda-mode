@@ -86,6 +86,7 @@ declare module 'parsimmon' {
 
 		export function oneOf(chars: string): Parser<string>;
 		export function noneOf(chars: string): Parser<string>;
+		export function sepBy1<T, U>(content: Parser<T>, separator: Parser<U>): Parser<T[]>;
 		export function takeWhile(pred: (string) => boolean): Parser<string>;
 
 		/*
