@@ -268,11 +268,13 @@ namespace View {
         sort: Sort[]
     }
 
+    export type Suggestion = string[];
+
     ////////////////////////////////////////////
     // Errors
     ////////////////////////////////////////////
 
-    export type Error = NotInScopeError |
+    export type Error = NotInScope |
         TypeMismatch |
         WrongConstructor |
         ApplicationParseError |
@@ -296,10 +298,11 @@ namespace View {
         Unknown
     }
 
-    export interface NotInScopeError {
+    export interface NotInScope {
         type: ErrorType,
         expr: string,
-        location: Location
+        location: Location,
+        suggestion: Suggestion
     }
 
     export interface TypeMismatch {

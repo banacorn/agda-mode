@@ -40,6 +40,7 @@
         "src/view.ts",
         "src/view/component/error.ts",
         "src/view/component/location.ts",
+        "src/view/component/suggestion.ts",
         "src/view/component/type.ts",
         "src/view/input-editor.ts",
         "src/view/input-method.ts",

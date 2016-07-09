@@ -2,7 +2,7 @@ import * as _ from "lodash";;
 import { normalize } from "path";
 import { parseFilepath } from "./util";
 import { View } from "../types";
-import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom,
+import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom, succeed,
     regex, digits, string
     } from "parsimmon";
 
@@ -217,14 +217,15 @@ function beforePrim(f: (string) => string, s: string) {
 }
 const before = (s: string) => beforePrim((x) => x, s);
 const beforeAndSkip = (s: string) => before(s).skip(string(s));
-const trimBefore = (s: string) => beforePrim((x) => x.trim(), s);
-const trimBeforeAndSkip = (s: string) => trimBefore(s).skip(string(s));
+const trimBefore = (s: string) => beforePrim((x) => x.trim(), s).skip(spaces);
+const trimBeforeAndSkip = (s: string) => trimBefore(s).skip(string(s)).skip(spaces);
 
 const trimResults = (xs: string[]) => xs.map((s) => s.trim());
 
 
 
-const spaces = regex(/(\s|\{|\}|\(|\))*/);
+const spaces = regex(/\s*/);
+const token = (s: string) => string(s).skip(spaces);
 
 const identifier = regex(/\S+/).skip(spaces);
 
@@ -255,7 +256,7 @@ const multiLineRange: Parser<[Range, Boolean]> = seq(
         return <[Range, Boolean]>[new Range(start, end), false];
     });
 
-const range = alt(multiLineRange, singleLineRange);
+const range = alt(multiLineRange, singleLineRange).skip(spaces);
 const location: Parser<View.Location> = seq(
         takeWhile((c) => c !== ":"),
         string(":"),
@@ -266,16 +267,27 @@ const location: Parser<View.Location> = seq(
             range: result[2][0],
             isSameLine: result[2][1]
         };
-    });
+    }).skip(spaces);
 
-const notInScope: Parser<View.NotInScopeError> = seq(
-        location.skip(spaces),
-        string("Not in scope:").then(spaces).then(trimBeforeAndSkip("at")).skip(all)
+const didYouMean: Parser<View.Suggestion> = alt(seq(
+        token("(did you mean"),
+        sepBy1(regex(/'.*'/).skip(spaces), token("or")),
+        token("?)")
+    ), succeed([[], []])).map((result) => {
+        return result[1].map((s) => s.substr(1, s.length - 2)); // remove single quotes
+    }).skip(spaces);
+
+const notInScope: Parser<View.NotInScope> = seq(
+        location,
+        token("Not in scope:").then(trimBeforeAndSkip("at")).skip(location),
+        didYouMean,
+        all
     ).map((result) => {
-        return <View.NotInScopeError>{
+        return <View.NotInScope>{
             type: View.ErrorType.NotInScope,
             expr: result[1],
-            location: result[0]
+            location: result[0],
+            suggestion: result[2]
         }
     });
 

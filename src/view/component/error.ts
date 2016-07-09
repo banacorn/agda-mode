@@ -2,6 +2,9 @@ import Component from "vue-class-component";
 import * as Vue from "vue";
 import { View } from "../../types";
 
+import "./suggestion";
+
+
 @Component({
     props: {
         error: Object
@@ -13,6 +16,7 @@ import { View } from "../../types";
                 <type :input="error.expr"></type>
                 <location :location="error.location"></location>
             </li>
+            <suggestion :input="error.suggestion"></suggestion>
         </template>
         <template v-if="typeMismatch">
             <li class="list-item">
