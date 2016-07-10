@@ -483,9 +483,21 @@ const parse: Parser<View.Parse> =  seq(
         }
     });
 
-function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Location): View.Error {
-    return parser.parse(input).value;
-}
+
+const caseSingleHole: Parser<View.CaseSingleHole> =  seq(
+    location,
+    token("Right hand side must be a single hole when making a case").then(token("distinction")),
+    token("when checking that the expression"),
+    trimBeforeAndSkip("has type"),
+    all
+).map((result) => {
+    return <View.CaseSingleHole>{
+        type: View.ErrorType.CaseSingleHole,
+        location: result[0],
+        expr: result[3],
+        exprType: result[4]
+    }
+});
 
 
 // function parseCallLocation(str: string): {
@@ -525,6 +537,7 @@ const errorParser: Parser<View.Error> = alt(
     functionType,
     moduleMismatch,
     parse,
+    caseSingleHole,
     unparsed
 );
 

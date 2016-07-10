@@ -287,6 +287,7 @@ namespace View {
         FunctionType |
         ModuleMismatch |
         Parse |
+        CaseSingleHole |
         // ApplicationParseError |
         // TerminationError |
         // ParseError |
@@ -306,6 +307,7 @@ namespace View {
         FunctionType,
         ModuleMismatch,
         Parse,
+        CaseSingleHole,
         // ApplicationParseError,
         // TerminationError,
         // ParseError,
@@ -415,6 +417,12 @@ namespace View {
         expr: string,
     }
 
+    export interface CaseSingleHole {
+        type: ErrorType,
+        location: Location,
+        expr: string,
+        exprType: string
+    }
     // export interface ApplicationParseError {
     //     type: ErrorType,
     //     expr: string,

@@ -201,6 +201,18 @@ import "./suggestion";
             </li>
         </template>
 
+        <template v-if="caseSingleHole">
+            <li class="list-item">
+                <span>Right hand side must be a single hole when making a case distinction</span>
+                <location :location="error.location"></location>
+            </li>
+            <li class="list-item">
+                <span>when checking that the expression</span>
+                <type :input="error.expr"></type>
+                <span>has type</span>
+                <type :input="error.exprType"></type>
+            </li>
+        </template>
 
 
         <template v-if="applicationParseError">
@@ -237,6 +249,7 @@ class Error extends Vue {
     get functionType(): boolean { return this.error.type === View.ErrorType.FunctionType; }
     get moduleMismatch(): boolean { return this.error.type === View.ErrorType.ModuleMismatch; }
     get parse(): boolean { return this.error.type === View.ErrorType.Parse; }
+    get caseSingleHole(): boolean { return this.error.type === View.ErrorType.CaseSingleHole; }
     // get applicationParseError(): boolean { return this.error.type === View.ErrorType.ApplicationParseError; }
     get unparsed(): boolean { return this.error.type === View.ErrorType.Unparsed; }
 }
