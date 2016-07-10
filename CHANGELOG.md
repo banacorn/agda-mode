@@ -1,6 +1,11 @@
-## 0.5.2
+## 0.5.4
+* Handle some more cases of error
+* Text in the mini text editor is now selected by default
+
+## 0.5.3
 * Rewrite everything with TypeScript
 * Fix tons of shit with the aid of types
+* Fix #32
 * Fix #31
 * Fix #23 ?
 * Upgrade dependencies

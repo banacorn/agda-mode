@@ -302,7 +302,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query("Case", [], View.Type.PlainText, "expression to case:")
+                    return this.core.view.query("Case", [], View.Type.PlainText, "the argument to case:")
                         .then(goal.setContent);
                 } else {
                     return goal;

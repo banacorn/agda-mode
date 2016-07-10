@@ -65,8 +65,9 @@ class InputEditor extends Vue {
         // reject old queries
         this.$dispatch("input-editor:cancel");
 
-        // focus the input box (with setTimeout quirk)
-        setTimeout(() => { this.$el.focus(); });
+        this.focus();
+        this.select();
+
 
         // set placeholder text
         textEditor.setPlaceholderText(this.placeholderText);
@@ -74,7 +75,6 @@ class InputEditor extends Vue {
 
     query(enableIM: boolean, placeholder: string): Promise<string> {
         this.placeholderText = placeholder;
-
         this.initialize(enableIM);
         return new Promise((resolve: (string) => void, reject) => {
             this.$once("confirm", (expr) => {
@@ -84,6 +84,15 @@ class InputEditor extends Vue {
                 reject(new QueryCancelledError("query cancelled"));
             });
         });
+    }
+
+    // focus the input box (with setTimeout quirk)
+    focus() {
+        setTimeout(() => { this.$el.focus(); });
+    }
+
+    select() {
+        this.$el.getModel().selectAll();
     }
 
     isFocused() {

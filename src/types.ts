@@ -1,6 +1,8 @@
 import Goal from "./goal";
 
+import { ParsedPath } from "path";
 type Range = any;
+
 
 export type TextInput = string;
 
@@ -266,106 +268,182 @@ namespace View {
         sort: Sort[]
     }
 
+    export type Suggestion = string[];
+
     ////////////////////////////////////////////
     // Errors
     ////////////////////////////////////////////
 
-    export type Error = NotInScopeError |
+    export type Error = NotInScope |
         TypeMismatch |
-        WrongConstructor |
-        ApplicationParseError |
-        TerminationError |
-        MissingDefinition |
+        DefinitionTypeMismatch |
+        BadConstructor |
+        RHSOmitted |
+        MissingType |
         MultipleDefinition |
-        RhsOmitted |
-        ParseError |
-        Unknown;
+        MissingDefinition |
+        Termination |
+        ConstructorTarget |
+        FunctionType |
+        ModuleMismatch |
+        Parse |
+        CaseSingleHole |
+        PatternMatchOnNonDatatype |
+        // ApplicationParseError |
+        // TerminationError |
+        // ParseError |
+        Unparsed;
 
     export const enum ErrorType {
         NotInScope,
         TypeMismatch,
-        WrongConstructor,
-        ApplicationParseError,
-        TerminationError,
-        MissingDefinition,
+        DefinitionTypeMismatch,
+        BadConstructor,
+        RHSOmitted,
+        MissingType,
         MultipleDefinition,
-        RhsOmitted,
-        ParseError,
-        Unknown
+        MissingDefinition,
+        Termination,
+        ConstructorTarget,
+        FunctionType,
+        ModuleMismatch,
+        Parse,
+        CaseSingleHole,
+        PatternMatchOnNonDatatype,
+        // ApplicationParseError,
+        // TerminationError,
+        // ParseError,
+        Unparsed
     }
 
-    export interface NotInScopeError {
+    export interface NotInScope {
         type: ErrorType,
-        expr: string,
-        location: Location
+        location: Location,
+        suggestion: Suggestion,
+        expr: string
     }
 
     export interface TypeMismatch {
         type: ErrorType,
+        location: Location
         expected: string,
         expectedType: string,
         actual: string,
         expr: string,
-        exprType: string,
-        location: Location
+        exprType: string
     }
 
-    export interface WrongConstructor {
+    export interface DefinitionTypeMismatch {
         type: ErrorType,
+        location: Location
+        expected: string,
+        expectedType: string,
+        actual: string,
+        expr: string,
+        exprType: string
+    }
+
+    export interface BadConstructor {
+        type: ErrorType,
+        location: Location,
         constructor: string,
         constructorType: string,
         expr: string,
-        exprType: string,
-        location: Location
+        exprType: string
     }
 
-    export interface ApplicationParseError {
+    export interface RHSOmitted {
         type: ErrorType,
+        location: Location,
         expr: string,
-        location: Location
+        exprType: string
     }
 
-    export interface TerminationError {
+    export interface MissingType {
         type: ErrorType,
-        expr: string,
-        calls: {
-            term: string,
-            location: Location
-        }[],
-        location: Location
-    }
-
-    export interface MissingDefinition {
-        type: ErrorType,
-        expr: string,
-        location: Location
+        location: Location,
+        expr: string
     }
 
     export interface MultipleDefinition {
         type: ErrorType,
+        location: Location,
+        locationPrev: Location,
         expr: string,
-        exprType: string,
-        location: Location
+        decl: string,
+        declType: string
     }
 
-    export interface RhsOmitted {
+    export interface MissingDefinition {
         type: ErrorType,
-        expr: string,
-        exprType: string,
-        location: Location
+        location: Location,
+        expr: string
     }
 
-    export interface ParseError {
+    export interface Termination {
         type: ErrorType,
+        location: Location,
         expr: string,
-        post: string,
-        location: Location
+        calls: {
+            expr: string,
+            location: Location
+        }[]
     }
 
-    export interface Unknown {
+    export interface ConstructorTarget {
         type: ErrorType,
-        raw: string,
+        location: Location,
+        expr: string,
+        ctor: string,
+        decl: string
     }
+
+    export interface FunctionType {
+        type: ErrorType,
+        location: Location,
+        expr: string,
+        exprType: string
+    }
+
+    export interface ModuleMismatch {
+        type: ErrorType,
+        wrongPath: string,
+        rightPath: string,
+        moduleName: string
+    }
+
+    export interface Parse {
+        type: ErrorType,
+        location: Location
+        message: string,
+        expr: string,
+    }
+
+    export interface CaseSingleHole {
+        type: ErrorType,
+        location: Location,
+        expr: string,
+        exprType: string
+    }
+
+    export interface PatternMatchOnNonDatatype {
+        type: ErrorType,
+        location: Location,
+        nonDatatype: string,
+        expr: string,
+        exprType: string
+    }
+    // export interface ApplicationParseError {
+    //     type: ErrorType,
+    //     expr: string,
+    //     location: Location
+    // }
+    //
+    export interface Unparsed {
+        type: ErrorType,
+        input: string,
+    }
+
 
 
 }

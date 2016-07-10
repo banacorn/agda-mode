@@ -1,7 +1,7 @@
 {
   "name": "agda-mode",
   "main": "./lib/agda-mode",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "agda-mode for Atom",
   "activationCommands": {
     "atom-text-editor[data-grammar='source agda']": [
@@ -23,6 +23,7 @@
     "bluebird": "^3.4.1",
     "lisp-to-array": "^0.2",
     "lodash": "^4.13.1",
+    "parsimmon": "^0.9.0",
     "semver": "^5.1.1",
     "vue": "1.0.25-csp",
     "vue-class-component": "^3.2.0"
