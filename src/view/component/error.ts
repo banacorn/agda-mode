@@ -137,6 +137,19 @@ import "./suggestion";
             </li>
         </template>
 
+        <template v-if="functionType">
+            <li class="list-item">
+                <type :input="error.expr"></type>
+                <span>should be a function type, but it isn't</span>
+                <location :location="error.location"></location>
+            </li>
+            <li class="list-item">
+                <span>when checking that</span>
+                <type :input="error.expr"></type>
+                <span>is a valid argument to a function of type </span>
+                <type :input="error.exprType"></type>
+            </li>
+        </template>
 
         <template v-if="applicationParseError">
             <li class="list-item">
@@ -177,6 +190,7 @@ class Error extends Vue {
     get missingDefinition(): boolean { return this.error.type === View.ErrorType.MissingDefinition; }
     get termination(): boolean { return this.error.type === View.ErrorType.Termination; }
     get constructorTarget(): boolean { return this.error.type === View.ErrorType.ConstructorTarget; }
+    get functionType(): boolean { return this.error.type === View.ErrorType.FunctionType; }
     // get applicationParseError(): boolean { return this.error.type === View.ErrorType.ApplicationParseError; }
     // get parseError(): boolean { return this.error.type === View.ErrorType.ParseError; }
     get unparsed(): boolean { return this.error.type === View.ErrorType.Unparsed; }

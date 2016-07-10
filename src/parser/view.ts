@@ -412,7 +412,7 @@ const termination: Parser<View.Termination> =  seq(
 const constructorTarget: Parser<View.ConstructorTarget> =  seq(
         location,
         token("The target of a constructor must be the datatype applied to its"),
-        token("parameters, ").then(trimBeforeAndSkip("isn't")),
+        token("parameters,").then(trimBeforeAndSkip("isn't")),
         token("when checking the constructor").then(trimBeforeAndSkip("in the declaration of")),
         all
     ).map((result) => {
@@ -425,6 +425,20 @@ const constructorTarget: Parser<View.ConstructorTarget> =  seq(
         }
     });
 
+
+const functionType: Parser<View.FunctionType> =  seq(
+        location,
+        trimBeforeAndSkip("should be a function type, but it isn't"),
+        token("when checking that").then(trimBeforeAndSkip("is a valid argument to a function of type")),
+        all
+    ).map((result) => {
+        return <View.FunctionType>{
+            type: View.ErrorType.FunctionType,
+            location: result[0],
+            expr: result[2],
+            exprType: result[1]
+        }
+    });
 
 function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Location): View.Error {
     return parser.parse(input).value;
@@ -483,7 +497,8 @@ const errorParser: Parser<View.Error> = alt(
     missingDefinition,
     termination,
     constructorTarget,
-
+    functionType,
+    
     unparsed
 );
 

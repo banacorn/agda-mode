@@ -282,6 +282,7 @@ namespace View {
         MissingDefinition |
         Termination |
         ConstructorTarget |
+        FunctionType |
         // WrongConstructor |
         // ApplicationParseError |
         // TerminationError |
@@ -297,6 +298,7 @@ namespace View {
         MissingDefinition,
         Termination,
         ConstructorTarget,
+        FunctionType,
         // WrongConstructor,
         // ApplicationParseError,
         // TerminationError,
@@ -365,6 +367,13 @@ namespace View {
         expr: string,
         ctor: string,
         decl: string
+    }
+
+    export interface FunctionType {
+        type: ErrorType,
+        location: Location,
+        expr: string,
+        exprType: string
     }
 
     //
