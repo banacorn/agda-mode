@@ -327,22 +327,22 @@ const definitionTypeMismatch: Parser<View.DefinitionTypeMismatch> = seq(
         };
     });
 
-// const wrongConstructor: Parser<View.WrongConstructor> = seq(
-//         location,
-//         token("The constructor").then(trimBeforeAndSkip("does not construct an element of")),
-//         trimBeforeAndSkip("when checking that the expression"),
-//         trimBeforeAndSkip("has type"),
-//         all
-//     ).map((result) => {
-//         return <View.WrongConstructor>{
-//             type: View.ErrorType.WrongConstructor,
-//             constructor: result[1],
-//             constructorType: result[2],
-//             expr: result[3],
-//             exprType: result[4],
-//             location: result[0]
-//         };
-//     });
+const badConstructor: Parser<View.BadConstructor> = seq(
+        location,
+        token("The constructor").then(trimBeforeAndSkip("does not construct an element of")),
+        trimBeforeAndSkip("when checking that the expression"),
+        trimBeforeAndSkip("has type"),
+        all
+    ).map((result) => {
+        return <View.BadConstructor>{
+            type: View.ErrorType.BadConstructor,
+            location: result[0],
+            constructor: result[1],
+            constructorType: result[2],
+            expr: result[3],
+            exprType: result[4]
+        };
+    });
 
 const rhsOmitted: Parser<View.RHSOmitted> =  seq(
         location,
@@ -515,7 +515,7 @@ const errorParser: Parser<View.Error> = alt(
     notInScope,
     typeMismatch,
     definitionTypeMismatch,
-    // wrongConstructor,
+    badConstructor,
     rhsOmitted,
     missingType,
     multipleDefinition,

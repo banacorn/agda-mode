@@ -277,6 +277,7 @@ namespace View {
     export type Error = NotInScope |
         TypeMismatch |
         DefinitionTypeMismatch |
+        BadConstructor |
         RHSOmitted |
         MissingType |
         MultipleDefinition |
@@ -286,7 +287,6 @@ namespace View {
         FunctionType |
         ModuleMismatch |
         Parse |
-        // WrongConstructor |
         // ApplicationParseError |
         // TerminationError |
         // ParseError |
@@ -296,6 +296,7 @@ namespace View {
         NotInScope,
         TypeMismatch,
         DefinitionTypeMismatch,
+        BadConstructor,
         RHSOmitted,
         MissingType,
         MultipleDefinition,
@@ -305,7 +306,6 @@ namespace View {
         FunctionType,
         ModuleMismatch,
         Parse,
-        // WrongConstructor,
         // ApplicationParseError,
         // TerminationError,
         // ParseError,
@@ -335,6 +335,15 @@ namespace View {
         expected: string,
         expectedType: string,
         actual: string,
+        expr: string,
+        exprType: string
+    }
+
+    export interface BadConstructor {
+        type: ErrorType,
+        location: Location,
+        constructor: string,
+        constructorType: string,
         expr: string,
         exprType: string
     }
@@ -406,16 +415,6 @@ namespace View {
         expr: string,
     }
 
-    //
-    // export interface WrongConstructor {
-    //     type: ErrorType,
-    //     constructor: string,
-    //     constructorType: string,
-    //     expr: string,
-    //     exprType: string,
-    //     location: Location
-    // }
-    //
     // export interface ApplicationParseError {
     //     type: ErrorType,
     //     expr: string,

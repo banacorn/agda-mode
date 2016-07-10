@@ -63,7 +63,7 @@ import "./suggestion";
             </li>
         </template>
 
-        <template v-if="wrongConstructor">
+        <template v-if="badConstructor">
             <li class="list-item">
                 <span>The constructor</span>
                 <type :input="error.constructor"></type>
@@ -227,7 +227,7 @@ class Error extends Vue {
     get notInScope(): boolean { return this.error.type === View.ErrorType.NotInScope; }
     get typeMismatch(): boolean { return this.error.type === View.ErrorType.TypeMismatch; }
     get definitionTypeMismatch(): boolean { return this.error.type === View.ErrorType.DefinitionTypeMismatch; }
-    // get wrongConstructor(): boolean { return this.error.type === View.ErrorType.WrongConstructor; }
+    get badConstructor(): boolean { return this.error.type === View.ErrorType.BadConstructor; }
     get rhsOmitted(): boolean { return this.error.type === View.ErrorType.RHSOmitted; }
     get missingType(): boolean { return this.error.type === View.ErrorType.MissingType; }
     get multipleDefinition(): boolean { return this.error.type === View.ErrorType.MultipleDefinition; }
