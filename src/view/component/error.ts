@@ -18,6 +18,7 @@ import "./suggestion";
             </li>
             <suggestion :input="error.suggestion"></suggestion>
         </template>
+
         <template v-if="typeMismatch">
             <li class="list-item">
                 <span class="text-error">Type mismatch:</span>
@@ -38,6 +39,27 @@ import "./suggestion";
                 <type :input="error.expr"></type>
                 <span>has type</span>
                 <type :input="error.exprType"></type>
+            </li>
+        </template>
+
+        <template v-if="definitionTypeMismatch">
+            <li class="list-item">
+                <span class="text-error">Type mismatch:</span>
+                <location :location="error.location"></location>
+            </li>
+            <li class="list-item">
+                <span>expected:</span>
+                <type :input="error.expected"></type>
+                <span>of type</span>
+                <type :input="error.expectedType"></type>
+            </li>
+            <li class="list-item">
+                <span>  actual:</span>
+                <type :input="error.actual"></type>
+            </li>
+            <li class="list-item">
+                <span>when checking the definition of</span>
+                <type :input="error.expr"></type>
             </li>
         </template>
 
@@ -146,7 +168,7 @@ import "./suggestion";
             <li class="list-item">
                 <span>when checking that</span>
                 <type :input="error.expr"></type>
-                <span>is a valid argument to a function of type </span>
+                <span>is a valid argument to a function of type</span>
                 <type :input="error.exprType"></type>
             </li>
         </template>
@@ -183,6 +205,7 @@ class Error extends Vue {
     // computed
     get notInScope(): boolean { return this.error.type === View.ErrorType.NotInScope; }
     get typeMismatch(): boolean { return this.error.type === View.ErrorType.TypeMismatch; }
+    get definitionTypeMismatch(): boolean { return this.error.type === View.ErrorType.DefinitionTypeMismatch; }
     // get wrongConstructor(): boolean { return this.error.type === View.ErrorType.WrongConstructor; }
     get rhsOmitted(): boolean { return this.error.type === View.ErrorType.RHSOmitted; }
     get missingType(): boolean { return this.error.type === View.ErrorType.MissingType; }

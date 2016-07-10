@@ -310,6 +310,23 @@ const typeMismatch: Parser<View.TypeMismatch> = seq(
         };
     });
 
+const definitionTypeMismatch: Parser<View.DefinitionTypeMismatch> = seq(
+        location,
+        alt(trimBeforeAndSkip("!=<"), trimBeforeAndSkip("=<"), trimBeforeAndSkip("!=")),
+        trimBeforeAndSkip("of type"),
+        trimBeforeAndSkip("when checking the definition of"),
+        all
+    ).map((result) => {
+        return <View.DefinitionTypeMismatch>{
+            type: View.ErrorType.DefinitionTypeMismatch,
+            actual: result[1],
+            expected: result[2],
+            expectedType: result[3],
+            expr: result[4],
+            location: result[0]
+        };
+    });
+
 // const wrongConstructor: Parser<View.WrongConstructor> = seq(
 //         location,
 //         token("The constructor").then(trimBeforeAndSkip("does not construct an element of")),
@@ -490,6 +507,7 @@ const unparsed: Parser<View.Unparsed> = all.map((result) => {
 const errorParser: Parser<View.Error> = alt(
     notInScope,
     typeMismatch,
+    definitionTypeMismatch,
     // wrongConstructor,
     rhsOmitted,
     missingType,
@@ -498,7 +516,7 @@ const errorParser: Parser<View.Error> = alt(
     termination,
     constructorTarget,
     functionType,
-    
+
     unparsed
 );
 

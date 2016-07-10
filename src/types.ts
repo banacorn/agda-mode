@@ -276,6 +276,7 @@ namespace View {
 
     export type Error = NotInScope |
         TypeMismatch |
+        DefinitionTypeMismatch |
         RHSOmitted |
         MissingType |
         MultipleDefinition |
@@ -292,6 +293,7 @@ namespace View {
     export const enum ErrorType {
         NotInScope,
         TypeMismatch,
+        DefinitionTypeMismatch,
         RHSOmitted,
         MissingType,
         MultipleDefinition,
@@ -314,6 +316,16 @@ namespace View {
     }
 
     export interface TypeMismatch {
+        type: ErrorType,
+        location: Location
+        expected: string,
+        expectedType: string,
+        actual: string,
+        expr: string,
+        exprType: string
+    }
+
+    export interface DefinitionTypeMismatch {
         type: ErrorType,
         location: Location
         expected: string,
