@@ -356,6 +356,43 @@ const missingType: Parser<View.MissingType> =  seq(
         }
     });
 
+const multipleDefinition: Parser<View.MultipleDefinition> =  seq(
+        location,
+        token("Multiple definitions of"),
+        trimBeforeAndSkip(". Previous definition at"),
+        location,
+        token("when scope checking the declaration"),
+        trimBeforeAndSkip(":"),
+        all
+    ).map((result) => {
+        return <View.MultipleDefinition>{
+            type: View.ErrorType.MultipleDefinition,
+            location: result[0],
+            locationPrev: result[3],
+            expr: result[2],
+            decl: result[5],
+            declType: result[6]
+        }
+    });
+
+
+
+
+// function parseMultipleDefinition(str: string, loc: View.Location): View.MultipleDefinition {
+//     const regex = /Multiple definitions of ((?:\n|.)*)\. Previous definition at\n(?:\n|.)*\ scope checking the declaration\n\W*((?:\n|.)*)/;
+//     const result = str.match(regex);
+//     if (result) {
+//         const judgement = parseJudgement(result[2]);
+//         return {
+//             type: View.ErrorType.MultipleDefinition,
+//             expr: judgement.expr,
+//             exprType: judgement.type,
+//             location: loc
+//         };
+//     }
+// }
+//
+//
 
 function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Location): View.Error {
     return parser.parse(input).value;
@@ -402,21 +439,6 @@ function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Locati
 // }
 //
 //
-// function parseMultipleDefinition(str: string, loc: View.Location): View.MultipleDefinition {
-//     const regex = /Multiple definitions of ((?:\n|.)*)\. Previous definition at\n(?:\n|.)*\ scope checking the declaration\n\W*((?:\n|.)*)/;
-//     const result = str.match(regex);
-//     if (result) {
-//         const judgement = parseJudgement(result[2]);
-//         return {
-//             type: View.ErrorType.MultipleDefinition,
-//             expr: judgement.expr,
-//             exprType: judgement.type,
-//             location: loc
-//         };
-//     }
-// }
-//
-//
 // function parseParseError(str: string, loc: View.Location): View.ParseError {
 //     const regex = /Parse error\s+((?:\n|.)*)\<ERROR\>\s+((?:\n|.)*)\.\.\./
 //     const result = str.match(regex);
@@ -450,6 +472,7 @@ const errorParser: Parser<View.Error> = alt(
     // wrongConstructor,
     rhsOmitted,
     missingType,
+    multipleDefinition,
 
     unparsed
 );

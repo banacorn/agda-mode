@@ -82,6 +82,20 @@ import "./suggestion";
             </li>
         </template>
 
+        <template v-if="multipleDefinition">
+            <li class="list-item">
+                <span>Multiple definitions of</span>
+                <type :input="error.decl"></type><span> : </span><type :input="error.declType"></type>
+                <location :location="error.location"></location>
+            </li>
+                <li class="list-item">
+                    <span>Previous definition:</span>
+                    <type :input="error.expr"></type>
+                    <location :location="error.locationPrev"></location>
+                </li>
+        </template>
+
+
         <template v-if="applicationParseError">
             <li class="list-item">
                 <span>Could not parse the application</span>
@@ -115,14 +129,6 @@ import "./suggestion";
             </li>
         </template>
 
-        <template v-if="multipleDefinition">
-            <li class="list-item">
-                <span>Multiple definitions of </span>
-                <type :input="error.expr"></type><span> : </span><type :input="error.exprType"></type>
-                <location :location="error.location"></location>
-            </li>
-        </template>
-
 
         <template v-if="parseError">
             <li class="list-item">
@@ -150,10 +156,10 @@ class Error extends Vue {
     // get wrongConstructor(): boolean { return this.error.type === View.ErrorType.WrongConstructor; }
     get rhsOmitted(): boolean { return this.error.type === View.ErrorType.RHSOmitted; }
     get missingType(): boolean { return this.error.type === View.ErrorType.MissingType; }
+    get multipleDefinition(): boolean { return this.error.type === View.ErrorType.MultipleDefinition; }
     // get applicationParseError(): boolean { return this.error.type === View.ErrorType.ApplicationParseError; }
     // get terminationError(): boolean { return this.error.type === View.ErrorType.TerminationError; }
     // get missingDefinition(): boolean { return this.error.type === View.ErrorType.MissingDefinition; }
-    // get multipleDefinition(): boolean { return this.error.type === View.ErrorType.MultipleDefinition; }
     // get parseError(): boolean { return this.error.type === View.ErrorType.ParseError; }
     get unparsed(): boolean { return this.error.type === View.ErrorType.Unparsed; }
 }
