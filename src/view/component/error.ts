@@ -214,6 +214,19 @@ import "./suggestion";
             </li>
         </template>
 
+        <template v-if="patternMatchOnNonDatatype">
+            <li class="list-item">
+                <span>Cannot pattern match on non-datatype</span>
+                <type :input="error.nonDatatype"></type>
+                <location :location="error.location"></location>
+            </li>
+            <li class="list-item">
+                <span>when checking that the expression</span>
+                <type :input="error.expr"></type>
+                <span>has type</span>
+                <type :input="error.exprType"></type>
+            </li>
+        </template>
 
         <template v-if="applicationParseError">
             <li class="list-item">
@@ -250,6 +263,7 @@ class Error extends Vue {
     get moduleMismatch(): boolean { return this.error.type === View.ErrorType.ModuleMismatch; }
     get parse(): boolean { return this.error.type === View.ErrorType.Parse; }
     get caseSingleHole(): boolean { return this.error.type === View.ErrorType.CaseSingleHole; }
+    get patternMatchOnNonDatatype(): boolean { return this.error.type === View.ErrorType.PatternMatchOnNonDatatype; }
     // get applicationParseError(): boolean { return this.error.type === View.ErrorType.ApplicationParseError; }
     get unparsed(): boolean { return this.error.type === View.ErrorType.Unparsed; }
 }

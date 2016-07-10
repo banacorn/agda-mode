@@ -499,6 +499,21 @@ const caseSingleHole: Parser<View.CaseSingleHole> =  seq(
     }
 });
 
+const patternMatchOnNonDatatype: Parser<View.PatternMatchOnNonDatatype> =  seq(
+    location,
+    token("Cannot pattern match on non-datatype").then(trimBeforeAndSkip("when checking that the expression")),
+    trimBeforeAndSkip("has type"),
+    all
+).map((result) => {
+    return <View.PatternMatchOnNonDatatype>{
+        type: View.ErrorType.PatternMatchOnNonDatatype,
+        location: result[0],
+        nonDatatype: result[1],
+        expr: result[2],
+        exprType: result[3]
+    }
+});
+
 
 // function parseCallLocation(str: string): {
 //     term: string,
@@ -538,6 +553,7 @@ const errorParser: Parser<View.Error> = alt(
     moduleMismatch,
     parse,
     caseSingleHole,
+    patternMatchOnNonDatatype,
     unparsed
 );
 
