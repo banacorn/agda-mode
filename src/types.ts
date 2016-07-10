@@ -281,7 +281,7 @@ namespace View {
         TerminationError |
         MissingDefinition |
         MultipleDefinition |
-        RhsOmitted |
+        RHSOmitted |
         ParseError |
         Unknown;
 
@@ -293,7 +293,7 @@ namespace View {
         TerminationError,
         MissingDefinition,
         MultipleDefinition,
-        RhsOmitted,
+        RHSOmitted,
         ParseError,
         Unknown
     }
@@ -353,7 +353,7 @@ namespace View {
         location: Location
     }
 
-    export interface RhsOmitted {
+    export interface RHSOmitted {
         type: ErrorType,
         expr: string,
         exprType: string,
