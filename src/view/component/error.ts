@@ -173,6 +173,26 @@ import "./suggestion";
             </li>
         </template>
 
+        <template v-if="moduleMismatch">
+            <li class="list-item">
+                <span>You tried to load</span>
+                <span>{{error.wrongPath}}</span>
+                <span>which defines</span>
+            </li>
+            <li class="list-item">
+                <span>the module</span>
+                <span>{{error.moduleName}}</span>
+                <span>. However, according to the include path this module</span>
+            </li>
+            <li class="list-item">
+                <span>should be defined in</span>
+                <span>{{error.rightPath}}</span>
+            </li>
+        </template>
+
+
+
+
         <template v-if="applicationParseError">
             <li class="list-item">
                 <span>Could not parse the application</span>
@@ -214,6 +234,7 @@ class Error extends Vue {
     get termination(): boolean { return this.error.type === View.ErrorType.Termination; }
     get constructorTarget(): boolean { return this.error.type === View.ErrorType.ConstructorTarget; }
     get functionType(): boolean { return this.error.type === View.ErrorType.FunctionType; }
+    get moduleMismatch(): boolean { return this.error.type === View.ErrorType.ModuleMismatch; }
     // get applicationParseError(): boolean { return this.error.type === View.ErrorType.ApplicationParseError; }
     // get parseError(): boolean { return this.error.type === View.ErrorType.ParseError; }
     get unparsed(): boolean { return this.error.type === View.ErrorType.Unparsed; }

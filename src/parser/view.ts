@@ -457,6 +457,19 @@ const functionType: Parser<View.FunctionType> =  seq(
         }
     });
 
+const moduleMismatch: Parser<View.ModuleMismatch> =  seq(
+        token("You tried to load").then(trimBeforeAndSkip("which defines")),
+        token("the module").then(trimBeforeAndSkip(". However, according to the include path this module")),
+        token("should be defined in").then(all)
+    ).map((result) => {
+        return <View.ModuleMismatch>{
+            type: View.ErrorType.ModuleMismatch,
+            wrongPath: result[0],
+            rightPath: result[2],
+            moduleName: result[1]
+        }
+    });
+
 function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Location): View.Error {
     return parser.parse(input).value;
 }
@@ -516,6 +529,7 @@ const errorParser: Parser<View.Error> = alt(
     termination,
     constructorTarget,
     functionType,
+    moduleMismatch,
 
     unparsed
 );

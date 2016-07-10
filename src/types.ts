@@ -284,6 +284,7 @@ namespace View {
         Termination |
         ConstructorTarget |
         FunctionType |
+        ModuleMismatch |
         // WrongConstructor |
         // ApplicationParseError |
         // TerminationError |
@@ -301,6 +302,7 @@ namespace View {
         Termination,
         ConstructorTarget,
         FunctionType,
+        ModuleMismatch,
         // WrongConstructor,
         // ApplicationParseError,
         // TerminationError,
@@ -386,6 +388,13 @@ namespace View {
         location: Location,
         expr: string,
         exprType: string
+    }
+
+    export interface ModuleMismatch {
+        type: ErrorType,
+        wrongPath: string,
+        rightPath: string,
+        moduleName: string
     }
 
     //
