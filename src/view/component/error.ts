@@ -133,9 +133,9 @@ import "./suggestion";
             </li>
         </template>
 
-        <template v-if="unknown">
+        <template v-if="unparsed">
             <li class="list-item">
-                <span>{{error.raw}}</span>
+                <span>{{error.input}}</span>
             </li>
         </template>`
 })
@@ -155,7 +155,7 @@ class Error extends Vue {
     // get missingDefinition(): boolean { return this.error.type === View.ErrorType.MissingDefinition; }
     // get multipleDefinition(): boolean { return this.error.type === View.ErrorType.MultipleDefinition; }
     // get parseError(): boolean { return this.error.type === View.ErrorType.ParseError; }
-    // get unknown(): boolean { return this.error.type === View.ErrorType.Unknown; }
+    get unparsed(): boolean { return this.error.type === View.ErrorType.Unparsed; }
 }
 
 Vue.component("error", Error);

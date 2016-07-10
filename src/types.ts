@@ -277,27 +277,27 @@ namespace View {
     export type Error = NotInScope |
         TypeMismatch |
         RHSOmitted |
-        MissingType
+        MissingType |
         // WrongConstructor |
         // ApplicationParseError |
         // TerminationError |
         // MissingDefinition |
         // MultipleDefinition |
         // ParseError |
-        // Unknown;
+        Unparsed;
 
     export const enum ErrorType {
         NotInScope,
         TypeMismatch,
         RHSOmitted,
-        MissingType
+        MissingType,
         // WrongConstructor,
         // ApplicationParseError,
         // TerminationError,
         // MissingDefinition,
         // MultipleDefinition,
         // ParseError,
-        // Unknown
+        Unparsed
     }
 
     export interface NotInScope {
@@ -379,10 +379,11 @@ namespace View {
     //     location: Location
     // }
     //
-    // export interface Unknown {
-    //     type: ErrorType,
-    //     raw: string,
-    // }
+    export interface Unparsed {
+        type: ErrorType,
+        input: string,
+    }
+
 
 
 }

@@ -437,12 +437,21 @@ function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Locati
 //     };
 // }
 
+const unparsed: Parser<View.Unparsed> = all.map((result) => {
+    return {
+        type: View.ErrorType.Unparsed,
+        input: result
+    }
+});
+
 const errorParser: Parser<View.Error> = alt(
     notInScope,
     typeMismatch,
     // wrongConstructor,
     rhsOmitted,
-    missingType
+    missingType,
+
+    unparsed
 );
 
 function parseError(input: string): View.Error {
