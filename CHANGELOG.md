@@ -1,3 +1,6 @@
+## 0.5.4
+* Handle some more cases of error
+
 ## 0.5.3
 * Rewrite everything with TypeScript
 * Fix tons of shit with the aid of types

@@ -529,13 +529,6 @@ const errorParser: Parser<View.Error> = alt(
 );
 
 function parseError(input: string): View.Error {
-    console.log(input)
-    console.log(errorParser.parse(input));
-
-    // const s = "/Users/banacorn/github/agda-mode/spec/error/Termination.agda:8,1-9,6\nTermination checking failed for the following functions:\nf\nProblematic calls:f (at /Users/banacorn/github/agda-mode/spec/error/Termination.agda:9,5-6)\nf (at /Users/banacorn/github/agda-mode/spec/error/Termination.agda:9,5-6)"
-    // console.log(s);
-    // console.log(errorParser.parse(s));
-
     return errorParser.parse(input).value;
 }
 
