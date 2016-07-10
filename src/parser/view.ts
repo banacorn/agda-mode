@@ -292,14 +292,13 @@ const notInScope: Parser<View.NotInScope> = seq(
     });
 
 const typeMismatch: Parser<View.TypeMismatch> = seq(
-        location.skip(spaces),
-        alt(trimBeforeAndSkip("!=<"), trimBeforeAndSkip("=<")),
+        location,
+        alt(trimBeforeAndSkip("!=<"), trimBeforeAndSkip("=<"), trimBeforeAndSkip("!=")),
         trimBeforeAndSkip("of type"),
         trimBeforeAndSkip("when checking that the expression"),
         trimBeforeAndSkip("has type"),
         all
     ).map((result) => {
-        console.log(result);
         return <View.TypeMismatch>{
             type: View.ErrorType.TypeMismatch,
             actual: result[1],
@@ -310,6 +309,24 @@ const typeMismatch: Parser<View.TypeMismatch> = seq(
             location: result[0]
         };
     });
+
+const wrongConstructor: Parser<View.WrongConstructor> = seq(
+        location,
+        token("The constructor").then(trimBeforeAndSkip("does not construct an element of")),
+        trimBeforeAndSkip("when checking that the expression"),
+        trimBeforeAndSkip("has type"),
+        all
+    ).map((result) => {
+        return <View.WrongConstructor>{
+            type: View.ErrorType.WrongConstructor,
+            constructor: result[1],
+            constructorType: result[2],
+            expr: result[3],
+            exprType: result[4],
+            location: result[0]
+        };
+    });
+
 
 function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Location): View.Error {
     return parser.parse(input).value;
@@ -432,12 +449,18 @@ function parseUnknownError(str: string): View.Unknown {
 
 const errorParser: Parser<View.Error> = alt(
     notInScope,
-    typeMismatch
+    typeMismatch,
+    wrongConstructor
 );
 
 function parseError(input: string): View.Error {
     console.log(input)
     console.log(errorParser.parse(input));
+
+    // const s = "/Users/banacorn/agda/test/A.agda:28,20-21\n⊤ !=";
+    // console.log(s);
+    // console.log(errorParser.parse(s));
+
     return errorParser.parse(input).value;
     // if (strings.length > 0) {
     //     console.log(strings)
