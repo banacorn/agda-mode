@@ -387,6 +387,27 @@ const missingDefinition: Parser<View.MissingDefinition> =  seq(
         }
     });
 
+const termination: Parser<View.Termination> =  seq(
+        location,
+        token("Termination checking failed for the following functions:"),
+        trimBeforeAndSkip("Problematic calls:"),
+        seq(
+            trimBeforeAndSkip("(at"),
+            location.skip(token(")"))
+        ).map((result) => {
+            return {
+                expr: result[0],
+                location: result[1]
+            }
+        }).atLeast(1)
+    ).map((result) => {
+        return <View.Termination>{
+            type: View.ErrorType.Termination,
+            location: result[0],
+            expr: result[2],
+            calls: result[3]
+        }
+    });
 
 function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Location): View.Error {
     return parser.parse(input).value;
@@ -406,19 +427,6 @@ function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Locati
 //     });
 // }
 //
-//
-// function parseTerminationError(str: string, loc: View.Location): View.TerminationError {
-//     const regex = /Termination checking failed for the following functions:\s+((?:\n|.)*)\s+Problematic calls:\s+((?:\n|.)*)/;
-//     const result = str.match(regex);
-//     if (result) {
-//         return {
-//             type: View.ErrorType.TerminationError,
-//             expr: result[1],
-//             calls: parseCallLocation(result[2]),
-//             location: loc
-//         };
-//     }
-// }
 //
 //
 // function parseParseError(str: string, loc: View.Location): View.ParseError {
@@ -456,6 +464,7 @@ const errorParser: Parser<View.Error> = alt(
     missingType,
     multipleDefinition,
     missingDefinition,
+    termination,
 
     unparsed
 );
@@ -464,32 +473,11 @@ function parseError(input: string): View.Error {
     console.log(input)
     console.log(errorParser.parse(input));
 
-    // const s = "/Users/banacorn/agda/test/A.agda:28,20-21\n⊤ !=";
+    // const s = "/Users/banacorn/github/agda-mode/spec/error/Termination.agda:8,1-9,6\nTermination checking failed for the following functions:\nf\nProblematic calls:f (at /Users/banacorn/github/agda-mode/spec/error/Termination.agda:9,5-6)\nf (at /Users/banacorn/github/agda-mode/spec/error/Termination.agda:9,5-6)"
     // console.log(s);
     // console.log(errorParser.parse(s));
 
     return errorParser.parse(input).value;
-    // if (strings.length > 0) {
-    //     console.log(strings)
-    //     const location = parseLocation(strings[0]);
-    //
-    //
-    //     // the first line does not contains Location
-    //     const bulk = location ? _.tail(strings).join('\n') : strings.join('\n');
-    //
-    //     return tempAdapter(notInScope, bulk, location) ||
-    //         parseTypeMismatch(bulk, location) ||
-    //         parseWrongConstructor(bulk, location) ||
-    //         parseApplicationParseError(bulk, location) ||
-    //         parseTerminationError(bulk, location) ||
-    //         parseMissingDefinition(bulk, location) ||
-    //         parseMultipleDefinition(bulk, location) ||
-    //         parseRhsOmitted(bulk, location) ||
-    //         parseParseError(bulk, location) ||
-    //         parseUnknownError(bulk);
-    // } else {
-    //     return null;
-    // }
 }
 
 export {

@@ -280,6 +280,7 @@ namespace View {
         MissingType |
         MultipleDefinition |
         MissingDefinition |
+        Termination |
         // WrongConstructor |
         // ApplicationParseError |
         // TerminationError |
@@ -293,6 +294,7 @@ namespace View {
         MissingType,
         MultipleDefinition,
         MissingDefinition,
+        Termination,
         // WrongConstructor,
         // ApplicationParseError,
         // TerminationError,
@@ -345,7 +347,15 @@ namespace View {
         expr: string
     }
 
-
+    export interface Termination {
+        type: ErrorType,
+        location: Location,
+        expr: string,
+        calls: {
+            expr: string,
+            location: Location
+        }[]
+    }
 
     //
     // export interface WrongConstructor {

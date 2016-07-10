@@ -103,6 +103,23 @@ import "./suggestion";
             </li>
         </template>
 
+        <template v-if="termination">
+            <li class="list-item">
+                <span>Termination checking failed for the following functions:</span>
+                <location :location="error.location"></location>
+            </li>
+            <li class="list-item">
+                <span>  </span><type :input="error.expr"></type>
+            </li>
+            <li class="list-item">
+                <span>Problematic calls:</span>
+            </li>
+            <li class="list-item" v-for="item in error.calls">
+                <span>  </span><type :input="item.expr"></type>
+                <location :location="item.location"></location>
+            </li>
+        </template>
+
         <template v-if="applicationParseError">
             <li class="list-item">
                 <span>Could not parse the application</span>
@@ -110,24 +127,6 @@ import "./suggestion";
                 <location :location="error.location"></location>
             </li>
         </template>
-
-        <template v-if="terminationError">
-            <li class="list-item">
-                <span>Termination checking failed for the following functions:</span>
-                <location :location="error.location"></location>
-            </li>
-            <li class="list-item">
-                <type :input="error.expr"></type>
-            </li>
-            <li class="list-item">
-                <span>Problematic calls:</span>
-            </li>
-            <li class="list-item" v-for="item in error.calls">
-                <type :input="item.term"></type>
-                <location :location="item.location"></location>
-            </li>
-        </template>
-
 
 
         <template v-if="parseError">
@@ -158,8 +157,8 @@ class Error extends Vue {
     get missingType(): boolean { return this.error.type === View.ErrorType.MissingType; }
     get multipleDefinition(): boolean { return this.error.type === View.ErrorType.MultipleDefinition; }
     get missingDefinition(): boolean { return this.error.type === View.ErrorType.MissingDefinition; }
+    get termination(): boolean { return this.error.type === View.ErrorType.Termination; }
     // get applicationParseError(): boolean { return this.error.type === View.ErrorType.ApplicationParseError; }
-    // get terminationError(): boolean { return this.error.type === View.ErrorType.TerminationError; }
     // get parseError(): boolean { return this.error.type === View.ErrorType.ParseError; }
     get unparsed(): boolean { return this.error.type === View.ErrorType.Unparsed; }
 }
