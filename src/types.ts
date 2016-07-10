@@ -276,101 +276,113 @@ namespace View {
 
     export type Error = NotInScope |
         TypeMismatch |
-        WrongConstructor |
-        ApplicationParseError |
-        TerminationError |
-        MissingDefinition |
-        MultipleDefinition |
         RHSOmitted |
-        ParseError |
-        Unknown;
+        MissingType
+        // WrongConstructor |
+        // ApplicationParseError |
+        // TerminationError |
+        // MissingDefinition |
+        // MultipleDefinition |
+        // ParseError |
+        // Unknown;
 
     export const enum ErrorType {
         NotInScope,
         TypeMismatch,
-        WrongConstructor,
-        ApplicationParseError,
-        TerminationError,
-        MissingDefinition,
-        MultipleDefinition,
         RHSOmitted,
-        ParseError,
-        Unknown
+        MissingType
+        // WrongConstructor,
+        // ApplicationParseError,
+        // TerminationError,
+        // MissingDefinition,
+        // MultipleDefinition,
+        // ParseError,
+        // Unknown
     }
 
     export interface NotInScope {
         type: ErrorType,
-        expr: string,
         location: Location,
-        suggestion: Suggestion
+        suggestion: Suggestion,
+        expr: string
     }
 
     export interface TypeMismatch {
         type: ErrorType,
+        location: Location
         expected: string,
         expectedType: string,
         actual: string,
         expr: string,
-        exprType: string,
-        location: Location
-    }
-
-    export interface WrongConstructor {
-        type: ErrorType,
-        constructor: string,
-        constructorType: string,
-        expr: string,
-        exprType: string,
-        location: Location
-    }
-
-    export interface ApplicationParseError {
-        type: ErrorType,
-        expr: string,
-        location: Location
-    }
-
-    export interface TerminationError {
-        type: ErrorType,
-        expr: string,
-        calls: {
-            term: string,
-            location: Location
-        }[],
-        location: Location
-    }
-
-    export interface MissingDefinition {
-        type: ErrorType,
-        expr: string,
-        location: Location
-    }
-
-    export interface MultipleDefinition {
-        type: ErrorType,
-        expr: string,
-        exprType: string,
-        location: Location
+        exprType: string
     }
 
     export interface RHSOmitted {
         type: ErrorType,
+        location: Location,
         expr: string,
-        exprType: string,
-        location: Location
+        exprType: string
     }
 
-    export interface ParseError {
+    export interface MissingType {
         type: ErrorType,
-        expr: string,
-        post: string,
-        location: Location
+        location: Location,
+        expr: string
     }
 
-    export interface Unknown {
-        type: ErrorType,
-        raw: string,
-    }
+
+
+    //
+    // export interface WrongConstructor {
+    //     type: ErrorType,
+    //     constructor: string,
+    //     constructorType: string,
+    //     expr: string,
+    //     exprType: string,
+    //     location: Location
+    // }
+    //
+    // export interface ApplicationParseError {
+    //     type: ErrorType,
+    //     expr: string,
+    //     location: Location
+    // }
+    //
+    // export interface TerminationError {
+    //     type: ErrorType,
+    //     expr: string,
+    //     calls: {
+    //         term: string,
+    //         location: Location
+    //     }[],
+    //     location: Location
+    // }
+    //
+    // export interface MissingDefinition {
+    //     type: ErrorType,
+    //     expr: string,
+    //     location: Location
+    // }
+    //
+    // export interface MultipleDefinition {
+    //     type: ErrorType,
+    //     expr: string,
+    //     exprType: string,
+    //     location: Location
+    // }
+    //
+    //
+    // export interface ParseError {
+    //     type: ErrorType,
+    //     expr: string,
+    //     post: string,
+    //     location: Location
+    // }
+    //
+    // export interface Unknown {
+    //     type: ErrorType,
+    //     raw: string,
+    // }
 
 
 }

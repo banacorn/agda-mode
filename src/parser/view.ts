@@ -310,22 +310,22 @@ const typeMismatch: Parser<View.TypeMismatch> = seq(
         };
     });
 
-const wrongConstructor: Parser<View.WrongConstructor> = seq(
-        location,
-        token("The constructor").then(trimBeforeAndSkip("does not construct an element of")),
-        trimBeforeAndSkip("when checking that the expression"),
-        trimBeforeAndSkip("has type"),
-        all
-    ).map((result) => {
-        return <View.WrongConstructor>{
-            type: View.ErrorType.WrongConstructor,
-            constructor: result[1],
-            constructorType: result[2],
-            expr: result[3],
-            exprType: result[4],
-            location: result[0]
-        };
-    });
+// const wrongConstructor: Parser<View.WrongConstructor> = seq(
+//         location,
+//         token("The constructor").then(trimBeforeAndSkip("does not construct an element of")),
+//         trimBeforeAndSkip("when checking that the expression"),
+//         trimBeforeAndSkip("has type"),
+//         all
+//     ).map((result) => {
+//         return <View.WrongConstructor>{
+//             type: View.ErrorType.WrongConstructor,
+//             constructor: result[1],
+//             constructorType: result[2],
+//             expr: result[3],
+//             exprType: result[4],
+//             location: result[0]
+//         };
+//     });
 
 const rhsOmitted: Parser<View.RHSOmitted> =  seq(
         location,
@@ -342,6 +342,20 @@ const rhsOmitted: Parser<View.RHSOmitted> =  seq(
             exprType: result[5]
         }
     });
+
+const missingType: Parser<View.MissingType> =  seq(
+        location,
+        token("Missing type signature for left hand side"),
+        trimBeforeAndSkip("when scope checking the declaration"),
+        all
+    ).map((result) => {
+        return <View.MissingType>{
+            type: View.ErrorType.MissingType,
+            location: result[0],
+            expr: result[2]
+        }
+    });
+
 
 function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Location): View.Error {
     return parser.parse(input).value;
@@ -426,8 +440,9 @@ function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Locati
 const errorParser: Parser<View.Error> = alt(
     notInScope,
     typeMismatch,
-    wrongConstructor,
-    rhsOmitted
+    // wrongConstructor,
+    rhsOmitted,
+    missingType
 );
 
 function parseError(input: string): View.Error {

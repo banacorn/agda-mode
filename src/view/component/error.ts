@@ -57,6 +57,31 @@ import "./suggestion";
             </li>
         </template>
 
+        <template v-if="rhsOmitted">
+            <li class="list-item">
+                <span>The right-hand side can only be omitted if there is an absurd pattern, () or {}, in the left-hand side.</span>
+                <location :location="error.location"></location>
+            </li>
+            <li class="list-item">
+                <span>when checking that the clause</span>
+                <type :input="error.expr"></type>
+                <span>has type</span>
+                <type :input="error.exprType"></type>
+            </li>
+        </template>
+
+        <template v-if="missingType">
+            <li class="list-item">
+                <span>Missing type signature for left hand side</span>
+                <type :input="error.expr"></type>
+                <location :location="error.location"></location>
+            </li>
+            <li class="list-item">
+                <span>when scope checking the declaration</span>
+                <type :input="error.expr"></type>
+            </li>
+        </template>
+
         <template v-if="applicationParseError">
             <li class="list-item">
                 <span>Could not parse the application</span>
@@ -98,18 +123,6 @@ import "./suggestion";
             </li>
         </template>
 
-        <template v-if="rhsOmitted">
-            <li class="list-item">
-                <span>The right-hand side can only be omitted if there is an absurd pattern, () or {}, in the left-hand side.</span>
-                <location :location="error.location"></location>
-            </li>
-            <li class="list-item">
-                <span>when checking that the clause</span>
-                <type :input="error.expr"></type>
-                <span>has type</span>
-                <type :input="error.exprType"></type>
-            </li>
-        </template>
 
         <template v-if="parseError">
             <li class="list-item">
@@ -134,14 +147,15 @@ class Error extends Vue {
     // computed
     get notInScope(): boolean { return this.error.type === View.ErrorType.NotInScope; }
     get typeMismatch(): boolean { return this.error.type === View.ErrorType.TypeMismatch; }
-    get wrongConstructor(): boolean { return this.error.type === View.ErrorType.WrongConstructor; }
-    get applicationParseError(): boolean { return this.error.type === View.ErrorType.ApplicationParseError; }
-    get terminationError(): boolean { return this.error.type === View.ErrorType.TerminationError; }
-    get missingDefinition(): boolean { return this.error.type === View.ErrorType.MissingDefinition; }
-    get multipleDefinition(): boolean { return this.error.type === View.ErrorType.MultipleDefinition; }
-    get rhsOmitted(): boolean { return this.error.type === View.ErrorType.RhsOmitted; }
-    get parseError(): boolean { return this.error.type === View.ErrorType.ParseError; }
-    get unknown(): boolean { return this.error.type === View.ErrorType.Unknown; }
+    // get wrongConstructor(): boolean { return this.error.type === View.ErrorType.WrongConstructor; }
+    get rhsOmitted(): boolean { return this.error.type === View.ErrorType.RHSOmitted; }
+    get missingType(): boolean { return this.error.type === View.ErrorType.MissingType; }
+    // get applicationParseError(): boolean { return this.error.type === View.ErrorType.ApplicationParseError; }
+    // get terminationError(): boolean { return this.error.type === View.ErrorType.TerminationError; }
+    // get missingDefinition(): boolean { return this.error.type === View.ErrorType.MissingDefinition; }
+    // get multipleDefinition(): boolean { return this.error.type === View.ErrorType.MultipleDefinition; }
+    // get parseError(): boolean { return this.error.type === View.ErrorType.ParseError; }
+    // get unknown(): boolean { return this.error.type === View.ErrorType.Unknown; }
 }
 
 Vue.component("error", Error);
