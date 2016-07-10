@@ -279,10 +279,10 @@ namespace View {
         RHSOmitted |
         MissingType |
         MultipleDefinition |
+        MissingDefinition |
         // WrongConstructor |
         // ApplicationParseError |
         // TerminationError |
-        // MissingDefinition |
         // ParseError |
         Unparsed;
 
@@ -292,10 +292,10 @@ namespace View {
         RHSOmitted,
         MissingType,
         MultipleDefinition,
+        MissingDefinition,
         // WrongConstructor,
         // ApplicationParseError,
         // TerminationError,
-        // MissingDefinition,
         // ParseError,
         Unparsed
     }
@@ -339,7 +339,11 @@ namespace View {
         declType: string
     }
 
-
+    export interface MissingDefinition {
+        type: ErrorType,
+        location: Location,
+        expr: string
+    }
 
 
 
@@ -366,12 +370,6 @@ namespace View {
     //         term: string,
     //         location: Location
     //     }[],
-    //     location: Location
-    // }
-    //
-    // export interface MissingDefinition {
-    //     type: ErrorType,
-    //     expr: string,
     //     location: Location
     // }
     //

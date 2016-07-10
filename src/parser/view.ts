@@ -376,23 +376,17 @@ const multipleDefinition: Parser<View.MultipleDefinition> =  seq(
     });
 
 
+const missingDefinition: Parser<View.MissingDefinition> =  seq(
+        location,
+        token("Missing definition for").then(all)
+    ).map((result) => {
+        return <View.MissingDefinition>{
+            type: View.ErrorType.MissingDefinition,
+            location: result[0],
+            expr: result[1]
+        }
+    });
 
-
-// function parseMultipleDefinition(str: string, loc: View.Location): View.MultipleDefinition {
-//     const regex = /Multiple definitions of ((?:\n|.)*)\. Previous definition at\n(?:\n|.)*\ scope checking the declaration\n\W*((?:\n|.)*)/;
-//     const result = str.match(regex);
-//     if (result) {
-//         const judgement = parseJudgement(result[2]);
-//         return {
-//             type: View.ErrorType.MultipleDefinition,
-//             expr: judgement.expr,
-//             exprType: judgement.type,
-//             location: loc
-//         };
-//     }
-// }
-//
-//
 
 function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Location): View.Error {
     return parser.parse(input).value;
@@ -421,18 +415,6 @@ function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Locati
 //             type: View.ErrorType.TerminationError,
 //             expr: result[1],
 //             calls: parseCallLocation(result[2]),
-//             location: loc
-//         };
-//     }
-// }
-//
-// function parseMissingDefinition(str: string, loc: View.Location): View.MissingDefinition {
-//     const regex = /Missing definition for\s+((?:\n|.)*)/;
-//     const result = str.match(regex);
-//     if (result) {
-//         return {
-//             type: View.ErrorType.MissingDefinition,
-//             expr: result[1],
 //             location: loc
 //         };
 //     }
@@ -473,6 +455,7 @@ const errorParser: Parser<View.Error> = alt(
     rhsOmitted,
     missingType,
     multipleDefinition,
+    missingDefinition,
 
     unparsed
 );

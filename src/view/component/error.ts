@@ -95,6 +95,13 @@ import "./suggestion";
                 </li>
         </template>
 
+        <template v-if="missingDefinition">
+            <li class="list-item">
+                <span>Missing definition for</span>
+                <type :input="error.expr"></type>
+                <location :location="error.location"></location>
+            </li>
+        </template>
 
         <template v-if="applicationParseError">
             <li class="list-item">
@@ -121,13 +128,6 @@ import "./suggestion";
             </li>
         </template>
 
-        <template v-if="missingDefinition">
-            <li class="list-item">
-                <span>Missing definition for</span>
-                <type :input="error.expr"></type>
-                <location :location="error.location"></location>
-            </li>
-        </template>
 
 
         <template v-if="parseError">
@@ -157,9 +157,9 @@ class Error extends Vue {
     get rhsOmitted(): boolean { return this.error.type === View.ErrorType.RHSOmitted; }
     get missingType(): boolean { return this.error.type === View.ErrorType.MissingType; }
     get multipleDefinition(): boolean { return this.error.type === View.ErrorType.MultipleDefinition; }
+    get missingDefinition(): boolean { return this.error.type === View.ErrorType.MissingDefinition; }
     // get applicationParseError(): boolean { return this.error.type === View.ErrorType.ApplicationParseError; }
     // get terminationError(): boolean { return this.error.type === View.ErrorType.TerminationError; }
-    // get missingDefinition(): boolean { return this.error.type === View.ErrorType.MissingDefinition; }
     // get parseError(): boolean { return this.error.type === View.ErrorType.ParseError; }
     get unparsed(): boolean { return this.error.type === View.ErrorType.Unparsed; }
 }
