@@ -191,6 +191,16 @@ import "./suggestion";
         </template>
 
 
+        <template v-if="parse">
+            <li class="list-item">
+                <span class="text-error">{{error.message}}</span>
+                <location :location="error.location"></location>
+            </li>
+            <li class="list-item">
+                <span>{{error.expr}}</span>
+            </li>
+        </template>
+
 
 
         <template v-if="applicationParseError">
@@ -201,15 +211,6 @@ import "./suggestion";
             </li>
         </template>
 
-
-        <template v-if="parseError">
-            <li class="list-item">
-                <span>Parse error:</span>
-                <span class="text-error">{{error.expr}}</span>
-                <span>{{error.post}}</span>
-                <location :location="error.location"></location>
-            </li>
-        </template>
 
         <template v-if="unparsed">
             <li class="list-item">
@@ -235,8 +236,8 @@ class Error extends Vue {
     get constructorTarget(): boolean { return this.error.type === View.ErrorType.ConstructorTarget; }
     get functionType(): boolean { return this.error.type === View.ErrorType.FunctionType; }
     get moduleMismatch(): boolean { return this.error.type === View.ErrorType.ModuleMismatch; }
+    get parse(): boolean { return this.error.type === View.ErrorType.Parse; }
     // get applicationParseError(): boolean { return this.error.type === View.ErrorType.ApplicationParseError; }
-    // get parseError(): boolean { return this.error.type === View.ErrorType.ParseError; }
     get unparsed(): boolean { return this.error.type === View.ErrorType.Unparsed; }
 }
 

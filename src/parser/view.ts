@@ -470,6 +470,19 @@ const moduleMismatch: Parser<View.ModuleMismatch> =  seq(
         }
     });
 
+const parse: Parser<View.Parse> =  seq(
+        location,
+        trimBeforeAndSkip(": ").then(trimBeforeAndSkip("..."))
+    ).map((result) => {
+        const i = (<string>result[1]).indexOf("\n");
+        return <View.Parse>{
+            type: View.ErrorType.Parse,
+            location: result[0],
+            message: (<string>result[1]).substring(0, i),
+            expr: (<string>result[1]).substring(i + 1)
+        }
+    });
+
 function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Location): View.Error {
     return parser.parse(input).value;
 }
@@ -490,25 +503,6 @@ function tempAdapter(parser: Parser<View.Error>, input: string, loc: View.Locati
 //
 //
 //
-// function parseParseError(str: string, loc: View.Location): View.ParseError {
-//     const regex = /Parse error\s+((?:\n|.)*)\<ERROR\>\s+((?:\n|.)*)\.\.\./
-//     const result = str.match(regex);
-//     if (result) {
-//         return {
-//             type: View.ErrorType.ParseError,
-//             expr: result[1],
-//             post: result[2],
-//             location: loc
-//         };
-//     }
-// }
-//
-// function parseUnknownError(str: string): View.Unknown {
-//     return {
-//         type: View.ErrorType.Unknown,
-//         raw: str
-//     };
-// }
 
 const unparsed: Parser<View.Unparsed> = all.map((result) => {
     return {
@@ -530,7 +524,7 @@ const errorParser: Parser<View.Error> = alt(
     constructorTarget,
     functionType,
     moduleMismatch,
-
+    parse,
     unparsed
 );
 
