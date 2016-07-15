@@ -129,38 +129,98 @@ namespace Agda {
 //  agda-mode commands
 //
 
-// base interface
-interface Command {
-    type: CommandType;
-    normalization?: Normalization;
-}
+type Command = Command.Load | Command.Quit | Command.Restart | Command.Compile |
+    Command.ToggleDisplayOfImplicitArguments | Command.Info |
+    Command.ShowConstraints | Command.SolveConstraints | Command.ShowGoals |
+    Command.NextGoal | Command.PreviousGoal | Command.WhyInScope |
+    Command.InferType | Command.ModuleContents | Command.ComputeNormalForm |
+    Command.ComputeNormalFormIgnoreAbstract | Command.Give | Command.Refine |
+    Command.Auto | Command.Case | Command.GoalType | Command.Context |
+    Command.GoalTypeAndContext | Command.GoalTypeAndInferredType |
+    Command.InputSymbol;
 
-const enum CommandType {
-    Load,
-    Quit,
-    Restart,
-    Compile,
-    ToggleDisplayOfImplicitArguments,
-    Info,
-    ShowConstraints,
-    SolveConstraints,
-    ShowGoals,
-    NextGoal,
-    PreviousGoal,
-    WhyInScope,
-    InferType,
-    ModuleContents,
-    ComputeNormalForm,
-    ComputeNormalFormIgnoreAbstract,
-    Give,
-    Refine,
-    Auto,
-    Case,
-    GoalType,
-    Context,
-    GoalTypeAndContext,
-    GoalTypeAndInferredType,
-    InputSymbol
+namespace Command {
+    export interface Load {
+        kind: "Load"
+    }
+    export interface Quit {
+        kind: "Quit"
+    }
+    export interface Restart {
+        kind: "Restart"
+    }
+    export interface Compile {
+        kind: "Compile"
+    }
+    export interface ToggleDisplayOfImplicitArguments {
+        kind: "ToggleDisplayOfImplicitArguments"
+    }
+    export interface Info {
+        kind: "Info"
+    }
+    export interface ShowConstraints {
+        kind: "ShowConstraints"
+    }
+    export interface SolveConstraints {
+        kind: "SolveConstraints"
+    }
+    export interface ShowGoals {
+        kind: "ShowGoals"
+    }
+    export interface NextGoal {
+        kind: "NextGoal"
+    }
+    export interface PreviousGoal {
+        kind: "PreviousGoal"
+    }
+    export interface WhyInScope {
+        kind: "WhyInScope"
+    }
+    export interface InferType {
+        kind: "InferType",
+        normalization: Normalization
+    }
+    export interface ModuleContents {
+        kind: "ModuleContents",
+        normalization: Normalization
+    }
+    export interface ComputeNormalForm {
+        kind: "ComputeNormalForm"
+    }
+    export interface ComputeNormalFormIgnoreAbstract {
+        kind: "ComputeNormalFormIgnoreAbstract"
+    }
+    export interface Give {
+        kind: "Give"
+    }
+    export interface Refine {
+        kind: "Refine"
+    }
+    export interface Auto {
+        kind: "Auto"
+    }
+    export interface Case {
+        kind: "Case"
+    }
+    export interface GoalType {
+        kind: "GoalType",
+        normalization: Normalization
+    }
+    export interface Context {
+        kind: "Context",
+        normalization: Normalization
+    }
+    export interface GoalTypeAndContext {
+        kind: "GoalTypeAndContext",
+        normalization: Normalization
+    }
+    export interface GoalTypeAndInferredType {
+        kind: "GoalTypeAndInferredType",
+        normalization: Normalization
+    }
+    export interface InputSymbol {
+        kind: "InputSymbol"
+    }
 }
 
 type Normalization = "Simplified" | "Instantiated" | "Normalised";
@@ -450,7 +510,6 @@ export {
     TokenType,
     // commands
     Command,
-    CommandType,
     Normalization,
     Result,
     // view

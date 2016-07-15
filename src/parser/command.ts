@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Command, CommandType, Normalization } from "../types";
+import { Command, Normalization } from "../types";
 
 function parseNormalization(raw: string): Normalization {
     switch (raw) {
@@ -16,85 +16,85 @@ function parseCommand(raw: string): Command {
 
     switch (result[1]) {
         case "load": return {
-            type: CommandType.Load
+            kind: "Load"
         };
         case "quit": return {
-            type: CommandType.Quit
+            kind: "Quit"
         };
         case "restart": return {
-            type: CommandType.Restart
+            kind: "Restart"
         };
         case "compile": return {
-            type: CommandType.Compile
+            kind: "Compile"
         };
         case "toggle-display-of-implicit-arguments": return {
-            type: CommandType.ToggleDisplayOfImplicitArguments
+            kind: "ToggleDisplayOfImplicitArguments"
         };
         case "info": return {
-            type: CommandType.Info
+            kind: "Info"
         };
         case "show-constraints": return {
-            type: CommandType.ShowConstraints
+            kind: "ShowConstraints"
         };
         case "show-goals": return {
-            type: CommandType.ShowGoals,
+            kind: "ShowGoals"
         };
         case "solve-constraints": return {
-            type: CommandType.SolveConstraints
+            kind: "SolveConstraints"
         };
         case "next-goal": return {
-            type: CommandType.NextGoal
+            kind: "NextGoal"
         };
         case "previous-goal": return {
-            type: CommandType.PreviousGoal
+            kind: "PreviousGoal"
         };
         case "why-in-scope": return {
-            type: CommandType.WhyInScope
+            kind: "WhyInScope"
         };
         case "infer-type": return {
-            type: CommandType.InferType,
+            kind: "InferType",
             normalization: parseNormalization(result[2])
         };
         case "module-contents": return {
-            type: CommandType.ModuleContents,
+            kind: "ModuleContents",
             normalization: parseNormalization(result[2])
         };
         case "compute-normal-form": return {
-            type: CommandType.ComputeNormalForm
+            kind: "ComputeNormalForm"
         };
         case "compute-normal-form-ignore-abstract": return {
-            type: CommandType.ComputeNormalFormIgnoreAbstract
+            kind: "ComputeNormalFormIgnoreAbstract"
         };
         case "give": return {
-            type: CommandType.Give
+            kind: "Give"
         };
         case "refine": return {
-            type: CommandType.Refine
+            kind: "Refine"
         };
         case "auto": return {
-            type: CommandType.Auto
+            kind: "Auto"
         };
         case "case": return {
-            type: CommandType.Case
+            kind: "Case"
         };
         case "goal-type": return {
-            type: CommandType.GoalType,
+            kind: "GoalType",
             normalization: parseNormalization(result[2])
         };
         case "context": return {
-            type: CommandType.Context,
+            kind: "Context",
             normalization: parseNormalization(result[2])
         };
         case "goal-type-and-context": return {
-            type: CommandType.GoalTypeAndContext,
+            kind: "GoalTypeAndContext",
             normalization: parseNormalization(result[2])
         };
         case "goal-type-and-inferred-type": return {
-            type: CommandType.GoalTypeAndInferredType,
+            kind: "GoalTypeAndInferredType",
             normalization: parseNormalization(result[2])
         };
         case "input-symbol": return {
-            type: CommandType.InputSymbol,
+            kind: "InputSymbol"
         };
         default: throw `unknown command ${raw}`;
     }
