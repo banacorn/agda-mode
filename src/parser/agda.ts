@@ -12,7 +12,7 @@ function parseAgdaResponse(raw: string): Agda.Response {
             let content = tokens.length === 3 ? [] : _.compact(tokens[2].split("\\n"));
             return {
                 kind: "InfoAction",
-                infoActionType: type,
+                infoActionKind: type,
                 content: content
             } as Agda.InfoAction;
         case "agda2-status-action":
@@ -123,21 +123,21 @@ function parseAgdaResponse(raw: string): Agda.Response {
     }
 }
 
-function parseInfoActionType(s: String): Agda.InfoActionType {
+function parseInfoActionType(s: String): string {
     switch (s) {
-        case "*All Goals*":         return Agda.InfoActionType.AllGoals;
-        case "*Error*":             return Agda.InfoActionType.Error;
-        case "*Type-checking*":     return Agda.InfoActionType.TypeChecking;
-        case "*Current Goal*":      return Agda.InfoActionType.CurrentGoal;
-        case "*Inferred Type*":     return Agda.InfoActionType.InferredType;
-        case "*Module contents*":   return Agda.InfoActionType.ModuleContents;
-        case "*Context*":           return Agda.InfoActionType.Context;
-        case "*Goal type etc.*":    return Agda.InfoActionType.GoalTypeEtc;
-        case "*Normal Form*":       return Agda.InfoActionType.NormalForm;
-        case "*Intro*":             return Agda.InfoActionType.Intro;
-        case "*Auto*":              return Agda.InfoActionType.Auto;
-        case "*Constraints*":       return Agda.InfoActionType.Constraints;
-        case "*Scope Info*":        return Agda.InfoActionType.ScopeInfo;
+        case "*All Goals*":         return "AllGoals";
+        case "*Error*":             return "Error";
+        case "*Type-checking*":     return "TypeChecking";
+        case "*Current Goal*":      return "CurrentGoal";
+        case "*Inferred Type*":     return "InferredType";
+        case "*Module contents*":   return "ModuleContents";
+        case "*Context*":           return "Context";
+        case "*Goal type etc.*":    return "GoalTypeEtc";
+        case "*Normal Form*":       return "NormalForm";
+        case "*Intro*":             return "Intro";
+        case "*Auto*":              return "Auto";
+        case "*Constraints*":       return "Constraints";
+        case "*Scope Info*":        return "ScopeInfo";
     }
 }
 

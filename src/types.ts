@@ -50,9 +50,12 @@ namespace Agda {
 
     export interface InfoAction {
         kind: "InfoAction";
-        infoActionType: InfoActionType;
+        infoActionKind: "AllGoals" | "Error" | "TypeChecking" | "CurrentGoal" |
+            "InferredType" | "ModuleContents" | "Context" | "GoalTypeEtc" |
+            "NormalForm" | "Intro" | "Auto" | "Constraints" | "ScopeInfo";
         content: string[];
     }
+
     export interface StatusAction {
         kind: "StatusAction";
         content: string[];
@@ -109,22 +112,6 @@ namespace Agda {
     export interface UnknownAction {
         kind: "UnknownAction";
         content: string[];
-    }
-
-    export const enum InfoActionType {
-        AllGoals,
-        Error,
-        TypeChecking,
-        CurrentGoal,
-        InferredType,
-        ModuleContents,
-        Context,
-        GoalTypeEtc,
-        NormalForm,
-        Intro,
-        Auto,
-        Constraints,
-        ScopeInfo
     }
 
     export interface Annotation {

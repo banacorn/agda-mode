@@ -84,47 +84,47 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
 }
 
 function handleInfoAction(core: Core, action: Agda.InfoAction)  {
-    switch (action.infoActionType) {
-        case Agda.InfoActionType.AllGoals:
+    switch (action.infoActionKind) {
+        case "AllGoals":
             if (action.content.length === 0)
                 core.view.set("No Goals", []);
             else
                 core.view.set("Goals", action.content, View.Type.Judgement);
             break;
-        case Agda.InfoActionType.Error:
+        case "Error":
             core.view.set("Error", action.content, View.Type.Error);
             break;
-        case Agda.InfoActionType.TypeChecking:
+        case "TypeChecking":
             core.view.set("Type Checking", action.content);
             break;
-        case Agda.InfoActionType.CurrentGoal:
+        case "CurrentGoal":
             core.view.set("Current Goal", action.content, View.Type.Value);
             break;
-        case Agda.InfoActionType.InferredType:
+        case "InferredType":
             core.view.set("Inferred Type", action.content);
             break;
-        case Agda.InfoActionType.ModuleContents:
+        case "ModuleContents":
             core.view.set("Module Contents", action.content);
             break;
-        case Agda.InfoActionType.Context:
+        case "Context":
             core.view.set("Context", action.content, View.Type.Judgement);
             break;
-        case Agda.InfoActionType.GoalTypeEtc:
+        case "GoalTypeEtc":
             core.view.set("Goal Type and Context", action.content, View.Type.Judgement);
             break;
-        case Agda.InfoActionType.NormalForm:
+        case "NormalForm":
             core.view.set("Normal Form", action.content, View.Type.Value);
             break;
-        case Agda.InfoActionType.Intro:
+        case "Intro":
             core.view.set("Intro", ['No introduction forms found']);
             break;
-        case Agda.InfoActionType.Auto:
+        case "Auto":
             core.view.set("Auto", ['No solution found']);
             break;
-        case Agda.InfoActionType.Constraints:
+        case "Constraints":
             core.view.set("Constraints", action.content, View.Type.Judgement);
             break;
-        case Agda.InfoActionType.ScopeInfo:
+        case "ScopeInfo":
             core.view.set("Scope Info", action.content);
             break;
         default:
