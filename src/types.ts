@@ -33,74 +33,81 @@ interface Hole {
 
 namespace Agda {
 
-    // base interface
-    export interface Response {
-        type: ResponseType
-    }
-
-    export const enum ResponseType {
-        InfoAction,
-        StatusAction,
-        GoalsAction,
-        GiveAction,
-        ParseError,
-        Goto,
-        SolveAllAction,
-        MakeCaseAction,
-        MakeCaseActionExtendLam,
-        HighlightClear,
-        HighlightAddAnnotations,
-        HighlightLoadAndDeleteAction,
+    export type Response =
+        InfoAction |
+        StatusAction |
+        GoalsAction |
+        GiveAction |
+        ParseError |
+        Goto |
+        SolveAllAction |
+        MakeCaseAction |
+        MakeCaseActionExtendLam |
+        HighlightClear |
+        HighlightAddAnnotations |
+        HighlightLoadAndDeleteAction |
         UnknownAction
-    }
 
-    export interface InfoAction extends Response {
+    export interface InfoAction {
+        kind: "InfoAction";
         infoActionType: InfoActionType;
         content: string[];
     }
-    export interface StatusAction extends Response {
+    export interface StatusAction {
+        kind: "StatusAction";
         content: string[];
     }
-    export interface GoalsAction extends Response {
+    export interface GoalsAction {
+        kind: "GoalsAction";
         content: number[];
     }
-    export interface GiveAction extends Response {
+    export interface GiveAction {
+        kind: "GiveAction";
         index: number;
         content: string;
         hasParenthesis: boolean;
     }
 
-    export interface ParseError extends Response {
+    export interface ParseError {
+        kind: "ParseError";
         content: string[];
     }
 
-    export interface Goto extends Response {
+    export interface Goto {
+        kind: "Goto";
         filepath: string;
         position: number;
     }
-    export interface SolveAllAction extends Response {
+    export interface SolveAllAction {
+        kind: "SolveAllAction";
         solutions: {
             index: number,
             expression: string
         }[];
     }
-    export interface MakeCaseAction extends Response {
+    export interface MakeCaseAction {
+        kind: "MakeCaseAction";
         content: string[];
     }
-    export interface MakeCaseActionExtendLam extends Response {
-        content: string;
-    }
-    export interface HighlightClear extends Response {
+    export interface MakeCaseActionExtendLam {
+        kind: "MakeCaseActionExtendLam";
         content: string[];
     }
-    export interface HighlightAddAnnotations extends Response {
+    export interface HighlightClear {
+        kind: "HighlightClear";
+        content: string[];
+    }
+    export interface HighlightAddAnnotations {
+        kind: "HighlightAddAnnotations";
         content: Annotation[];
     }
 
-    export interface HighlightLoadAndDeleteAction extends Response {
+    export interface HighlightLoadAndDeleteAction {
+        kind: "HighlightLoadAndDeleteAction";
         content: string;
     }
-    export interface UnknownAction extends Response {
+    export interface UnknownAction {
+        kind: "UnknownAction";
         content: string[];
     }
 
