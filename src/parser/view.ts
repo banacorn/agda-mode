@@ -284,7 +284,7 @@ const notInScope: Parser<View.NotInScope> = seq(
         all
     ).map((result) => {
         return <View.NotInScope>{
-            type: View.ErrorType.NotInScope,
+            kind: "NotInScope",
             expr: result[1],
             location: result[0],
             suggestion: result[2]
@@ -300,7 +300,7 @@ const typeMismatch: Parser<View.TypeMismatch> = seq(
         all
     ).map((result) => {
         return <View.TypeMismatch>{
-            type: View.ErrorType.TypeMismatch,
+            kind: "TypeMismatch",
             actual: result[1],
             expected: result[2],
             expectedType: result[3],
@@ -318,7 +318,7 @@ const definitionTypeMismatch: Parser<View.DefinitionTypeMismatch> = seq(
         all
     ).map((result) => {
         return <View.DefinitionTypeMismatch>{
-            type: View.ErrorType.DefinitionTypeMismatch,
+            kind: "DefinitionTypeMismatch",
             actual: result[1],
             expected: result[2],
             expectedType: result[3],
@@ -335,7 +335,7 @@ const badConstructor: Parser<View.BadConstructor> = seq(
         all
     ).map((result) => {
         return <View.BadConstructor>{
-            type: View.ErrorType.BadConstructor,
+            kind: "BadConstructor",
             location: result[0],
             constructor: result[1],
             constructorType: result[2],
@@ -353,7 +353,7 @@ const rhsOmitted: Parser<View.RHSOmitted> =  seq(
         all
     ).map((result) => {
         return <View.RHSOmitted>{
-            type: View.ErrorType.RHSOmitted,
+            kind: "RHSOmitted",
             location: result[0],
             expr: result[4],
             exprType: result[5]
@@ -367,7 +367,7 @@ const missingType: Parser<View.MissingType> =  seq(
         all
     ).map((result) => {
         return <View.MissingType>{
-            type: View.ErrorType.MissingType,
+            kind: "MissingType",
             location: result[0],
             expr: result[2]
         }
@@ -383,7 +383,7 @@ const multipleDefinition: Parser<View.MultipleDefinition> =  seq(
         all
     ).map((result) => {
         return <View.MultipleDefinition>{
-            type: View.ErrorType.MultipleDefinition,
+            kind: "MultipleDefinition",
             location: result[0],
             locationPrev: result[3],
             expr: result[2],
@@ -398,7 +398,7 @@ const missingDefinition: Parser<View.MissingDefinition> =  seq(
         token("Missing definition for").then(all)
     ).map((result) => {
         return <View.MissingDefinition>{
-            type: View.ErrorType.MissingDefinition,
+            kind: "MissingDefinition",
             location: result[0],
             expr: result[1]
         }
@@ -419,7 +419,7 @@ const termination: Parser<View.Termination> =  seq(
         }).atLeast(1)
     ).map((result) => {
         return <View.Termination>{
-            type: View.ErrorType.Termination,
+            kind: "Termination",
             location: result[0],
             expr: result[2],
             calls: result[3]
@@ -434,7 +434,7 @@ const constructorTarget: Parser<View.ConstructorTarget> =  seq(
         all
     ).map((result) => {
         return <View.ConstructorTarget>{
-            type: View.ErrorType.ConstructorTarget,
+            kind: "ConstructorTarget",
             location: result[0],
             expr: result[2],
             ctor: result[3],
@@ -450,7 +450,7 @@ const functionType: Parser<View.FunctionType> =  seq(
         all
     ).map((result) => {
         return <View.FunctionType>{
-            type: View.ErrorType.FunctionType,
+            kind: "FunctionType",
             location: result[0],
             expr: result[2],
             exprType: result[1]
@@ -463,7 +463,7 @@ const moduleMismatch: Parser<View.ModuleMismatch> =  seq(
         token("should be defined in").then(all)
     ).map((result) => {
         return <View.ModuleMismatch>{
-            type: View.ErrorType.ModuleMismatch,
+            kind: "ModuleMismatch",
             wrongPath: result[0],
             rightPath: result[2],
             moduleName: result[1]
@@ -476,7 +476,7 @@ const parse: Parser<View.Parse> =  seq(
     ).map((result) => {
         const i = (<string>result[1]).indexOf("\n");
         return <View.Parse>{
-            type: View.ErrorType.Parse,
+            kind: "Parse",
             location: result[0],
             message: (<string>result[1]).substring(0, i),
             expr: (<string>result[1]).substring(i + 1)
@@ -492,7 +492,7 @@ const caseSingleHole: Parser<View.CaseSingleHole> =  seq(
     all
 ).map((result) => {
     return <View.CaseSingleHole>{
-        type: View.ErrorType.CaseSingleHole,
+        kind: "CaseSingleHole",
         location: result[0],
         expr: result[3],
         exprType: result[4]
@@ -506,7 +506,7 @@ const patternMatchOnNonDatatype: Parser<View.PatternMatchOnNonDatatype> =  seq(
     all
 ).map((result) => {
     return <View.PatternMatchOnNonDatatype>{
-        type: View.ErrorType.PatternMatchOnNonDatatype,
+        kind: "PatternMatchOnNonDatatype",
         location: result[0],
         nonDatatype: result[1],
         expr: result[2],
@@ -532,8 +532,8 @@ const patternMatchOnNonDatatype: Parser<View.PatternMatchOnNonDatatype> =  seq(
 //
 
 const unparsed: Parser<View.Unparsed> = all.map((result) => {
-    return {
-        type: View.ErrorType.Unparsed,
+    return <View.Unparsed>{
+        kind: "Unparsed",
         input: result
     }
 });

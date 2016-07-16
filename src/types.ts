@@ -347,37 +347,15 @@ namespace View {
         // ParseError |
         Unparsed;
 
-    export const enum ErrorType {
-        NotInScope,
-        TypeMismatch,
-        DefinitionTypeMismatch,
-        BadConstructor,
-        RHSOmitted,
-        MissingType,
-        MultipleDefinition,
-        MissingDefinition,
-        Termination,
-        ConstructorTarget,
-        FunctionType,
-        ModuleMismatch,
-        Parse,
-        CaseSingleHole,
-        PatternMatchOnNonDatatype,
-        // ApplicationParseError,
-        // TerminationError,
-        // ParseError,
-        Unparsed
-    }
-
     export interface NotInScope {
-        type: ErrorType,
+        kind: "NotInScope",
         location: Location,
         suggestion: Suggestion,
         expr: string
     }
 
     export interface TypeMismatch {
-        type: ErrorType,
+        kind: "TypeMismatch",
         location: Location
         expected: string,
         expectedType: string,
@@ -387,7 +365,7 @@ namespace View {
     }
 
     export interface DefinitionTypeMismatch {
-        type: ErrorType,
+        kind: "DefinitionTypeMismatch",
         location: Location
         expected: string,
         expectedType: string,
@@ -397,7 +375,7 @@ namespace View {
     }
 
     export interface BadConstructor {
-        type: ErrorType,
+        kind: "BadConstructor",
         location: Location,
         constructor: string,
         constructorType: string,
@@ -406,20 +384,20 @@ namespace View {
     }
 
     export interface RHSOmitted {
-        type: ErrorType,
+        kind: "RHSOmitted",
         location: Location,
         expr: string,
         exprType: string
     }
 
     export interface MissingType {
-        type: ErrorType,
+        kind: "MissingType",
         location: Location,
         expr: string
     }
 
     export interface MultipleDefinition {
-        type: ErrorType,
+        kind: "MultipleDefinition",
         location: Location,
         locationPrev: Location,
         expr: string,
@@ -428,13 +406,13 @@ namespace View {
     }
 
     export interface MissingDefinition {
-        type: ErrorType,
+        kind: "MissingDefinition",
         location: Location,
         expr: string
     }
 
     export interface Termination {
-        type: ErrorType,
+        kind: "Termination",
         location: Location,
         expr: string,
         calls: {
@@ -444,7 +422,7 @@ namespace View {
     }
 
     export interface ConstructorTarget {
-        type: ErrorType,
+        kind: "ConstructorTarget",
         location: Location,
         expr: string,
         ctor: string,
@@ -452,35 +430,35 @@ namespace View {
     }
 
     export interface FunctionType {
-        type: ErrorType,
+        kind: "FunctionType",
         location: Location,
         expr: string,
         exprType: string
     }
 
     export interface ModuleMismatch {
-        type: ErrorType,
+        kind: "ModuleMismatch",
         wrongPath: string,
         rightPath: string,
         moduleName: string
     }
 
     export interface Parse {
-        type: ErrorType,
+        kind: "Parse",
         location: Location
         message: string,
         expr: string,
     }
 
     export interface CaseSingleHole {
-        type: ErrorType,
+        kind: "CaseSingleHole",
         location: Location,
         expr: string,
         exprType: string
     }
 
     export interface PatternMatchOnNonDatatype {
-        type: ErrorType,
+        kind: "PatternMatchOnNonDatatype",
         location: Location,
         nonDatatype: string,
         expr: string,
@@ -493,7 +471,7 @@ namespace View {
     // }
     //
     export interface Unparsed {
-        type: ErrorType,
+        kind: "Unparsed",
         input: string,
     }
 
