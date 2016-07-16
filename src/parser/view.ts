@@ -44,7 +44,7 @@ function divideContent(lines: string[]): {
 
 // concatenate multiline judgements
 function concatItems(lines: string[]): string[] {
-    const newlineRegex = /^(?:Goal\:|Have\:|\S+\s+\:\s*|Sort) \S*/;
+    const newlineRegex = /^(?:Goal\:|Have\:|[^\(\{]+\s+\:\s*|Sort) \S*/;
 
     let result = [];
     let currentLine = 0;
@@ -52,11 +52,9 @@ function concatItems(lines: string[]): string[] {
         const notTheLastLine = i + 1 < lines.length;
         const preemptLine = notTheLastLine ? line + "\n" + lines[i + 1] : line;
         if (line.match(newlineRegex) || preemptLine.match(newlineRegex)) {
-            // is a new line
             currentLine = i;
             result[currentLine] = line;
         } else {
-            // is not a new line, concat to the previous line
             if (result[currentLine])
                 result[currentLine] = result[currentLine].concat("\n" + line);
             else
