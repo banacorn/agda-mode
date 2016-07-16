@@ -1,14 +1,17 @@
 import * as Promise from "bluebird";
 import * as _ from "lodash";
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError } from "./error";
-import { Command, Normalization, Result, View } from "./types";
+import { Command, Normalization, CommandResult, View } from "./types";
 import Core from "./core";
 
 declare var atom: any;
 
-function resolveCommand(commandKind: string): (any) => Promise<Result> {
+function resolveCommand(commandKind: string): (any) => Promise<CommandResult> {
     return () => {
-        return Promise.resolve(<Result>{ kind: commandKind });
+        return Promise.resolve(<CommandResult>{
+            status: "Issued",
+            command: commandKind
+        });
     }
 }
 
@@ -53,7 +56,7 @@ export default class Commander {
         }
     }
 
-    dispatchCommand(command: Command): Promise<Result> {
+    dispatchCommand(command: Command): Promise<CommandResult> {
         switch(command.kind) {
             case "Load":          return this.load();
             case "Quit":          return this.quit();
@@ -100,7 +103,7 @@ export default class Commander {
     //  Commands
     //
 
-    load(): Promise<Result> {
+    load(): Promise<CommandResult> {
         this.core.atomPanel.show();
         return this.core.process.load()
             .then(() => {
@@ -109,7 +112,7 @@ export default class Commander {
             .then(resolveCommand("Load"));
     }
 
-    quit(): Promise<Result> {
+    quit(): Promise<CommandResult> {
         this.core.atomPanel.hide();
         if (this.loaded) {
             this.loaded = false;
@@ -117,52 +120,52 @@ export default class Commander {
             return this.core.process.quit()
                 .then(resolveCommand("Quit"));
         } else {
-            return Promise.resolve(<Result>{ kind: "Quit" });
+            return Promise.resolve(<CommandResult>{ status: "Issued", command: "Quit" });
         }
     }
 
-    restart(): Promise<Result> {
+    restart(): Promise<CommandResult> {
         this.quit();
         return this.load();
     }
 
 
-    compile(): Promise<Result> {
+    compile(): Promise<CommandResult> {
         return this.core.process.compile()
             .then(resolveCommand("Compile"));
     }
 
-    toggleDisplayOfImplicitArguments(): Promise<Result> {
+    toggleDisplayOfImplicitArguments(): Promise<CommandResult> {
         return this.core.process.toggleDisplayOfImplicitArguments()
             .then(resolveCommand("ToggleDisplayOfImplicitArguments"));
     }
 
-    info(): Promise<Result> {
+    info(): Promise<CommandResult> {
         return this.core.process.info()
             .then(resolveCommand("Info"));
     }
 
-    solveConstraints(): Promise<Result> {
+    solveConstraints(): Promise<CommandResult> {
         return this.core.process.solveConstraints()
             .then(resolveCommand("SolveConstraints"));
     }
 
-    showConstraints(): Promise<Result> {
+    showConstraints(): Promise<CommandResult> {
         return this.core.process.showConstraints()
             .then(resolveCommand("ShowConstraints"));
     }
 
-    showGoals(): Promise<Result> {
+    showGoals(): Promise<CommandResult> {
         return this.core.process.showGoals()
             .then(resolveCommand("ShowGoals"));
     }
 
-    nextGoal(): Promise<Result> {
+    nextGoal(): Promise<CommandResult> {
         return this.core.textBuffer.nextGoal()
             .then(resolveCommand("NextGoal"));
     }
 
-    previousGoal(): Promise<Result> {
+    previousGoal(): Promise<CommandResult> {
         return this.core.textBuffer.previousGoal()
             .then(resolveCommand("PreviousGoal"));
     }
@@ -171,7 +174,7 @@ export default class Commander {
     //  The following commands may have a goal-specific version
     //
 
-    whyInScope(): Promise<Result> {
+    whyInScope(): Promise<CommandResult> {
         return this.core.view.query("Scope info", [], View.Type.PlainText, "name:")
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
@@ -188,7 +191,7 @@ export default class Commander {
 
     }
 
-    inferType(normalization: Normalization): Promise<Result> {
+    inferType(normalization: Normalization): Promise<CommandResult> {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 // goal-specific
@@ -210,7 +213,7 @@ export default class Commander {
     }
 
 
-    moduleContents(normalization: Normalization): Promise<Result> {
+    moduleContents(normalization: Normalization): Promise<CommandResult> {
         return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], View.Type.PlainText, "module name:")
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
@@ -223,7 +226,7 @@ export default class Commander {
     }
 
 
-    computeNormalForm(): Promise<Result> {
+    computeNormalForm(): Promise<CommandResult> {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
@@ -242,7 +245,7 @@ export default class Commander {
     }
 
 
-    computeNormalFormIgnoreAbstract(): Promise<Result> {
+    computeNormalFormIgnoreAbstract(): Promise<CommandResult> {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
@@ -263,7 +266,7 @@ export default class Commander {
     //  The following commands only working in the context of a specific goal
     //
 
-    give(): Promise<Result> {
+    give(): Promise<CommandResult> {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
@@ -280,7 +283,7 @@ export default class Commander {
             .then(resolveCommand("Give"));
     }
 
-    refine(): Promise<Result> {
+    refine(): Promise<CommandResult> {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.refine)
             .catch(OutOfGoalError, () => {
@@ -289,7 +292,7 @@ export default class Commander {
             .then(resolveCommand("Refine"));
     }
 
-    auto(): Promise<Result> {
+    auto(): Promise<CommandResult> {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.auto)
             .catch(OutOfGoalError, () => {
@@ -298,7 +301,7 @@ export default class Commander {
             .then(resolveCommand("Auto"));
     }
 
-    case(): Promise<Result> {
+    case(): Promise<CommandResult> {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
@@ -315,7 +318,7 @@ export default class Commander {
             .then(resolveCommand("Case"));
     }
 
-    goalType(normalization: Normalization): Promise<Result> {
+    goalType(normalization: Normalization): Promise<CommandResult> {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.goalType(normalization))
             .catch(OutOfGoalError, () => {
@@ -324,7 +327,7 @@ export default class Commander {
             .then(resolveCommand("GoalType"));
     }
 
-    context(normalization: Normalization): Promise<Result> {
+    context(normalization: Normalization): Promise<CommandResult> {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.context(normalization))
             .catch(OutOfGoalError, () => {
@@ -333,7 +336,7 @@ export default class Commander {
             .then(resolveCommand("Context"));
     }
 
-    goalTypeAndContext(normalization: Normalization): Promise<Result> {
+    goalTypeAndContext(normalization: Normalization): Promise<CommandResult> {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.goalTypeAndContext(normalization))
             .catch(OutOfGoalError, () => {
@@ -342,7 +345,7 @@ export default class Commander {
             .then(resolveCommand("GoalTypeAndContext"));
     }
 
-    goalTypeAndInferredType(normalization: Normalization): Promise<Result> {
+    goalTypeAndInferredType(normalization: Normalization): Promise<CommandResult> {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.goalTypeAndInferredType(normalization))
             .catch(OutOfGoalError, () => {
@@ -351,7 +354,7 @@ export default class Commander {
             .then(resolveCommand("GoalTypeAndInferredType"));
     }
 
-    inputSymbol(): Promise<Result> {
+    inputSymbol(): Promise<CommandResult> {
         if (atom.config.get("agda-mode.inputMethod")) {
             if (!this.loaded) {
                 this.core.atomPanel.show();
@@ -361,6 +364,6 @@ export default class Commander {
         } else {
             this.core.editor.insertText("\\");
         }
-        return Promise.resolve(<Result>{ kind: "InputSymbol" });
+        return Promise.resolve(<CommandResult>{ status: "Issued", command: "InputSymbol" });
     }
 }

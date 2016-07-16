@@ -230,7 +230,12 @@ type Normalization = "Simplified" | "Instantiated" | "Normalised";
 //     Normalised
 // }
 
-type Result = Command;
+type CommandResult = {
+    status: "Issued",
+    command: string
+} | {
+    status: "Canceled"
+};
 
 //
 //  View
@@ -488,7 +493,7 @@ export {
     // commands
     Command,
     Normalization,
-    Result,
+    CommandResult,
     Suggestion,
     // view
     View,
