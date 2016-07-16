@@ -138,6 +138,7 @@ function parseInfoActionType(s: String): string {
         case "*Auto*":              return "Auto";
         case "*Constraints*":       return "Constraints";
         case "*Scope Info*":        return "ScopeInfo";
+        default:                    return "Unknown";
     }
 }
 

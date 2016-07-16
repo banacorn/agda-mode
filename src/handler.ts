@@ -127,8 +127,12 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
         case "ScopeInfo":
             core.view.set("Scope Info", action.content);
             break;
+        case "Unknown":
+            core.view.set(_.head(action.content), _.tail(action.content));
+            break;
         default:
-            console.error(`unknown info action ${action}`);
+            console.error(`unknown info action:`);
+            console.error(action);
     }
 }
 

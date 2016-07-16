@@ -52,7 +52,8 @@ namespace Agda {
         kind: "InfoAction";
         infoActionKind: "AllGoals" | "Error" | "TypeChecking" | "CurrentGoal" |
             "InferredType" | "ModuleContents" | "Context" | "GoalTypeEtc" |
-            "NormalForm" | "Intro" | "Auto" | "Constraints" | "ScopeInfo";
+            "NormalForm" | "Intro" | "Auto" | "Constraints" | "ScopeInfo" |
+            "Unknown";
         content: string[];
     }
 
