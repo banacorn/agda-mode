@@ -1,7 +1,7 @@
 import * as _ from "lodash";;
 import { normalize } from "path";
 import { parseFilepath } from "./util";
-import { View } from "../types";
+import { View, Error, Suggestion } from "../types";
 import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom, succeed,
     regex, digits, string
     } from "parsimmon";
@@ -269,7 +269,7 @@ const location: Parser<View.Location> = seq(
         };
     }).skip(spaces);
 
-const didYouMean: Parser<View.Suggestion> = alt(seq(
+const didYouMean: Parser<Suggestion> = alt(seq(
         token("(did you mean"),
         sepBy1(regex(/'.*'/).skip(spaces), token("or")),
         token("?)")
@@ -277,13 +277,13 @@ const didYouMean: Parser<View.Suggestion> = alt(seq(
         return result[1].map((s) => s.substr(1, s.length - 2)); // remove single quotes
     }).skip(spaces);
 
-const notInScope: Parser<View.NotInScope> = seq(
+const notInScope: Parser<Error.NotInScope> = seq(
         location,
         token("Not in scope:").then(trimBeforeAndSkip("at")).skip(location),
         didYouMean,
         all
     ).map((result) => {
-        return <View.NotInScope>{
+        return <Error.NotInScope>{
             kind: "NotInScope",
             expr: result[1],
             location: result[0],
@@ -291,7 +291,7 @@ const notInScope: Parser<View.NotInScope> = seq(
         }
     });
 
-const typeMismatch: Parser<View.TypeMismatch> = seq(
+const typeMismatch: Parser<Error.TypeMismatch> = seq(
         location,
         alt(trimBeforeAndSkip("!=<"), trimBeforeAndSkip("=<"), trimBeforeAndSkip("!=")),
         trimBeforeAndSkip("of type"),
@@ -299,7 +299,7 @@ const typeMismatch: Parser<View.TypeMismatch> = seq(
         trimBeforeAndSkip("has type"),
         all
     ).map((result) => {
-        return <View.TypeMismatch>{
+        return <Error.TypeMismatch>{
             kind: "TypeMismatch",
             actual: result[1],
             expected: result[2],
@@ -310,14 +310,14 @@ const typeMismatch: Parser<View.TypeMismatch> = seq(
         };
     });
 
-const definitionTypeMismatch: Parser<View.DefinitionTypeMismatch> = seq(
+const definitionTypeMismatch: Parser<Error.DefinitionTypeMismatch> = seq(
         location,
         alt(trimBeforeAndSkip("!=<"), trimBeforeAndSkip("=<"), trimBeforeAndSkip("!=")),
         trimBeforeAndSkip("of type"),
         trimBeforeAndSkip("when checking the definition of"),
         all
     ).map((result) => {
-        return <View.DefinitionTypeMismatch>{
+        return <Error.DefinitionTypeMismatch>{
             kind: "DefinitionTypeMismatch",
             actual: result[1],
             expected: result[2],
@@ -327,14 +327,14 @@ const definitionTypeMismatch: Parser<View.DefinitionTypeMismatch> = seq(
         };
     });
 
-const badConstructor: Parser<View.BadConstructor> = seq(
+const badConstructor: Parser<Error.BadConstructor> = seq(
         location,
         token("The constructor").then(trimBeforeAndSkip("does not construct an element of")),
         trimBeforeAndSkip("when checking that the expression"),
         trimBeforeAndSkip("has type"),
         all
     ).map((result) => {
-        return <View.BadConstructor>{
+        return <Error.BadConstructor>{
             kind: "BadConstructor",
             location: result[0],
             constructor: result[1],
@@ -344,7 +344,7 @@ const badConstructor: Parser<View.BadConstructor> = seq(
         };
     });
 
-const rhsOmitted: Parser<View.RHSOmitted> =  seq(
+const rhsOmitted: Parser<Error.RHSOmitted> =  seq(
         location,
         token("The right-hand side can only be omitted if there is an absurd"),
         token("pattern, () or {}, in the left-hand side."),
@@ -352,7 +352,7 @@ const rhsOmitted: Parser<View.RHSOmitted> =  seq(
         trimBeforeAndSkip("has type"),
         all
     ).map((result) => {
-        return <View.RHSOmitted>{
+        return <Error.RHSOmitted>{
             kind: "RHSOmitted",
             location: result[0],
             expr: result[4],
@@ -360,20 +360,20 @@ const rhsOmitted: Parser<View.RHSOmitted> =  seq(
         }
     });
 
-const missingType: Parser<View.MissingType> =  seq(
+const missingType: Parser<Error.MissingType> =  seq(
         location,
         token("Missing type signature for left hand side"),
         trimBeforeAndSkip("when scope checking the declaration"),
         all
     ).map((result) => {
-        return <View.MissingType>{
+        return <Error.MissingType>{
             kind: "MissingType",
             location: result[0],
             expr: result[2]
         }
     });
 
-const multipleDefinition: Parser<View.MultipleDefinition> =  seq(
+const multipleDefinition: Parser<Error.MultipleDefinition> =  seq(
         location,
         token("Multiple definitions of"),
         trimBeforeAndSkip(". Previous definition at"),
@@ -382,7 +382,7 @@ const multipleDefinition: Parser<View.MultipleDefinition> =  seq(
         trimBeforeAndSkip(":"),
         all
     ).map((result) => {
-        return <View.MultipleDefinition>{
+        return <Error.MultipleDefinition>{
             kind: "MultipleDefinition",
             location: result[0],
             locationPrev: result[3],
@@ -393,18 +393,18 @@ const multipleDefinition: Parser<View.MultipleDefinition> =  seq(
     });
 
 
-const missingDefinition: Parser<View.MissingDefinition> =  seq(
+const missingDefinition: Parser<Error.MissingDefinition> =  seq(
         location,
         token("Missing definition for").then(all)
     ).map((result) => {
-        return <View.MissingDefinition>{
+        return <Error.MissingDefinition>{
             kind: "MissingDefinition",
             location: result[0],
             expr: result[1]
         }
     });
 
-const termination: Parser<View.Termination> =  seq(
+const termination: Parser<Error.Termination> =  seq(
         location,
         token("Termination checking failed for the following functions:"),
         trimBeforeAndSkip("Problematic calls:"),
@@ -418,7 +418,7 @@ const termination: Parser<View.Termination> =  seq(
             }
         }).atLeast(1)
     ).map((result) => {
-        return <View.Termination>{
+        return <Error.Termination>{
             kind: "Termination",
             location: result[0],
             expr: result[2],
@@ -426,14 +426,14 @@ const termination: Parser<View.Termination> =  seq(
         }
     });
 
-const constructorTarget: Parser<View.ConstructorTarget> =  seq(
+const constructorTarget: Parser<Error.ConstructorTarget> =  seq(
         location,
         token("The target of a constructor must be the datatype applied to its"),
         token("parameters,").then(trimBeforeAndSkip("isn't")),
         token("when checking the constructor").then(trimBeforeAndSkip("in the declaration of")),
         all
     ).map((result) => {
-        return <View.ConstructorTarget>{
+        return <Error.ConstructorTarget>{
             kind: "ConstructorTarget",
             location: result[0],
             expr: result[2],
@@ -443,13 +443,13 @@ const constructorTarget: Parser<View.ConstructorTarget> =  seq(
     });
 
 
-const functionType: Parser<View.FunctionType> =  seq(
+const functionType: Parser<Error.FunctionType> =  seq(
         location,
         trimBeforeAndSkip("should be a function type, but it isn't"),
         token("when checking that").then(trimBeforeAndSkip("is a valid argument to a function of type")),
         all
     ).map((result) => {
-        return <View.FunctionType>{
+        return <Error.FunctionType>{
             kind: "FunctionType",
             location: result[0],
             expr: result[2],
@@ -457,12 +457,12 @@ const functionType: Parser<View.FunctionType> =  seq(
         }
     });
 
-const moduleMismatch: Parser<View.ModuleMismatch> =  seq(
+const moduleMismatch: Parser<Error.ModuleMismatch> =  seq(
         token("You tried to load").then(trimBeforeAndSkip("which defines")),
         token("the module").then(trimBeforeAndSkip(". However, according to the include path this module")),
         token("should be defined in").then(all)
     ).map((result) => {
-        return <View.ModuleMismatch>{
+        return <Error.ModuleMismatch>{
             kind: "ModuleMismatch",
             wrongPath: result[0],
             rightPath: result[2],
@@ -470,12 +470,12 @@ const moduleMismatch: Parser<View.ModuleMismatch> =  seq(
         }
     });
 
-const parse: Parser<View.Parse> =  seq(
+const parse: Parser<Error.Parse> =  seq(
         location,
         trimBeforeAndSkip(": ").then(trimBeforeAndSkip("..."))
     ).map((result) => {
         const i = (<string>result[1]).indexOf("\n");
-        return <View.Parse>{
+        return <Error.Parse>{
             kind: "Parse",
             location: result[0],
             message: (<string>result[1]).substring(0, i),
@@ -484,14 +484,14 @@ const parse: Parser<View.Parse> =  seq(
     });
 
 
-const caseSingleHole: Parser<View.CaseSingleHole> =  seq(
+const caseSingleHole: Parser<Error.CaseSingleHole> =  seq(
     location,
     token("Right hand side must be a single hole when making a case").then(token("distinction")),
     token("when checking that the expression"),
     trimBeforeAndSkip("has type"),
     all
 ).map((result) => {
-    return <View.CaseSingleHole>{
+    return <Error.CaseSingleHole>{
         kind: "CaseSingleHole",
         location: result[0],
         expr: result[3],
@@ -499,13 +499,13 @@ const caseSingleHole: Parser<View.CaseSingleHole> =  seq(
     }
 });
 
-const patternMatchOnNonDatatype: Parser<View.PatternMatchOnNonDatatype> =  seq(
+const patternMatchOnNonDatatype: Parser<Error.PatternMatchOnNonDatatype> =  seq(
     location,
     token("Cannot pattern match on non-datatype").then(trimBeforeAndSkip("when checking that the expression")),
     trimBeforeAndSkip("has type"),
     all
 ).map((result) => {
-    return <View.PatternMatchOnNonDatatype>{
+    return <Error.PatternMatchOnNonDatatype>{
         kind: "PatternMatchOnNonDatatype",
         location: result[0],
         nonDatatype: result[1],
@@ -517,7 +517,7 @@ const patternMatchOnNonDatatype: Parser<View.PatternMatchOnNonDatatype> =  seq(
 
 // function parseCallLocation(str: string): {
 //     term: string,
-//     location: View.Location
+//     location: Error.Location
 // }[] {
 //     const tokens = str.split(/\(at (.*)\)/);
 //     return _.chunk(tokens, 2).filter((arr) => arr[0] !== "" ).map((arr) => {
@@ -531,14 +531,14 @@ const patternMatchOnNonDatatype: Parser<View.PatternMatchOnNonDatatype> =  seq(
 //
 //
 
-const unparsed: Parser<View.Unparsed> = all.map((result) => {
-    return <View.Unparsed>{
+const unparsed: Parser<Error.Unparsed> = all.map((result) => {
+    return <Error.Unparsed>{
         kind: "Unparsed",
         input: result
     }
 });
 
-const errorParser: Parser<View.Error> = alt(
+const errorParser: Parser<Error> = alt(
     notInScope,
     typeMismatch,
     definitionTypeMismatch,
@@ -557,7 +557,7 @@ const errorParser: Parser<View.Error> = alt(
     unparsed
 );
 
-function parseError(input: string): View.Error {
+function parseError(input: string): Error {
     return errorParser.parse(input).value;
 }
 

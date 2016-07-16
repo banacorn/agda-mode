@@ -321,32 +321,34 @@ namespace View {
         sort: Sort[]
     }
 
-    export type Suggestion = string[];
+}
 
-    ////////////////////////////////////////////
-    // Errors
-    ////////////////////////////////////////////
+type Suggestion = string[];
+////////////////////////////////////////////
+// Errors
+////////////////////////////////////////////
 
-    export type Error = NotInScope |
-        TypeMismatch |
-        DefinitionTypeMismatch |
-        BadConstructor |
-        RHSOmitted |
-        MissingType |
-        MultipleDefinition |
-        MissingDefinition |
-        Termination |
-        ConstructorTarget |
-        FunctionType |
-        ModuleMismatch |
-        Parse |
-        CaseSingleHole |
-        PatternMatchOnNonDatatype |
-        // ApplicationParseError |
-        // TerminationError |
-        // ParseError |
-        Unparsed;
+type Error = Error.NotInScope |
+    Error.TypeMismatch |
+    Error.DefinitionTypeMismatch |
+    Error.BadConstructor |
+    Error.RHSOmitted |
+    Error.MissingType |
+    Error.MultipleDefinition |
+    Error.MissingDefinition |
+    Error.Termination |
+    Error.ConstructorTarget |
+    Error.FunctionType |
+    Error.ModuleMismatch |
+    Error.Parse |
+    Error.CaseSingleHole |
+    Error.PatternMatchOnNonDatatype |
+    // ApplicationParseError |
+    // TerminationError |
+    // ParseError |
+    Error.Unparsed;
 
+namespace Error {
     export interface NotInScope {
         kind: "NotInScope",
         location: Location,
@@ -474,9 +476,6 @@ namespace View {
         kind: "Unparsed",
         input: string,
     }
-
-
-
 }
 
 
@@ -490,6 +489,9 @@ export {
     Command,
     Normalization,
     Result,
+    Suggestion,
     // view
-    View
+    View,
+    // Errors
+    Error
 }

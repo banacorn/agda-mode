@@ -1,7 +1,7 @@
 import * as _ from "lodash";;
 import Component from "vue-class-component";
 import * as Vue from "vue";
-import { View } from "../../types";
+import { View, Suggestion as SuggestionType } from "../../types";
 
 // did you mean: ℕ.succ         -- head
 //            or succ           -- middle
@@ -26,7 +26,7 @@ import { View } from "../../types";
 })
 class Suggestion extends Vue {
     // props
-    input: View.Suggestion;
+    input: SuggestionType;
 
     // computed
     get notEmpty(): boolean {

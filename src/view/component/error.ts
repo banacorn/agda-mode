@@ -1,6 +1,6 @@
 import Component from "vue-class-component";
 import * as Vue from "vue";
-import { View } from "../../types";
+import { View, Error as Err } from "../../types";
 
 import "./suggestion";
 
@@ -246,7 +246,7 @@ import "./suggestion";
 class Error extends Vue {
 
     // props
-    error: View.Error;
+    error: Err;
 
     // computed
     get notInScope(): boolean { return this.error.kind === "NotInScope"; }

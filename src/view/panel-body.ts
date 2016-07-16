@@ -2,7 +2,7 @@ import Component from "vue-class-component";
 import * as Vue from "vue";
 import * as _ from "lodash";
 import { parseContent, parseError} from "../parser";
-import { View } from "../types";
+import { View, Error } from "../types";
 
 @Component({
     props: {
@@ -56,7 +56,7 @@ import { View } from "../types";
 class PanelBody extends Vue {
     banner: View.BannerItem[];
     body: View.Body;
-    error: View.Error;
+    error: Error;
     plainText: string[];
 
     data() {
