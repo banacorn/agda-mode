@@ -15,17 +15,6 @@ function resolveCommand(commandKind: string): (any) => Promise<CommandResult> {
     }
 }
 
-function toCamalCase(str: string): string {
-    return str.split("-")
-        .map((str, i) => {
-            if (i === 0)
-                return str;
-            else
-                return str.charAt(0).toUpperCase() + str.slice(1);
-        })
-        .join("");
-}
-
 function toDescription(normalization: Normalization): string {
     switch(normalization) {
         case "Simplified":      return "";

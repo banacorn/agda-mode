@@ -16,85 +16,110 @@ function parseCommand(raw: string): Command {
 
     switch (result[1]) {
         case "load": return {
-            kind: "Load"
+            kind: "Load",
+            editsFile: true
         };
         case "quit": return {
-            kind: "Quit"
+            kind: "Quit",
+            editsFile: false
         };
         case "restart": return {
-            kind: "Restart"
+            kind: "Restart",
+            editsFile: true
         };
         case "compile": return {
-            kind: "Compile"
+            kind: "Compile",
+            editsFile: false
         };
         case "toggle-display-of-implicit-arguments": return {
-            kind: "ToggleDisplayOfImplicitArguments"
+            kind: "ToggleDisplayOfImplicitArguments",
+            editsFile: false
         };
         case "info": return {
-            kind: "Info"
+            kind: "Info",
+            editsFile: false
         };
         case "show-constraints": return {
-            kind: "ShowConstraints"
+            kind: "ShowConstraints",
+            editsFile: false
         };
         case "show-goals": return {
-            kind: "ShowGoals"
+            kind: "ShowGoals",
+            editsFile: false
         };
         case "solve-constraints": return {
-            kind: "SolveConstraints"
+            kind: "SolveConstraints",
+            editsFile: true
         };
         case "next-goal": return {
-            kind: "NextGoal"
+            kind: "NextGoal",
+            editsFile: false
         };
         case "previous-goal": return {
-            kind: "PreviousGoal"
+            kind: "PreviousGoal",
+            editsFile: false
         };
         case "why-in-scope": return {
-            kind: "WhyInScope"
+            kind: "WhyInScope",
+            editsFile: false
         };
         case "infer-type": return {
             kind: "InferType",
-            normalization: parseNormalization(result[2])
+            normalization: parseNormalization(result[2]),
+            editsFile: false
         };
         case "module-contents": return {
             kind: "ModuleContents",
-            normalization: parseNormalization(result[2])
+            normalization: parseNormalization(result[2]),
+            editsFile: false
         };
         case "compute-normal-form": return {
-            kind: "ComputeNormalForm"
+            kind: "ComputeNormalForm",
+            editsFile: false
         };
         case "compute-normal-form-ignore-abstract": return {
-            kind: "ComputeNormalFormIgnoreAbstract"
+            kind: "ComputeNormalFormIgnoreAbstract",
+            editsFile: false
         };
         case "give": return {
-            kind: "Give"
+            kind: "Give",
+            editsFile: true
         };
         case "refine": return {
-            kind: "Refine"
+            kind: "Refine",
+            editsFile: true
         };
         case "auto": return {
-            kind: "Auto"
+            kind: "Auto",
+            editsFile: true
         };
         case "case": return {
-            kind: "Case"
+            kind: "Case",
+            editsFile: true
         };
         case "goal-type": return {
             kind: "GoalType",
-            normalization: parseNormalization(result[2])
+            normalization: parseNormalization(result[2]),
+            editsFile: false
         };
         case "context": return {
             kind: "Context",
-            normalization: parseNormalization(result[2])
+            normalization: parseNormalization(result[2]),
+            editsFile: false
         };
         case "goal-type-and-context": return {
             kind: "GoalTypeAndContext",
-            normalization: parseNormalization(result[2])
+            normalization: parseNormalization(result[2]),
+            editsFile: false
         };
         case "goal-type-and-inferred-type": return {
             kind: "GoalTypeAndInferredType",
-            normalization: parseNormalization(result[2])
+            normalization: parseNormalization(result[2]),
+            editsFile: false
         };
         case "input-symbol": return {
-            kind: "InputSymbol"
+            kind: "InputSymbol",
+            editsFile: true
         };
         default: throw `unknown command ${raw}`;
     }
