@@ -1,6 +1,6 @@
 import Component from "vue-class-component";
 import * as Vue from "vue";
-import { View } from "../../types";
+import { View, Error as Err } from "../../types";
 
 import "./suggestion";
 
@@ -246,26 +246,26 @@ import "./suggestion";
 class Error extends Vue {
 
     // props
-    error: View.Error;
+    error: Err;
 
     // computed
-    get notInScope(): boolean { return this.error.type === View.ErrorType.NotInScope; }
-    get typeMismatch(): boolean { return this.error.type === View.ErrorType.TypeMismatch; }
-    get definitionTypeMismatch(): boolean { return this.error.type === View.ErrorType.DefinitionTypeMismatch; }
-    get badConstructor(): boolean { return this.error.type === View.ErrorType.BadConstructor; }
-    get rhsOmitted(): boolean { return this.error.type === View.ErrorType.RHSOmitted; }
-    get missingType(): boolean { return this.error.type === View.ErrorType.MissingType; }
-    get multipleDefinition(): boolean { return this.error.type === View.ErrorType.MultipleDefinition; }
-    get missingDefinition(): boolean { return this.error.type === View.ErrorType.MissingDefinition; }
-    get termination(): boolean { return this.error.type === View.ErrorType.Termination; }
-    get constructorTarget(): boolean { return this.error.type === View.ErrorType.ConstructorTarget; }
-    get functionType(): boolean { return this.error.type === View.ErrorType.FunctionType; }
-    get moduleMismatch(): boolean { return this.error.type === View.ErrorType.ModuleMismatch; }
-    get parse(): boolean { return this.error.type === View.ErrorType.Parse; }
-    get caseSingleHole(): boolean { return this.error.type === View.ErrorType.CaseSingleHole; }
-    get patternMatchOnNonDatatype(): boolean { return this.error.type === View.ErrorType.PatternMatchOnNonDatatype; }
-    // get applicationParseError(): boolean { return this.error.type === View.ErrorType.ApplicationParseError; }
-    get unparsed(): boolean { return this.error.type === View.ErrorType.Unparsed; }
+    get notInScope(): boolean { return this.error.kind === "NotInScope"; }
+    get typeMismatch(): boolean { return this.error.kind === "TypeMismatch"; }
+    get definitionTypeMismatch(): boolean { return this.error.kind === "DefinitionTypeMismatch"; }
+    get badConstructor(): boolean { return this.error.kind === "BadConstructor"; }
+    get rhsOmitted(): boolean { return this.error.kind === "RHSOmitted"; }
+    get missingType(): boolean { return this.error.kind === "MissingType"; }
+    get multipleDefinition(): boolean { return this.error.kind === "MultipleDefinition"; }
+    get missingDefinition(): boolean { return this.error.kind === "MissingDefinition"; }
+    get termination(): boolean { return this.error.kind === "Termination"; }
+    get constructorTarget(): boolean { return this.error.kind === "ConstructorTarget"; }
+    get functionType(): boolean { return this.error.kind === "FunctionType"; }
+    get moduleMismatch(): boolean { return this.error.kind === "ModuleMismatch"; }
+    get parse(): boolean { return this.error.kind === "Parse"; }
+    get caseSingleHole(): boolean { return this.error.kind === "CaseSingleHole"; }
+    get patternMatchOnNonDatatype(): boolean { return this.error.kind === "PatternMatchOnNonDatatype"; }
+    // get applicationParseError(): boolean { return this.error.kind === "ApplicationParseError"; }
+    get unparsed(): boolean { return this.error.kind === "Unparsed"; }
 }
 
 Vue.component("error", Error);

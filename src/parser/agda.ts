@@ -11,18 +11,18 @@ function parseAgdaResponse(raw: string): Agda.Response {
             let type = parseInfoActionType(tokens[1]);
             let content = tokens.length === 3 ? [] : _.compact(tokens[2].split("\\n"));
             return {
-                type: Agda.ResponseType.InfoAction,
-                infoActionType: type,
+                kind: "InfoAction",
+                infoActionKind: type,
                 content: content
             } as Agda.InfoAction;
         case "agda2-status-action":
             return {
-                type: Agda.ResponseType.StatusAction,
+                kind: "StatusAction",
                 content: tokens.slice(1, 2)
             } as Agda.StatusAction;
         case "agda2-goals-action":
             return {
-                type: Agda.ResponseType.GoalsAction,
+                kind: "GoalsAction",
                 content: tokens[1].map((s) => parseInt(s))
             } as Agda.GoalsAction;
         case "agda2-give-action":
@@ -32,19 +32,19 @@ function parseAgdaResponse(raw: string): Agda.Response {
             // with content    : ["agda2-give-action", 0, ...]
             switch (tokens[2]) {
                 case "'paren": return {
-                        type: Agda.ResponseType.GiveAction,
+                        kind: "GiveAction",
                         index: index,
                         content: "",
                         hasParenthesis: true
                     } as Agda.GiveAction;
                 case "'no-paren": return {
-                        type: Agda.ResponseType.GiveAction,
+                        kind: "GiveAction",
                         index: index,
                         content: "",
                         hasParenthesis: false
                     } as Agda.GiveAction;
                 default: return {
-                        type: Agda.ResponseType.GiveAction,
+                        kind: "GiveAction",
                         index: index,
                         content: tokens[2],
                         hasParenthesis: false
@@ -52,36 +52,36 @@ function parseAgdaResponse(raw: string): Agda.Response {
             }
         case "agda2-parse-error":
             return {
-                type: Agda.ResponseType.ParseError,
+                kind: "ParseError",
                 content: tokens.slice(1)
             } as Agda.ParseError;
         case "agda2-goto":
         case "agda2-maybe-goto":
             return {
-                type: Agda.ResponseType.Goto,
+                kind: "Goto",
                 filepath: tokens[1][0],
                 position: parseInt(tokens[1][2])
             } as Agda.Goto;
         case "agda2-solveAll-action":
             return {
-                type: Agda.ResponseType.SolveAllAction,
+                kind: "SolveAllAction",
                 solutions: _.chunk(tokens[1], 2).map((arr) => {
                     return { index: arr[0], expression: arr[1] }
                 })
             } as Agda.SolveAllAction;
         case "agda2-make-case-action":
             return {
-                type: Agda.ResponseType.MakeCaseAction,
+                kind: "MakeCaseAction",
                 content: tokens[1]
             } as Agda.MakeCaseAction;
         case "agda2-make-case-action-extendlam":
             return {
-                type: Agda.ResponseType.MakeCaseActionExtendLam,
+                kind: "MakeCaseActionExtendLam",
                 content: tokens[1]
             } as Agda.MakeCaseActionExtendLam;
         case "agda2-highlight-clear":
             return {
-                type: Agda.ResponseType.HighlightClear,
+                kind: "HighlightClear",
             } as Agda.HighlightClear;
         case "agda2-highlight-add-annotations":
             let annotations: Agda.Annotation[] = _
@@ -107,37 +107,38 @@ function parseAgdaResponse(raw: string): Agda.Response {
                     }
                 });
             return {
-                type: Agda.ResponseType.HighlightAddAnnotations,
+                kind: "HighlightAddAnnotations",
                 content: annotations
             } as Agda.HighlightAddAnnotations;
         case "agda2-highlight-load-and-delete-action":
             return {
-                type: Agda.ResponseType.HighlightLoadAndDeleteAction,
+                kind: "HighlightLoadAndDeleteAction",
                 content: tokens[1]
             } as Agda.HighlightLoadAndDeleteAction;
         default:
             return {
-                type: Agda.ResponseType.UnknownAction,
+                kind: "UnknownAction",
                 content: tokens
             } as Agda.UnknownAction;
     }
 }
 
-function parseInfoActionType(s: String): Agda.InfoActionType {
+function parseInfoActionType(s: String): string {
     switch (s) {
-        case "*All Goals*":         return Agda.InfoActionType.AllGoals;
-        case "*Error*":             return Agda.InfoActionType.Error;
-        case "*Type-checking*":     return Agda.InfoActionType.TypeChecking;
-        case "*Current Goal*":      return Agda.InfoActionType.CurrentGoal;
-        case "*Inferred Type*":     return Agda.InfoActionType.InferredType;
-        case "*Module contents*":   return Agda.InfoActionType.ModuleContents;
-        case "*Context*":           return Agda.InfoActionType.Context;
-        case "*Goal type etc.*":    return Agda.InfoActionType.GoalTypeEtc;
-        case "*Normal Form*":       return Agda.InfoActionType.NormalForm;
-        case "*Intro*":             return Agda.InfoActionType.Intro;
-        case "*Auto*":              return Agda.InfoActionType.Auto;
-        case "*Constraints*":       return Agda.InfoActionType.Constraints;
-        case "*Scope Info*":        return Agda.InfoActionType.ScopeInfo;
+        case "*All Goals*":         return "AllGoals";
+        case "*Error*":             return "Error";
+        case "*Type-checking*":     return "TypeChecking";
+        case "*Current Goal*":      return "CurrentGoal";
+        case "*Inferred Type*":     return "InferredType";
+        case "*Module contents*":   return "ModuleContents";
+        case "*Context*":           return "Context";
+        case "*Goal type etc.*":    return "GoalTypeEtc";
+        case "*Normal Form*":       return "NormalForm";
+        case "*Intro*":             return "Intro";
+        case "*Auto*":              return "Auto";
+        case "*Constraints*":       return "Constraints";
+        case "*Scope Info*":        return "ScopeInfo";
+        default:                    return "Unknown";
     }
 }
 

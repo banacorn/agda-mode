@@ -6,7 +6,7 @@
     "vue-class-component": "github:vuejs/vue-class-component/index.d.ts#98f4079c6d2c8647d5f438b7821853869df81e2b"
   },
   "globalDependencies": {
-    "node": "registry:dt/node#6.0.0+20160523035754",
+    "node": "registry:dt/node#6.0.0+20160709114037",
     "parsimmon": "registry:dt/parsimmon#0.5.0+20160317120654",
     "vue": "registry:dt/vue#1.0.21+20160423143248"
   }

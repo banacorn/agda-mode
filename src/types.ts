@@ -3,7 +3,6 @@ import Goal from "./goal";
 import { ParsedPath } from "path";
 type Range = any;
 
-
 export type TextInput = string;
 
 interface IndexRange {
@@ -34,91 +33,86 @@ interface Hole {
 
 namespace Agda {
 
-    // base interface
-    export interface Response {
-        type: ResponseType
-    }
-
-    export const enum ResponseType {
-        InfoAction,
-        StatusAction,
-        GoalsAction,
-        GiveAction,
-        ParseError,
-        Goto,
-        SolveAllAction,
-        MakeCaseAction,
-        MakeCaseActionExtendLam,
-        HighlightClear,
-        HighlightAddAnnotations,
-        HighlightLoadAndDeleteAction,
+    export type Response =
+        InfoAction |
+        StatusAction |
+        GoalsAction |
+        GiveAction |
+        ParseError |
+        Goto |
+        SolveAllAction |
+        MakeCaseAction |
+        MakeCaseActionExtendLam |
+        HighlightClear |
+        HighlightAddAnnotations |
+        HighlightLoadAndDeleteAction |
         UnknownAction
+
+    export interface InfoAction {
+        kind: "InfoAction";
+        infoActionKind: "AllGoals" | "Error" | "TypeChecking" | "CurrentGoal" |
+            "InferredType" | "ModuleContents" | "Context" | "GoalTypeEtc" |
+            "NormalForm" | "Intro" | "Auto" | "Constraints" | "ScopeInfo" |
+            "Unknown";
+        content: string[];
     }
 
-    export interface InfoAction extends Response {
-        infoActionType: InfoActionType;
+    export interface StatusAction {
+        kind: "StatusAction";
         content: string[];
     }
-    export interface StatusAction extends Response {
-        content: string[];
-    }
-    export interface GoalsAction extends Response {
+    export interface GoalsAction {
+        kind: "GoalsAction";
         content: number[];
     }
-    export interface GiveAction extends Response {
+    export interface GiveAction {
+        kind: "GiveAction";
         index: number;
         content: string;
         hasParenthesis: boolean;
     }
 
-    export interface ParseError extends Response {
+    export interface ParseError {
+        kind: "ParseError";
         content: string[];
     }
 
-    export interface Goto extends Response {
+    export interface Goto {
+        kind: "Goto";
         filepath: string;
         position: number;
     }
-    export interface SolveAllAction extends Response {
+    export interface SolveAllAction {
+        kind: "SolveAllAction";
         solutions: {
             index: number,
             expression: string
         }[];
     }
-    export interface MakeCaseAction extends Response {
+    export interface MakeCaseAction {
+        kind: "MakeCaseAction";
         content: string[];
     }
-    export interface MakeCaseActionExtendLam extends Response {
-        content: string;
-    }
-    export interface HighlightClear extends Response {
+    export interface MakeCaseActionExtendLam {
+        kind: "MakeCaseActionExtendLam";
         content: string[];
     }
-    export interface HighlightAddAnnotations extends Response {
+    export interface HighlightClear {
+        kind: "HighlightClear";
+        content: string[];
+    }
+    export interface HighlightAddAnnotations {
+        kind: "HighlightAddAnnotations";
         content: Annotation[];
     }
 
-    export interface HighlightLoadAndDeleteAction extends Response {
+    export interface HighlightLoadAndDeleteAction {
+        kind: "HighlightLoadAndDeleteAction";
         content: string;
     }
-    export interface UnknownAction extends Response {
+    export interface UnknownAction {
+        kind: "UnknownAction";
         content: string[];
-    }
-
-    export const enum InfoActionType {
-        AllGoals,
-        Error,
-        TypeChecking,
-        CurrentGoal,
-        InferredType,
-        ModuleContents,
-        Context,
-        GoalTypeEtc,
-        NormalForm,
-        Intro,
-        Auto,
-        Constraints,
-        ScopeInfo
     }
 
     export interface Annotation {
@@ -136,48 +130,28 @@ namespace Agda {
 //  agda-mode commands
 //
 
-// base interface
-interface Command {
-    type: CommandType;
-    normalization?: Normalization;
-}
-
-const enum CommandType {
-    Load,
-    Quit,
-    Restart,
-    Compile,
-    ToggleDisplayOfImplicitArguments,
-    Info,
-    ShowConstraints,
-    SolveConstraints,
-    ShowGoals,
-    NextGoal,
-    PreviousGoal,
-    WhyInScope,
-    InferType,
-    ModuleContents,
-    ComputeNormalForm,
-    ComputeNormalFormIgnoreAbstract,
-    Give,
-    Refine,
-    Auto,
-    Case,
-    GoalType,
-    Context,
-    GoalTypeAndContext,
-    GoalTypeAndInferredType,
-    InputSymbol
-}
-
+type CommandKind = "Load" | "Quit" | "Restart" | "Compile" |
+    "ToggleDisplayOfImplicitArguments" | "Info" | "ShowConstraints" |
+    "SolveConstraints" | "ShowGoals" | "NextGoal" | "PreviousGoal" |
+    "WhyInScope" | "InferType" | "ModuleContents" | "ComputeNormalForm" |
+    "ComputeNormalFormIgnoreAbstract" | "Give" | "Refine" | "Auto" | "Case" |
+    "GoalType" | "Context" | "GoalTypeAndContext" | "GoalTypeAndInferredType" |
+    "InputSymbol";
 type Normalization = "Simplified" | "Instantiated" | "Normalised";
-// const enum Normalization {
-//     Simplified,
-//     Instantiated,
-//     Normalised
-// }
 
-type Result = Command;
+type Command = {
+    kind: CommandKind,
+    normalization?: Normalization,
+    editsFile: boolean
+}
+
+
+type CommandResult = {
+    status: "Issued",
+    command: string
+} | {
+    status: "Canceled"
+};
 
 //
 //  View
@@ -268,63 +242,43 @@ namespace View {
         sort: Sort[]
     }
 
-    export type Suggestion = string[];
+}
 
-    ////////////////////////////////////////////
-    // Errors
-    ////////////////////////////////////////////
+type Suggestion = string[];
+////////////////////////////////////////////
+// Errors
+////////////////////////////////////////////
 
-    export type Error = NotInScope |
-        TypeMismatch |
-        DefinitionTypeMismatch |
-        BadConstructor |
-        RHSOmitted |
-        MissingType |
-        MultipleDefinition |
-        MissingDefinition |
-        Termination |
-        ConstructorTarget |
-        FunctionType |
-        ModuleMismatch |
-        Parse |
-        CaseSingleHole |
-        PatternMatchOnNonDatatype |
-        // ApplicationParseError |
-        // TerminationError |
-        // ParseError |
-        Unparsed;
+type Error = Error.NotInScope |
+    Error.TypeMismatch |
+    Error.DefinitionTypeMismatch |
+    Error.BadConstructor |
+    Error.RHSOmitted |
+    Error.MissingType |
+    Error.MultipleDefinition |
+    Error.MissingDefinition |
+    Error.Termination |
+    Error.ConstructorTarget |
+    Error.FunctionType |
+    Error.ModuleMismatch |
+    Error.Parse |
+    Error.CaseSingleHole |
+    Error.PatternMatchOnNonDatatype |
+    // ApplicationParseError |
+    // TerminationError |
+    // ParseError |
+    Error.Unparsed;
 
-    export const enum ErrorType {
-        NotInScope,
-        TypeMismatch,
-        DefinitionTypeMismatch,
-        BadConstructor,
-        RHSOmitted,
-        MissingType,
-        MultipleDefinition,
-        MissingDefinition,
-        Termination,
-        ConstructorTarget,
-        FunctionType,
-        ModuleMismatch,
-        Parse,
-        CaseSingleHole,
-        PatternMatchOnNonDatatype,
-        // ApplicationParseError,
-        // TerminationError,
-        // ParseError,
-        Unparsed
-    }
-
+namespace Error {
     export interface NotInScope {
-        type: ErrorType,
+        kind: "NotInScope",
         location: Location,
         suggestion: Suggestion,
         expr: string
     }
 
     export interface TypeMismatch {
-        type: ErrorType,
+        kind: "TypeMismatch",
         location: Location
         expected: string,
         expectedType: string,
@@ -334,7 +288,7 @@ namespace View {
     }
 
     export interface DefinitionTypeMismatch {
-        type: ErrorType,
+        kind: "DefinitionTypeMismatch",
         location: Location
         expected: string,
         expectedType: string,
@@ -344,7 +298,7 @@ namespace View {
     }
 
     export interface BadConstructor {
-        type: ErrorType,
+        kind: "BadConstructor",
         location: Location,
         constructor: string,
         constructorType: string,
@@ -353,20 +307,20 @@ namespace View {
     }
 
     export interface RHSOmitted {
-        type: ErrorType,
+        kind: "RHSOmitted",
         location: Location,
         expr: string,
         exprType: string
     }
 
     export interface MissingType {
-        type: ErrorType,
+        kind: "MissingType",
         location: Location,
         expr: string
     }
 
     export interface MultipleDefinition {
-        type: ErrorType,
+        kind: "MultipleDefinition",
         location: Location,
         locationPrev: Location,
         expr: string,
@@ -375,13 +329,13 @@ namespace View {
     }
 
     export interface MissingDefinition {
-        type: ErrorType,
+        kind: "MissingDefinition",
         location: Location,
         expr: string
     }
 
     export interface Termination {
-        type: ErrorType,
+        kind: "Termination",
         location: Location,
         expr: string,
         calls: {
@@ -391,7 +345,7 @@ namespace View {
     }
 
     export interface ConstructorTarget {
-        type: ErrorType,
+        kind: "ConstructorTarget",
         location: Location,
         expr: string,
         ctor: string,
@@ -399,35 +353,35 @@ namespace View {
     }
 
     export interface FunctionType {
-        type: ErrorType,
+        kind: "FunctionType",
         location: Location,
         expr: string,
         exprType: string
     }
 
     export interface ModuleMismatch {
-        type: ErrorType,
+        kind: "ModuleMismatch",
         wrongPath: string,
         rightPath: string,
         moduleName: string
     }
 
     export interface Parse {
-        type: ErrorType,
+        kind: "Parse",
         location: Location
         message: string,
         expr: string,
     }
 
     export interface CaseSingleHole {
-        type: ErrorType,
+        kind: "CaseSingleHole",
         location: Location,
         expr: string,
         exprType: string
     }
 
     export interface PatternMatchOnNonDatatype {
-        type: ErrorType,
+        kind: "PatternMatchOnNonDatatype",
         location: Location,
         nonDatatype: string,
         expr: string,
@@ -440,12 +394,9 @@ namespace View {
     // }
     //
     export interface Unparsed {
-        type: ErrorType,
+        kind: "Unparsed",
         input: string,
     }
-
-
-
 }
 
 
@@ -456,10 +407,13 @@ export {
     Token,
     TokenType,
     // commands
+    CommandKind,
     Command,
-    CommandType,
     Normalization,
-    Result,
+    CommandResult,
+    Suggestion,
     // view
-    View
+    View,
+    // Errors
+    Error
 }

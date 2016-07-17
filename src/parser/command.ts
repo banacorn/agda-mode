@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Command, CommandType, Normalization } from "../types";
+import { Command, Normalization } from "../types";
 
 function parseNormalization(raw: string): Normalization {
     switch (raw) {
@@ -16,85 +16,110 @@ function parseCommand(raw: string): Command {
 
     switch (result[1]) {
         case "load": return {
-            type: CommandType.Load
+            kind: "Load",
+            editsFile: true
         };
         case "quit": return {
-            type: CommandType.Quit
+            kind: "Quit",
+            editsFile: false
         };
         case "restart": return {
-            type: CommandType.Restart
+            kind: "Restart",
+            editsFile: true
         };
         case "compile": return {
-            type: CommandType.Compile
+            kind: "Compile",
+            editsFile: false
         };
         case "toggle-display-of-implicit-arguments": return {
-            type: CommandType.ToggleDisplayOfImplicitArguments
+            kind: "ToggleDisplayOfImplicitArguments",
+            editsFile: false
         };
         case "info": return {
-            type: CommandType.Info
+            kind: "Info",
+            editsFile: false
         };
         case "show-constraints": return {
-            type: CommandType.ShowConstraints
+            kind: "ShowConstraints",
+            editsFile: false
         };
         case "show-goals": return {
-            type: CommandType.ShowGoals,
+            kind: "ShowGoals",
+            editsFile: false
         };
         case "solve-constraints": return {
-            type: CommandType.SolveConstraints
+            kind: "SolveConstraints",
+            editsFile: true
         };
         case "next-goal": return {
-            type: CommandType.NextGoal
+            kind: "NextGoal",
+            editsFile: false
         };
         case "previous-goal": return {
-            type: CommandType.PreviousGoal
+            kind: "PreviousGoal",
+            editsFile: false
         };
         case "why-in-scope": return {
-            type: CommandType.WhyInScope
+            kind: "WhyInScope",
+            editsFile: false
         };
         case "infer-type": return {
-            type: CommandType.InferType,
-            normalization: parseNormalization(result[2])
+            kind: "InferType",
+            normalization: parseNormalization(result[2]),
+            editsFile: false
         };
         case "module-contents": return {
-            type: CommandType.ModuleContents,
-            normalization: parseNormalization(result[2])
+            kind: "ModuleContents",
+            normalization: parseNormalization(result[2]),
+            editsFile: false
         };
         case "compute-normal-form": return {
-            type: CommandType.ComputeNormalForm
+            kind: "ComputeNormalForm",
+            editsFile: false
         };
         case "compute-normal-form-ignore-abstract": return {
-            type: CommandType.ComputeNormalFormIgnoreAbstract
+            kind: "ComputeNormalFormIgnoreAbstract",
+            editsFile: false
         };
         case "give": return {
-            type: CommandType.Give
+            kind: "Give",
+            editsFile: true
         };
         case "refine": return {
-            type: CommandType.Refine
+            kind: "Refine",
+            editsFile: true
         };
         case "auto": return {
-            type: CommandType.Auto
+            kind: "Auto",
+            editsFile: true
         };
         case "case": return {
-            type: CommandType.Case
+            kind: "Case",
+            editsFile: true
         };
         case "goal-type": return {
-            type: CommandType.GoalType,
-            normalization: parseNormalization(result[2])
+            kind: "GoalType",
+            normalization: parseNormalization(result[2]),
+            editsFile: false
         };
         case "context": return {
-            type: CommandType.Context,
-            normalization: parseNormalization(result[2])
+            kind: "Context",
+            normalization: parseNormalization(result[2]),
+            editsFile: false
         };
         case "goal-type-and-context": return {
-            type: CommandType.GoalTypeAndContext,
-            normalization: parseNormalization(result[2])
+            kind: "GoalTypeAndContext",
+            normalization: parseNormalization(result[2]),
+            editsFile: false
         };
         case "goal-type-and-inferred-type": return {
-            type: CommandType.GoalTypeAndInferredType,
-            normalization: parseNormalization(result[2])
+            kind: "GoalTypeAndInferredType",
+            normalization: parseNormalization(result[2]),
+            editsFile: false
         };
         case "input-symbol": return {
-            type: CommandType.InputSymbol,
+            kind: "InputSymbol",
+            editsFile: true
         };
         default: throw `unknown command ${raw}`;
     }

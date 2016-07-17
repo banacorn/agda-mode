@@ -3,67 +3,63 @@ import { Agda, View } from "./types";
 import Core from "./core";
 
 function handleAgdaResponse(core: Core, response: Agda.Response) {
-    switch (response.type) {
-        case Agda.ResponseType.InfoAction:
-            handleInfoAction(core, <Agda.InfoAction>response);
+    switch (response.kind) {
+        case "InfoAction":
+            handleInfoAction(core, response);
             break;
 
-        case Agda.ResponseType.StatusAction:
-            let status = <Agda.StatusAction>response;
-            if (status.content.length !== 0) {
-                core.view.set("Status", status.content);
+        case "StatusAction":
+            if (response.content.length !== 0) {
+                core.view.set("Status", response.content);
             }
             break;
 
-        case Agda.ResponseType.GoalsAction:
-            let goals = (<Agda.GoalsAction>response).content;
-            core.textBuffer.onGoalsAction(goals);
+        case "GoalsAction":
+            core.textBuffer.onGoalsAction(response.content);
             break;
 
-        case Agda.ResponseType.GiveAction:
-            let give = <Agda.GiveAction>response;
-            core.textBuffer.onGiveAction(give.index, give.content, give.hasParenthesis);
+        case "GiveAction":
+            core.textBuffer.onGiveAction(response.index, response.content, response.hasParenthesis);
             break;
 
-        case Agda.ResponseType.ParseError:
-            console.error(`Agda parse error: ${(<Agda.ParseError>response).content}`);
+        case "ParseError":
+            console.error(`Agda parse error: ${response.content}`);
             break;
 
-        case Agda.ResponseType.Goto:
-            let res = <Agda.Goto>response;
-            core.textBuffer.onGoto(res.filepath, res.position);
+        case "Goto":
+            core.textBuffer.onGoto(response.filepath, response.position);
             break;
 
-        case Agda.ResponseType.SolveAllAction:
-            const solutions = (<Agda.SolveAllAction>response).solutions;
+        case "SolveAllAction":
+            const solutions = response.solutions;
             solutions.forEach((solution) => {
                 core.textBuffer.onSolveAllAction(solution.index, solution.expression)
                     .then(core.process.give);
             });
             break;
-        case Agda.ResponseType.MakeCaseAction:
+        case "MakeCaseAction":
             core.textBuffer
-                .onMakeCaseAction((<Agda.MakeCaseAction>response).content)
+                .onMakeCaseAction(response.content)
                 .then(() => {
                     core.commander.load()
                         .catch((error) => { throw error; });
                 });
             break;
 
-        case Agda.ResponseType.MakeCaseActionExtendLam:
-            core.textBuffer.onMakeCaseActionExtendLam((<Agda.MakeCaseAction>response).content)
+        case "MakeCaseActionExtendLam":
+            core.textBuffer.onMakeCaseActionExtendLam(response.content)
                 .then(() => {
                     core.commander.load()
                         .catch((error) => { throw error; });
                 });
             break;
 
-        case Agda.ResponseType.HighlightClear:
+        case "HighlightClear":
             core.highlightManager.destroyAll();
             break;
 
-        case Agda.ResponseType.HighlightAddAnnotations:
-            let annotations = (<Agda.HighlightAddAnnotations>response).content;
+        case "HighlightAddAnnotations":
+            let annotations = response.content;
             annotations.forEach((annotation) => {
                 let unsolvedmeta = _.includes(annotation.type, "unsolvedmeta");
                 let terminationproblem = _.includes(annotation.type, "terminationproblem")
@@ -74,12 +70,12 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
             break;
 
 
-        case Agda.ResponseType.HighlightLoadAndDeleteAction:
+        case "HighlightLoadAndDeleteAction":
             // ???
             break;
 
-        case Agda.ResponseType.UnknownAction:
-            console.error(`Agda.ResponseType.UnknownAction:`);
+        case "UnknownAction":
+            console.error(`"UnknownAction:`);
             console.error(response);
             break;
         default:
@@ -88,51 +84,55 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
 }
 
 function handleInfoAction(core: Core, action: Agda.InfoAction)  {
-    switch (action.infoActionType) {
-        case Agda.InfoActionType.AllGoals:
+    switch (action.infoActionKind) {
+        case "AllGoals":
             if (action.content.length === 0)
                 core.view.set("No Goals", []);
             else
                 core.view.set("Goals", action.content, View.Type.Judgement);
             break;
-        case Agda.InfoActionType.Error:
+        case "Error":
             core.view.set("Error", action.content, View.Type.Error);
             break;
-        case Agda.InfoActionType.TypeChecking:
+        case "TypeChecking":
             core.view.set("Type Checking", action.content);
             break;
-        case Agda.InfoActionType.CurrentGoal:
+        case "CurrentGoal":
             core.view.set("Current Goal", action.content, View.Type.Value);
             break;
-        case Agda.InfoActionType.InferredType:
+        case "InferredType":
             core.view.set("Inferred Type", action.content);
             break;
-        case Agda.InfoActionType.ModuleContents:
+        case "ModuleContents":
             core.view.set("Module Contents", action.content);
             break;
-        case Agda.InfoActionType.Context:
+        case "Context":
             core.view.set("Context", action.content, View.Type.Judgement);
             break;
-        case Agda.InfoActionType.GoalTypeEtc:
+        case "GoalTypeEtc":
             core.view.set("Goal Type and Context", action.content, View.Type.Judgement);
             break;
-        case Agda.InfoActionType.NormalForm:
+        case "NormalForm":
             core.view.set("Normal Form", action.content, View.Type.Value);
             break;
-        case Agda.InfoActionType.Intro:
+        case "Intro":
             core.view.set("Intro", ['No introduction forms found']);
             break;
-        case Agda.InfoActionType.Auto:
+        case "Auto":
             core.view.set("Auto", ['No solution found']);
             break;
-        case Agda.InfoActionType.Constraints:
+        case "Constraints":
             core.view.set("Constraints", action.content, View.Type.Judgement);
             break;
-        case Agda.InfoActionType.ScopeInfo:
+        case "ScopeInfo":
             core.view.set("Scope Info", action.content);
             break;
+        case "Unknown":
+            core.view.set(_.head(action.content), _.tail(action.content));
+            break;
         default:
-            console.error(`unknown info action ${action}`);
+            console.error(`unknown info action:`);
+            console.error(action);
     }
 }
 
