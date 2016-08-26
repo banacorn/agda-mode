@@ -4,6 +4,8 @@ type Range = any;
 declare var atom: any;
 var { Range, CompositeDisposable } = require("atom");
 import { parseFilepath } from "./parser";
+import * as Redux from 'redux';
+import { View } from "./types";
 
 // # Components
 import Commander from "./commander";
@@ -11,17 +13,18 @@ import Process from "./process";
 import TextBuffer from "./text-buffer";
 import InputMethod from "./input-method";
 import HighlightManager from "./highlight-manager";
-import View from "./view-legacy";
+import ViewLegacy from "./view-legacy";
 import mountView from "./view";
 
 export default class Core {
     private disposables: CompositeDisposable;
-    public view: View;
+    public view: ViewLegacy;
     public process: Process;
     public textBuffer: TextBuffer;
     public inputMethod: InputMethod;
     public highlightManager: HighlightManager;
     public commander: Commander;
+    public store: Redux.Store<View.State>;
 
     public atomPanel: any;
 
@@ -44,15 +47,6 @@ export default class Core {
             return new Range(start, end);
         }
 
-        // initialize all components
-        this.disposables        = new CompositeDisposable();
-        this.view               = new View;
-        this.process            = new Process(this);
-        this.textBuffer         = new TextBuffer(this);
-        if (atom.config.get("agda-mode.inputMethod"))
-            this.inputMethod    = new InputMethod(this);
-        this.highlightManager   = new HighlightManager(this);
-
         // create an anchor element for the view to mount
         const anchor = document.createElement("agda-view");
         anchor.id = "agda-view";
@@ -62,8 +56,16 @@ export default class Core {
             className: "agda-view"
         });
 
-        // mount
-        const store = mountView();
+        // initialize all components
+        this.disposables        = new CompositeDisposable();
+        this.store              = mountView();
+        this.view               = new ViewLegacy;
+        this.process            = new Process(this);
+        this.textBuffer         = new TextBuffer(this);
+        if (atom.config.get("agda-mode.inputMethod"))
+            this.inputMethod    = new InputMethod(this);
+        this.highlightManager   = new HighlightManager(this);
+
 
         // instantiate views
         this.atomPanel = atom.workspace.addBottomPanel({

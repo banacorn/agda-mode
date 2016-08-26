@@ -41,6 +41,7 @@
         "src/text-buffer.ts",
         "src/types.ts",
         "src/view-legacy.ts",
+        "src/view/actions.ts",
         "src/view/component/error.ts",
         "src/view/component/location.ts",
         "src/view/component/suggestion.ts",
@@ -48,6 +49,7 @@
         "src/view/input-editor.ts",
         "src/view/input-method.ts",
         "src/view/panel-body.ts",
+        "src/view/reducers.ts",
         "typings/globals/node/index.d.ts",
         "typings/globals/parsimmon/index.d.ts",
         "typings/globals/react-dom/index.d.ts",
@@ -60,8 +62,9 @@
         "typings/modules/bluebird/index.d.ts",
         "typings/modules/lodash/index.d.ts",
         "typings/modules/vue-class-component/index.d.ts",
-        "src/view-react.tsx",
-        "src/view/App.tsx"
+        "src/view.tsx",
+        "src/view/App.tsx",
+        "src/view/InputMethod.tsx"
     ],
     "atom": {
         "rewriteTsconfig": true

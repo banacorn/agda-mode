@@ -159,6 +159,15 @@ type CommandResult = {
 
 namespace View {
 
+    export type State = {
+        inputMethodMode: boolean
+    }
+
+
+
+    // Legacy shit below
+
+
     export const enum Type {
         PlainText,
         Error,

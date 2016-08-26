@@ -5,20 +5,20 @@ import { Provider, connect } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
 // import thunk from 'redux-thunk';
 
-import App from "./view/App";
-// import reducer from './reducer';
+import InputMethod from "./view/InputMethod";
+// import App from "./view/App";
+import reducer from './view/reducers';
 // import { lookup } from './actions';
 
 
-const store = createStore((state, action) => state);
-//     reducer,
+const store = createStore(reducer);
 //     applyMiddleware(thunk)
 // );
 
 export default function mount() {
     ReactDOM.render(
         <Provider store={store}>
-            <App/>
+            <InputMethod/>
         </Provider>,
         document.getElementById('agda-view')
     )
