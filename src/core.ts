@@ -11,7 +11,8 @@ import Process from "./process";
 import TextBuffer from "./text-buffer";
 import InputMethod from "./input-method";
 import HighlightManager from "./highlight-manager";
-import View from "./view";
+import View from "./view-legacy";
+import mountView from "./view";
 
 export default class Core {
     private disposables: CompositeDisposable;
@@ -25,6 +26,7 @@ export default class Core {
     public atomPanel: any;
 
     constructor(public editor: any) {
+
         // helper methods on this.editor
         this.editor.fromIndex = (ind: number): number => {
             return this.editor.getBuffer().positionForCharacterIndex(ind);
@@ -50,6 +52,18 @@ export default class Core {
         if (atom.config.get("agda-mode.inputMethod"))
             this.inputMethod    = new InputMethod(this);
         this.highlightManager   = new HighlightManager(this);
+
+        // create an anchor element for the view to mount
+        const anchor = document.createElement("agda-view");
+        anchor.id = "agda-view";
+        const atomPanel = atom.workspace.addBottomPanel({
+            item: anchor,
+            visible: true,
+            className: "agda-view"
+        });
+
+        // mount
+        const store = mountView();
 
         // instantiate views
         this.atomPanel = atom.workspace.addBottomPanel({
