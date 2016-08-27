@@ -7,7 +7,11 @@ import { translate } from "../input-method";
 
 interface InputMethodProps extends React.Props<any> {
     activated: boolean,
-    buffer: string
+    buffer: string,
+    translation: string,
+    further: boolean,
+    keySuggestions: string[],
+    candidateSymbols: string[]
 };
 
 

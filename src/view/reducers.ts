@@ -7,7 +7,11 @@ import { createAction, handleAction, handleActions, Action } from 'redux-actions
 const defaultState: View.State = {
     inputMethod: {
         activated: false,
-        buffer: ""
+        buffer: "",
+        translation: "",
+        further: false,
+        keySuggestions: [],
+        candidateSymbols: []
     }
 };
 

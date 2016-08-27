@@ -162,10 +162,14 @@ namespace View {
     export type State = {
         inputMethod: InputMethodState
     }
-
+    
     export type InputMethodState = {
         activated: boolean,
-        buffer: string
+        buffer: string,
+        translation: string,
+        further: boolean,
+        keySuggestions: string[],
+        candidateSymbols: string[]
     }
 
 
