@@ -21,6 +21,9 @@ const inputMethod = handleActions<View.InputMethodState, INPUT_METHOD>({
     }),
     [INPUT_METHOD.INSERT]: (state: View.InputMethodState, action: Action<INPUT_METHOD.INSERT>) => _.assign({}, state, {
         buffer: state.buffer + action.payload
+    }),
+    [INPUT_METHOD.DELETE]: (state: View.InputMethodState, action: Action<INPUT_METHOD.INSERT>) => _.assign({}, state, {
+        buffer: state.buffer.substring(0, state.buffer.length - 1)
     })
 }, defaultState.inputMethod);
 

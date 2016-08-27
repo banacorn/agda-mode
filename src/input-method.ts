@@ -1,7 +1,7 @@
 import * as _ from "lodash";
 import Keymap from "./keymap";
 import Core from "./core";
-import { activateInputMethod, deactivateInputMethod, insertInputMethod } from "./view/actions";
+import { activateInputMethod, deactivateInputMethod, insertInputMethod, deleteInputMethod } from "./view/actions";
 
 type TextEditor = any;
 type CompositeDisposable = any;
@@ -225,7 +225,7 @@ export default class InputMethod {
             } else if (change === DELETE) {
                 this.rawInput = this.rawInput.substr(0, this.rawInput.length - 1);
                 const {translation, further, keySuggestions, candidateSymbols} = translate(this.rawInput);
-                // this.core.store.dispatch(suggestKeys(keySuggestions));
+                this.core.store.dispatch(deleteInputMethod());
                 // this.core.view.inputMethodInput = {
                 //     rawInput: this.rawInput,
                 //     keySuggestions: keySuggestions,
