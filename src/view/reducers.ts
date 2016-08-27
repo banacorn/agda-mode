@@ -5,14 +5,13 @@ import { combineReducers } from 'redux';
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
 import { translate } from "../input-method";
 
+// default state
+const { translation, further, keySuggestions, candidateSymbols } = translate("");
 const defaultState: View.State = {
     inputMethod: {
         activated: false,
         buffer: "",
-        translation: "",
-        further: false,
-        keySuggestions: [],
-        candidateSymbols: []
+        translation, further, keySuggestions, candidateSymbols
     }
 };
 

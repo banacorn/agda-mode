@@ -159,10 +159,7 @@ export default class InputMethod {
             // add class 'agda-mode-input-method-activated'
             const editorElement = atom.views.getView(atom.workspace.getActiveTextEditor());
             editorElement.classList.remove("agda-mode-input-method-activated");
-
             this.core.store.dispatch(deactivateInputMethod());
-
-            // this.core.view.inputMethodMode = false;
             this.textEditorMarker.destroy();
             this.decoration.destroy();
             this.activated = false;
