@@ -87,8 +87,6 @@ export default class InputMethod {
     private subscriptions: CompositeDisposable;
     private editor: TextEditor;
     private decoration: Decoration;
-    // raw characters
-    rawInput: string;
 
     // visual marker
     textEditorMarker: TextEditorMarker;
@@ -120,7 +118,6 @@ export default class InputMethod {
     activate() {
         if (!this.activated) {
             // initializations
-            this.rawInput = ""
             this.activated = true;
 
             // add class "agda-mode-input-method-activated"
@@ -149,14 +146,6 @@ export default class InputMethod {
 
             // initialize input suggestion
             this.core.store.dispatch(activateInputMethod());
-            // this.core.store.dispatch(suggestKeys(getKeySuggestions(Keymap).sort()));
-
-            // this.core.view.inputMethodMode = true;
-            // this.core.view.inputMethodInput = {
-            //     rawInput: "",
-            //     keySuggestions: getKeySuggestions(Keymap).sort(),
-            //     candidateSymbols: []
-            // }
         } else {
             // input method already activated
             // this will happen when the 2nd backslash '\' got punched in
@@ -207,9 +196,7 @@ export default class InputMethod {
             else if (change === INSERT) {
                 const char = buffer.substr(-1);
                 this.core.store.dispatch(insertInputMethod(char));
-
-                this.rawInput += char;
-                const {translation, further, keySuggestions, candidateSymbols} = translate(this.rawInput);
+                const {translation, further} = this.core.store.getState().inputMethod;
 
                 // reflects current translation to the text buffer
                 if (translation) {
@@ -223,14 +210,7 @@ export default class InputMethod {
                     this.deactivate();
                 }
             } else if (change === DELETE) {
-                this.rawInput = this.rawInput.substr(0, this.rawInput.length - 1);
-                const {translation, further, keySuggestions, candidateSymbols} = translate(this.rawInput);
                 this.core.store.dispatch(deleteInputMethod());
-                // this.core.view.inputMethodInput = {
-                //     rawInput: this.rawInput,
-                //     keySuggestions: keySuggestions,
-                //     candidateSymbols: candidateSymbols
-                // };
             }
 
         }

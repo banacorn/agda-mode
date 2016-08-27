@@ -3,7 +3,6 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
 import { View } from '../types';
-import { translate } from "../input-method";
 
 interface InputMethodProps extends React.Props<any> {
     activated: boolean,
@@ -27,19 +26,7 @@ const mapStateToProps = (state: View.State) => {
 class InputMethod extends React.Component<InputMethodProps, void> {
 
     render() {
-        const { activated, buffer } = this.props;
-
-        // detect state changes
-        // if (activated) {
-        //     this.activate();
-        // } else {
-        //     this.deactivate();
-        // }
-
-
-        const { translation, further, keySuggestions, candidateSymbols } = translate(buffer);
-
-        // const {  }
+        const { activated, buffer, translation, further, keySuggestions, candidateSymbols } = this.props;
         const hidden = classNames({ 'hidden': !activated});
 
         return (
