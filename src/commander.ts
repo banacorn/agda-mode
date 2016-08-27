@@ -2,7 +2,6 @@ import * as Promise from "bluebird";
 import * as _ from "lodash";
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError } from "./error";
 import { Command, Normalization, CommandResult, View } from "./types";
-import { activateInputMethod } from "./view/actions";
 import Core from "./core";
 
 declare var atom: any;
@@ -350,7 +349,6 @@ export default class Commander {
                 this.core.atomPanel.show();
                 this.core.view.set("Not loaded", [], View.Type.Warning);
             }
-            this.core.store.dispatch(activateInputMethod());
             this.core.inputMethod.activate();
         } else {
             this.core.editor.insertText("\\");

@@ -6,14 +6,13 @@ import { View } from '../types';
 type State = View.State;
 
 interface InputMethodProps extends React.Props<any> {
-    activate: boolean
+    activate: boolean,
+    keySuggestion: string[]
 };
 
 
-const mapStateToProps = ({ inputMethodMode }: State) => {
-    return {
-        activate: inputMethodMode
-    };
+const mapStateToProps = (state: State) => {
+    return state.inputMethod
 }
 
 // const mapDispatchToProps = (dispatch: any) => {
@@ -24,12 +23,13 @@ const mapStateToProps = ({ inputMethodMode }: State) => {
 
 class InputMethod extends React.Component<InputMethodProps, State> {
     render() {
-        // const { word, subs, onSearch, lookupStatus } = this.props;
-        const hidden = classNames({ 'hidden': !this.props.activate});
+        const { activate, keySuggestion } = this.props;
+        const hidden = classNames({ 'hidden': !activate});
 
         return (
             <section className={hidden}>
                 <h1>Hey</h1>
+                {keySuggestion.map(key => <span key={key}>{key}</span>)}
             </section>
         )
     }

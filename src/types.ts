@@ -160,9 +160,13 @@ type CommandResult = {
 namespace View {
 
     export type State = {
-        inputMethodMode: boolean
+        inputMethod: InputMethodState
     }
 
+    export type InputMethodState = {
+        activate: boolean,
+        keySuggestion: string[]
+    }
 
 
     // Legacy shit below

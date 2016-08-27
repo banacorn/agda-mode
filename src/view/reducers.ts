@@ -4,24 +4,26 @@ import { INPUT_METHOD } from './actions';
 import { combineReducers } from 'redux';
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
 
-type State = View.State;
-
-const defaultState: State = {
-    inputMethodMode: false
+const defaultState: View.State = {
+    inputMethod: {
+        activate: false,
+        keySuggestion: []
+    }
 };
 
-const reducer = handleActions<State, INPUT_METHOD>({
-    [INPUT_METHOD.ACTIVATE]: (state: State, action: Action<INPUT_METHOD.ACTIVATE>) => _.assign({}, state, {
-        inputMethodMode: true
+const inputMethod = handleActions<View.InputMethodState, INPUT_METHOD>({
+    [INPUT_METHOD.ACTIVATE]: (state: View.InputMethodState, action: Action<INPUT_METHOD.ACTIVATE>) => _.assign({}, state, {
+        activate: true
     }),
-    [INPUT_METHOD.DEACTIVATE]: (state: State, action: Action<INPUT_METHOD.DEACTIVATE>) => _.assign({}, state, {
-        inputMethodMode: false
+    [INPUT_METHOD.DEACTIVATE]: (state: View.InputMethodState, action: Action<INPUT_METHOD.DEACTIVATE>) => _.assign({}, state, {
+        activate: false
+    }),
+    [INPUT_METHOD.SUGGEST_KEYS]: (state: View.InputMethodState, action: Action<INPUT_METHOD.SUGGEST_KEYS>) => _.assign({}, state, {
+        keySuggestion: action.payload
     })
-}, defaultState);
+}, defaultState.inputMethod);
 
-export default reducer;
-// export default combineReducers({
-//     entry,
-//     status,
-//     history
-// })
+// export default reducer;
+export default combineReducers<View.State>({
+    inputMethod,
+});

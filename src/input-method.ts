@@ -1,6 +1,7 @@
 import * as _ from "lodash";
 import Keymap from "./keymap";
 import Core from "./core";
+import { activateInputMethod, deactivateInputMethod, suggestKeys } from "./view/actions";
 
 type TextEditor = any;
 type CompositeDisposable = any;
@@ -147,6 +148,9 @@ export default class InputMethod {
             });
 
             // initialize input suggestion
+            this.core.store.dispatch(activateInputMethod());
+            this.core.store.dispatch(suggestKeys(getSuggestionKeys(Keymap).sort()));
+
             this.core.view.inputMethodMode = true;
             this.core.view.inputMethodInput = {
                 rawInput: "",
@@ -166,6 +170,8 @@ export default class InputMethod {
             // add class 'agda-mode-input-method-activated'
             const editorElement = atom.views.getView(atom.workspace.getActiveTextEditor());
             editorElement.classList.remove("agda-mode-input-method-activated");
+
+            this.core.store.dispatch(deactivateInputMethod());
 
             this.core.view.inputMethodMode = false;
             this.textEditorMarker.destroy();
@@ -213,6 +219,8 @@ export default class InputMethod {
 
                 // update view
                 if (further) {
+                    this.core.store.dispatch(suggestKeys(suggestionKeys));
+
                     this.core.view.inputMethodInput = {
                         rawInput: this.rawInput,
                         suggestionKeys: suggestionKeys,
@@ -224,6 +232,7 @@ export default class InputMethod {
             } else if (change === DELETE) {
                 this.rawInput = this.rawInput.substr(0, this.rawInput.length - 1);
                 const {translation, further, suggestionKeys, candidateSymbols} = translate(this.rawInput);
+                this.core.store.dispatch(suggestKeys(suggestionKeys));
                 this.core.view.inputMethodInput = {
                     rawInput: this.rawInput,
                     suggestionKeys: suggestionKeys,
