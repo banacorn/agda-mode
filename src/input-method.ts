@@ -1,7 +1,7 @@
 import * as _ from "lodash";
 import Keymap from "./keymap";
 import Core from "./core";
-import { activateInputMethod, deactivateInputMethod } from "./view/actions";
+import { activateInputMethod, deactivateInputMethod, insertInputMethod } from "./view/actions";
 
 type TextEditor = any;
 type CompositeDisposable = any;
@@ -151,12 +151,12 @@ export default class InputMethod {
             this.core.store.dispatch(activateInputMethod());
             // this.core.store.dispatch(suggestKeys(getKeySuggestions(Keymap).sort()));
 
-            this.core.view.inputMethodMode = true;
-            this.core.view.inputMethodInput = {
-                rawInput: "",
-                keySuggestions: getKeySuggestions(Keymap).sort(),
-                candidateSymbols: []
-            }
+            // this.core.view.inputMethodMode = true;
+            // this.core.view.inputMethodInput = {
+            //     rawInput: "",
+            //     keySuggestions: getKeySuggestions(Keymap).sort(),
+            //     candidateSymbols: []
+            // }
         } else {
             // input method already activated
             // this will happen when the 2nd backslash '\' got punched in
@@ -173,7 +173,7 @@ export default class InputMethod {
 
             this.core.store.dispatch(deactivateInputMethod());
 
-            this.core.view.inputMethodMode = false;
+            // this.core.view.inputMethodMode = false;
             this.textEditorMarker.destroy();
             this.decoration.destroy();
             this.activated = false;
@@ -195,7 +195,6 @@ export default class InputMethod {
             const rangeOld = new Range(event.oldTailBufferPosition, event.oldHeadBufferPosition);
             const rangeNew = new Range(event.newTailBufferPosition, event.newHeadBufferPosition);
             const buffer = this.editor.getBuffer().getTextInRange(rangeNew);
-            const char = buffer.substr(-1);
 
             // const for result of Range::compare()
             const INSERT = -1;
@@ -207,6 +206,8 @@ export default class InputMethod {
             }
             else if (change === INSERT) {
                 const char = buffer.substr(-1);
+                this.core.store.dispatch(insertInputMethod(char));
+
                 this.rawInput += char;
                 const {translation, further, keySuggestions, candidateSymbols} = translate(this.rawInput);
 
@@ -217,27 +218,19 @@ export default class InputMethod {
                     });
                 }
 
-                // update view
-                if (further) {
-                    // this.core.store.dispatch(suggestKeys(keySuggestions));
-
-                    this.core.view.inputMethodInput = {
-                        rawInput: this.rawInput,
-                        keySuggestions: keySuggestions,
-                        candidateSymbols: candidateSymbols
-                    };
-                } else {
+                // deactivate if we can't go further
+                if (!further) {
                     this.deactivate();
                 }
             } else if (change === DELETE) {
                 this.rawInput = this.rawInput.substr(0, this.rawInput.length - 1);
                 const {translation, further, keySuggestions, candidateSymbols} = translate(this.rawInput);
                 // this.core.store.dispatch(suggestKeys(keySuggestions));
-                this.core.view.inputMethodInput = {
-                    rawInput: this.rawInput,
-                    keySuggestions: keySuggestions,
-                    candidateSymbols: candidateSymbols
-                };
+                // this.core.view.inputMethodInput = {
+                //     rawInput: this.rawInput,
+                //     keySuggestions: keySuggestions,
+                //     candidateSymbols: candidateSymbols
+                // };
             }
 
         }
@@ -256,7 +249,6 @@ export default class InputMethod {
     insertSymbol(symbol: string) {
         this.replaceString(symbol);
         this.deactivate()
-
     }
 
     // replace content of the marker with supplied string (may trigger some events)

@@ -4,15 +4,14 @@ import { connect } from 'react-redux';
 import * as classNames from 'classnames';
 import { View } from '../types';
 import { translate } from "../input-method";
-type State = View.State;
 
 interface InputMethodProps extends React.Props<any> {
-    activate: boolean,
+    activated: boolean,
     buffer: string
 };
 
 
-const mapStateToProps = (state: State) => {
+const mapStateToProps = (state: View.State) => {
     return state.inputMethod
 }
 
@@ -21,18 +20,23 @@ const mapStateToProps = (state: State) => {
 //     };
 // };
 
-// {keySuggestions.map(key => <span
-//     className="btn"
-//     key={key}
-//     >{key}</span>)}
+class InputMethod extends React.Component<InputMethodProps, void> {
 
-class InputMethod extends React.Component<InputMethodProps, State> {
     render() {
-        const { activate, buffer } = this.props;
+        const { activated, buffer } = this.props;
+
+        // detect state changes
+        // if (activated) {
+        //     this.activate();
+        // } else {
+        //     this.deactivate();
+        // }
+
+
         const { translation, further, keySuggestions, candidateSymbols } = translate(buffer);
 
         // const {  }
-        const hidden = classNames({ 'hidden': !activate});
+        const hidden = classNames({ 'hidden': !activated});
 
         return (
             <section className={hidden} id="panel-input-method">

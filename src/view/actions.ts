@@ -3,20 +3,19 @@ import { createAction, handleAction, handleActions, Action } from 'redux-actions
 // import { State, Section, LanguageSection, History } from './types';
 
 
-export type INPUT_METHOD = INPUT_METHOD.ACTIVATE | INPUT_METHOD.DEACTIVATE;
-// export type INPUT_METHOD = INPUT_METHOD.ACTIVATE | INPUT_METHOD.DEACTIVATE | INPUT_METHOD.SUGGEST_KEYS;
+export type INPUT_METHOD = INPUT_METHOD.ACTIVATE | INPUT_METHOD.DEACTIVATE | INPUT_METHOD.INSERT;
 export namespace INPUT_METHOD {
     export const ACTIVATE = 'INPUT_METHOD.ACTIVATE';
     export type ACTIVATE = void;
     export const DEACTIVATE = 'INPUT_METHOD.DEACTIVATE';
     export type DEACTIVATE = void;
-    // export const SUGGEST_KEYS = 'INPUT_METHOD.SUGGEST_KEYS';
-    // export type SUGGEST_KEYS = string[];
+    export const INSERT = 'INPUT_METHOD.INSERT';
+    export type INSERT = string;
 }
 
  export const activateInputMethod = createAction<INPUT_METHOD.ACTIVATE, INPUT_METHOD.ACTIVATE>(INPUT_METHOD.ACTIVATE);
  export const deactivateInputMethod = createAction<INPUT_METHOD.DEACTIVATE, INPUT_METHOD.DEACTIVATE>(INPUT_METHOD.DEACTIVATE);
- // export const suggestKeys = createAction<INPUT_METHOD.SUGGEST_KEYS, INPUT_METHOD.SUGGEST_KEYS>(INPUT_METHOD.SUGGEST_KEYS);
+ export const insertInputMethod = createAction<INPUT_METHOD.INSERT, INPUT_METHOD.INSERT>(INPUT_METHOD.INSERT);
 
 // export namespace fetch {
 //     export const init = createAction<string, FETCH.INIT>(FETCH.INIT);

@@ -164,7 +164,7 @@ namespace View {
     }
 
     export type InputMethodState = {
-        activate: boolean,
+        activated: boolean,
         buffer: string
     }
 
