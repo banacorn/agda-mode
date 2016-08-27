@@ -3,6 +3,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
 import { View } from '../types';
+import CandidateSymbols from "./CandidateSymbols";
 
 interface InputMethodProps extends React.Props<any> {
     activated: boolean,
@@ -24,9 +25,8 @@ const mapStateToProps = (state: View.State) => {
 // };
 
 class InputMethod extends React.Component<InputMethodProps, void> {
-
     render() {
-        const { activated, buffer, translation, further, keySuggestions, candidateSymbols } = this.props;
+        const { activated, buffer, translation, further, keySuggestions } = this.props;
         const hideEverything = classNames({ 'hidden': !activated});
         const hideBuffer = classNames({ 'hidden': _.isEmpty(buffer)}, "inline-block");
         return (
@@ -40,6 +40,7 @@ class InputMethod extends React.Component<InputMethodProps, void> {
                         >{key}</button>)}
                     </div>
                 </div>
+                <CandidateSymbols/>
             </section>
         )
     }
