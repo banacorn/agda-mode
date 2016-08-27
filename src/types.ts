@@ -165,7 +165,7 @@ namespace View {
 
     export type InputMethodState = {
         activate: boolean,
-        keySuggestion: string[]
+        buffer: string
     }
 
 

@@ -11,7 +11,7 @@ declare var atom: any;
     props: {
         input: {
             candidateSymbols: Array,
-            suggestionKeys: Array,
+            keySuggestions: Array,
             rawInput: Array,
         }
     },
@@ -20,7 +20,7 @@ declare var atom: any;
             <div id="input-buffer-container">
                 <div id="input-buffer" class="inline-block" v-show="rawInput">{{rawInput}}</div>
                 <div id="suggestion-keys" class="btn-group btn-group-sm">
-                    <button class="btn" v-for="key in suggestionKeys" @click="selectKey(key)">{{key}}</button>
+                    <button class="btn" v-for="key in keySuggestions" @click="selectKey(key)">{{key}}</button>
                 </div>
             </div>
             <div id="candidate-symbols" class="btn-group btn-group-sm">
@@ -35,14 +35,14 @@ class InputMethod extends Vue {
     private subscriptions: CompositeDisposable;
 
     // data
-    suggestionKeys: string[];
+    keySuggestions: string[];
     candidateSymbols: string[];
     rawInput: string;
     index: number;
 
     data() {
         return {
-            suggestionKeys: [],
+            keySuggestions: [],
             candidateSymbols: [],
             rawInput: "",
             index: 0
@@ -125,11 +125,11 @@ class InputMethod extends Vue {
     // computed
     set input(input: {
         candidateSymbols: string[],
-        suggestionKeys: string[],
+        keySuggestions: string[],
         rawInput: string,
     }) {
         this.candidateSymbols = input.candidateSymbols;
-        this.suggestionKeys = input.suggestionKeys;
+        this.keySuggestions = input.keySuggestions;
         this.rawInput = input.rawInput;
         this.index = 0;
     }

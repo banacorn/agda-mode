@@ -1,7 +1,7 @@
 import * as _ from "lodash";
 import Keymap from "./keymap";
 import Core from "./core";
-import { activateInputMethod, deactivateInputMethod, suggestKeys } from "./view/actions";
+import { activateInputMethod, deactivateInputMethod } from "./view/actions";
 
 type TextEditor = any;
 type CompositeDisposable = any;
@@ -11,8 +11,8 @@ type Range = any;
 declare var atom: any;
 var { Range, CompositeDisposable } = require('atom');
 
-function getSuggestionKeys(trie: any): string[] {
-    return Object.keys(_.omit(trie, ">>"));
+function getKeySuggestions(trie: any): string[] {
+    return Object.keys(_.omit(trie, ">>")).sort();
 }
 
 function getCandidateSymbols(trie: any): string[] {
@@ -42,28 +42,28 @@ function validate(input: string): {
 }
 
 // converts characters to symbol, and tells if there's any further possible combinations
-function translate(input: string): {
+export function translate(input: string): {
     translation: string,
     further: boolean,
-    suggestionKeys: string[],
+    keySuggestions: string[],
     candidateSymbols: string[]
 } {
     const {valid, trie} = validate(input);
-    const suggestionKeys   = getSuggestionKeys(trie);
+    const keySuggestions   = getKeySuggestions(trie);
     const candidateSymbols = getCandidateSymbols(trie);
     if (valid) {
-        if (suggestionKeys.length === 0) {
+        if (keySuggestions.length === 0) {
             return {
                 translation: candidateSymbols[0],
                 further: false,
-                suggestionKeys: [],
+                keySuggestions: [],
                 candidateSymbols: []
             }
         } else {
             return {
                 translation: candidateSymbols[0],
                 further: true,
-                suggestionKeys: suggestionKeys,
+                keySuggestions: keySuggestions,
                 candidateSymbols: candidateSymbols
             }
         }
@@ -73,7 +73,7 @@ function translate(input: string): {
         return {
             translation: undefined,
             further: false,
-            suggestionKeys: [],
+            keySuggestions: [],
             candidateSymbols: [],
         }
     }
@@ -149,12 +149,12 @@ export default class InputMethod {
 
             // initialize input suggestion
             this.core.store.dispatch(activateInputMethod());
-            this.core.store.dispatch(suggestKeys(getSuggestionKeys(Keymap).sort()));
+            // this.core.store.dispatch(suggestKeys(getKeySuggestions(Keymap).sort()));
 
             this.core.view.inputMethodMode = true;
             this.core.view.inputMethodInput = {
                 rawInput: "",
-                suggestionKeys: getSuggestionKeys(Keymap).sort(),
+                keySuggestions: getKeySuggestions(Keymap).sort(),
                 candidateSymbols: []
             }
         } else {
@@ -208,7 +208,7 @@ export default class InputMethod {
             else if (change === INSERT) {
                 const char = buffer.substr(-1);
                 this.rawInput += char;
-                const {translation, further, suggestionKeys, candidateSymbols} = translate(this.rawInput);
+                const {translation, further, keySuggestions, candidateSymbols} = translate(this.rawInput);
 
                 // reflects current translation to the text buffer
                 if (translation) {
@@ -219,11 +219,11 @@ export default class InputMethod {
 
                 // update view
                 if (further) {
-                    this.core.store.dispatch(suggestKeys(suggestionKeys));
+                    // this.core.store.dispatch(suggestKeys(keySuggestions));
 
                     this.core.view.inputMethodInput = {
                         rawInput: this.rawInput,
-                        suggestionKeys: suggestionKeys,
+                        keySuggestions: keySuggestions,
                         candidateSymbols: candidateSymbols
                     };
                 } else {
@@ -231,11 +231,11 @@ export default class InputMethod {
                 }
             } else if (change === DELETE) {
                 this.rawInput = this.rawInput.substr(0, this.rawInput.length - 1);
-                const {translation, further, suggestionKeys, candidateSymbols} = translate(this.rawInput);
-                this.core.store.dispatch(suggestKeys(suggestionKeys));
+                const {translation, further, keySuggestions, candidateSymbols} = translate(this.rawInput);
+                // this.core.store.dispatch(suggestKeys(keySuggestions));
                 this.core.view.inputMethodInput = {
                     rawInput: this.rawInput,
-                    suggestionKeys: suggestionKeys,
+                    keySuggestions: keySuggestions,
                     candidateSymbols: candidateSymbols
                 };
             }

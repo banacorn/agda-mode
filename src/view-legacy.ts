@@ -63,7 +63,7 @@ class View extends Vue {
     isPending: boolean;
     inputMethodInput: {
         candidateSymbols: string[],
-        suggestionKeys: string[],
+        keySuggestions: string[],
         rawInput: string,
     };
     headerStyle: string;
