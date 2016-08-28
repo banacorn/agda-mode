@@ -164,13 +164,13 @@ namespace View {
         inputMethod: InputMethodState
     }
 
-    export type InputMethodState = {
-        activated: boolean,
-        buffer: string,
-        translation: string,
-        further: boolean,
-        keySuggestions: string[],
-        candidateSymbols: string[]
+    export interface InputMethodState {
+        activated: boolean;
+        buffer: string;
+        translation: string;
+        further: boolean;
+        keySuggestions: string[];
+        candidateSymbols: string[];
     }
 
     export const enum HeaderStyle {
@@ -182,9 +182,9 @@ namespace View {
     }
 
 
-    export type HeaderState = {
-        text: string,
-        style: HeaderStyle
+    export interface HeaderState {
+        text: string;
+        style: HeaderStyle;
     }
 
     // Legacy shit below

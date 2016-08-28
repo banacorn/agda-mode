@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import * as classNames from 'classnames';
 
 import { View } from '../types';
 
@@ -14,15 +15,26 @@ function toHeaderStyle(type: View.HeaderStyle): string {
     }
 }
 
-const mapStateToProps = (state: View.State) => {
-    return state.header
+interface Props extends View.HeaderState {
+    inputMethodActivated: boolean;
 }
 
-class Header extends React.Component<View.HeaderState, void> {
+const mapStateToProps = (state: View.State) => {
+    return {
+        text: state.header.text,
+        style: state.header.style,
+        inputMethodActivated: state.inputMethod.activated
+    }
+}
+
+class Header extends React.Component<Props, void> {
     render() {
-        const { text, style } = this.props;
+        const { text, style, inputMethodActivated } = this.props;
+        const classes = classNames({
+            hidden: inputMethodActivated
+        }, `text-${toHeaderStyle(style)}`)
         return (
-            <h1>{text}</h1>
+            <h1 className={classes}>{text}</h1>
         )
     }
 }
