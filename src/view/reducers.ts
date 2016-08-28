@@ -10,7 +10,7 @@ const { translation, further, keySuggestions, candidateSymbols } = translate('')
 const defaultState: View.State = {
     header: {
         text: '',
-        style: ''
+        style: View.HeaderStyle.PlainText
     },
     inputMethod: {
         activated: false,
@@ -44,7 +44,7 @@ const inputMethod = handleActions<View.InputMethodState, INPUT_METHOD>({
 }, defaultState.inputMethod);
 
 const header = handleActions<View.HeaderState, HEADER>({
-    [HEADER.UPDATE]: (state: View.HeaderState, action: Action<HEADER.UPDATE>) => state
+    [HEADER.UPDATE]: (state: View.HeaderState, action: Action<HEADER.UPDATE>) => action.payload
 }, defaultState.header);
 
 // export default reducer;

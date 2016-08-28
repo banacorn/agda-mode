@@ -201,9 +201,9 @@ export default class Process {
                                 } catch (error) {
                                     console.log(error)
                                     // show some message
-                                    this.core.viewLegacy.set("Agda Parse Error",
+                                    this.core.view.set("Agda Parse Error",
                                         [`Message from agda:`].concat(data.toString()),
-                                        View.Type.Error);
+                                        View.HeaderStyle.Error);
                                 }
                             })
                     });
@@ -266,12 +266,12 @@ export default class Process {
         }).catch(AgdaParseError, (error) => {
             const args = this.getProgramArgs()
             args.push("-V");
-            this.core.viewLegacy.set(
+            this.core.view.set(
                 "Agda Parse Error", [
                     `Arguments passed to Agda: \"${args.join(" ")}\"`,
                     `Message from agda:`
                 ].concat(error.message),
-                View.Type.Error
+                View.HeaderStyle.Error
             );
         });
     }
@@ -287,11 +287,11 @@ export default class Process {
         const args = this.getProgramArgs();
         args.push("--interaction");
         const agdaVersion = this.agdaVersion ? this.agdaVersion.raw : "null";
-        this.core.viewLegacy.set("Info", [
+        this.core.view.set("Info", [
             `Agda version: ${agdaVersion}`,
             `Agda executable path: ${path}`,
             `Agda executable arguments: ${args.join(" ")}`
-        ], View.Type.PlainText);
+        ], View.HeaderStyle.PlainText);
 
         return Promise.resolve();
     }

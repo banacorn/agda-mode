@@ -173,9 +173,18 @@ namespace View {
         candidateSymbols: string[]
     }
 
+    export const enum HeaderStyle {
+        PlainText,
+        Error,
+        Warning,
+        Judgement,
+        Value
+    }
+
+
     export type HeaderState = {
         text: string,
-        style: string
+        style: HeaderStyle
     }
 
     // Legacy shit below

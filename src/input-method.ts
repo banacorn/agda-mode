@@ -145,7 +145,7 @@ export default class InputMethod {
             });
 
             // initialize input suggestion
-            this.core.store.dispatch(activateInputMethod());
+            this.core.view.store.dispatch(activateInputMethod());
         } else {
             // input method already activated
             // this will happen when the 2nd backslash '\' got punched in
@@ -159,7 +159,7 @@ export default class InputMethod {
             // add class 'agda-mode-input-method-activated'
             const editorElement = atom.views.getView(atom.workspace.getActiveTextEditor());
             editorElement.classList.remove("agda-mode-input-method-activated");
-            this.core.store.dispatch(deactivateInputMethod());
+            this.core.view.store.dispatch(deactivateInputMethod());
             this.textEditorMarker.destroy();
             this.decoration.destroy();
             this.activated = false;
@@ -192,8 +192,8 @@ export default class InputMethod {
             }
             else if (change === INSERT) {
                 const char = buffer.substr(-1);
-                this.core.store.dispatch(insertInputMethod(char));
-                const {translation, further} = this.core.store.getState().inputMethod;
+                this.core.view.store.dispatch(insertInputMethod(char));
+                const {translation, further} = this.core.view.store.getState().inputMethod;
 
                 // reflects current translation to the text buffer
                 if (translation) {
@@ -207,7 +207,7 @@ export default class InputMethod {
                     this.deactivate();
                 }
             } else if (change === DELETE) {
-                this.core.store.dispatch(deleteInputMethod());
+                this.core.view.store.dispatch(deleteInputMethod());
             }
 
         }

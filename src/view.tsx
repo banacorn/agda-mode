@@ -6,12 +6,17 @@ import { createStore } from 'redux';
 import Core from './core';
 import Panel from './view/Panel';
 import reducer from './view/reducers';
+import { View as V } from './types';
+import { updateHeader } from './view/actions';
 
 const store = createStore(reducer);
 
 export default class View {
+    public store: Redux.Store<V.State>;
 
-    constructor(private core: Core) {}
+    constructor(private core: Core) {
+        this.store = store;
+    }
 
     mount() {
         ReactDOM.render(
@@ -20,6 +25,13 @@ export default class View {
             </Provider>,
             document.getElementById('agda-view')
         )
-        return store;
     }
+
+    set(header: string, body: string[], type = V.HeaderStyle.PlainText) {
+        this.store.dispatch(updateHeader({
+            text: header,
+            style: type
+        }));
+    }
+
 }

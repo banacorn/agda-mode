@@ -94,11 +94,11 @@ export default class TextBuffer {
     }
 
     warnOutOfGoal() {
-        this.core.viewLegacy.set("Out of goal", ["For this command, please place the cursor in a goal"], View.Type.Warning);
+        this.core.view.set("Out of goal", ["For this command, please place the cursor in a goal"], View.HeaderStyle.Warning);
     }
 
     warnEmptyGoal(error: any) {
-        this.core.viewLegacy.set("No content", [error.message], View.Type.Warning);
+        this.core.view.set("No content", [error.message], View.HeaderStyle.Warning);
     }
 
     // reject if goal is empty

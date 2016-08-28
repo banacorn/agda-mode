@@ -17,14 +17,16 @@ export namespace INPUT_METHOD {
     export type REPLACE_SYMBOL = string;
 }
 
- export const activateInputMethod = createAction(INPUT_METHOD.ACTIVATE);
- export const deactivateInputMethod = createAction(INPUT_METHOD.DEACTIVATE);
- export const insertInputMethod = createAction(INPUT_METHOD.INSERT);
- export const deleteInputMethod = createAction(INPUT_METHOD.DELETE);
- export const replaceSymbol = createAction(INPUT_METHOD.REPLACE_SYMBOL);
+export const activateInputMethod = createAction(INPUT_METHOD.ACTIVATE);
+export const deactivateInputMethod = createAction(INPUT_METHOD.DEACTIVATE);
+export const insertInputMethod = createAction(INPUT_METHOD.INSERT);
+export const deleteInputMethod = createAction(INPUT_METHOD.DELETE);
+export const replaceSymbol = createAction(INPUT_METHOD.REPLACE_SYMBOL);
 
 export type HEADER = HEADER.UPDATE;
 export namespace HEADER {
     export const UPDATE = 'HEADER.UPDATE';
     export type UPDATE = View.HeaderState;
 }
+
+export const updateHeader = createAction(HEADER.UPDATE);

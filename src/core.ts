@@ -61,7 +61,6 @@ export default class Core {
         this.disposables        = new CompositeDisposable();
         // view
         this.view               = new View(this);
-        this.store              = this.view.mount();
         this.viewLegacy         = new ViewLegacy;
         this.process            = new Process(this);
         this.textBuffer         = new TextBuffer(this);
@@ -70,6 +69,8 @@ export default class Core {
         this.highlightManager   = new HighlightManager(this);
 
         // instantiate views
+        this.view.mount();
+
         this.atomPanel = atom.workspace.addBottomPanel({
             item: document.createElement('agda-view'),
             visible: false,
