@@ -16,10 +16,14 @@ const defaultState: View.State = {
 };
 
 const inputMethod = handleActions<View.InputMethodState, INPUT_METHOD>({
-    [INPUT_METHOD.ACTIVATE]: (state: View.InputMethodState, action: Action<INPUT_METHOD.ACTIVATE>) => _.assign({}, state, {
-        activated: true,
-        buffer: ""
-    }),
+    [INPUT_METHOD.ACTIVATE]: (state: View.InputMethodState, action: Action<INPUT_METHOD.ACTIVATE>) => {
+        const { translation, further, keySuggestions, candidateSymbols } = translate("");
+        return _.assign({}, state, {
+            activated: true,
+            buffer: "",
+            translation, further, keySuggestions, candidateSymbols
+        });
+    },
     [INPUT_METHOD.DEACTIVATE]: (state: View.InputMethodState, action: Action<INPUT_METHOD.DEACTIVATE>) => _.assign({}, state, {
         activated: false
     }),
