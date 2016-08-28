@@ -10,7 +10,7 @@ type CompositeDisposable = any;
 declare var atom: any;
 
 
-interface CandidateSymbolsProps extends React.Props<any> {
+interface CandidateSymbolsProps {
     candidates: string[]
     updateTranslation: (symbol: string) => void,
     chooseSymbol: (symbol: string) => void
@@ -20,12 +20,6 @@ interface CandidateSymbolsProps extends React.Props<any> {
 const mapStateToProps = (state: View.State) => ({
     candidates: state.inputMethod.candidateSymbols
 })
-
-// const mapDispatchToProps = (dispatch: any) => ({
-//     updateTranslation: (symbol: string) => {
-//         dispatch(replaceSymbol(symbol))
-//     }
-// })
 
 
 // the nth candicate

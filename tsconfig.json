@@ -64,9 +64,9 @@
         "typings/modules/bluebird/index.d.ts",
         "typings/modules/vue-class-component/index.d.ts",
         "src/view.tsx",
-        "src/view/App.tsx",
         "src/view/CandidateSymbols.tsx",
-        "src/view/InputMethod.tsx"
+        "src/view/InputMethod.tsx",
+        "src/view/Panel.tsx"
     ],
     "atom": {
         "rewriteTsconfig": true

@@ -1,20 +1,20 @@
-import * as _ from "lodash";
+import * as _ from 'lodash';
 type CompositeDisposable = any;
 type Range = any;
 declare var atom: any;
-var { Range, CompositeDisposable } = require("atom");
-import { parseFilepath } from "./parser";
+var { Range, CompositeDisposable } = require('atom');
+import { parseFilepath } from './parser';
 import * as Redux from 'redux';
-import { View } from "./types";
+import { View } from './types';
 
 // # Components
-import Commander from "./commander";
-import Process from "./process";
-import TextBuffer from "./text-buffer";
-import InputMethod from "./input-method";
-import HighlightManager from "./highlight-manager";
-import ViewLegacy from "./view-legacy";
-import mountView from "./view";
+import Commander from './commander';
+import Process from './process';
+import TextBuffer from './text-buffer';
+import InputMethod from './input-method';
+import HighlightManager from './highlight-manager';
+import ViewLegacy from './view-legacy';
+import mountView from './view';
 
 export default class Core {
     private disposables: CompositeDisposable;
@@ -48,12 +48,12 @@ export default class Core {
         }
 
         // create an anchor element for the view to mount
-        const anchor = document.createElement("agda-view");
-        anchor.id = "agda-view";
+        const anchor = document.createElement('agda-view');
+        anchor.id = 'agda-view';
         const atomPanel = atom.workspace.addBottomPanel({
             item: anchor,
             visible: true,
-            className: "agda-view"
+            className: 'agda-view'
         });
 
         // initialize all components
@@ -62,35 +62,23 @@ export default class Core {
         this.view               = new ViewLegacy;
         this.process            = new Process(this);
         this.textBuffer         = new TextBuffer(this);
-        if (atom.config.get("agda-mode.inputMethod"))
+        if (atom.config.get('agda-mode.inputMethod'))
             this.inputMethod    = new InputMethod(this);
         this.highlightManager   = new HighlightManager(this);
 
 
         // instantiate views
         this.atomPanel = atom.workspace.addBottomPanel({
-            item: document.createElement("agda-view"),
+            item: document.createElement('agda-view'),
             visible: false,
-            className: "agda-view"
+            className: 'agda-view'
         });
         this.view.$mount(this.atomPanel.item);
-        this.view.$on("jump-to-goal", (index) => {
+        this.view.$on('jump-to-goal', (index) => {
             this.textBuffer.jumpToGoal(parseInt(index.substr(1)));
         });
-        this.view.$on("jump-to-location", (location) => {
+        this.view.$on('jump-to-location', (location) => {
             this.textBuffer.jumpToLocation(location);
-        });
-        this.view.$on("select-key", (key) => {
-            this.inputMethod.insertCharToBufffer(key);
-            atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
-        });
-        this.view.$on("select-symbol", (symbol) => {
-            this.inputMethod.replaceBuffer(symbol);
-            this.inputMethod.deactivate();
-            atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
-        });
-        this.view.$on("replace-symbol", (symbol) => {
-            this.inputMethod.replaceBuffer(symbol);
         });
 
         this.commander  = new Commander(this);
