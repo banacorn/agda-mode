@@ -58,7 +58,7 @@ export default class Core {
 
         // initialize all components
         this.disposables        = new CompositeDisposable();
-        this.store              = mountView();
+        this.store              = mountView(this);
         this.view               = new ViewLegacy;
         this.process            = new Process(this);
         this.textBuffer         = new TextBuffer(this);
@@ -85,12 +85,12 @@ export default class Core {
             atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
         });
         this.view.$on("select-symbol", (symbol) => {
-            this.inputMethod.replaceBufffer(symbol);
+            this.inputMethod.replaceBuffer(symbol);
             this.inputMethod.deactivate();
             atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
         });
         this.view.$on("replace-symbol", (symbol) => {
-            this.inputMethod.replaceBufffer(symbol);
+            this.inputMethod.replaceBuffer(symbol);
         });
 
         this.commander  = new Commander(this);

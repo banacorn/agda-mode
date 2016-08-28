@@ -11,9 +11,8 @@ declare var atom: any;
 
 
 interface CandidateSymbolsProps extends React.Props<any> {
-    // core: Core,
     candidates: string[]
-    replaceSymbol: (symbol: string) => void
+    updateTranslation: (symbol: string) => void
 };
 
 
@@ -21,11 +20,11 @@ const mapStateToProps = (state: View.State) => ({
     candidates: state.inputMethod.candidateSymbols
 })
 
-const mapDispatchToProps = (dispatch: any) => ({
-    replaceSymbol: (symbol: string) => {
-        dispatch(replaceSymbol(symbol))
-    }
-})
+// const mapDispatchToProps = (dispatch: any) => ({
+//     updateTranslation: (symbol: string) => {
+//         dispatch(replaceSymbol(symbol))
+//     }
+// })
 
 
 // the nth candicate
@@ -55,7 +54,7 @@ class CandidateSymbols extends React.Component<CandidateSymbolsProps, Frame> {
                         this.state.index - 10
                     ])
                     this.setState({ index: newIndex });
-                    // this.replaceSymbol(this.selected[0]);
+                    this.props.updateTranslation(this.props.candidates[newIndex]);
                     event.stopImmediatePropagation();
                 }
             },
@@ -66,7 +65,7 @@ class CandidateSymbols extends React.Component<CandidateSymbolsProps, Frame> {
                         this.state.index + 1
                     ])
                     this.setState({ index: newIndex });
-                    // this.replaceSymbol(this.selected[0]);
+                    this.props.updateTranslation(this.props.candidates[newIndex]);
                     event.stopImmediatePropagation();
                 }
             },
@@ -77,7 +76,7 @@ class CandidateSymbols extends React.Component<CandidateSymbolsProps, Frame> {
                         this.state.index + 10
                     ])
                     this.setState({ index: newIndex });
-                    // this.replaceSymbol(this.selected[0]);
+                    this.props.updateTranslation(this.props.candidates[newIndex]);
                     event.stopImmediatePropagation();
                 }
             },
@@ -88,13 +87,17 @@ class CandidateSymbols extends React.Component<CandidateSymbolsProps, Frame> {
                         this.state.index - 1
                     ])
                     this.setState({ index: newIndex });
-                    // this.replaceSymbol(this.selected[0]);
+                    this.props.updateTranslation(this.props.candidates[newIndex]);
                     event.stopImmediatePropagation();
                 }
             }
         }
 
         this.subscriptions = atom.commands.add('atom-text-editor.agda-mode-input-method-activated', commands);
+    }
+
+    componentWillUnmount() {
+        this.subscriptions.destroy();
     }
 
     render() {
@@ -123,7 +126,7 @@ class CandidateSymbols extends React.Component<CandidateSymbolsProps, Frame> {
     }
 }
 
-export default connect(
+export default connect<any, any, any>(
     mapStateToProps,
     null
 )(CandidateSymbols);

@@ -11,7 +11,9 @@ interface InputMethodProps extends React.Props<any> {
     translation: string,
     further: boolean,
     keySuggestions: string[],
-    candidateSymbols: string[]
+    candidateSymbols: string[],
+
+    updateTranslation: (symbol: string) => void
 };
 
 
@@ -26,7 +28,7 @@ const mapStateToProps = (state: View.State) => {
 
 class InputMethod extends React.Component<InputMethodProps, void> {
     render() {
-        const { activated, buffer, translation, further, keySuggestions } = this.props;
+        const { activated, buffer, translation, further, keySuggestions, updateTranslation } = this.props;
         const hideEverything = classNames({ 'hidden': !activated});
         const hideBuffer = classNames({ 'hidden': _.isEmpty(buffer)}, "inline-block");
         return (
@@ -40,13 +42,13 @@ class InputMethod extends React.Component<InputMethodProps, void> {
                         >{key}</button>)}
                     </div>
                 </div>
-                <CandidateSymbols/>
+                <CandidateSymbols updateTranslation={updateTranslation}/>
             </section>
         )
     }
 }
 
-export default connect(
+export default connect<any, any, any>(
     mapStateToProps,
     null
 )(InputMethod);

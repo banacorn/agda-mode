@@ -198,7 +198,7 @@ export default class InputMethod {
                 // reflects current translation to the text buffer
                 if (translation) {
                     this.muteEvent(() => {
-                        this.replaceBufffer(translation);
+                        this.replaceBuffer(translation);
                     });
                 }
 
@@ -223,7 +223,7 @@ export default class InputMethod {
     }
 
     // replace content of the marker with supplied string (may trigger some events)
-    replaceBufffer(str: string) {
+    replaceBuffer(str: string) {
         this.editor.getBuffer().setTextInRange(this.textEditorMarker.getBufferRange(), str);
     }
 }
