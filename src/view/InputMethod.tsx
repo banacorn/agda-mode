@@ -30,10 +30,10 @@ class InputMethod extends React.Component<InputMethodProps, void> {
         const hideEverything = classNames({ 'hidden': !activated});
         const hideBuffer = classNames({ 'hidden': _.isEmpty(buffer)}, 'inline-block');
         return (
-            <section className={hideEverything} id="panel-input-method">
-                <div id="input-buffer-container">
-                    <div id="input-buffer" className={hideBuffer}>{buffer}</div>
-                    <div id="suggestion-keys" className="btn-group btn-group-sm">
+            <section className={hideEverything}>
+                <div>
+                    <div className={hideBuffer}>{buffer}</div>
+                    <div className="btn-group btn-group-sm">
                         {keySuggestions.map(key => <button
                             className="btn"
                             onClick={() => insertCharacter(key)}

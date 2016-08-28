@@ -160,9 +160,10 @@ type CommandResult = {
 namespace View {
 
     export type State = {
+        header: HeaderState,
         inputMethod: InputMethodState
     }
-    
+
     export type InputMethodState = {
         activated: boolean,
         buffer: string,
@@ -172,6 +173,10 @@ namespace View {
         candidateSymbols: string[]
     }
 
+    export type HeaderState = {
+        text: string,
+        style: string
+    }
 
     // Legacy shit below
 

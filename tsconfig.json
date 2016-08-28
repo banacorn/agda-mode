@@ -65,6 +65,7 @@
         "typings/modules/vue-class-component/index.d.ts",
         "src/view.tsx",
         "src/view/CandidateSymbols.tsx",
+        "src/view/Header.tsx",
         "src/view/InputMethod.tsx",
         "src/view/Panel.tsx"
     ],
