@@ -12,7 +12,8 @@ declare var atom: any;
 
 interface CandidateSymbolsProps extends React.Props<any> {
     candidates: string[]
-    updateTranslation: (symbol: string) => void
+    updateTranslation: (symbol: string) => void,
+    chooseSymbol: (symbol: string) => void
 };
 
 
@@ -101,7 +102,7 @@ class CandidateSymbols extends React.Component<CandidateSymbolsProps, Frame> {
     }
 
     render() {
-        const { candidates } = this.props;
+        const { candidates, chooseSymbol } = this.props;
         const start = Math.floor(this.state.index / 10) * 10;
         const position = this.state.index % 10;
         const frameLeft = candidates.slice(start, this.state.index);
@@ -111,14 +112,17 @@ class CandidateSymbols extends React.Component<CandidateSymbolsProps, Frame> {
             <div id="candidate-symbols" className="btn-group btn-group-sm">
                 {frameLeft.map(key => <button
                     className="btn"
+                    onClick={() => {chooseSymbol(key)}}
                     key={key}
                 >{key}</button>)}
                 <button
                     className="btn selected"
+                    onClick={() => {chooseSymbol(selected)}}
                     key={selected}
                 >{selected}</button>
                 {frameRight.map(key => <button
                     className="btn"
+                    onClick={() => {chooseSymbol(key)}}
                     key={key}
                 >{key}</button>)}
             </div>
