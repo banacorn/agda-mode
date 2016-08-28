@@ -18,7 +18,7 @@ import mountView from './view';
 
 export default class Core {
     private disposables: CompositeDisposable;
-    public view: ViewLegacy;
+    public viewLegacy: ViewLegacy;
     public process: Process;
     public textBuffer: TextBuffer;
     public inputMethod: InputMethod;
@@ -59,13 +59,13 @@ export default class Core {
         // initialize all components
         this.disposables        = new CompositeDisposable();
         this.store              = mountView(this);
-        this.view               = new ViewLegacy;
+        this.viewLegacy         = new ViewLegacy;
+        console.log(this.viewLegacy)
         this.process            = new Process(this);
         this.textBuffer         = new TextBuffer(this);
         if (atom.config.get('agda-mode.inputMethod'))
             this.inputMethod    = new InputMethod(this);
         this.highlightManager   = new HighlightManager(this);
-
 
         // instantiate views
         this.atomPanel = atom.workspace.addBottomPanel({
@@ -73,11 +73,11 @@ export default class Core {
             visible: false,
             className: 'agda-view'
         });
-        this.view.$mount(this.atomPanel.item);
-        this.view.$on('jump-to-goal', (index) => {
+        this.viewLegacy.$mount(this.atomPanel.item);
+        this.viewLegacy.$on('jump-to-goal', (index) => {
             this.textBuffer.jumpToGoal(parseInt(index.substr(1)));
         });
-        this.view.$on('jump-to-location', (location) => {
+        this.viewLegacy.$on('jump-to-location', (location) => {
             this.textBuffer.jumpToLocation(location);
         });
 

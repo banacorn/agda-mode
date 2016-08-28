@@ -104,7 +104,7 @@ export default class Process {
             placeholder = "try another path";
         }
 
-        return this.core.view.query(name, message, type, placeholder, false)    // disable input method
+        return this.core.viewLegacy.query(name, message, type, placeholder, false)    // disable input method
             .then(this.validateExecutablePath)
             .then((path) => {
                 atom.config.set("agda-mode.executablePath", path)
@@ -199,8 +199,9 @@ export default class Process {
                                     const response = parseAgdaResponse(data);
                                     handleAgdaResponse(this.core, response);
                                 } catch (error) {
+                                    console.log(error)
                                     // show some message
-                                    this.core.view.set("Agda Parse Error",
+                                    this.core.viewLegacy.set("Agda Parse Error",
                                         [`Message from agda:`].concat(data.toString()),
                                         View.Type.Error);
                                 }
@@ -265,7 +266,7 @@ export default class Process {
         }).catch(AgdaParseError, (error) => {
             const args = this.getProgramArgs()
             args.push("-V");
-            this.core.view.set(
+            this.core.viewLegacy.set(
                 "Agda Parse Error", [
                     `Arguments passed to Agda: \"${args.join(" ")}\"`,
                     `Message from agda:`
@@ -286,7 +287,7 @@ export default class Process {
         const args = this.getProgramArgs();
         args.push("--interaction");
         const agdaVersion = this.agdaVersion ? this.agdaVersion.raw : "null";
-        this.core.view.set("Info", [
+        this.core.viewLegacy.set("Info", [
             `Agda version: ${agdaVersion}`,
             `Agda executable path: ${path}`,
             `Agda executable arguments: ${args.join(" ")}`

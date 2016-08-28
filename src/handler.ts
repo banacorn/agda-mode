@@ -10,7 +10,7 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
 
         case 'StatusAction':
             if (response.content.length !== 0) {
-                core.view.set('Status', response.content);
+                core.viewLegacy.set('Status', response.content);
             }
             break;
 
@@ -87,48 +87,48 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
     switch (action.infoActionKind) {
         case 'AllGoals':
             if (action.content.length === 0)
-                core.view.set('No Goals', []);
+                core.viewLegacy.set('No Goals', []);
             else
-                core.view.set('Goals', action.content, View.Type.Judgement);
+                core.viewLegacy.set('Goals', action.content, View.Type.Judgement);
             break;
         case 'Error':
-            core.view.set('Error', action.content, View.Type.Error);
+            core.viewLegacy.set('Error', action.content, View.Type.Error);
             break;
         case 'TypeChecking':
-            core.view.set('Type Checking', action.content);
+            core.viewLegacy.set('Type Checking', action.content);
             break;
         case 'CurrentGoal':
-            core.view.set('Current Goal', action.content, View.Type.Value);
+            core.viewLegacy.set('Current Goal', action.content, View.Type.Value);
             break;
         case 'InferredType':
-            core.view.set('Inferred Type', action.content);
+            core.viewLegacy.set('Inferred Type', action.content);
             break;
         case 'ModuleContents':
-            core.view.set('Module Contents', action.content);
+            core.viewLegacy.set('Module Contents', action.content);
             break;
         case 'Context':
-            core.view.set('Context', action.content, View.Type.Judgement);
+            core.viewLegacy.set('Context', action.content, View.Type.Judgement);
             break;
         case 'GoalTypeEtc':
-            core.view.set('Goal Type and Context', action.content, View.Type.Judgement);
+            core.viewLegacy.set('Goal Type and Context', action.content, View.Type.Judgement);
             break;
         case 'NormalForm':
-            core.view.set('Normal Form', action.content, View.Type.Value);
+            core.viewLegacy.set('Normal Form', action.content, View.Type.Value);
             break;
         case 'Intro':
-            core.view.set('Intro', ['No introduction forms found']);
+            core.viewLegacy.set('Intro', ['No introduction forms found']);
             break;
         case 'Auto':
-            core.view.set('Auto', ['No solution found']);
+            core.viewLegacy.set('Auto', ['No solution found']);
             break;
         case 'Constraints':
-            core.view.set('Constraints', action.content, View.Type.Judgement);
+            core.viewLegacy.set('Constraints', action.content, View.Type.Judgement);
             break;
         case 'ScopeInfo':
-            core.view.set('Scope Info', action.content);
+            core.viewLegacy.set('Scope Info', action.content);
             break;
         case 'Unknown':
-            core.view.set(_.head(action.content), _.tail(action.content));
+            core.viewLegacy.set(_.head(action.content), _.tail(action.content));
             break;
         default:
             console.error(`unknown info action:`);

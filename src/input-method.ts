@@ -125,8 +125,8 @@ export default class InputMethod {
             editorElement.classList.add("agda-mode-input-method-activated");
 
             // editor: the main text editor or the mini text editor
-            const inputEditorFocused = this.core.view.$refs.inputEditor.isFocused();
-            this.editor = inputEditorFocused ? this.core.view.$refs.inputEditor.$el.getModel() : this.core.editor;
+            const inputEditorFocused = this.core.viewLegacy.$refs.inputEditor.isFocused();
+            this.editor = inputEditorFocused ? this.core.viewLegacy.$refs.inputEditor.$el.getModel() : this.core.editor;
 
             // monitors raw text buffer and figures out what happend
             const startPosition = this.editor.getCursorBufferPosition();
