@@ -5,7 +5,7 @@ declare var atom: any;
 var { Range, CompositeDisposable } = require('atom');
 import { parseFilepath } from './parser';
 import * as Redux from 'redux';
-import { View } from './types';
+import { View as ViewType } from './types';
 
 // # Components
 import Commander from './commander';
@@ -14,7 +14,7 @@ import TextBuffer from './text-buffer';
 import InputMethod from './input-method';
 import HighlightManager from './highlight-manager';
 import ViewLegacy from './view-legacy';
-import mountView from './view';
+import View from './view';
 
 export default class Core {
     private disposables: CompositeDisposable;
@@ -24,7 +24,8 @@ export default class Core {
     public inputMethod: InputMethod;
     public highlightManager: HighlightManager;
     public commander: Commander;
-    public store: Redux.Store<View.State>;
+    public view: View;
+    public store: Redux.Store<ViewType.State>;
 
     public atomPanel: any;
 
@@ -58,9 +59,10 @@ export default class Core {
 
         // initialize all components
         this.disposables        = new CompositeDisposable();
-        this.store              = mountView(this);
+        // view
+        this.view               = new View(this);
+        this.store              = this.view.mount();
         this.viewLegacy         = new ViewLegacy;
-        console.log(this.viewLegacy)
         this.process            = new Process(this);
         this.textBuffer         = new TextBuffer(this);
         if (atom.config.get('agda-mode.inputMethod'))

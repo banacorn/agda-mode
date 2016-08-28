@@ -9,12 +9,17 @@ import reducer from './view/reducers';
 
 const store = createStore(reducer);
 
-export default function mount(core: Core) {
-    ReactDOM.render(
-        <Provider store={store}>
-            <Panel core={core} />
-        </Provider>,
-        document.getElementById('agda-view')
-    )
-    return store;
+export default class View {
+
+    constructor(private core: Core) {}
+
+    mount() {
+        ReactDOM.render(
+            <Provider store={store}>
+                <Panel core={this.core} />
+            </Provider>,
+            document.getElementById('agda-view')
+        )
+        return store;
+    }
 }
