@@ -13,7 +13,8 @@ interface InputMethodProps extends React.Props<any> {
     keySuggestions: string[],
     candidateSymbols: string[],
 
-    updateTranslation: (symbol: string) => void
+    updateTranslation: (symbol: string) => void,
+    insertCharacter: (char: string) => void
 };
 
 
@@ -28,7 +29,7 @@ const mapStateToProps = (state: View.State) => {
 
 class InputMethod extends React.Component<InputMethodProps, void> {
     render() {
-        const { activated, buffer, translation, further, keySuggestions, updateTranslation } = this.props;
+        const { activated, buffer, translation, further, keySuggestions, updateTranslation, insertCharacter } = this.props;
         const hideEverything = classNames({ 'hidden': !activated});
         const hideBuffer = classNames({ 'hidden': _.isEmpty(buffer)}, "inline-block");
         return (
@@ -38,6 +39,7 @@ class InputMethod extends React.Component<InputMethodProps, void> {
                     <div id="suggestion-keys" className="btn-group btn-group-sm">
                         {keySuggestions.map(key => <button
                             className="btn"
+                            onClick={() => insertCharacter(key)}
                             key={key}
                         >{key}</button>)}
                     </div>

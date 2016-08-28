@@ -15,7 +15,10 @@ const store = createStore(reducer);
 export default function mount(core: Core) {
     ReactDOM.render(
         <Provider store={store}>
-            <InputMethod updateTranslation={(c) => core.inputMethod.replaceBuffer(c)}/>
+            <InputMethod
+                updateTranslation={(c) => core.inputMethod.replaceBuffer(c)}
+                insertCharacter={(c) => core.inputMethod.insertCharToBufffer(c)}
+            />
         </Provider>,
         document.getElementById('agda-view')
     )
