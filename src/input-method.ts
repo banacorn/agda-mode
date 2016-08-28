@@ -141,7 +141,7 @@ export default class InputMethod {
 
             // insert '\' at the cursor quitely without triggering any shit
             this.muteEvent(() => {
-                this.insertChar("\\");
+                this.insertCharToBufffer("\\");
             });
 
             // initialize input suggestion
@@ -198,7 +198,7 @@ export default class InputMethod {
                 // reflects current translation to the text buffer
                 if (translation) {
                     this.muteEvent(() => {
-                        this.replaceString(translation);
+                        this.replaceBufffer(translation);
                     });
                 }
 
@@ -218,18 +218,12 @@ export default class InputMethod {
     ///////////////////
 
     // inserts 1 character to the text buffer (may trigger some events)
-    insertChar(char: string) {
+    insertCharToBufffer(char: string) {
         this.editor.getBuffer().insert(this.textEditorMarker.getBufferRange().end, char);
     }
 
-    //  inserts 1 symbol to the text buffer and deactivate
-    insertSymbol(symbol: string) {
-        this.replaceString(symbol);
-        this.deactivate()
-    }
-
     // replace content of the marker with supplied string (may trigger some events)
-    replaceString(str: string) {
+    replaceBufffer(str: string) {
         this.editor.getBuffer().setTextInRange(this.textEditorMarker.getBufferRange(), str);
     }
 }

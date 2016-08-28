@@ -81,15 +81,16 @@ export default class Core {
             this.textBuffer.jumpToLocation(location);
         });
         this.view.$on("select-key", (key) => {
-            this.inputMethod.insertChar(key);
+            this.inputMethod.insertCharToBufffer(key);
             atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
         });
         this.view.$on("select-symbol", (symbol) => {
-            this.inputMethod.insertSymbol(symbol);
+            this.inputMethod.replaceBufffer(symbol);
+            this.inputMethod.deactivate();
             atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
         });
         this.view.$on("replace-symbol", (symbol) => {
-            this.inputMethod.replaceString(symbol);
+            this.inputMethod.replaceBufffer(symbol);
         });
 
         this.commander  = new Commander(this);
