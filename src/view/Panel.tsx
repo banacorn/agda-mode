@@ -32,14 +32,7 @@ class Panel extends React.Component<Prop, void> {
                     <Header/>
                 </header>
                 <section>
-                    <InputEditor
-                        onSubmit={(s) => {
-                            console.log(s)
-                        }}
-                        onCancel={(s) => {
-                            console.log('cancel!!')
-                        }}
-                    />
+                    <InputEditor/>
                 </section>
             </section>
         )
