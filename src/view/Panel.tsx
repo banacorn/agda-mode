@@ -9,8 +9,6 @@ import InputEditor from './InputEditor';
 
 interface Prop {
     core: Core;
-    // onSubmit: (payload: string) => void;
-    // onCancel: () => void;
 }
 
 class Panel extends React.Component<Prop, void> {
@@ -35,7 +33,6 @@ class Panel extends React.Component<Prop, void> {
                 </header>
                 <section>
                     <InputEditor
-                        placeholder="hi"
                         onSubmit={(s) => {
                             console.log(s)
                         }}

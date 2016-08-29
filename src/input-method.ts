@@ -128,6 +128,8 @@ export default class InputMethod {
             const inputEditorFocused = this.core.viewLegacy.$refs.inputEditor.isFocused();
             this.editor = inputEditorFocused ? this.core.viewLegacy.$refs.inputEditor.$el.getModel() : this.core.editor;
 
+            // console.log(this.core.view.store.getState().inputEditor.focused);
+
             // monitors raw text buffer and figures out what happend
             const startPosition = this.editor.getCursorBufferPosition();
             this.textEditorMarker = this.editor.markBufferRange(new Range(startPosition, startPosition), {});

@@ -17,8 +17,6 @@ declare var atom: any;
 interface Props extends View.InputEditorState {
     onFocused: () => void;
     onBlurred: () => void;
-    onFocus: () => void;
-    onBlur: () => void;
 }
 
 const mapStateToProps = (state: View.State) => {
@@ -31,13 +29,7 @@ const mapDispatchToProps = (dispatch: any) => ({
     },
     onBlurred: () => {
         dispatch(blurredInputEditor());
-    },
-    onFocus: () => {
-        dispatch(focusInputEditor());
-    },
-    onBlur: () => {
-        dispatch(blurInputEditor());
-    },
+    }
 })
 
 class InputEditor extends React.Component<Props, void> {
@@ -66,6 +58,11 @@ class InputEditor extends React.Component<Props, void> {
 
     componentDidMount() {
         const { emitter } = this.props;
+
+
+        // set grammar: agda to enable input method
+        const agdaGrammar = atom.grammars.grammarForScopeName('source.agda');
+        this.ref.getModel().setGrammar(agdaGrammar);
 
         // focus on the input box (with setTimeout quirk)
         emitter.on('focus', () => {
@@ -112,14 +109,6 @@ class InputEditor extends React.Component<Props, void> {
     render() {
         const { placeholder, activated, focused } = this.props;
         const hidden = classNames({'hidden': !activated});
-        //
-        // // set grammar: agda to enable input method
-        // if (enableIM) {
-        //     const agdaGrammar = atom.grammars.grammarForScopeName('source.agda');
-        //     textEditor.setGrammar(agdaGrammar);
-        // } else {
-        //     textEditor.setGrammar();
-        // }
         if (activated) {
             this.ref.getModel().setPlaceholderText(placeholder);
             this.select();

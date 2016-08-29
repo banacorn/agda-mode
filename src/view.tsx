@@ -24,7 +24,7 @@ export default class View {
     mount() {
         ReactDOM.render(
             <Provider store={store}>
-                <Panel core={this.core} />
+                <Panel core={this.core}/>
             </Provider>,
             document.getElementById('agda-view')
         )
@@ -37,14 +37,14 @@ export default class View {
         }));
     }
 
-    query(header: string, message: string[], type: V.HeaderStyle, placeholder: string, enableIM = true): Promise<string> {
+    query(header: string, message: string[], type: V.HeaderStyle, placeholder: string): Promise<string> {
 
-        // console.log(`querying:`, header, message)
         this.store.dispatch(activateInputEditor(placeholder));
         this.store.dispatch(updateHeader({
             text: header,
             style: type
         }));
+
         const { emitter } = this.store.getState().inputEditor;
         return new Promise<string>((resolve, reject) => {
             emitter.once('confirm', (payload) => {
