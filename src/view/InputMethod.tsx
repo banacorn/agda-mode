@@ -5,14 +5,7 @@ import * as classNames from 'classnames';
 import { View } from '../types';
 import CandidateSymbols from './CandidateSymbols';
 
-interface InputMethodProps {
-    activated: boolean,
-    buffer: string,
-    translation: string,
-    further: boolean,
-    keySuggestions: string[],
-    candidateSymbols: string[],
-
+interface InputMethodProps extends View.InputMethodState {
     updateTranslation: (symbol: string) => void,
     insertCharacter: (char: string) => void,
     chooseSymbol: (symbol: string) => void

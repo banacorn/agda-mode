@@ -1,8 +1,9 @@
 import * as _ from 'lodash';
-import { View } from '../types';
-import { INPUT_METHOD, HEADER } from './actions';
+import { EventEmitter } from 'events';
 import { combineReducers } from 'redux';
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
+import { View } from '../types';
+import { INPUT_METHOD, HEADER, INPUT_EDITOR } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -16,6 +17,11 @@ const defaultState: View.State = {
         activated: false,
         buffer: '',
         translation, further, keySuggestions, candidateSymbols
+    },
+    inputEditor: {
+        activated: false,
+        placeholder: '',
+        emitter: new EventEmitter
     }
 };
 
@@ -47,8 +53,19 @@ const header = handleActions<View.HeaderState, HEADER>({
     [HEADER.UPDATE]: (state: View.HeaderState, action: Action<HEADER.UPDATE>) => action.payload
 }, defaultState.header);
 
+const inputEditor = handleActions<View.InputEditorState, INPUT_EDITOR>({
+    [INPUT_EDITOR.ACTIVATE]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.ACTIVATE>) => _.assign({}, state, {
+        activated: true,
+        placeholder: action.payload
+    }),
+    [INPUT_EDITOR.DEACTIVATE]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.DEACTIVATE>) => _.assign({}, state, {
+        activated: false
+    })
+}, defaultState.inputEditor);
+
 // export default reducer;
 export default combineReducers<View.State>({
+    header,
     inputMethod,
-    header
+    inputEditor
 });

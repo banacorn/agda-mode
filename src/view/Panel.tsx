@@ -5,9 +5,12 @@ declare var atom: any;
 import Core from '../core';
 import InputMethod from './InputMethod';
 import Header from './Header';
+import InputEditor from './InputEditor';
 
-type Prop = {
-    core: Core
+interface Prop {
+    core: Core;
+    // onSubmit: (payload: string) => void;
+    // onCancel: () => void;
 }
 
 class Panel extends React.Component<Prop, void> {
@@ -30,6 +33,17 @@ class Panel extends React.Component<Prop, void> {
                     />
                     <Header/>
                 </header>
+                <section>
+                    <InputEditor
+                        placeholder="hi"
+                        onSubmit={(s) => {
+                            console.log(s)
+                        }}
+                        onCancel={(s) => {
+                            console.log('cancel!!')
+                        }}
+                    />
+                </section>
             </section>
         )
     }

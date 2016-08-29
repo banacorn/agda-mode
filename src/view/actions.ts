@@ -30,3 +30,17 @@ export namespace HEADER {
 }
 
 export const updateHeader = createAction(HEADER.UPDATE);
+
+export type INPUT_EDITOR = INPUT_EDITOR.ACTIVATE | INPUT_EDITOR.DEACTIVATE;
+export namespace INPUT_EDITOR {
+    export const ACTIVATE = 'INPUT_EDITOR.ACTIVATE';
+    export type ACTIVATE = string;
+    export const DEACTIVATE = 'INPUT_EDITOR.DEACTIVATE';
+    export type DEACTIVATE = void;
+    // export const QUERY = 'INPUT_EDITOR.QUERY';
+    // export type QUERY = string;
+}
+
+export const activateInputEditor = createAction(INPUT_EDITOR.ACTIVATE);
+export const deactivateInputEditor = createAction(INPUT_EDITOR.DEACTIVATE);
+// export const queryInputEditor = createAction(INPUT_EDITOR.ACTIVATE);

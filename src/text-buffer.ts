@@ -1,11 +1,11 @@
-import * as fs from "fs";
-import * as Promise from "bluebird";
-import * as _ from "lodash";
-import { Agda, Goal, View } from "./types";
-import { parseHole } from "./parser";
-import Core from "./core";
-import { OutOfGoalError, EmptyGoalError } from "./error";
-import { Command, CommandResult } from "./types";
+import * as fs from 'fs';
+import * as Promise from 'bluebird';
+import * as _ from 'lodash';
+import { Agda, Goal, View } from './types';
+import { parseHole } from './parser';
+import Core from './core';
+import { OutOfGoalError, EmptyGoalError } from './error';
+import { Command, CommandResult } from './types';
 
 declare var atom: any;
 
@@ -27,7 +27,7 @@ export default class TextBuffer {
         let result = callback();
         return this.getCurrentGoal(position)
             .then((goal) => {
-                // reposition the cursor in the goal only if it's a fresh hole (coming from "?")
+                // reposition the cursor in the goal only if it's a fresh hole (coming from '?')
                 let isFreshHole = goal.isEmpty();
                 if (isFreshHole) {
                     let newPosition = this.core.editor.translate(goal.range.start, 3);
@@ -88,17 +88,17 @@ export default class TextBuffer {
         });
 
         if (_.isEmpty(goals))
-            return Promise.reject(new OutOfGoalError("out of goal"));
+            return Promise.reject(new OutOfGoalError('out of goal'));
         else
             return Promise.resolve(goals[0]);
     }
 
     warnOutOfGoal() {
-        this.core.view.set("Out of goal", ["For this command, please place the cursor in a goal"], View.HeaderStyle.Warning);
+        this.core.view.set('Out of goal', ['For this command, please place the cursor in a goal'], View.HeaderStyle.Warning);
     }
 
     warnEmptyGoal(error: any) {
-        this.core.view.set("No content", [error.message], View.HeaderStyle.Warning);
+        this.core.view.set('No content', [error.message], View.HeaderStyle.Warning);
     }
 
     // reject if goal is empty
@@ -106,7 +106,7 @@ export default class TextBuffer {
         if (goal.getContent()) {
             return Promise.resolve(goal);
         } else {
-            return Promise.reject(new EmptyGoalError("goal is empty", goal));
+            return Promise.reject(new EmptyGoalError('goal is empty', goal));
         }
     }
 
@@ -137,7 +137,7 @@ export default class TextBuffer {
         if (!_.isEmpty(positions))
             this.core.editor.setCursorBufferPosition(nextGoal);
 
-        return Promise.resolve(<CommandResult>{ status: "Issued", command: "NextGoal" });
+        return Promise.resolve(<CommandResult>{ status: 'Issued', command: 'NextGoal' });
     }
 
     previousGoal(): Promise<CommandResult> {
@@ -163,7 +163,7 @@ export default class TextBuffer {
         if (!_.isEmpty(positions))
             this.core.editor.setCursorBufferPosition(previousGoal);
 
-        return Promise.resolve(<CommandResult>{ status: "Issued", command: "PreviousGoal" });
+        return Promise.resolve(<CommandResult>{ status: 'Issued', command: 'PreviousGoal' });
     }
 
     jumpToGoal(index: number) {

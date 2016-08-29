@@ -66,6 +66,7 @@
         "src/view.tsx",
         "src/view/CandidateSymbols.tsx",
         "src/view/Header.tsx",
+        "src/view/InputEditor.tsx",
         "src/view/InputMethod.tsx",
         "src/view/Panel.tsx"
     ],

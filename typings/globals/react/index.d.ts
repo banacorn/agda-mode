@@ -175,7 +175,7 @@ declare namespace __React {
             [key: string]: ReactInstance
         };
     }
-    
+
     class PureComponent<P, S> extends Component<P, S> {}
 
     interface ClassicComponent<P, S> extends Component<P, S> {
@@ -2527,5 +2527,8 @@ declare namespace JSX {
         tspan: React.SVGProps;
         use: React.SVGProps;
         view: React.SVGProps;
+
+        // Atom
+        "atom-text-editor": any;
     }
 }
