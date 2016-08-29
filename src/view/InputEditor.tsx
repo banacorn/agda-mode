@@ -23,12 +23,26 @@ const mapStateToProps = (state: View.State) => {
 class InputEditor extends React.Component<Props, void> {
     private subscriptions: CompositeDisposable;
     private ref: any;
+    private observer: MutationObserver;
 
     constructor() {
         super();
         this.subscriptions = new CompositeDisposable;
     }
 
+
+    observeClassList(callback: (mutation: MutationRecord) => any) {
+        // create an observer instance
+        this.observer = new MutationObserver((mutations) => {
+            mutations
+                .filter((m) => m.attributeName === 'class')
+                .forEach(callback)
+        });
+        // configuration of the observer:
+        var config = { attributes: true };
+        // pass in the target node, as well as the observer options
+        this.observer.observe(this.ref, config);
+    }
 
     componentDidMount() {
         const { emitter } = this.props;
@@ -39,10 +53,19 @@ class InputEditor extends React.Component<Props, void> {
         this.subscriptions.add(atom.commands.add(this.ref, 'core:cancel', () => {
             emitter.emit('cancel');
         }));
+
+        this.observeClassList(() => {
+            console.log(_.includes(this.ref.classList, 'is-focused'));
+        });
+
+
     }
 
     componentWillUnmount() {
         this.subscriptions.destroy();
+
+        this.observer.disconnect();
+
     }
 
     // focus on the input box (with setTimeout quirk)
