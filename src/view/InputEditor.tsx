@@ -5,6 +5,7 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 
 import { View } from '../types';
+import { focusedInputEditor, blurredInputEditor, focusInputEditor, blurInputEditor } from './actions';
 
 import { parseInputContent } from '../parser';
 
@@ -14,11 +15,30 @@ var { CompositeDisposable } = require('atom');
 declare var atom: any;
 
 interface Props extends View.InputEditorState {
+    onFocused: () => void;
+    onBlurred: () => void;
+    onFocus: () => void;
+    onBlur: () => void;
 }
 
 const mapStateToProps = (state: View.State) => {
     return state.inputEditor;
 }
+
+const mapDispatchToProps = (dispatch: any) => ({
+    onFocused: () => {
+        dispatch(focusedInputEditor());
+    },
+    onBlurred: () => {
+        dispatch(blurredInputEditor());
+    },
+    onFocus: () => {
+        dispatch(focusInputEditor());
+    },
+    onBlur: () => {
+        dispatch(blurInputEditor());
+    },
+})
 
 class InputEditor extends React.Component<Props, void> {
     private subscriptions: CompositeDisposable;
@@ -46,6 +66,20 @@ class InputEditor extends React.Component<Props, void> {
 
     componentDidMount() {
         const { emitter } = this.props;
+
+        // focus on the input box (with setTimeout quirk)
+        emitter.on('focus', () => {
+            setTimeout(() => {
+                this.ref.focus();
+            });
+        })
+        emitter.on('blur', () => {
+            setTimeout(() => {
+                this.ref.blur();
+            });
+        })
+
+
         this.subscriptions.add(atom.commands.add(this.ref, 'core:confirm', () => {
             const payload = parseInputContent(this.ref.getModel().getText());
             emitter.emit('confirm', payload);
@@ -55,30 +89,28 @@ class InputEditor extends React.Component<Props, void> {
         }));
 
         this.observeClassList(() => {
-            console.log(_.includes(this.ref.classList, 'is-focused'));
+            const focused = _.includes(this.ref.classList, 'is-focused');
+            if (this.props.focused !== focused) {
+                if (focused)
+                    this.props.onFocused();
+                else
+                    this.props.onBlurred();
+            }
         });
-
-
     }
 
     componentWillUnmount() {
         this.subscriptions.destroy();
-
         this.observer.disconnect();
-
     }
 
-    // focus on the input box (with setTimeout quirk)
-    focus() {
-        setTimeout(() => { this.ref.focus(); });
-    }
 
     select() {
         this.ref.getModel().selectAll();
     }
 
     render() {
-        const { placeholder, activated } = this.props;
+        const { placeholder, activated, focused } = this.props;
         const hidden = classNames({'hidden': !activated});
         //
         // // set grammar: agda to enable input method
@@ -88,10 +120,8 @@ class InputEditor extends React.Component<Props, void> {
         // } else {
         //     textEditor.setGrammar();
         // }
-
         if (activated) {
             this.ref.getModel().setPlaceholderText(placeholder);
-            this.focus();
             this.select();
         }
 
@@ -109,5 +139,5 @@ class InputEditor extends React.Component<Props, void> {
 
 export default connect<any, any, any>(
     mapStateToProps,
-    null
+    mapDispatchToProps
 )(InputEditor);

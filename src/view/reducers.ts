@@ -20,6 +20,7 @@ const defaultState: View.State = {
     },
     inputEditor: {
         activated: false,
+        focused: false,
         placeholder: '',
         emitter: new EventEmitter
     }
@@ -54,12 +55,32 @@ const header = handleActions<View.HeaderState, HEADER>({
 }, defaultState.header);
 
 const inputEditor = handleActions<View.InputEditorState, INPUT_EDITOR>({
-    [INPUT_EDITOR.ACTIVATE]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.ACTIVATE>) => _.assign({}, state, {
-        activated: true,
-        placeholder: action.payload
+    [INPUT_EDITOR.ACTIVATE]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.ACTIVATE>) => {
+        state.emitter.emit('focus');
+        return _.assign({}, state, {
+            activated: true,
+            placeholder: action.payload
+        });
+    },
+    [INPUT_EDITOR.DEACTIVATE]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.DEACTIVATE>) => {
+        state.emitter.emit('blur');
+        return _.assign({}, state, {
+            activated: false
+        });
+    },
+    [INPUT_EDITOR.FOCUS]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.FOCUS>) => {
+        state.emitter.emit('focus');
+        return state;
+    },
+    [INPUT_EDITOR.BLUR]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.BLUR>) => {
+        state.emitter.emit('blur');
+        return state;
+    },
+    [INPUT_EDITOR.FOCUSED]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.FOCUSED>) => _.assign({}, state, {
+        focused: true
     }),
-    [INPUT_EDITOR.DEACTIVATE]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.DEACTIVATE>) => _.assign({}, state, {
-        activated: false
+    [INPUT_EDITOR.BLURRED]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.BLURRED>) => _.assign({}, state, {
+        focused: false
     })
 }, defaultState.inputEditor);
 

@@ -190,6 +190,7 @@ namespace View {
 
     export interface InputEditorState {
         activated: boolean;
+        focused: boolean;   // fact
         placeholder: string;
         emitter: EventEmitter;
     }
