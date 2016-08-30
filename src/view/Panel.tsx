@@ -32,7 +32,11 @@ class Panel extends React.Component<Prop, void> {
                     <Header/>
                 </header>
                 <section>
-                    <InputEditor/>
+                    <InputEditor
+                        // onFocus={() => {
+                        //     console.log('focus')
+                        // }}
+                    />
                 </section>
             </section>
         )

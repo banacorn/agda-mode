@@ -12,25 +12,20 @@ import { parseInputContent } from '../parser';
 type CompositeDisposable = any;
 var { CompositeDisposable } = require('atom');
 
+import { EventEmitter } from 'events';
+
 declare var atom: any;
 
-interface Props extends View.InputEditorState {
-    onFocused: () => void;
-    onBlurred: () => void;
+interface Props extends React.DOMAttributes {
+    activated: boolean;
+    focused: boolean;   // fact
+    placeholder: string;
+    emitter: EventEmitter;
 }
 
 const mapStateToProps = (state: View.State) => {
     return state.inputEditor;
 }
-
-const mapDispatchToProps = (dispatch: any) => ({
-    onFocused: () => {
-        dispatch(focusedInputEditor());
-    },
-    onBlurred: () => {
-        dispatch(blurredInputEditor());
-    }
-})
 
 class InputEditor extends React.Component<Props, void> {
     private subscriptions: CompositeDisposable;
@@ -75,10 +70,14 @@ class InputEditor extends React.Component<Props, void> {
         this.observeClassList(() => {
             const focused = _.includes(this.ref.classList, 'is-focused');
             if (this.props.focused !== focused) {
-                if (focused)
-                    this.props.onFocused();
-                else
-                    this.props.onBlurred();
+                if (focused) {
+                    if (_.isFunction(this.props.onFocus))
+                        this.props.onFocus(null);
+                }
+                else {
+                    if (_.isFunction(this.props.onFocus))
+                        this.props.onBlur(null);
+                }
             }
         });
     }
@@ -127,5 +126,5 @@ class InputEditor extends React.Component<Props, void> {
 
 export default connect<any, any, any>(
     mapStateToProps,
-    mapDispatchToProps
+    null
 )(InputEditor);
