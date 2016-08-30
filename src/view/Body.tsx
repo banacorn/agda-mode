@@ -4,6 +4,7 @@ import * as classNames from 'classnames';
 
 import { View } from '../types';
 import Error from './Error';
+import Location from './Location';
 
 
 const mapStateToProps = (state: View.State) => state.body
@@ -39,10 +40,12 @@ class Body extends React.Component<View.BodyState, void> {
                     <li className="list-item" key={i}>
                         <span className="text-success">{item.index}</span>
                         <span>:</span>
+                        <Location payload={item.location}/>
                     </li>
                 )}{body.sort.map((item, i) =>
                     <li className="list-item" key={i}>
                         <span className="text-highlight">Sort</span><span className="text-warning">{item.index}</span>
+                        <Location payload={item.location}/>
                     </li>
                 )}</ul>
                 <ul className="list-group">{

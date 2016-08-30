@@ -69,6 +69,7 @@
         "src/view/Error.tsx",
         "src/view/Header.tsx",
         "src/view/InputMethod.tsx",
+        "src/view/Location.tsx",
         "src/view/MiniEditor.tsx",
         "src/view/Panel.tsx"
     ],
