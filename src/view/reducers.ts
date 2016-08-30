@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import { combineReducers } from 'redux';
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
 import { View } from '../types';
-import { INPUT_METHOD, HEADER, INPUT_EDITOR } from './actions';
+import { INPUT_METHOD, HEADER, MINI_EDITOR } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -18,11 +18,9 @@ const defaultState: View.State = {
         buffer: '',
         translation, further, keySuggestions, candidateSymbols
     },
-    inputEditor: {
-        activated: false,
-        focused: false,
-        placeholder: '',
-        emitter: new EventEmitter
+    miniEditor: {
+        activate: false,
+        placeholder: ''
     }
 };
 
@@ -54,29 +52,20 @@ const header = handleActions<View.HeaderState, HEADER>({
     [HEADER.UPDATE]: (state: View.HeaderState, action: Action<HEADER.UPDATE>) => action.payload
 }, defaultState.header);
 
-const inputEditor = handleActions<View.InputEditorState, INPUT_EDITOR>({
-    [INPUT_EDITOR.ACTIVATE]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.ACTIVATE>) => {
-        return _.assign({}, state, {
-            activated: true,
-            placeholder: action.payload
-        });
-    },
-    [INPUT_EDITOR.DEACTIVATE]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.DEACTIVATE>) => {
-        return _.assign({}, state, {
-            activated: false
-        });
-    },
-    [INPUT_EDITOR.FOCUSED]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.FOCUSED>) => _.assign({}, state, {
-        focused: true
+
+const miniEditor = handleActions<View.MiniEditorState, MINI_EDITOR>({
+    [MINI_EDITOR.ACTIVATE]: (state: View.MiniEditorState, action: Action<MINI_EDITOR.ACTIVATE>) => _.assign({}, state, {
+        activate: true,
+        placeholder: action.payload
     }),
-    [INPUT_EDITOR.BLURRED]: (state: View.InputEditorState, action: Action<INPUT_EDITOR.BLURRED>) => _.assign({}, state, {
-        focused: false
+    [MINI_EDITOR.DEACTIVATE]: (state: View.MiniEditorState, action: Action<MINI_EDITOR.DEACTIVATE>) => _.assign({}, state, {
+        activate: false
     })
-}, defaultState.inputEditor);
+}, defaultState.miniEditor);
 
 // export default reducer;
 export default combineReducers<View.State>({
     header,
     inputMethod,
-    inputEditor
+    miniEditor
 });

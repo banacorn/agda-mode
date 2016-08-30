@@ -1,19 +1,32 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 
 declare var atom: any;
 
 import Core from '../core';
 import InputMethod from './InputMethod';
 import Header from './Header';
+import { View } from '../types';
 import InputEditor from './InputEditor';
 
-interface Prop {
+interface Props extends View.State {
     core: Core;
+
+    onMiniEditorMount: (editor: InputEditor) => void;
 }
 
-class Panel extends React.Component<Prop, void> {
+const mapStateToProps = (state : View.State) => {
+    return state
+}
+
+class Panel extends React.Component<Props, void> {
+    // private miniEditor: InputEditor;
+    // query() {
+    //     miniEditor.q
+    // }
     render() {
-        const { core } = this.props;
+        const { core, onMiniEditorMount } = this.props;
+
         return (
             <section>
                 <header>
@@ -33,14 +46,34 @@ class Panel extends React.Component<Prop, void> {
                 </header>
                 <section>
                     <InputEditor
-                        // onFocus={() => {
-                        //     console.log('focus')
-                        // }}
+                        activate={this.props.miniEditor.activate}
+                        ref={(ref) => {
+                            if (ref)
+                                onMiniEditorMount(ref);
+                        }}
                     />
                 </section>
             </section>
         )
     }
 }
-
-export default Panel;
+// {this.props.miniEditor.activate ? <InputEditor/> : null}
+    //
+    // <InputEditor
+    //     ref={(editor) => {
+    //         // console.log(editor)
+    //
+    //         // console.log(`activate mini editor: ${this.props.miniEditor.activate}`);
+    //         // if (this.props.miniEditor.activate && editor) {
+    //         //     editor.activate()
+    //         // }
+    //     }}
+    //
+    //     // onFocus={() => {
+    //     //     console.log('focus')
+    //     // }}
+    // />
+export default connect<any, any, any>(
+    mapStateToProps,
+    null
+)(Panel);

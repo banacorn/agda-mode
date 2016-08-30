@@ -160,10 +160,10 @@ type CommandResult = {
 
 namespace View {
 
-    export type State = {
-        header: HeaderState,
-        inputMethod: InputMethodState,
-        inputEditor: InputEditorState
+    export interface State {
+        header: HeaderState;
+        inputMethod: InputMethodState;
+        miniEditor: MiniEditorState;
     }
 
     export interface InputMethodState {
@@ -188,11 +188,9 @@ namespace View {
         style: HeaderStyle;
     }
 
-    export interface InputEditorState {
-        activated: boolean;
-        focused: boolean;   // fact
+    export interface MiniEditorState {
+        activate: boolean;
         placeholder: string;
-        emitter: EventEmitter;
     }
 
     // Legacy shit below

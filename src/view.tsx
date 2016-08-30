@@ -6,16 +6,17 @@ import { createStore } from 'redux';
 
 import Core from './core';
 import Panel from './view/Panel';
+import InputEditor from './view/InputEditor';
 import reducer from './view/reducers';
 import { View as V } from './types';
-import { updateHeader, activateInputEditor, deactivateInputEditor } from './view/actions';
-import { QueryCancelledError } from './error';
+import { updateHeader, activateMiniEditor } from './view/actions';
 declare var atom: any;
 
 const store = createStore(reducer);
 
 export default class View {
     public store: Redux.Store<V.State>;
+    private miniEditor: InputEditor;
 
     constructor(private core: Core) {
         this.store = store;
@@ -24,7 +25,12 @@ export default class View {
     mount() {
         ReactDOM.render(
             <Provider store={store}>
-                <Panel core={this.core}/>
+                <Panel
+                    core={this.core}
+                    onMiniEditorMount={(editor) => {
+                        this.miniEditor = editor;
+                    }}
+                />
             </Provider>,
             document.getElementById('agda-view')
         )
@@ -39,26 +45,14 @@ export default class View {
 
     query(header: string, message: string[], type: V.HeaderStyle, placeholder: string): Promise<string> {
 
-        this.store.dispatch(activateInputEditor(placeholder));
+
+        this.store.dispatch(activateMiniEditor());
         this.store.dispatch(updateHeader({
             text: header,
             style: type
         }));
-
-        const { emitter } = this.store.getState().inputEditor;
-        return new Promise<string>((resolve, reject) => {
-            emitter.once('confirm', (payload) => {
-                this.store.dispatch(deactivateInputEditor());
-                atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
-                resolve(payload);
-            });
-            emitter.once('cancel', () => {
-                this.store.dispatch(deactivateInputEditor());
-                atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
-                reject(new QueryCancelledError(''));
-            });
-        });
-
+        this.miniEditor.activate();
+        return this.miniEditor.query();
 
         // this.header = header;
         // this.content = {

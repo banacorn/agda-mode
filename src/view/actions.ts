@@ -31,21 +31,15 @@ export namespace HEADER {
 
 export const updateHeader = createAction(HEADER.UPDATE);
 
-export type INPUT_EDITOR =
-    INPUT_EDITOR.ACTIVATE |
-    INPUT_EDITOR.DEACTIVATE;
-export namespace INPUT_EDITOR {
-    export const ACTIVATE = 'INPUT_EDITOR.ACTIVATE';
+export type MINI_EDITOR =
+    MINI_EDITOR.ACTIVATE |
+    MINI_EDITOR.DEACTIVATE;
+export namespace MINI_EDITOR {
+    export const ACTIVATE = 'MINI_EDITOR.ACTIVATE';
     export type ACTIVATE = string;
-    export const DEACTIVATE = 'INPUT_EDITOR.DEACTIVATE';
+    export const DEACTIVATE = 'MINI_EDITOR.DEACTIVATE';
     export type DEACTIVATE = void;
-    export const FOCUSED = 'INPUT_EDITOR.FOCUSED';
-    export type FOCUSED = void;
-    export const BLURRED = 'INPUT_EDITOR.BLURRED';
-    export type BLURRED = void;
 }
 
-export const activateInputEditor = createAction(INPUT_EDITOR.ACTIVATE);
-export const deactivateInputEditor = createAction(INPUT_EDITOR.DEACTIVATE);
-export const focusedInputEditor = createAction(INPUT_EDITOR.FOCUSED);
-export const blurredInputEditor = createAction(INPUT_EDITOR.BLURRED);
+export const activateMiniEditor = createAction(MINI_EDITOR.ACTIVATE);
+export const deactivateMiniEditor = createAction(MINI_EDITOR.DEACTIVATE);

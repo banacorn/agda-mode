@@ -5,9 +5,10 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 
 import { View } from '../types';
-import { focusedInputEditor, blurredInputEditor } from './actions';
+import {  } from './actions';
 
 import { parseInputContent } from '../parser';
+import { QueryCancelledError } from '../error';
 
 type CompositeDisposable = any;
 var { CompositeDisposable } = require('atom');
@@ -17,24 +18,31 @@ import { EventEmitter } from 'events';
 declare var atom: any;
 
 interface Props extends React.DOMAttributes {
-    activated: boolean;
-    focused: boolean;   // fact
-    placeholder: string;
-    emitter: EventEmitter;
+    activate: boolean;
+    placeholder?: string;
+    // emitter: EventEmitter;
+
+    onConfirm?: (payload: string) => void;
+    onCancel?: () => void;
 }
 
-const mapStateToProps = (state: View.State) => {
-    return state.inputEditor;
+interface State {
+    focused: boolean;
 }
 
-class InputEditor extends React.Component<Props, void> {
+class InputEditor extends React.Component<Props, State> {
     private subscriptions: CompositeDisposable;
     private ref: any;
     private observer: MutationObserver;
+    private emitter: EventEmitter;
 
     constructor() {
         super();
         this.subscriptions = new CompositeDisposable;
+        this.state = {
+            focused: false
+        }
+        this.emitter = new EventEmitter;
     }
 
 
@@ -52,25 +60,35 @@ class InputEditor extends React.Component<Props, void> {
     }
 
     componentDidMount() {
-        const { emitter } = this.props;
-
-
         // set grammar: agda to enable input method
         const agdaGrammar = atom.grammars.grammarForScopeName('source.agda');
         this.ref.getModel().setGrammar(agdaGrammar);
 
+        // subscribe to Atom's core events
         this.subscriptions.add(atom.commands.add(this.ref, 'core:confirm', () => {
             const payload = parseInputContent(this.ref.getModel().getText());
-            emitter.emit('confirm', payload);
+            this.emitter.emit('confirm', payload);
+            if (this.props.onConfirm)
+                this.props.onConfirm(payload);
         }));
         this.subscriptions.add(atom.commands.add(this.ref, 'core:cancel', () => {
-            emitter.emit('cancel');
+            this.emitter.emit('cancel');
+            if (this.props.onCancel)
+                this.props.onCancel();
         }));
 
+        // observe 'focus'
         this.observeClassList(() => {
-            const focused = _.includes(this.ref.classList, 'is-focused');
-            if (this.props.focused !== focused) {
-                if (focused) {
+            const focusedBefore = this.state.focused;
+            const focusedNow = _.includes(this.ref.classList, 'is-focused');
+            if (focusedNow !== focusedBefore) {
+                // update state: focused
+                this.setState({
+                    focused: focusedNow
+                } as State)
+
+                // trigger events
+                if (focusedNow) {
                     if (_.isFunction(this.props.onFocus))
                         this.props.onFocus(null);
                 }
@@ -103,28 +121,40 @@ class InputEditor extends React.Component<Props, void> {
         this.ref.getModel().selectAll();
     }
 
+    isFocused(): boolean {
+        return this.state.focused;
+    }
+
+    activate() {
+        this.focus();
+        // if (this.props.placeholder)
+        //     this.ref.getModel().setPlaceholderText(this.props.placeholder);
+        this.select();
+    }
+
+    query(): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            this.emitter.once('confirm', (payload) => {
+                resolve(payload);
+            });
+            this.emitter.once('cancel', () => {
+                reject(new QueryCancelledError(''));
+            });
+        });
+    }
+
     render() {
-        const { placeholder, activated, focused } = this.props;
-        const hidden = classNames({'hidden': !activated});
-        if (activated) {
-            this.ref.getModel().setPlaceholderText(placeholder);
-            this.focus();
-            this.select();
-        }
+        const { activate } = this.props;
+        const hidden = classNames({'hidden': !activate});
 
         return (
             <atom-text-editor
                 class={hidden}
                 mini
-                placeholder-text={placeholder}
                 ref={(ref) => { this.ref = ref; }}
             ></atom-text-editor>
         )
     }
 }
 
-
-export default connect<any, any, any>(
-    mapStateToProps,
-    null
-)(InputEditor);
+export default InputEditor;
