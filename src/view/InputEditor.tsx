@@ -2,25 +2,19 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
 import * as Promise from 'bluebird';
-import * as _ from 'lodash';
-
-import { View } from '../types';
-import {  } from './actions';
+import { EventEmitter } from 'events';
 
 import { parseInputContent } from '../parser';
 import { QueryCancelledError } from '../error';
 
+// Atom shits
 type CompositeDisposable = any;
 var { CompositeDisposable } = require('atom');
-
-import { EventEmitter } from 'events';
-
 declare var atom: any;
 
-interface Props extends React.DOMAttributes {
-    activate: boolean;
+
+interface Props extends React.HTMLAttributes {
     placeholder?: string;
-    // emitter: EventEmitter;
 
     onConfirm?: (payload: string) => void;
     onCancel?: () => void;
@@ -46,12 +40,31 @@ class InputEditor extends React.Component<Props, State> {
     }
 
 
-    observeClassList(callback: (mutation: MutationRecord) => any) {
+    observeFocus() {
         // create an observer instance
         this.observer = new MutationObserver((mutations) => {
             mutations
                 .filter((m) => m.attributeName === 'class')
-                .forEach(callback)
+                .forEach(() => {
+                    const focusedBefore = this.state.focused;
+                    const focusedNow = _.includes(this.ref.classList, 'is-focused');
+                    if (focusedNow !== focusedBefore) {
+                        // update state: focused
+                        this.setState({
+                            focused: focusedNow
+                        } as State)
+
+                        // trigger events
+                        if (focusedNow) {
+                            if (_.isFunction(this.props.onFocus))
+                                this.props.onFocus(null);
+                        }
+                        else {
+                            if (_.isFunction(this.props.onFocus))
+                                this.props.onBlur(null);
+                        }
+                    }
+                })
         });
         // configuration of the observer:
         var config = { attributes: true };
@@ -78,26 +91,7 @@ class InputEditor extends React.Component<Props, State> {
         }));
 
         // observe 'focus'
-        this.observeClassList(() => {
-            const focusedBefore = this.state.focused;
-            const focusedNow = _.includes(this.ref.classList, 'is-focused');
-            if (focusedNow !== focusedBefore) {
-                // update state: focused
-                this.setState({
-                    focused: focusedNow
-                } as State)
-
-                // trigger events
-                if (focusedNow) {
-                    if (_.isFunction(this.props.onFocus))
-                        this.props.onFocus(null);
-                }
-                else {
-                    if (_.isFunction(this.props.onFocus))
-                        this.props.onBlur(null);
-                }
-            }
-        });
+        this.observeFocus();
     }
 
     componentWillUnmount() {
@@ -144,12 +138,10 @@ class InputEditor extends React.Component<Props, State> {
     }
 
     render() {
-        const { activate } = this.props;
-        const hidden = classNames({'hidden': !activate});
-
+        console.log(this.state)
         return (
             <atom-text-editor
-                class={hidden}
+                class={this.props.className}
                 mini
                 ref={(ref) => { this.ref = ref; }}
             ></atom-text-editor>

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import * as classNames from 'classnames';
 
 declare var atom: any;
 
@@ -8,25 +9,27 @@ import InputMethod from './InputMethod';
 import Header from './Header';
 import { View } from '../types';
 import InputEditor from './InputEditor';
+import { deactivateMiniEditor } from './actions';
 
 interface Props extends View.State {
     core: Core;
 
     onMiniEditorMount: (editor: InputEditor) => void;
+    deactivateMiniEditor: () => void;
 }
 
-const mapStateToProps = (state : View.State) => {
-    return state
-}
+const mapStateToProps = (state : View.State) => state
+
+const mapDispatchToProps = (dispatch: any) => ({
+    deactivateMiniEditor: () => {
+        dispatch(deactivateMiniEditor());
+    }
+})
 
 class Panel extends React.Component<Props, void> {
-    // private miniEditor: InputEditor;
-    // query() {
-    //     miniEditor.q
-    // }
     render() {
         const { core, onMiniEditorMount } = this.props;
-
+        const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
         return (
             <section>
                 <header>
@@ -46,10 +49,17 @@ class Panel extends React.Component<Props, void> {
                 </header>
                 <section>
                     <InputEditor
-                        activate={this.props.miniEditor.activate}
+                        className={hideMiniEditor}
                         ref={(ref) => {
-                            if (ref)
-                                onMiniEditorMount(ref);
+                            if (ref) onMiniEditorMount(ref);
+                        }}
+                        onConfirm={() => {
+                            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+                            this.props.deactivateMiniEditor();
+                        }}
+                        onCancel={() => {
+                            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+                            this.props.deactivateMiniEditor();
                         }}
                     />
                 </section>
@@ -57,23 +67,8 @@ class Panel extends React.Component<Props, void> {
         )
     }
 }
-// {this.props.miniEditor.activate ? <InputEditor/> : null}
-    //
-    // <InputEditor
-    //     ref={(editor) => {
-    //         // console.log(editor)
-    //
-    //         // console.log(`activate mini editor: ${this.props.miniEditor.activate}`);
-    //         // if (this.props.miniEditor.activate && editor) {
-    //         //     editor.activate()
-    //         // }
-    //     }}
-    //
-    //     // onFocus={() => {
-    //     //     console.log('focus')
-    //     // }}
-    // />
+
 export default connect<any, any, any>(
     mapStateToProps,
-    null
+    mapDispatchToProps
 )(Panel);
