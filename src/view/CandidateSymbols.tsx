@@ -1,31 +1,23 @@
 import * as _ from 'lodash';
 import * as React from 'react';
-import { connect } from 'react-redux';
-import { View } from '../types';
+
 var { CompositeDisposable } = require('atom');
 type CompositeDisposable = any;
 declare var atom: any;
 
 
-interface CandidateSymbolsProps {
+interface Props {
     candidates: string[]
     updateTranslation: (symbol: string) => void,
     chooseSymbol: (symbol: string) => void
 };
 
-
-const mapStateToProps = (state: View.State) => ({
-    candidates: state.inputMethod.candidateSymbols
-})
-
-
 // the nth candicate
-type Frame = {
-    index: number
+interface State {
+    index: number;
 }
 
-
-class CandidateSymbols extends React.Component<CandidateSymbolsProps, Frame> {
+class CandidateSymbols extends React.Component<Props, State> {
 
     private subscriptions: CompositeDisposable;
 
@@ -121,7 +113,4 @@ class CandidateSymbols extends React.Component<CandidateSymbolsProps, Frame> {
     }
 }
 
-export default connect<any, any, any>(
-    mapStateToProps,
-    null
-)(CandidateSymbols);
+export default CandidateSymbols

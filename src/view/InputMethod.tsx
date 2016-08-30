@@ -19,7 +19,7 @@ const mapStateToProps = (state: View.State) => {
 
 class InputMethod extends React.Component<InputMethodProps, void> {
     render() {
-        const { activated, buffer, translation, further, keySuggestions, updateTranslation, insertCharacter, chooseSymbol } = this.props;
+        const { activated, buffer, translation, further, keySuggestions, updateTranslation, insertCharacter, chooseSymbol, candidateSymbols } = this.props;
         const hideEverything = classNames({ 'hidden': !activated});
         const hideBuffer = classNames({ 'hidden': _.isEmpty(buffer)}, 'inline-block');
         return (
@@ -37,6 +37,7 @@ class InputMethod extends React.Component<InputMethodProps, void> {
                 <CandidateSymbols
                     updateTranslation={updateTranslation}
                     chooseSymbol={chooseSymbol}
+                    candidates={candidateSymbols}
                 />
             </section>
         )
