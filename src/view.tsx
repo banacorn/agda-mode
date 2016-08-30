@@ -16,7 +16,7 @@ const store = createStore(reducer);
 
 export default class View {
     public store: Redux.Store<V.State>;
-    private miniEditor: MiniEditor;
+    public miniEditor: MiniEditor;
 
     constructor(private core: Core) {
         this.store = store;

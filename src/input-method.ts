@@ -1,7 +1,7 @@
-import * as _ from "lodash";
-import Keymap from "./keymap";
-import Core from "./core";
-import { activateInputMethod, deactivateInputMethod, insertInputMethod, deleteInputMethod } from "./view/actions";
+import * as _ from 'lodash';
+import Keymap from './keymap';
+import Core from './core';
+import { activateInputMethod, deactivateInputMethod, insertInputMethod, deleteInputMethod } from './view/actions';
 
 type TextEditor = any;
 type CompositeDisposable = any;
@@ -12,11 +12,11 @@ declare var atom: any;
 var { Range, CompositeDisposable } = require('atom');
 
 function getKeySuggestions(trie: any): string[] {
-    return Object.keys(_.omit(trie, ">>")).sort();
+    return Object.keys(_.omit(trie, '>>')).sort();
 }
 
 function getCandidateSymbols(trie: any): string[] {
-    return trie[">>"];
+    return trie['>>'];
 }
 
 // see if input is in the keymap
@@ -105,8 +105,8 @@ export default class InputMethod {
             }
         }
         this.subscriptions.add(atom.commands.add(
-            "atom-text-editor.agda-mode-input-method-activated",
-            "editor:newline",
+            'atom-text-editor.agda-mode-input-method-activated',
+            'editor:newline',
             commands
         ));
     }
@@ -120,15 +120,14 @@ export default class InputMethod {
             // initializations
             this.activated = true;
 
-            // add class "agda-mode-input-method-activated"
-            const editorElement = atom.views.getView(atom.workspace.getActiveTextEditor());
-            editorElement.classList.add("agda-mode-input-method-activated");
+            const miniEditorFocused = this.core.view.miniEditor.isFocused();
+            this.editor = miniEditorFocused ?
+                this.core.view.miniEditor.getModel() :
+                atom.workspace.getActiveTextEditor()
 
-            // editor: the main text editor or the mini text editor
-            const inputEditorFocused = this.core.viewLegacy.$refs.inputEditor.isFocused();
-            this.editor = inputEditorFocused ? this.core.viewLegacy.$refs.inputEditor.$el.getModel() : this.core.editor;
-
-            // console.log(this.core.view.store.getState().inputEditor.focused);
+            // add class 'agda-mode-input-method-activated'
+            const editorElement = atom.views.getView(this.editor);
+            editorElement.classList.add('agda-mode-input-method-activated');
 
             // monitors raw text buffer and figures out what happend
             const startPosition = this.editor.getCursorBufferPosition();
@@ -137,13 +136,13 @@ export default class InputMethod {
 
             // decoration
             this.decoration = this.editor.decorateMarker(this.textEditorMarker, {
-                type: "highlight",
-                class: "agda-input-method"
+                type: 'highlight',
+                class: 'agda-input-method'
             });
 
             // insert '\' at the cursor quitely without triggering any shit
             this.muteEvent(() => {
-                this.insertCharToBufffer("\\");
+                this.insertCharToBufffer('\\');
             });
 
             // initialize input suggestion
@@ -160,7 +159,7 @@ export default class InputMethod {
         if (this.activated) {
             // add class 'agda-mode-input-method-activated'
             const editorElement = atom.views.getView(atom.workspace.getActiveTextEditor());
-            editorElement.classList.remove("agda-mode-input-method-activated");
+            editorElement.classList.remove('agda-mode-input-method-activated');
             this.core.view.store.dispatch(deactivateInputMethod());
             this.textEditorMarker.destroy();
             this.decoration.destroy();

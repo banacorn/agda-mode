@@ -109,12 +109,17 @@ class MiniEditor extends React.Component<Props, State> {
             this.ref.blur();
         });
     }
+
     select() {
         this.ref.getModel().selectAll();
     }
 
     isFocused(): boolean {
         return this.state.focused;
+    }
+
+    getModel() {
+        return this.ref.getModel();
     }
 
     activate() {
