@@ -3,30 +3,12 @@ import { connect } from 'react-redux';
 import * as classNames from 'classnames';
 
 import { View } from '../types';
+import Error from './Error';
 
-// function toHeaderStyle(type: View.HeaderStyle): string {
-//     switch (type) {
-//         case View.HeaderStyle.Error:     return 'error';
-//         case View.HeaderStyle.Warning:   return 'warning';
-//         case View.HeaderStyle.Judgement: return 'info';
-//         case View.HeaderStyle.Value:     return 'success';
-//         case View.HeaderStyle.PlainText: return 'plain-text';
-//         default:                  return '';
-//     }
-// }
-
-interface Props extends View.BodyState {
-}
 
 const mapStateToProps = (state: View.State) => state.body
-//     return {
-//         text: state.header.text,
-//         style: state.header.style,
-//         inputMethodActivated: state.inputMethod.activated
-//     }
-// }
 
-class Body extends React.Component<Props, void> {
+class Body extends React.Component<View.BodyState, void> {
     render() {
         const { banner, body, error, plainText } = this.props;
         // const classes = classNames({
@@ -63,6 +45,9 @@ class Body extends React.Component<Props, void> {
                         <span className="text-highlight">Sort</span><span className="text-warning">{item.index}</span>
                     </li>
                 )}</ul>
+                <ul className="list-group">{
+                    error ? <Error error={error}/> : null
+                }</ul>
                 <ul className="list-group">{plainText.map((item, i) =>
                     <li className="list-item" key={i}>
                         <span>{plainText}</span>
