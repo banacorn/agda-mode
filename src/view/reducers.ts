@@ -1,7 +1,6 @@
 import * as _ from 'lodash';
-import { EventEmitter } from 'events';
 import { combineReducers } from 'redux';
-import { createAction, handleAction, handleActions, Action } from 'redux-actions';
+import { createAction, handleActions, Action } from 'redux-actions';
 import { View } from '../types';
 import { INPUT_METHOD, HEADER, MINI_EDITOR } from './actions';
 import { translate } from '../input-method';

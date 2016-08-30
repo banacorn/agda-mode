@@ -8,13 +8,13 @@ import Core from '../core';
 import InputMethod from './InputMethod';
 import Header from './Header';
 import { View } from '../types';
-import InputEditor from './InputEditor';
+import MiniEditor from './MiniEditor';
 import { deactivateMiniEditor } from './actions';
 
 interface Props extends View.State {
     core: Core;
 
-    onMiniEditorMount: (editor: InputEditor) => void;
+    onMiniEditorMount: (editor: MiniEditor) => void;
     deactivateMiniEditor: () => void;
 }
 
@@ -48,7 +48,7 @@ class Panel extends React.Component<Props, void> {
                     <Header/>
                 </header>
                 <section>
-                    <InputEditor
+                    <MiniEditor
                         className={hideMiniEditor}
                         ref={(ref) => {
                             if (ref) onMiniEditorMount(ref);

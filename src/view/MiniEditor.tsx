@@ -1,6 +1,4 @@
 import * as React from 'react';
-import { connect } from 'react-redux';
-import * as classNames from 'classnames';
 import * as Promise from 'bluebird';
 import { EventEmitter } from 'events';
 
@@ -24,7 +22,7 @@ interface State {
     focused: boolean;
 }
 
-class InputEditor extends React.Component<Props, State> {
+class MiniEditor extends React.Component<Props, State> {
     private subscriptions: CompositeDisposable;
     private ref: any;
     private observer: MutationObserver;
@@ -138,7 +136,6 @@ class InputEditor extends React.Component<Props, State> {
     }
 
     render() {
-        console.log(this.state)
         return (
             <atom-text-editor
                 class={this.props.className}
@@ -149,4 +146,4 @@ class InputEditor extends React.Component<Props, State> {
     }
 }
 
-export default InputEditor;
+export default MiniEditor;

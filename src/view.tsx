@@ -6,7 +6,7 @@ import { createStore } from 'redux';
 
 import Core from './core';
 import Panel from './view/Panel';
-import InputEditor from './view/InputEditor';
+import MiniEditor from './view/MiniEditor';
 import reducer from './view/reducers';
 import { View as V } from './types';
 import { updateHeader, activateMiniEditor } from './view/actions';
@@ -16,7 +16,7 @@ const store = createStore(reducer);
 
 export default class View {
     public store: Redux.Store<V.State>;
-    private miniEditor: InputEditor;
+    private miniEditor: MiniEditor;
 
     constructor(private core: Core) {
         this.store = store;

@@ -1,10 +1,7 @@
 import * as _ from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import * as classNames from 'classnames';
 import { View } from '../types';
-// import Core from '../core';
-import { replaceSymbol } from './actions';
 var { CompositeDisposable } = require('atom');
 type CompositeDisposable = any;
 declare var atom: any;
