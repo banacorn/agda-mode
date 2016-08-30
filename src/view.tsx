@@ -44,8 +44,7 @@ export default class View {
     }
 
     query(header: string, message: string[], type: V.HeaderStyle, placeholder: string): Promise<string> {
-
-        this.store.dispatch(activateMiniEditor());
+        this.store.dispatch(activateMiniEditor(placeholder));
         this.store.dispatch(updateHeader({
             text: header,
             style: type

@@ -50,6 +50,7 @@ class Panel extends React.Component<Props, void> {
                 <section>
                     <MiniEditor
                         className={hideMiniEditor}
+                        placeholder={this.props.miniEditor.placeholder}
                         ref={(ref) => {
                             if (ref) onMiniEditorMount(ref);
                         }}

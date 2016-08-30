@@ -37,7 +37,6 @@ class MiniEditor extends React.Component<Props, State> {
         this.emitter = new EventEmitter;
     }
 
-
     observeFocus() {
         // create an observer instance
         this.observer = new MutationObserver((mutations) => {
@@ -124,8 +123,6 @@ class MiniEditor extends React.Component<Props, State> {
 
     activate() {
         this.focus();
-        // if (this.props.placeholder)
-        //     this.ref.getModel().setPlaceholderText(this.props.placeholder);
         this.select();
     }
 
@@ -141,6 +138,8 @@ class MiniEditor extends React.Component<Props, State> {
     }
 
     render() {
+        if (this.props.placeholder)
+            this.ref.getModel().setPlaceholderText(this.props.placeholder);
         return (
             <atom-text-editor
                 class={this.props.className}
