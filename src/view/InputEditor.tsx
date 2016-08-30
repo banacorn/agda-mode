@@ -5,7 +5,7 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 
 import { View } from '../types';
-import { focusedInputEditor, blurredInputEditor, focusInputEditor, blurInputEditor } from './actions';
+import { focusedInputEditor, blurredInputEditor } from './actions';
 
 import { parseInputContent } from '../parser';
 
@@ -64,19 +64,6 @@ class InputEditor extends React.Component<Props, void> {
         const agdaGrammar = atom.grammars.grammarForScopeName('source.agda');
         this.ref.getModel().setGrammar(agdaGrammar);
 
-        // focus on the input box (with setTimeout quirk)
-        emitter.on('focus', () => {
-            setTimeout(() => {
-                this.ref.focus();
-            });
-        })
-        emitter.on('blur', () => {
-            setTimeout(() => {
-                this.ref.blur();
-            });
-        })
-
-
         this.subscriptions.add(atom.commands.add(this.ref, 'core:confirm', () => {
             const payload = parseInputContent(this.ref.getModel().getText());
             emitter.emit('confirm', payload);
@@ -101,7 +88,18 @@ class InputEditor extends React.Component<Props, void> {
         this.observer.disconnect();
     }
 
+    // focus on the input box (with setTimeout quirk)
+    focus() {
+        setTimeout(() => {
+            this.ref.focus();
+        });
+    }
 
+    blur() {
+        setTimeout(() => {
+            this.ref.blur();
+        });
+    }
     select() {
         this.ref.getModel().selectAll();
     }
@@ -111,6 +109,7 @@ class InputEditor extends React.Component<Props, void> {
         const hidden = classNames({'hidden': !activated});
         if (activated) {
             this.ref.getModel().setPlaceholderText(placeholder);
+            this.focus();
             this.select();
         }
 
