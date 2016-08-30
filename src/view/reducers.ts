@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { combineReducers } from 'redux';
 import { createAction, handleActions, Action } from 'redux-actions';
 import { View } from '../types';
-import { INPUT_METHOD, HEADER, MINI_EDITOR } from './actions';
+import { INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -20,6 +20,18 @@ const defaultState: View.State = {
     miniEditor: {
         activate: false,
         placeholder: ''
+    },
+    body: {
+        banner: [],
+        body: {
+            goal: [],
+            judgement: [],
+            term: [],
+            meta: [],
+            sort: []
+        },
+        error: null,
+        plainText: null
     }
 };
 
@@ -62,9 +74,26 @@ const miniEditor = handleActions<View.MiniEditorState, MINI_EDITOR>({
     })
 }, defaultState.miniEditor);
 
+const body = handleActions<View.BodyState, BODY>({
+    [BODY.UPDATE_BANNER]: (state: View.BodyState, action: Action<BODY.UPDATE_BANNER>) => _.assign({}, state, {
+        banner: action.payload
+    }),
+    [BODY.UPDATE_BODY]: (state: View.BodyState, action: Action<BODY.UPDATE_BODY>) => _.assign({}, state, {
+        body: action.payload
+    }),
+    [BODY.UPDATE_ERROR]: (state: View.BodyState, action: Action<BODY.UPDATE_ERROR>) => _.assign({}, state, {
+        error: action.payload
+    }),
+    [BODY.UPDATE_PLAIN_TEXT]: (state: View.BodyState, action: Action<BODY.UPDATE_PLAIN_TEXT>) => _.assign({}, state, {
+        plainText: action.payload
+    })
+}, defaultState.body);
+
+
 // export default reducer;
 export default combineReducers<View.State>({
     header,
     inputMethod,
-    miniEditor
+    miniEditor,
+    body
 });

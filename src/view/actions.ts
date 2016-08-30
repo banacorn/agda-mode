@@ -1,6 +1,6 @@
 import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
-import { View } from '../types';
+import { View, Error } from '../types';
 
 
 export type INPUT_METHOD = INPUT_METHOD.ACTIVATE | INPUT_METHOD.DEACTIVATE | INPUT_METHOD.INSERT | INPUT_METHOD.DELETE | INPUT_METHOD.REPLACE_SYMBOL;
@@ -43,3 +43,20 @@ export namespace MINI_EDITOR {
 
 export const activateMiniEditor = createAction(MINI_EDITOR.ACTIVATE);
 export const deactivateMiniEditor = createAction(MINI_EDITOR.DEACTIVATE);
+
+export type BODY = BODY.UPDATE_BANNER | BODY.UPDATE_BODY | BODY.UPDATE_ERROR | BODY.UPDATE_PLAIN_TEXT;
+export namespace BODY {
+    export const UPDATE_BANNER = 'BODY.UPDATE_BANNER';
+    export type UPDATE_BANNER = View.BannerItem[];
+    export const UPDATE_BODY = 'BODY.UPDATE_BODY';
+    export type UPDATE_BODY = View.Body;
+    export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
+    export type UPDATE_ERROR = Error;
+    export const UPDATE_PLAIN_TEXT = 'BODY.UPDATE_PLAIN_TEXT';
+    export type UPDATE_PLAIN_TEXT = string[];
+}
+
+export const updateBanner = createAction<BODY.UPDATE_BANNER, BODY.UPDATE_BANNER>(BODY.UPDATE_BANNER);
+export const updateBody = createAction<BODY.UPDATE_BODY, BODY.UPDATE_BODY>(BODY.UPDATE_BODY);
+export const updateError = createAction<BODY.UPDATE_ERROR, BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
+export const updatePlainText = createAction<BODY.UPDATE_PLAIN_TEXT, BODY.UPDATE_PLAIN_TEXT>(BODY.UPDATE_PLAIN_TEXT);

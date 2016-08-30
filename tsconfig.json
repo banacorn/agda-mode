@@ -64,6 +64,7 @@
         "typings/modules/bluebird/index.d.ts",
         "typings/modules/vue-class-component/index.d.ts",
         "src/view.tsx",
+        "src/view/Body.tsx",
         "src/view/CandidateSymbols.tsx",
         "src/view/Header.tsx",
         "src/view/InputMethod.tsx",

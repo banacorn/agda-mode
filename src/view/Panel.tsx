@@ -30,6 +30,7 @@ class Panel extends React.Component<Props, void> {
     render() {
         const { core, onMiniEditorMount } = this.props;
         const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
+        console.log(this.props.body)
         return (
             <section>
                 <header>

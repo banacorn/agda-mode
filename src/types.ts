@@ -164,6 +164,7 @@ namespace View {
         header: HeaderState;
         inputMethod: InputMethodState;
         miniEditor: MiniEditorState;
+        body: BodyState;
     }
 
     export interface InputMethodState {
@@ -186,6 +187,13 @@ namespace View {
     export interface HeaderState {
         text: string;
         style: HeaderStyle;
+    }
+
+    export interface BodyState {
+        banner: BannerItem[];
+        body: Body;
+        error: Error;
+        plainText: string[];
     }
 
     export interface MiniEditorState {
