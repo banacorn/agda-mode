@@ -7,6 +7,7 @@ declare var atom: any;
 import Core from '../core';
 import InputMethod from './InputMethod';
 import Header from './Header';
+import Body from './Body';
 import { View } from '../types';
 import MiniEditor from './MiniEditor';
 import { deactivateMiniEditor } from './actions';
@@ -30,7 +31,6 @@ class Panel extends React.Component<Props, void> {
     render() {
         const { core, onMiniEditorMount } = this.props;
         const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
-        console.log(this.props.body)
         return (
             <section>
                 <header>
@@ -64,6 +64,7 @@ class Panel extends React.Component<Props, void> {
                             this.props.deactivateMiniEditor();
                         }}
                     />
+                    <Body/>
                 </section>
             </section>
         )
