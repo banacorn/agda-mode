@@ -1,57 +1,83 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { View } from '../types';
+declare var atom: any;
+
+import { View, Error as E } from '../types';
+import { updateMaxItemCount } from './actions';
 import Expr from './Expr';
 import Error from './Error';
 import Location from './Location';
 
 
-const mapStateToProps = (state: View.State) => state.body
+interface Props extends React.HTMLAttributes {
+    banner: View.BannerItem[];
+    body: View.Body;
+    error: E;
+    plainText: string;
+    maxItemCount: number;
+    onMaxItemCountChange: (count: number) => void;
+}
 
-class Body extends React.Component<View.BodyState, void> {
+const mapStateToProps = (state: View.State) => state.body
+const mapDispatchToProps = (dispatch: any) => ({
+    onMaxItemCountChange: (count: number) => {
+        dispatch(updateMaxItemCount(count));
+    }
+})
+
+class Body extends React.Component<Props, void> {
+    componentDidMount() {
+        atom.config.observe('agda-mode.maxItemCount', (newCount) => {
+            this.props.onMaxItemCountChange(newCount);
+        })
+    }
+
     render() {
-        const { banner, body, error, plainText } = this.props;
+        const { banner, body, error, plainText, maxItemCount } = this.props;
+        const style = {
+            maxHeight: `${maxItemCount * 40 + 10}px`
+        }
         return (
-            <section>
+            <section id="agda-body" className={this.props.className} style={style}>
                 <ul className="list-group">{banner.map((item, i) =>
-                    <li className="list-item" key={i}>
+                    <li className="list-item banner-item" key={i}>
                         <span className="text-info">{item.label}</span>
                         <span>:</span>
                         <Expr>{item.type}</Expr>
                     </li>
                 )}</ul>
                 <ul className="list-group">{body.goal.map((item, i) =>
-                    <li className="list-item" key={i}>
+                    <li className="list-item body-item" key={i}>
                         <button className="no-btn text-info">{item.index}</button>
                         <span>:</span>
                         <Expr>{item.type}</Expr>
                     </li>
                 )}{body.judgement.map((item, i) =>
-                    <li className="list-item" key={i}>
+                    <li className="list-item body-item" key={i}>
                         <span className="text-success">{item.expr}</span>
                         <span>:</span>
                         <Expr>{item.type}</Expr>
                     </li>
                 )}{body.term.map((item, i) =>
-                    <li className="list-item" key={i}>
+                    <li className="list-item body-item" key={i}>
                         <Expr>{item.expr}</Expr>
                     </li>
                 )}{body.meta.map((item, i) =>
-                    <li className="list-item" key={i}>
+                    <li className="list-item body-item" key={i}>
                         <span className="text-success">{item.index}</span>
                         <span>:</span>
                         <Expr>{item.type}</Expr>
                         <Location>{item.location}</Location>
                     </li>
                 )}{body.sort.map((item, i) =>
-                    <li className="list-item" key={i}>
+                    <li className="list-item body-item" key={i}>
                         <span className="text-highlight">Sort</span><span className="text-warning">{item.index}</span>
                         <Location>{item.location}</Location>
                     </li>
                 )}</ul>
-                {error ? <Error error={error}/> : null}
-                <p>{plainText}</p>
+                {error ? <Error className="error">{error}</Error> : null}
+                {plainText ? <p>{plainText}</p> : null}
             </section>
         )
     }
@@ -59,5 +85,5 @@ class Body extends React.Component<View.BodyState, void> {
 
 export default connect<any, any, any>(
     mapStateToProps,
-    null
+    mapDispatchToProps
 )(Body);

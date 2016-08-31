@@ -6,77 +6,92 @@
 
 .agda-view {
 
+    // For hiding React components
     .hidden { display: none }
 
-
-
-
-    font-size: 125%;
+    // So that we can stop goal indices from floating around
+    // see #14: https://github.com/banacorn/agda-mode/issues/14
     z-index: 4;
 
-    #panel-header-container {
-        #panel-title {
-            line-height: 2;
-        }
-        // flex shit
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        //
-        //
-        // #spinner {
-        //     opacity: 0;
-        // }
-        // #spinner.pending {
-        //     opacity: inherit;
-        //     transition-property: opacity;
-        //     transition-delay: 0.3s;
-        // }
+    // <Header>
+    #agda-header {
+        @height: 50px;
+        height: @height;
+        line-height: @height;
+        padding: 0 @component-padding;
 
+        h1 {
+            font-size: 150%;
+            line-height: @height;
+            margin: 0;
+        }
     }
 
-    #panel-input-method {
-        @height: 25px;
+    // <InputMethod>
+    #agda-input-method {
+        @button-height: 20px;
+
+        height: 40px;
 
         display: flex;
         align-items: center;
         justify-content: space-between;
 
-        button.btn {
-            font-size: 80%;
-            width: @height;
-            height: @height;
-        }
+        font-size: 125%;
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
-        #input-buffer-container {
-            // as a container for #input-buffer and #suggestion-keys
-            display: flex;
-            #input-buffer {
-                height: @height;
-                line-height: @height;
-                background: @input-background-color;
-                border-radius: @component-border-radius;
-                padding: 0 @component-padding;
+
+        // Buffer
+        #buffer {
+            height: 30px;
+            line-height: 30px;
+            background: @input-background-color;
+            border-radius: @component-border-radius;
+            padding: 0 @component-padding;
+        }
+
+        // Keyboard
+        button.btn {
+            width: @button-height;
+            height: @button-height;
+            line-height: @button-height;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            border-radius: @component-border-radius;
+
+            &:hover {
+                font-size: 200%;
+                position: relative;
+                width: 40px;
+                height: 40px;
+                margin: -10px;
+                z-index: 5;
             }
         }
 
+
     }
 
-    #panel-content {
+    // <Body>
+    #agda-body {
+        @height: 30px;
+
         overflow: scroll;
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
 
-        #panel-content-banner {
-            background: @base-background-color;
-            span {  // cancel out Emacs' layout for Goal & Have
-                white-space:pre-line;
-            }
-        }
+        // background: @base-background-color;
+        padding: 0 @component-padding;
+
+        font-size: 125%;
+
 
         li {
-            min-height: 30px;
-            line-height: 30px !important;
-            padding: 0 @component-padding;
+            min-height: @height;
+            line-height: @height !important;
+            padding: 0px @component-padding;
+            margin: 10px 0;
+            // margin: 10px 0;
+            // border-bottom: 1px solid @pane-item-border-color;
 
             span, button {
                 white-space: pre;       // preserves whitespaces
@@ -91,14 +106,12 @@
                clear: both;
             }
 
-            div {
-                display: inline-block;
-            }
-
-            .type {
+            // <Expr>
+            .expr {
                 vertical-align: top;
             }
 
+            // <Location>
             .location {
                 float: right;
                 &:hover {
@@ -110,18 +123,38 @@
                 }
             }
 
-            .no-btn {
-                padding: 0;
-            }
+            //         span, button {
+            //             white-space: pre;       // preserves whitespaces
+            //             vertical-align: top;
+            //         }
+            //
+
+        }
+        li.banner-item {
+            background: @base-background-color;
+            // white-space:pre-line;
+            // span {  // cancel out Emacs' layout for Goal & Have
+            //     white-space:pre-line;
+            // }
+
+        }
+
+
+        p {
+            min-height: @height;
+            line-height: @height;
+            padding: 0 @component-padding;
+            margin: 10px 0;
         }
     }
 
 
+    // Makes buttons look like ordinary texts
     button.no-btn {
         background: inherit;
         border: none;
         border-radius: @component-border-radius;
-        padding: 0 0.5em;
+        padding: 0;
     }
     button.no-btn:hover {
         background: @base-background-color;

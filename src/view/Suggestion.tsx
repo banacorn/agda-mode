@@ -12,9 +12,9 @@ class Suggestion extends React.Component<React.HTMLAttributes, void> {
         const lines = this.props.children as string[];
         switch (lines.length) {
             case 0: return null
-            case 1: return <p>Did you mean: <Expr>{lines[0]}</Expr> ?</p>
+            case 1: return <p {...this.props} >Did you mean: <Expr>{lines[0]}</Expr> ?</p>
             default: return (
-                <p>Did you mean: <Expr>{_.head(lines)}</Expr>
+                <p {...this.props} >Did you mean: <Expr>{_.head(lines)}</Expr>
                     {_.tail(lines).map((line, i) => `\n        or${<Expr>{line}</Expr>}`)} ?
                 </p>
             )

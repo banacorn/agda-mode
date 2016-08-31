@@ -178,9 +178,9 @@ const config = {
         'enum': ['Indirect', 'Direct'],
         order: 6
     },
-    panelSize: {
-        title: 'Panel size',
-        description: 'Decides how many rows will be displayed in the panel',
+    maxItemCount: {
+        title: 'Max item count',
+        description: 'Decides how many rows will be displayed in the panel at a time',
         type: 'integer',
         default: 5,
         minimum: 1,

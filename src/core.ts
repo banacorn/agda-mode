@@ -50,7 +50,7 @@ export default class Core {
 
         // create an anchor element for the view to mount
         const anchor = document.createElement('agda-view');
-        anchor.id = 'agda-view';
+        anchor.id = 'agda-panel';
         const atomPanel = atom.workspace.addBottomPanel({
             item: anchor,
             visible: true,

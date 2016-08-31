@@ -23,10 +23,10 @@ class InputMethod extends React.Component<InputMethodProps, void> {
         const hideEverything = classNames({ 'hidden': !activated});
         const hideBuffer = classNames({ 'hidden': _.isEmpty(buffer)}, 'inline-block');
         return (
-            <section className={hideEverything}>
-                <div>
-                    <div className={hideBuffer}>{buffer}</div>
-                    <div className="btn-group btn-group-sm">
+            <section id="agda-input-method" className={hideEverything}>
+                <div id="keyboard">
+                    <div id="buffer" className={hideBuffer}>{buffer}</div>
+                    <div id="keys" className="btn-group btn-group-sm">
                         {keySuggestions.map(key => <button
                             className="btn"
                             onClick={() => insertCharacter(key)}
@@ -35,6 +35,7 @@ class InputMethod extends React.Component<InputMethodProps, void> {
                     </div>
                 </div>
                 <CandidateSymbols
+                    id="candidates"
                     updateTranslation={updateTranslation}
                     chooseSymbol={chooseSymbol}
                     candidates={candidateSymbols}

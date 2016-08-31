@@ -142,6 +142,7 @@ class MiniEditor extends React.Component<Props, State> {
             this.ref.getModel().setPlaceholderText(this.props.placeholder);
         return (
             <atom-text-editor
+                id="agda-mini-editor"
                 class={this.props.className}
                 mini
                 ref={(ref) => { this.ref = ref; }}

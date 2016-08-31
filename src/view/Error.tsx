@@ -6,17 +6,14 @@ import { Error as E } from '../types';
 
 // Atom shits
 
-interface Props extends React.HTMLAttributes {
-    error: E
-}
-
-
-class Error extends React.Component<Props, void> {
+class Error extends React.Component<React.HTMLAttributes, void> {
     render() {
-        const { error } = this.props;
+        const error = this.props.children as E;
+
+        let content = '';
         switch (error.kind) {
             case 'Unparsed': return (
-                <p>{error.input}</p>
+                <p {...this.props}>{error.input}</p>
             )
         }
     }

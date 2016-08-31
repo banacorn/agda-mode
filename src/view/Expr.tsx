@@ -50,7 +50,7 @@ class Expr extends React.Component<React.HTMLAttributes, void> {
             expressions = []
         }
         return (
-            <span className="type">{expressions.map((expr, i) =>
+            <span className="expr" {...this.props} >{expressions.map((expr, i) =>
                 <Term kind={expr.kind} key={i}>{expr.payload}</Term>
             )}</span>
         )

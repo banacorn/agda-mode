@@ -31,9 +31,10 @@ class Panel extends React.Component<Props, void> {
     render() {
         const { core, onMiniEditorMount } = this.props;
         const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
+        const hideBody = classNames({'hidden': this.props.miniEditor.activate});
         return (
             <section>
-                <header>
+                <header id="agda-header" className="panel-heading">
                     <InputMethod
                         updateTranslation={(c) => core.inputMethod.replaceBuffer(c)}
                         insertCharacter={(c) => {
@@ -48,7 +49,7 @@ class Panel extends React.Component<Props, void> {
                     />
                     <Header/>
                 </header>
-                <section>
+                <section className="panel-body">
                     <MiniEditor
                         className={hideMiniEditor}
                         placeholder={this.props.miniEditor.placeholder}
@@ -64,7 +65,9 @@ class Panel extends React.Component<Props, void> {
                             this.props.deactivateMiniEditor();
                         }}
                     />
-                    <Body/>
+                    <Body
+                        className={hideBody}
+                    />
                 </section>
             </section>
         )

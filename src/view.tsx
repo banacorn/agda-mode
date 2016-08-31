@@ -33,7 +33,7 @@ export default class View {
                     }}
                 />
             </Provider>,
-            document.getElementById('agda-view')
+            document.getElementById('agda-panel')
         )
     }
 

@@ -194,6 +194,7 @@ namespace View {
         body: Body;
         error: Error;
         plainText: string;
+        maxItemCount: number;
     }
 
     export interface MiniEditorState {

@@ -16,7 +16,7 @@ class Location extends React.Component<React.HTMLAttributes, void> {
             result += `${location.range.start.row + 1},${location.range.start.column + 1}-${location.range.end.row + 1},${location.range.end.column + 1}`;
 
         return (
-            <span className="text-subtle location">{result}</span>
+            <span className="text-subtle location" {...this.props} >{result}</span>
         )
     }
 }

@@ -1,6 +1,9 @@
 import * as _ from 'lodash';
 import { combineReducers } from 'redux';
 import { createAction, handleActions, Action } from 'redux-actions';
+
+declare var atom: any;
+
 import { View } from '../types';
 import { INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
 import { translate } from '../input-method';
@@ -31,7 +34,8 @@ const defaultState: View.State = {
             sort: []
         },
         error: null,
-        plainText: ''
+        plainText: '',
+        maxItemCount: atom.config.get('agda-mode.maxItemCount')
     }
 };
 
@@ -96,6 +100,9 @@ const body = handleActions<View.BodyState, BODY>({
         body: defaultState.body.body,
         error: null,
         plainText: action.payload
+    }),
+    [BODY.UPDATE_MAX_ITEM_COUNT]: (state: View.BodyState, action: Action<BODY.UPDATE_MAX_ITEM_COUNT>) => _.assign({}, state, {
+        maxItemCount: action.payload
     })
 }, defaultState.body);
 

@@ -6,7 +6,7 @@ type CompositeDisposable = any;
 declare var atom: any;
 
 
-interface Props {
+interface Props extends React.HTMLAttributes {
     candidates: string[]
     updateTranslation: (symbol: string) => void,
     chooseSymbol: (symbol: string) => void
