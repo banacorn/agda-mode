@@ -44,12 +44,12 @@ class Body extends React.Component<View.BodyState, void> {
                     <li className="list-item" key={i}>
                         <span className="text-success">{item.index}</span>
                         <span>:</span>
-                        <Location payload={item.location}/>
+                        <Location>{item.location}</Location>
                     </li>
                 )}{body.sort.map((item, i) =>
                     <li className="list-item" key={i}>
                         <span className="text-highlight">Sort</span><span className="text-warning">{item.index}</span>
-                        <Location payload={item.location}/>
+                        <Location>{item.location}</Location>
                     </li>
                 )}</ul>
                 <ul className="list-group">{
