@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import * as classNames from 'classnames';
 
 import { View } from '../types';
+import Expr from './Expr';
 import Error from './Error';
 import Location from './Location';
 
@@ -21,17 +22,20 @@ class Body extends React.Component<View.BodyState, void> {
                     <li className="list-item" key={i}>
                         <span className="text-info">{item.label}</span>
                         <span>:</span>
+                        <Expr>{item.type}</Expr>
                     </li>
                 )}</ul>
                 <ul className="list-group">{body.goal.map((item, i) =>
                     <li className="list-item" key={i}>
                         <button className="no-btn text-info">{item.index}</button>
                         <span>:</span>
+                        <Expr>{item.type}</Expr>
                     </li>
                 )}{body.judgement.map((item, i) =>
                     <li className="list-item" key={i}>
                         <span className="text-success">{item.expr}</span>
                         <span>:</span>
+                        <Expr>{item.type}</Expr>
                     </li>
                 )}{body.term.map((item, i) =>
                     <li className="list-item" key={i}>

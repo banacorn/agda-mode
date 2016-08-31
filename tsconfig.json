@@ -67,6 +67,7 @@
         "src/view/Body.tsx",
         "src/view/CandidateSymbols.tsx",
         "src/view/Error.tsx",
+        "src/view/Expr.tsx",
         "src/view/Header.tsx",
         "src/view/InputMethod.tsx",
         "src/view/Location.tsx",
