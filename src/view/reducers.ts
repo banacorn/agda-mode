@@ -76,15 +76,25 @@ const miniEditor = handleActions<View.MiniEditorState, MINI_EDITOR>({
 
 const body = handleActions<View.BodyState, BODY>({
     [BODY.UPDATE_BANNER]: (state: View.BodyState, action: Action<BODY.UPDATE_BANNER>) => _.assign({}, state, {
-        banner: action.payload
+        banner: action.payload,
+        error: null,
+        plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_BODY]: (state: View.BodyState, action: Action<BODY.UPDATE_BODY>) => _.assign({}, state, {
-        body: action.payload
+        body: action.payload,
+        error: null,
+        plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_ERROR]: (state: View.BodyState, action: Action<BODY.UPDATE_ERROR>) => _.assign({}, state, {
-        error: action.payload
+        banner: defaultState.body.banner,
+        body: defaultState.body.body,
+        error: action.payload,
+        plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_PLAIN_TEXT]: (state: View.BodyState, action: Action<BODY.UPDATE_PLAIN_TEXT>) => _.assign({}, state, {
+        banner: defaultState.body.banner,
+        body: defaultState.body.body,
+        error: null,
         plainText: action.payload
     })
 }, defaultState.body);
