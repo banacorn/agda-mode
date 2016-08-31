@@ -53,7 +53,7 @@ export namespace BODY {
     export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
     export type UPDATE_ERROR = Error;
     export const UPDATE_PLAIN_TEXT = 'BODY.UPDATE_PLAIN_TEXT';
-    export type UPDATE_PLAIN_TEXT = string[];
+    export type UPDATE_PLAIN_TEXT = string;
 }
 
 export const updateBanner = createAction<BODY.UPDATE_BANNER, BODY.UPDATE_BANNER>(BODY.UPDATE_BANNER);

@@ -16,9 +16,7 @@ class Error extends React.Component<Props, void> {
         const { error } = this.props;
         switch (error.kind) {
             case 'Unparsed': return (
-                <li className="list-item">
-                    <span>{error.input}</span>
-                </li>
+                <p>{error.input}</p>
             )
         }
     }

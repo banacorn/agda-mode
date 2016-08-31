@@ -193,7 +193,7 @@ namespace View {
         banner: BannerItem[];
         body: Body;
         error: Error;
-        plainText: string[];
+        plainText: string;
     }
 
     export interface MiniEditorState {

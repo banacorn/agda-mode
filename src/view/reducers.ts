@@ -31,7 +31,7 @@ const defaultState: View.State = {
             sort: []
         },
         error: null,
-        plainText: []
+        plainText: ''
     }
 };
 

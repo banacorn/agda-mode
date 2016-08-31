@@ -58,7 +58,7 @@ export default class View {
             const error = parseError(payload.join('\n'));
             this.store.dispatch(updateError(error));
         } else {
-            this.store.dispatch(updatePlainText(payload));
+            this.store.dispatch(updatePlainText(payload.join('\n')));
         }
     }
 

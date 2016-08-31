@@ -52,14 +52,8 @@ class Body extends React.Component<View.BodyState, void> {
                         <Location>{item.location}</Location>
                     </li>
                 )}</ul>
-                <ul className="list-group">{
-                    error ? <Error error={error}/> : null
-                }</ul>
-                <ul className="list-group">{plainText.map((item, i) =>
-                    <li className="list-item" key={i}>
-                        <span>{plainText}</span>
-                    </li>
-                )}</ul>
+                {error ? <Error error={error}/> : null}
+                <p>{plainText}</p>
             </section>
         )
     }
