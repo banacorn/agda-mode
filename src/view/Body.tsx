@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import * as classNames from 'classnames';
 
 import { View } from '../types';
 import Expr from './Expr';
@@ -13,9 +12,6 @@ const mapStateToProps = (state: View.State) => state.body
 class Body extends React.Component<View.BodyState, void> {
     render() {
         const { banner, body, error, plainText } = this.props;
-        // const classes = classNames({
-        //     hidden: inputMethodActivated
-        // }, `text-${toHeaderStyle(style)}`)
         return (
             <section>
                 <ul className="list-group">{banner.map((item, i) =>
@@ -39,11 +35,13 @@ class Body extends React.Component<View.BodyState, void> {
                     </li>
                 )}{body.term.map((item, i) =>
                     <li className="list-item" key={i}>
+                        <Expr>{item.expr}</Expr>
                     </li>
                 )}{body.meta.map((item, i) =>
                     <li className="list-item" key={i}>
                         <span className="text-success">{item.index}</span>
                         <span>:</span>
+                        <Expr>{item.type}</Expr>
                         <Location>{item.location}</Location>
                     </li>
                 )}{body.sort.map((item, i) =>
