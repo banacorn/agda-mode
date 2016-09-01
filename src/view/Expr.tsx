@@ -5,22 +5,35 @@ import * as Promise from 'bluebird';
 import { View } from '../types';
 
 interface TermProps extends React.HTMLAttributes {
-    kind: 'unmarked' | 'goal' | 'meta' | 'sort'
+    kind: 'unmarked' | 'goal' | 'meta' | 'sort';
+    jumpToGoal: (index: number) => void;
 }
 
 class Term extends React.Component<TermProps, void> {
     render() {
+        const { jumpToGoal } = this.props;
         switch (this.props.kind) {
             case 'unmarked': return <span className="text-highlight">{this.props.children}</span>
-            case 'goal': return <button className="no-btn text-info">{this.props.children}</button>
-            case 'meta': return <span className="text-highlight">{this.props.children}</span>
-            case 'sort': return <span className="text-highlight">{this.props.children}</span>
+            case 'goal': return <button className="no-btn text-info goal" onClick={() => {
+                const index = parseInt(this.props.children.toString().substr(1));
+                jumpToGoal(index);
+            }}>{this.props.children}</button>
+            case 'meta': return <span className="text-highlight meta">{this.props.children}</span>
+            case 'sort': return <span className="text-highlight sort">{this.props.children}</span>
         }
     }
 }
 
-class Expr extends React.Component<React.HTMLAttributes, void> {
+
+interface ExprProps extends React.HTMLAttributes {
+    jumpToGoal: (index: number) => void;
+}
+
+
+class Expr extends React.Component<ExprProps, void> {
     render() {
+        const { jumpToGoal } = this.props;
+        const otherProps = _.omit(this.props, 'jumpToGoal');
         let expressions;
         if (typeof this.props.children === 'string') {
             //                                         1       2                3
@@ -50,8 +63,8 @@ class Expr extends React.Component<React.HTMLAttributes, void> {
             expressions = []
         }
         return (
-            <span className="expr" {...this.props} >{expressions.map((expr, i) =>
-                <Term kind={expr.kind} key={i}>{expr.payload}</Term>
+            <span className="expr" {...otherProps} >{expressions.map((expr, i) =>
+                <Term kind={expr.kind} key={i} jumpToGoal={jumpToGoal}>{expr.payload}</Term>
             )}</span>
         )
     }

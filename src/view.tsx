@@ -45,6 +45,9 @@ export default class View {
                     onMiniEditorMount={(editor) => {
                         this.miniEditor = editor;
                     }}
+                    jumpToGoal={(index) => {
+                        this.core.textBuffer.jumpToGoal(index);
+                    }}
                 />
             </Provider>,
             document.getElementById('agda-panel')

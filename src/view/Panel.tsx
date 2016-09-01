@@ -17,6 +17,7 @@ interface Props extends View.State {
 
     onMiniEditorMount: (editor: MiniEditor) => void;
     deactivateMiniEditor: () => void;
+    jumpToGoal: (index: number) => void;
 }
 
 const mapStateToProps = (state : View.State) => state
@@ -29,7 +30,7 @@ const mapDispatchToProps = (dispatch: any) => ({
 
 class Panel extends React.Component<Props, void> {
     render() {
-        const { core, onMiniEditorMount } = this.props;
+        const { core, onMiniEditorMount, jumpToGoal } = this.props;
         const hideEverything = classNames({'hidden': !this.props.activated});
         const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
         const hideBody = classNames({'hidden': this.props.miniEditor.activate});
@@ -68,6 +69,7 @@ class Panel extends React.Component<Props, void> {
                     />
                     <Body
                         className={hideBody}
+                        jumpToGoal={jumpToGoal}
                     />
                 </section>
             </section>
