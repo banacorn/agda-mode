@@ -18,8 +18,8 @@ class Term extends React.Component<TermProps, void> {
                 const index = parseInt(this.props.children.toString().substr(1));
                 jumpToGoal(index);
             }}>{this.props.children}</button>
-            case 'meta': return <span className="text-highlight meta">{this.props.children}</span>
-            case 'sort': return <span className="text-highlight sort">{this.props.children}</span>
+            case 'meta': return <span className="text-success meta">{this.props.children}</span>
+            case 'sort': return <span className="text-warning sort">{this.props.children}</span>
         }
     }
 }
