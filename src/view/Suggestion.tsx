@@ -16,12 +16,17 @@ class Suggestion extends React.Component<Props, void> {
         const lines = this.props.children as string[];
         switch (lines.length) {
             case 0: return null
-            case 1: return <p {...this.props} >Did you mean: <Expr jumpToGoal={jumpToGoal}>{lines[0]}</Expr> ?</p>
-            default: return (
-                <p {...this.props} >Did you mean: <Expr jumpToGoal={jumpToGoal}>{_.head(lines)}</Expr>
-                    {_.tail(lines).map((line, i) => `\n        or${<Expr jumpToGoal={jumpToGoal}>{line}</Expr>}`)} ?
-                </p>
-            )
+            case 1: return <p>
+                Did you mean: <Expr jumpToGoal={jumpToGoal}>{lines[0]}</Expr> ?
+            </p>
+            default:
+                const otherSuggestions = _.tail(lines).map((line, i) => {
+                    return (<span key={i}><br/>           or <Expr jumpToGoal={jumpToGoal}>{line}</Expr></span>);
+                });
+                return <span>
+                    Did you mean: <Expr jumpToGoal={jumpToGoal}>{_.head(lines)}</Expr>
+                    {otherSuggestions} ?
+                </span>
         }
     }
 }

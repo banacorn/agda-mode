@@ -363,9 +363,10 @@ namespace Error {
     }
 
     export interface MissingType {
-        kind: 'MissingType',
-        location: Location,
-        expr: string
+        kind: 'MissingType';
+        location: Location;
+        expr: string;
+        decl: string;
     }
 
     export interface MultipleDefinition {

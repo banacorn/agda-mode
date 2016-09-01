@@ -151,7 +151,8 @@ const missingType: Parser<Error.MissingType> =  seq(
         return <Error.MissingType>{
             kind: "MissingType",
             location: result[0],
-            expr: result[2]
+            expr: result[2],
+            decl: result[3]
         }
     });
 
