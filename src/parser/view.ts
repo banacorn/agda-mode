@@ -51,7 +51,13 @@ function concatItems(lines: string[]): string[] {
     lines.forEach((line, i) => {
         const notTheLastLine = i + 1 < lines.length;
         const preemptLine = notTheLastLine ? line + "\n" + lines[i + 1] : line;
-        if (newlineRegex.test(line) || newlineRegex.test(preemptLine)) {
+
+        const thisLineIsNewLine = newlineRegex.test(line);
+        const nextLineIsNewLine = notTheLastLine ? newlineRegex.test(lines[i + 1]) : false;
+        const thisLineAndNextLineIsNewLine = newlineRegex.test(preemptLine);
+
+        // console.log(`Line: ${thisLineIsNewLine} ${newlineRegex.test(preemptLine)} ${nextLineIsNewLine} [${line}]`)
+        if (thisLineIsNewLine || (thisLineAndNextLineIsNewLine && !nextLineIsNewLine)) {
             currentLine = i;
             result[currentLine] = line;
         } else {
