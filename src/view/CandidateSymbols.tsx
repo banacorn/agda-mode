@@ -91,25 +91,28 @@ class CandidateSymbols extends React.Component<Props, State> {
         const frameLeft = candidates.slice(start, this.state.index);
         const frameRight = candidates.slice(this.state.index + 1, start + 10);
         const selected = candidates[this.state.index];
-        return (
-            <div id="candidate-symbols" className="btn-group btn-group-sm">
-                {frameLeft.map(key => <button
-                    className="btn"
-                    onClick={() => {chooseSymbol(key)}}
-                    key={key}
-                >{key}</button>)}
-                <button
-                    className="btn selected"
-                    onClick={() => {chooseSymbol(selected)}}
-                    key={selected}
-                >{selected}</button>
-                {frameRight.map(key => <button
-                    className="btn"
-                    onClick={() => {chooseSymbol(key)}}
-                    key={key}
-                >{key}</button>)}
-            </div>
-        )
+        if (candidates.length > 0)
+            return (
+                <div id="candidate-symbols" className="btn-group btn-group-sm">
+                    {frameLeft.map(key => <button
+                        className="btn"
+                        onClick={() => {chooseSymbol(key)}}
+                        key={key}
+                    >{key}</button>)}
+                    <button
+                        className="btn selected"
+                        onClick={() => {chooseSymbol(selected)}}
+                        key={selected}
+                    >{selected}</button>
+                    {frameRight.map(key => <button
+                        className="btn"
+                        onClick={() => {chooseSymbol(key)}}
+                        key={key}
+                    >{key}</button>)}
+                </div>
+            )
+        else
+            return null;
     }
 }
 
