@@ -3,9 +3,14 @@ import * as Promise from 'bluebird';
 
 import { View } from '../types';
 
-class Location extends React.Component<React.HTMLAttributes, void> {
+interface Props {
+    jumpToLocation: (loc: View.Location) => void;
+}
+
+class Location extends React.Component<Props, void> {
     render() {
         const location = this.props.children as View.Location;
+        const { jumpToLocation } = this.props;
 
         let result = ``;
         if (location.path)
@@ -16,7 +21,12 @@ class Location extends React.Component<React.HTMLAttributes, void> {
             result += `${location.range.start.row + 1},${location.range.start.column + 1}-${location.range.end.row + 1},${location.range.end.column + 1}`;
 
         return (
-            <span className="text-subtle location" {...this.props} >{result}</span>
+            <span
+                className="text-subtle location"
+                onClick={() => {
+                    jumpToLocation(location);
+                }}
+            >{result}</span>
         )
     }
 }

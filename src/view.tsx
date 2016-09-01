@@ -48,6 +48,9 @@ export default class View {
                     jumpToGoal={(index) => {
                         this.core.textBuffer.jumpToGoal(index);
                     }}
+                    jumpToLocation={(location) => {
+                        this.core.textBuffer.jumpToLocation(location);
+                    }}
                 />
             </Provider>,
             document.getElementById('agda-panel')

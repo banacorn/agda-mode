@@ -18,6 +18,7 @@ interface Props extends React.HTMLAttributes {
     maxItemCount: number;
     onMaxItemCountChange: (count: number) => void;
     jumpToGoal: (index: number) => void;
+    jumpToLocation: (loc: View.Location) => void;
 }
 
 const mapStateToProps = (state: View.State) => state.body
@@ -36,7 +37,7 @@ class Body extends React.Component<Props, void> {
 
     render() {
         const { banner, body, error, plainText, maxItemCount } = this.props;
-        const { jumpToGoal } = this.props;
+        const { jumpToGoal, jumpToLocation } = this.props;
         const style = {
             maxHeight: `${maxItemCount * 40 + 10}px`
         }
@@ -66,13 +67,13 @@ class Body extends React.Component<Props, void> {
                     <li className="list-item body-item" key={i}>
                         <span><span className="text-success">{item.index}</span> : </span>
                         <Expr jumpToGoal={jumpToGoal}>{item.type}</Expr>
-                        <Location>{item.location}</Location>
+                        <Location jumpToLocation={jumpToLocation}>{item.location}</Location>
                     </li>
                 )}{body.sort.map((item, i) =>
                     <li className="list-item body-item" key={i}>
                         <span className="text-highlight">Sort </span>
                         <span className="text-warning">{item.index}</span>
-                        <Location>{item.location}</Location>
+                        <Location jumpToLocation={jumpToLocation}>{item.location}</Location>
                     </li>
                 )}</ul>
                 {error ? <Error className="error">{error}</Error> : null}

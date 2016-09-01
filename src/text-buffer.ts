@@ -176,18 +176,10 @@ export default class TextBuffer {
         }
     }
 
-    jumpToLocation(location: any) {
+    jumpToLocation(location: View.Location) {
         this.focus();
         if (location.path) {
-            this.getCurrentGoal(location.range.start)
-                .then((goal) => {
-                    if (location.range.start.row === goal.range.start.row) {
-                        location.range = location.range.translate([0, 2]);  // hole boundary
-                    }
-                    this.core.editor.setSelectedBufferRange(location.range, true);
-                }).catch(() => {
-                    this.core.editor.setSelectedBufferRange(location.range, true);
-                });
+            this.core.editor.setSelectedBufferRange(location.range, true);
         } else {
             this.getCurrentGoal()
                 .then((goal) => {
