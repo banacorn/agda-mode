@@ -51,7 +51,7 @@ function concatItems(lines: string[]): string[] {
     lines.forEach((line, i) => {
         const notTheLastLine = i + 1 < lines.length;
         const preemptLine = notTheLastLine ? line + "\n" + lines[i + 1] : line;
-        if (line.match(newlineRegex) || preemptLine.match(newlineRegex)) {
+        if (newlineRegex.test(line) || newlineRegex.test(preemptLine)) {
             currentLine = i;
             result[currentLine] = line;
         } else {
@@ -117,7 +117,7 @@ function parseGoal(str: string): View.Goal {
 }
 
 function parseJudgement(str: string): View.Judgement {
-    const regex = /^(?:([^\_\?](?:\n|.)*)) \: ((?:\n|.)+)/;
+    const regex = /^(?:([^\_\?](?:[^\:])*)) \: ((?:\n|.)+)/;
     const result = str.match(regex);
     if (result) {
         return {
