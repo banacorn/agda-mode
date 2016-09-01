@@ -30,10 +30,11 @@ const mapDispatchToProps = (dispatch: any) => ({
 class Panel extends React.Component<Props, void> {
     render() {
         const { core, onMiniEditorMount } = this.props;
+        const hideEverything = classNames({'hidden': !this.props.activated});
         const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
         const hideBody = classNames({'hidden': this.props.miniEditor.activate});
         return (
-            <section>
+            <section className={hideEverything}>
                 <header id="agda-header" className="panel-heading">
                     <InputMethod
                         updateTranslation={(c) => core.inputMethod.replaceBuffer(c)}

@@ -161,6 +161,7 @@ type CommandResult = {
 namespace View {
 
     export interface State {
+        activated: boolean;
         header: HeaderState;
         inputMethod: InputMethodState;
         miniEditor: MiniEditorState;

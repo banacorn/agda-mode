@@ -5,12 +5,13 @@ import { createAction, handleActions, Action } from 'redux-actions';
 declare var atom: any;
 
 import { View } from '../types';
-import { INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
+import { VIEW, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
 import { translate } from '../input-method';
 
 // default state
 const { translation, further, keySuggestions, candidateSymbols } = translate('');
 const defaultState: View.State = {
+    activated: true,
     header: {
         text: '',
         style: View.HeaderStyle.PlainText
@@ -38,6 +39,12 @@ const defaultState: View.State = {
         maxItemCount: atom.config.get('agda-mode.maxItemCount')
     }
 };
+
+
+const activated = handleActions<boolean, VIEW>({
+    [VIEW.ACTIVATE]: (state: boolean, action: Action<VIEW.ACTIVATE>) => true,
+    [VIEW.DEACTIVATE]: (state: boolean, action: Action<VIEW.DEACTIVATE>) => false
+}, defaultState.activated);
 
 const inputMethod = handleActions<View.InputMethodState, INPUT_METHOD>({
     [INPUT_METHOD.ACTIVATE]: (state: View.InputMethodState, action: Action<INPUT_METHOD.ACTIVATE>) => {
@@ -109,6 +116,7 @@ const body = handleActions<View.BodyState, BODY>({
 
 // export default reducer;
 export default combineReducers<View.State>({
+    activated,
     header,
     inputMethod,
     miniEditor,

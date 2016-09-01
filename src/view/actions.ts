@@ -2,6 +2,18 @@ import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
 import { View, Error } from '../types';
 
+export type VIEW =
+    VIEW.ACTIVATE |
+    VIEW.DEACTIVATE;
+export namespace VIEW {
+    export const ACTIVATE = 'VIEW.ACTIVATE';
+    export type ACTIVATE = void;
+    export const DEACTIVATE = 'VIEW.DEACTIVATE';
+    export type DEACTIVATE = void;
+}
+
+export const activateView = createAction(VIEW.ACTIVATE);
+export const deactivateView = createAction(VIEW.DEACTIVATE);
 
 export type INPUT_METHOD = INPUT_METHOD.ACTIVATE | INPUT_METHOD.DEACTIVATE | INPUT_METHOD.INSERT | INPUT_METHOD.DELETE | INPUT_METHOD.REPLACE_SYMBOL;
 export namespace INPUT_METHOD {

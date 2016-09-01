@@ -1,11 +1,14 @@
 import * as _ from 'lodash';
 type CompositeDisposable = any;
 type Range = any;
+
 declare var atom: any;
 var { Range, CompositeDisposable } = require('atom');
+
 import { parseFilepath } from './parser';
 import * as Redux from 'redux';
 import { View as ViewType } from './types';
+import { activateView, deactivateView } from './view/actions';
 
 // # Components
 import Commander from './commander';
@@ -96,10 +99,12 @@ export default class Core {
     // Editor Events
 
     activate() {
+        this.view.store.dispatch(activateView());
         this.atomPanel.show();
     }
 
     deactivate() {
+        this.view.store.dispatch(deactivateView());
         this.atomPanel.hide();
     }
 

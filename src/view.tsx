@@ -13,19 +13,17 @@ import { parseContent, parseError} from './parser';
 import { updateHeader, activateMiniEditor, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
 declare var atom: any;
 
-const store = createStore(reducer);
-
 export default class View {
     public store: Redux.Store<V.State>;
     public miniEditor: MiniEditor;
 
     constructor(private core: Core) {
-        this.store = store;
+        this.store = createStore(reducer);
     }
 
     mount() {
         ReactDOM.render(
-            <Provider store={store}>
+            <Provider store={this.store}>
                 <Panel
                     core={this.core}
                     onMiniEditorMount={(editor) => {
