@@ -42,21 +42,18 @@ class Body extends React.Component<Props, void> {
             <section id="agda-body" className={this.props.className} style={style}>
                 <ul className="list-group">{banner.map((item, i) =>
                     <li className="list-item banner-item" key={i}>
-                        <span className="text-info">{item.label}</span>
-                        <span>:</span>
+                        <span><span className="text-info">{item.label}</span> : </span>
                         <Expr>{item.type}</Expr>
                     </li>
                 )}</ul>
                 <ul className="list-group">{body.goal.map((item, i) =>
                     <li className="list-item body-item" key={i}>
-                        <button className="no-btn text-info">{item.index}</button>
-                        <span>:</span>
+                        <span><button className="no-btn text-info">{item.index}</button> : </span>
                         <Expr>{item.type}</Expr>
                     </li>
                 )}{body.judgement.map((item, i) =>
                     <li className="list-item body-item" key={i}>
-                        <span className="text-success">{item.expr}</span>
-                        <span>:</span>
+                        <span><span className="text-success">{item.expr}</span> : </span>
                         <Expr>{item.type}</Expr>
                     </li>
                 )}{body.term.map((item, i) =>
@@ -65,14 +62,14 @@ class Body extends React.Component<Props, void> {
                     </li>
                 )}{body.meta.map((item, i) =>
                     <li className="list-item body-item" key={i}>
-                        <span className="text-success">{item.index}</span>
-                        <span>:</span>
+                        <span><span className="text-success">{item.index}</span> : </span>
                         <Expr>{item.type}</Expr>
                         <Location>{item.location}</Location>
                     </li>
                 )}{body.sort.map((item, i) =>
                     <li className="list-item body-item" key={i}>
-                        <span className="text-highlight">Sort</span><span className="text-warning">{item.index}</span>
+                        <span className="text-highlight">Sort </span>
+                        <span className="text-warning">{item.index}</span>
                         <Location>{item.location}</Location>
                     </li>
                 )}</ul>
