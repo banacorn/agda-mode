@@ -1,7 +1,7 @@
 import * as _ from "lodash";;
 import { normalize } from "path";
 import { parseFilepath } from "./util";
-import { View, Error, Suggestion } from "../types";
+import { View, Error, Suggestion, Location } from "../types";
 import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom, succeed,
     regex, digits, string
     } from "parsimmon";
@@ -184,7 +184,7 @@ function parseBodyItem(str: string): View.BodyItem {
 }
 
 
-function parseLocation(str: string): View.Location {
+function parseLocation(str: string): Location {
     const regex = /(?:(.+):)?(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+))/;
     const result = str.match(regex);
     if (result) {

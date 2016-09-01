@@ -1,9 +1,11 @@
+import * as _ from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import * as classNames from 'classnames';
 
 declare var atom: any;
 
-import { View, Error as E } from '../types';
+import { View, Error as E, Location as Loc } from '../types';
 import { updateMaxItemCount } from './actions';
 import Expr from './Expr';
 import Error from './Error';
@@ -18,7 +20,7 @@ interface Props extends React.HTMLAttributes {
     maxItemCount: number;
     onMaxItemCountChange: (count: number) => void;
     jumpToGoal: (index: number) => void;
-    jumpToLocation: (loc: View.Location) => void;
+    jumpToLocation: (loc: Loc) => void;
 }
 
 const mapStateToProps = (state: View.State) => state.body
@@ -38,11 +40,19 @@ class Body extends React.Component<Props, void> {
     render() {
         const { banner, body, error, plainText, maxItemCount } = this.props;
         const { jumpToGoal, jumpToLocation } = this.props;
+        const otherProps = _.omit(this.props, ['banner', 'body', 'error', 'plainText', 'maxItemCount', 'jumpToGoal', 'jumpToLocation', 'onMaxItemCountChange']);
+        const classes = classNames(this.props.className, `native-key-bindings`);
         const style = {
             maxHeight: `${maxItemCount * 40 + 10}px`
         }
         return (
-            <section id="agda-body" className={this.props.className} style={style}>
+            <section
+                id="agda-body"
+                className={classes}
+                tabIndex="-1"
+                style={style}
+                {...otherProps}
+            >
                 <ul className="list-group">{banner.map((item, i) =>
                     <li className="list-item banner-item" key={i}>
                         <span><span className="text-info">{item.label}</span> : </span>
@@ -100,7 +110,10 @@ class Body extends React.Component<Props, void> {
                         </div>
                     </li>
                 )}</ul>
-                {error ? <Error className="error">{error}</Error> : null}
+                {error ? <Error
+                        jumpToGoal={jumpToGoal}
+                        jumpToLocation={jumpToLocation}
+                    >{error}</Error> : null}
                 {plainText ? <p>{plainText}</p> : null}
             </section>
         )

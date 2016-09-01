@@ -115,29 +115,18 @@
                clear: both;
             }
 
-            // <Expr>
-            .expr {
-                vertical-align: top;
-            }
-
-            // <Location>
-            .location {
-                float: right;
-                &:hover {
-                    color: @text-color;
-                    cursor: pointer;
-                }
-                &.no-float {
-                    float: none;
-                }
-            }
-
             .item-heading {
                 align-self: flex-start;
             }
 
             .item-body {
                 flex-grow: 100;
+            }
+
+
+            // <Location>
+            .location {
+                float: right;
             }
         }
         li.banner-item {
@@ -152,6 +141,23 @@
             padding: 0 @component-padding;
             margin: 10px 0;
         }
+
+        // <Expr>
+        .expr {
+            vertical-align: top;
+        }
+
+        // <Location>
+        .location {
+            &:hover {
+                color: @text-color;
+                cursor: pointer;
+            }
+            &.no-float {
+                float: none;
+            }
+        }
+
     }
 
 

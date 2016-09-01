@@ -220,13 +220,6 @@ namespace View {
         'term' |
         'sort' ;
 
-    // Occurence & Location
-    export interface Location {
-        path: string,
-        range: Range,
-        isSameLine: boolean
-    }
-
     export interface Occurence {
         location: Location,
         body: string
@@ -290,6 +283,15 @@ namespace View {
     }
 
 }
+
+
+// Occurence & Location
+export interface Location {
+    path: string,
+    range: Range,
+    isSameLine: boolean
+}
+
 
 type Suggestion = string[];
 ////////////////////////////////////////////

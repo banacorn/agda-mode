@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
-import { Agda, Goal, View } from './types';
+import { Agda, Goal, View, Location } from './types';
 import { parseHole } from './parser';
 import Core from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
@@ -176,7 +176,7 @@ export default class TextBuffer {
         }
     }
 
-    jumpToLocation(location: View.Location) {
+    jumpToLocation(location: Location) {
         this.focus();
         if (location.path) {
             this.core.editor.setSelectedBufferRange(location.range, true);

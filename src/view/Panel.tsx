@@ -8,7 +8,7 @@ import Core from '../core';
 import InputMethod from './InputMethod';
 import Header from './Header';
 import Body from './Body';
-import { View } from '../types';
+import { View, Location } from '../types';
 import MiniEditor from './MiniEditor';
 import { deactivateMiniEditor } from './actions';
 
@@ -18,7 +18,7 @@ interface Props extends View.State {
     onMiniEditorMount: (editor: MiniEditor) => void;
     deactivateMiniEditor: () => void;
     jumpToGoal: (index: number) => void;
-    jumpToLocation: (loc: View.Location) => void;
+    jumpToLocation: (loc: Location) => void;
 }
 
 const mapStateToProps = (state : View.State) => state

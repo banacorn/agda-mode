@@ -1,6 +1,6 @@
 import Component from "vue-class-component";
 import * as Vue from "vue";
-import { View } from "../../types";
+import { View, Location as Loc } from "../../types";
 
 @Component({
     props: {
@@ -11,7 +11,7 @@ import { View } from "../../types";
 class Location extends Vue {
 
     // props
-    location: View.Location;
+    location: Loc;
 
     // methods
     jump(index: number) {
