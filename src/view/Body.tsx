@@ -51,7 +51,10 @@ class Body extends React.Component<Props, void> {
                 )}</ul>
                 <ul className="list-group">{body.goal.map((item, i) =>
                     <li className="list-item body-item" key={i}>
-                        <span><button className="no-btn text-info">{item.index}</button> : </span>
+                        <span><button className="no-btn text-info" onClick={() => {
+                            const index = parseInt(item.index.substr(1));
+                            jumpToGoal(index);
+                        }}>{item.index}</button> : </span>
                         <Expr jumpToGoal={jumpToGoal}>{item.type}</Expr>
                     </li>
                 )}{body.judgement.map((item, i) =>
