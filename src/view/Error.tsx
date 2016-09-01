@@ -43,7 +43,7 @@ class Error extends React.Component<Props, void> {
                     <Location jumpToLocation={jumpToLocation}>{error.location}</Location><br/>
                     Type mismatch:<br/>
                     expected: <Expr jumpToGoal={jumpToGoal}>{error.expected}</Expr> of type <Expr jumpToGoal={jumpToGoal}>{error.expectedType}</Expr><br/>
-                      actual: <Expr jumpToGoal={jumpToGoal}>{error.actual}</Expr><br/>
+                    <span>  </span>actual: <Expr jumpToGoal={jumpToGoal}>{error.actual}</Expr><br/>
                     when checking the definition of <Expr jumpToGoal={jumpToGoal}>{error.expr}</Expr>
             </p>
             case 'FunctionType': return <p className="error">
@@ -71,6 +71,41 @@ class Error extends React.Component<Props, void> {
                     <Location jumpToLocation={jumpToLocation}>{error.location}</Location><br/>
                     Not in scope: <Expr jumpToGoal={jumpToGoal}>{error.expr}</Expr><br/>
                     <Suggestion jumpToGoal={jumpToGoal}>{error.suggestion}</Suggestion>
+            </p>
+            case 'Parse': return <p className="error">
+                    <Location jumpToLocation={jumpToLocation}>{error.location}</Location><br/>
+                    <span className="text-error">{error.message}</span><br/>
+                    <Expr jumpToGoal={jumpToGoal}>{error.expr}</Expr>
+            </p>
+            case 'PatternMatchOnNonDatatype': return <p className="error">
+                    <Location jumpToLocation={jumpToLocation}>{error.location}</Location><br/>
+                    <Expr jumpToGoal={jumpToGoal}>{error.nonDatatype}</Expr> has type <Expr jumpToGoal={jumpToGoal}>{error.exprType}</Expr><br/>
+                    when checking that the expression <Expr jumpToGoal={jumpToGoal}>{error.expr}</Expr><br/>
+                    has type <Expr jumpToGoal={jumpToGoal}>{error.exprType}</Expr>
+            </p>
+            case 'RHSOmitted': return <p className="error">
+                    <Location jumpToLocation={jumpToLocation}>{error.location}</Location><br/>
+                    The right-hand side can only be omitted if there is an absurd pattern, () or {}, in the left-hand side.<br/>
+                    when checking that the expression <Expr jumpToGoal={jumpToGoal}>{error.expr}</Expr><br/>
+                    has type <Expr jumpToGoal={jumpToGoal}>{error.exprType}</Expr>
+            </p>
+            case 'Termination': return <p className="error">
+                    <Location jumpToLocation={jumpToLocation}>{error.location}</Location><br/>
+                    Termination checking failed for the following functions:<br/>
+                        <Expr jumpToGoal={jumpToGoal}>{error.expr}</Expr><br/>
+                    Problematic calls:<br/>
+                    {error.calls.map((call, i) => <span key={i}>
+                        <Expr jumpToGoal={jumpToGoal}>{call.expr}</Expr><br/>
+                        <Location jumpToLocation={jumpToLocation}>{call.location}</Location>
+                    </span>)}
+            </p>
+            case 'TypeMismatch': return <p className="error">
+                    <Location jumpToLocation={jumpToLocation}>{error.location}</Location><br/>
+                    Type mismatch:<br/>
+                    expected: <Expr jumpToGoal={jumpToGoal}>{error.expected}</Expr><br/>
+                    <span>  </span>actual: <Expr jumpToGoal={jumpToGoal}>{error.actual}</Expr><br/>
+                    when checking that the expression <Expr jumpToGoal={jumpToGoal}>{error.expr}</Expr><br/>
+                    has type <Expr jumpToGoal={jumpToGoal}>{error.exprType}</Expr>
             </p>
             case 'Unparsed': return <p className="error">{error.input}</p>
             default: return <p className="error">{inspect(error, false, null)}</p>
