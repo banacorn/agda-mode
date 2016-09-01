@@ -15,12 +15,10 @@ import Process from './process';
 import TextBuffer from './text-buffer';
 import InputMethod from './input-method';
 import HighlightManager from './highlight-manager';
-import ViewLegacy from './view-legacy';
 import View from './view';
 
 export default class Core {
     private disposables: CompositeDisposable;
-    public viewLegacy: ViewLegacy;
     public process: Process;
     public textBuffer: TextBuffer;
     public inputMethod: InputMethod;
@@ -52,7 +50,6 @@ export default class Core {
         this.disposables        = new CompositeDisposable();
         // view
         this.view               = new View(this);
-        this.viewLegacy         = new ViewLegacy;
         this.process            = new Process(this);
         this.textBuffer         = new TextBuffer(this);
         if (atom.config.get('agda-mode.inputMethod'))

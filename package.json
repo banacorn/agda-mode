@@ -29,8 +29,6 @@
     "react-redux": "^4.4.5",
     "redux": "^3.5.2",
     "redux-actions": "^0.11.0",
-    "semver": "^5.1.1",
-    "vue": "1.0.25-csp",
-    "vue-class-component": "^3.2.0"
+    "semver": "^5.1.1"
   }
 }
