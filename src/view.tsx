@@ -10,18 +10,34 @@ import MiniEditor from './view/MiniEditor';
 import reducer from './view/reducers';
 import { View as V } from './types';
 import { parseContent, parseError} from './parser';
+import { activateView, deactivateView } from './view/actions';
 import { updateHeader, activateMiniEditor, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
 declare var atom: any;
 
 export default class View {
     public store: Redux.Store<V.State>;
     public miniEditor: MiniEditor;
+    public panel: any;
 
     constructor(private core: Core) {
         this.store = createStore(reducer);
-    }
 
-    mount() {
+        // create an anchor element for the view to mount
+        const anchor = document.createElement('agda-view');
+        anchor.id = 'agda-panel';
+        const atomPanel = atom.workspace.addBottomPanel({
+            item: anchor,
+            visible: true,
+            className: 'agda-view'
+        });
+
+
+        this.panel = atom.workspace.addBottomPanel({
+            item: document.createElement('agda-view'),
+            visible: false,
+            className: 'agda-view'
+        });
+
         ReactDOM.render(
             <Provider store={this.store}>
                 <Panel
@@ -33,6 +49,18 @@ export default class View {
             </Provider>,
             document.getElementById('agda-panel')
         )
+    }
+
+    activate() {
+        this.store.dispatch(activateView());
+    }
+
+    deactivate() {
+        this.store.dispatch(deactivateView());
+    }
+
+    destroy() {
+        this.panel.destroy();
     }
 
     set(header: string, payload: string[], type = V.HeaderStyle.PlainText) {

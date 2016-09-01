@@ -93,7 +93,7 @@ export default class Commander {
     //
 
     load(): Promise<CommandResult> {
-        this.core.atomPanel.show();
+        this.core.view.activate();
         return this.core.process.load()
             .then(() => {
                 this.loaded = true;
@@ -102,7 +102,7 @@ export default class Commander {
     }
 
     quit(): Promise<CommandResult> {
-        this.core.atomPanel.hide();
+        this.core.view.deactivate();
         if (this.loaded) {
             this.loaded = false;
             this.core.textBuffer.removeGoals();
@@ -346,7 +346,7 @@ export default class Commander {
     inputSymbol(): Promise<CommandResult> {
         if (atom.config.get("agda-mode.inputMethod")) {
             if (!this.loaded) {
-                this.core.atomPanel.show();
+                this.core.view.activate();
                 this.core.view.set("Not loaded", [], View.HeaderStyle.Warning);
             }
             this.core.inputMethod.activate();

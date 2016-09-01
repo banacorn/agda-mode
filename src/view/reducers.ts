@@ -11,7 +11,7 @@ import { translate } from '../input-method';
 // default state
 const { translation, further, keySuggestions, candidateSymbols } = translate('');
 const defaultState: View.State = {
-    activated: true,
+    activated: false,
     header: {
         text: '',
         style: View.HeaderStyle.PlainText

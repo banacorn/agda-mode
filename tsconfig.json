@@ -72,7 +72,8 @@
         "src/view/InputMethod.tsx",
         "src/view/Location.tsx",
         "src/view/MiniEditor.tsx",
-        "src/view/Panel.tsx"
+        "src/view/Panel.tsx",
+        "src/view/Suggestion.tsx"
     ],
     "atom": {
         "rewriteTsconfig": true

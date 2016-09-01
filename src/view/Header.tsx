@@ -31,7 +31,7 @@ class Header extends React.Component<Props, void> {
     render() {
         const { text, style, inputMethodActivated } = this.props;
         const classes = classNames({
-            hidden: inputMethodActivated
+            hidden: inputMethodActivated || _.isEmpty(text)
         }, `text-${toHeaderStyle(style)}`)
         return (
             <h1 className={classes}>{text}</h1>
