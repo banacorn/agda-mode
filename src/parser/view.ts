@@ -56,6 +56,7 @@ function concatItems(lines: string[]): string[] {
         const nextLineIsNewLine = notTheLastLine ? newlineRegex.test(lines[i + 1]) : false;
         const thisLineAndNextLineIsNewLine = newlineRegex.test(preemptLine);
 
+        // console.log(`[${line}]`)
         // console.log(`Line: ${thisLineIsNewLine} ${newlineRegex.test(preemptLine)} ${nextLineIsNewLine} [${line}]`)
         if (thisLineIsNewLine || (thisLineAndNextLineIsNewLine && !nextLineIsNewLine)) {
             currentLine = i;

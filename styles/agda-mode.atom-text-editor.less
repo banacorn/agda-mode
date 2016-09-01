@@ -103,10 +103,9 @@
             // margin: 10px 0;
             // border-bottom: 1px solid @pane-item-border-color;
 
-            span, button {
-                white-space: pre;       // preserves whitespaces
-                vertical-align: top;
-            }
+            white-space: pre;       // preserves whitespaces
+
+            display: flex;
 
             // prevents parent <li> from collapsing
             &:after {
@@ -133,19 +132,16 @@
                 }
             }
 
-            //         span, button {
-            //             white-space: pre;       // preserves whitespaces
-            //             vertical-align: top;
-            //         }
-            //
+            .item-heading {
+                align-self: flex-start;
+            }
 
+            .item-body {
+                flex-grow: 100;
+            }
         }
         li.banner-item {
             background: @base-background-color;
-            // white-space:pre-line;
-            // span {  // cancel out Emacs' layout for Goal & Have
-            //     white-space:pre-line;
-            // }
 
         }
 

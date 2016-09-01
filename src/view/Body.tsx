@@ -51,32 +51,53 @@ class Body extends React.Component<Props, void> {
                 )}</ul>
                 <ul className="list-group">{body.goal.map((item, i) =>
                     <li className="list-item body-item" key={i}>
-                        <span><button className="no-btn text-info" onClick={() => {
-                            const index = parseInt(item.index.substr(1));
-                            jumpToGoal(index);
-                        }}>{item.index}</button> : </span>
-                        <Expr jumpToGoal={jumpToGoal}>{item.type}</Expr>
+                        <div className="item-heading">
+                            <button className="no-btn text-info" onClick={() => {
+                                const index = parseInt(item.index.substr(1));
+                                jumpToGoal(index);
+                            }}>{item.index}</button>
+                            <span> : </span>
+                        </div>
+                        <div className="item-body">
+                            <Expr jumpToGoal={jumpToGoal}>{item.type}</Expr>
+                        </div>
                     </li>
                 )}{body.judgement.map((item, i) =>
                     <li className="list-item body-item" key={i}>
-                        <span><span className="text-success">{item.expr}</span> : </span>
-                        <Expr jumpToGoal={jumpToGoal}>{item.type}</Expr>
+                        <div className="item-heading">
+                            <span className="text-success">{item.expr}</span>
+                            <span> : </span>
+                        </div>
+                        <div className="item-body">
+                            <Expr jumpToGoal={jumpToGoal}>{item.type}</Expr>
+                        </div>
                     </li>
                 )}{body.term.map((item, i) =>
                     <li className="list-item body-item" key={i}>
-                        <Expr jumpToGoal={jumpToGoal}>{item.expr}</Expr>
+                        <div className="item-body">
+                            <Expr jumpToGoal={jumpToGoal}>{item.expr}</Expr>
+                        </div>
                     </li>
                 )}{body.meta.map((item, i) =>
                     <li className="list-item body-item" key={i}>
-                        <span><span className="text-success">{item.index}</span> : </span>
-                        <Expr jumpToGoal={jumpToGoal}>{item.type}</Expr>
-                        <Location jumpToLocation={jumpToLocation}>{item.location}</Location>
+                        <div className="item-heading">
+                            <span className="text-success">{item.index}</span>
+                            <span> : </span>
+                        </div>
+                        <div className="item-body">
+                            <Expr jumpToGoal={jumpToGoal}>{item.type}</Expr>
+                            <Location jumpToLocation={jumpToLocation}>{item.location}</Location>
+                        </div>
                     </li>
                 )}{body.sort.map((item, i) =>
                     <li className="list-item body-item" key={i}>
-                        <span className="text-highlight">Sort </span>
-                        <span className="text-warning">{item.index}</span>
-                        <Location jumpToLocation={jumpToLocation}>{item.location}</Location>
+                        <div className="item-heading">
+                            <span className="text-highlight">Sort </span>
+                            <span className="text-warning">{item.index}</span>
+                        </div>
+                        <div className="item-body">
+                            <Location jumpToLocation={jumpToLocation}>{item.location}</Location>
+                        </div>
                     </li>
                 )}</ul>
                 {error ? <Error className="error">{error}</Error> : null}
