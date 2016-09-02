@@ -32,8 +32,8 @@ const mapDispatchToProps = (dispatch: any) => ({
 
 class Body extends React.Component<Props, void> {
     componentDidMount() {
-        atom.config.observe('agda-mode.maxBodyHeight', (newCount) => {
-            this.props.onMaxBodyHeightChange(newCount);
+        atom.config.observe('agda-mode.maxBodyHeight', (newHeight) => {
+            this.props.onMaxBodyHeightChange(newHeight - this.props.maxBodyHeight);
         })
     }
 

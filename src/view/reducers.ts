@@ -109,7 +109,7 @@ const body = handleActions<View.BodyState, BODY>({
         plainText: action.payload
     }),
     [BODY.UPDATE_MAX_BODY_HEIGHT]: (state: View.BodyState, action: Action<BODY.UPDATE_MAX_BODY_HEIGHT>) => _.assign({}, state, {
-        maxBodyHeight: action.payload
+        maxBodyHeight: state.maxBodyHeight + action.payload
     })
 }, defaultState.body);
 

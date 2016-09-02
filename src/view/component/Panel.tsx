@@ -11,7 +11,7 @@ import Body from './Body';
 import SizingHandle from './SizingHandle';
 import { View, Location } from '../../types';
 import MiniEditor from './MiniEditor';
-import { deactivateMiniEditor } from './../actions';
+import { deactivateMiniEditor, updateMaxBodyHeight } from './../actions';
 
 interface Props extends View.State {
     core: Core;
@@ -20,6 +20,7 @@ interface Props extends View.State {
     deactivateMiniEditor: () => void;
     jumpToGoal: (index: number) => void;
     jumpToLocation: (loc: Location) => void;
+    onResize: (offset: number) => void;
 }
 
 const mapStateToProps = (state : View.State) => state
@@ -27,12 +28,15 @@ const mapStateToProps = (state : View.State) => state
 const mapDispatchToProps = (dispatch: any) => ({
     deactivateMiniEditor: () => {
         dispatch(deactivateMiniEditor());
+    },
+    onResize: (offset: number) => {
+        dispatch(updateMaxBodyHeight(offset));
     }
 })
 
 class Panel extends React.Component<Props, void> {
     render() {
-        const { core, onMiniEditorMount, jumpToGoal, jumpToLocation } = this.props;
+        const { core, onMiniEditorMount, jumpToGoal, jumpToLocation, onResize } = this.props;
         const hideEverything = classNames({'hidden': !this.props.activated});
         const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
         const hideBody = classNames({'hidden': this.props.miniEditor.activate});
@@ -41,7 +45,7 @@ class Panel extends React.Component<Props, void> {
                 <header id="agda-header" className="panel-heading">
                     <SizingHandle
                         onResize={(offset) => {
-                            // console.log(offset)
+                            onResize(-offset)
                         }}
                     />
                     <InputMethod
