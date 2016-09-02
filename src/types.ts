@@ -177,7 +177,7 @@ namespace View {
         candidateSymbols: string[];
     }
 
-    export const enum HeaderStyle {
+    export const enum Style {
         PlainText,
         Error,
         Warning,
@@ -187,7 +187,7 @@ namespace View {
 
     export interface HeaderState {
         text: string;
-        style: HeaderStyle;
+        style: Style;
     }
 
     export interface BodyState {

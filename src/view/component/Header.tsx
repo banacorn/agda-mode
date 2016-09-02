@@ -4,13 +4,13 @@ import * as classNames from 'classnames';
 
 import { View } from '../../types';
 
-function toHeaderStyle(type: View.HeaderStyle): string {
+function toStyle(type: View.Style): string {
     switch (type) {
-        case View.HeaderStyle.Error:     return 'error';
-        case View.HeaderStyle.Warning:   return 'warning';
-        case View.HeaderStyle.Judgement: return 'info';
-        case View.HeaderStyle.Value:     return 'success';
-        case View.HeaderStyle.PlainText: return 'plain-text';
+        case View.Style.Error:     return 'error';
+        case View.Style.Warning:   return 'warning';
+        case View.Style.Judgement: return 'info';
+        case View.Style.Value:     return 'success';
+        case View.Style.PlainText: return 'plain-text';
         default:                  return '';
     }
 }
@@ -32,7 +32,7 @@ class Header extends React.Component<Props, void> {
         const { text, style, inputMethodActivated } = this.props;
         const classes = classNames({
             hidden: inputMethodActivated || _.isEmpty(text)
-        }, `text-${toHeaderStyle(style)}`)
+        }, `text-${toStyle(style)}`)
         return (
             <h1 className={classes}>{text}</h1>
         )

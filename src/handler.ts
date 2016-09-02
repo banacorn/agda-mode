@@ -89,16 +89,16 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
             if (action.content.length === 0)
                 core.view.set('No Goals', []);
             else
-                core.view.set('Goals', action.content, View.HeaderStyle.Judgement);
+                core.view.set('Goals', action.content, View.Style.Judgement);
             break;
         case 'Error':
-            core.view.set('Error', action.content, View.HeaderStyle.Error);
+            core.view.set('Error', action.content, View.Style.Error);
             break;
         case 'TypeChecking':
             core.view.set('Type Checking', action.content);
             break;
         case 'CurrentGoal':
-            core.view.set('Current Goal', action.content, View.HeaderStyle.Value);
+            core.view.set('Current Goal', action.content, View.Style.Value);
             break;
         case 'InferredType':
             core.view.set('Inferred Type', action.content);
@@ -107,13 +107,13 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
             core.view.set('Module Contents', action.content);
             break;
         case 'Context':
-            core.view.set('Context', action.content, View.HeaderStyle.Judgement);
+            core.view.set('Context', action.content, View.Style.Judgement);
             break;
         case 'GoalTypeEtc':
-            core.view.set('Goal Type and Context', action.content, View.HeaderStyle.Judgement);
+            core.view.set('Goal Type and Context', action.content, View.Style.Judgement);
             break;
         case 'NormalForm':
-            core.view.set('Normal Form', action.content, View.HeaderStyle.Value);
+            core.view.set('Normal Form', action.content, View.Style.Value);
             break;
         case 'Intro':
             core.view.set('Intro', ['No introduction forms found']);
@@ -122,7 +122,7 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
             core.view.set('Auto', ['No solution found']);
             break;
         case 'Constraints':
-            core.view.set('Constraints', action.content, View.HeaderStyle.Judgement);
+            core.view.set('Constraints', action.content, View.Style.Judgement);
             break;
         case 'ScopeInfo':
             core.view.set('Scope Info', action.content);

@@ -69,13 +69,13 @@ export default class View {
         this.panel.destroy();
     }
 
-    set(header: string, payload: string[], type = V.HeaderStyle.PlainText) {
+    set(header: string, payload: string[], type = V.Style.PlainText) {
         this.store.dispatch(updateHeader({
             text: header,
             style: type
         }));
 
-        if (type === V.HeaderStyle.Judgement || type === V.HeaderStyle.Value) {
+        if (type === V.Style.Judgement || type === V.Style.Value) {
             const { banner, body } = parseContent(payload);
             const grouped = _.groupBy(body, 'judgementForm');
             this.store.dispatch(updateBanner(banner));
@@ -86,7 +86,7 @@ export default class View {
                 meta: (grouped['meta'] || []) as V.Meta[],
                 sort: (grouped['sort'] || []) as V.Sort[]
             }));
-        } else if (type === V.HeaderStyle.Error) {
+        } else if (type === V.Style.Error) {
             const error = parseError(payload.join('\n'));
             this.store.dispatch(updateError(error));
         } else {
@@ -94,7 +94,7 @@ export default class View {
         }
     }
 
-    query(header: string, message: string[], type: V.HeaderStyle, placeholder: string): Promise<string> {
+    query(header: string, message: string[], type: V.Style, placeholder: string): Promise<string> {
         this.store.dispatch(activateMiniEditor(placeholder));
         this.store.dispatch(updateHeader({
             text: header,

@@ -82,7 +82,7 @@ export default class Process {
     queryExecutablePathUntilSuccess(error: AutoExecPathSearchError | InvalidExecutablePathError | ProcExecError): Promise<string> {
         let name: string;
         let message: string[];
-        let type: View.HeaderStyle;
+        let type: View.Style;
         let placeholder: string;
 
         if (error instanceof AutoExecPathSearchError) {
@@ -90,17 +90,17 @@ export default class Process {
             message = [
                 `searching for: \"${ error.programName }\" in the environment`
             ].concat(_.compact(error.message.split('\n')));
-            type = View.HeaderStyle.Warning;
+            type = View.Style.Warning;
             placeholder = 'please enter the path by manual or change the settings again';
         } else if (error instanceof ProcExecError) {
             name = `Process execution error`;
             message = error.message.split('\n');
-            type = View.HeaderStyle.Warning;
+            type = View.Style.Warning;
             placeholder = 'please enter the path by manual or change the settings again';
         } else if (error instanceof InvalidExecutablePathError) {
             name = `Invalid executable path`;
             message = [`Path: ${error.path}`].concat(error.message.split('\n'));
-            type = View.HeaderStyle.Error;
+            type = View.Style.Error;
             placeholder = 'try another path';
         }
 
@@ -203,7 +203,7 @@ export default class Process {
                                     // show some message
                                     this.core.view.set('Agda Parse Error',
                                         [`Message from agda:`].concat(data.toString()),
-                                        View.HeaderStyle.Error);
+                                        View.Style.Error);
                                 }
                             })
                     });
@@ -271,7 +271,7 @@ export default class Process {
                     `Arguments passed to Agda: \"${args.join(' ')}\"`,
                     `Message from agda:`
                 ].concat(error.message),
-                View.HeaderStyle.Error
+                View.Style.Error
             );
         });
     }
@@ -291,7 +291,7 @@ export default class Process {
             `Agda version: ${agdaVersion}`,
             `Agda executable path: ${path}`,
             `Agda executable arguments: ${args.join(' ')}`
-        ], View.HeaderStyle.PlainText);
+        ], View.Style.PlainText);
 
         return Promise.resolve();
     }

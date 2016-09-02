@@ -14,7 +14,7 @@ const defaultState: View.State = {
     activated: false,
     header: {
         text: '',
-        style: View.HeaderStyle.PlainText
+        style: View.Style.PlainText
     },
     inputMethod: {
         activated: false,
