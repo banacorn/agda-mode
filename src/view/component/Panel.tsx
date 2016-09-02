@@ -8,6 +8,7 @@ import Core from '../../core';
 import InputMethod from './InputMethod';
 import Header from './Header';
 import Body from './Body';
+import SizingHandle from './SizingHandle';
 import { View, Location } from '../../types';
 import MiniEditor from './MiniEditor';
 import { deactivateMiniEditor } from './../actions';
@@ -38,6 +39,11 @@ class Panel extends React.Component<Props, void> {
         return (
             <section className={hideEverything}>
                 <header id="agda-header" className="panel-heading">
+                    <SizingHandle
+                        onResize={(offset) => {
+                            // console.log(offset)
+                        }}
+                    />
                     <InputMethod
                         updateTranslation={(c) => core.inputMethod.replaceBuffer(c)}
                         insertCharacter={(c) => {
