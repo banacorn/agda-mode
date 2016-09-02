@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as Promise from 'bluebird';
 
-import { View, Location as Loc } from '../types';
+import { View, Location as Loc } from '../../types';
 
 interface Props {
     jumpToLocation: (loc: Loc) => void;

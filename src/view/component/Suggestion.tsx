@@ -3,7 +3,7 @@ import * as React from 'react';
 import * as Promise from 'bluebird';
 // import * as classNames from 'classnames';
 
-import { View } from '../types';
+import { View } from '../../types';
 import Expr from './Expr';
 
 interface Props extends React.HTMLAttributes {

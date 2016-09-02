@@ -2,8 +2,8 @@ import * as React from 'react';
 import * as Promise from 'bluebird';
 import { EventEmitter } from 'events';
 
-import { parseInputContent } from '../parser';
-import { QueryCancelledError } from '../error';
+import { parseInputContent } from '../../parser';
+import { QueryCancelledError } from '../../error';
 
 // Atom shits
 type CompositeDisposable = any;

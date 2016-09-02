@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as Promise from 'bluebird';
 // import * as classNames from 'classnames';
 
-import { View } from '../types';
+import { View } from '../../types';
 
 interface TermProps extends React.HTMLAttributes {
     kind: 'unmarked' | 'goal' | 'meta' | 'sort';

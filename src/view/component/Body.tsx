@@ -5,8 +5,8 @@ import * as classNames from 'classnames';
 
 declare var atom: any;
 
-import { View, Error as E, Location as Loc } from '../types';
-import { updateMaxItemCount } from './actions';
+import { View, Error as E, Location as Loc } from '../../types';
+import { updateMaxItemCount } from '../actions';
 import Expr from './Expr';
 import Error from './Error';
 import Location from './Location';

@@ -54,16 +54,16 @@
         "typings/index.d.ts",
         "typings/modules/bluebird/index.d.ts",
         "src/view.tsx",
-        "src/view/Body.tsx",
-        "src/view/CandidateSymbols.tsx",
-        "src/view/Error.tsx",
-        "src/view/Expr.tsx",
-        "src/view/Header.tsx",
-        "src/view/InputMethod.tsx",
-        "src/view/Location.tsx",
-        "src/view/MiniEditor.tsx",
-        "src/view/Panel.tsx",
-        "src/view/Suggestion.tsx"
+        "src/view/component/Body.tsx",
+        "src/view/component/CandidateSymbols.tsx",
+        "src/view/component/Error.tsx",
+        "src/view/component/Expr.tsx",
+        "src/view/component/Header.tsx",
+        "src/view/component/InputMethod.tsx",
+        "src/view/component/Location.tsx",
+        "src/view/component/MiniEditor.tsx",
+        "src/view/component/Panel.tsx",
+        "src/view/component/Suggestion.tsx"
     ],
     "atom": {
         "rewriteTsconfig": true

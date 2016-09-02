@@ -5,8 +5,8 @@ import { Provider, connect } from 'react-redux';
 import { createStore } from 'redux';
 
 import Core from './core';
-import Panel from './view/Panel';
-import MiniEditor from './view/MiniEditor';
+import Panel from './view/component/Panel';
+import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
 import { View as V } from './types';
 import { parseContent, parseError} from './parser';

@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as Promise from 'bluebird';
 import { inspect } from 'util';
 
-import { View, Error as E, Location as Loc } from '../types';
+import { View, Error as E, Location as Loc } from '../../types';
 
 import Expr from './Expr';
 import Location from './Location';
