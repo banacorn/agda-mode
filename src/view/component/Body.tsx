@@ -6,7 +6,7 @@ import * as classNames from 'classnames';
 declare var atom: any;
 
 import { View, Error as E, Location as Loc } from '../../types';
-import { updateMaxItemCount } from '../actions';
+import { updateMaxBodyHeight } from '../actions';
 import Expr from './Expr';
 import Error from './Error';
 import Location from './Location';
@@ -17,33 +17,33 @@ interface Props extends React.HTMLAttributes {
     body: View.Body;
     error: E;
     plainText: string;
-    maxItemCount: number;
-    onMaxItemCountChange: (count: number) => void;
+    maxBodyHeight: number;
+    onMaxBodyHeightChange: (count: number) => void;
     jumpToGoal: (index: number) => void;
     jumpToLocation: (loc: Loc) => void;
 }
 
 const mapStateToProps = (state: View.State) => state.body
 const mapDispatchToProps = (dispatch: any) => ({
-    onMaxItemCountChange: (count: number) => {
-        dispatch(updateMaxItemCount(count));
+    onMaxBodyHeightChange: (count: number) => {
+        dispatch(updateMaxBodyHeight(count));
     }
 })
 
 class Body extends React.Component<Props, void> {
     componentDidMount() {
-        atom.config.observe('agda-mode.maxItemCount', (newCount) => {
-            this.props.onMaxItemCountChange(newCount);
+        atom.config.observe('agda-mode.maxBodyHeight', (newCount) => {
+            this.props.onMaxBodyHeightChange(newCount);
         })
     }
 
     render() {
-        const { banner, body, error, plainText, maxItemCount } = this.props;
+        const { banner, body, error, plainText, maxBodyHeight } = this.props;
         const { jumpToGoal, jumpToLocation } = this.props;
-        const otherProps = _.omit(this.props, ['banner', 'body', 'error', 'plainText', 'maxItemCount', 'jumpToGoal', 'jumpToLocation', 'onMaxItemCountChange']);
+        const otherProps = _.omit(this.props, ['banner', 'body', 'error', 'plainText', 'maxBodyHeight', 'jumpToGoal', 'jumpToLocation', 'onMaxBodyHeightChange']);
         const classes = classNames(this.props.className, `native-key-bindings`);
         const style = {
-            maxHeight: `${maxItemCount * 40 + 10}px`
+            maxHeight: `${maxBodyHeight}px`
         }
         return (
             <section

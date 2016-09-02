@@ -178,13 +178,13 @@ const config = {
         'enum': ['Indirect', 'Direct'],
         order: 6
     },
-    maxItemCount: {
-        title: 'Max item count',
-        description: 'Decides how many rows will be displayed in the panel at a time',
+    maxBodyHeight: {
+        title: 'Max panel size',
+        description: 'The max height the panel could strech',
         type: 'integer',
-        default: 5,
-        minimum: 1,
-        maximum: 20,
+        default: 170,
+        minimum: 40,
+        maximum: 1010,
         order: 7
     },
     inputMethod: {

@@ -56,7 +56,7 @@ export namespace MINI_EDITOR {
 export const activateMiniEditor = createAction(MINI_EDITOR.ACTIVATE);
 export const deactivateMiniEditor = createAction(MINI_EDITOR.DEACTIVATE);
 
-export type BODY = BODY.UPDATE_BANNER | BODY.UPDATE_BODY | BODY.UPDATE_ERROR | BODY.UPDATE_PLAIN_TEXT | BODY.UPDATE_MAX_ITEM_COUNT;
+export type BODY = BODY.UPDATE_BANNER | BODY.UPDATE_BODY | BODY.UPDATE_ERROR | BODY.UPDATE_PLAIN_TEXT | BODY.UPDATE_MAX_BODY_HEIGHT;
 export namespace BODY {
     export const UPDATE_BANNER = 'BODY.UPDATE_BANNER';
     export type UPDATE_BANNER = View.BannerItem[];
@@ -66,12 +66,12 @@ export namespace BODY {
     export type UPDATE_ERROR = Error;
     export const UPDATE_PLAIN_TEXT = 'BODY.UPDATE_PLAIN_TEXT';
     export type UPDATE_PLAIN_TEXT = string;
-    export const UPDATE_MAX_ITEM_COUNT = 'BODY.UPDATE_MAX_ITEM_COUNT';
-    export type UPDATE_MAX_ITEM_COUNT = number;
+    export const UPDATE_MAX_BODY_HEIGHT = 'BODY.UPDATE_MAX_BODY_HEIGHT';
+    export type UPDATE_MAX_BODY_HEIGHT = number;
 }
 
 export const updateBanner = createAction<BODY.UPDATE_BANNER, BODY.UPDATE_BANNER>(BODY.UPDATE_BANNER);
 export const updateBody = createAction<BODY.UPDATE_BODY, BODY.UPDATE_BODY>(BODY.UPDATE_BODY);
 export const updateError = createAction<BODY.UPDATE_ERROR, BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
 export const updatePlainText = createAction<BODY.UPDATE_PLAIN_TEXT, BODY.UPDATE_PLAIN_TEXT>(BODY.UPDATE_PLAIN_TEXT);
-export const updateMaxItemCount = createAction<BODY.UPDATE_MAX_ITEM_COUNT, BODY.UPDATE_MAX_ITEM_COUNT>(BODY.UPDATE_MAX_ITEM_COUNT);
+export const updateMaxBodyHeight = createAction<BODY.UPDATE_MAX_BODY_HEIGHT, BODY.UPDATE_MAX_BODY_HEIGHT>(BODY.UPDATE_MAX_BODY_HEIGHT);

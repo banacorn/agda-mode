@@ -36,7 +36,7 @@ const defaultState: View.State = {
         },
         error: null,
         plainText: '',
-        maxItemCount: atom.config.get('agda-mode.maxItemCount')
+        maxBodyHeight: atom.config.get('agda-mode.maxBodyHeight')
     }
 };
 
@@ -108,8 +108,8 @@ const body = handleActions<View.BodyState, BODY>({
         error: null,
         plainText: action.payload
     }),
-    [BODY.UPDATE_MAX_ITEM_COUNT]: (state: View.BodyState, action: Action<BODY.UPDATE_MAX_ITEM_COUNT>) => _.assign({}, state, {
-        maxItemCount: action.payload
+    [BODY.UPDATE_MAX_BODY_HEIGHT]: (state: View.BodyState, action: Action<BODY.UPDATE_MAX_BODY_HEIGHT>) => _.assign({}, state, {
+        maxBodyHeight: action.payload
     })
 }, defaultState.body);
 
