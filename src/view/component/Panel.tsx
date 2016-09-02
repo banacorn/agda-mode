@@ -47,6 +47,9 @@ class Panel extends React.Component<Props, void> {
                         onResize={(offset) => {
                             onResize(-offset)
                         }}
+                        onResizeEnd={() => {
+                            atom.config.set('agda-mode.maxBodyHeight', this.props.body.maxBodyHeight);
+                        }}
                     />
                     <InputMethod
                         updateTranslation={(c) => core.inputMethod.replaceBuffer(c)}
