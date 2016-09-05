@@ -1,11 +1,21 @@
 import * as React from 'react';
 import * as Promise from 'bluebird';
+import { connect } from 'react-redux';
 
 import { View, Location as Loc } from '../../types';
+import { jumpToLocation } from '../actions';
 
 interface Props {
     jumpToLocation: (loc: Loc) => void;
 }
+
+const mapDispatchToProps = (dispatch: any) => ({
+    jumpToLocation: (loc: Loc) => {
+        dispatch(jumpToLocation(loc));
+    }
+})
+
+
 
 class Location extends React.Component<Props, void> {
     render() {
@@ -31,4 +41,7 @@ class Location extends React.Component<Props, void> {
     }
 }
 
-export default Location;
+export default connect<any, any, any>(
+    null,
+    mapDispatchToProps
+)(Location);

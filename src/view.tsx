@@ -8,7 +8,7 @@ import Core from './core';
 import Panel from './view/component/Panel';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
-import { View as V } from './types';
+import { View as V, Location } from './types';
 import { EVENT, jumpToGoal } from "./view/actions";
 import { parseContent, parseError} from './parser';
 import { activateView, deactivateView } from './view/actions';
@@ -43,6 +43,9 @@ export default class View {
         emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
             this.core.textBuffer.jumpToGoal(index);
         });
+        emitter.on(EVENT.JUMP_TO_LOCATION, (loc: Location) => {
+            this.core.textBuffer.jumpToLocation(loc);
+        });
 
         ReactDOM.render(
             <Provider store={this.store}>
@@ -50,9 +53,6 @@ export default class View {
                     core={this.core}
                     onMiniEditorMount={(editor) => {
                         this.miniEditor = editor;
-                    }}
-                    jumpToLocation={(location) => {
-                        this.core.textBuffer.jumpToLocation(location);
                     }}
                 />
             </Provider>,

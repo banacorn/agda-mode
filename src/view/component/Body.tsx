@@ -6,7 +6,7 @@ import * as classNames from 'classnames';
 declare var atom: any;
 
 import { View, Error as E, Location as Loc } from '../../types';
-import { updateMaxBodyHeight, jumpToGoal } from '../actions';
+import { updateMaxBodyHeight, jumpToGoal, jumpToLocation } from '../actions';
 import Expr from './Expr';
 import Error from './Error';
 import Location from './Location';
@@ -30,6 +30,9 @@ const mapDispatchToProps = (dispatch: any) => ({
     },
     jumpToGoal: (index: number) => {
         dispatch(jumpToGoal(index));
+    },
+    jumpToLocation: (loc: Loc) => {
+        dispatch(jumpToLocation(loc));
     }
 })
 
@@ -99,7 +102,7 @@ class Body extends React.Component<Props, void> {
                         </div>
                         <div className="item-body">
                             <Expr>{item.type}</Expr>
-                            <Location jumpToLocation={jumpToLocation}>{item.location}</Location>
+                            <Location>{item.location}</Location>
                         </div>
                     </li>
                 )}{body.sort.map((item, i) =>
@@ -109,13 +112,11 @@ class Body extends React.Component<Props, void> {
                             <span className="text-warning">{item.index}</span>
                         </div>
                         <div className="item-body">
-                            <Location jumpToLocation={jumpToLocation}>{item.location}</Location>
+                            <Location>{item.location}</Location>
                         </div>
                     </li>
                 )}</ul>
-                {error ? <Error
-                        jumpToLocation={jumpToLocation}
-                    >{error}</Error> : null}
+                {error ? <Error>{error}</Error> : null}
                 {plainText ? <p>{plainText}</p> : null}
             </section>
         )

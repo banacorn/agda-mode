@@ -1,10 +1,9 @@
 import * as React from 'react';
 import * as Promise from 'bluebird';
 import { connect } from 'react-redux';
-// import * as classNames from 'classnames';
 
 import { View } from '../../types';
-import { jumpToGoal, jumpToLocation } from '../actions';
+import { jumpToGoal } from '../actions';
 
 interface TermProps extends React.HTMLAttributes {
     kind: 'unmarked' | 'goal' | 'meta' | 'sort';
