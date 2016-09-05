@@ -1,16 +1,17 @@
 import * as _ from 'lodash';
 import { combineReducers } from 'redux';
 import { createAction, handleActions, Action } from 'redux-actions';
-
+import { EventEmitter } from 'events'
 declare var atom: any;
 
 import { View } from '../types';
-import { VIEW, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
+import { EVENT, VIEW, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
 import { translate } from '../input-method';
 
 // default state
 const { translation, further, keySuggestions, candidateSymbols } = translate('');
 const defaultState: View.State = {
+    emitter: new EventEmitter,
     activated: false,
     header: {
         text: '',
@@ -40,6 +41,16 @@ const defaultState: View.State = {
     }
 };
 
+const emitter = handleActions<EventEmitter, EVENT>({
+    [EVENT.JUMP_TO_GOAL]: (state: EventEmitter, action: Action<EVENT.JUMP_TO_GOAL>) => {
+        this.state.emit(EVENT.JUMP_TO_GOAL, action.payload);
+        return state;
+    },
+    [EVENT.JUMP_TO_LOCATION]: (state: EventEmitter, action: Action<EVENT.JUMP_TO_LOCATION>) => {
+        this.state.emit(EVENT.JUMP_TO_LOCATION, action.payload);
+        return state;
+    }
+}, defaultState.emitter);
 
 const activated = handleActions<boolean, VIEW>({
     [VIEW.ACTIVATE]: (state: boolean, action: Action<VIEW.ACTIVATE>) => true,
@@ -116,6 +127,7 @@ const body = handleActions<View.BodyState, BODY>({
 
 // export default reducer;
 export default combineReducers<View.State>({
+    emitter,
     activated,
     header,
     inputMethod,

@@ -1,6 +1,19 @@
 import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
-import { View, Error } from '../types';
+import { View, Error, Location } from '../types';
+
+export type EVENT =
+    EVENT.JUMP_TO_GOAL |
+    EVENT.JUMP_TO_LOCATION;
+export namespace EVENT {
+    export const JUMP_TO_GOAL = 'EVENT.JUMP_TO_GOAL';
+    export type JUMP_TO_GOAL = number;
+    export const JUMP_TO_LOCATION = 'EVENT.JUMP_TO_LOCATION';
+    export type JUMP_TO_LOCATION = Location;
+}
+
+export const jumpToGoal = createAction(EVENT.JUMP_TO_GOAL);
+export const jumpToLocation = createAction(EVENT.JUMP_TO_LOCATION);
 
 export type VIEW =
     VIEW.ACTIVATE |

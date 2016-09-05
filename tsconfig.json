@@ -63,6 +63,7 @@
         "src/view/component/Location.tsx",
         "src/view/component/MiniEditor.tsx",
         "src/view/component/Panel.tsx",
+        "src/view/component/SizingHandle.tsx",
         "src/view/component/Suggestion.tsx"
     ],
     "atom": {

@@ -161,6 +161,7 @@ type CommandResult = {
 namespace View {
 
     export interface State {
+        emitter: EventEmitter;
         activated: boolean;
         header: HeaderState;
         inputMethod: InputMethodState;
