@@ -13,16 +13,30 @@
     // see #14: https://github.com/banacorn/agda-mode/issues/14
     z-index: 4;
 
+    @sizingHandleHeight: 5px;
+    @headerHeight: 50px;
+
+    // <SizingHandle>
+    #agda-sizing-handle-anchor {
+        position: relative;
+        height: 0px;
+        width: 100%;
+        #agda-sizing-handle {
+            height: @sizingHandleHeight;
+            width: 100%;
+            position: absolute;
+            cursor: row-resize;
+        }
+    }
+
     // <Header>
     #agda-header {
-        @height: 50px;
         padding: 0 @component-padding;
 
         h1 {
-            height: @height;
-            line-height: @height;
+            height: @headerHeight;
+            line-height: @headerHeight;
             font-size: 150%;
-            line-height: @height;
             margin: 0;
         }
     }
@@ -31,9 +45,8 @@
     #agda-input-method {
         @button-height: 20px;
 
-        height: 50px;
-        line-height: 50px;
-
+        height: @headerHeight;
+        line-height: @headerHeight;
 
         display: flex;
         align-items: center;
@@ -81,6 +94,7 @@
             }
         }
     }
+
 
     // <MiniEditor>
     #agda-mini-editor {
