@@ -185,7 +185,7 @@ export default class Commander {
             .then((goal) => {
                 // goal-specific
                 if (goal.isEmpty()) {
-                    return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.Value, "expression to infer:")
+                    return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, "expression to infer:")
                         .then(this.core.process.inferType(normalization, goal))
                         .then(resolveCommand("InferType"));
                 } else {
@@ -195,7 +195,7 @@ export default class Commander {
             })
             .catch(() => {
                 // global command
-                return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.Value, "expression to infer:")
+                return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, "expression to infer:")
                     .then(this.core.process.inferType(normalization))
                     .then(resolveCommand("InferType"));
             })
@@ -219,14 +219,14 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query(`Compute normal form`, [], View.Style.Value, "expression to normalize:")
+                    return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, "expression to normalize:")
                         .then(this.core.process.computeNormalForm(goal))
                 } else {
                     return this.core.process.computeNormalForm(goal)(goal.getContent())
                 }
             })
             .catch(OutOfGoalError, () => {
-                return this.core.view.query(`Compute normal form`, [], View.Style.Value, "expression to normalize:")
+                return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, "expression to normalize:")
                     .then(this.core.process.computeNormalForm())
             })
             .then(resolveCommand("ComputeNormalForm"));
@@ -238,14 +238,14 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Style.Value, "expression to normalize:")
+                    return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Style.PlainText, "expression to normalize:")
                         .then(this.core.process.computeNormalFormIgnoreAbstract(goal))
                 } else {
                     return this.core.process.computeNormalFormIgnoreAbstract(goal)(goal.getContent())
                 }
             })
             .catch(OutOfGoalError, () => {
-                return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Style.Value, "expression to normalize:")
+                return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Style.PlainText, "expression to normalize:")
                     .then(this.core.process.computeNormalFormIgnoreAbstract())
             })
             .then(resolveCommand("ComputeNormalFormIgnoreAbstract"));
@@ -353,7 +353,7 @@ export default class Commander {
         if (atom.config.get("agda-mode.inputMethod") && !shouldNotActivate) {
             if (!this.loaded) {
                 this.core.view.activate();
-                this.core.view.set("Not loaded", [], View.Style.Warning);
+                this.core.view.set("Not loaded", [], View.Style.PlainText);
             }
             this.core.inputMethod.activate();
         } else {

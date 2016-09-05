@@ -8,8 +8,8 @@ function toStyle(type: View.Style): string {
     switch (type) {
         case View.Style.Error:     return 'error';
         case View.Style.Warning:   return 'warning';
-        case View.Style.Judgement: return 'info';
-        case View.Style.Value:     return 'success';
+        case View.Style.Info:      return 'info';
+        case View.Style.Success:   return 'success';
         case View.Style.PlainText: return 'plain-text';
         default:                  return '';
     }

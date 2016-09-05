@@ -78,7 +78,7 @@ export default class View {
             style: type
         }));
 
-        if (type === V.Style.Judgement || type === V.Style.Value) {
+        if (type === V.Style.Info || type === V.Style.Success) {
             const { banner, body } = parseContent(payload);
             const grouped = _.groupBy(body, 'judgementForm');
             this.store.dispatch(updateBanner(banner));
@@ -97,7 +97,7 @@ export default class View {
         }
     }
 
-    query(header: string, message: string[], type: V.Style, placeholder: string, inputMethodOn = true): Promise<string> {
+    query(header: string = '', message: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {
         this.store.dispatch(enableInMiniEditor(inputMethodOn));
         this.store.dispatch(activateMiniEditor(placeholder));
         this.store.dispatch(updateHeader({

@@ -181,10 +181,10 @@ namespace View {
 
     export const enum Style {
         PlainText,
+        Info,
+        Success,
         Error,
-        Warning,
-        Judgement,
-        Value
+        Warning
     }
 
     export interface HeaderState {

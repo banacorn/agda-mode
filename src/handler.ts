@@ -87,9 +87,9 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
     switch (action.infoActionKind) {
         case 'AllGoals':
             if (action.content.length === 0)
-                core.view.set('No Goals', []);
+                core.view.set('No Goals', [], View.Style.Success);
             else
-                core.view.set('Goals', action.content, View.Style.Judgement);
+                core.view.set('Goals', action.content, View.Style.Info);
             break;
         case 'Error':
             core.view.set('Error', action.content, View.Style.Error);
@@ -98,37 +98,37 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
             core.view.set('Type Checking', action.content);
             break;
         case 'CurrentGoal':
-            core.view.set('Current Goal', action.content, View.Style.Value);
+            core.view.set('Current Goal', action.content, View.Style.Info);
             break;
         case 'InferredType':
-            core.view.set('Inferred Type', action.content);
+            core.view.set('Inferred Type', action.content, View.Style.Info);
             break;
         case 'ModuleContents':
-            core.view.set('Module Contents', action.content);
+            core.view.set('Module Contents', action.content, View.Style.Info);
             break;
         case 'Context':
-            core.view.set('Context', action.content, View.Style.Judgement);
+            core.view.set('Context', action.content, View.Style.Info);
             break;
         case 'GoalTypeEtc':
-            core.view.set('Goal Type and Context', action.content, View.Style.Judgement);
+            core.view.set('Goal Type and Context', action.content, View.Style.Info);
             break;
         case 'NormalForm':
-            core.view.set('Normal Form', action.content, View.Style.Value);
+            core.view.set('Normal Form', action.content, View.Style.Info);
             break;
         case 'Intro':
             core.view.set('Intro', ['No introduction forms found']);
             break;
         case 'Auto':
-            core.view.set('Auto', ['No solution found']);
+            core.view.set('Auto', ['No solution found'], View.Style.Info);
             break;
         case 'Constraints':
-            core.view.set('Constraints', action.content, View.Style.Judgement);
+            core.view.set('Constraints', action.content, View.Style.Info);
             break;
         case 'ScopeInfo':
-            core.view.set('Scope Info', action.content);
+            core.view.set('Scope Info', action.content, View.Style.Info);
             break;
         case 'Unknown':
-            core.view.set(_.head(action.content), _.tail(action.content));
+            core.view.set(_.head(action.content), _.tail(action.content), View.Style.Info);
             break;
         default:
             console.error(`unknown info action:`);
