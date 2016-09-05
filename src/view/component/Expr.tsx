@@ -1,8 +1,10 @@
 import * as React from 'react';
 import * as Promise from 'bluebird';
+import { connect } from 'react-redux';
 // import * as classNames from 'classnames';
 
 import { View } from '../../types';
+import { jumpToGoal, jumpToLocation } from '../actions';
 
 interface TermProps extends React.HTMLAttributes {
     kind: 'unmarked' | 'goal' | 'meta' | 'sort';
@@ -29,6 +31,12 @@ interface ExprProps extends React.HTMLAttributes {
     jumpToGoal: (index: number) => void;
 }
 
+
+const mapDispatchToProps = (dispatch: any) => ({
+    jumpToGoal: (index: number) => {
+        dispatch(jumpToGoal(index));
+    }
+})
 
 class Expr extends React.Component<ExprProps, void> {
     render() {
@@ -70,4 +78,7 @@ class Expr extends React.Component<ExprProps, void> {
     }
 }
 
-export default Expr;
+export default connect<any, any, any>(
+    null,
+    mapDispatchToProps
+)(Expr);

@@ -9,6 +9,7 @@ import Panel from './view/component/Panel';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
 import { View as V } from './types';
+import { EVENT, jumpToGoal } from "./view/actions";
 import { parseContent, parseError} from './parser';
 import { activateView, deactivateView } from './view/actions';
 import { updateHeader, activateMiniEditor, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
@@ -38,15 +39,17 @@ export default class View {
             className: 'agda-view'
         });
 
+        const emitter = this.store.getState().emitter;
+        emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
+            this.core.textBuffer.jumpToGoal(index);
+        });
+
         ReactDOM.render(
             <Provider store={this.store}>
                 <Panel
                     core={this.core}
                     onMiniEditorMount={(editor) => {
                         this.miniEditor = editor;
-                    }}
-                    jumpToGoal={(index) => {
-                        this.core.textBuffer.jumpToGoal(index);
                     }}
                     jumpToLocation={(location) => {
                         this.core.textBuffer.jumpToLocation(location);

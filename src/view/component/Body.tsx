@@ -6,7 +6,7 @@ import * as classNames from 'classnames';
 declare var atom: any;
 
 import { View, Error as E, Location as Loc } from '../../types';
-import { updateMaxBodyHeight } from '../actions';
+import { updateMaxBodyHeight, jumpToGoal } from '../actions';
 import Expr from './Expr';
 import Error from './Error';
 import Location from './Location';
@@ -27,6 +27,9 @@ const mapStateToProps = (state: View.State) => state.body
 const mapDispatchToProps = (dispatch: any) => ({
     onMaxBodyHeightChange: (count: number) => {
         dispatch(updateMaxBodyHeight(count));
+    },
+    jumpToGoal: (index: number) => {
+        dispatch(jumpToGoal(index));
     }
 })
 
@@ -56,7 +59,7 @@ class Body extends React.Component<Props, void> {
                 <ul className="list-group">{banner.map((item, i) =>
                     <li className="list-item banner-item" key={i}>
                         <span><span className="text-info">{item.label}</span> : </span>
-                        <Expr jumpToGoal={jumpToGoal}>{item.type}</Expr>
+                        <Expr>{item.type}</Expr>
                     </li>
                 )}</ul>
                 <ul className="list-group">{body.goal.map((item, i) =>
@@ -69,7 +72,7 @@ class Body extends React.Component<Props, void> {
                             <span> : </span>
                         </div>
                         <div className="item-body">
-                            <Expr jumpToGoal={jumpToGoal}>{item.type}</Expr>
+                            <Expr>{item.type}</Expr>
                         </div>
                     </li>
                 )}{body.judgement.map((item, i) =>
@@ -79,13 +82,13 @@ class Body extends React.Component<Props, void> {
                             <span> : </span>
                         </div>
                         <div className="item-body">
-                            <Expr jumpToGoal={jumpToGoal}>{item.type}</Expr>
+                            <Expr>{item.type}</Expr>
                         </div>
                     </li>
                 )}{body.term.map((item, i) =>
                     <li className="list-item body-item" key={i}>
                         <div className="item-body">
-                            <Expr jumpToGoal={jumpToGoal}>{item.expr}</Expr>
+                            <Expr>{item.expr}</Expr>
                         </div>
                     </li>
                 )}{body.meta.map((item, i) =>
@@ -95,7 +98,7 @@ class Body extends React.Component<Props, void> {
                             <span> : </span>
                         </div>
                         <div className="item-body">
-                            <Expr jumpToGoal={jumpToGoal}>{item.type}</Expr>
+                            <Expr>{item.type}</Expr>
                             <Location jumpToLocation={jumpToLocation}>{item.location}</Location>
                         </div>
                     </li>
@@ -111,7 +114,6 @@ class Body extends React.Component<Props, void> {
                     </li>
                 )}</ul>
                 {error ? <Error
-                        jumpToGoal={jumpToGoal}
                         jumpToLocation={jumpToLocation}
                     >{error}</Error> : null}
                 {plainText ? <p>{plainText}</p> : null}

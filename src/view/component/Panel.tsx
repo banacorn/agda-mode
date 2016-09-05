@@ -18,7 +18,6 @@ interface Props extends View.State {
 
     onMiniEditorMount: (editor: MiniEditor) => void;
     deactivateMiniEditor: () => void;
-    jumpToGoal: (index: number) => void;
     jumpToLocation: (loc: Location) => void;
     onResize: (offset: number) => void;
 }
@@ -36,7 +35,7 @@ const mapDispatchToProps = (dispatch: any) => ({
 
 class Panel extends React.Component<Props, void> {
     render() {
-        const { core, onMiniEditorMount, jumpToGoal, jumpToLocation, onResize } = this.props;
+        const { core, onMiniEditorMount, jumpToLocation, onResize } = this.props;
         const hideEverything = classNames({'hidden': !this.props.activated});
         const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
         const hideBody = classNames({'hidden': this.props.miniEditor.activate});
@@ -83,7 +82,6 @@ class Panel extends React.Component<Props, void> {
                     />
                     <Body
                         className={hideBody}
-                        jumpToGoal={jumpToGoal}
                         jumpToLocation={jumpToLocation}
                     />
                 </section>

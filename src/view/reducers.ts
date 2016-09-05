@@ -43,11 +43,11 @@ const defaultState: View.State = {
 
 const emitter = handleActions<EventEmitter, EVENT>({
     [EVENT.JUMP_TO_GOAL]: (state: EventEmitter, action: Action<EVENT.JUMP_TO_GOAL>) => {
-        this.state.emit(EVENT.JUMP_TO_GOAL, action.payload);
+        state.emit(EVENT.JUMP_TO_GOAL, action.payload);
         return state;
     },
     [EVENT.JUMP_TO_LOCATION]: (state: EventEmitter, action: Action<EVENT.JUMP_TO_LOCATION>) => {
-        this.state.emit(EVENT.JUMP_TO_LOCATION, action.payload);
+        state.emit(EVENT.JUMP_TO_LOCATION, action.payload);
         return state;
     }
 }, defaultState.emitter);
