@@ -11,7 +11,7 @@ import reducer from './view/reducers';
 import { View as V, Location } from './types';
 import { EVENT, jumpToGoal } from "./view/actions";
 import { parseContent, parseError} from './parser';
-import { activateView, deactivateView } from './view/actions';
+import { activateView, deactivateView, enableInMiniEditor } from './view/actions';
 import { updateHeader, activateMiniEditor, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
 declare var atom: any;
 
@@ -97,7 +97,8 @@ export default class View {
         }
     }
 
-    query(header: string, message: string[], type: V.Style, placeholder: string): Promise<string> {
+    query(header: string, message: string[], type: V.Style, placeholder: string, inputMethodOn = true): Promise<string> {
+        this.store.dispatch(enableInMiniEditor(inputMethodOn));
         this.store.dispatch(activateMiniEditor(placeholder));
         this.store.dispatch(updateHeader({
             text: header,

@@ -170,6 +170,7 @@ namespace View {
     }
 
     export interface InputMethodState {
+        enableInMiniEditor: boolean;
         activated: boolean;
         buffer: string;
         translation: string;

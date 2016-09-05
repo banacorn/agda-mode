@@ -28,7 +28,13 @@ export namespace VIEW {
 export const activateView = createAction(VIEW.ACTIVATE);
 export const deactivateView = createAction(VIEW.DEACTIVATE);
 
-export type INPUT_METHOD = INPUT_METHOD.ACTIVATE | INPUT_METHOD.DEACTIVATE | INPUT_METHOD.INSERT | INPUT_METHOD.DELETE | INPUT_METHOD.REPLACE_SYMBOL;
+export type INPUT_METHOD = INPUT_METHOD.ACTIVATE
+    | INPUT_METHOD.DEACTIVATE
+    | INPUT_METHOD.INSERT
+    | INPUT_METHOD.DELETE
+    | INPUT_METHOD.REPLACE_SYMBOL
+    | INPUT_METHOD.ENABLE_IN_MINI_EDITOR
+
 export namespace INPUT_METHOD {
     export const ACTIVATE = 'INPUT_METHOD.ACTIVATE';
     export type ACTIVATE = void;
@@ -40,6 +46,8 @@ export namespace INPUT_METHOD {
     export type DELETE = void;
     export const REPLACE_SYMBOL = 'INPUT_METHOD.REPLACE_SYMBOL';
     export type REPLACE_SYMBOL = string;
+    export const ENABLE_IN_MINI_EDITOR = 'INPUT_METHOD.ENABLE_IN_MINI_EDITOR';
+    export type ENABLE_IN_MINI_EDITOR = boolean;
 }
 
 export const activateInputMethod = createAction(INPUT_METHOD.ACTIVATE);
@@ -47,6 +55,7 @@ export const deactivateInputMethod = createAction(INPUT_METHOD.DEACTIVATE);
 export const insertInputMethod = createAction(INPUT_METHOD.INSERT);
 export const deleteInputMethod = createAction(INPUT_METHOD.DELETE);
 export const replaceSymbol = createAction(INPUT_METHOD.REPLACE_SYMBOL);
+export const enableInMiniEditor = createAction(INPUT_METHOD.ENABLE_IN_MINI_EDITOR);
 
 export type HEADER = HEADER.UPDATE;
 export namespace HEADER {

@@ -104,7 +104,7 @@ export default class Process {
             placeholder = 'try another path';
         }
 
-        return this.core.view.query(name, message, type, placeholder)
+        return this.core.view.query(name, message, type, placeholder, false) // disable input method in the mini editor
             .then(this.validateExecutablePath)
             .then((path) => {
                 atom.config.set('agda-mode.executablePath', path)

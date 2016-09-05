@@ -344,14 +344,20 @@ export default class Commander {
     }
 
     inputSymbol(): Promise<CommandResult> {
-        if (atom.config.get("agda-mode.inputMethod")) {
+        const miniEditorEnabled = this.core.view.store.getState().inputMethod.enableInMiniEditor;
+        const miniEditorFocused = this.core.view.miniEditor.isFocused();
+        const shouldNotActivate = miniEditorFocused && !miniEditorEnabled;
+        const editor = miniEditorFocused ?
+            this.core.view.miniEditor.getModel() :
+            atom.workspace.getActiveTextEditor() ;
+        if (atom.config.get("agda-mode.inputMethod") && !shouldNotActivate) {
             if (!this.loaded) {
                 this.core.view.activate();
                 this.core.view.set("Not loaded", [], View.Style.Warning);
             }
             this.core.inputMethod.activate();
         } else {
-            this.core.editor.insertText("\\");
+            editor.insertText("\\");
         }
         return Promise.resolve(<CommandResult>{ status: "Issued", command: "InputSymbol" });
     }
