@@ -4,6 +4,7 @@ import * as _ from 'lodash';
 import * as classNames from 'classnames';
 
 import { View } from '../../types';
+import * as Action from '../actions';
 
 // Atom shits
 type CompositeDisposable = any;
@@ -12,12 +13,25 @@ declare var atom: any;
 
 interface Props {
     mountingPosition: View.MountingPosition;
+    // callbacks
     mountAtPane: () => void;
     mountAtBottom: () => void;
+    // dispatch to the store
+    handleMountAtPane: () => void
+    handleMountAtBottom: () => void;
 }
 
 const mapStateToProps = (state: View.State) => ({
     mountingPosition: state.view.mountAt
+});
+
+const mapDispatchToProps = (dispatch: any) => ({
+    handleMountAtPane: () => {
+        dispatch(Action.mountAtPane());
+    },
+    handleMountAtBottom: () => {
+        dispatch(Action.mountAtBottom());
+    }
 });
 
 class Settings extends React.Component<Props, void> {
@@ -44,6 +58,7 @@ class Settings extends React.Component<Props, void> {
     render() {
         const { mountingPosition } = this.props;
         const { mountAtPane, mountAtBottom } = this.props;
+        const { handleMountAtPane, handleMountAtBottom } = this.props;
         const toggleMountingPosition = classNames({
             activated: mountingPosition === View.MountingPosition.Pane
         }, 'no-btn');
@@ -55,8 +70,10 @@ class Settings extends React.Component<Props, void> {
                         onClick={() => {
                             if (mountingPosition === View.MountingPosition.Bottom) {
                                 mountAtPane();
+                                handleMountAtPane();
                             } else {
                                 mountAtBottom();
+                                handleMountAtBottom();
                             }
                         }}
                         ref={(ref) => {
@@ -73,5 +90,5 @@ class Settings extends React.Component<Props, void> {
 
 export default connect<any, any, any>(
     mapStateToProps,
-    null
+    mapDispatchToProps
 )(Settings);

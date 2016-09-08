@@ -20,6 +20,8 @@ export type VIEW
     | VIEW.DEACTIVATE
     | VIEW.MOUNT
     | VIEW.UNMOUNT
+    | VIEW.MOUNT_AT_PANE
+    | VIEW.MOUNT_AT_BOTTOM
 export namespace VIEW {
     export const ACTIVATE = 'VIEW.ACTIVATE';
     export type ACTIVATE = void;
