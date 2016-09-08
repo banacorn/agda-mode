@@ -70,12 +70,10 @@ class Settings extends React.Component<Props, void> {
                         onClick={() => {
                             switch (mountingPosition) {
                                 case View.MountingPosition.Bottom:
-                                    console.log('from bottom')
                                     handleMountAtPane();
                                     mountAtPane();
                                     break;
                                 case View.MountingPosition.Pane:
-                                    console.log('from pane')
                                     handleMountAtBottom();
                                     mountAtBottom();
                                     break;

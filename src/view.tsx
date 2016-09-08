@@ -27,11 +27,12 @@ export default class View {
     public miniEditor: MiniEditor;
     private mountingPosition: HTMLElement;
     private bottomPanel: any;
+    private uri: string;
 
     constructor(private core: Core) {
         this.store = createStore(reducer);
         this.subscriptions = new CompositeDisposable;
-
+        this.uri = `agda-mode://${this.core.editor.id}`;
         // global events
         const emitter = this.store.getState().emitter;
         emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
@@ -42,20 +43,24 @@ export default class View {
         });
 
 
-        atom.workspace.addOpener((uriToOpen: string) => {
-            const [protocol, path] = uriToOpen.split('://');
+        atom.workspace.addOpener((uri: string) => {
+            const {protocol, path} = this.parseURI(uri);
             if (protocol === 'agda-mode') {
                 return this.createEditor(path);
             }
         });
     }
 
-    private isAgdaView() {
-        return false;
+    private parseURI(uri: string) {
+        const [protocol, path] = uri.split('://');
+        return {
+            protocol: protocol,
+            path: path
+        }
     }
 
-    private uri() {
-        return `agda-mode://${this.core.editor.id}`;
+    private isAgdaView() {
+        return false;
     }
 
     private state() {
@@ -65,7 +70,10 @@ export default class View {
     private createEditor(path: string) {
         const editor = document.createElement('article');
         editor.classList.add('agda-view');
-        editor['getURI'] = () => this.uri();
+        editor['getURI'] = () => {
+            const uri = this.uri;
+            return uri
+        };
         editor['getTitle'] = () => `Agda Mode ${path}`;
         return editor;
     }
@@ -82,12 +90,10 @@ export default class View {
                         this.miniEditor = editor;
                     }}
                     mountAtPane={() => {
-                        console.log(`to pane`)
                         this.unmount();
                         this.mount();
                     }}
                     mountAtBottom={() => {
-                        console.log(`to bottom`)
                         this.unmount();
                         this.mount();
                     }}
@@ -99,7 +105,7 @@ export default class View {
 
     mount() {
         if (!this.state().mounted) {
-            console.log(`mount ${this.state().mountAt.current}`)
+            console.log(`[${this.uri.substr(12)}] %cmount`, 'color: green')
             // Redux
             this.store.dispatch(Action.mountView());
 
@@ -116,7 +122,7 @@ export default class View {
                     this.render();
                     break;
                 case V.MountingPosition.Pane:
-                    const uri = this.uri();
+                    const uri = this.uri;
                     const previousActivePane = atom.workspace.getActivePane()
                     atom.workspace.open(uri, {
                         searchAllPanes: true,
@@ -137,13 +143,7 @@ export default class View {
 
     unmount() {
         if (this.state().mounted) {
-            console.log(`unmount ${this.state().mountAt.previous}`)
-            // Redux
-            this.store.dispatch(Action.unmountView());
-            // React
-            ReactDOM.unmountComponentAtNode(this.mountingPosition);
-            // mounting position
-            this.mountingPosition = null;
+            console.log(`[${this.uri.substr(12)}] %cunmount`, 'color: orange')
 
             switch (this.state().mountAt.previous) {
                 case V.MountingPosition.Bottom:
@@ -152,16 +152,22 @@ export default class View {
                     break;
                 case V.MountingPosition.Pane:
                     // destroy the editor
-                    const pane = atom.workspace.paneForURI(this.uri());
+                    const pane = atom.workspace.paneForItem(this.mountingPosition);
                     if (pane) {
-                        const editor = pane.itemForURI(this.uri());
-                        pane.destroyItem(editor);
+                        pane.destroyItem(this.mountingPosition);
                     }
                     break;
                 default:
                     // do nothing
                     break;
             }
+
+            // Redux
+            this.store.dispatch(Action.unmountView());
+            // React
+            ReactDOM.unmountComponentAtNode(this.mountingPosition);
+            // mounting position
+            this.mountingPosition = null;
         }
     }
 
@@ -183,7 +189,7 @@ export default class View {
 
     // destructor
     destroy() {
-        console.log('destroy')
+        console.log(`[${this.uri.substr(12)}] %cdestroy`, 'color: red')
         this.unmount();
         this.subscriptions.dispose();
     }
