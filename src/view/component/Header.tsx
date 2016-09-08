@@ -4,6 +4,7 @@ import * as _ from 'lodash';
 import * as classNames from 'classnames';
 
 import { View } from '../../types';
+import Settings from './Settings';
 
 function toStyle(type: View.Style): string {
     switch (type) {
@@ -35,7 +36,10 @@ class Header extends React.Component<Props, void> {
             hidden: inputMethodActivated || _.isEmpty(text)
         }, `text-${toStyle(style)}`)
         return (
-            <h1 className={classes}>{text}</h1>
+            <div className="agda-header">
+                <h1 className={classes}>{text}</h1>
+                <Settings/>
+            </div>
         )
     }
 }

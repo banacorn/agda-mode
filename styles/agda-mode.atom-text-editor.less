@@ -29,16 +29,42 @@
         }
     }
 
-    // <Header>
-    .agda-header {
+    .agda-header-container {
         padding: 0 @component-padding;
 
-        h1 {
+        // <Header>
+        .agda-header {
+            // flexbox
+            display: flex;
+            justify-content: space-between;
+
+            h1 {
+                height: @headerHeight;
+                line-height: @headerHeight;
+                font-size: 150%;
+                margin: 0;
+            }
+        }
+
+        // <Settings>
+        .agda-settings {
+            list-style: none;
+            margin: 0;
+
             height: @headerHeight;
             line-height: @headerHeight;
-            font-size: 150%;
-            margin: 0;
+
+            button {
+                color: @button-background-color;
+            }
+            button:hover {
+                color: @button-background-color-hover;
+            }
+            button.activated {
+                color: @button-background-color-selected;
+            }
         }
+
     }
 
     // <InputMethod>
