@@ -90,12 +90,12 @@ export default class View {
                         this.miniEditor = editor;
                     }}
                     mountAtPane={() => {
-                        this.unmount();
-                        this.mount();
+                        this.unmount(this.state().mountAt.previous);
+                        this.mount(this.state().mountAt.current);
                     }}
                     mountAtBottom={() => {
-                        this.unmount();
-                        this.mount();
+                        this.unmount(this.state().mountAt.previous);
+                        this.mount(this.state().mountAt.current);
                     }}
                 />
             </Provider>,
@@ -103,13 +103,13 @@ export default class View {
         )
     }
 
-    mount() {
+    mount(mountAt: V.MountingPosition) {
         if (!this.state().mounted) {
-            console.log(`[${this.uri.substr(12)}] %cmount`, 'color: green')
+            console.log(`[${this.uri.substr(12)}] %cmount at ${toText(mountAt)}`, 'color: green')
             // Redux
             this.store.dispatch(Action.mountView());
 
-            switch (this.state().mountAt.current) {
+            switch (mountAt) {
                 case V.MountingPosition.Bottom:
                     // mounting position
                     this.mountingPosition = document.createElement('article');
@@ -141,11 +141,11 @@ export default class View {
         }
     }
 
-    unmount() {
+    unmount(mountAt: V.MountingPosition) {
         if (this.state().mounted) {
-            console.log(`[${this.uri.substr(12)}] %cunmount`, 'color: orange')
+            console.log(`[${this.uri.substr(12)}] %cunmount at ${toText(mountAt)}`, 'color: orange')
 
-            switch (this.state().mountAt.previous) {
+            switch (mountAt) {
                 case V.MountingPosition.Bottom:
                     // mounting position
                     this.bottomPanel.destroy();
@@ -153,9 +153,8 @@ export default class View {
                 case V.MountingPosition.Pane:
                     // destroy the editor
                     const pane = atom.workspace.paneForItem(this.mountingPosition);
-                    if (pane) {
+                    if (pane)
                         pane.destroyItem(this.mountingPosition);
-                    }
                     break;
                 default:
                     // do nothing
@@ -172,25 +171,38 @@ export default class View {
     }
 
     activate() {
-        if (this.state().mountAt.current === V.MountingPosition.Bottom) {
-            this.store.dispatch(activateView());
-        } else {
-
+        switch (this.state().mountAt.current) {
+            case V.MountingPosition.Bottom:
+                this.store.dispatch(activateView());
+                break;
+            case V.MountingPosition.Pane:
+                // atom.workspace
+                //     .paneForItem(this.mountingPosition)
+                //     .activateItem(this.mountingPosition);
+                break;
+            default:
+                // do nothing
+                break;
         }
     }
 
     deactivate() {
-        if (this.state().mountAt.current === V.MountingPosition.Bottom) {
-            this.store.dispatch(deactivateView());
-        } else {
-
+        switch (this.state().mountAt.current) {
+            case V.MountingPosition.Bottom:
+                this.store.dispatch(deactivateView());
+                break;
+            case V.MountingPosition.Pane:
+                break;
+            default:
+                // do nothing
+                break;
         }
     }
 
     // destructor
     destroy() {
-        console.log(`[${this.uri.substr(12)}] %cdestroy`, 'color: red')
-        this.unmount();
+        console.log(`[${this.uri.substr(12)}] %cdestroy`, 'color: red');
+        this.unmount(this.state().mountAt.current);
         this.subscriptions.dispose();
     }
 
@@ -230,4 +242,16 @@ export default class View {
         this.miniEditor.activate();
         return this.miniEditor.query();
     }
+}
+
+function toText(mp: V.MountingPosition): string {
+    switch (mp) {
+        case V.MountingPosition.Bottom:
+            return 'Bottom;'
+        case V.MountingPosition.Pane:
+            return 'Pane'
+        default:
+            return ''
+    }
+
 }

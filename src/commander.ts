@@ -93,7 +93,8 @@ export default class Commander {
     //
 
     load(): Promise<CommandResult> {
-        this.core.view.mount();
+        const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+        this.core.view.mount(currentMountingPosition);
         this.core.view.activate();
         return this.core.process.load()
             .then(() => {
@@ -104,7 +105,8 @@ export default class Commander {
 
     quit(): Promise<CommandResult> {
         this.core.view.deactivate();
-        this.core.view.unmount();
+        const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+        this.core.view.unmount(currentMountingPosition);
         if (this.loaded) {
             this.loaded = false;
             this.core.textBuffer.removeGoals();
