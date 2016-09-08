@@ -43,12 +43,17 @@ export default class View {
         });
 
 
-        atom.workspace.addOpener((uri: string) => {
+        this.subscriptions.add(atom.workspace.addOpener((uri: string) => {
             const {protocol, path} = this.parseURI(uri);
-            if (protocol === 'agda-mode') {
+
+            const openedByAgdaMode = protocol === 'agda-mode';
+            const openedByTheSameEditor = path === this.core.editor.id.toString();
+            if (openedByAgdaMode && openedByTheSameEditor) {
                 return this.createEditor(path);
             }
-        });
+        }));
+
+        // ::onWillDestroyPaneItem(callback)
     }
 
     private parseURI(uri: string) {
@@ -75,6 +80,7 @@ export default class View {
             return uri
         };
         editor['getTitle'] = () => `Agda Mode ${path}`;
+        editor.id = this.uri;
         return editor;
     }
 
