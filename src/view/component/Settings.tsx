@@ -22,7 +22,7 @@ interface Props {
 }
 
 const mapStateToProps = (state: View.State) => ({
-    mountingPosition: state.view.mountAt
+    mountingPosition: state.view.mountAt.current
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
@@ -68,12 +68,19 @@ class Settings extends React.Component<Props, void> {
                     <button
                         className={toggleMountingPosition}
                         onClick={() => {
-                            if (mountingPosition === View.MountingPosition.Bottom) {
-                                mountAtPane();
-                                handleMountAtPane();
-                            } else {
-                                mountAtBottom();
-                                handleMountAtBottom();
+                            switch (mountingPosition) {
+                                case View.MountingPosition.Bottom:
+                                    console.log('from bottom')
+                                    handleMountAtPane();
+                                    mountAtPane();
+                                    break;
+                                case View.MountingPosition.Pane:
+                                    console.log('from pane')
+                                    handleMountAtBottom();
+                                    mountAtBottom();
+                                    break;
+                                default:
+                                    console.error('no mounting position to transist from')
                             }
                         }}
                         ref={(ref) => {

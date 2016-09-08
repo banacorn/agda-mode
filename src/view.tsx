@@ -15,9 +15,14 @@ import * as Action from "./view/actions";
 import { parseContent, parseError} from './parser';
 import { activateView, deactivateView, enableInMiniEditor } from './view/actions';
 import { updateHeader, activateMiniEditor, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
+
+// Atom shits
+type CompositeDisposable = any;
+var { CompositeDisposable } = require('atom');
 declare var atom: any;
 
 export default class View {
+    private subscriptions: CompositeDisposable;
     public store: Redux.Store<V.State>;
     public miniEditor: MiniEditor;
     private mountingPosition: HTMLElement;
@@ -25,6 +30,7 @@ export default class View {
 
     constructor(private core: Core) {
         this.store = createStore(reducer);
+        this.subscriptions = new CompositeDisposable;
 
         // global events
         const emitter = this.store.getState().emitter;
@@ -35,14 +41,39 @@ export default class View {
             this.core.textBuffer.jumpToLocation(loc);
         });
 
-        // this.mount();
+
+        atom.workspace.addOpener((uriToOpen: string) => {
+            const [protocol, path] = uriToOpen.split('://');
+            if (protocol === 'agda-mode') {
+                return this.createEditor(path);
+            }
+        });
+    }
+
+    private isAgdaView() {
+        return false;
+    }
+
+    private uri() {
+        return `agda-mode://${this.core.editor.id}`;
     }
 
     private state() {
         return this.store.getState().view;
     }
 
+    private createEditor(path: string) {
+        const editor = document.createElement('article');
+        editor.classList.add('agda-view');
+        editor['getURI'] = () => this.uri();
+        editor['getTitle'] = () => `Agda Mode ${path}`;
+        return editor;
+    }
+
     private render() {
+        if (this.mountingPosition === null) {
+            console.error(`this.mountingPosition === null`)
+        }
         ReactDOM.render(
             <Provider store={this.store}>
                 <Panel
@@ -51,10 +82,14 @@ export default class View {
                         this.miniEditor = editor;
                     }}
                     mountAtPane={() => {
-                        console.log('mount at pane')
+                        console.log(`to pane`)
+                        this.unmount();
+                        this.mount();
                     }}
                     mountAtBottom={() => {
-                        console.log('mount at bottom')
+                        console.log(`to bottom`)
+                        this.unmount();
+                        this.mount();
                     }}
                 />
             </Provider>,
@@ -64,47 +99,93 @@ export default class View {
 
     mount() {
         if (!this.state().mounted) {
-            console.log('mount')
+            console.log(`mount ${this.state().mountAt.current}`)
             // Redux
             this.store.dispatch(Action.mountView());
-            // mounting position
-            this.mountingPosition = document.createElement('article');
-            this.bottomPanel = atom.workspace.addBottomPanel({
-                item: this.mountingPosition,
-                visible: true,
-                className: 'agda-view'
-            });
 
-            // render
-            this.render();
-
+            switch (this.state().mountAt.current) {
+                case V.MountingPosition.Bottom:
+                    // mounting position
+                    this.mountingPosition = document.createElement('article');
+                    this.bottomPanel = atom.workspace.addBottomPanel({
+                        item: this.mountingPosition,
+                        visible: true,
+                        className: 'agda-view'
+                    });
+                    // render
+                    this.render();
+                    break;
+                case V.MountingPosition.Pane:
+                    const uri = this.uri();
+                    const previousActivePane = atom.workspace.getActivePane()
+                    atom.workspace.open(uri, {
+                        searchAllPanes: true,
+                        split: 'right'
+                    }).then(view => {
+                        // mounting position
+                        this.mountingPosition = view;
+                        previousActivePane.activate();
+                        // render
+                        this.render();
+                    })
+                    break;
+                default:
+                    console.error('no mounting position to transist to')
+            }
         }
     }
 
     unmount() {
         if (this.state().mounted) {
-            console.log('unmount')
+            console.log(`unmount ${this.state().mountAt.previous}`)
             // Redux
             this.store.dispatch(Action.unmountView());
             // React
             ReactDOM.unmountComponentAtNode(this.mountingPosition);
             // mounting position
             this.mountingPosition = null;
+
+            switch (this.state().mountAt.previous) {
+                case V.MountingPosition.Bottom:
+                    // mounting position
+                    this.bottomPanel.destroy();
+                    break;
+                case V.MountingPosition.Pane:
+                    // destroy the editor
+                    const pane = atom.workspace.paneForURI(this.uri());
+                    if (pane) {
+                        const editor = pane.itemForURI(this.uri());
+                        pane.destroyItem(editor);
+                    }
+                    break;
+                default:
+                    // do nothing
+                    break;
+            }
         }
     }
 
-
     activate() {
-        this.store.dispatch(activateView());
+        if (this.state().mountAt.current === V.MountingPosition.Bottom) {
+            this.store.dispatch(activateView());
+        } else {
+
+        }
     }
 
     deactivate() {
-        this.store.dispatch(deactivateView());
+        if (this.state().mountAt.current === V.MountingPosition.Bottom) {
+            this.store.dispatch(deactivateView());
+        } else {
+
+        }
     }
 
     // destructor
     destroy() {
-        this.bottomPanel.destroy();
+        console.log('destroy')
+        this.unmount();
+        this.subscriptions.dispose();
     }
 
     set(header: string, payload: string[], type = V.Style.PlainText) {

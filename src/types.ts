@@ -50,7 +50,10 @@ namespace View {
     export interface ViewState {
         activated: boolean;
         mounted: boolean;
-        mountAt: MountingPosition;
+        mountAt: {
+            previous: MountingPosition,
+            current: MountingPosition
+        };
     }
 
     export const enum MountingPosition {
