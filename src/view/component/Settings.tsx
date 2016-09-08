@@ -11,7 +11,9 @@ var { CompositeDisposable } = require('atom');
 declare var atom: any;
 
 interface Props {
-    mountingPosition: View.MountingPosition
+    mountingPosition: View.MountingPosition;
+    mountAtPane: () => void;
+    mountAtBottom: () => void;
 }
 
 const mapStateToProps = (state: View.State) => ({
@@ -41,6 +43,7 @@ class Settings extends React.Component<Props, void> {
 
     render() {
         const { mountingPosition } = this.props;
+        const { mountAtPane, mountAtBottom } = this.props;
         const toggleMountingPosition = classNames({
             activated: mountingPosition === View.MountingPosition.Pane
         }, 'no-btn');
@@ -49,6 +52,13 @@ class Settings extends React.Component<Props, void> {
                 <li>
                     <button
                         className={toggleMountingPosition}
+                        onClick={() => {
+                            if (mountingPosition === View.MountingPosition.Bottom) {
+                                mountAtPane();
+                            } else {
+                                mountAtBottom();
+                            }
+                        }}
                         ref={(ref) => {
                             this.toggleMountingPositionButton = ref;
                         }}
@@ -62,6 +72,6 @@ class Settings extends React.Component<Props, void> {
 }
 
 export default connect<any, any, any>(
-    null,
+    mapStateToProps,
     null
 )(Settings);

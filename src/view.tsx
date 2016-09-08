@@ -50,6 +50,12 @@ export default class View {
                     onMiniEditorMount={(editor) => {
                         this.miniEditor = editor;
                     }}
+                    mountAtPane={() => {
+                        console.log('mount at pane')
+                    }}
+                    mountAtBottom={() => {
+                        console.log('mount at bottom')
+                    }}
                 />
             </Provider>,
             this.mountingPosition

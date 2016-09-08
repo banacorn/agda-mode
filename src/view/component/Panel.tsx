@@ -20,6 +20,8 @@ interface Props extends View.State {
     deactivateMiniEditor: () => void;
     jumpToLocation: (loc: Location) => void;
     onResize: (offset: number) => void;
+    mountAtPane: () => void;
+    mountAtBottom: () => void;
 }
 
 const mapStateToProps = (state : View.State) => state
@@ -36,6 +38,7 @@ const mapDispatchToProps = (dispatch: any) => ({
 class Panel extends React.Component<Props, void> {
     render() {
         const { core, onMiniEditorMount, jumpToLocation, onResize } = this.props;
+        const { mountAtPane, mountAtBottom } = this.props;
         const hideEverything = classNames({'hidden': !this.props.view.activated});
         const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
         const hideBody = classNames({'hidden': this.props.miniEditor.activate});
@@ -62,7 +65,10 @@ class Panel extends React.Component<Props, void> {
                             atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
                         }}
                     />
-                    <Header/>
+                    <Header
+                        mountAtPane={mountAtPane}
+                        mountAtBottom={mountAtBottom}
+                    />
                 </header>
                 <section className="panel-body">
                     <MiniEditor

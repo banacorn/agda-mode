@@ -19,6 +19,8 @@ function toStyle(type: View.Style): string {
 
 interface Props extends View.HeaderState {
     inputMethodActivated: boolean;
+    mountAtPane: () => void;
+    mountAtBottom: () => void;
 }
 
 const mapStateToProps = (state: View.State) => {
@@ -32,13 +34,17 @@ const mapStateToProps = (state: View.State) => {
 class Header extends React.Component<Props, void> {
     render() {
         const { text, style, inputMethodActivated } = this.props;
+        const { mountAtPane, mountAtBottom } = this.props;
         const classes = classNames({
             hidden: inputMethodActivated || _.isEmpty(text)
         }, `text-${toStyle(style)}`)
         return (
             <div className="agda-header">
                 <h1 className={classes}>{text}</h1>
-                <Settings/>
+                <Settings
+                    mountAtPane={mountAtPane}
+                    mountAtBottom={mountAtBottom}
+                />
             </div>
         )
     }
