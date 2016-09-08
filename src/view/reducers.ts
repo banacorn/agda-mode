@@ -42,7 +42,7 @@ const defaultState: View.State = {
         },
         error: null,
         plainText: '',
-        maxBodyHeight: atom.config.get('agda-mode.maxBodyHeight')
+        maxBodyHeight: 170
     }
 };
 

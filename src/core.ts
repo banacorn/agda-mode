@@ -16,6 +16,7 @@ import TextBuffer from './text-buffer';
 import InputMethod from './input-method';
 import HighlightManager from './highlight-manager';
 import View from './view';
+import * as Action from './view/actions';
 
 export default class Core {
     private disposables: CompositeDisposable;
@@ -25,7 +26,6 @@ export default class Core {
     public highlightManager: HighlightManager;
     public commander: Commander;
     public view: View;
-    public store: Redux.Store<ViewType.State>;
 
     constructor(public editor: any) {
 
@@ -56,6 +56,9 @@ export default class Core {
             this.inputMethod    = new InputMethod(this);
         this.highlightManager   = new HighlightManager(this);
         this.commander  = new Commander(this);
+
+        // dispatch config related data to the store on initialization
+        this.view.store.dispatch(Action.updateMaxBodyHeight(atom.config.get('agda-mode.maxBodyHeight')));
     }
 
     // shorthand for getting the path of the binded file
