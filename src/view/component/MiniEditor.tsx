@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as React from 'react';
 import * as Promise from 'bluebird';
 import { EventEmitter } from 'events';

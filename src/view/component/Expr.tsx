@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as React from 'react';
 import * as Promise from 'bluebird';
 import { connect } from 'react-redux';
@@ -6,8 +7,8 @@ import { View } from '../../types';
 import { jumpToGoal } from '../actions';
 
 interface TermProps extends React.HTMLAttributes {
-    kind: 'unmarked' | 'goal' | 'meta' | 'sort';
     jumpToGoal: (index: number) => void;
+    kind: 'unmarked' | 'goal' | 'meta' | 'sort';
 }
 
 class Term extends React.Component<TermProps, void> {
