@@ -106,6 +106,7 @@ export default class Commander {
         if (this.loaded) {
             this.loaded = false;
             this.core.textBuffer.removeGoals();
+            this.core.highlightManager.destroyAll();
             return this.core.process.quit()
                 .then(resolveCommand("Quit"));
         } else {

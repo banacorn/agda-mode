@@ -19,33 +19,28 @@ declare var atom: any;
 export default class View {
     public store: Redux.Store<V.State>;
     public miniEditor: MiniEditor;
-    public panel: any;
+    private mountingPoint: HTMLElement;
+    private bottomPanel: any;
 
     constructor(private core: Core) {
         this.store = createStore(reducer);
 
-        // create an anchor element for the view to mount
-        const anchor = document.createElement('agda-view');
-        anchor.id = 'agda-panel';
-        const atomPanel = atom.workspace.addBottomPanel({
-            item: anchor,
-            visible: true,
-            className: 'agda-view'
-        });
-
-
-        this.panel = atom.workspace.addBottomPanel({
-            item: document.createElement('agda-view'),
-            visible: false,
-            className: 'agda-view'
-        });
-
+        // global events
         const emitter = this.store.getState().emitter;
         emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
             this.core.textBuffer.jumpToGoal(index);
         });
         emitter.on(EVENT.JUMP_TO_LOCATION, (loc: Location) => {
             this.core.textBuffer.jumpToLocation(loc);
+        });
+
+
+        // mounting point
+        this.mountingPoint = document.createElement('article');
+        this.bottomPanel = atom.workspace.addBottomPanel({
+            item: this.mountingPoint,
+            visible: true,
+            className: 'agda-view'
         });
 
         ReactDOM.render(
@@ -57,7 +52,7 @@ export default class View {
                     }}
                 />
             </Provider>,
-            document.getElementById('agda-panel')
+            this.mountingPoint
         )
     }
 
@@ -70,7 +65,7 @@ export default class View {
     }
 
     destroy() {
-        this.panel.destroy();
+        this.bottomPanel.destroy();
     }
 
     set(header: string, payload: string[], type = V.Style.PlainText) {

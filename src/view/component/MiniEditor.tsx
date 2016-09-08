@@ -94,7 +94,7 @@ class MiniEditor extends React.Component<Props, State> {
     }
 
     componentWillUnmount() {
-        this.subscriptions.destroy();
+        this.subscriptions.dispose();
         this.observer.disconnect();
     }
 

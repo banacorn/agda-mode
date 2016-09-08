@@ -81,7 +81,7 @@ class CandidateSymbols extends React.Component<Props, State> {
     }
 
     componentWillUnmount() {
-        this.subscriptions.destroy();
+        this.subscriptions.dispose();
     }
 
     render() {
