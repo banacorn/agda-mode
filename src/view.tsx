@@ -158,9 +158,9 @@ export default class View {
                     break;
                 case V.MountingPosition.Pane:
                     // destroy the editor
-                    const pane = atom.workspace.paneForItem(this.mountingPosition);
-                    if (pane)
-                        pane.destroyItem(this.mountingPosition);
+                        atom.workspace
+                            .paneForItem(this.mountingPosition)
+                            .destroyItem(this.mountingPosition);
                     break;
                 default:
                     // do nothing
@@ -177,14 +177,15 @@ export default class View {
     }
 
     activate() {
+        console.log(`[${this.uri.substr(12)}] %cactivated`, 'color: blue')
         switch (this.state().mountAt.current) {
             case V.MountingPosition.Bottom:
                 this.store.dispatch(activateView());
                 break;
             case V.MountingPosition.Pane:
-                // atom.workspace
-                //     .paneForItem(this.mountingPosition)
-                //     .activateItem(this.mountingPosition);
+                const pane = atom.workspace.paneForItem(this.mountingPosition);
+                if (pane)
+                    pane.activateItem(this.mountingPosition);
                 break;
             default:
                 // do nothing
@@ -193,6 +194,7 @@ export default class View {
     }
 
     deactivate() {
+        console.log(`[${this.uri.substr(12)}] %cdeactivated`, 'color: purple')
         switch (this.state().mountAt.current) {
             case V.MountingPosition.Bottom:
                 this.store.dispatch(deactivateView());
