@@ -20,13 +20,13 @@ const mapStateToProps = (state: View.State) => {
 class InputMethod extends React.Component<InputMethodProps, void> {
     render() {
         const { activated, buffer, translation, further, keySuggestions, updateTranslation, insertCharacter, chooseSymbol, candidateSymbols } = this.props;
-        const hideEverything = classNames({ 'hidden': !activated});
-        const hideBuffer = classNames({ 'hidden': _.isEmpty(buffer)}, 'inline-block');
+        const hideEverything = classNames({ 'hidden': !activated}, 'agda-input-method');
+        const hideBuffer = classNames({ 'hidden': _.isEmpty(buffer)}, 'inline-block', 'buffer');
         return (
-            <section id="agda-input-method" className={hideEverything}>
-                <div id="keyboard">
-                    <div id="buffer" className={hideBuffer}>{buffer}</div>
-                    <div id="keys" className="btn-group btn-group-sm">
+            <section className={hideEverything}>
+                <div className="keyboard">
+                    <div className={hideBuffer}>{buffer}</div>
+                    <div className="btn-group btn-group-sm">
                         {keySuggestions.map(key => <button
                             className="btn"
                             onClick={() => insertCharacter(key)}
@@ -35,7 +35,6 @@ class InputMethod extends React.Component<InputMethodProps, void> {
                     </div>
                 </div>
                 <CandidateSymbols
-                    id="candidates"
                     updateTranslation={updateTranslation}
                     chooseSymbol={chooseSymbol}
                     candidates={candidateSymbols}

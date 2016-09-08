@@ -17,11 +17,11 @@
     @headerHeight: 50px;
 
     // <SizingHandle>
-    #agda-sizing-handle-anchor {
+    .agda-sizing-handle-anchor {
         position: relative;
         height: 0px;
         width: 100%;
-        #agda-sizing-handle {
+        .agda-sizing-handle {
             height: @sizingHandleHeight;
             width: 100%;
             position: absolute;
@@ -30,7 +30,7 @@
     }
 
     // <Header>
-    #agda-header {
+    .agda-header {
         padding: 0 @component-padding;
 
         h1 {
@@ -42,7 +42,7 @@
     }
 
     // <InputMethod>
-    #agda-input-method {
+    .agda-input-method {
         @button-height: 20px;
 
         height: @headerHeight;
@@ -54,12 +54,12 @@
 
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
 
-        #keyboard {
+        .keyboard {
             display: flex;
             align-items: center;
 
             // Buffer
-            #buffer {
+            .buffer {
                 height: 30px;
                 line-height: 30px;
                 font-size: 150%;
@@ -97,7 +97,7 @@
 
 
     // <MiniEditor>
-    #agda-mini-editor {
+    .agda-mini-editor {
         @height: 30px;
 
         min-height: @height;
@@ -109,7 +109,7 @@
     }
 
     // <Body>
-    #agda-body {
+    .agda-body {
         @height: 30px;
 
         overflow: scroll;

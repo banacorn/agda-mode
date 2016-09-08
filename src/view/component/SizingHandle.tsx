@@ -19,9 +19,9 @@ class SizingHandle extends React.Component<Props, State> {
     render() {
         const { onResizeStart, onResize, onResizeEnd } = this.props;
         return (
-            <div id="agda-sizing-handle-anchor">
+            <div className="agda-sizing-handle-anchor">
                 <div
-                    id="agda-sizing-handle"
+                    className="agda-sizing-handle native-key-bindings"
                     onDragStart={(e) => {
                         this.setState({
                             initial: e.pageY
@@ -47,7 +47,6 @@ class SizingHandle extends React.Component<Props, State> {
                     }}
                     // to enable Drag & Drop
                     draggable="true"
-                    className="native-key-bindings sizing-handle"
                     tabIndex="-1"
                 ></div>
             </div>

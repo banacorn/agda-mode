@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import * as React from 'react';
 import * as Promise from 'bluebird';
 import { EventEmitter } from 'events';
+import * as classNames from 'classnames';
 
 import { parseInputContent } from '../../parser';
 import { QueryCancelledError } from '../../error';
@@ -141,9 +142,9 @@ class MiniEditor extends React.Component<Props, State> {
     render() {
         if (this.props.placeholder)
             this.ref.getModel().setPlaceholderText(this.props.placeholder);
+        const classes = classNames(this.props.className, 'agda-mini-editor');
         return (
             <atom-text-editor
-                id="agda-mini-editor"
                 class={this.props.className}
                 mini
                 ref={(ref) => { this.ref = ref; }}

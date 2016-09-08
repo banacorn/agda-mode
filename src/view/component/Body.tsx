@@ -46,14 +46,13 @@ class Body extends React.Component<Props, void> {
     render() {
         const { banner, body, error, plainText, maxBodyHeight } = this.props;
         const { jumpToGoal, jumpToLocation } = this.props;
-        const otherProps = _.omit(this.props, ['banner', 'body', 'error', 'plainText', 'maxBodyHeight', 'jumpToGoal', 'jumpToLocation', 'onMaxBodyHeightChange']);
-        const classes = classNames(this.props.className, `native-key-bindings`);
+        const otherProps = _.omit(this.props, ['banner', 'body', 'error', 'plainText', 'maxBodyHeight', 'jumpToGoal', 'jumpToLocation', 'onMaxBodyHeightChange', 'className']);
+        const classes = classNames(this.props.className, `native-key-bindings`, 'agda-body');
         const style = {
             maxHeight: `${maxBodyHeight}px`
         }
         return (
             <section
-                id="agda-body"
                 className={classes}
                 tabIndex="-1"
                 style={style}
