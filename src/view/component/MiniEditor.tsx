@@ -145,7 +145,7 @@ class MiniEditor extends React.Component<Props, State> {
         const classes = classNames(this.props.className, 'agda-mini-editor');
         return (
             <atom-text-editor
-                class={this.props.className}
+                class={classes}
                 mini
                 ref={(ref) => { this.ref = ref; }}
             ></atom-text-editor>
