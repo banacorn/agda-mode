@@ -29,12 +29,18 @@ export namespace VIEW {
     export type MOUNT = void;
     export const UNMOUNT = 'VIEW.UNMOUNT';
     export type UNMOUNT = void;
+    export const MOUNT_AT_PANE = 'VIEW.MOUNT_AT_PANE';
+    export type MOUNT_AT_PANE = void;
+    export const MOUNT_AT_BOTTOM = 'VIEW.MOUNT_AT_BOTTOM';
+    export type MOUNT_AT_BOTTOM = void;
 }
 
 export const activateView = createAction(VIEW.ACTIVATE);
 export const deactivateView = createAction(VIEW.DEACTIVATE);
 export const mountView = createAction(VIEW.MOUNT);
 export const unmountView = createAction(VIEW.UNMOUNT);
+export const mountAtPane = createAction(VIEW.MOUNT_AT_PANE);
+export const mountAtBottom = createAction(VIEW.MOUNT_AT_BOTTOM);
 
 export type INPUT_METHOD = INPUT_METHOD.ACTIVATE
     | INPUT_METHOD.DEACTIVATE

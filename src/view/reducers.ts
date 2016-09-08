@@ -14,7 +14,8 @@ const defaultState: View.State = {
     emitter: new EventEmitter,
     view: {
         activated: false,
-        mounted: false
+        mounted: false,
+        mountAt: View.MountingPoint.Bottom
     },
     header: {
         text: '',
@@ -68,6 +69,12 @@ const view = handleActions<View.ViewState, VIEW>({
     }),
     [VIEW.UNMOUNT]: (state: View.ViewState, action: Action<VIEW.UNMOUNT>) => _.assign({}, state, {
         mounted: false
+    }),
+    [VIEW.MOUNT_AT_PANE]: (state: View.ViewState, action: Action<VIEW.MOUNT_AT_PANE>) => _.assign({}, state, {
+        mountAt: View.MountingPoint.Pane
+    }),
+    [VIEW.MOUNT_AT_BOTTOM]: (state: View.ViewState, action: Action<VIEW.MOUNT_AT_BOTTOM>) => _.assign({}, state, {
+        mountAt: View.MountingPoint.Bottom
     })
 }, defaultState.view);
 

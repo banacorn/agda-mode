@@ -50,6 +50,12 @@ namespace View {
     export interface ViewState {
         activated: boolean;
         mounted: boolean;
+        mountAt: MountingPoint;
+    }
+
+    export enum MountingPoint {
+        Pane,
+        Bottom
     }
 
     export interface InputMethodState {
