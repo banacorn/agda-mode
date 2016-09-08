@@ -1,7 +1,7 @@
 import * as _ from "lodash";;
 import { normalize } from "path";
 import { parseFilepath } from "./util";
-import { View, Error, Suggestion, Location } from "../types";
+import { View, Error, Suggestion, Location, Occurence } from "../types";
 import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom, succeed,
     regex, digits, string
     } from "parsimmon";
@@ -86,7 +86,7 @@ function parseBannerItem(str: string): View.BannerItem {
     };
 }
 
-function parseOccurence(str: string): View.Occurence {
+function parseOccurence(str: string): Occurence {
     const regex = /((?:\n|.)*\S+)\s*\[ at (.+):(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+)) \]/;
     const result = str.match(regex);
 

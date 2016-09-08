@@ -34,26 +34,10 @@ export default class View {
             this.core.textBuffer.jumpToLocation(loc);
         });
 
-        // this.unmount();
         this.mount();
-        this.render();
     }
 
-    mount() {
-        // mounting point
-        this.mountingPoint = document.createElement('article');
-        this.bottomPanel = atom.workspace.addBottomPanel({
-            item: this.mountingPoint,
-            visible: true,
-            className: 'agda-view'
-        });
-    }
-
-    unmount() {
-        ReactDOM.unmountComponentAtNode(this.mountingPoint);
-    }
-
-    render() {
+    private render() {
         ReactDOM.render(
             <Provider store={this.store}>
                 <Panel
@@ -65,8 +49,25 @@ export default class View {
             </Provider>,
             this.mountingPoint
         )
-
     }
+
+    mount() {
+        // mounting point
+        this.mountingPoint = document.createElement('article');
+        this.bottomPanel = atom.workspace.addBottomPanel({
+            item: this.mountingPoint,
+            visible: true,
+            className: 'agda-view'
+        });
+
+        // render
+        this.render();
+    }
+
+    unmount() {
+        ReactDOM.unmountComponentAtNode(this.mountingPoint);
+    }
+
 
     activate() {
         this.store.dispatch(activateView());

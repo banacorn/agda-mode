@@ -32,6 +32,137 @@ interface Hole {
     content: string
 }
 
+//
+//  View
+//
+
+namespace View {
+
+    export interface State {
+        emitter: EventEmitter;
+        view: ViewState;
+        header: HeaderState;
+        inputMethod: InputMethodState;
+        miniEditor: MiniEditorState;
+        body: BodyState;
+    }
+
+    export interface ViewState {
+        activated: boolean;
+    }
+
+    export interface InputMethodState {
+        enableInMiniEditor: boolean;
+        activated: boolean;
+        buffer: string;
+        translation: string;
+        further: boolean;
+        keySuggestions: string[];
+        candidateSymbols: string[];
+    }
+
+    export const enum Style {
+        PlainText,
+        Info,
+        Success,
+        Error,
+        Warning
+    }
+
+    export interface HeaderState {
+        text: string;
+        style: Style;
+    }
+
+    export interface BodyState {
+        banner: BannerItem[];
+        body: Body;
+        error: Error;
+        plainText: string;
+        maxBodyHeight: number;
+    }
+
+    export interface MiniEditorState {
+        activate: boolean;
+        placeholder: string;
+    }
+
+    // Legacy shit below
+
+
+    export const enum Type {
+        PlainText,
+        Error,
+        Warning,
+        Judgement,
+        Value
+    }
+
+    export type JudgementForm = 'goal' |
+        'type judgement' |
+        'meta' |
+        'term' |
+        'sort' ;
+
+
+    ////////////////////////////////////////////
+    // Body components
+    ////////////////////////////////////////////
+
+    export interface Content {
+        banner: BannerItem[],
+        body: BodyItem[]
+    }
+
+    export interface BannerItem {
+        type: string,
+        label: string
+    }
+
+    export interface Goal {
+        judgementForm: JudgementForm,
+        type: string,
+        index: string
+    }
+
+    export interface Judgement {
+        judgementForm: JudgementForm,
+        type: string,
+        expr: string,
+        index?: string
+    }
+
+    export interface Term {
+        judgementForm: JudgementForm,
+        expr: string
+    }
+
+    export interface Meta {
+        judgementForm: JudgementForm,
+        type: string,
+        location: Location,
+        index: string
+    }
+
+    export interface Sort {
+        judgementForm: JudgementForm,
+        location: Location,
+        index: string
+    }
+
+
+    export type BodyItem = Goal | Judgement | Term | Meta | Sort;
+
+    export interface Body {
+        goal: Goal[],
+        judgement: Judgement[],
+        term: Term[],
+        meta: Meta[],
+        sort: Sort[]
+    }
+
+}
+
 namespace Agda {
 
     export type Response =
@@ -154,144 +285,13 @@ type CommandResult = {
     status: 'Canceled'
 };
 
-//
-//  View
-//
-
-namespace View {
-
-    export interface State {
-        emitter: EventEmitter;
-        view: ViewState;
-        header: HeaderState;
-        inputMethod: InputMethodState;
-        miniEditor: MiniEditorState;
-        body: BodyState;
-    }
-
-    export interface ViewState {
-        activated: boolean;
-    }
-
-    export interface InputMethodState {
-        enableInMiniEditor: boolean;
-        activated: boolean;
-        buffer: string;
-        translation: string;
-        further: boolean;
-        keySuggestions: string[];
-        candidateSymbols: string[];
-    }
-
-    export const enum Style {
-        PlainText,
-        Info,
-        Success,
-        Error,
-        Warning
-    }
-
-    export interface HeaderState {
-        text: string;
-        style: Style;
-    }
-
-    export interface BodyState {
-        banner: BannerItem[];
-        body: Body;
-        error: Error;
-        plainText: string;
-        maxBodyHeight: number;
-    }
-
-    export interface MiniEditorState {
-        activate: boolean;
-        placeholder: string;
-    }
-
-    // Legacy shit below
-
-
-    export const enum Type {
-        PlainText,
-        Error,
-        Warning,
-        Judgement,
-        Value
-    }
-
-    export type JudgementForm = 'goal' |
-        'type judgement' |
-        'meta' |
-        'term' |
-        'sort' ;
-
-    export interface Occurence {
-        location: Location,
-        body: string
-    }
-
-
-    ////////////////////////////////////////////
-    // Body components
-    ////////////////////////////////////////////
-
-    export interface Content {
-        banner: BannerItem[],
-        body: BodyItem[]
-    }
-
-    export interface BannerItem {
-        type: string,
-        label: string
-    }
-
-    export interface Goal {
-        judgementForm: JudgementForm,
-        type: string,
-        index: string
-    }
-
-    export interface Judgement {
-        judgementForm: JudgementForm,
-        type: string,
-        expr: string,
-        index?: string
-    }
-
-    export interface Term {
-        judgementForm: JudgementForm,
-        expr: string
-    }
-
-    export interface Meta {
-        judgementForm: JudgementForm,
-        type: string,
-        location: Location,
-        index: string
-    }
-
-    export interface Sort {
-        judgementForm: JudgementForm,
-        location: Location,
-        index: string
-    }
-
-
-    export type BodyItem = Goal | Judgement | Term | Meta | Sort;
-
-    export interface Body {
-        goal: Goal[],
-        judgement: Judgement[],
-        term: Term[],
-        meta: Meta[],
-        sort: Sort[]
-    }
-
-}
-
 
 // Occurence & Location
+export interface Occurence {
+    location: Location,
+    body: string
+}
+
 export interface Location {
     path: string,
     range: Range,
