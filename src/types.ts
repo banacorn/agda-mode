@@ -50,10 +50,10 @@ namespace View {
     export interface ViewState {
         activated: boolean;
         mounted: boolean;
-        mountAt: MountingPoint;
+        mountAt: MountingPosition;
     }
 
-    export enum MountingPoint {
+    export const enum MountingPosition {
         Pane,
         Bottom
     }

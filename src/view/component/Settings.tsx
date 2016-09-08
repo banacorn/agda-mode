@@ -11,7 +11,7 @@ var { CompositeDisposable } = require('atom');
 declare var atom: any;
 
 interface Props {
-    mountingPosition: View.MountingPoint
+    mountingPosition: View.MountingPosition
 }
 
 const mapStateToProps = (state: View.State) => ({
@@ -42,7 +42,7 @@ class Settings extends React.Component<Props, void> {
     render() {
         const { mountingPosition } = this.props;
         const toggleMountingPosition = classNames({
-            activated: mountingPosition === View.MountingPoint.Pane
+            activated: mountingPosition === View.MountingPosition.Pane
         }, 'no-btn');
         return (
             <ul className="agda-settings">

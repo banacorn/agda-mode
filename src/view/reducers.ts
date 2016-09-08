@@ -15,7 +15,7 @@ const defaultState: View.State = {
     view: {
         activated: false,
         mounted: false,
-        mountAt: View.MountingPoint.Bottom
+        mountAt: View.MountingPosition.Bottom
     },
     header: {
         text: '',
@@ -71,10 +71,10 @@ const view = handleActions<View.ViewState, VIEW>({
         mounted: false
     }),
     [VIEW.MOUNT_AT_PANE]: (state: View.ViewState, action: Action<VIEW.MOUNT_AT_PANE>) => _.assign({}, state, {
-        mountAt: View.MountingPoint.Pane
+        mountAt: View.MountingPosition.Pane
     }),
     [VIEW.MOUNT_AT_BOTTOM]: (state: View.ViewState, action: Action<VIEW.MOUNT_AT_BOTTOM>) => _.assign({}, state, {
-        mountAt: View.MountingPoint.Bottom
+        mountAt: View.MountingPosition.Bottom
     })
 }, defaultState.view);
 

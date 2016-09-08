@@ -20,7 +20,7 @@ declare var atom: any;
 export default class View {
     public store: Redux.Store<V.State>;
     public miniEditor: MiniEditor;
-    private mountingPoint: HTMLElement;
+    private mountingPosition: HTMLElement;
     private bottomPanel: any;
 
     constructor(private core: Core) {
@@ -52,7 +52,7 @@ export default class View {
                     }}
                 />
             </Provider>,
-            this.mountingPoint
+            this.mountingPosition
         )
     }
 
@@ -61,10 +61,10 @@ export default class View {
             console.log('mount')
             // Redux
             this.store.dispatch(Action.mountView());
-            // mounting point
-            this.mountingPoint = document.createElement('article');
+            // mounting position
+            this.mountingPosition = document.createElement('article');
             this.bottomPanel = atom.workspace.addBottomPanel({
-                item: this.mountingPoint,
+                item: this.mountingPosition,
                 visible: true,
                 className: 'agda-view'
             });
@@ -81,9 +81,9 @@ export default class View {
             // Redux
             this.store.dispatch(Action.unmountView());
             // React
-            ReactDOM.unmountComponentAtNode(this.mountingPoint);
-            // mounting point
-            this.mountingPoint = null;
+            ReactDOM.unmountComponentAtNode(this.mountingPosition);
+            // mounting position
+            this.mountingPosition = null;
         }
     }
 
