@@ -15,18 +15,26 @@ export namespace EVENT {
 export const jumpToGoal = createAction(EVENT.JUMP_TO_GOAL);
 export const jumpToLocation = createAction(EVENT.JUMP_TO_LOCATION);
 
-export type VIEW =
-    VIEW.ACTIVATE |
-    VIEW.DEACTIVATE;
+export type VIEW
+    = VIEW.ACTIVATE
+    | VIEW.DEACTIVATE
+    | VIEW.MOUNT
+    | VIEW.UNMOUNT
 export namespace VIEW {
     export const ACTIVATE = 'VIEW.ACTIVATE';
     export type ACTIVATE = void;
     export const DEACTIVATE = 'VIEW.DEACTIVATE';
     export type DEACTIVATE = void;
+    export const MOUNT = 'VIEW.MOUNT';
+    export type MOUNT = void;
+    export const UNMOUNT = 'VIEW.UNMOUNT';
+    export type UNMOUNT = void;
 }
 
 export const activateView = createAction(VIEW.ACTIVATE);
 export const deactivateView = createAction(VIEW.DEACTIVATE);
+export const mountView = createAction(VIEW.MOUNT);
+export const unmountView = createAction(VIEW.UNMOUNT);
 
 export type INPUT_METHOD = INPUT_METHOD.ACTIVATE
     | INPUT_METHOD.DEACTIVATE

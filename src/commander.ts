@@ -93,6 +93,7 @@ export default class Commander {
     //
 
     load(): Promise<CommandResult> {
+        this.core.view.mount();
         this.core.view.activate();
         return this.core.process.load()
             .then(() => {
@@ -103,6 +104,7 @@ export default class Commander {
 
     quit(): Promise<CommandResult> {
         this.core.view.deactivate();
+        this.core.view.unmount();
         if (this.loaded) {
             this.loaded = false;
             this.core.textBuffer.removeGoals();

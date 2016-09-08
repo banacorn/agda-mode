@@ -49,6 +49,7 @@ namespace View {
 
     export interface ViewState {
         activated: boolean;
+        mounted: boolean;
     }
 
     export interface InputMethodState {

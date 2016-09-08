@@ -10,7 +10,8 @@ import Panel from './view/component/Panel';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
 import { View as V, Location } from './types';
-import { EVENT, jumpToGoal } from "./view/actions";
+import { EVENT } from "./view/actions";
+import * as Action from "./view/actions";
 import { parseContent, parseError} from './parser';
 import { activateView, deactivateView, enableInMiniEditor } from './view/actions';
 import { updateHeader, activateMiniEditor, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
@@ -34,7 +35,11 @@ export default class View {
             this.core.textBuffer.jumpToLocation(loc);
         });
 
-        this.mount();
+        // this.mount();
+    }
+
+    private state() {
+        return this.store.getState().view;
     }
 
     private render() {
@@ -52,20 +57,34 @@ export default class View {
     }
 
     mount() {
-        // mounting point
-        this.mountingPoint = document.createElement('article');
-        this.bottomPanel = atom.workspace.addBottomPanel({
-            item: this.mountingPoint,
-            visible: true,
-            className: 'agda-view'
-        });
+        if (!this.state().mounted) {
+            console.log('mount')
+            // Redux
+            this.store.dispatch(Action.mountView());
+            // mounting point
+            this.mountingPoint = document.createElement('article');
+            this.bottomPanel = atom.workspace.addBottomPanel({
+                item: this.mountingPoint,
+                visible: true,
+                className: 'agda-view'
+            });
 
-        // render
-        this.render();
+            // render
+            this.render();
+
+        }
     }
 
     unmount() {
-        ReactDOM.unmountComponentAtNode(this.mountingPoint);
+        if (this.state().mounted) {
+            console.log('unmount')
+            // Redux
+            this.store.dispatch(Action.unmountView());
+            // React
+            ReactDOM.unmountComponentAtNode(this.mountingPoint);
+            // mounting point
+            this.mountingPoint = null;
+        }
     }
 
 

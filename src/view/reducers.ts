@@ -13,7 +13,8 @@ const { translation, further, keySuggestions, candidateSymbols } = translate('')
 const defaultState: View.State = {
     emitter: new EventEmitter,
     view: {
-        activated: false
+        activated: false,
+        mounted: false
     },
     header: {
         text: '',
@@ -61,6 +62,12 @@ const view = handleActions<View.ViewState, VIEW>({
     }),
     [VIEW.DEACTIVATE]: (state: View.ViewState, action: Action<VIEW.DEACTIVATE>) => _.assign({}, state, {
         activated: false
+    }),
+    [VIEW.MOUNT]: (state: View.ViewState, action: Action<VIEW.MOUNT>) => _.assign({}, state, {
+        mounted: true
+    }),
+    [VIEW.UNMOUNT]: (state: View.ViewState, action: Action<VIEW.UNMOUNT>) => _.assign({}, state, {
+        mounted: false
     })
 }, defaultState.view);
 
