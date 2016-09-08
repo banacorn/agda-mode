@@ -12,7 +12,9 @@ import { translate } from '../input-method';
 const { translation, further, keySuggestions, candidateSymbols } = translate('');
 const defaultState: View.State = {
     emitter: new EventEmitter,
-    activated: false,
+    view: {
+        activated: false
+    },
     header: {
         text: '',
         style: View.Style.PlainText
@@ -53,10 +55,14 @@ const emitter = handleActions<EventEmitter, EVENT>({
     }
 }, defaultState.emitter);
 
-const activated = handleActions<boolean, VIEW>({
-    [VIEW.ACTIVATE]: (state: boolean, action: Action<VIEW.ACTIVATE>) => true,
-    [VIEW.DEACTIVATE]: (state: boolean, action: Action<VIEW.DEACTIVATE>) => false
-}, defaultState.activated);
+const view = handleActions<View.ViewState, VIEW>({
+    [VIEW.ACTIVATE]: (state: View.ViewState, action: Action<VIEW.ACTIVATE>) => _.assign({}, state, {
+        activated: true
+    }),
+    [VIEW.DEACTIVATE]: (state: View.ViewState, action: Action<VIEW.DEACTIVATE>) => _.assign({}, state, {
+        activated: false
+    })
+}, defaultState.view);
 
 const inputMethod = handleActions<View.InputMethodState, INPUT_METHOD>({
     [INPUT_METHOD.ACTIVATE]: (state: View.InputMethodState, action: Action<INPUT_METHOD.ACTIVATE>) => {
@@ -132,7 +138,7 @@ const body = handleActions<View.BodyState, BODY>({
 // export default reducer;
 export default combineReducers<View.State>({
     emitter,
-    activated,
+    view,
     header,
     inputMethod,
     miniEditor,

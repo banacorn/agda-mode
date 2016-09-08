@@ -162,11 +162,15 @@ namespace View {
 
     export interface State {
         emitter: EventEmitter;
-        activated: boolean;
+        view: ViewState;
         header: HeaderState;
         inputMethod: InputMethodState;
         miniEditor: MiniEditorState;
         body: BodyState;
+    }
+
+    export interface ViewState {
+        activated: boolean;
     }
 
     export interface InputMethodState {
