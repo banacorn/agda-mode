@@ -23,6 +23,9 @@ declare var atom: any;
 
 export default class View {
     private subscriptions: CompositeDisposable;
+    private paneItemSubscriptions: CompositeDisposable;
+    private paneItemDestroyedByAtom: boolean;
+
     public store: Redux.Store<V.State>;
     public miniEditor: MiniEditor;
     private mountingPosition: HTMLElement;
@@ -32,6 +35,9 @@ export default class View {
     constructor(private core: Core) {
         this.store = createStore(reducer);
         this.subscriptions = new CompositeDisposable;
+        this.paneItemSubscriptions = new CompositeDisposable;
+        this.paneItemDestroyedByAtom = true;
+
         this.uri = `agda-mode://${this.core.editor.id}`;
         // global events
         const emitter = this.store.getState().emitter;
@@ -53,7 +59,9 @@ export default class View {
             }
         }));
 
-        // ::onWillDestroyPaneItem(callback)
+        // onWillDestroyPaneItem(callback)
+
+
     }
 
     private parseURI(uri: string) {
@@ -64,7 +72,8 @@ export default class View {
         }
     }
 
-    private isAgdaView() {
+    private ownedPaneItem(item: any) {
+
         return false;
     }
 
@@ -100,6 +109,7 @@ export default class View {
                         this.mount(this.state().mountAt.current);
                     }}
                     mountAtBottom={() => {
+                        this.paneItemDestroyedByAtom = false;
                         this.unmount(this.state().mountAt.previous);
                         this.mount(this.state().mountAt.current);
                     }}
@@ -137,6 +147,24 @@ export default class View {
                         // mounting position
                         this.mountingPosition = view;
                         previousActivePane.activate();
+
+                        // on destroy
+                        const pane = atom.workspace.paneForItem(this.mountingPosition);
+                        if (pane) {
+                            this.paneItemSubscriptions.add(pane.onWillDestroyItem(event => {
+                                if (event.item.getURI() === this.uri) {
+                                    console.log(`[${this.uri.substr(12)}] %cpane item destroyed by ${this.paneItemDestroyedByAtom ? `Atom` : 'agda-mode'}`, 'color: red');
+                                    if (this.paneItemDestroyedByAtom) {
+                                        this.store.dispatch(Action.mountAtBottom());
+                                        this.unmount(V.MountingPosition.Pane);
+                                        this.mount(V.MountingPosition.Bottom);
+                                    } else {
+                                        this.paneItemDestroyedByAtom = true;
+                                    }
+                                }
+                            }));
+                        }
+
                         // render
                         this.render();
                     })
@@ -150,6 +178,8 @@ export default class View {
     unmount(mountAt: V.MountingPosition) {
         if (this.state().mounted) {
             console.log(`[${this.uri.substr(12)}] %cunmount at ${toText(mountAt)}`, 'color: orange')
+            // Redux
+            this.store.dispatch(Action.unmountView());
 
             switch (mountAt) {
                 case V.MountingPosition.Bottom:
@@ -157,18 +187,20 @@ export default class View {
                     this.bottomPanel.destroy();
                     break;
                 case V.MountingPosition.Pane:
-                    // destroy the editor
-                        atom.workspace
-                            .paneForItem(this.mountingPosition)
-                            .destroyItem(this.mountingPosition);
+                    // unsubscribe
+                    this.paneItemSubscriptions.dispose();
+                    // destroy the editor, but don't bother if it's already destroyed by Atom
+                    if (!this.paneItemDestroyedByAtom) {
+                        const pane = atom.workspace.paneForItem(this.mountingPosition);
+                        if (pane)
+                            pane.destroyItem(this.mountingPosition);
+                    }
                     break;
                 default:
                     // do nothing
                     break;
             }
 
-            // Redux
-            this.store.dispatch(Action.unmountView());
             // React
             ReactDOM.unmountComponentAtNode(this.mountingPosition);
             // mounting position
