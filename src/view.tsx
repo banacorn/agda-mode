@@ -109,7 +109,6 @@ export default class View {
                         this.mount(this.state().mountAt.current);
                     }}
                     mountAtBottom={() => {
-                        this.paneItemDestroyedByAtom = false;
                         this.unmount(this.state().mountAt.previous);
                         this.mount(this.state().mountAt.current);
                         console.log(`[${this.uri.substr(12)}] %cstate of activation: ${this.state().activated}`, 'color: cyan')
@@ -157,7 +156,7 @@ export default class View {
                                     console.log(`[${this.uri.substr(12)}] %cpane item destroyed by ${this.paneItemDestroyedByAtom ? `Atom` : 'agda-mode'}`, 'color: red');
                                     if (this.paneItemDestroyedByAtom) {
                                         this.store.dispatch(Action.mountAtBottom());
-                                        this.unmount(V.MountingPosition.Pane);
+                                        this.unmountPrim(V.MountingPosition.Pane);
                                         this.mount(V.MountingPosition.Bottom);
                                         console.log(`[${this.uri.substr(12)}] %cstate of activation: ${this.state().activated}`, 'color: cyan')
                                     } else {
@@ -178,6 +177,21 @@ export default class View {
     }
 
     unmount(mountAt: V.MountingPosition) {
+        switch (mountAt) {
+            case V.MountingPosition.Bottom:
+                // do nothing
+                break;
+            case V.MountingPosition.Pane:
+                this.paneItemDestroyedByAtom = false;
+                break;
+            default:
+                // do nothing
+                break;
+        }
+        this.unmountPrim(mountAt);
+    }
+
+    private unmountPrim(mountAt: V.MountingPosition) {
         if (this.state().mounted) {
             console.log(`[${this.uri.substr(12)}] %cunmount at ${toText(mountAt)}`, 'color: orange')
             // Redux
