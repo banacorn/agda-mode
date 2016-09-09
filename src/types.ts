@@ -337,6 +337,7 @@ type Error = Error.NotInScope |
 namespace Error {
     export interface NotInScope {
         kind: 'NotInScope',
+        header: string,
         location: Location,
         suggestion: Suggestion,
         expr: string
@@ -344,6 +345,7 @@ namespace Error {
 
     export interface TypeMismatch {
         kind: 'TypeMismatch',
+        header: string,
         location: Location
         expected: string,
         expectedType: string,
@@ -354,6 +356,7 @@ namespace Error {
 
     export interface DefinitionTypeMismatch {
         kind: 'DefinitionTypeMismatch',
+        header: string,
         location: Location
         expected: string,
         expectedType: string,
@@ -364,6 +367,7 @@ namespace Error {
 
     export interface BadConstructor {
         kind: 'BadConstructor',
+        header: string,
         location: Location,
         constructor: string,
         constructorType: string,
@@ -373,6 +377,7 @@ namespace Error {
 
     export interface RHSOmitted {
         kind: 'RHSOmitted',
+        header: string,
         location: Location,
         expr: string,
         exprType: string
@@ -380,6 +385,7 @@ namespace Error {
 
     export interface MissingType {
         kind: 'MissingType';
+        header: string,
         location: Location;
         expr: string;
         decl: string;
@@ -387,6 +393,7 @@ namespace Error {
 
     export interface MultipleDefinition {
         kind: 'MultipleDefinition',
+        header: string,
         location: Location,
         locationPrev: Location,
         expr: string,
@@ -396,12 +403,14 @@ namespace Error {
 
     export interface MissingDefinition {
         kind: 'MissingDefinition',
+        header: string,
         location: Location,
         expr: string
     }
 
     export interface Termination {
         kind: 'Termination',
+        header: string,
         location: Location,
         expr: string,
         calls: {
@@ -412,6 +421,7 @@ namespace Error {
 
     export interface ConstructorTarget {
         kind: 'ConstructorTarget',
+        header: string,
         location: Location,
         expr: string,
         ctor: string,
@@ -420,6 +430,7 @@ namespace Error {
 
     export interface FunctionType {
         kind: 'FunctionType',
+        header: string,
         location: Location,
         expr: string,
         exprType: string
@@ -427,6 +438,7 @@ namespace Error {
 
     export interface ModuleMismatch {
         kind: 'ModuleMismatch',
+        header: string,
         wrongPath: string,
         rightPath: string,
         moduleName: string
@@ -434,6 +446,7 @@ namespace Error {
 
     export interface Parse {
         kind: 'Parse',
+        header: string,
         location: Location
         message: string,
         expr: string,
@@ -441,6 +454,7 @@ namespace Error {
 
     export interface CaseSingleHole {
         kind: 'CaseSingleHole',
+        header: string,
         location: Location,
         expr: string,
         exprType: string
@@ -448,6 +462,7 @@ namespace Error {
 
     export interface PatternMatchOnNonDatatype {
         kind: 'PatternMatchOnNonDatatype',
+        header: string,
         location: Location,
         nonDatatype: string,
         expr: string,
@@ -461,6 +476,7 @@ namespace Error {
     //
     export interface Unparsed {
         kind: 'Unparsed',
+        header: string,
         input: string,
     }
 }

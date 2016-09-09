@@ -67,6 +67,7 @@ const notInScope: Parser<Error.NotInScope> = seq(
     ).map((result) => {
         return <Error.NotInScope>{
             kind: "NotInScope",
+            header: 'Not in scope',
             expr: result[1],
             location: result[0],
             suggestion: result[2]
@@ -83,6 +84,7 @@ const typeMismatch: Parser<Error.TypeMismatch> = seq(
     ).map((result) => {
         return <Error.TypeMismatch>{
             kind: "TypeMismatch",
+            header: 'Type mismatch',
             actual: result[1],
             expected: result[2],
             expectedType: result[3],
@@ -101,6 +103,7 @@ const definitionTypeMismatch: Parser<Error.DefinitionTypeMismatch> = seq(
     ).map((result) => {
         return <Error.DefinitionTypeMismatch>{
             kind: "DefinitionTypeMismatch",
+            header: 'Definition type mismatch',
             actual: result[1],
             expected: result[2],
             expectedType: result[3],
@@ -118,6 +121,7 @@ const badConstructor: Parser<Error.BadConstructor> = seq(
     ).map((result) => {
         return <Error.BadConstructor>{
             kind: "BadConstructor",
+            header: 'Bad constructor',
             location: result[0],
             constructor: result[1],
             constructorType: result[2],
@@ -136,6 +140,7 @@ const rhsOmitted: Parser<Error.RHSOmitted> =  seq(
     ).map((result) => {
         return <Error.RHSOmitted>{
             kind: "RHSOmitted",
+            header: 'Right-hand side omitted',
             location: result[0],
             expr: result[4],
             exprType: result[5]
@@ -150,6 +155,7 @@ const missingType: Parser<Error.MissingType> =  seq(
     ).map((result) => {
         return <Error.MissingType>{
             kind: "MissingType",
+            header: 'Missing type signature',
             location: result[0],
             expr: result[2],
             decl: result[3]
@@ -167,6 +173,7 @@ const multipleDefinition: Parser<Error.MultipleDefinition> =  seq(
     ).map((result) => {
         return <Error.MultipleDefinition>{
             kind: "MultipleDefinition",
+            header: "Multiple definition",
             location: result[0],
             locationPrev: result[3],
             expr: result[2],
@@ -182,6 +189,7 @@ const missingDefinition: Parser<Error.MissingDefinition> =  seq(
     ).map((result) => {
         return <Error.MissingDefinition>{
             kind: "MissingDefinition",
+            header: "Missing definition",
             location: result[0],
             expr: result[1]
         }
@@ -203,6 +211,7 @@ const termination: Parser<Error.Termination> =  seq(
     ).map((result) => {
         return <Error.Termination>{
             kind: "Termination",
+            header: "Termination error",
             location: result[0],
             expr: result[2],
             calls: result[3]
@@ -218,6 +227,7 @@ const constructorTarget: Parser<Error.ConstructorTarget> =  seq(
     ).map((result) => {
         return <Error.ConstructorTarget>{
             kind: "ConstructorTarget",
+            header: "Constructor target error",
             location: result[0],
             expr: result[2],
             ctor: result[3],
@@ -234,6 +244,7 @@ const functionType: Parser<Error.FunctionType> =  seq(
     ).map((result) => {
         return <Error.FunctionType>{
             kind: "FunctionType",
+            header: "Not a function type",
             location: result[0],
             expr: result[2],
             exprType: result[1]
@@ -247,6 +258,7 @@ const moduleMismatch: Parser<Error.ModuleMismatch> =  seq(
     ).map((result) => {
         return <Error.ModuleMismatch>{
             kind: "ModuleMismatch",
+            header: "Module mismatch",
             wrongPath: result[0],
             rightPath: result[2],
             moduleName: result[1]
@@ -260,6 +272,7 @@ const parse: Parser<Error.Parse> =  seq(
         const i = (<string>result[1]).indexOf("\n");
         return <Error.Parse>{
             kind: "Parse",
+            header: "Parse error",
             location: result[0],
             message: (<string>result[1]).substring(0, i),
             expr: (<string>result[1]).substring(i + 1)
@@ -276,6 +289,7 @@ const caseSingleHole: Parser<Error.CaseSingleHole> =  seq(
 ).map((result) => {
     return <Error.CaseSingleHole>{
         kind: "CaseSingleHole",
+        header: "Not a single hole",
         location: result[0],
         expr: result[3],
         exprType: result[4]
@@ -290,6 +304,7 @@ const patternMatchOnNonDatatype: Parser<Error.PatternMatchOnNonDatatype> =  seq(
 ).map((result) => {
     return <Error.PatternMatchOnNonDatatype>{
         kind: "PatternMatchOnNonDatatype",
+        header: "Pattern match on non-datatype",
         location: result[0],
         nonDatatype: result[1],
         expr: result[2],
@@ -300,6 +315,7 @@ const patternMatchOnNonDatatype: Parser<Error.PatternMatchOnNonDatatype> =  seq(
 const unparsed: Parser<Error.Unparsed> = all.map((result) => {
     return <Error.Unparsed>{
         kind: "Unparsed",
+        header: "Error",
         input: result
     }
 });
