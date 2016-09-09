@@ -106,6 +106,7 @@ export default class Commander {
     quit(): Promise<CommandResult> {
         this.core.view.deactivate();
         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+        this.core.view.paneItemDestroyedByAtom = false;
         this.core.view.unmount(currentMountingPosition);
         if (this.loaded) {
             this.loaded = false;

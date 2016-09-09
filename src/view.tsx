@@ -24,7 +24,7 @@ declare var atom: any;
 export default class View {
     private subscriptions: CompositeDisposable;
     private paneItemSubscriptions: CompositeDisposable;
-    private paneItemDestroyedByAtom: boolean;
+    public paneItemDestroyedByAtom: boolean;
 
     public store: Redux.Store<V.State>;
     public miniEditor: MiniEditor;
@@ -189,13 +189,14 @@ export default class View {
                     this.bottomPanel.destroy();
                     break;
                 case V.MountingPosition.Pane:
-                    // unsubscribe
-                    this.paneItemSubscriptions.dispose();
                     // destroy the editor, but don't bother if it's already destroyed by Atom
                     if (!this.paneItemDestroyedByAtom) {
                         const pane = atom.workspace.paneForItem(this.mountingPosition);
-                        if (pane)
+                        if (pane) {
                             pane.destroyItem(this.mountingPosition);
+                            // unsubscribe
+                            this.paneItemSubscriptions.dispose();
+                        }
                     }
                     break;
                 default:
