@@ -138,7 +138,7 @@
     .agda-body {
         @height: 30px;
 
-        overflow: scroll;
+        overflow-y: scroll;
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
 
         // background: @base-background-color;
@@ -187,8 +187,7 @@
 
         }
 
-
-        p {
+        p, div.error {
             min-height: @height;
             line-height: @height;
             padding: 0 @component-padding;

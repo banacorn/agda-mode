@@ -312,6 +312,41 @@ const patternMatchOnNonDatatype: Parser<Error.PatternMatchOnNonDatatype> =  seq(
     }
 });
 
+// for Error.LibraryNotFound
+const installedLibrary: Parser<{name: string, path: string}> = seq(
+    regex(/\s*(\S+)\s*\(/),
+    trimBeforeAndSkip(')')
+).map((result) => {
+    const match = (result[0] as string).match(/\s*(\S+)\s*\(/);
+    console.log(result[0])
+    return <{name: string, path: string}>{
+        name: match[1],
+        path: result[1]
+    }
+});
+
+// for Error.LibraryNotFound
+const libraryNotFoundItem: Parser<{}> =  seq(
+    token('Library \'').then(trimBeforeAndSkip('\' not found.\nAdd the path to its .agda-lib file to\n  \'')),
+    trimBeforeAndSkip('\'\nto install.\nInstalled libraries:'),
+    installedLibrary.many()
+).map((result) => {
+    return <{}>{
+        name: result[0],
+        agdaLibFilePath: result[1],
+        installedLibraries: result[2]
+    }
+});
+
+const libraryNotFound: Parser<Error.LibraryNotFound> =  seq(
+    libraryNotFoundItem.many()
+).map((result) => {
+    return <Error.LibraryNotFound>{
+        kind: 'LibraryNotFound',
+        header: 'Library not found',
+        libraries: result[0]
+    }
+});
 const unparsed: Parser<Error.Unparsed> = all.map((result) => {
     return <Error.Unparsed>{
         kind: "Unparsed",
@@ -336,6 +371,7 @@ const errorParser: Parser<Error> = alt(
     parse,
     caseSingleHole,
     patternMatchOnNonDatatype,
+    libraryNotFound,
     unparsed
 );
 

@@ -45,6 +45,20 @@ class Error extends React.Component<void, void> {
                     <Expr>{error.expr}</Expr> should be a function type, but it isn't<br/>
                     when checking that <Expr>{error.expr}</Expr> is a valid argument to a function of type <Expr>{error.exprType}</Expr><br/>
             </p>
+            case 'LibraryNotFound': return <div className="error">
+                    {error.libraries.map((library, i) => <div key={i}>
+                            Library '{library.name}' not found.<br/>
+                            Add the path to its .agda-lib file to<br/>
+                            <span>    </span>{library.agdaLibFilePath}<br/>
+                            to install.<br/>
+                            <ul>
+                                {library.installedLibraries.map((installed, j) => <li key={j}>
+                                    {installed.name}: {installed.path}
+                                </li>)}
+                            </ul>
+                        </div>
+                    )}
+            </div>
             case 'MissingDefinition': return <p className="error">
                     <Location>{error.location}</Location><br/>
                     Missing definition for <Expr>{error.expr}</Expr>

@@ -330,6 +330,7 @@ type Error = Error.NotInScope |
     Error.Parse |
     Error.CaseSingleHole |
     Error.PatternMatchOnNonDatatype |
+    Error.LibraryNotFound |
     // ApplicationParseError |
     // TerminationError |
     // ParseError |
@@ -468,6 +469,19 @@ namespace Error {
         nonDatatype: string,
         expr: string,
         exprType: string
+    }
+
+    export interface LibraryNotFound {
+        kind: 'LibraryNotFound',
+        header: string,
+        libraries: {
+            name: string,
+            agdaLibFilePath: string,
+            installedLibraries: {
+                name: string,
+                path: string
+            }[]
+        }[]
     }
     // export interface ApplicationParseError {
     //     type: ErrorType,

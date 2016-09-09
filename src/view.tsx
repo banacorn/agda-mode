@@ -275,10 +275,12 @@ export default class View {
         } else if (type === V.Style.Error) {
             const error = parseError(payload.join('\n'));
             this.store.dispatch(updateError(error));
-            this.store.dispatch(updateHeader({
-                style: V.Style.Error,
-                text: error.header
-            }));
+            if (error) {
+                this.store.dispatch(updateHeader({
+                    style: V.Style.Error,
+                    text: error.header
+                }));
+            }
         } else {
             this.store.dispatch(updatePlainText(payload.join('\n')));
         }
