@@ -39,7 +39,7 @@ class Panel extends React.Component<Props, void> {
     render() {
         const { core, onMiniEditorMount, jumpToLocation, onResize } = this.props;
         const { mountAtPane, mountAtBottom } = this.props;
-        const hideEverything = classNames({'hidden': !this.props.view.activated});
+        const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
         const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
         const hideBody = classNames({'hidden': this.props.miniEditor.activate});
         return (

@@ -112,6 +112,7 @@ export default class View {
                         this.paneItemDestroyedByAtom = false;
                         this.unmount(this.state().mountAt.previous);
                         this.mount(this.state().mountAt.current);
+                        console.log(`[${this.uri.substr(12)}] %cstate of activation: ${this.state().activated}`, 'color: cyan')
                     }}
                 />
             </Provider>,
@@ -158,6 +159,7 @@ export default class View {
                                         this.store.dispatch(Action.mountAtBottom());
                                         this.unmount(V.MountingPosition.Pane);
                                         this.mount(V.MountingPosition.Bottom);
+                                        console.log(`[${this.uri.substr(12)}] %cstate of activation: ${this.state().activated}`, 'color: cyan')
                                     } else {
                                         this.paneItemDestroyedByAtom = true;
                                     }
@@ -210,9 +212,10 @@ export default class View {
 
     activate() {
         console.log(`[${this.uri.substr(12)}] %cactivated`, 'color: blue')
+        this.store.dispatch(activateView());
         switch (this.state().mountAt.current) {
             case V.MountingPosition.Bottom:
-                this.store.dispatch(activateView());
+                // do nothing
                 break;
             case V.MountingPosition.Pane:
                 const pane = atom.workspace.paneForItem(this.mountingPosition);
@@ -227,16 +230,7 @@ export default class View {
 
     deactivate() {
         console.log(`[${this.uri.substr(12)}] %cdeactivated`, 'color: purple')
-        switch (this.state().mountAt.current) {
-            case V.MountingPosition.Bottom:
-                this.store.dispatch(deactivateView());
-                break;
-            case V.MountingPosition.Pane:
-                break;
-            default:
-                // do nothing
-                break;
-        }
+        this.store.dispatch(deactivateView());
     }
 
     // destructor
