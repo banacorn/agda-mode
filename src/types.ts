@@ -275,6 +275,7 @@ namespace Agda {
 type CommandKind = 'Load' | 'Quit' | 'Restart' | 'Compile' |
     'ToggleDisplayOfImplicitArguments' | 'Info' | 'ShowConstraints' |
     'SolveConstraints' | 'ShowGoals' | 'NextGoal' | 'PreviousGoal' |
+    'ToggleDocking' |
     'WhyInScope' | 'InferType' | 'ModuleContents' | 'ComputeNormalForm' |
     'ComputeNormalFormIgnoreAbstract' | 'Give' | 'Refine' | 'Auto' | 'Case' |
     'GoalType' | 'Context' | 'GoalTypeAndContext' | 'GoalTypeAndInferredType' |

@@ -15,6 +15,7 @@ const commands = [
     'agda-mode:show-goals',
     'agda-mode:next-goal',
     'agda-mode:previous-goal',
+    'agda-mode:toggle-docking',
     'agda-mode:why-in-scope',
     'agda-mode:infer-type[Simplified]',
     'agda-mode:infer-type[Instantiated]',

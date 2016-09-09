@@ -59,6 +59,10 @@ function parseCommand(raw: string): Command {
             kind: "PreviousGoal",
             editsFile: false
         };
+        case "toggle-docking": return {
+            kind: "ToggleDocking",
+            editsFile: false
+        };
         case "why-in-scope": return {
             kind: "WhyInScope",
             editsFile: false

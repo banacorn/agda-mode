@@ -62,6 +62,7 @@ export default class Commander {
                 return this.showGoals();
             case "NextGoal":      return this.nextGoal();
             case "PreviousGoal":  return this.previousGoal();
+            case "ToggleDocking":  return this.toggleDocking();
             case "WhyInScope":    return this.whyInScope();
             case "InferType":
                 return this.inferType(command.normalization);
@@ -162,6 +163,11 @@ export default class Commander {
     previousGoal(): Promise<CommandResult> {
         return this.core.textBuffer.previousGoal()
             .then(resolveCommand("PreviousGoal"));
+    }
+
+    toggleDocking(): Promise<CommandResult> {
+        return this.core.view.toggleDocking()
+            .then(resolveCommand("ToggleDocking"));
     }
 
     //

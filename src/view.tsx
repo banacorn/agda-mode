@@ -9,7 +9,7 @@ import Core from './core';
 import Panel from './view/component/Panel';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
-import { View as V, Location } from './types';
+import { View as V, Location, CommandResult } from './types';
 import { EVENT } from "./view/actions";
 import * as Action from "./view/actions";
 import { parseContent, parseError} from './parser';
@@ -111,7 +111,7 @@ export default class View {
                     mountAtBottom={() => {
                         this.unmount(this.state().mountAt.previous);
                         this.mount(this.state().mountAt.current);
-                        console.log(`[${this.uri.substr(12)}] %cstate of activation: ${this.state().activated}`, 'color: cyan')
+                        // console.log(`[${this.uri.substr(12)}] %cstate of activation: ${this.state().activated}`, 'color: cyan')
                     }}
                 />
             </Provider>,
@@ -121,7 +121,7 @@ export default class View {
 
     mount(mountAt: V.MountingPosition) {
         if (!this.state().mounted) {
-            console.log(`[${this.uri.substr(12)}] %cmount at ${toText(mountAt)}`, 'color: green')
+            // console.log(`[${this.uri.substr(12)}] %cmount at ${toText(mountAt)}`, 'color: green')
             // Redux
             this.store.dispatch(Action.mountView());
 
@@ -153,12 +153,12 @@ export default class View {
                         if (pane) {
                             this.paneItemSubscriptions.add(pane.onWillDestroyItem(event => {
                                 if (event.item.getURI() === this.uri) {
-                                    console.log(`[${this.uri.substr(12)}] %cpane item destroyed by ${this.paneItemDestroyedByAtom ? `Atom` : 'agda-mode'}`, 'color: red');
+                                    // console.log(`[${this.uri.substr(12)}] %cpane item destroyed by ${this.paneItemDestroyedByAtom ? `Atom` : 'agda-mode'}`, 'color: red');
                                     if (this.paneItemDestroyedByAtom) {
                                         this.store.dispatch(Action.mountAtBottom());
                                         this.unmountPrim(V.MountingPosition.Pane);
                                         this.mount(V.MountingPosition.Bottom);
-                                        console.log(`[${this.uri.substr(12)}] %cstate of activation: ${this.state().activated}`, 'color: cyan')
+                                        // console.log(`[${this.uri.substr(12)}] %cstate of activation: ${this.state().activated}`, 'color: cyan')
                                     } else {
                                         this.paneItemDestroyedByAtom = true;
                                     }
@@ -193,7 +193,7 @@ export default class View {
 
     private unmountPrim(mountAt: V.MountingPosition) {
         if (this.state().mounted) {
-            console.log(`[${this.uri.substr(12)}] %cunmount at ${toText(mountAt)}`, 'color: orange')
+            // console.log(`[${this.uri.substr(12)}] %cunmount at ${toText(mountAt)}`, 'color: orange')
             // Redux
             this.store.dispatch(Action.unmountView());
 
@@ -226,7 +226,7 @@ export default class View {
     }
 
     activate() {
-        console.log(`[${this.uri.substr(12)}] %cactivated`, 'color: blue')
+        // console.log(`[${this.uri.substr(12)}] %cactivated`, 'color: blue')
         this.store.dispatch(activateView());
         switch (this.state().mountAt.current) {
             case V.MountingPosition.Bottom:
@@ -244,13 +244,13 @@ export default class View {
     }
 
     deactivate() {
-        console.log(`[${this.uri.substr(12)}] %cdeactivated`, 'color: purple')
+        // console.log(`[${this.uri.substr(12)}] %cdeactivated`, 'color: purple')
         this.store.dispatch(deactivateView());
     }
 
     // destructor
     destroy() {
-        console.log(`[${this.uri.substr(12)}] %cdestroy`, 'color: red');
+        // console.log(`[${this.uri.substr(12)}] %cdestroy`, 'color: red');
         this.unmount(this.state().mountAt.current);
         this.subscriptions.dispose();
     }
@@ -294,6 +294,25 @@ export default class View {
 
         this.miniEditor.activate();
         return this.miniEditor.query();
+    }
+
+    toggleDocking(): Promise<CommandResult> {
+        switch (this.state().mountAt.current) {
+            case V.MountingPosition.Bottom:
+                this.store.dispatch(Action.mountAtPane());
+                this.unmount(V.MountingPosition.Bottom);
+                this.mount(V.MountingPosition.Pane);
+                break;
+            case V.MountingPosition.Pane:
+                this.store.dispatch(Action.mountAtBottom());
+                this.unmount(V.MountingPosition.Pane);
+                this.mount(V.MountingPosition.Bottom);
+                break;
+            default:
+                // do nothing
+                break;
+        }
+        return Promise.resolve({ status: 'Issued', command: 'ToggleDocking' } as CommandResult);
     }
 }
 
