@@ -37,10 +37,10 @@ class Header extends React.Component<Props, void> {
         const { mountAtPane, mountAtBottom } = this.props;
         const classes = classNames({
             hidden: inputMethodActivated || _.isEmpty(text)
-        }, `text-${toStyle(style)}`)
+        }, 'agda-header')
         return (
-            <div className="agda-header">
-                <h1 className={classes}>{text}</h1>
+            <div className={classes}>
+                <h1 className={`text-${toStyle(style)}`}>{text}</h1>
                 <Settings
                     mountAtPane={mountAtPane}
                     mountAtBottom={mountAtBottom}
