@@ -21,9 +21,15 @@ interface Props extends React.HTMLAttributes {
     onMaxBodyHeightChange: (count: number) => void;
     jumpToGoal: (index: number) => void;
     jumpToLocation: (loc: Loc) => void;
+    mountAtBottom: boolean;
 }
 
-const mapStateToProps = (state: View.State) => state.body
+const mapStateToProps = (state: View.State) => {
+    let obj = state.body;
+    obj['mountAtBottom'] = state.view.mountAt.current === View.MountingPosition.Bottom;
+    return obj;
+}
+
 const mapDispatchToProps = (dispatch: any) => ({
     onMaxBodyHeightChange: (count: number) => {
         dispatch(updateMaxBodyHeight(count));
@@ -44,19 +50,19 @@ class Body extends React.Component<Props, void> {
     }
 
     render() {
-        const { banner, body, error, plainText, maxBodyHeight } = this.props;
+        const { banner, body, error, plainText, maxBodyHeight, mountAtBottom } = this.props;
         const { jumpToGoal, jumpToLocation } = this.props;
-        const otherProps = _.omit(this.props, ['banner', 'body', 'error', 'plainText', 'maxBodyHeight', 'jumpToGoal', 'jumpToLocation', 'onMaxBodyHeightChange', 'className']);
         const classes = classNames(this.props.className, `native-key-bindings`, 'agda-body');
-        const style = {
+        const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
-        }
+        } : {
+            minHeight: `1000px`
+        };
         return (
             <section
                 className={classes}
                 tabIndex="-1"
                 style={style}
-                {...otherProps}
             >
                 <ul className="list-group">{banner.map((item, i) =>
                     <li className="list-item banner-item" key={i}>

@@ -318,7 +318,6 @@ const installedLibrary: Parser<{name: string, path: string}> = seq(
     trimBeforeAndSkip(')')
 ).map((result) => {
     const match = (result[0] as string).match(/\s*(\S+)\s*\(/);
-    console.log(result[0])
     return <{name: string, path: string}>{
         name: match[1],
         path: result[1]
