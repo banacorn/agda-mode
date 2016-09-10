@@ -163,10 +163,17 @@ export default class InputMethod {
             // initialize input suggestion
             this.core.view.store.dispatch(activateInputMethod());
         } else {
-            // input method already activated
-            // this will happen when the 2nd backslash '\' got punched in
-            // we shall leave 1 backslash in the buffer, then deactivate
-            this.deactivate();
+            // input method already activated, it happens when we get the 2nd
+            // backslash '\' coming in
+            const buffer = this.core.view.store.getState().inputMethod.buffer;
+            if (_.isEmpty(buffer)) {
+                // the user probably just want to type '\', we shall leave it
+                // the editor as is.
+                this.deactivate();
+            } else {
+                // keep going, see issue #34: https://github.com/banacorn/agda-mode/issues/34
+                this.insertCharToBuffer('\\');
+            }
         }
     }
 
