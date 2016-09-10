@@ -91,6 +91,10 @@ class MiniEditor extends React.Component<Props, State> {
 
         // observe 'focus'
         this.observeFocus();
+
+        // placeholder
+        if (this.props.placeholder)
+            this.ref.getModel().setPlaceholderText(this.props.placeholder);
     }
 
     componentWillUnmount() {
@@ -140,8 +144,6 @@ class MiniEditor extends React.Component<Props, State> {
     }
 
     render() {
-        if (this.props.placeholder)
-            this.ref.getModel().setPlaceholderText(this.props.placeholder);
         const classes = classNames(this.props.className, 'agda-mini-editor');
         return (
             <atom-text-editor

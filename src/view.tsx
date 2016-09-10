@@ -25,7 +25,7 @@ export default class View {
     private subscriptions: CompositeDisposable;
     private paneItemSubscriptions: CompositeDisposable;
     public paneItemDestroyedByAtom: boolean;
-
+    private editor: any;
     public store: Redux.Store<V.State>;
     public miniEditor: MiniEditor;
     private mountingPosition: HTMLElement;
@@ -37,6 +37,7 @@ export default class View {
         this.subscriptions = new CompositeDisposable;
         this.paneItemSubscriptions = new CompositeDisposable;
         this.paneItemDestroyedByAtom = true;
+        this.editor = atom.workspace.getActiveTextEditor();
 
         this.uri = `agda-mode://${this.core.editor.id}`;
         // global events
@@ -55,7 +56,7 @@ export default class View {
             const openedByAgdaMode = protocol === 'agda-mode';
             const openedByTheSameEditor = path === this.core.editor.id.toString();
             if (openedByAgdaMode && openedByTheSameEditor) {
-                return this.createEditor(path);
+                return this.createPaneItem(path);
             }
         }));
     }
@@ -77,16 +78,13 @@ export default class View {
         return this.store.getState().view;
     }
 
-    private createEditor(path: string) {
-        const editor = document.createElement('article');
-        editor.classList.add('agda-view');
-        editor['getURI'] = () => {
-            const uri = this.uri;
-            return uri
-        };
-        editor['getTitle'] = () => `Agda Mode ${path}`;
-        editor.id = this.uri;
-        return editor;
+    private createPaneItem(path: string) {
+        const paneItem = document.createElement('article');
+        paneItem.classList.add('agda-view');
+        paneItem['getURI'] = () => this.uri;
+        paneItem['getTitle'] = () => `Agda Mode ${path}`;
+        paneItem.id = this.uri;
+        return paneItem;
     }
 
     private render() {
@@ -113,6 +111,10 @@ export default class View {
             </Provider>,
             this.mountingPosition
         )
+    }
+
+    getEditor(): any {
+        return this.editor;
     }
 
     mount(mountAt: V.MountingPosition) {
@@ -199,7 +201,7 @@ export default class View {
                     this.bottomPanel.destroy();
                     break;
                 case V.MountingPosition.Pane:
-                    // destroy the editor, but don't bother if it's already destroyed by Atom
+                    // destroy the pane item, but don't bother if it's already destroyed by Atom
                     if (!this.paneItemDestroyedByAtom) {
                         const pane = atom.workspace.paneForItem(this.mountingPosition);
                         if (pane) {

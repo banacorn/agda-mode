@@ -57,12 +57,12 @@ class Panel extends React.Component<Props, void> {
                         updateTranslation={(c) => core.inputMethod.replaceBuffer(c)}
                         insertCharacter={(c) => {
                             core.inputMethod.insertCharToBufffer(c);
-                            atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
+                            atom.views.getView(core.view.getEditor()).focus();
                         }}
                         chooseSymbol={(c) => {
                             core.inputMethod.replaceBuffer(c);
                             core.inputMethod.deactivate();
-                            atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
+                            atom.views.getView(core.view.getEditor()).focus();
                         }}
                     />
                     <Header
@@ -78,11 +78,11 @@ class Panel extends React.Component<Props, void> {
                             if (ref) onMiniEditorMount(ref);
                         }}
                         onConfirm={() => {
-                            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+                            atom.views.getView(core.view.getEditor()).focus()
                             this.props.deactivateMiniEditor();
                         }}
                         onCancel={() => {
-                            atom.views.getView(atom.workspace.getActiveTextEditor()).focus()
+                            atom.views.getView(core.view.getEditor()).focus()
                             this.props.deactivateMiniEditor();
                         }}
                     />
