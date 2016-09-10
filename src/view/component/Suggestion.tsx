@@ -11,9 +11,9 @@ class Suggestion extends React.Component<React.HTMLAttributes, void> {
         const lines = this.props.children as string[];
         switch (lines.length) {
             case 0: return null
-            case 1: return <p>
+            case 1: return <span>
                 Did you mean: <Expr>{lines[0]}</Expr> ?
-            </p>
+            </span>
             default:
                 const otherSuggestions = _.tail(lines).map((line, i) => {
                     return (<span key={i}><br/>           or <Expr>{line}</Expr></span>);
