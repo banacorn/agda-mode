@@ -70,7 +70,7 @@ class Panel extends React.Component<Props, void> {
                         mountAtBottom={mountAtBottom}
                     />
                 </header>
-                <section className="panel-body">
+                <section className="agda-body-container">
                     <MiniEditor
                         className={hideMiniEditor}
                         placeholder={this.props.miniEditor.placeholder}

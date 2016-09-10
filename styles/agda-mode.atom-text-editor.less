@@ -134,11 +134,12 @@
 
     }
 
+
     // <Body>
     .agda-body {
         @height: 30px;
 
-        overflow-y: scroll;
+        overflow: scroll;
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
 
         // background: @base-background-color;
@@ -228,6 +229,7 @@
 // prevents goal indices from floating above the status bar
 status-bar.status-bar           { z-index: 4 }
 atom-pane > [is="atom-tabs"]    { z-index: 5 }
+atom-pane { z-index: 4 }
 
 //
 // goal
@@ -240,6 +242,7 @@ atom-pane > [is="atom-tabs"]    { z-index: 5 }
 .agda-goal-index {
     color: @background-color-success;
     position: relative;
+    // z-index: -999;
 }
 
 //
