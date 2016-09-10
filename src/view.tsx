@@ -118,6 +118,14 @@ export default class View {
         return this.editor;
     }
 
+    getFocusedEditor(): any {
+        const miniEditorFocused = this.miniEditor && this.miniEditor.isFocused();
+        if (miniEditorFocused)
+            return this.miniEditor.getModel();
+        else
+            return this.editor;
+    }
+
     mount(mountAt: V.MountingPosition) {
         if (!this.state().mounted) {
             // console.log(`[${this.uri.substr(12)}] %cmount at ${toText(mountAt)}`, 'color: green')

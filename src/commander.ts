@@ -368,13 +368,13 @@ export default class Commander {
 
     inputSymbol(): Promise<CommandResult> {
         const miniEditorEnabled = this.core.view.store.getState().inputMethod.enableInMiniEditor;
-        const miniEditorFocused = this.core.view.miniEditor.isFocused();
+        const miniEditorFocused = this.core.view.miniEditor && this.core.view.miniEditor.isFocused();
         const shouldNotActivate = miniEditorFocused && !miniEditorEnabled;
-        const editor = miniEditorFocused ?
-            this.core.view.miniEditor.getModel() :
-            this.core.view.getEditor() ;
+        const editor = this.core.view.getFocusedEditor();
         if (atom.config.get("agda-mode.inputMethod") && !shouldNotActivate) {
             if (!this.loaded) {
+                const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+                this.core.view.mount(currentMountingPosition);
                 this.core.view.activate();
                 this.core.view.set("Not loaded", [], View.Style.PlainText);
             }
