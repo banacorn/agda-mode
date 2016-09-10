@@ -338,7 +338,7 @@ const libraryNotFoundItem: Parser<{}> =  seq(
 });
 
 const libraryNotFound: Parser<Error.LibraryNotFound> =  seq(
-    libraryNotFoundItem.many()
+    libraryNotFoundItem.atLeast(1)
 ).map((result) => {
     return <Error.LibraryNotFound>{
         kind: 'LibraryNotFound',
