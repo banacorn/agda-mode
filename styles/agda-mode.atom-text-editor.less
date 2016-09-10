@@ -229,7 +229,10 @@
 // prevents goal indices from floating above the status bar
 status-bar.status-bar           { z-index: 4 }
 atom-pane > [is="atom-tabs"]    { z-index: 5 }
-atom-pane { z-index: 4 }
+atom-text-editor[data-grammar="source agda"] {
+    z-index: 0;
+    overflow: hidden;
+}
 
 //
 // goal
