@@ -39,7 +39,8 @@ const multiLineRange: Parser<[Range, Boolean]> = seq(
     });
 
 const range = alt(multiLineRange, singleLineRange).skip(spaces);
-const location: Parser<Location> = seq(
+
+const locationAbsolute: Parser<Location> = seq(
         takeWhile((c) => c !== ":"),
         string(":"),
         range
@@ -50,6 +51,21 @@ const location: Parser<Location> = seq(
             isSameLine: result[2][1]
         };
     }).skip(spaces);
+
+const locationRelative: Parser<Location> = seq(
+        range
+    ).map((result) => {
+        return <Location>{
+            path: '',
+            range: result[0][0],
+            isSameLine: result[0][1]
+        };
+    }).skip(spaces);
+
+const location: Parser<Location> = alt(
+        locationAbsolute,
+        locationRelative
+    )
 
 const didYouMean: Parser<Suggestion> = alt(seq(
         token("(did you mean"),
