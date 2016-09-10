@@ -56,7 +56,7 @@ class Body extends React.Component<Props, void> {
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
         } : {
-            
+
             // minHeight: `1000px`
         };
         return (
@@ -108,7 +108,7 @@ class Body extends React.Component<Props, void> {
                         </div>
                         <div className="item-body">
                             <Expr>{item.type}</Expr>
-                            <Location>{item.location}</Location>
+                            <Location abbr>{item.location}</Location>
                         </div>
                     </li>
                 )}{body.sort.map((item, i) =>
@@ -118,7 +118,7 @@ class Body extends React.Component<Props, void> {
                             <span className="text-warning">{item.index}</span>
                         </div>
                         <div className="item-body">
-                            <Location>{item.location}</Location>
+                            <Location abbr>{item.location}</Location>
                         </div>
                     </li>
                 )}</ul>

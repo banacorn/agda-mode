@@ -12,6 +12,7 @@ declare var atom: any;
 
 interface Props {
     jumpToLocation: (loc: Loc) => void;
+    abbr?: void;
 }
 
 const mapDispatchToProps = (dispatch: any) => ({
@@ -34,10 +35,12 @@ class Location extends React.Component<Props, void> {
     }
 
     componentDidMount() {
-        this.subscriptions.add(atom.tooltips.add(this.locationLink, {
-            title: this.locationPath,
-            delay: 0
-        }));
+        if (this.props.abbr) {
+            this.subscriptions.add(atom.tooltips.add(this.locationLink, {
+                title: this.locationPath,
+                delay: 0
+            }));
+        }
     }
 
     componentWillUnmount() {
@@ -47,8 +50,10 @@ class Location extends React.Component<Props, void> {
 
     render() {
         const location = this.props.children as Loc;
-        const { jumpToLocation } = this.props;
+        const { jumpToLocation, abbr } = this.props;
+        console.log(`abbr: ${abbr}`)
 
+        // concatenating Location path
         if (location.path)
             this.locationPath += `${location.path}:`;
         if (location.isSameLine)
@@ -56,17 +61,28 @@ class Location extends React.Component<Props, void> {
         else
             this.locationPath += `${location.range.start.row + 1},${location.range.start.column + 1}-${location.range.end.row + 1},${location.range.end.column + 1}`;
 
-        return (
-            <span
-                className="text-subtle location icon icon-link"
-                onClick={() => {
-                    jumpToLocation(location);
-                }}
-                ref={(ref) => {
-                    this.locationLink = ref;
-                }}
-            ></span>
-        )
+        if (abbr) {
+            return (
+                <span
+                    className="text-subtle location icon icon-link"
+                    onClick={() => {
+                        jumpToLocation(location);
+                    }}
+                    ref={(ref) => {
+                        this.locationLink = ref;
+                    }}
+                ></span>
+            )
+        } else {
+            return (
+                <span
+                    className="text-subtle location icon icon-link"
+                    onClick={() => {
+                        jumpToLocation(location);
+                    }}
+                >{this.locationPath}</span>
+            )
+        }
     }
 }
 
