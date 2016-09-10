@@ -56,7 +56,8 @@ class Body extends React.Component<Props, void> {
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
         } : {
-            minHeight: `1000px`
+            
+            // minHeight: `1000px`
         };
         return (
             <section

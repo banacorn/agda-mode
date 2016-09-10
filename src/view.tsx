@@ -58,10 +58,6 @@ export default class View {
                 return this.createEditor(path);
             }
         }));
-
-        // onWillDestroyPaneItem(callback)
-
-
     }
 
     private parseURI(uri: string) {

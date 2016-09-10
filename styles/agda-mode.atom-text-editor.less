@@ -13,6 +13,14 @@
     // see #14: https://github.com/banacorn/agda-mode/issues/14
     z-index: 4;
 
+
+
+    // so that .agda-body will overflow and be scrollable
+    height: 100%;
+    > section {
+        height: 100%;
+    }
+
     @sizingHandleHeight: 5px;
     @headerHeight: 50px;
 
@@ -136,8 +144,11 @@
 
 
     // <Body>
-    .agda-body {
+    .agda-body-container {
         @height: 30px;
+
+        // so that .agda-body will overflow and be scrollable
+        height: 100%;
 
         overflow: scroll;
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
@@ -231,7 +242,7 @@ status-bar.status-bar           { z-index: 4 }
 atom-pane > [is="atom-tabs"]    { z-index: 5 }
 atom-text-editor[data-grammar="source agda"] {
     z-index: 0;
-    overflow: hidden;
+    overflow: scroll;
 }
 
 //
