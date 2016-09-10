@@ -123,7 +123,7 @@ export default class InputMethod {
             const miniEditorFocused = this.core.view.miniEditor.isFocused();
             this.editor = miniEditorFocused ?
                 this.core.view.miniEditor.getModel() :
-                atom.workspace.getActiveTextEditor()
+                this.core.view.getEditor()
 
             // add class 'agda-mode-input-method-activated'
             const editorElement = atom.views.getView(this.editor);
@@ -158,7 +158,7 @@ export default class InputMethod {
     deactivate() {
         if (this.activated) {
             // add class 'agda-mode-input-method-activated'
-            const editorElement = atom.views.getView(atom.workspace.getActiveTextEditor());
+            const editorElement = atom.views.getView(this.core.view.getEditor());
             editorElement.classList.remove('agda-mode-input-method-activated');
             this.core.view.store.dispatch(deactivateInputMethod());
             this.textEditorMarker.destroy();

@@ -360,7 +360,7 @@ export default class Commander {
         const shouldNotActivate = miniEditorFocused && !miniEditorEnabled;
         const editor = miniEditorFocused ?
             this.core.view.miniEditor.getModel() :
-            atom.workspace.getActiveTextEditor() ;
+            this.core.view.getEditor() ;
         if (atom.config.get("agda-mode.inputMethod") && !shouldNotActivate) {
             if (!this.loaded) {
                 this.core.view.activate();
