@@ -5,6 +5,11 @@ import { connect } from 'react-redux';
 import { View, Location as Loc } from '../../types';
 import { jumpToLocation } from '../actions';
 
+// Atom shits
+type CompositeDisposable = any;
+var { CompositeDisposable } = require('atom');
+declare var atom: any;
+
 interface Props {
     jumpToLocation: (loc: Loc) => void;
 }
@@ -18,25 +23,49 @@ const mapDispatchToProps = (dispatch: any) => ({
 
 
 class Location extends React.Component<Props, void> {
+    private subscriptions: CompositeDisposable;
+    private locationLink: HTMLElement;
+    private locationPath: string;
+
+    constructor() {
+        super()
+        this.subscriptions = new CompositeDisposable;
+        this.locationPath = '';
+    }
+
+    componentDidMount() {
+        this.subscriptions.add(atom.tooltips.add(this.locationLink, {
+            title: this.locationPath,
+            delay: 0
+        }));
+    }
+
+    componentWillUnmount() {
+        this.subscriptions.dispose();
+    }
+
+
     render() {
         const location = this.props.children as Loc;
         const { jumpToLocation } = this.props;
 
-        let result = ``;
         if (location.path)
-            result += `${location.path}:`;
+            this.locationPath += `${location.path}:`;
         if (location.isSameLine)
-            result += `${location.range.start.row + 1},${location.range.start.column + 1}-${location.range.end.column + 1}`;
+            this.locationPath += `${location.range.start.row + 1},${location.range.start.column + 1}-${location.range.end.column + 1}`;
         else
-            result += `${location.range.start.row + 1},${location.range.start.column + 1}-${location.range.end.row + 1},${location.range.end.column + 1}`;
+            this.locationPath += `${location.range.start.row + 1},${location.range.start.column + 1}-${location.range.end.row + 1},${location.range.end.column + 1}`;
 
         return (
             <span
-                className="text-subtle location"
+                className="text-subtle location icon icon-link"
                 onClick={() => {
                     jumpToLocation(location);
                 }}
-            >{result}</span>
+                ref={(ref) => {
+                    this.locationLink = ref;
+                }}
+            ></span>
         )
     }
 }

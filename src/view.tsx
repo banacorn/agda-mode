@@ -222,8 +222,10 @@ export default class View {
     }
 
     activate() {
-        // console.log(`[${this.uri.substr(12)}] %cactivated`, 'color: blue')
-        this.store.dispatch(activateView());
+        console.log(`[${this.uri.substr(12)}] %cactivated`, 'color: blue')
+        setTimeout(() => {
+            this.store.dispatch(activateView());
+        })
         switch (this.state().mountAt.current) {
             case V.MountingPosition.Bottom:
                 // do nothing
