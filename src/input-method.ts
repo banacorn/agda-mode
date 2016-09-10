@@ -98,17 +98,32 @@ export default class InputMethod {
         this.subscriptions = new CompositeDisposable;
 
         // intercept newline `\n` as confirm
-        const commands = (event) => {
-            if (this.activated) {
-                this.deactivate();
-                event.stopImmediatePropagation();
+        const commands = {
+            'editor:newline': (event) => {
+                if (this.activated) {
+                    this.deactivate();
+                    event.stopImmediatePropagation();
+                }
             }
         }
+
         this.subscriptions.add(atom.commands.add(
             'atom-text-editor.agda-mode-input-method-activated',
-            'editor:newline',
             commands
         ));
+    }
+
+    // Issue #34: https://github.com/banacorn/agda-mode/issues/34
+    // Intercept some keys that Bracket Matcher autocompletes
+    //  to name them all: {, [, {, ", ', and `
+    // Because the Bracket Matcher package is too lacking, it does not responds
+    //  to the disabling of the package itself, making it impossible to disable
+    //  the package during the process of input.
+    // On the other hand, the Atom's CommandRegistry API is also inadequate,
+    //  we cannot simply detect which key was pressed, so we can only hardwire
+    //  the keys we wanna intercept from the Keymaps
+    interceptAndInsertKey(key: string) {
+        this.insertCharToBuffer(key);
     }
 
     destroy() {
@@ -142,7 +157,7 @@ export default class InputMethod {
 
             // insert '\' at the cursor quitely without triggering any shit
             this.muteEvent(() => {
-                this.insertCharToBufffer('\\');
+                this.insertCharToBuffer('\\');
             });
 
             // initialize input suggestion
@@ -219,7 +234,7 @@ export default class InputMethod {
     ///////////////////
 
     // inserts 1 character to the text buffer (may trigger some events)
-    insertCharToBufffer(char: string) {
+    insertCharToBuffer(char: string) {
         this.editor.getBuffer().insert(this.textEditorMarker.getBufferRange().end, char);
     }
 

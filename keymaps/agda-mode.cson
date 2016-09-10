@@ -13,6 +13,15 @@
     '\\': 'agda-mode:input-symbol'
     'alt-/': 'agda-mode:input-symbol'
 
+# intercepting opening brackets or quotes
+'atom-text-editor.agda-mode-input-method-activated':
+    '\{' : 'agda-mode:input-symbol-curly-bracket'
+    '\[' : 'agda-mode:input-symbol-bracket'
+    '\(' : 'agda-mode:input-symbol-parenthesis'
+    '\"' : 'agda-mode:input-symbol-double-quote'
+    '\'' : 'agda-mode:input-symbol-single-quote'
+    '\`' : 'agda-mode:input-symbol-back-quote'
+
 'atom-text-editor[data-grammar="source lagda"]':
     'ctrl-c        ctrl-l': 'agda-mode:load'
     # invoke input method

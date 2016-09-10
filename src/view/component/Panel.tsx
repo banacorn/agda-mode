@@ -56,7 +56,7 @@ class Panel extends React.Component<Props, void> {
                     <InputMethod
                         updateTranslation={(c) => core.inputMethod.replaceBuffer(c)}
                         insertCharacter={(c) => {
-                            core.inputMethod.insertCharToBufffer(c);
+                            core.inputMethod.insertCharToBuffer(c);
                             atom.views.getView(core.view.getEditor()).focus();
                         }}
                         chooseSymbol={(c) => {

@@ -279,7 +279,9 @@ type CommandKind = 'Load' | 'Quit' | 'Restart' | 'Compile' |
     'WhyInScope' | 'InferType' | 'ModuleContents' | 'ComputeNormalForm' |
     'ComputeNormalFormIgnoreAbstract' | 'Give' | 'Refine' | 'Auto' | 'Case' |
     'GoalType' | 'Context' | 'GoalTypeAndContext' | 'GoalTypeAndInferredType' |
-    'InputSymbol';
+    'InputSymbol' | 'InputSymbolCurlyBracket' | 'InputSymbolBracket'
+    | 'InputSymbolParenthesis' | 'InputSymbolDoubleQuote' | 'InputSymbolSingleQuote'
+    | 'InputSymbolBackQuote'
 type Normalization = 'Simplified' | 'Instantiated' | 'Normalised';
 
 type Command = {
@@ -291,7 +293,7 @@ type Command = {
 
 type CommandResult = {
     status: 'Issued',
-    command: string
+    command: CommandKind
 } | {
     status: 'Canceled'
 };

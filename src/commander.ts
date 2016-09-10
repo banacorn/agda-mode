@@ -1,7 +1,7 @@
 import * as Promise from "bluebird";
 import * as _ from "lodash";
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError } from "./error";
-import { Command, Normalization, CommandResult, View } from "./types";
+import { Command, Normalization, CommandResult, View, CommandKind } from "./types";
 import Core from "./core";
 
 declare var atom: any;
@@ -85,6 +85,18 @@ export default class Commander {
             case "GoalTypeAndInferredType":
                 return this.goalTypeAndInferredType(command.normalization);
             case "InputSymbol":   return this.inputSymbol();
+            case "InputSymbolCurlyBracket":
+                return this.inputSymbolInterceptKey(command.kind, '{');
+            case "InputSymbolBracket":
+                return this.inputSymbolInterceptKey(command.kind, '[');
+            case "InputSymbolParenthesis":
+                return this.inputSymbolInterceptKey(command.kind, '(');
+            case "InputSymbolDoubleQuote":
+                return this.inputSymbolInterceptKey(command.kind, '"');
+            case "InputSymbolSingleQuote":
+                return this.inputSymbolInterceptKey(command.kind, '\'');
+            case "InputSymbolBackQuote":
+                return this.inputSymbolInterceptKey(command.kind, '`');
             default:    throw `undispatched command type ${command}`
         }
     }
@@ -371,5 +383,10 @@ export default class Commander {
             editor.insertText("\\");
         }
         return Promise.resolve(<CommandResult>{ status: "Issued", command: "InputSymbol" });
+    }
+
+    inputSymbolInterceptKey(kind: CommandKind, key: string): Promise<CommandResult> {
+        this.core.inputMethod.interceptAndInsertKey(key);
+        return Promise.resolve(<CommandResult>{ status: "Issued", command: kind });
     }
 }
