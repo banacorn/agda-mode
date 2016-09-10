@@ -27,11 +27,23 @@ class Location extends React.Component<Props, void> {
     private subscriptions: CompositeDisposable;
     private locationLink: HTMLElement;
     private locationPath: string;
+    private location: Loc;
 
     constructor() {
         super()
         this.subscriptions = new CompositeDisposable;
         this.locationPath = '';
+    }
+
+    componentWillMount() {
+        this.location = this.props.children as Loc;
+        // concatenating Location path
+        if (this.location.path)
+            this.locationPath += `${this.location.path}:`;
+        if (this.location.isSameLine)
+            this.locationPath += `${this.location.range.start.row + 1},${this.location.range.start.column + 1}-${this.location.range.end.column + 1}`;
+        else
+            this.locationPath += `${this.location.range.start.row + 1},${this.location.range.start.column + 1}-${this.location.range.end.row + 1},${this.location.range.end.column + 1}`;
     }
 
     componentDidMount() {
@@ -49,24 +61,14 @@ class Location extends React.Component<Props, void> {
 
 
     render() {
-        const location = this.props.children as Loc;
         const { jumpToLocation, abbr } = this.props;
-        console.log(`abbr: ${abbr}`)
-
-        // concatenating Location path
-        if (location.path)
-            this.locationPath += `${location.path}:`;
-        if (location.isSameLine)
-            this.locationPath += `${location.range.start.row + 1},${location.range.start.column + 1}-${location.range.end.column + 1}`;
-        else
-            this.locationPath += `${location.range.start.row + 1},${location.range.start.column + 1}-${location.range.end.row + 1},${location.range.end.column + 1}`;
 
         if (abbr) {
             return (
                 <span
                     className="text-subtle location icon icon-link"
                     onClick={() => {
-                        jumpToLocation(location);
+                        jumpToLocation(this.location);
                     }}
                     ref={(ref) => {
                         this.locationLink = ref;
@@ -78,7 +80,7 @@ class Location extends React.Component<Props, void> {
                 <span
                     className="text-subtle location icon icon-link"
                     onClick={() => {
-                        jumpToLocation(location);
+                        jumpToLocation(this.location);
                     }}
                 >{this.locationPath}</span>
             )

@@ -94,6 +94,7 @@ export default class TextBuffer {
     }
 
     warnOutOfGoal() {
+        console.log('beep', this)
         this.core.view.set('Out of goal', ['For this command, please place the cursor in a goal'], View.Style.Warning);
     }
 
@@ -187,13 +188,13 @@ export default class TextBuffer {
                     if (location.range.start.row === 0) {
                         range = location.range
                             .translate(goal.range.start)
-                            .translate([0, 2]);  // hole boundary
+                            .translate([0, 3]);  // hole boundary
                     } else {
                         range = location.range
                             .translate([goal.range.start.row, 0]);
                     }
                     this.core.editor.setSelectedBufferRange(range, true);
-                }).catch(this.warnOutOfGoal);
+                }).catch(() => this.warnOutOfGoal());
         }
     }
 
@@ -248,7 +249,7 @@ export default class TextBuffer {
         return this.protectCursor(() => {
             this.getCurrentGoal().then((goal) => {
                 goal.writeLines(content);
-            }).catch(this.warnOutOfGoal);
+            }).catch(() => this.warnOutOfGoal());
         });
     }
 
@@ -256,7 +257,7 @@ export default class TextBuffer {
         return this.protectCursor(() => {
             this.getCurrentGoal().then((goal) => {
                 goal.writeLambda(content);
-            }).catch(this.warnOutOfGoal);
+            }).catch(() => this.warnOutOfGoal());
         });
     }
 
