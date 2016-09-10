@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import Core from './core';
 import { parseCommand } from './parser';
 
@@ -47,7 +48,14 @@ const commands = [
 function registerCommands() {
     commands.forEach((command) => {
         atom.commands.add('atom-text-editor', command, () => {
-            const editor = atom.workspace.getActivePaneItem()
+            const paneItem = atom.workspace.getActivePaneItem()
+            let editor = null;
+            // since the pane item may be a spawned agda view
+            if (_.includes(paneItem.classList, 'agda-view') && paneItem.getEditor) {
+                editor = paneItem.getEditor();
+            } else {
+                editor = paneItem;
+            }
             editor.core.commander.activate(parseCommand(command));
         });
     })

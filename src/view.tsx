@@ -83,6 +83,7 @@ export default class View {
         paneItem.classList.add('agda-view');
         paneItem['getURI'] = () => this.uri;
         paneItem['getTitle'] = () => `Agda Mode ${path}`;
+        paneItem['getEditor'] = () => this.editor;
         paneItem.id = this.uri;
         return paneItem;
     }
