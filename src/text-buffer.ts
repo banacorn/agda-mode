@@ -180,7 +180,10 @@ export default class TextBuffer {
     jumpToLocation(location: Location) {
         this.focus();
         if (location.path) {
-            this.core.editor.setSelectedBufferRange(location.range, true);
+            atom.workspace.open(location.path)
+                .then(editor => {
+                    editor.setSelectedBufferRange(location.range, true);
+                })
         } else {
             this.getCurrentGoal()
                 .then((goal) => {
