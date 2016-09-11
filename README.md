@@ -36,6 +36,7 @@ This is an exhaustive list of available commands.
 | `    C-c     C-?` | show goals                              |   ✓    |               |
 | `    C-c     C-f` | next goal (forward)                     |   ✓    |               |
 | `    C-c     C-b` | previous goal (back)                    |   ✓    |               |
+| `    C-c C-x C-d` | toggle panel docking                    |   ✓    |               |
 | `    C-c     C-n` | compute normal form                     |   ✓    |       ✓       |
 | `C-u C-c     C-n` | compute normal form (ignoring abstract) |   ✓    |       ✓       |
 | `    C-c     C-w` | why in scope                            |   ✓    |       ✓       |
