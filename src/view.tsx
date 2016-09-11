@@ -38,7 +38,7 @@ export default class View {
         this.subscriptions = new CompositeDisposable;
         this.paneItemSubscriptions = new CompositeDisposable;
         this.paneItemDestroyedByAtom = true;
-        this.editor = atom.workspace.getActiveTextEditor();
+        this.editor = core.editor;
 
         this.uri = `agda-mode://${this.core.editor.id}`;
         // global events
@@ -87,7 +87,6 @@ export default class View {
         const base = basename(this.editor.getPath())
         const ext = extname(base)
         const title = `Agda Mode ${base.substr(0, base.length - ext.length)}`
-        console.log(base.substr(0, base.length - ext.length));
         paneItem['getTitle'] = () => title;
         paneItem['getEditor'] = () => this.editor;
         paneItem.id = this.uri;
