@@ -3,6 +3,7 @@
 // See https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
 // for a full listing of what's available.
 @import "ui-variables";
+@import "syntax-variables";
 
 .agda-view {
 
@@ -248,13 +249,12 @@ atom-text-editor[data-grammar="source agda"] {
 //
 
 .agda-goal .region {
-    background: @text-color-subtle;
+    background: fade(mix(@syntax-background-color, @syntax-text-color, 60%), 50%);
 }
 
 .agda-goal-index {
-    color: @background-color-success;
+    color: @background-color-info;
     position: relative;
-    // z-index: -999;
 }
 
 //
@@ -262,11 +262,13 @@ atom-text-editor[data-grammar="source agda"] {
 //
 
 .agda-highlight.unsolvedmeta .region {
-    background: @background-color-warning;
+    @color: saturate(@background-color-warning, 100%);
+    background: mix(@color, @syntax-background-color, 40%);
 }
 
 .agda-highlight.terminationproblem .region {
-    background: @background-color-error;
+    @color: saturate(@background-color-error, 100%);
+    background: mix(@color, @syntax-background-color, 40%);
 }
 
 //
@@ -274,5 +276,5 @@ atom-text-editor[data-grammar="source agda"] {
 //
 
 .agda-input-method .region {
-    border-bottom: 2px dotted @text-color;
+    border-bottom: 2px dotted @syntax-text-color;
 }
