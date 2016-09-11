@@ -158,7 +158,7 @@
         padding: 0 @component-padding;
 
         font-size: 125%;
-        white-space: pre;       // preserves whitespaces
+        white-space: pre-wrap;       // preserves whitespaces
 
 
         li {
@@ -167,9 +167,8 @@
             padding: 0px @component-padding;
             margin: 10px 0;
 
-
             display: flex;
-            white-space: pre;       // preserves whitespaces
+            white-space: pre-wrap;       // preserves whitespaces
 
             // prevents parent <li> from collapsing
             &:after {
