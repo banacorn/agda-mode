@@ -4,6 +4,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import { createStore } from 'redux';
+import { basename, extname } from 'path';
 
 import Core from './core';
 import Panel from './view/component/Panel';
@@ -82,7 +83,12 @@ export default class View {
         const paneItem = document.createElement('article');
         paneItem.classList.add('agda-view');
         paneItem['getURI'] = () => this.uri;
-        paneItem['getTitle'] = () => `Agda Mode ${path}`;
+        //
+        const base = basename(this.editor.getPath())
+        const ext = extname(base)
+        const title = `Agda Mode ${base.substr(0, base.length - ext.length)}`
+        console.log(base.substr(0, base.length - ext.length));
+        paneItem['getTitle'] = () => title;
         paneItem['getEditor'] = () => this.editor;
         paneItem.id = this.uri;
         return paneItem;
