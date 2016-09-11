@@ -1,6 +1,7 @@
 ## 0.6.0
 * Rewrite the whole view with React/Redux, say goodbye to Vue.js
-* Aside from residing at the bottom, the message panel can now also be docked at other panes
+* Allow the panel to be docked at other panes
+* Allow the panel docked at bottom to be resizable
 * Fix #34
 
 ## 0.5.4
