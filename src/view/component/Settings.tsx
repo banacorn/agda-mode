@@ -47,7 +47,9 @@ class Settings extends React.Component<Props, void> {
     componentDidMount() {
         this.subscriptions.add(atom.tooltips.add(this.toggleMountingPositionButton, {
             title: 'toggle panel docking position',
-            delay: 300
+            delay: 300,
+            keyBindingCommand: 'agda-mode:toggle-docking'
+
         }));
     }
 
