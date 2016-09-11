@@ -35,10 +35,12 @@ const mapDispatchToProps = (dispatch: any) => ({
     }
 })
 
+
 class Panel extends React.Component<Props, void> {
     render() {
         const { core, onMiniEditorMount, jumpToLocation, onResize } = this.props;
         const { mountAtPane, mountAtBottom } = this.props;
+        const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
         const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
         const hideBody = classNames({'hidden': this.props.miniEditor.activate});
@@ -46,12 +48,13 @@ class Panel extends React.Component<Props, void> {
             <section className={hideEverything}>
                 <header className="panel-heading agda-header-container">
                     <SizingHandle
-                        onResize={(offset) => {
-                            onResize(-offset)
+                        onResize={(height) => {
+                            onResize(height)
                         }}
                         onResizeEnd={() => {
                             atom.config.set('agda-mode.maxBodyHeight', this.props.body.maxBodyHeight);
                         }}
+                        atBottom={atBottom}
                     />
                     <InputMethod
                         updateTranslation={(c) => core.inputMethod.replaceBuffer(c)}

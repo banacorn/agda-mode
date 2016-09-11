@@ -9,6 +9,7 @@ interface Props {
     onResizeStart?: (pageY: number) => void;
     onResize?: (offset: number) => void;
     onResizeEnd?: (pageY: number) => void;
+    atBottom: boolean;
 }
 
 interface State {
@@ -16,34 +17,53 @@ interface State {
 }
 
 class SizingHandle extends React.Component<Props, State> {
+    private ref: HTMLElement;
+    calculateBodyHeight(handleY: number) {
+        if (this.ref && this.props.atBottom) {
+            const top = this.ref.getBoundingClientRect().top + 51; // border-width: 1px
+            const bottom = document.querySelector('atom-panel-container.footer').getBoundingClientRect().top
+            if (top > 0) {
+                return bottom - handleY - 50.5;
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
     render() {
-        const { onResizeStart, onResize, onResizeEnd } = this.props;
+        const { onResizeStart, onResize, onResizeEnd, atBottom } = this.props;
         return (
             <div className="agda-sizing-handle-anchor">
                 <div
                     className="agda-sizing-handle native-key-bindings"
+                    ref={(ref) => {
+                        this.ref = ref
+                    }}
                     onDragStart={(e) => {
                         this.setState({
-                            initial: e.pageY
+                            initial: e.clientY
                         })
-                        if (onResizeStart)
-                            onResizeStart(e.pageY);
+                        if (onResizeStart && atBottom)
+                            onResizeStart(this.calculateBodyHeight(e.clientY));
                     }}
                     onDrag={(e) => {
-                        if (e.pageY !== 0) {    // filter wierd noise out
+                        if (e.clientY !== 0 && atBottom) {    // filter wierd noise out
                             const offset = e.pageY - this.state.initial;
                             if (offset !== 0) {
                                 if (onResize)
-                                    onResize(offset);
+                                    onResize(this.calculateBodyHeight(e.clientY));
                                 this.setState({
-                                    initial: e.pageY
+                                    initial: e.clientY
                                 });
                             }
                         }
                     }}
                     onDragEnd={(e) => {
-                        if (onResizeEnd)
-                            onResizeEnd(e.pageY);
+                        if (onResizeEnd && atBottom) {
+                            onResizeEnd(this.calculateBodyHeight(e.clientY));
+                        }
                     }}
                     // to enable Drag & Drop
                     draggable="true"

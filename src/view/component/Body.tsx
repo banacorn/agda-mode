@@ -45,7 +45,7 @@ const mapDispatchToProps = (dispatch: any) => ({
 class Body extends React.Component<Props, void> {
     componentDidMount() {
         atom.config.observe('agda-mode.maxBodyHeight', (newHeight) => {
-            this.props.onMaxBodyHeightChange(newHeight - this.props.maxBodyHeight);
+            this.props.onMaxBodyHeightChange(newHeight);
         })
     }
 
@@ -55,10 +55,7 @@ class Body extends React.Component<Props, void> {
         const classes = classNames(this.props.className, `native-key-bindings`, 'agda-body');
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
-        } : {
-
-            // minHeight: `1000px`
-        };
+        } : {};
         return (
             <section
                 className={classes}
