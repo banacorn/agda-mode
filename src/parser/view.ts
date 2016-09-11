@@ -1,10 +1,10 @@
-import * as _ from "lodash";;
-import { normalize } from "path";
-import { parseFilepath } from "./util";
-import { View, Error, Suggestion, Location, Occurence } from "../types";
+import * as _ from 'lodash';;
+import { normalize } from 'path';
+import { parseFilepath } from './util';
+import { View, Error, Suggestion, Location, Occurence } from '../types';
 import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom, succeed,
     regex, digits, string
-    } from "parsimmon";
+    } from 'parsimmon';
 
 var { Point, Range } = require('atom');
 
@@ -25,7 +25,7 @@ function divideContent(lines: string[]): {
     body: string[]
 } {
     const notEmpty = lines.length > 0;
-    const index = lines.indexOf("————————————————————————————————————————————————————————————");
+    const index = lines.indexOf('————————————————————————————————————————————————————————————');
     const isSectioned = index !== -1;
 
     if (notEmpty && isSectioned) {
@@ -50,7 +50,7 @@ function concatItems(lines: string[]): string[] {
     let currentLine = 0;
     lines.forEach((line, i) => {
         const notTheLastLine = i + 1 < lines.length;
-        const preemptLine = notTheLastLine ? line + "\n" + lines[i + 1] : line;
+        const preemptLine = notTheLastLine ? line + '\n' + lines[i + 1] : line;
 
         const thisLineIsNewLine = newlineRegex.test(line);
         const nextLineIsNewLine = notTheLastLine ? newlineRegex.test(lines[i + 1]) : false;
@@ -63,7 +63,7 @@ function concatItems(lines: string[]): string[] {
             result[currentLine] = line;
         } else {
             if (result[currentLine])
-                result[currentLine] = result[currentLine].concat("\n" + line);
+                result[currentLine] = result[currentLine].concat('\n' + line);
             else
                 result[currentLine] = line;
         }
@@ -116,7 +116,7 @@ function parseGoal(str: string): View.Goal {
     const result = str.match(regex);
     if (result) {
         return {
-            judgementForm: "goal",
+            judgementForm: 'goal',
             index: result[1],
             type: result[2]
         };
@@ -128,7 +128,7 @@ function parseJudgement(str: string): View.Judgement {
     const result = str.match(regex);
     if (result) {
         return {
-            judgementForm: "type judgement",
+            judgementForm: 'type judgement',
             expr: result[1],
             type: result[2]
         };
@@ -144,7 +144,7 @@ function parseMeta(str: string): View.Meta {
         const result = occurence.body.match(regex);
         if (result) {
             return {
-                judgementForm: "meta",
+                judgementForm: 'meta',
                 index: result[1],
                 type: result[2],
                 location: occurence.location
@@ -158,7 +158,7 @@ function parseTerm(str: string): View.Term {
     const result = str.match(regex);
     if (result) {
         return {
-            judgementForm: "term",
+            judgementForm: 'term',
             expr: result[1]
         };
     }
@@ -171,7 +171,7 @@ function parseSort(str: string): View.Sort {
         const result = occurence.body.match(regex);
         if (result) {
             return {
-                judgementForm: "sort",
+                judgementForm: 'sort',
                 index: result[1],
                 location: occurence.location
             };

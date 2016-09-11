@@ -1,6 +1,6 @@
-import * as _ from "lodash";
-import Lexer from "./lexer";
-import { Token, TokenType, Hole } from "../types";
+import * as _ from 'lodash';
+import Lexer from './lexer';
+import { Token, TokenType, Hole } from '../types';
 
 // regular expressions
 const commentRegex = /(--[^\r\n]*[\r\n])|(\{-(?:[^-]|[\r\n]|(-+(?:[^-\}]|[\r\n])))*-+\})/;
@@ -29,7 +29,7 @@ function parseHole(text: string, indices: number[]): Hole[] {
         .mapOnly(TokenType.GoalQM, (token) => {
             //  ? => {!  !}
             token.type = TokenType.GoalBracket;
-            token.content = "{!   !}";
+            token.content = '{!   !}';
             return token;
         })
         .mapOnly(TokenType.GoalBracket, (token) => {
@@ -37,7 +37,7 @@ function parseHole(text: string, indices: number[]): Hole[] {
 
             // in case the goalIndex wasn't given, make it '*'
             // this happens when splitting case, agda2-goals-action is one index short
-            const goalIndex = indices[i].toString() || "*";
+            const goalIndex = indices[i].toString() || '*';
 
 
             // {! zero 42!}
@@ -54,7 +54,7 @@ function parseHole(text: string, indices: number[]): Hole[] {
 
             // make room for the index, if there's not enough space
             if (actualSpaces < requiredSpaces) {
-                const padding = _.repeat(" ", requiredSpaces - actualSpaces);
+                const padding = _.repeat(' ', requiredSpaces - actualSpaces);
                 token.content = token.content.replace(/\{!.*!\}/, `{!${content + padding}!}`);
             }
 

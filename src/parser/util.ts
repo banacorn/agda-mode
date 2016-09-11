@@ -1,22 +1,22 @@
-import * as path from "path";
+import * as path from 'path';
 
 declare var atom: any;
 
 function parseFilepath(s: string): string {
     if (s) {
         // remove newlines
-        s = s.replace("\\n", "");
+        s = s.replace('\\n', '');
         // sanitize with path.parse first
         const parsed = path.parse(s);
         // join it back and replace Windows' stupid backslash with slash
-        let joined = path.join(parsed.dir, parsed.base).split(path.sep).join("/");
+        let joined = path.join(parsed.dir, parsed.base).split(path.sep).join('/');
         // fuck Windows Bidi control character
         if (joined.charCodeAt(0) === 8234)
             joined = joined.substr(1);
 
         return joined.trim();
     } else {
-        return "";
+        return '';
     }
 }
 
@@ -24,7 +24,7 @@ function parseInputContent(data: string): string {
     let expr = data.toString()
         .replace(/\\/g, '\\\\')
         .replace(/\\/g, '\\\\')     // \           => \\
-        .replace(/\"/g, '\\"')      // "           => \"
+        .replace(/\"/g, '\"')       // "           => \"
         .replace(/\n/g, '\\n');     // newline     => \\n
 
     // trim spaces

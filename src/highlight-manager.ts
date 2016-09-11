@@ -1,9 +1,9 @@
 type TextBuffer = any;
 type Point = any;
 type Range = any;
-var { Range } = require("atom");
-import { Agda } from "./types";
-import Core from "./core";
+var { Range } = require('atom');
+import { Agda } from './types';
+import Core from './core';
 
 export default class HighlightManager {
     private markers: any[];
@@ -19,7 +19,7 @@ export default class HighlightManager {
         const marker = this.core.editor.markBufferRange(range);
         this.markers.push(marker);
         const decorator = this.core.editor.decorateMarker(marker, {
-            type: "highlight",
+            type: 'highlight',
             class: `agda-highlight ${annotation.type}`
         });
     }

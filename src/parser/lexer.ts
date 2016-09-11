@@ -1,5 +1,5 @@
-import * as _ from "lodash";
-import { Token, TokenType } from "../types";
+import * as _ from 'lodash';
+import { Token, TokenType } from '../types';
 
 // Splits big chunks of raw text into tokens
 export default class Lexer {
@@ -7,7 +7,7 @@ export default class Lexer {
 
     // act as the 'return' in a Monad
     constructor(raw: string | Token[]) {
-        if (typeof raw === "string") {
+        if (typeof raw === 'string') {
             this.result = [{
                 content: raw,
                 range: {

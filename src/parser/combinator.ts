@@ -1,4 +1,4 @@
-import * as P from "parsimmon";
+import * as P from 'parsimmon';
 
 
 function beforePrim(f: (string) => string, s: string) {
