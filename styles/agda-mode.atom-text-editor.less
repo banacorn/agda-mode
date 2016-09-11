@@ -17,7 +17,7 @@
 
     // so that .agda-body will overflow and be scrollable
     height: 100%;
-    > section {
+    > section { // pane item
         height: 100%;
     }
 
@@ -150,10 +150,10 @@
         // so that .agda-body will overflow and be scrollable
         height: 100%;
 
-        overflow: scroll;
+        overflow-y: scroll;
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
 
-        // background: @base-background-color;
+        margin: 0;
         padding: 0 @component-padding;
 
         font-size: 125%;
@@ -165,8 +165,6 @@
             line-height: @height !important;
             padding: 0px @component-padding;
             margin: 10px 0;
-            // margin: 10px 0;
-            // border-bottom: 1px solid @pane-item-border-color;
 
 
             display: flex;
