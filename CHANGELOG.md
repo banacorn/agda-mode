@@ -1,7 +1,7 @@
 ## 0.6.0
-* Rewrite the whole view system with React/Redux, say goodbye to Vue.js
+* Rewrite the whole view with React/Redux, say goodbye to Vue.js
 * Aside from residing at the bottom, the message panel can now also be docked at other panes
-* Better error message header
+* Fix #34
 
 ## 0.5.4
 * Handle some more cases of error
