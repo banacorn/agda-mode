@@ -1,6 +1,6 @@
-import * as _ from "lodash";
-import { parseInputContent } from "./parser";
-// import { Point, Range, TextBuffer, TextEditor, TextEditorMarker } from "atom";
+import * as _ from 'lodash';
+import { parseInputContent } from './parser';
+// import { Point, Range, TextBuffer, TextEditor, TextEditorMarker } from 'atom';
 type TextBuffer = any;
 type Point = any;
 type Range = any;
@@ -39,9 +39,9 @@ export default class Goal {
 
         // overlay element
         const indexWidth = this.index === -1 ? 1 : this.index.toString().length;
-        const element = document.createElement("div");
+        const element = document.createElement('div');
         element.innerHTML = this.index.toString();
-        element.classList.add("agda-goal-index");
+        element.classList.add('agda-goal-index');
         // those measurement functions are no longer part of the public API
         // we should come up with a new way to steal those measurements
         element.style.left = `${- indexWidth - 2}ex`;
@@ -51,12 +51,12 @@ export default class Goal {
 
         // decoration
         const holeDecoration = this.editor.decorateMarker(this.marker, {
-            type: "highlight",
-            class: "agda-goal"
+            type: 'highlight',
+            class: 'agda-goal'
         });
         const indexDecoration = this.editor.decorateMarker(this.marker, {
-            type: "overlay",
-            position: "head",
+            type: 'overlay',
+            position: 'head',
             item: element
         });
 
@@ -66,10 +66,10 @@ export default class Goal {
 
             // boundary positions
             const text  = this.editor.getBuffer().getTextInRange(newRange);
-            const left  = text.indexOf("{!");
-            const right = text.lastIndexOf("!}");
+            const left  = text.indexOf('{!');
+            const right = text.lastIndexOf('!}');
 
-            // special case: "{!}"
+            // special case: '{!}'
             if (left === 0 && right === 1)
                 this.restoreBoundary(newRange);
 
@@ -92,7 +92,7 @@ export default class Goal {
                     reversed: false
                 });
             } else {
-                throw "Goal: WTF!!???"
+                throw 'Goal: WTF!!???'
             }
         });
     }
@@ -121,7 +121,7 @@ export default class Goal {
 
         // indent and join with \n
         const indentSpaces = this.editor.getTextInBufferRange(firstRowRange).match(/^(\s)*/)[0];
-        const indentedContents = contents.map((s) => { return indentSpaces + s; }).join("\n") + "\n";
+        const indentedContents = contents.map((s) => { return indentSpaces + s; }).join('\n') + '\n';
 
         // delete original rows
         if (rows.length === 1) {
@@ -156,7 +156,7 @@ export default class Goal {
                 const rewriteRangeEnd = result.range.start;
                 result.stop();
                 const rewriteRange = new Range(rewriteRangeStart, rewriteRangeEnd);
-                this.editor.setTextInBufferRange(rewriteRange, contents.join(" ; "));
+                this.editor.setTextInBufferRange(rewriteRange, contents.join(' ; '));
             });
         });
     }
@@ -177,7 +177,7 @@ export default class Goal {
             new Point(0, -2)
         );
         const indexWidth = this.index === -1 ? 1 : this.index.toString().length;
-        const paddingSpaces = _.repeat(" ", indexWidth);
+        const paddingSpaces = _.repeat(' ', indexWidth);
         this.editor.setTextInBufferRange(range, ` ${text} ${paddingSpaces}`);
         return this;
     }
@@ -195,7 +195,7 @@ export default class Goal {
     }
 
     isEmpty(): boolean {
-        return this.getContent().replace(/(\s|\\n)*/, "").length === 0;
+        return this.getContent().replace(/(\s|\\n)*/, '').length === 0;
     }
 
 }

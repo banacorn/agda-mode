@@ -1,7 +1,7 @@
 import * as Promise from "bluebird";
 import * as _ from "lodash";
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError } from "./error";
-import { Command, Normalization, CommandResult, View } from "./types";
+import { Command, Normalization, CommandResult, View, CommandKind } from "./types";
 import Core from "./core";
 
 declare var atom: any;
@@ -36,11 +36,11 @@ export default class Commander {
         if(this.loaded || _.includes(exception, command.kind)) {
             this.dispatchCommand(command)
                 .catch(QueryCancelledError, () => {
-                    this.core.view.set("Query cancelled", [], View.Type.Warning);
+                    this.core.view.set("Query cancelled", [], View.Style.Warning);
                 })
                 .catch((error) => { // catch all the rest
                     console.error(command);
-                    throw error;
+                    // throw error;
                 });
         }
     }
@@ -62,6 +62,7 @@ export default class Commander {
                 return this.showGoals();
             case "NextGoal":      return this.nextGoal();
             case "PreviousGoal":  return this.previousGoal();
+            case "ToggleDocking":  return this.toggleDocking();
             case "WhyInScope":    return this.whyInScope();
             case "InferType":
                 return this.inferType(command.normalization);
@@ -84,6 +85,18 @@ export default class Commander {
             case "GoalTypeAndInferredType":
                 return this.goalTypeAndInferredType(command.normalization);
             case "InputSymbol":   return this.inputSymbol();
+            case "InputSymbolCurlyBracket":
+                return this.inputSymbolInterceptKey(command.kind, '{');
+            case "InputSymbolBracket":
+                return this.inputSymbolInterceptKey(command.kind, '[');
+            case "InputSymbolParenthesis":
+                return this.inputSymbolInterceptKey(command.kind, '(');
+            case "InputSymbolDoubleQuote":
+                return this.inputSymbolInterceptKey(command.kind, '"');
+            case "InputSymbolSingleQuote":
+                return this.inputSymbolInterceptKey(command.kind, '\'');
+            case "InputSymbolBackQuote":
+                return this.inputSymbolInterceptKey(command.kind, '`');
             default:    throw `undispatched command type ${command}`
         }
     }
@@ -93,7 +106,9 @@ export default class Commander {
     //
 
     load(): Promise<CommandResult> {
-        this.core.atomPanel.show();
+        const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+        this.core.view.mount(currentMountingPosition);
+        this.core.view.activate();
         return this.core.process.load()
             .then(() => {
                 this.loaded = true;
@@ -102,10 +117,13 @@ export default class Commander {
     }
 
     quit(): Promise<CommandResult> {
-        this.core.atomPanel.hide();
+        this.core.view.deactivate();
+        const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+        this.core.view.unmount(currentMountingPosition);
         if (this.loaded) {
             this.loaded = false;
             this.core.textBuffer.removeGoals();
+            this.core.highlightManager.destroyAll();
             return this.core.process.quit()
                 .then(resolveCommand("Quit"));
         } else {
@@ -159,12 +177,17 @@ export default class Commander {
             .then(resolveCommand("PreviousGoal"));
     }
 
+    toggleDocking(): Promise<CommandResult> {
+        return this.core.view.toggleDocking()
+            .then(resolveCommand("ToggleDocking"));
+    }
+
     //
     //  The following commands may have a goal-specific version
     //
 
     whyInScope(): Promise<CommandResult> {
-        return this.core.view.query("Scope info", [], View.Type.PlainText, "name:")
+        return this.core.view.query("Scope info", [], View.Style.PlainText, "name:")
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
                     .then((goal) => {
@@ -185,7 +208,7 @@ export default class Commander {
             .then((goal) => {
                 // goal-specific
                 if (goal.isEmpty()) {
-                    return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Type.Value, "expression to infer:")
+                    return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, "expression to infer:")
                         .then(this.core.process.inferType(normalization, goal))
                         .then(resolveCommand("InferType"));
                 } else {
@@ -195,7 +218,7 @@ export default class Commander {
             })
             .catch(() => {
                 // global command
-                return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Type.Value, "expression to infer:")
+                return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, "expression to infer:")
                     .then(this.core.process.inferType(normalization))
                     .then(resolveCommand("InferType"));
             })
@@ -203,7 +226,7 @@ export default class Commander {
 
 
     moduleContents(normalization: Normalization): Promise<CommandResult> {
-        return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], View.Type.PlainText, "module name:")
+        return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], View.Style.PlainText, "module name:")
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
                     .then(this.core.process.moduleContents(normalization, expr))
@@ -219,14 +242,14 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query(`Compute normal form`, [], View.Type.Value, "expression to normalize:")
+                    return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, "expression to normalize:")
                         .then(this.core.process.computeNormalForm(goal))
                 } else {
                     return this.core.process.computeNormalForm(goal)(goal.getContent())
                 }
             })
             .catch(OutOfGoalError, () => {
-                return this.core.view.query(`Compute normal form`, [], View.Type.Value, "expression to normalize:")
+                return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, "expression to normalize:")
                     .then(this.core.process.computeNormalForm())
             })
             .then(resolveCommand("ComputeNormalForm"));
@@ -238,14 +261,14 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Type.Value, "expression to normalize:")
+                    return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Style.PlainText, "expression to normalize:")
                         .then(this.core.process.computeNormalFormIgnoreAbstract(goal))
                 } else {
                     return this.core.process.computeNormalFormIgnoreAbstract(goal)(goal.getContent())
                 }
             })
             .catch(OutOfGoalError, () => {
-                return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Type.Value, "expression to normalize:")
+                return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Style.PlainText, "expression to normalize:")
                     .then(this.core.process.computeNormalFormIgnoreAbstract())
             })
             .then(resolveCommand("ComputeNormalFormIgnoreAbstract"));
@@ -259,7 +282,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query("Give", [], View.Type.PlainText, "expression to give:")
+                    return this.core.view.query("Give", [], View.Style.PlainText, "expression to give:")
                         .then(goal.setContent);
                 } else {
                     return goal;
@@ -267,7 +290,7 @@ export default class Commander {
             })
             .then(this.core.process.give)
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Out of goal", ["\"Give\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Give\" is a goal-specific command, please place the cursor in a goal"], View.Style.Error);
             })
             .then(resolveCommand("Give"));
     }
@@ -276,7 +299,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.refine)
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Out of goal", ["\"Refine\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Refine\" is a goal-specific command, please place the cursor in a goal"], View.Style.Error);
             })
             .then(resolveCommand("Refine"));
     }
@@ -285,7 +308,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.auto)
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Out of goal", ["\"Auto\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Auto\" is a goal-specific command, please place the cursor in a goal"], View.Style.Error);
             })
             .then(resolveCommand("Auto"));
     }
@@ -294,7 +317,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query("Case", [], View.Type.PlainText, "the argument to case:")
+                    return this.core.view.query("Case", [], View.Style.PlainText, "the argument to case:")
                         .then(goal.setContent);
                 } else {
                     return goal;
@@ -302,7 +325,7 @@ export default class Commander {
             })
             .then(this.core.process.case)
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Out of goal", ["\"Case\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Case\" is a goal-specific command, please place the cursor in a goal"], View.Style.Error);
             })
             .then(resolveCommand("Case"));
     }
@@ -311,7 +334,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.goalType(normalization))
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Out of goal", ["\"Goal Type\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Goal Type\" is a goal-specific command, please place the cursor in a goal"], View.Style.Error);
             })
             .then(resolveCommand("GoalType"));
     }
@@ -320,7 +343,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.context(normalization))
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Out of goal", ["\"Context\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Context\" is a goal-specific command, please place the cursor in a goal"], View.Style.Error);
             })
             .then(resolveCommand("Context"));
     }
@@ -329,7 +352,7 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.goalTypeAndContext(normalization))
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Out of goal", ["\"Goal Type & Context\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Goal Type & Context\" is a goal-specific command, please place the cursor in a goal"], View.Style.Error);
             })
             .then(resolveCommand("GoalTypeAndContext"));
     }
@@ -338,21 +361,32 @@ export default class Commander {
         return this.core.textBuffer.getCurrentGoal()
             .then(this.core.process.goalTypeAndInferredType(normalization))
             .catch(OutOfGoalError, () => {
-                this.core.view.set("Out of goal", ["\"Goal Type & Inferred Type\" is a goal-specific command, please place the cursor in a goal"], View.Type.Error);
+                this.core.view.set("Out of goal", ["\"Goal Type & Inferred Type\" is a goal-specific command, please place the cursor in a goal"], View.Style.Error);
             })
             .then(resolveCommand("GoalTypeAndInferredType"));
     }
 
     inputSymbol(): Promise<CommandResult> {
-        if (atom.config.get("agda-mode.inputMethod")) {
+        const miniEditorEnabled = this.core.view.store.getState().inputMethod.enableInMiniEditor;
+        const miniEditorFocused = this.core.view.miniEditor && this.core.view.miniEditor.isFocused();
+        const shouldNotActivate = miniEditorFocused && !miniEditorEnabled;
+        const editor = this.core.view.getFocusedEditor();
+        if (atom.config.get("agda-mode.inputMethod") && !shouldNotActivate) {
             if (!this.loaded) {
-                this.core.atomPanel.show();
-                this.core.view.set("Not loaded", [], View.Type.Warning);
+                const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+                this.core.view.mount(currentMountingPosition);
+                this.core.view.activate();
+                this.core.view.set("Not loaded", [], View.Style.PlainText);
             }
             this.core.inputMethod.activate();
         } else {
-            this.core.editor.insertText("\\");
+            editor.insertText("\\");
         }
         return Promise.resolve(<CommandResult>{ status: "Issued", command: "InputSymbol" });
+    }
+
+    inputSymbolInterceptKey(kind: CommandKind, key: string): Promise<CommandResult> {
+        this.core.inputMethod.interceptAndInsertKey(key);
+        return Promise.resolve(<CommandResult>{ status: "Issued", command: kind });
     }
 }

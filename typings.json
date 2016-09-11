@@ -1,13 +1,16 @@
 {
   "dependencies": {
-    "bluebird": "registry:npm/bluebird#3.3.4+20160515010139",
-    "index": "github:vuejs/vue-class-component/index.d.ts#98f4079c6d2c8647d5f438b7821853869df81e2b",
-    "lodash": "registry:npm/lodash#4.0.0+20160416211519",
-    "vue-class-component": "github:vuejs/vue-class-component/index.d.ts#98f4079c6d2c8647d5f438b7821853869df81e2b"
+    "bluebird": "registry:npm/bluebird#3.3.4+20160515010139"
   },
   "globalDependencies": {
+    "classnames": "registry:dt/classnames#0.0.0+20160316155526",
+    "lodash": "registry:dt/lodash#4.14.0+20160830145422",
     "node": "registry:dt/node#6.0.0+20160709114037",
     "parsimmon": "registry:dt/parsimmon#0.5.0+20160317120654",
-    "vue": "registry:dt/vue#1.0.21+20160423143248"
+    "react": "registry:dt/react#0.14.0+20160817201227",
+    "react-dom": "registry:dt/react-dom#0.14.0+20160412154040",
+    "react-redux": "registry:dt/react-redux#4.4.0+20160724070751",
+    "redux": "registry:dt/redux#3.5.2+20160703092728",
+    "redux-actions": "registry:dt/redux-actions#0.8.0+20160521154116"
   }
 }

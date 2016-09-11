@@ -1,6 +1,7 @@
-import * as _ from "lodash";
-import Keymap from "./keymap";
-import Core from "./core";
+import * as _ from 'lodash';
+import Keymap from './keymap';
+import Core from './core';
+import { activateInputMethod, deactivateInputMethod, insertInputMethod, deleteInputMethod } from './view/actions';
 
 type TextEditor = any;
 type CompositeDisposable = any;
@@ -10,12 +11,12 @@ type Range = any;
 declare var atom: any;
 var { Range, CompositeDisposable } = require('atom');
 
-function getSuggestionKeys(trie: any): string[] {
-    return Object.keys(_.omit(trie, ">>"));
+function getKeySuggestions(trie: any): string[] {
+    return Object.keys(_.omit(trie, '>>')).sort();
 }
 
 function getCandidateSymbols(trie: any): string[] {
-    return trie[">>"];
+    return trie['>>'];
 }
 
 // see if input is in the keymap
@@ -41,28 +42,28 @@ function validate(input: string): {
 }
 
 // converts characters to symbol, and tells if there's any further possible combinations
-function translate(input: string): {
+export function translate(input: string): {
     translation: string,
     further: boolean,
-    suggestionKeys: string[],
+    keySuggestions: string[],
     candidateSymbols: string[]
 } {
     const {valid, trie} = validate(input);
-    const suggestionKeys   = getSuggestionKeys(trie);
+    const keySuggestions   = getKeySuggestions(trie);
     const candidateSymbols = getCandidateSymbols(trie);
     if (valid) {
-        if (suggestionKeys.length === 0) {
+        if (keySuggestions.length === 0) {
             return {
                 translation: candidateSymbols[0],
                 further: false,
-                suggestionKeys: [],
+                keySuggestions: [],
                 candidateSymbols: []
             }
         } else {
             return {
                 translation: candidateSymbols[0],
                 further: true,
-                suggestionKeys: suggestionKeys,
+                keySuggestions: keySuggestions,
                 candidateSymbols: candidateSymbols
             }
         }
@@ -72,7 +73,7 @@ function translate(input: string): {
         return {
             translation: undefined,
             further: false,
-            suggestionKeys: [],
+            keySuggestions: [],
             candidateSymbols: [],
         }
     }
@@ -86,8 +87,6 @@ export default class InputMethod {
     private subscriptions: CompositeDisposable;
     private editor: TextEditor;
     private decoration: Decoration;
-    // raw characters
-    rawInput: string;
 
     // visual marker
     textEditorMarker: TextEditorMarker;
@@ -99,17 +98,32 @@ export default class InputMethod {
         this.subscriptions = new CompositeDisposable;
 
         // intercept newline `\n` as confirm
-        const commands = (event) => {
-            if (this.activated) {
-                this.deactivate();
-                event.stopImmediatePropagation();
+        const commands = {
+            'editor:newline': (event) => {
+                if (this.activated) {
+                    this.deactivate();
+                    event.stopImmediatePropagation();
+                }
             }
         }
+
         this.subscriptions.add(atom.commands.add(
-            "atom-text-editor.agda-mode-input-method-activated",
-            "editor:newline",
+            'atom-text-editor.agda-mode-input-method-activated',
             commands
         ));
+    }
+
+    // Issue #34: https://github.com/banacorn/agda-mode/issues/34
+    // Intercept some keys that Bracket Matcher autocompletes
+    //  to name them all: {, [, {, ", ', and `
+    // Because the Bracket Matcher package is too lacking, it does not responds
+    //  to the disabling of the package itself, making it impossible to disable
+    //  the package during the process of input.
+    // On the other hand, the Atom's CommandRegistry API is also inadequate,
+    //  we cannot simply detect which key was pressed, so we can only hardwire
+    //  the keys we wanna intercept from the Keymaps
+    interceptAndInsertKey(key: string) {
+        this.insertCharToBuffer(key);
     }
 
     destroy() {
@@ -119,16 +133,14 @@ export default class InputMethod {
     activate() {
         if (!this.activated) {
             // initializations
-            this.rawInput = ""
             this.activated = true;
 
-            // add class "agda-mode-input-method-activated"
-            const editorElement = atom.views.getView(atom.workspace.getActiveTextEditor());
-            editorElement.classList.add("agda-mode-input-method-activated");
+            const miniEditorFocused = this.core.view.miniEditor && this.core.view.miniEditor.isFocused();
+            this.editor = this.core.view.getFocusedEditor();
 
-            // editor: the main text editor or the mini text editor
-            const inputEditorFocused = this.core.view.$refs.inputEditor.isFocused();
-            this.editor = inputEditorFocused ? this.core.view.$refs.inputEditor.$el.getModel() : this.core.editor;
+            // add class 'agda-mode-input-method-activated'
+            const editorElement = atom.views.getView(this.editor);
+            editorElement.classList.add('agda-mode-input-method-activated');
 
             // monitors raw text buffer and figures out what happend
             const startPosition = this.editor.getCursorBufferPosition();
@@ -137,37 +149,38 @@ export default class InputMethod {
 
             // decoration
             this.decoration = this.editor.decorateMarker(this.textEditorMarker, {
-                type: "highlight",
-                class: "agda-input-method"
+                type: 'highlight',
+                class: 'agda-input-method'
             });
 
             // insert '\' at the cursor quitely without triggering any shit
             this.muteEvent(() => {
-                this.insertChar("\\");
+                this.insertCharToBuffer('\\');
             });
 
             // initialize input suggestion
-            this.core.view.inputMethodMode = true;
-            this.core.view.inputMethodInput = {
-                rawInput: "",
-                suggestionKeys: getSuggestionKeys(Keymap).sort(),
-                candidateSymbols: []
-            }
+            this.core.view.store.dispatch(activateInputMethod());
         } else {
-            // input method already activated
-            // this will happen when the 2nd backslash '\' got punched in
-            // we shall leave 1 backslash in the buffer, then deactivate
-            this.deactivate();
+            // input method already activated, it happens when we get the 2nd
+            // backslash '\' coming in
+            const buffer = this.core.view.store.getState().inputMethod.buffer;
+            if (_.isEmpty(buffer)) {
+                // the user probably just want to type '\', we shall leave it
+                // the editor as is.
+                this.deactivate();
+            } else {
+                // keep going, see issue #34: https://github.com/banacorn/agda-mode/issues/34
+                this.insertCharToBuffer('\\');
+            }
         }
     }
 
     deactivate() {
         if (this.activated) {
             // add class 'agda-mode-input-method-activated'
-            const editorElement = atom.views.getView(atom.workspace.getActiveTextEditor());
-            editorElement.classList.remove("agda-mode-input-method-activated");
-
-            this.core.view.inputMethodMode = false;
+            const editorElement = atom.views.getView(this.core.view.getEditor());
+            editorElement.classList.remove('agda-mode-input-method-activated');
+            this.core.view.store.dispatch(deactivateInputMethod());
             this.textEditorMarker.destroy();
             this.decoration.destroy();
             this.activated = false;
@@ -189,7 +202,6 @@ export default class InputMethod {
             const rangeOld = new Range(event.oldTailBufferPosition, event.oldHeadBufferPosition);
             const rangeNew = new Range(event.newTailBufferPosition, event.newHeadBufferPosition);
             const buffer = this.editor.getBuffer().getTextInRange(rangeNew);
-            const char = buffer.substr(-1);
 
             // const for result of Range::compare()
             const INSERT = -1;
@@ -201,34 +213,22 @@ export default class InputMethod {
             }
             else if (change === INSERT) {
                 const char = buffer.substr(-1);
-                this.rawInput += char;
-                const {translation, further, suggestionKeys, candidateSymbols} = translate(this.rawInput);
+                this.core.view.store.dispatch(insertInputMethod(char));
+                const {translation, further} = this.core.view.store.getState().inputMethod;
 
                 // reflects current translation to the text buffer
                 if (translation) {
                     this.muteEvent(() => {
-                        this.replaceString(translation);
+                        this.replaceBuffer(translation);
                     });
                 }
 
-                // update view
-                if (further) {
-                    this.core.view.inputMethodInput = {
-                        rawInput: this.rawInput,
-                        suggestionKeys: suggestionKeys,
-                        candidateSymbols: candidateSymbols
-                    };
-                } else {
+                // deactivate if we can't go further
+                if (!further) {
                     this.deactivate();
                 }
             } else if (change === DELETE) {
-                this.rawInput = this.rawInput.substr(0, this.rawInput.length - 1);
-                const {translation, further, suggestionKeys, candidateSymbols} = translate(this.rawInput);
-                this.core.view.inputMethodInput = {
-                    rawInput: this.rawInput,
-                    suggestionKeys: suggestionKeys,
-                    candidateSymbols: candidateSymbols
-                };
+                this.core.view.store.dispatch(deleteInputMethod());
             }
 
         }
@@ -239,19 +239,12 @@ export default class InputMethod {
     ///////////////////
 
     // inserts 1 character to the text buffer (may trigger some events)
-    insertChar(char: string) {
+    insertCharToBuffer(char: string) {
         this.editor.getBuffer().insert(this.textEditorMarker.getBufferRange().end, char);
     }
 
-    //  inserts 1 symbol to the text buffer and deactivate
-    insertSymbol(symbol: string) {
-        this.replaceString(symbol);
-        this.deactivate()
-
-    }
-
     // replace content of the marker with supplied string (may trigger some events)
-    replaceString(str: string) {
+    replaceBuffer(str: string) {
         this.editor.getBuffer().setTextInRange(this.textEditorMarker.getBufferRange(), str);
     }
 }

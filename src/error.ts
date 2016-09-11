@@ -1,11 +1,11 @@
-import { Goal } from "./types";
+import { Goal } from './types';
 
 
 class AgdaParseError extends Error {
     constructor(message: string) {
         super(message);
         this.message = message;
-        this.name = "AgdaParseError";
+        this.name = 'AgdaParseError';
         Error.captureStackTrace(this, AgdaParseError);
     }
 }
@@ -13,7 +13,7 @@ class AgdaParseError extends Error {
 class NotLoadedError extends Error {
     constructor(message: string) {
         super(message);
-        this.name = "NotLoadedError";
+        this.name = 'NotLoadedError';
         Error.captureStackTrace(this, NotLoadedError);
     }
 }
@@ -21,7 +21,7 @@ class NotLoadedError extends Error {
 class OutOfGoalError extends Error {
     constructor(message: string) {
         super(message);
-        this.name = "OutOfGoalError";
+        this.name = 'OutOfGoalError';
         Error.captureStackTrace(this, OutOfGoalError);
     }
 }
@@ -29,7 +29,7 @@ class OutOfGoalError extends Error {
 class EmptyGoalError extends Error {
     constructor(message: string, goal: Goal) {
         super(message);
-        this.name = "EmptyGoalError";
+        this.name = 'EmptyGoalError';
         Error.captureStackTrace(this, EmptyGoalError);
     }
 }
@@ -38,7 +38,7 @@ class QueryCancelledError extends Error {
     constructor(message: string) {
         super(message);
         this.message = message;
-        this.name = "QueryCancelledError";
+        this.name = 'QueryCancelledError';
         Error.captureStackTrace(this, QueryCancelledError);
     }
 }
@@ -49,7 +49,7 @@ class InvalidExecutablePathError extends Error {
         super(message);
         this.message = message;
         this.path = path;
-        this.name = "InvalidExecutablePathError";
+        this.name = 'InvalidExecutablePathError';
         Error.captureStackTrace(this, InvalidExecutablePathError);
     }
 }
@@ -59,7 +59,7 @@ class AutoExecPathSearchError extends Error {
     constructor(message: string, programName: string) {
         super(message);
         this.message = message;
-        this.name = "AutoExecPathSearchError";
+        this.name = 'AutoExecPathSearchError';
         this.programName = programName;
         Error.captureStackTrace(this, AutoExecPathSearchError);
     }
@@ -69,7 +69,7 @@ class ProcExecError extends Error {
     constructor(message: string) {
         super(message);
         this.message = message;
-        this.name = "ProcExecError";
+        this.name = 'ProcExecError';
         Error.captureStackTrace(this, ProcExecError);
     }
 }

@@ -1,6 +1,7 @@
-import Goal from "./goal";
+import Goal from './goal';
 
-import { ParsedPath } from "path";
+import { EventEmitter } from 'events';
+import { ParsedPath } from 'path';
 type Range = any;
 
 export type TextInput = string;
@@ -31,133 +32,73 @@ interface Hole {
     content: string
 }
 
-namespace Agda {
-
-    export type Response =
-        InfoAction |
-        StatusAction |
-        GoalsAction |
-        GiveAction |
-        ParseError |
-        Goto |
-        SolveAllAction |
-        MakeCaseAction |
-        MakeCaseActionExtendLam |
-        HighlightClear |
-        HighlightAddAnnotations |
-        HighlightLoadAndDeleteAction |
-        UnknownAction
-
-    export interface InfoAction {
-        kind: "InfoAction";
-        infoActionKind: "AllGoals" | "Error" | "TypeChecking" | "CurrentGoal" |
-            "InferredType" | "ModuleContents" | "Context" | "GoalTypeEtc" |
-            "NormalForm" | "Intro" | "Auto" | "Constraints" | "ScopeInfo" |
-            "Unknown";
-        content: string[];
-    }
-
-    export interface StatusAction {
-        kind: "StatusAction";
-        content: string[];
-    }
-    export interface GoalsAction {
-        kind: "GoalsAction";
-        content: number[];
-    }
-    export interface GiveAction {
-        kind: "GiveAction";
-        index: number;
-        content: string;
-        hasParenthesis: boolean;
-    }
-
-    export interface ParseError {
-        kind: "ParseError";
-        content: string[];
-    }
-
-    export interface Goto {
-        kind: "Goto";
-        filepath: string;
-        position: number;
-    }
-    export interface SolveAllAction {
-        kind: "SolveAllAction";
-        solutions: {
-            index: number,
-            expression: string
-        }[];
-    }
-    export interface MakeCaseAction {
-        kind: "MakeCaseAction";
-        content: string[];
-    }
-    export interface MakeCaseActionExtendLam {
-        kind: "MakeCaseActionExtendLam";
-        content: string[];
-    }
-    export interface HighlightClear {
-        kind: "HighlightClear";
-        content: string[];
-    }
-    export interface HighlightAddAnnotations {
-        kind: "HighlightAddAnnotations";
-        content: Annotation[];
-    }
-
-    export interface HighlightLoadAndDeleteAction {
-        kind: "HighlightLoadAndDeleteAction";
-        content: string;
-    }
-    export interface UnknownAction {
-        kind: "UnknownAction";
-        content: string[];
-    }
-
-    export interface Annotation {
-        start: string,
-        end: string,
-        type: string[]
-        source?: {
-            filepath: string,
-            index: string
-        }
-    }
-}
-
-//
-//  agda-mode commands
-//
-
-type CommandKind = "Load" | "Quit" | "Restart" | "Compile" |
-    "ToggleDisplayOfImplicitArguments" | "Info" | "ShowConstraints" |
-    "SolveConstraints" | "ShowGoals" | "NextGoal" | "PreviousGoal" |
-    "WhyInScope" | "InferType" | "ModuleContents" | "ComputeNormalForm" |
-    "ComputeNormalFormIgnoreAbstract" | "Give" | "Refine" | "Auto" | "Case" |
-    "GoalType" | "Context" | "GoalTypeAndContext" | "GoalTypeAndInferredType" |
-    "InputSymbol";
-type Normalization = "Simplified" | "Instantiated" | "Normalised";
-
-type Command = {
-    kind: CommandKind,
-    normalization?: Normalization,
-    editsFile: boolean
-}
-
-
-type CommandResult = {
-    status: "Issued",
-    command: string
-} | {
-    status: "Canceled"
-};
-
 //
 //  View
 //
 
 namespace View {
+
+    export interface State {
+        emitter: EventEmitter;
+        view: ViewState;
+        header: HeaderState;
+        inputMethod: InputMethodState;
+        miniEditor: MiniEditorState;
+        body: BodyState;
+    }
+
+    export interface ViewState {
+        activated: boolean;
+        mounted: boolean;
+        mountAt: {
+            previous: MountingPosition,
+            current: MountingPosition
+        };
+    }
+
+    export const enum MountingPosition {
+        Pane,
+        Bottom
+    }
+
+    export interface InputMethodState {
+        enableInMiniEditor: boolean;
+        activated: boolean;
+        buffer: string;
+        translation: string;
+        further: boolean;
+        keySuggestions: string[];
+        candidateSymbols: string[];
+    }
+
+    export const enum Style {
+        PlainText,
+        Info,
+        Success,
+        Error,
+        Warning
+    }
+
+    export interface HeaderState {
+        text: string;
+        style: Style;
+    }
+
+    export interface BodyState {
+        banner: BannerItem[];
+        body: Body;
+        error: Error;
+        plainText: string;
+        maxBodyHeight: number;
+    }
+
+    export interface MiniEditorState {
+        activate: boolean;
+        placeholder: string;
+    }
+
+    // Legacy shit below
+
 
     export const enum Type {
         PlainText,
@@ -167,23 +108,11 @@ namespace View {
         Value
     }
 
-    export type JudgementForm = "goal" |
-        "type judgement" |
-        "meta" |
-        "term" |
-        "sort" ;
-
-    // Occurence & Location
-    export interface Location {
-        path: string,
-        range: Range,
-        isSameLine: boolean
-    }
-
-    export interface Occurence {
-        location: Location,
-        body: string
-    }
+    export type JudgementForm = 'goal' |
+        'type judgement' |
+        'meta' |
+        'term' |
+        'sort' ;
 
 
     ////////////////////////////////////////////
@@ -244,6 +173,145 @@ namespace View {
 
 }
 
+namespace Agda {
+
+    export type Response =
+        InfoAction |
+        StatusAction |
+        GoalsAction |
+        GiveAction |
+        ParseError |
+        Goto |
+        SolveAllAction |
+        MakeCaseAction |
+        MakeCaseActionExtendLam |
+        HighlightClear |
+        HighlightAddAnnotations |
+        HighlightLoadAndDeleteAction |
+        UnknownAction
+
+    export interface InfoAction {
+        kind: 'InfoAction';
+        infoActionKind: 'AllGoals' | 'Error' | 'TypeChecking' | 'CurrentGoal' |
+            'InferredType' | 'ModuleContents' | 'Context' | 'GoalTypeEtc' |
+            'NormalForm' | 'Intro' | 'Auto' | 'Constraints' | 'ScopeInfo' |
+            'Unknown';
+        content: string[];
+    }
+
+    export interface StatusAction {
+        kind: 'StatusAction';
+        content: string[];
+    }
+    export interface GoalsAction {
+        kind: 'GoalsAction';
+        content: number[];
+    }
+    export interface GiveAction {
+        kind: 'GiveAction';
+        index: number;
+        content: string;
+        hasParenthesis: boolean;
+    }
+
+    export interface ParseError {
+        kind: 'ParseError';
+        content: string[];
+    }
+
+    export interface Goto {
+        kind: 'Goto';
+        filepath: string;
+        position: number;
+    }
+    export interface SolveAllAction {
+        kind: 'SolveAllAction';
+        solutions: {
+            index: number,
+            expression: string
+        }[];
+    }
+    export interface MakeCaseAction {
+        kind: 'MakeCaseAction';
+        content: string[];
+    }
+    export interface MakeCaseActionExtendLam {
+        kind: 'MakeCaseActionExtendLam';
+        content: string[];
+    }
+    export interface HighlightClear {
+        kind: 'HighlightClear';
+        content: string[];
+    }
+    export interface HighlightAddAnnotations {
+        kind: 'HighlightAddAnnotations';
+        content: Annotation[];
+    }
+
+    export interface HighlightLoadAndDeleteAction {
+        kind: 'HighlightLoadAndDeleteAction';
+        content: string;
+    }
+    export interface UnknownAction {
+        kind: 'UnknownAction';
+        content: string[];
+    }
+
+    export interface Annotation {
+        start: string,
+        end: string,
+        type: string[]
+        source?: {
+            filepath: string,
+            index: string
+        }
+    }
+}
+
+//
+//  agda-mode commands
+//
+
+type CommandKind = 'Load' | 'Quit' | 'Restart' | 'Compile' |
+    'ToggleDisplayOfImplicitArguments' | 'Info' | 'ShowConstraints' |
+    'SolveConstraints' | 'ShowGoals' | 'NextGoal' | 'PreviousGoal' |
+    'ToggleDocking' |
+    'WhyInScope' | 'InferType' | 'ModuleContents' | 'ComputeNormalForm' |
+    'ComputeNormalFormIgnoreAbstract' | 'Give' | 'Refine' | 'Auto' | 'Case' |
+    'GoalType' | 'Context' | 'GoalTypeAndContext' | 'GoalTypeAndInferredType' |
+    'InputSymbol' | 'InputSymbolCurlyBracket' | 'InputSymbolBracket'
+    | 'InputSymbolParenthesis' | 'InputSymbolDoubleQuote' | 'InputSymbolSingleQuote'
+    | 'InputSymbolBackQuote'
+type Normalization = 'Simplified' | 'Instantiated' | 'Normalised';
+
+type Command = {
+    kind: CommandKind,
+    normalization?: Normalization,
+    editsFile: boolean
+}
+
+
+type CommandResult = {
+    status: 'Issued',
+    command: CommandKind
+} | {
+    status: 'Canceled'
+};
+
+
+// Occurence & Location
+export interface Occurence {
+    location: Location,
+    body: string
+}
+
+export interface Location {
+    path: string,
+    range: Range,
+    isSameLine: boolean
+}
+
+
 type Suggestion = string[];
 ////////////////////////////////////////////
 // Errors
@@ -264,6 +332,7 @@ type Error = Error.NotInScope |
     Error.Parse |
     Error.CaseSingleHole |
     Error.PatternMatchOnNonDatatype |
+    Error.LibraryNotFound |
     // ApplicationParseError |
     // TerminationError |
     // ParseError |
@@ -271,14 +340,16 @@ type Error = Error.NotInScope |
 
 namespace Error {
     export interface NotInScope {
-        kind: "NotInScope",
+        kind: 'NotInScope',
+        header: string,
         location: Location,
         suggestion: Suggestion,
         expr: string
     }
 
     export interface TypeMismatch {
-        kind: "TypeMismatch",
+        kind: 'TypeMismatch',
+        header: string,
         location: Location
         expected: string,
         expectedType: string,
@@ -288,7 +359,8 @@ namespace Error {
     }
 
     export interface DefinitionTypeMismatch {
-        kind: "DefinitionTypeMismatch",
+        kind: 'DefinitionTypeMismatch',
+        header: string,
         location: Location
         expected: string,
         expectedType: string,
@@ -298,7 +370,8 @@ namespace Error {
     }
 
     export interface BadConstructor {
-        kind: "BadConstructor",
+        kind: 'BadConstructor',
+        header: string,
         location: Location,
         constructor: string,
         constructorType: string,
@@ -307,20 +380,24 @@ namespace Error {
     }
 
     export interface RHSOmitted {
-        kind: "RHSOmitted",
+        kind: 'RHSOmitted',
+        header: string,
         location: Location,
         expr: string,
         exprType: string
     }
 
     export interface MissingType {
-        kind: "MissingType",
-        location: Location,
-        expr: string
+        kind: 'MissingType';
+        header: string,
+        location: Location;
+        expr: string;
+        decl: string;
     }
 
     export interface MultipleDefinition {
-        kind: "MultipleDefinition",
+        kind: 'MultipleDefinition',
+        header: string,
         location: Location,
         locationPrev: Location,
         expr: string,
@@ -329,13 +406,15 @@ namespace Error {
     }
 
     export interface MissingDefinition {
-        kind: "MissingDefinition",
+        kind: 'MissingDefinition',
+        header: string,
         location: Location,
         expr: string
     }
 
     export interface Termination {
-        kind: "Termination",
+        kind: 'Termination',
+        header: string,
         location: Location,
         expr: string,
         calls: {
@@ -345,7 +424,8 @@ namespace Error {
     }
 
     export interface ConstructorTarget {
-        kind: "ConstructorTarget",
+        kind: 'ConstructorTarget',
+        header: string,
         location: Location,
         expr: string,
         ctor: string,
@@ -353,39 +433,57 @@ namespace Error {
     }
 
     export interface FunctionType {
-        kind: "FunctionType",
+        kind: 'FunctionType',
+        header: string,
         location: Location,
         expr: string,
         exprType: string
     }
 
     export interface ModuleMismatch {
-        kind: "ModuleMismatch",
+        kind: 'ModuleMismatch',
+        header: string,
         wrongPath: string,
         rightPath: string,
         moduleName: string
     }
 
     export interface Parse {
-        kind: "Parse",
+        kind: 'Parse',
+        header: string,
         location: Location
         message: string,
         expr: string,
     }
 
     export interface CaseSingleHole {
-        kind: "CaseSingleHole",
+        kind: 'CaseSingleHole',
+        header: string,
         location: Location,
         expr: string,
         exprType: string
     }
 
     export interface PatternMatchOnNonDatatype {
-        kind: "PatternMatchOnNonDatatype",
+        kind: 'PatternMatchOnNonDatatype',
+        header: string,
         location: Location,
         nonDatatype: string,
         expr: string,
         exprType: string
+    }
+
+    export interface LibraryNotFound {
+        kind: 'LibraryNotFound',
+        header: string,
+        libraries: {
+            name: string,
+            agdaLibFilePath: string,
+            installedLibraries: {
+                name: string,
+                path: string
+            }[]
+        }[]
     }
     // export interface ApplicationParseError {
     //     type: ErrorType,
@@ -394,7 +492,8 @@ namespace Error {
     // }
     //
     export interface Unparsed {
-        kind: "Unparsed",
+        kind: 'Unparsed',
+        header: string,
         input: string,
     }
 }

@@ -1,30 +1,34 @@
-import * as _ from "lodash";
+import * as _ from 'lodash';
 type CompositeDisposable = any;
 type Range = any;
+
 declare var atom: any;
-var { Range, CompositeDisposable } = require("atom");
-import { parseFilepath } from "./parser";
+var { Range, CompositeDisposable } = require('atom');
+
+import { parseFilepath } from './parser';
+import * as Redux from 'redux';
+import { View as ViewType } from './types';
 
 // # Components
-import Commander from "./commander";
-import Process from "./process";
-import TextBuffer from "./text-buffer";
-import InputMethod from "./input-method";
-import HighlightManager from "./highlight-manager";
-import View from "./view";
+import Commander from './commander';
+import Process from './process';
+import TextBuffer from './text-buffer';
+import InputMethod from './input-method';
+import HighlightManager from './highlight-manager';
+import View from './view';
+import * as Action from './view/actions';
 
 export default class Core {
     private disposables: CompositeDisposable;
-    public view: View;
     public process: Process;
     public textBuffer: TextBuffer;
     public inputMethod: InputMethod;
     public highlightManager: HighlightManager;
     public commander: Commander;
-
-    public atomPanel: any;
+    public view: View;
 
     constructor(public editor: any) {
+
         // helper methods on this.editor
         this.editor.fromIndex = (ind: number): number => {
             return this.editor.getBuffer().positionForCharacterIndex(ind);
@@ -44,40 +48,17 @@ export default class Core {
 
         // initialize all components
         this.disposables        = new CompositeDisposable();
-        this.view               = new View;
+        // view
+        this.view               = new View(this);
         this.process            = new Process(this);
         this.textBuffer         = new TextBuffer(this);
-        if (atom.config.get("agda-mode.inputMethod"))
+        if (atom.config.get('agda-mode.inputMethod'))
             this.inputMethod    = new InputMethod(this);
         this.highlightManager   = new HighlightManager(this);
-
-        // instantiate views
-        this.atomPanel = atom.workspace.addBottomPanel({
-            item: document.createElement("agda-view"),
-            visible: false,
-            className: "agda-view"
-        });
-        this.view.$mount(this.atomPanel.item);
-        this.view.$on("jump-to-goal", (index) => {
-            this.textBuffer.jumpToGoal(parseInt(index.substr(1)));
-        });
-        this.view.$on("jump-to-location", (location) => {
-            this.textBuffer.jumpToLocation(location);
-        });
-        this.view.$on("select-key", (key) => {
-            this.inputMethod.insertChar(key);
-            atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
-        });
-        this.view.$on("select-symbol", (symbol) => {
-            this.inputMethod.insertSymbol(symbol);
-            atom.views.getView(atom.workspace.getActiveTextEditor()).focus();
-        });
-        this.view.$on("replace-symbol", (symbol) => {
-            this.inputMethod.replaceString(symbol);
-        });
-
         this.commander  = new Commander(this);
 
+        // dispatch config related data to the store on initialization
+        this.view.store.dispatch(Action.updateMaxBodyHeight(atom.config.get('agda-mode.maxBodyHeight')));
     }
 
     // shorthand for getting the path of the binded file
@@ -88,16 +69,16 @@ export default class Core {
     // Editor Events
 
     activate() {
-        this.atomPanel.show();
+        this.view.activate();
     }
 
     deactivate() {
-        this.atomPanel.hide();
+        this.view.deactivate();
     }
 
     destroy() {
         this.commander.quit();
-        this.atomPanel.destroy();
+        this.view.destroy();
         this.disposables.dispose();
     }
 }

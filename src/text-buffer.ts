@@ -1,11 +1,11 @@
-import * as fs from "fs";
-import * as Promise from "bluebird";
-import * as _ from "lodash";
-import { Agda, Goal, View } from "./types";
-import { parseHole } from "./parser";
-import Core from "./core";
-import { OutOfGoalError, EmptyGoalError } from "./error";
-import { Command, CommandResult } from "./types";
+import * as fs from 'fs';
+import * as Promise from 'bluebird';
+import * as _ from 'lodash';
+import { Agda, Goal, View, Location } from './types';
+import { parseHole } from './parser';
+import Core from './core';
+import { OutOfGoalError, EmptyGoalError } from './error';
+import { Command, CommandResult } from './types';
 
 declare var atom: any;
 
@@ -27,7 +27,7 @@ export default class TextBuffer {
         let result = callback();
         return this.getCurrentGoal(position)
             .then((goal) => {
-                // reposition the cursor in the goal only if it's a fresh hole (coming from "?")
+                // reposition the cursor in the goal only if it's a fresh hole (coming from '?')
                 let isFreshHole = goal.isEmpty();
                 if (isFreshHole) {
                     let newPosition = this.core.editor.translate(goal.range.start, 3);
@@ -88,17 +88,18 @@ export default class TextBuffer {
         });
 
         if (_.isEmpty(goals))
-            return Promise.reject(new OutOfGoalError("out of goal"));
+            return Promise.reject(new OutOfGoalError('out of goal'));
         else
             return Promise.resolve(goals[0]);
     }
 
     warnOutOfGoal() {
-        this.core.view.set("Out of goal", ["For this command, please place the cursor in a goal"], View.Type.Warning);
+        console.log('beep', this)
+        this.core.view.set('Out of goal', ['For this command, please place the cursor in a goal'], View.Style.Warning);
     }
 
     warnEmptyGoal(error: any) {
-        this.core.view.set("No content", [error.message], View.Type.Warning);
+        this.core.view.set('No content', [error.message], View.Style.Warning);
     }
 
     // reject if goal is empty
@@ -106,7 +107,7 @@ export default class TextBuffer {
         if (goal.getContent()) {
             return Promise.resolve(goal);
         } else {
-            return Promise.reject(new EmptyGoalError("goal is empty", goal));
+            return Promise.reject(new EmptyGoalError('goal is empty', goal));
         }
     }
 
@@ -137,7 +138,7 @@ export default class TextBuffer {
         if (!_.isEmpty(positions))
             this.core.editor.setCursorBufferPosition(nextGoal);
 
-        return Promise.resolve(<CommandResult>{ status: "Issued", command: "NextGoal" });
+        return Promise.resolve(<CommandResult>{ status: 'Issued', command: 'NextGoal' });
     }
 
     previousGoal(): Promise<CommandResult> {
@@ -163,7 +164,7 @@ export default class TextBuffer {
         if (!_.isEmpty(positions))
             this.core.editor.setCursorBufferPosition(previousGoal);
 
-        return Promise.resolve(<CommandResult>{ status: "Issued", command: "PreviousGoal" });
+        return Promise.resolve(<CommandResult>{ status: 'Issued', command: 'PreviousGoal' });
     }
 
     jumpToGoal(index: number) {
@@ -176,18 +177,10 @@ export default class TextBuffer {
         }
     }
 
-    jumpToLocation(location: any) {
+    jumpToLocation(location: Location) {
         this.focus();
         if (location.path) {
-            this.getCurrentGoal(location.range.start)
-                .then((goal) => {
-                    if (location.range.start.row === goal.range.start.row) {
-                        location.range = location.range.translate([0, 2]);  // hole boundary
-                    }
-                    this.core.editor.setSelectedBufferRange(location.range, true);
-                }).catch(() => {
-                    this.core.editor.setSelectedBufferRange(location.range, true);
-                });
+            this.core.editor.setSelectedBufferRange(location.range, true);
         } else {
             this.getCurrentGoal()
                 .then((goal) => {
@@ -195,13 +188,13 @@ export default class TextBuffer {
                     if (location.range.start.row === 0) {
                         range = location.range
                             .translate(goal.range.start)
-                            .translate([0, 2]);  // hole boundary
+                            .translate([0, 3]);  // hole boundary
                     } else {
                         range = location.range
                             .translate([goal.range.start.row, 0]);
                     }
                     this.core.editor.setSelectedBufferRange(range, true);
-                }).catch(this.warnOutOfGoal);
+                }).catch(() => this.warnOutOfGoal());
         }
     }
 
@@ -256,7 +249,7 @@ export default class TextBuffer {
         return this.protectCursor(() => {
             this.getCurrentGoal().then((goal) => {
                 goal.writeLines(content);
-            }).catch(this.warnOutOfGoal);
+            }).catch(() => this.warnOutOfGoal());
         });
     }
 
@@ -264,7 +257,7 @@ export default class TextBuffer {
         return this.protectCursor(() => {
             this.getCurrentGoal().then((goal) => {
                 goal.writeLambda(content);
-            }).catch(this.warnOutOfGoal);
+            }).catch(() => this.warnOutOfGoal());
         });
     }
 

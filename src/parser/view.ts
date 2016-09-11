@@ -1,7 +1,7 @@
 import * as _ from "lodash";;
 import { normalize } from "path";
 import { parseFilepath } from "./util";
-import { View, Error, Suggestion } from "../types";
+import { View, Error, Suggestion, Location, Occurence } from "../types";
 import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom, succeed,
     regex, digits, string
     } from "parsimmon";
@@ -51,7 +51,14 @@ function concatItems(lines: string[]): string[] {
     lines.forEach((line, i) => {
         const notTheLastLine = i + 1 < lines.length;
         const preemptLine = notTheLastLine ? line + "\n" + lines[i + 1] : line;
-        if (line.match(newlineRegex) || preemptLine.match(newlineRegex)) {
+
+        const thisLineIsNewLine = newlineRegex.test(line);
+        const nextLineIsNewLine = notTheLastLine ? newlineRegex.test(lines[i + 1]) : false;
+        const thisLineAndNextLineIsNewLine = newlineRegex.test(preemptLine);
+
+        // console.log(`[${line}]`)
+        // console.log(`Line: ${thisLineIsNewLine} ${newlineRegex.test(preemptLine)} ${nextLineIsNewLine} [${line}]`)
+        if (thisLineIsNewLine || (thisLineAndNextLineIsNewLine && !nextLineIsNewLine)) {
             currentLine = i;
             result[currentLine] = line;
         } else {
@@ -79,7 +86,7 @@ function parseBannerItem(str: string): View.BannerItem {
     };
 }
 
-function parseOccurence(str: string): View.Occurence {
+function parseOccurence(str: string): Occurence {
     const regex = /((?:\n|.)*\S+)\s*\[ at (.+):(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+)) \]/;
     const result = str.match(regex);
 
@@ -117,7 +124,7 @@ function parseGoal(str: string): View.Goal {
 }
 
 function parseJudgement(str: string): View.Judgement {
-    const regex = /^(?:([^\_\?](?:\n|.)*)) \: ((?:\n|.)+)/;
+    const regex = /^(?:([^\_\?](?:[^\:])*)) \: ((?:\n|.)+)/;
     const result = str.match(regex);
     if (result) {
         return {
@@ -177,7 +184,7 @@ function parseBodyItem(str: string): View.BodyItem {
 }
 
 
-function parseLocation(str: string): View.Location {
+function parseLocation(str: string): Location {
     const regex = /(?:(.+):)?(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+))/;
     const result = str.match(regex);
     if (result) {

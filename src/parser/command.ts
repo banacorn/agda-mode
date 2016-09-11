@@ -59,6 +59,10 @@ function parseCommand(raw: string): Command {
             kind: "PreviousGoal",
             editsFile: false
         };
+        case "toggle-docking": return {
+            kind: "ToggleDocking",
+            editsFile: false
+        };
         case "why-in-scope": return {
             kind: "WhyInScope",
             editsFile: false
@@ -121,6 +125,31 @@ function parseCommand(raw: string): Command {
             kind: "InputSymbol",
             editsFile: true
         };
+        case "input-symbol-curly-bracket": return {
+            kind: "InputSymbolCurlyBracket",
+            editsFile: true
+        };
+        case "input-symbol-bracket": return {
+            kind: "InputSymbolBracket",
+            editsFile: true
+        };
+        case "input-symbol-parenthesis": return {
+            kind: "InputSymbolParenthesis",
+            editsFile: true
+        };
+        case "input-symbol-double-quote": return {
+            kind: "InputSymbolDoubleQuote",
+            editsFile: true
+        };
+        case "input-symbol-single-quote": return {
+            kind: "InputSymbolSingleQuote",
+            editsFile: true
+        };
+        case "input-symbol-back-quote": return {
+            kind: "InputSymbolBackQuote",
+            editsFile: true
+        };
+
         default: throw `unknown command ${raw}`;
     }
 }
