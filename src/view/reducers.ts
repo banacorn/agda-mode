@@ -11,7 +11,6 @@ import { translate } from '../input-method';
 // default state
 const { translation, further, keySuggestions, candidateSymbols } = translate('');
 const defaultState: View.State = {
-    emitter: new EventEmitter,
     view: {
         activated: false,
         mounted: false,
@@ -48,17 +47,6 @@ const defaultState: View.State = {
         maxBodyHeight: 170
     }
 };
-
-const emitter = handleActions<EventEmitter, EVENT>({
-    [EVENT.JUMP_TO_GOAL]: (state: EventEmitter, action: Action<EVENT.JUMP_TO_GOAL>) => {
-        state.emit(EVENT.JUMP_TO_GOAL, action.payload);
-        return state;
-    },
-    [EVENT.JUMP_TO_LOCATION]: (state: EventEmitter, action: Action<EVENT.JUMP_TO_LOCATION>) => {
-        state.emit(EVENT.JUMP_TO_LOCATION, action.payload);
-        return state;
-    }
-}, defaultState.emitter);
 
 const view = handleActions<View.ViewState, VIEW>({
     [VIEW.ACTIVATE]: (state: View.ViewState, action: Action<VIEW.ACTIVATE>) => _.assign({}, state, {
@@ -160,7 +148,6 @@ const body = handleActions<View.BodyState, BODY>({
 
 // export default reducer;
 export default combineReducers<View.State>({
-    emitter,
     view,
     header,
     inputMethod,

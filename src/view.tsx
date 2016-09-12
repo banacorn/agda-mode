@@ -4,6 +4,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import { createStore } from 'redux';
+import { EventEmitter } from 'events';
 import { basename, extname } from 'path';
 
 import Core from './core';
@@ -23,6 +24,7 @@ var { CompositeDisposable } = require('atom');
 declare var atom: any;
 
 export default class View {
+    private emitter: EventEmitter;
     private subscriptions: CompositeDisposable;
     private paneItemSubscriptions: CompositeDisposable;
     public paneItemDestroyedByAtom: boolean;
@@ -35,18 +37,19 @@ export default class View {
 
     constructor(private core: Core) {
         this.store = createStore(reducer);
+        this.emitter = new EventEmitter;
         this.subscriptions = new CompositeDisposable;
         this.paneItemSubscriptions = new CompositeDisposable;
         this.paneItemDestroyedByAtom = true;
         this.editor = core.editor;
 
         this.uri = `agda-mode://${this.core.editor.id}`;
+
         // global events
-        const emitter = this.store.getState().emitter;
-        emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
+        this.emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
             this.core.textBuffer.jumpToGoal(index);
         });
-        emitter.on(EVENT.JUMP_TO_LOCATION, (loc: Location) => {
+        this.emitter.on(EVENT.JUMP_TO_LOCATION, (loc: Location) => {
             this.core.textBuffer.jumpToLocation(loc);
         });
 
@@ -97,10 +100,12 @@ export default class View {
         if (this.mountingPosition === null) {
             console.error(`this.mountingPosition === null`)
         }
+
         ReactDOM.render(
             <Provider store={this.store}>
                 <Panel
                     core={this.core}
+                    emitter={this.emitter}
                     onMiniEditorMount={(editor) => {
                         this.miniEditor = editor;
                     }}

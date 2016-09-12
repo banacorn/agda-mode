@@ -12,9 +12,6 @@ export namespace EVENT {
     export type JUMP_TO_LOCATION = Location;
 }
 
-export const jumpToGoal = createAction(EVENT.JUMP_TO_GOAL);
-export const jumpToLocation = createAction(EVENT.JUMP_TO_LOCATION);
-
 export type VIEW
     = VIEW.ACTIVATE
     | VIEW.DEACTIVATE

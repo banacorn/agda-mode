@@ -2,25 +2,25 @@ import * as _ from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
+import { EventEmitter } from 'events';
 
 declare var atom: any;
 
 import { View, Error as E, Location as Loc } from '../../types';
-import { updateMaxBodyHeight, jumpToGoal, jumpToLocation } from '../actions';
+import { updateMaxBodyHeight, EVENT } from '../actions';
 import Expr from './Expr';
 import Error from './Error';
 import Location from './Location';
 
 
 interface Props extends React.HTMLAttributes {
+    emitter: EventEmitter;
     banner: View.BannerItem[];
     body: View.Body;
     error: E;
     plainText: string;
     maxBodyHeight: number;
     onMaxBodyHeightChange: (count: number) => void;
-    jumpToGoal: (index: number) => void;
-    jumpToLocation: (loc: Loc) => void;
     mountAtBottom: boolean;
 }
 
@@ -33,12 +33,6 @@ const mapStateToProps = (state: View.State) => {
 const mapDispatchToProps = (dispatch: any) => ({
     onMaxBodyHeightChange: (count: number) => {
         dispatch(updateMaxBodyHeight(count));
-    },
-    jumpToGoal: (index: number) => {
-        dispatch(jumpToGoal(index));
-    },
-    jumpToLocation: (loc: Loc) => {
-        dispatch(jumpToLocation(loc));
     }
 })
 
@@ -50,8 +44,7 @@ class Body extends React.Component<Props, void> {
     }
 
     render() {
-        const { banner, body, error, plainText, maxBodyHeight, mountAtBottom } = this.props;
-        const { jumpToGoal, jumpToLocation } = this.props;
+        const { emitter, banner, body, error, plainText, maxBodyHeight, mountAtBottom } = this.props;
         const classes = classNames(this.props.className, `native-key-bindings`, 'agda-body');
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
@@ -65,7 +58,7 @@ class Body extends React.Component<Props, void> {
                 <ul className="list-group">{banner.map((item, i) =>
                     <li className="list-item banner-item" key={i}>
                         <span><span className="text-info">{item.label}</span> : </span>
-                        <Expr>{item.type}</Expr>
+                        <Expr emitter={emitter}>{item.type}</Expr>
                     </li>
                 )}</ul>
                 <ul className="list-group">{body.goal.map((item, i) =>
@@ -73,12 +66,12 @@ class Body extends React.Component<Props, void> {
                         <div className="item-heading">
                             <button className="no-btn text-info" onClick={() => {
                                 const index = parseInt(item.index.substr(1));
-                                jumpToGoal(index);
+                                emitter.emit(EVENT.JUMP_TO_GOAL, index);
                             }}>{item.index}</button>
                             <span> : </span>
                         </div>
                         <div className="item-body">
-                            <Expr>{item.type}</Expr>
+                            <Expr emitter={emitter}>{item.type}</Expr>
                         </div>
                     </li>
                 )}{body.judgement.map((item, i) =>
@@ -88,13 +81,13 @@ class Body extends React.Component<Props, void> {
                             <span> : </span>
                         </div>
                         <div className="item-body">
-                            <Expr>{item.type}</Expr>
+                            <Expr emitter={emitter}>{item.type}</Expr>
                         </div>
                     </li>
                 )}{body.term.map((item, i) =>
                     <li className="list-item body-item" key={i}>
                         <div className="item-body">
-                            <Expr>{item.expr}</Expr>
+                            <Expr emitter={emitter}>{item.expr}</Expr>
                         </div>
                     </li>
                 )}{body.meta.map((item, i) =>
@@ -104,8 +97,8 @@ class Body extends React.Component<Props, void> {
                             <span> : </span>
                         </div>
                         <div className="item-body">
-                            <Expr>{item.type}</Expr>
-                            <Location abbr>{item.location}</Location>
+                            <Expr emitter={emitter}>{item.type}</Expr>
+                            <Location abbr emitter={emitter}>{item.location}</Location>
                         </div>
                     </li>
                 )}{body.sort.map((item, i) =>
@@ -115,11 +108,11 @@ class Body extends React.Component<Props, void> {
                             <span className="text-warning">{item.index}</span>
                         </div>
                         <div className="item-body">
-                            <Location abbr>{item.location}</Location>
+                            <Location abbr emitter={emitter}>{item.location}</Location>
                         </div>
                     </li>
                 )}</ul>
-                {error ? <Error>{error}</Error> : null}
+                {error ? <Error emitter={emitter}>{error}</Error> : null}
                 {plainText ? <p>{plainText}</p> : null}
             </section>
         )

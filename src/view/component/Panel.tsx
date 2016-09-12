@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
+import { EventEmitter } from 'events';
 
 declare var atom: any;
 
@@ -15,10 +16,9 @@ import { deactivateMiniEditor, updateMaxBodyHeight } from './../actions';
 
 interface Props extends View.State {
     core: Core;
-
+    emitter: EventEmitter;
     onMiniEditorMount: (editor: MiniEditor) => void;
     deactivateMiniEditor: () => void;
-    jumpToLocation: (loc: Location) => void;
     onResize: (offset: number) => void;
     mountAtPane: () => void;
     mountAtBottom: () => void;
@@ -38,7 +38,7 @@ const mapDispatchToProps = (dispatch: any) => ({
 
 class Panel extends React.Component<Props, void> {
     render() {
-        const { core, onMiniEditorMount, jumpToLocation, onResize } = this.props;
+        const { core, emitter, onMiniEditorMount, onResize } = this.props;
         const { mountAtPane, mountAtBottom } = this.props;
         const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
@@ -90,8 +90,8 @@ class Panel extends React.Component<Props, void> {
                         }}
                     />
                     <Body
+                        emitter={emitter}
                         className={hideBody}
-                        jumpToLocation={jumpToLocation}
                     />
                 </section>
             </section>

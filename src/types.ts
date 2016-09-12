@@ -39,7 +39,6 @@ interface Hole {
 namespace View {
 
     export interface State {
-        emitter: EventEmitter;
         view: ViewState;
         header: HeaderState;
         inputMethod: InputMethodState;

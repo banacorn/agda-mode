@@ -1,10 +1,10 @@
 import * as _ from 'lodash';
 import * as React from 'react';
 import * as Promise from 'bluebird';
-import { connect } from 'react-redux';
+import { EventEmitter } from 'events';
 
 import { View } from '../../types';
-import { jumpToGoal } from '../actions';
+import { EVENT } from '../actions';
 
 interface TermProps extends React.HTMLAttributes {
     jumpToGoal: (index: number) => void;
@@ -28,20 +28,13 @@ class Term extends React.Component<TermProps, void> {
 
 
 interface ExprProps extends React.HTMLAttributes {
-    jumpToGoal: (index: number) => void;
+    emitter: EventEmitter
 }
-
-
-const mapDispatchToProps = (dispatch: any) => ({
-    jumpToGoal: (index: number) => {
-        dispatch(jumpToGoal(index));
-    }
-})
 
 class Expr extends React.Component<ExprProps, void> {
     render() {
-        const { jumpToGoal } = this.props;
-        const otherProps = _.omit(this.props, 'jumpToGoal');
+        const { emitter } = this.props;
+        const otherProps = _.omit(this.props, 'jumpToGoal', 'emitter');
         let expressions;
         if (typeof this.props.children === 'string') {
             //                                         1       2                3
@@ -72,13 +65,12 @@ class Expr extends React.Component<ExprProps, void> {
         }
         return (
             <span className="expr" {...otherProps} >{expressions.map((expr, i) =>
-                <Term kind={expr.kind} key={i} jumpToGoal={jumpToGoal}>{expr.payload}</Term>
+                <Term kind={expr.kind} key={i} jumpToGoal={(index) => {
+                    emitter.emit(EVENT.JUMP_TO_GOAL, index);
+                }}>{expr.payload}</Term>
             )}</span>
         )
     }
 }
 
-export default connect<any, any, any>(
-    null,
-    mapDispatchToProps
-)(Expr);
+export default Expr;

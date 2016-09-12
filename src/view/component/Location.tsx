@@ -1,9 +1,9 @@
 import * as React from 'react';
 import * as Promise from 'bluebird';
-import { connect } from 'react-redux';
+import { EventEmitter } from 'events';
 
 import { View, Location as Loc } from '../../types';
-import { jumpToLocation } from '../actions';
+import { EVENT } from '../actions';
 
 // Atom shits
 type CompositeDisposable = any;
@@ -11,17 +11,9 @@ var { CompositeDisposable } = require('atom');
 declare var atom: any;
 
 interface Props {
-    jumpToLocation: (loc: Loc) => void;
-    abbr?: void;
+    emitter: EventEmitter;
+    abbr?: boolean;
 }
-
-const mapDispatchToProps = (dispatch: any) => ({
-    jumpToLocation: (loc: Loc) => {
-        dispatch(jumpToLocation(loc));
-    }
-})
-
-
 
 class Location extends React.Component<Props, void> {
     private subscriptions: CompositeDisposable;
@@ -61,14 +53,14 @@ class Location extends React.Component<Props, void> {
 
 
     render() {
-        const { jumpToLocation, abbr } = this.props;
+        const { emitter, abbr } = this.props;
 
         if (abbr) {
             return (
                 <span
                     className="text-subtle location icon icon-link"
                     onClick={() => {
-                        jumpToLocation(this.location);
+                        emitter.emit(EVENT.JUMP_TO_LOCATION, this.location);
                     }}
                     ref={(ref) => {
                         this.locationLink = ref;
@@ -80,7 +72,7 @@ class Location extends React.Component<Props, void> {
                 <span
                     className="text-subtle location icon icon-link"
                     onClick={() => {
-                        jumpToLocation(this.location);
+                        emitter.emit(EVENT.JUMP_TO_LOCATION, this.location);
                     }}
                 >{this.locationPath}</span>
             )
@@ -88,7 +80,4 @@ class Location extends React.Component<Props, void> {
     }
 }
 
-export default connect<any, any, any>(
-    null,
-    mapDispatchToProps
-)(Location);
+export default Location;
