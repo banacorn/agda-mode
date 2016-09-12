@@ -135,9 +135,11 @@ class MiniEditor extends React.Component<Props, State> {
     query(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             this.emitter.once('confirm', (payload) => {
+                this.emitter.removeAllListeners()
                 resolve(payload);
             });
             this.emitter.once('cancel', () => {
+                this.emitter.removeAllListeners();
                 reject(new QueryCancelledError(''));
             });
         });
