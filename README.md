@@ -1,4 +1,4 @@
-# agda-mode for Atom
+# agda-mode on Atom
 
 For people who don't wanna use Emacs for whatever reasons.
 
