@@ -26,7 +26,7 @@ class InputMethod extends React.Component<InputMethodProps, void> {
             <section className={hideEverything}>
                 <div className="keyboard">
                     <div className={hideBuffer}>{buffer}</div>
-                    <div className="btn-group btn-group-sm">
+                    <div className="keys btn-group btn-group-sm">
                         {keySuggestions.map(key => <button
                             className="btn"
                             onClick={() => insertCharacter(key)}

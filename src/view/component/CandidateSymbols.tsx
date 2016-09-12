@@ -93,7 +93,7 @@ class CandidateSymbols extends React.Component<Props, State> {
         const selected = candidates[this.state.index];
         if (candidates.length > 0)
             return (
-                <div className="btn-group btn-group-sm">
+                <div className="candidates btn-group btn-group-sm">
                     {frameLeft.map(key => <button
                         className="btn"
                         onClick={() => {chooseSymbol(key)}}

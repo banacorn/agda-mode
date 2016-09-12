@@ -84,24 +84,29 @@
         line-height: @headerHeight;
 
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
 
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
 
         .keyboard {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
+            margin-top: 5px;
 
             // Buffer
             .buffer {
-                height: 30px;
-                line-height: 30px;
-                font-size: 150%;
+                height: 20px;
+                line-height: 20px;
+                font-size: 100%;
                 background: @input-background-color;
                 border-radius: @component-border-radius;
                 padding: 0 @component-padding;
             }
+        }
+
+        .candidates {
+            margin-top: 5px;
         }
 
         // key buttons
@@ -138,8 +143,8 @@
         min-height: @height;
         line-height: @height;
         padding: 0 @component-padding;
-        margin: 10px @component-padding;
-        font-size: 125%;
+        margin: 10px 0;
+        font-size: 100%;
 
     }
 
