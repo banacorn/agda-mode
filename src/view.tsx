@@ -89,7 +89,7 @@ export default class View {
         //
         const base = basename(this.editor.getPath())
         const ext = extname(base)
-        const title = `Agda Mode ${base.substr(0, base.length - ext.length)}`
+        const title = `[Agda Mode] ${base.substr(0, base.length - ext.length)}`
         paneItem['getTitle'] = () => title;
         paneItem['getEditor'] = () => this.editor;
         paneItem.id = this.uri;
