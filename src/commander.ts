@@ -63,7 +63,6 @@ class PendingQueue {
                 this.queue.pop();
             }
         }
-        console.log(this.queue.length);
     }
 
     // on GoalsAction
@@ -73,7 +72,17 @@ class PendingQueue {
             pendingCommand.reject({});
             this.queue.pop();
         }
-        console.log(this.queue.length);
+    }
+
+    clear() {
+        this.queue.forEach(command => {
+            command.reject({});
+        });
+        this.queue = [];
+    }
+
+    isEmpty() {
+        return this.queue.length === 0;
     }
 }
 
@@ -92,12 +101,20 @@ export default class Commander {
         if(this.loaded || _.includes(exception, command.kind)) {
             this.dispatchCommand(command)
                 .then((result) => {
+                    if (result.command === 'Quit') {
+                        this.pendingQueue.clear();
+                    }
+
+                    // console.log(`Empty: ${this.pendingQueue.isEmpty()}`)
+                    const checkPoint = this.core.editor.createCheckpoint();
                     this.pendingQueue.issue(command)
                         .then((kind) => {
-                            console.log(`Succeed: ${kind}`)
+                            // console.log(`Succeed: ${kind}`)
+                            this.core.editor.groupChangesSinceCheckpoint(checkPoint);
                         })
                         .catch(() => {
-                            console.log('Failed')
+                            // console.log('Failed')
+                            this.core.editor.revertToCheckpoint(checkPoint);
                         })
                 })
                 .catch(QueryCancelledError, () => {
@@ -105,7 +122,6 @@ export default class Commander {
                 })
                 .catch((error) => { // catch all the rest
                     console.error(command);
-                    // throw error;
                 })
         }
     }
