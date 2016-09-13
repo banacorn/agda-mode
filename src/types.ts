@@ -291,6 +291,11 @@ type Command = {
     expectedGoalsActionReplies: number
 }
 
+export type PendingCommand = {
+    kind: CommandKind,
+    // the expected number of GoalsAction replies to recieve left
+    count: number
+};
 
 type CommandResult = {
     status: 'Issued',

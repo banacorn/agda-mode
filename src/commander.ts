@@ -1,7 +1,7 @@
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError } from './error';
-import { Command, Normalization, CommandResult, View, CommandKind } from './types';
+import { Command, Normalization, CommandResult, View, CommandKind, PendingCommand } from './types';
 import Core from './core';
 
 declare var atom: any;
@@ -27,22 +27,52 @@ function toDescription(normalization: Normalization): string {
 
 export default class Commander {
     private loaded: boolean;
+    private pendingCommandQueue: PendingCommand[];
 
-    constructor(private core: Core) {}
+    constructor(private core: Core) {
+        this.pendingCommandQueue = [];
+    }
 
     activate(command: Command) {
         // some commands can only be executed after 'loaded'
         const exception = ['Load', 'Quit', 'Info', 'InputSymbol'];
         if(this.loaded || _.includes(exception, command.kind)) {
             this.dispatchCommand(command)
+                .then((result) => {
+                    if (command.expectedGoalsActionReplies > 0) {
+                        // console.log(this.pendingCommandQueue.length)
+                        this.pendingCommandQueue.push({
+                            kind: command.kind,
+                            count: command.expectedGoalsActionReplies
+                        });
+                    }
+                })
                 .catch(QueryCancelledError, () => {
                     this.core.view.set('Query cancelled', [], View.Style.Warning);
                 })
                 .catch((error) => { // catch all the rest
                     console.error(command);
                     // throw error;
-                });
+                })
         }
+    }
+
+    resolvePendingCommand(): PendingCommand {
+        const command = _.last(this.pendingCommandQueue);
+        if (command) {
+            // deduct count by 1
+            if (command.count > 0) {
+                command.count -= 1;
+            }
+            // remove the item as it counts to 0
+            if (command.count === 0) {
+                return this.pendingCommandQueue.pop();
+            }
+        }
+    }
+
+    clearPendingCommand() {
+        this.pendingCommandQueue = [];
     }
 
     dispatchCommand(command: Command): Promise<CommandResult> {
