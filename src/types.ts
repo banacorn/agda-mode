@@ -286,15 +286,15 @@ type Normalization = 'Simplified' | 'Instantiated' | 'Normalised';
 type Command = {
     kind: CommandKind,
     normalization?: Normalization,
-    editsFile: boolean
+    editsFile: boolean,
+    // the expected number of GoalsAction replies if it succeeds
+    expectedGoalsActionReplies: number
 }
 
 
 type CommandResult = {
     status: 'Issued',
     command: CommandKind
-} | {
-    status: 'Canceled'
 };
 
 
