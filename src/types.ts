@@ -293,7 +293,7 @@ type Command = {
 
 export type PendingCommand = {
     kind: CommandKind,
-    resolve: (any) => void,
+    resolve: (kind: CommandKind) => void,
     reject: (any) => void,
     // the expected number of GoalsAction replies left
     count: number,

@@ -31,10 +31,10 @@ class PendingQueue {
         this.queue = []
     }
 
-    issue(command: Command): Promise<any> {
+    issue(command: Command): Promise<CommandKind> {
         if (command.expectedGoalsActionReplies === 0) {
             // synchronous command, resolves the promise right away
-            return Promise.resolve();
+            return Promise.resolve(command.kind);
         } else {
             let pendingCommand: PendingCommand = {
                 kind: command.kind,
@@ -42,7 +42,7 @@ class PendingQueue {
                 reject: null,
                 count: command.expectedGoalsActionReplies
             };
-            const promise = new Promise((resolve, reject) => {
+            const promise = new Promise<CommandKind>((resolve, reject) => {
                 pendingCommand.resolve = resolve;
                 pendingCommand.reject  = reject;
             });
@@ -59,7 +59,7 @@ class PendingQueue {
             if (pendingCommand.count > 0)
                 pendingCommand.count -= 1;
             if (pendingCommand.count === 0) {
-                pendingCommand.resolve({});
+                pendingCommand.resolve(pendingCommand.kind);
                 this.queue.pop();
             }
         }
@@ -93,8 +93,8 @@ export default class Commander {
             this.dispatchCommand(command)
                 .then((result) => {
                     this.pendingQueue.issue(command)
-                        .then(() => {
-                            console.log('Succeed')
+                        .then((kind) => {
+                            console.log(`Succeed: ${kind}`)
                         })
                         .catch(() => {
                             console.log('Failed')
