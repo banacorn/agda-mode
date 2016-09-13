@@ -24,13 +24,66 @@ function toDescription(normalization: Normalization): string {
     }
 }
 
+class PendingQueue {
+    private queue: PendingCommand[];
+
+    constructor() {
+        this.queue = []
+    }
+
+    issue(command: Command): Promise<any> {
+        if (command.expectedGoalsActionReplies === 0) {
+            // synchronous command, resolves the promise right away
+            return Promise.resolve();
+        } else {
+            let pendingCommand: PendingCommand = {
+                kind: command.kind,
+                resolve: null,
+                reject: null,
+                count: command.expectedGoalsActionReplies
+            };
+            const promise = new Promise((resolve, reject) => {
+                pendingCommand.resolve = resolve;
+                pendingCommand.reject  = reject;
+            });
+
+            this.queue.push(pendingCommand);
+            return promise;
+        }
+    }
+
+    // on Error
+    resolve() {
+        const pendingCommand = _.last(this.queue);
+        if (pendingCommand) {
+            if (pendingCommand.count > 0)
+                pendingCommand.count -= 1;
+            if (pendingCommand.count === 0) {
+                pendingCommand.resolve({});
+                this.queue.pop();
+            }
+        }
+        console.log(this.queue.length);
+    }
+
+    // on GoalsAction
+    reject() {
+        const pendingCommand = _.last(this.queue);
+        if (pendingCommand) {
+            pendingCommand.reject({});
+            this.queue.pop();
+        }
+        console.log(this.queue.length);
+    }
+}
+
 
 export default class Commander {
     private loaded: boolean;
-    private pendingCommandQueue: PendingCommand[];
+    public pendingQueue: PendingQueue;
 
     constructor(private core: Core) {
-        this.pendingCommandQueue = [];
+        this.pendingQueue = new PendingQueue;
     }
 
     activate(command: Command) {
@@ -39,13 +92,13 @@ export default class Commander {
         if(this.loaded || _.includes(exception, command.kind)) {
             this.dispatchCommand(command)
                 .then((result) => {
-                    if (command.expectedGoalsActionReplies > 0) {
-                        // console.log(this.pendingCommandQueue.length)
-                        this.pendingCommandQueue.push({
-                            kind: command.kind,
-                            count: command.expectedGoalsActionReplies
-                        });
-                    }
+                    this.pendingQueue.issue(command)
+                        .then(() => {
+                            console.log('Succeed')
+                        })
+                        .catch(() => {
+                            console.log('Failed')
+                        })
                 })
                 .catch(QueryCancelledError, () => {
                     this.core.view.set('Query cancelled', [], View.Style.Warning);
@@ -55,24 +108,6 @@ export default class Commander {
                     // throw error;
                 })
         }
-    }
-
-    resolvePendingCommand(): PendingCommand {
-        const command = _.last(this.pendingCommandQueue);
-        if (command) {
-            // deduct count by 1
-            if (command.count > 0) {
-                command.count -= 1;
-            }
-            // remove the item as it counts to 0
-            if (command.count === 0) {
-                return this.pendingCommandQueue.pop();
-            }
-        }
-    }
-
-    clearPendingCommand() {
-        this.pendingCommandQueue = [];
     }
 
     dispatchCommand(command: Command): Promise<CommandResult> {

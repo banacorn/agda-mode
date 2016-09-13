@@ -1,5 +1,5 @@
 import Goal from './goal';
-
+import * as Promise from 'bluebird';
 import { EventEmitter } from 'events';
 import { ParsedPath } from 'path';
 type Range = any;
@@ -293,8 +293,10 @@ type Command = {
 
 export type PendingCommand = {
     kind: CommandKind,
-    // the expected number of GoalsAction replies to recieve left
-    count: number
+    resolve: (any) => void,
+    reject: (any) => void,
+    // the expected number of GoalsAction replies left
+    count: number,
 };
 
 type CommandResult = {

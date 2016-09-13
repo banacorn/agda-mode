@@ -15,7 +15,7 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
             break;
 
         case 'GoalsAction':
-            core.commander.resolvePendingCommand();
+            core.commander.pendingQueue.resolve();
             core.textBuffer.onGoalsAction(response.content);
             break;
 
@@ -24,7 +24,7 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
             break;
 
         case 'ParseError':
-            core.commander.clearPendingCommand();
+            core.commander.pendingQueue.reject();
             console.error(`Agda parse error: ${response.content}`);
             break;
 
@@ -94,7 +94,7 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
                 core.view.set('Goals', action.content, View.Style.Info);
             break;
         case 'Error':
-            core.commander.clearPendingCommand();
+            core.commander.pendingQueue.reject();
             core.view.set('Error', action.content, View.Style.Error);
             break;
         case 'TypeChecking':
