@@ -5,7 +5,7 @@ import { Agda, Goal, View, Location } from './types';
 import { parseHole } from './parser';
 import Core from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
-import { Command, CommandResult } from './types';
+import { Command } from './types';
 
 declare var atom: any;
 
@@ -115,7 +115,7 @@ export default class TextBuffer {
     ////////////////
     //  Commands  //
     ////////////////
-    nextGoal(): Promise<CommandResult> {
+    nextGoal(): Promise<{}> {
         const cursor = this.core.editor.getCursorBufferPosition();
         let nextGoal = null;
 
@@ -138,10 +138,10 @@ export default class TextBuffer {
         if (!_.isEmpty(positions))
             this.core.editor.setCursorBufferPosition(nextGoal);
 
-        return Promise.resolve(<CommandResult>{ status: 'Issued', command: 'NextGoal' });
+        return Promise.resolve({});
     }
 
-    previousGoal(): Promise<CommandResult> {
+    previousGoal(): Promise<{}> {
         const cursor = this.core.editor.getCursorBufferPosition();
         let previousGoal = null;
 
@@ -164,7 +164,7 @@ export default class TextBuffer {
         if (!_.isEmpty(positions))
             this.core.editor.setCursorBufferPosition(previousGoal);
 
-        return Promise.resolve(<CommandResult>{ status: 'Issued', command: 'PreviousGoal' });
+        return Promise.resolve({});
     }
 
     jumpToGoal(index: number) {

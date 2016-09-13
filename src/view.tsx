@@ -11,7 +11,7 @@ import Core from './core';
 import Panel from './view/component/Panel';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
-import { View as V, Location, CommandResult } from './types';
+import { View as V, Location } from './types';
 import { EVENT } from "./view/actions";
 import * as Action from "./view/actions";
 import { parseContent, parseError} from './parser';
@@ -317,7 +317,7 @@ export default class View {
         return this.miniEditor.query();
     }
 
-    toggleDocking(): Promise<CommandResult> {
+    toggleDocking(): Promise<{}> {
         switch (this.state().mountAt.current) {
             case V.MountingPosition.Bottom:
                 this.store.dispatch(Action.mountAtPane());
@@ -333,7 +333,7 @@ export default class View {
                 // do nothing
                 break;
         }
-        return Promise.resolve({ status: 'Issued', command: 'ToggleDocking' } as CommandResult);
+        return Promise.resolve({});
     }
 }
 

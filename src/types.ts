@@ -298,11 +298,11 @@ export type PendingCommand = {
     // the expected number of GoalsAction replies left
     count: number,
 };
-
-type CommandResult = {
-    status: 'Issued',
-    command: CommandKind
-};
+//
+// type CommandResult = {
+//     status: 'Issued',
+//     command: CommandKind
+// };
 
 
 // Occurence & Location
@@ -515,7 +515,6 @@ export {
     CommandKind,
     Command,
     Normalization,
-    CommandResult,
     Suggestion,
     // view
     View,
