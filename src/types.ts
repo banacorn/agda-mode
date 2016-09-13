@@ -298,12 +298,6 @@ export type PendingCommand = {
     // the expected number of GoalsAction replies left
     count: number,
 };
-//
-// type CommandResult = {
-//     status: 'Issued',
-//     command: CommandKind
-// };
-
 
 // Occurence & Location
 export interface Occurence {
@@ -318,7 +312,7 @@ export interface Location {
 }
 
 
-type Suggestion = string[];
+// type Suggestion = string[];
 ////////////////////////////////////////////
 // Errors
 ////////////////////////////////////////////
@@ -339,9 +333,6 @@ type Error = Error.NotInScope |
     Error.CaseSingleHole |
     Error.PatternMatchOnNonDatatype |
     Error.LibraryNotFound |
-    // ApplicationParseError |
-    // TerminationError |
-    // ParseError |
     Error.Unparsed;
 
 namespace Error {
@@ -349,7 +340,7 @@ namespace Error {
         kind: 'NotInScope',
         header: string,
         location: Location,
-        suggestion: Suggestion,
+        suggestion: string[],
         expr: string
     }
 
@@ -491,12 +482,6 @@ namespace Error {
             }[]
         }[]
     }
-    // export interface ApplicationParseError {
-    //     type: ErrorType,
-    //     expr: string,
-    //     location: Location
-    // }
-    //
     export interface Unparsed {
         kind: 'Unparsed',
         header: string,
@@ -515,7 +500,6 @@ export {
     CommandKind,
     Command,
     Normalization,
-    Suggestion,
     // view
     View,
     // Errors
