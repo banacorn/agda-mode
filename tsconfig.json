@@ -45,7 +45,6 @@
         "src/view/reducers.ts",
         "typings/globals/classnames/index.d.ts",
         "typings/globals/lodash/index.d.ts",
-        "typings/globals/mocha/index.d.ts",
         "typings/globals/node/index.d.ts",
         "typings/globals/parsimmon/index.d.ts",
         "typings/globals/react-dom/index.d.ts",
