@@ -1,6 +1,5 @@
 import * as _ from "lodash";
 import { Agda } from "../types";
-var lispToArray = require("lisp-to-array");
 
 function parseAgdaResponse(raw: string): Agda.Response {
 
@@ -145,8 +144,51 @@ function parseInfoActionType(s: String): string {
 ////////////////////////////////////////////////////////////////////////////////
 //  Parsing S-Expressions
 ////////////////////////////////////////////////////////////////////////////////
+function parse_sexp(string: string): any {
+    var sexp = [[]];
+    var word = '';
+    var in_str = false;
+
+    function pushLastWord(word) {
+        var n = parseInt(word);
+        if (isNaN(n)) {
+            pushInLast(word);
+        } else {
+            pushInLast(n);
+        }
+    }
+
+    function pushInLast(elem) {
+        sexp[sexp.length - 1].push(elem);
+    }
+
+    for (var i = 0; i < string.length; i++) {
+        var char = string[i];
+        if (char == '\'' && !in_str) {
+        } else if (char == '(' && !in_str) {
+            sexp.push([]);
+        } else if (char == ')' && !in_str) {
+            if (word != '') {
+                pushLastWord(word);
+                word = '';
+            }
+            pushInLast(sexp.pop());
+        } else if (char == ' ' && !in_str) {
+            if (word != '') {
+                pushLastWord(word);
+                word = '';
+            }
+        } else if (char == '\"') {
+            in_str = !in_str;
+        } else {
+            word += char;
+        }
+    }
+    return sexp[0];
+}
+
 function parseSExpression(s: string): any {
-    return postprocess(lispToArray(preprocess(s)));
+    return parse_sexp(preprocess(s))[0];
 }
 
 function preprocess(chunk: string): string {
@@ -154,7 +196,7 @@ function preprocess(chunk: string): string {
     if (chunk.substr(0, 6) === "((last") {
         // drop wierd prefix like ((last . 1))
         let index = chunk.indexOf("(agda");
-        let length = chunk.length
+        let length = chunk.length;
         chunk = chunk.substring(index, length - 1);
     }
     if (chunk.substr(0, 13) === "cannot read: ") {
@@ -162,36 +204,8 @@ function preprocess(chunk: string): string {
         chunk = chunk.substring(12);
         chunk = `(agda2-parse-error${chunk})`;
     }
-    // make it friendly to 'lisp-to-array' package
-    chunk = chunk.replace(/'\(/g, '(__number__ ');
-    chunk = chunk.replace(/\("/g, '(__string__ "');
-    chunk = chunk.replace(/\(\)/g, '(__nil__)');
 
     return chunk;
-}
-
-// recursive cosmetic surgery
-function postprocess(node: string | string[]): any {
-    if (node instanceof Array) {
-        switch (node[0]) {
-            case "`":           // ["`", "some string"] => "some string"
-                return postprocess(node[1]);
-            case "__number__":  // ["__number__", 1, 2, 3] => [1, 2, 3]
-            case "__string__":  // ["__string__", 1, 2, 3] => [1, 2, 3]
-            case "__nil__":     // ["__nil__"]             => []
-                node.shift();
-                return postprocess(node);
-            default:            // keep traversing
-                return node.map(function(x) { return postprocess(x); });
-        }
-    } else {
-        if (typeof node === "string") {
-            // some ()s in strings were replaced with (__nil__) when preprocessing
-            return node.replace("(__nil__)", "()");
-        } else {
-            return node;
-        }
-    }
 }
 
 export {
