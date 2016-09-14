@@ -99,7 +99,7 @@ npm install
 
 The project is written in TypeScript so you would probably need these:
 ```
-npm install -g typescript
+npm install -g typescript@beta
 apm install atom-typescript
 ```
 
