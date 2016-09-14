@@ -5,6 +5,7 @@
   "globalDependencies": {
     "classnames": "registry:dt/classnames#0.0.0+20160316155526",
     "lodash": "registry:dt/lodash#4.14.0+20160830145422",
+    "mocha": "registry:dt/mocha#2.2.5+20160720003353",
     "node": "registry:dt/node#6.0.0+20160709114037",
     "parsimmon": "registry:dt/parsimmon#0.5.0+20160317120654",
     "react": "registry:dt/react#0.14.0+20160817201227",
