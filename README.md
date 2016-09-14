@@ -1,4 +1,4 @@
-# agda-mode for Atom
+# agda-mode on Atom
 
 For people who don't wanna use Emacs for whatever reasons.
 
@@ -91,15 +91,17 @@ The key mapping of symbols are the same as in Emacs. For example: `\bn` for `ℕ
 1. clone the repo and load it as a development package
 2. open the repo in the development mode
 3. install dependencies
+4. checkout to the `dev` branch. The `master` branch is for stable releases.
 ```
 apm develop agda-mode
 atom -d ~/github/agda-mode
 npm install
+git checkout dev
 ```
 
 The project is written in TypeScript so you would probably need these:
 ```
-npm install -g typescript
+npm install -g typescript@beta
 apm install atom-typescript
 ```
 
