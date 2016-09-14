@@ -1,3 +1,9 @@
+## 0.6.1
+* Merge pull request #35, which fixed file path handling on Windows (by @NightRa)
+* Merge pull request #36, which drastically sped up S-expression parsing 👍 (by @NightRa)
+* Brings undo/redo back
+* Fix problems of clicking on locations
+
 ## 0.6.0
 * Rewrite the whole view with React/Redux, say goodbye to Vue.js
 * Allow the panel to be docked at other panes
