@@ -317,23 +317,25 @@ export interface Location {
 // Errors
 ////////////////////////////////////////////
 
-type Error = Error.NotInScope |
-    Error.TypeMismatch |
-    Error.DefinitionTypeMismatch |
-    Error.BadConstructor |
-    Error.RHSOmitted |
-    Error.MissingType |
-    Error.MultipleDefinition |
-    Error.MissingDefinition |
-    Error.Termination |
-    Error.ConstructorTarget |
-    Error.FunctionType |
-    Error.ModuleMismatch |
-    Error.Parse |
-    Error.CaseSingleHole |
-    Error.PatternMatchOnNonDatatype |
-    Error.LibraryNotFound |
-    Error.Unparsed;
+type Error
+    = Error.NotInScope
+    | Error.BadConstructor
+    | Error.ConstructorTarget
+    | Error.CaseSingleHole
+    | Error.DefinitionTypeMismatch
+    | Error.FunctionType
+    | Error.IlltypedPattern
+    | Error.LibraryNotFound
+    | Error.MissingType
+    | Error.MissingDefinition
+    | Error.ModuleMismatch
+    | Error.MultipleDefinition
+    | Error.Parse
+    | Error.PatternMatchOnNonDatatype
+    | Error.RHSOmitted
+    | Error.TypeMismatch
+    | Error.Termination
+    | Error.Unparsed;
 
 namespace Error {
     export interface NotInScope {
@@ -355,16 +357,6 @@ namespace Error {
         exprType: string
     }
 
-    export interface DefinitionTypeMismatch {
-        kind: 'DefinitionTypeMismatch',
-        header: string,
-        location: Location
-        expected: string,
-        expectedType: string,
-        actual: string,
-        expr: string,
-        exprType: string
-    }
 
     export interface BadConstructor {
         kind: 'BadConstructor',
@@ -376,12 +368,24 @@ namespace Error {
         exprType: string
     }
 
-    export interface RHSOmitted {
-        kind: 'RHSOmitted',
+    export interface DefinitionTypeMismatch {
+        kind: 'DefinitionTypeMismatch',
         header: string,
-        location: Location,
+        location: Location
+        expected: string,
+        expectedType: string,
+        actual: string,
         expr: string,
         exprType: string
+    }
+
+    // https://github.com/agda/agda/blob/2794f9d84667e6f875d0c6b74bcbae9b1cc507d6/src/full/Agda/TypeChecking/Monad/Base.hs#L2341
+    export interface IlltypedPattern {
+        kind: 'IlltypedPattern';
+        header: string;
+        location: Location;
+        pattern: string;
+        type: string;
     }
 
     export interface MissingType {
@@ -408,6 +412,14 @@ namespace Error {
         location: Location,
         expr: string
     }
+    export interface RHSOmitted {
+        kind: 'RHSOmitted',
+        header: string,
+        location: Location,
+        expr: string,
+        exprType: string
+    }
+
 
     export interface Termination {
         kind: 'Termination',

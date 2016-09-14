@@ -51,6 +51,10 @@ class Error extends React.Component<Props, void> {
                     <Expr emitter={emitter}>{error.expr}</Expr> should be a function type, but it isn't<br/>
                     when checking that <Expr emitter={emitter}>{error.expr}</Expr> is a valid argument to a function of type <Expr emitter={emitter}>{error.exprType}</Expr><br/>
             </p>
+            case 'IlltypedPattern': return <p className="error">
+                    <Location emitter={emitter}>{error.location}</Location><br/>
+                    Type mismatch when checking that the pattern <Expr emitter={emitter}>{error.pattern}</Expr> has type <Expr emitter={emitter}>{error.type}</Expr>
+            </p>
             case 'LibraryNotFound': return <div className="error">
                     {error.libraries.map((library, i) => <div key={i}>
                             Library '{library.name}' not found.<br/>
