@@ -204,7 +204,8 @@ function preprocess(chunk: string): string {
         chunk = chunk.substring(12);
         chunk = `(agda2-parse-error${chunk})`;
     }
-
+    // Replace window's \\ in paths with /, so that \n doesn't get treated as newline.
+    chunk = chunk.replace(/\\\\/g, "/");
     return chunk;
 }
 
