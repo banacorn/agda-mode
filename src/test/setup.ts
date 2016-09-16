@@ -10,18 +10,17 @@ module.exports = function(args) {
         // constructs a headless Atom
         window['atom'] = args.buildAtomEnvironment({
             applicationDelegate: args.buildDefaultApplicationDelegate(),
-            window: window,
-            document: document,
+            window,
+            document,
             configDirPath: process.env.ATOM_HOME,
             enablePersistence: false
         });
-        console.log(args.testPaths)
-        const testPath = path.join(args.testPaths[0], 'test');
+        const testPath = path.join(__dirname, 'test');
 
         // using Mocha programatically
         const mocha = new Mocha;
         Mocha.utils
-            .lookupFiles(testPath, ['coffee'], true)
+            .lookupFiles(testPath, ['js'], true)
             .forEach(mocha.addFile.bind(mocha))
 
         // run!
@@ -47,3 +46,60 @@ module.exports = function(args) {
     })
     return promise
 }
+    // 
+    // describe 'activating agda-mode', ->
+    //
+    //     textEditor_ = null
+    //
+    //     beforeEach ->
+    //         atom.packages.deactivatePackage('agda-mode')
+    //         atom.packages.activatePackage('agda-mode')
+    //         return
+    //
+    //     it 'should be activated after triggering "agda-mode:load" in .agda files', (done) ->
+    //         openFile agdaFD
+    //             .then (textEditor) ->
+    //                 element = atom.views.getView(textEditor)
+    //                 atom.commands.dispatch(element, 'agda-mode:load')
+    //                 textEditor_ = textEditor
+    //                 return atom.packages.activatePackage('agda-mode')
+    //             .then ->
+    //                 getActivePackageNames().should.contain 'agda-mode'
+    //                 textEditor_.core.should.be.defined
+    //                 done()
+    //
+    //     it 'should be activated after triggering "agda-mode:load" in .lagda files', (done) ->
+    //         openFile lagdaFD
+    //             .then (textEditor) ->
+    //                 element = atom.views.getView(textEditor)
+    //                 atom.commands.dispatch(element, 'agda-mode:load')
+    //                 textEditor_ = textEditor
+    //                 return atom.packages.activatePackage('agda-mode')
+    //             .then ->
+    //                 getActivePackageNames().should.contain 'agda-mode'
+    //                 textEditor_.core.should.be.defined
+    //                 done()
+    //
+    //     it 'should be activated after triggering "agda-mode:input-symbol" in .agda files', (done) ->
+    //         openFile agdaFD
+    //             .then (textEditor) ->
+    //                 element = atom.views.getView(textEditor)
+    //                 atom.commands.dispatch(element, 'agda-mode:input-symbol')
+    //                 textEditor_ = textEditor
+    //                 return atom.packages.activatePackage('agda-mode')
+    //             .then ->
+    //                 getActivePackageNames().should.contain 'agda-mode'
+    //                 textEditor_.core.should.be.defined
+    //                 done()
+    //
+    //     it 'should be activated after triggering "agda-mode:input-symbol" in .lagda files', (done) ->
+    //         openFile lagdaFD
+    //             .then (textEditor) ->
+    //                 element = atom.views.getView(textEditor)
+    //                 atom.commands.dispatch(element, 'agda-mode:input-symbol')
+    //                 textEditor_ = textEditor
+    //                 return atom.packages.activatePackage('agda-mode')
+    //             .then ->
+    //                 getActivePackageNames().should.contain 'agda-mode'
+    //                 textEditor_.core.should.be.defined
+    //                 done()
