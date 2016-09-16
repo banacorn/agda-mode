@@ -8,7 +8,7 @@ function parseAgdaResponse(raw: string): Agda.Response {
     switch (tokens[0]) {
         case 'agda2-info-action':
             let type = parseInfoActionType(tokens[1]);
-            let content = tokens.length === 3 ? [] : _.compact(tokens[2].split('\\n'));
+            let content = tokens.length === 3 ? [] : _.compact(tokens[2].toString().split('\\n'));
             return {
                 kind: 'InfoAction',
                 infoActionKind: type,
