@@ -1,10 +1,10 @@
 import { Parser, seq, alt, takeWhile, sepBy1, succeed, all,
      digits, string, regex
-    } from "parsimmon";
-import { trimBeforeAndSkip, spaces, token } from "./combinator";
+    } from 'parsimmon';
+import { trimBeforeAndSkip, spaces, token } from './combinator';
 var { Point, Range } = require('atom');
-import { View, Error, Location } from "../types";
-import { normalize } from "path";
+import { View, Error, Location } from '../types';
+import { normalize } from 'path';
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -13,9 +13,9 @@ import { normalize } from "path";
 
 const singleLineRange: Parser<[Range, Boolean]> = seq(
         digits,
-        string(","),
+        string(','),
         digits,
-        string("-"),
+        string('-'),
         digits
     ).map((result) => {
         const row = parseInt(result[0]) - 1;
@@ -26,11 +26,11 @@ const singleLineRange: Parser<[Range, Boolean]> = seq(
 
 const multiLineRange: Parser<[Range, Boolean]> = seq(
         digits,
-        string(","),
+        string(','),
         digits,
-        string("-"),
+        string('-'),
         digits,
-        string(","),
+        string(','),
         digits
     ).map((result) => {
         const start = new Point(parseInt(result[0]) - 1, parseInt(result[2]) - 1);
@@ -41,8 +41,8 @@ const multiLineRange: Parser<[Range, Boolean]> = seq(
 const range = alt(multiLineRange, singleLineRange).skip(spaces);
 
 const locationAbsolute: Parser<Location> = seq(
-        takeWhile((c) => c !== ":"),
-        string(":"),
+        takeWhile((c) => c !== ':'),
+        string(':'),
         range
     ).map((result) => {
         return {
@@ -68,21 +68,21 @@ const location: Parser<Location> = alt(
     )
 
 const didYouMean: Parser<string[]> = alt(seq(
-        token("(did you mean"),
-        sepBy1(regex(/'.*'/).skip(spaces), token("or")),
-        token("?)")
+        token('(did you mean'),
+        sepBy1(regex(/'.*'/).skip(spaces), token('or')),
+        token('?)')
     ), succeed([[], []])).map((result) => {
         return result[1].map((s) => s.substr(1, s.length - 2)); // remove single quotes
     }).skip(spaces);
 
 const notInScope: Parser<Error.NotInScope> = seq(
         location,
-        token("Not in scope:").then(trimBeforeAndSkip("at")).skip(location),
+        token('Not in scope:').then(trimBeforeAndSkip('at')).skip(location),
         didYouMean,
         all
     ).map((result) => {
         return <Error.NotInScope>{
-            kind: "NotInScope",
+            kind: 'NotInScope',
             header: 'Not in scope',
             expr: result[1],
             location: result[0],
@@ -92,14 +92,14 @@ const notInScope: Parser<Error.NotInScope> = seq(
 
 const typeMismatch: Parser<Error.TypeMismatch> = seq(
         location,
-        alt(trimBeforeAndSkip("!=<"), trimBeforeAndSkip("=<"), trimBeforeAndSkip("!=")),
-        trimBeforeAndSkip("of type"),
-        trimBeforeAndSkip("when checking that the expression"),
-        trimBeforeAndSkip("has type"),
+        alt(trimBeforeAndSkip('!=<'), trimBeforeAndSkip('=<'), trimBeforeAndSkip('!=')),
+        trimBeforeAndSkip('of type'),
+        trimBeforeAndSkip('when checking that the expression'),
+        trimBeforeAndSkip('has type'),
         all
     ).map((result) => {
         return <Error.TypeMismatch>{
-            kind: "TypeMismatch",
+            kind: 'TypeMismatch',
             header: 'Type mismatch',
             actual: result[1],
             expected: result[2],
@@ -110,33 +110,15 @@ const typeMismatch: Parser<Error.TypeMismatch> = seq(
         };
     });
 
-const definitionTypeMismatch: Parser<Error.DefinitionTypeMismatch> = seq(
-        location,
-        alt(trimBeforeAndSkip("!=<"), trimBeforeAndSkip("=<"), trimBeforeAndSkip("!=")),
-        trimBeforeAndSkip("of type"),
-        trimBeforeAndSkip("when checking the definition of"),
-        all
-    ).map((result) => {
-        return <Error.DefinitionTypeMismatch>{
-            kind: "DefinitionTypeMismatch",
-            header: 'Definition type mismatch',
-            actual: result[1],
-            expected: result[2],
-            expectedType: result[3],
-            expr: result[4],
-            location: result[0]
-        };
-    });
-
 const badConstructor: Parser<Error.BadConstructor> = seq(
         location,
-        token("The constructor").then(trimBeforeAndSkip("does not construct an element of")),
-        trimBeforeAndSkip("when checking that the expression"),
-        trimBeforeAndSkip("has type"),
+        token('The constructor').then(trimBeforeAndSkip('does not construct an element of')),
+        trimBeforeAndSkip('when checking that the expression'),
+        trimBeforeAndSkip('has type'),
         all
     ).map((result) => {
         return <Error.BadConstructor>{
-            kind: "BadConstructor",
+            kind: 'BadConstructor',
             header: 'Bad constructor',
             location: result[0],
             constructor: result[1],
@@ -146,16 +128,50 @@ const badConstructor: Parser<Error.BadConstructor> = seq(
         };
     });
 
+const definitionTypeMismatch: Parser<Error.DefinitionTypeMismatch> = seq(
+        location,
+        alt(trimBeforeAndSkip('!=<'), trimBeforeAndSkip('=<'), trimBeforeAndSkip('!=')),
+        trimBeforeAndSkip('of type'),
+        trimBeforeAndSkip('when checking the definition of'),
+        all
+    ).map((result) => {
+        return <Error.DefinitionTypeMismatch>{
+            kind: 'DefinitionTypeMismatch',
+            header: 'Definition type mismatch',
+            actual: result[1],
+            expected: result[2],
+            expectedType: result[3],
+            expr: result[4],
+            location: result[0]
+        };
+    });
+
+const illtypedPattern: Parser<Error.IlltypedPattern> = seq(
+        location,
+        token('Type mismatch'),
+        token('when checking that the pattern'),
+        trimBeforeAndSkip('has type'),
+        all
+    ).map((result) => {
+        return <Error.IlltypedPattern>{
+            kind: 'IlltypedPattern',
+            header: 'Ill-typed Pattern',
+            location: result[0],
+            pattern: result[3],
+            type: result[4]
+        };
+    });
+
 const rhsOmitted: Parser<Error.RHSOmitted> =  seq(
         location,
-        token("The right-hand side can only be omitted if there is an absurd"),
-        token("pattern, () or {}, in the left-hand side."),
-        token("when checking that the clause"),
-        trimBeforeAndSkip("has type"),
+        token('The right-hand side can only be omitted if there is an absurd'),
+        token('pattern, () or {}, in the left-hand side.'),
+        token('when checking that the clause'),
+        trimBeforeAndSkip('has type'),
         all
     ).map((result) => {
         return <Error.RHSOmitted>{
-            kind: "RHSOmitted",
+            kind: 'RHSOmitted',
             header: 'Right-hand side omitted',
             location: result[0],
             expr: result[4],
@@ -165,12 +181,12 @@ const rhsOmitted: Parser<Error.RHSOmitted> =  seq(
 
 const missingType: Parser<Error.MissingType> =  seq(
         location,
-        token("Missing type signature for left hand side"),
-        trimBeforeAndSkip("when scope checking the declaration"),
+        token('Missing type signature for left hand side'),
+        trimBeforeAndSkip('when scope checking the declaration'),
         all
     ).map((result) => {
         return <Error.MissingType>{
-            kind: "MissingType",
+            kind: 'MissingType',
             header: 'Missing type signature',
             location: result[0],
             expr: result[2],
@@ -180,16 +196,16 @@ const missingType: Parser<Error.MissingType> =  seq(
 
 const multipleDefinition: Parser<Error.MultipleDefinition> =  seq(
         location,
-        token("Multiple definitions of"),
-        trimBeforeAndSkip(". Previous definition at"),
+        token('Multiple definitions of'),
+        trimBeforeAndSkip('. Previous definition at'),
         location,
-        token("when scope checking the declaration"),
-        trimBeforeAndSkip(":"),
+        token('when scope checking the declaration'),
+        trimBeforeAndSkip(':'),
         all
     ).map((result) => {
         return <Error.MultipleDefinition>{
-            kind: "MultipleDefinition",
-            header: "Multiple definition",
+            kind: 'MultipleDefinition',
+            header: 'Multiple definition',
             location: result[0],
             locationPrev: result[3],
             expr: result[2],
@@ -201,11 +217,11 @@ const multipleDefinition: Parser<Error.MultipleDefinition> =  seq(
 
 const missingDefinition: Parser<Error.MissingDefinition> =  seq(
         location,
-        token("Missing definition for").then(all)
+        token('Missing definition for').then(all)
     ).map((result) => {
         return <Error.MissingDefinition>{
-            kind: "MissingDefinition",
-            header: "Missing definition",
+            kind: 'MissingDefinition',
+            header: 'Missing definition',
             location: result[0],
             expr: result[1]
         }
@@ -213,11 +229,11 @@ const missingDefinition: Parser<Error.MissingDefinition> =  seq(
 
 const termination: Parser<Error.Termination> =  seq(
         location,
-        token("Termination checking failed for the following functions:"),
-        trimBeforeAndSkip("Problematic calls:"),
+        token('Termination checking failed for the following functions:'),
+        trimBeforeAndSkip('Problematic calls:'),
         seq(
-            trimBeforeAndSkip("(at"),
-            location.skip(token(")"))
+            trimBeforeAndSkip('(at'),
+            location.skip(token(')'))
         ).map((result) => {
             return {
                 expr: result[0],
@@ -226,8 +242,8 @@ const termination: Parser<Error.Termination> =  seq(
         }).atLeast(1)
     ).map((result) => {
         return <Error.Termination>{
-            kind: "Termination",
-            header: "Termination error",
+            kind: 'Termination',
+            header: 'Termination error',
             location: result[0],
             expr: result[2],
             calls: result[3]
@@ -236,14 +252,14 @@ const termination: Parser<Error.Termination> =  seq(
 
 const constructorTarget: Parser<Error.ConstructorTarget> =  seq(
         location,
-        token("The target of a constructor must be the datatype applied to its"),
-        token("parameters,").then(trimBeforeAndSkip("isn't")),
-        token("when checking the constructor").then(trimBeforeAndSkip("in the declaration of")),
+        token('The target of a constructor must be the datatype applied to its'),
+        token('parameters,').then(trimBeforeAndSkip('isn\'t')),
+        token('when checking the constructor').then(trimBeforeAndSkip('in the declaration of')),
         all
     ).map((result) => {
         return <Error.ConstructorTarget>{
-            kind: "ConstructorTarget",
-            header: "Constructor target error",
+            kind: 'ConstructorTarget',
+            header: 'Constructor target error',
             location: result[0],
             expr: result[2],
             ctor: result[3],
@@ -254,13 +270,13 @@ const constructorTarget: Parser<Error.ConstructorTarget> =  seq(
 
 const functionType: Parser<Error.FunctionType> =  seq(
         location,
-        trimBeforeAndSkip("should be a function type, but it isn't"),
-        token("when checking that").then(trimBeforeAndSkip("is a valid argument to a function of type")),
+        trimBeforeAndSkip('should be a function type, but it isn\'t'),
+        token('when checking that').then(trimBeforeAndSkip('is a valid argument to a function of type')),
         all
     ).map((result) => {
         return <Error.FunctionType>{
-            kind: "FunctionType",
-            header: "Not a function type",
+            kind: 'FunctionType',
+            header: 'Not a function type',
             location: result[0],
             expr: result[2],
             exprType: result[1]
@@ -268,13 +284,13 @@ const functionType: Parser<Error.FunctionType> =  seq(
     });
 
 const moduleMismatch: Parser<Error.ModuleMismatch> =  seq(
-        token("You tried to load").then(trimBeforeAndSkip("which defines")),
-        token("the module").then(trimBeforeAndSkip(". However, according to the include path this module")),
-        token("should be defined in").then(all)
+        token('You tried to load').then(trimBeforeAndSkip('which defines')),
+        token('the module').then(trimBeforeAndSkip('. However, according to the include path this module')),
+        token('should be defined in').then(all)
     ).map((result) => {
         return <Error.ModuleMismatch>{
-            kind: "ModuleMismatch",
-            header: "Module mismatch",
+            kind: 'ModuleMismatch',
+            header: 'Module mismatch',
             wrongPath: result[0],
             rightPath: result[2],
             moduleName: result[1]
@@ -283,12 +299,12 @@ const moduleMismatch: Parser<Error.ModuleMismatch> =  seq(
 
 const parse: Parser<Error.Parse> =  seq(
         location,
-        trimBeforeAndSkip(": ").then(trimBeforeAndSkip("..."))
+        trimBeforeAndSkip(': ').then(trimBeforeAndSkip('...'))
     ).map((result) => {
-        const i = (<string>result[1]).indexOf("\n");
+        const i = (<string>result[1]).indexOf('\n');
         return <Error.Parse>{
-            kind: "Parse",
-            header: "Parse error",
+            kind: 'Parse',
+            header: 'Parse error',
             location: result[0],
             message: (<string>result[1]).substring(0, i),
             expr: (<string>result[1]).substring(i + 1)
@@ -298,14 +314,14 @@ const parse: Parser<Error.Parse> =  seq(
 
 const caseSingleHole: Parser<Error.CaseSingleHole> =  seq(
     location,
-    token("Right hand side must be a single hole when making a case").then(token("distinction")),
-    token("when checking that the expression"),
-    trimBeforeAndSkip("has type"),
+    token('Right hand side must be a single hole when making a case').then(token('distinction')),
+    token('when checking that the expression'),
+    trimBeforeAndSkip('has type'),
     all
 ).map((result) => {
     return <Error.CaseSingleHole>{
-        kind: "CaseSingleHole",
-        header: "Not a single hole",
+        kind: 'CaseSingleHole',
+        header: 'Not a single hole',
         location: result[0],
         expr: result[3],
         exprType: result[4]
@@ -314,13 +330,13 @@ const caseSingleHole: Parser<Error.CaseSingleHole> =  seq(
 
 const patternMatchOnNonDatatype: Parser<Error.PatternMatchOnNonDatatype> =  seq(
     location,
-    token("Cannot pattern match on non-datatype").then(trimBeforeAndSkip("when checking that the expression")),
-    trimBeforeAndSkip("has type"),
+    token('Cannot pattern match on non-datatype').then(trimBeforeAndSkip('when checking that the expression')),
+    trimBeforeAndSkip('has type'),
     all
 ).map((result) => {
     return <Error.PatternMatchOnNonDatatype>{
-        kind: "PatternMatchOnNonDatatype",
-        header: "Pattern match on non-datatype",
+        kind: 'PatternMatchOnNonDatatype',
+        header: 'Pattern match on non-datatype',
         location: result[0],
         nonDatatype: result[1],
         expr: result[2],
@@ -364,29 +380,30 @@ const libraryNotFound: Parser<Error.LibraryNotFound> =  seq(
 });
 const unparsed: Parser<Error.Unparsed> = all.map((result) => {
     return <Error.Unparsed>{
-        kind: "Unparsed",
-        header: "Error",
+        kind: 'Unparsed',
+        header: 'Error',
         input: result
     }
 });
 
 const errorParser: Parser<Error> = alt(
-    notInScope,
-    typeMismatch,
-    definitionTypeMismatch,
     badConstructor,
-    rhsOmitted,
+    constructorTarget,
+    caseSingleHole,
+    definitionTypeMismatch,
+    functionType,
+    illtypedPattern,
+    libraryNotFound,
     missingType,
     multipleDefinition,
     missingDefinition,
-    termination,
-    constructorTarget,
-    functionType,
     moduleMismatch,
+    notInScope,
+    rhsOmitted,
+    termination,
+    typeMismatch,
     parse,
-    caseSingleHole,
     patternMatchOnNonDatatype,
-    libraryNotFound,
     unparsed
 );
 

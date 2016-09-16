@@ -106,7 +106,7 @@ export default class Commander {
                         })
                         .catch(() => {
                             // console.log('Failed')
-                            this.core.editor.revertToCheckpoint(checkPoint);
+                            // this.core.editor.revertToCheckpoint(checkPoint);
                         })
                 })
                 .catch(QueryCancelledError, () => {
