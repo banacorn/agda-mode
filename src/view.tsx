@@ -15,7 +15,6 @@ import { View as V, Location } from './types';
 import { EVENT } from "./view/actions";
 import * as Action from "./view/actions";
 import { parseContent, parseError} from './parser';
-import { activateView, deactivateView, enableInMiniEditor } from './view/actions';
 import { updateHeader, activateMiniEditor, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
 
 // Atom shits
@@ -245,7 +244,7 @@ export default class View {
     activate() {
         // console.log(`[${this.uri.substr(12)}] %cactivated`, 'color: blue')
         setTimeout(() => {
-            this.store.dispatch(activateView());
+            this.store.dispatch(Action.activateView());
         })
         switch (this.state().mountAt.current) {
             case V.MountingPosition.Bottom:
@@ -264,7 +263,7 @@ export default class View {
 
     deactivate() {
         // console.log(`[${this.uri.substr(12)}] %cdeactivated`, 'color: purple')
-        this.store.dispatch(deactivateView());
+        this.store.dispatch(Action.deactivateView());
     }
 
     // destructor
@@ -275,6 +274,8 @@ export default class View {
     }
 
     set(header: string, payload: string[], type = V.Style.PlainText) {
+        this.store.dispatch(Action.deactivateMiniEditor());
+        atom.views.getView(this.getEditor()).focus()
         this.store.dispatch(updateHeader({
             text: header,
             style: type
@@ -306,7 +307,7 @@ export default class View {
     }
 
     query(header: string = '', message: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {
-        this.store.dispatch(enableInMiniEditor(inputMethodOn));
+        this.store.dispatch(Action.enableInMiniEditor(inputMethodOn));
         this.store.dispatch(activateMiniEditor(placeholder));
         this.store.dispatch(updateHeader({
             text: header,
