@@ -16,6 +16,7 @@ interface Props {
     // callbacks
     mountAtPane: () => void;
     mountAtBottom: () => void;
+    toggleDevView: () => void;
     // dispatch to the store
     handleMountAtPane: () => void
     handleMountAtBottom: () => void;
@@ -59,7 +60,7 @@ class Settings extends React.Component<Props, void> {
 
     render() {
         const { mountingPosition } = this.props;
-        const { mountAtPane, mountAtBottom } = this.props;
+        const { mountAtPane, mountAtBottom, toggleDevView } = this.props;
         const { handleMountAtPane, handleMountAtBottom } = this.props;
         // show dev view button only when in dev mode
         const devViewClassList = classNames({
@@ -73,9 +74,7 @@ class Settings extends React.Component<Props, void> {
                 <li>
                     <button
                         className={devViewClassList}
-                        onClick={() => {
-                            console.log(`clicked dev view`)
-                        }}
+                        onClick={toggleDevView}
                     >
                         <span className="icon icon-tools"></span>
                     </button>

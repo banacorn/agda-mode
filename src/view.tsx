@@ -108,6 +108,9 @@ export default class View {
                     onMiniEditorMount={(editor) => {
                         this.miniEditor = editor;
                     }}
+                    toggleDevView={() => {
+                        console.log(`toggle dev view`)
+                    }}
                     mountAtPane={() => {
                         this.unmount(this.state().mountAt.previous);
                         this.mount(this.state().mountAt.current);
