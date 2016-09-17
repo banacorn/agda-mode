@@ -32,7 +32,7 @@ export default class View {
     public miniEditor: MiniEditor;
     private mountingPosition: HTMLElement;
     private bottomPanel: any;
-    private uri: string;
+    // private uri: string;
 
     constructor(private core: Core) {
         this.store = createStore(reducer);
@@ -42,7 +42,7 @@ export default class View {
         this.paneItemDestroyedByAtom = true;
         this.editor = core.editor;
 
-        this.uri = `agda-mode://${this.core.editor.id}`;
+        // this.uri = `agda-mode://${this.core.editor.id}`;
 
         // global events
         this.emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
@@ -84,14 +84,14 @@ export default class View {
     private createPaneItem(path: string) {
         const paneItem = document.createElement('article');
         paneItem.classList.add('agda-view');
-        paneItem['getURI'] = () => this.uri;
+        paneItem['getURI'] = () => `agda-mode://${this.core.editor.id}`;
         //
         const base = basename(this.editor.getPath())
         const ext = extname(base)
         const title = `[Agda Mode] ${base.substr(0, base.length - ext.length)}`
         paneItem['getTitle'] = () => title;
         paneItem['getEditor'] = () => this.editor;
-        paneItem.id = this.uri;
+        paneItem.id = `agda-mode://${this.core.editor.id}`;
         return paneItem;
     }
 
@@ -157,7 +157,7 @@ export default class View {
                     this.render();
                     break;
                 case V.MountingPosition.Pane:
-                    const uri = this.uri;
+                    const uri = `agda-mode://${this.core.editor.id}`;
                     const previousActivePane = atom.workspace.getActivePane()
                     atom.workspace.open(uri, {
                         searchAllPanes: true,
@@ -171,7 +171,7 @@ export default class View {
                         const pane = atom.workspace.paneForItem(this.mountingPosition);
                         if (pane) {
                             this.paneItemSubscriptions.add(pane.onWillDestroyItem(event => {
-                                if (event.item.getURI() === this.uri) {
+                                if (event.item.getURI() === `agda-mode://${this.core.editor.id}`) {
                                     // console.log(`[${this.uri.substr(12)}] %cpane item destroyed by ${this.paneItemDestroyedByAtom ? `Atom` : 'agda-mode'}`, 'color: red');
                                     if (this.paneItemDestroyedByAtom) {
                                         this.store.dispatch(Action.mountAtBottom());
