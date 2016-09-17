@@ -13,6 +13,7 @@ declare var atom: any;
 
 interface Props {
     mountingPosition: View.MountingPosition;
+    devView: boolean;
     // callbacks
     mountAtPane: () => void;
     mountAtBottom: () => void;
@@ -20,10 +21,12 @@ interface Props {
     // dispatch to the store
     handleMountAtPane: () => void
     handleMountAtBottom: () => void;
+    handleToggleDevView: () => void;
 }
 
 const mapStateToProps = (state: View.State) => ({
-    mountingPosition: state.view.mountAt.current
+    mountingPosition: state.view.mountAt.current,
+    devView: state.view.devView
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
@@ -32,6 +35,9 @@ const mapDispatchToProps = (dispatch: any) => ({
     },
     handleMountAtBottom: () => {
         dispatch(Action.mountAtBottom());
+    },
+    handleToggleDevView: () => {
+        dispatch(Action.toggleDevView());
     }
 });
 
@@ -59,11 +65,12 @@ class Settings extends React.Component<Props, void> {
     }
 
     render() {
-        const { mountingPosition } = this.props;
+        const { mountingPosition, devView } = this.props;
         const { mountAtPane, mountAtBottom, toggleDevView } = this.props;
-        const { handleMountAtPane, handleMountAtBottom } = this.props;
+        const { handleMountAtPane, handleMountAtBottom, handleToggleDevView } = this.props;
         // show dev view button only when in dev mode
         const devViewClassList = classNames({
+            activated: devView,
             hidden: !atom.inDevMode()
         }, 'no-btn');
         const toggleMountingPosition = classNames({
@@ -74,7 +81,10 @@ class Settings extends React.Component<Props, void> {
                 <li>
                     <button
                         className={devViewClassList}
-                        onClick={toggleDevView}
+                        onClick={() => {
+                            toggleDevView()
+                            handleToggleDevView()
+                        }}
                     >
                         <span className="icon icon-tools"></span>
                     </button>

@@ -53,6 +53,7 @@ namespace View {
             previous: MountingPosition,
             current: MountingPosition
         };
+        devView: boolean;
     }
 
     export const enum MountingPosition {

@@ -17,7 +17,8 @@ const defaultState: View.State = {
         mountAt: {
             previous: null,
             current: View.MountingPosition.Bottom
-        }
+        },
+        devView: false
     },
     header: {
         text: '',
@@ -72,6 +73,9 @@ const view = handleActions<View.ViewState, VIEW>({
             previous: state.mountAt.current,
             current: View.MountingPosition.Bottom
         }
+    }),
+    [VIEW.TOGGLE_DEV_VIEW]: (state: View.ViewState, action: Action<VIEW.TOGGLE_DEV_VIEW>) => _.assign({}, state, {
+        devView: !state.devView
     })
 }, defaultState.view);
 

@@ -19,6 +19,7 @@ export type VIEW
     | VIEW.UNMOUNT
     | VIEW.MOUNT_AT_PANE
     | VIEW.MOUNT_AT_BOTTOM
+    | VIEW.TOGGLE_DEV_VIEW
 export namespace VIEW {
     export const ACTIVATE = 'VIEW.ACTIVATE';
     export type ACTIVATE = void;
@@ -32,6 +33,8 @@ export namespace VIEW {
     export type MOUNT_AT_PANE = void;
     export const MOUNT_AT_BOTTOM = 'VIEW.MOUNT_AT_BOTTOM';
     export type MOUNT_AT_BOTTOM = void;
+    export const TOGGLE_DEV_VIEW = 'VIEW.TOGGLE_DEV_VIEW';
+    export type TOGGLE_DEV_VIEW = void;
 }
 
 export const activateView = createAction(VIEW.ACTIVATE);
@@ -40,6 +43,7 @@ export const mountView = createAction(VIEW.MOUNT);
 export const unmountView = createAction(VIEW.UNMOUNT);
 export const mountAtPane = createAction(VIEW.MOUNT_AT_PANE);
 export const mountAtBottom = createAction(VIEW.MOUNT_AT_BOTTOM);
+export const toggleDevView = createAction(VIEW.TOGGLE_DEV_VIEW);
 
 export type INPUT_METHOD = INPUT_METHOD.ACTIVATE
     | INPUT_METHOD.DEACTIVATE
