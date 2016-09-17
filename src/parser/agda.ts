@@ -149,15 +149,6 @@ function parse_sexp(string: string): any {
     var word = '';
     var in_str = false;
 
-    function pushLastWord(word) {
-        var n = parseInt(word);
-        if (isNaN(n)) {
-            pushInLast(word);
-        } else {
-            pushInLast(n);
-        }
-    }
-
     function pushInLast(elem) {
         sexp[sexp.length - 1].push(elem);
     }
@@ -165,17 +156,18 @@ function parse_sexp(string: string): any {
     for (var i = 0; i < string.length; i++) {
         var char = string[i];
         if (char == '\'' && !in_str) {
+            // drop all single quotes: 'param => param
         } else if (char == '(' && !in_str) {
             sexp.push([]);
         } else if (char == ')' && !in_str) {
             if (word != '') {
-                pushLastWord(word);
+                pushInLast(word);
                 word = '';
             }
             pushInLast(sexp.pop());
         } else if (char == ' ' && !in_str) {
             if (word != '') {
-                pushLastWord(word);
+                pushInLast(word);
                 word = '';
             }
         } else if (char == '\"') {
