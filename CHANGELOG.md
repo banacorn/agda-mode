@@ -1,3 +1,7 @@
+## 0.6.2
+* Fix mini editor won't go away
+* Fix S-expression parsing
+
 ## 0.6.1
 * Merge pull request #35, which fixed file path handling on Windows (by @NightRa)
 * Merge pull request #36, which drastically sped up S-expression parsing 👍 (by @NightRa)
