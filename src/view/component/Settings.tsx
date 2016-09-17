@@ -61,11 +61,25 @@ class Settings extends React.Component<Props, void> {
         const { mountingPosition } = this.props;
         const { mountAtPane, mountAtBottom } = this.props;
         const { handleMountAtPane, handleMountAtBottom } = this.props;
+        // show dev view button only when in dev mode
+        const devViewClassList = classNames({
+            hidden: !atom.inDevMode()
+        }, 'no-btn');
         const toggleMountingPosition = classNames({
             activated: mountingPosition === View.MountingPosition.Pane
         }, 'no-btn');
         return (
             <ul className="agda-settings">
+                <li>
+                    <button
+                        className={devViewClassList}
+                        onClick={() => {
+                            console.log(`clicked dev view`)
+                        }}
+                    >
+                        <span className="icon icon-tools"></span>
+                    </button>
+                </li>
                 <li>
                     <button
                         className={toggleMountingPosition}
