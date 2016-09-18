@@ -16,6 +16,7 @@ import { EVENT } from "./view/actions";
 import * as Action from "./view/actions";
 import { parseContent, parseError} from './parser';
 import { updateHeader, activateMiniEditor, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
+import PaneItem from './view/pane-item';
 
 // Atom shits
 type CompositeDisposable = any;
@@ -32,6 +33,7 @@ export default class View {
     public miniEditor: MiniEditor;
     private mountingPosition: HTMLElement;
     private bottomPanel: any;
+    private viewPaneItem: PaneItem;
     // private uri: string;
 
     constructor(private core: Core) {
@@ -42,8 +44,6 @@ export default class View {
         this.paneItemDestroyedByAtom = true;
         this.editor = core.editor;
 
-        // this.uri = `agda-mode://${this.core.editor.id}`;
-
         // global events
         this.emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
             this.core.textBuffer.jumpToGoal(index);
@@ -52,48 +52,20 @@ export default class View {
             this.core.textBuffer.jumpToLocation(loc);
         });
 
+        this.viewPaneItem = new PaneItem(this.editor, 'view');
 
-        this.subscriptions.add(atom.workspace.addOpener((uri: string) => {
-            const {protocol, path} = this.parseURI(uri);
-
-            const openedByAgdaMode = protocol === 'agda-mode';
-            const openedByTheSameEditor = path === this.core.editor.id.toString();
-            if (openedByAgdaMode && openedByTheSameEditor) {
-                return this.createPaneItem(path);
-            }
-        }));
+        this.subscriptions.add(atom.workspace.addOpener(this.viewPaneItem.opener));
     }
 
-    private parseURI(uri: string) {
-        const [protocol, path] = uri.split('://');
-        return {
-            protocol: protocol,
-            path: path
-        }
-    }
-
-    private ownedPaneItem(item: any) {
-
-        return false;
+    // a predicate that decides if a pane item belongs to itself
+    public isOwnedPaneItem(paneItem: any): boolean {
+        return paneItem.getEditor().id === this.editor.id;
     }
 
     private state() {
         return this.store.getState().view;
     }
 
-    private createPaneItem(path: string) {
-        const paneItem = document.createElement('article');
-        paneItem.classList.add('agda-view');
-        paneItem['getURI'] = () => `agda-mode://${this.core.editor.id}`;
-        //
-        const base = basename(this.editor.getPath())
-        const ext = extname(base)
-        const title = `[Agda Mode] ${base.substr(0, base.length - ext.length)}`
-        paneItem['getTitle'] = () => title;
-        paneItem['getEditor'] = () => this.editor;
-        paneItem.id = `agda-mode://${this.core.editor.id}`;
-        return paneItem;
-    }
 
     private render() {
         if (this.mountingPosition === null) {
@@ -171,7 +143,7 @@ export default class View {
                         const pane = atom.workspace.paneForItem(this.mountingPosition);
                         if (pane) {
                             this.paneItemSubscriptions.add(pane.onWillDestroyItem(event => {
-                                if (event.item.getURI() === `agda-mode://${this.core.editor.id}`) {
+                                if (this.isOwnedPaneItem(event.item)) {
                                     // console.log(`[${this.uri.substr(12)}] %cpane item destroyed by ${this.paneItemDestroyedByAtom ? `Atom` : 'agda-mode'}`, 'color: red');
                                     if (this.paneItemDestroyedByAtom) {
                                         this.store.dispatch(Action.mountAtBottom());
