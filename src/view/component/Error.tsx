@@ -61,10 +61,14 @@ class Error extends React.Component<Props, void> {
                             Add the path to its .agda-lib file to<br/>
                             <span>    </span>{library.agdaLibFilePath}<br/>
                             to install.<br/>
+                            Installed libraries:<br/>
                             <ul>
-                                {library.installedLibraries.map((installed, j) => <li key={j}>
-                                    {installed.name}: {installed.path}
-                                </li>)}
+                                {library.installedLibraries.length ?
+                                    library.installedLibraries.map((installed, j) => <li key={j}>
+                                        {installed.name}: {installed.path}
+                                    </li>)
+                                    : <li>(none)</li>
+                                }
                             </ul>
                         </div>
                     )}
