@@ -129,7 +129,7 @@ export default class View {
                     this.render();
                     break;
                 case V.MountingPosition.Pane:
-                    const uri = `agda-mode://${this.core.editor.id}`;
+                    const uri = this.viewPaneItem.getURI();
                     const previousActivePane = atom.workspace.getActivePane()
                     atom.workspace.open(uri, {
                         searchAllPanes: true,
