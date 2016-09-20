@@ -60,12 +60,6 @@ export default class PaneItem {
         }
     }
 
-    // a predicate that decides if a pane item belongs to itself
-    private isOwnedPaneItem(paneItem: any): boolean {
-        return paneItem.getEditor().id === this.editor.id;
-    }
-
-
     // methods
     getTitle = (): string => {
         const { name } = path.parse(this.editor.getPath());
@@ -96,7 +90,7 @@ export default class PaneItem {
             // on destroy
             if (currentPane) {
                 this.subscriptions.add(currentPane.onWillDestroyItem(event => {
-                    if (this.isOwnedPaneItem(event.item)) {
+                    if (this.paneItem && event.item.getURI() === this.getURI()) {
                         this.paneItem = null;
                         this.emitter.emit(CLOSE, paneItem, this.closedDeliberately);
                         // reset flags

@@ -62,7 +62,7 @@ export default class View {
         });
 
         this.viewPaneItem.onClose((paneItem, closedDeliberately) => {
-            // console.log(`${paneItem.getURI()} closed ${closedDeliberately ? 'deliberately' : 'by atom'}`)
+            // console.log(`[${this.editor.id}] ${paneItem.getURI()} closed ${closedDeliberately ? 'deliberately' : 'by atom'}`)
             if (closedDeliberately === false) {
                 this.store.dispatch(Action.mountAtBottom());
                 this.unmount(V.MountingPosition.Pane);
@@ -82,10 +82,9 @@ export default class View {
             this.devViewElement = paneItem;
 
             this.renderDevView()
-            console.log('dev view opened')
         });
         this.devViewPaneItem.onClose((paneItem, closedDeliberately) => {
-            console.log(`dev view closed (deliberately: ${closedDeliberately})`)
+            // console.log(`dev view closed (deliberately: ${closedDeliberately})`)
             if (closedDeliberately === false) {
                 this.store.dispatch(Action.toggleDevView());
             }
@@ -101,7 +100,6 @@ export default class View {
         if (this.mountingPosition === null) {
             console.error(`this.mountingPosition === null`)
         }
-
         ReactDOM.render(
             <Provider store={this.store}>
                 <Panel
@@ -307,7 +305,7 @@ export default class View {
 function toText(mp: V.MountingPosition): string {
     switch (mp) {
         case V.MountingPosition.Bottom:
-            return 'Bottom;'
+            return 'Bottom'
         case V.MountingPosition.Pane:
             return 'Pane'
         default:
