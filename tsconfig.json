@@ -57,6 +57,7 @@
         "src/view.tsx",
         "src/view/component/Body.tsx",
         "src/view/component/CandidateSymbols.tsx",
+        "src/view/component/Dev.tsx",
         "src/view/component/Error.tsx",
         "src/view/component/Expr.tsx",
         "src/view/component/Header.tsx",

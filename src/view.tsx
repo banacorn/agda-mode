@@ -9,6 +9,7 @@ import { basename, extname } from 'path';
 
 import Core from './core';
 import Panel from './view/component/Panel';
+import Dev from './view/component/Dev';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
 import { View as V, Location } from './types';
@@ -31,6 +32,7 @@ export default class View {
     public miniEditor: MiniEditor;
     private mountingPosition: HTMLElement;
     private bottomPanel: any;
+    private devViewElement: HTMLElement;
     private viewPaneItem: PaneItem;
     private devViewPaneItem: PaneItem;
 
@@ -73,6 +75,9 @@ export default class View {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
 
+            this.devViewElement = paneItem;
+
+            this.renderDevView()
             console.log('dev view opened')
         });
         this.devViewPaneItem.onClose((paneItem, closedDeliberately) => {
@@ -123,6 +128,18 @@ export default class View {
         )
     }
 
+    private renderDevView() {
+        if (this.devViewElement === null) {
+            console.error(`this.devViewElement === null`)
+        }
+
+        ReactDOM.render(
+            <Provider store={this.store}>
+                <Dev/>
+            </Provider>,
+            this.devViewElement
+        )
+    }
     getEditor(): any {
         return this.editor;
     }
