@@ -40,10 +40,21 @@ namespace View {
 
     export interface State {
         view: ViewState;
+        dev: DevState;
         header: HeaderState;
         inputMethod: InputMethodState;
         miniEditor: MiniEditorState;
         body: BodyState;
+    }
+
+    export interface DevState {
+        messages: DevMsg[]
+    }
+
+
+    export interface DevMsg {
+        kind: 'request' | 'response',
+        message: string
     }
 
     export interface ViewState {

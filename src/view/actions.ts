@@ -45,6 +45,20 @@ export const mountAtPane = createAction(VIEW.MOUNT_AT_PANE);
 export const mountAtBottom = createAction(VIEW.MOUNT_AT_BOTTOM);
 export const toggleDevView = createAction(VIEW.TOGGLE_DEV_VIEW);
 
+export type DEV
+    = DEV.REQUEST
+    | DEV.RESPONSE
+
+export namespace DEV {
+    export const REQUEST = 'DEV.REQUEST';
+    export type REQUEST = string;
+    export const RESPONSE = 'DEV.RESPONSE';
+    export type RESPONSE = string;
+}
+
+export const devRequest = createAction(DEV.REQUEST);
+export const devResponse = createAction(DEV.RESPONSE);
+
 export type INPUT_METHOD = INPUT_METHOD.ACTIVATE
     | INPUT_METHOD.DEACTIVATE
     | INPUT_METHOD.INSERT

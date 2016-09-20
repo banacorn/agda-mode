@@ -5,7 +5,7 @@ import { EventEmitter } from 'events'
 declare var atom: any;
 
 import { View } from '../types';
-import { EVENT, VIEW, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
+import { EVENT, VIEW, DEV, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -19,6 +19,9 @@ const defaultState: View.State = {
             current: View.MountingPosition.Bottom
         },
         devView: false
+    },
+    dev: {
+        messages: []
     },
     header: {
         text: '',
@@ -78,6 +81,21 @@ const view = handleActions<View.ViewState, VIEW>({
         devView: !state.devView
     })
 }, defaultState.view);
+
+const dev = handleActions<View.DevState, DEV>({
+    [DEV.REQUEST]: (state: View.DevState, action: Action<DEV.REQUEST>) => _.assign({}, state, {
+        messages: _.concat(state.messages, [{
+            kind: 'request',
+            message: action.payload
+        }])
+    }),
+    [DEV.RESPONSE]: (state: View.DevState, action: Action<DEV.RESPONSE>) => _.assign({}, state, {
+        messages: _.concat(state.messages, [{
+            kind: 'response',
+            message: action.payload
+        }])
+    })
+}, defaultState.dev);
 
 const inputMethod = handleActions<View.InputMethodState, INPUT_METHOD>({
     [INPUT_METHOD.ACTIVATE]: (state: View.InputMethodState, action: Action<INPUT_METHOD.ACTIVATE>) => {
