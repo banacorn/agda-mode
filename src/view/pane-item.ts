@@ -20,11 +20,13 @@ export default class PaneItem {
     // null if closed
     private paneItem: any;
 
-    constructor(private editor: any, private name: string) {
+    constructor(private editor: any, private name: string, getTitle?: () => string) {
         this.subscriptions = new CompositeDisposable;
         this.emitter = new EventEmitter;
         this.closedDeliberately = false;
         this.subscriptions.add(atom.workspace.addOpener(this.opener));
+        if (getTitle)
+            this.getTitle = getTitle;
     }
 
     destroy() {
@@ -35,16 +37,10 @@ export default class PaneItem {
         // classList
         const paneItem = document.createElement('article');
         paneItem.classList.add('agda-view');
-        // title
-        const base = path.basename(this.editor.getPath())
-        const ext = path.extname(base)
-        const title = `[Agda Mode] ${base.substr(0, base.length - ext.length)}`
         // methods
         paneItem['getURI'] = this.getURI;
-        paneItem['getTitle'] = () => title;
+        paneItem['getTitle'] = this.getTitle;
         paneItem['getEditor'] = () => this.editor;
-        paneItem.id =this.editor.id;
-
         return paneItem;
     }
 
@@ -69,7 +65,13 @@ export default class PaneItem {
         return paneItem.getEditor().id === this.editor.id;
     }
 
+
     // methods
+    getTitle = (): string => {
+        const { name } = path.parse(this.editor.getPath());
+        return `[Agda Mode] ${name}`
+    }
+
     getURI = (): string => {
         return `agda-mode://${this.editor.id}/${this.name}`
     }

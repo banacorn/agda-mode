@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import * as Promise from 'bluebird';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import * as path from 'path';
 import { Provider, connect } from 'react-redux';
 import { createStore } from 'redux';
 import { EventEmitter } from 'events';
@@ -70,7 +71,10 @@ export default class View {
         });
 
         // initialize dev view
-        this.devViewPaneItem = new PaneItem(this.editor, 'dev');
+        this.devViewPaneItem = new PaneItem(this.editor, 'dev', () => {
+            const { name } = path.parse(this.editor.getPath());
+            return `[Dev] ${name}`
+        });
         this.devViewPaneItem.onOpen((paneItem, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
