@@ -77,6 +77,9 @@ export default class View {
         });
         this.devViewPaneItem.onClose((paneItem, closedDeliberately) => {
             console.log(`dev view closed (deliberately: ${closedDeliberately})`)
+            if (closedDeliberately === false) {
+                this.store.dispatch(Action.toggleDevView());
+            }
         });
     }
 
