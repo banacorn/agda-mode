@@ -44,6 +44,7 @@ const mapDispatchToProps = (dispatch: any) => ({
 class Settings extends React.Component<Props, void> {
     private subscriptions: CompositeDisposable;
     private toggleMountingPositionButton: HTMLElement;
+    private toggleDevViewButton: HTMLElement;
 
 
     constructor() {
@@ -57,6 +58,10 @@ class Settings extends React.Component<Props, void> {
             delay: 300,
             keyBindingCommand: 'agda-mode:toggle-docking'
 
+        }));
+        this.subscriptions.add(atom.tooltips.add(this.toggleDevViewButton, {
+            title: 'toggle dev view (only available in dev mode)',
+            delay: 100
         }));
     }
 
@@ -82,8 +87,11 @@ class Settings extends React.Component<Props, void> {
                     <button
                         className={devViewClassList}
                         onClick={() => {
-                            toggleDevView()
                             handleToggleDevView()
+                            toggleDevView()
+                        }}
+                        ref={(ref) => {
+                            this.toggleDevViewButton = ref;
                         }}
                     >
                         <span className="icon icon-tools"></span>

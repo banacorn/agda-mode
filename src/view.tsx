@@ -49,7 +49,7 @@ export default class View {
 
         this.viewPaneItem = new PaneItem(this.editor, 'view');
         this.viewPaneItem.onOpen((paneItem, panes) => {
-            // activate the previous pane (which opened this pane item) 
+            // activate the previous pane (which opened this pane item)
             panes.previous.activate();
             // mounting position
             this.mountingPosition = paneItem;
