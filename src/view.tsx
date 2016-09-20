@@ -32,6 +32,7 @@ export default class View {
     private mountingPosition: HTMLElement;
     private bottomPanel: any;
     private viewPaneItem: PaneItem;
+    private devViewPaneItem: PaneItem;
 
     constructor(private core: Core) {
         this.store = createStore(reducer);
@@ -65,6 +66,18 @@ export default class View {
                 this.mount(V.MountingPosition.Bottom);
             }
         });
+
+        // initialize dev view
+        this.devViewPaneItem = new PaneItem(this.editor, 'dev');
+        this.devViewPaneItem.onOpen((paneItem, panes) => {
+            // activate the previous pane (which opened this pane item)
+            panes.previous.activate();
+
+            console.log('dev view opened')
+        });
+        this.devViewPaneItem.onClose((paneItem, closedDeliberately) => {
+            console.log(`dev view closed (deliberately: ${closedDeliberately})`)
+        });
     }
 
     private state() {
@@ -86,7 +99,11 @@ export default class View {
                         this.miniEditor = editor;
                     }}
                     toggleDevView={() => {
-                        console.log(`toggle dev view: ${this.store.getState().view.devView}`)
+                        const activated = this.store.getState().view.devView;
+                        if (activated)
+                            this.devViewPaneItem.open();
+                        else
+                            this.devViewPaneItem.close();
                     }}
                     mountAtPane={() => {
                         this.unmount(this.state().mountAt.previous);
