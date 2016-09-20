@@ -26,8 +26,6 @@ declare var atom: any;
 export default class View {
     private emitter: EventEmitter;
     private subscriptions: CompositeDisposable;
-    private paneItemSubscriptions: CompositeDisposable;
-    public paneItemDestroyedByAtom: boolean;
     private editor: any;
     public store: Redux.Store<V.State>;
     public miniEditor: MiniEditor;
@@ -40,8 +38,6 @@ export default class View {
         this.store = createStore(reducer);
         this.emitter = new EventEmitter;
         this.subscriptions = new CompositeDisposable;
-        this.paneItemSubscriptions = new CompositeDisposable;
-        this.paneItemDestroyedByAtom = true;
         this.editor = core.editor;
 
         // global events
@@ -53,13 +49,22 @@ export default class View {
         });
 
         this.viewPaneItem = new PaneItem(this.editor, 'view');
+        this.viewPaneItem.onOpen((paneItem, panes) => {
+            panes.previous.activate();
+            // mounting position
+            this.mountingPosition = paneItem;
+            // render
+            this.render();
+        });
 
-        this.subscriptions.add(atom.workspace.addOpener(this.viewPaneItem.opener));
-    }
-
-    // a predicate that decides if a pane item belongs to itself
-    public isOwnedPaneItem(paneItem: any): boolean {
-        return paneItem.getEditor().id === this.editor.id;
+        this.viewPaneItem.onClose((paneItem, closedDeliberately) => {
+            console.log(`${paneItem.getURI()} closed ${closedDeliberately ? 'deliberately' : 'by atom'}`)
+            if (closedDeliberately === false) {
+                this.store.dispatch(Action.mountAtBottom());
+                this.unmount(V.MountingPosition.Pane);
+                this.mount(V.MountingPosition.Bottom);
+            }
+        });
     }
 
     private state() {
@@ -112,7 +117,7 @@ export default class View {
 
     mount(mountAt: V.MountingPosition) {
         if (!this.state().mounted) {
-            // console.log(`[${this.uri.substr(12)}] %cmount at ${toText(mountAt)}`, 'color: green')
+            console.log(`[${this.editor.id}] %cmount at ${toText(mountAt)}`, 'color: green')
             // Redux
             this.store.dispatch(Action.mountView());
 
@@ -129,37 +134,7 @@ export default class View {
                     this.render();
                     break;
                 case V.MountingPosition.Pane:
-                    const uri = this.viewPaneItem.getURI();
-                    const previousActivePane = atom.workspace.getActivePane()
-                    atom.workspace.open(uri, {
-                        searchAllPanes: true,
-                        split: 'right'
-                    }).then(view => {
-                        // mounting position
-                        this.mountingPosition = view;
-                        previousActivePane.activate();
-
-                        // on destroy
-                        const pane = atom.workspace.paneForItem(this.mountingPosition);
-                        if (pane) {
-                            this.paneItemSubscriptions.add(pane.onWillDestroyItem(event => {
-                                if (this.isOwnedPaneItem(event.item)) {
-                                    // console.log(`[${this.uri.substr(12)}] %cpane item destroyed by ${this.paneItemDestroyedByAtom ? `Atom` : 'agda-mode'}`, 'color: red');
-                                    if (this.paneItemDestroyedByAtom) {
-                                        this.store.dispatch(Action.mountAtBottom());
-                                        this.unmountPrim(V.MountingPosition.Pane);
-                                        this.mount(V.MountingPosition.Bottom);
-                                        // console.log(`[${this.uri.substr(12)}] %cstate of activation: ${this.state().activated}`, 'color: cyan')
-                                    } else {
-                                        this.paneItemDestroyedByAtom = true;
-                                    }
-                                }
-                            }));
-                        }
-
-                        // render
-                        this.render();
-                    })
+                    this.viewPaneItem.open()
                     break;
                 default:
                     console.error('no mounting position to transist to')
@@ -168,23 +143,8 @@ export default class View {
     }
 
     unmount(mountAt: V.MountingPosition) {
-        switch (mountAt) {
-            case V.MountingPosition.Bottom:
-                // do nothing
-                break;
-            case V.MountingPosition.Pane:
-                this.paneItemDestroyedByAtom = false;
-                break;
-            default:
-                // do nothing
-                break;
-        }
-        this.unmountPrim(mountAt);
-    }
-
-    private unmountPrim(mountAt: V.MountingPosition) {
         if (this.state().mounted) {
-            // console.log(`[${this.uri.substr(12)}] %cunmount at ${toText(mountAt)}`, 'color: orange')
+            console.log(`[${this.editor.id}] %cunmount at ${toText(mountAt)}`, 'color: orange')
             // Redux
             this.store.dispatch(Action.unmountView());
 
@@ -194,15 +154,7 @@ export default class View {
                     this.bottomPanel.destroy();
                     break;
                 case V.MountingPosition.Pane:
-                    // destroy the pane item, but don't bother if it's already destroyed by Atom
-                    if (!this.paneItemDestroyedByAtom) {
-                        const pane = atom.workspace.paneForItem(this.mountingPosition);
-                        if (pane) {
-                            pane.destroyItem(this.mountingPosition);
-                            // unsubscribe
-                            this.paneItemSubscriptions.dispose();
-                        }
-                    }
+                    this.viewPaneItem.close()
                     break;
                 default:
                     // do nothing
