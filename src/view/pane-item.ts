@@ -115,6 +115,14 @@ export default class PaneItem {
         }
     }
 
+    activate() {
+        if (this.paneItem) {
+            const pane = atom.workspace.paneForItem(this.paneItem);
+            if (pane)
+                pane.activateItem(this.paneItem);
+        }
+    }
+
     // events
     onOpen(callback: (any, panes?: {
         previous: any,

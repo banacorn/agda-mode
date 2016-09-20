@@ -58,7 +58,7 @@ export default class View {
         });
 
         this.viewPaneItem.onClose((paneItem, closedDeliberately) => {
-            console.log(`${paneItem.getURI()} closed ${closedDeliberately ? 'deliberately' : 'by atom'}`)
+            // console.log(`${paneItem.getURI()} closed ${closedDeliberately ? 'deliberately' : 'by atom'}`)
             if (closedDeliberately === false) {
                 this.store.dispatch(Action.mountAtBottom());
                 this.unmount(V.MountingPosition.Pane);
@@ -117,7 +117,7 @@ export default class View {
 
     mount(mountAt: V.MountingPosition) {
         if (!this.state().mounted) {
-            console.log(`[${this.editor.id}] %cmount at ${toText(mountAt)}`, 'color: green')
+            // console.log(`[${this.editor.id}] %cmount at ${toText(mountAt)}`, 'color: green')
             // Redux
             this.store.dispatch(Action.mountView());
 
@@ -144,13 +144,12 @@ export default class View {
 
     unmount(mountAt: V.MountingPosition) {
         if (this.state().mounted) {
-            console.log(`[${this.editor.id}] %cunmount at ${toText(mountAt)}`, 'color: orange')
+            // console.log(`[${this.editor.id}] %cunmount at ${toText(mountAt)}`, 'color: orange')
             // Redux
             this.store.dispatch(Action.unmountView());
 
             switch (mountAt) {
                 case V.MountingPosition.Bottom:
-                    // mounting position
                     this.bottomPanel.destroy();
                     break;
                 case V.MountingPosition.Pane:
@@ -178,9 +177,7 @@ export default class View {
                 // do nothing
                 break;
             case V.MountingPosition.Pane:
-                const pane = atom.workspace.paneForItem(this.mountingPosition);
-                if (pane)
-                    pane.activateItem(this.mountingPosition);
+                this.viewPaneItem.activate()
                 break;
             default:
                 // do nothing
@@ -198,6 +195,7 @@ export default class View {
         // console.log(`[${this.uri.substr(12)}] %cdestroy`, 'color: red');
         this.unmount(this.state().mountAt.current);
         this.subscriptions.dispose();
+        this.viewPaneItem.destroy();
     }
 
     set(header: string, payload: string[], type = V.Style.PlainText) {
