@@ -74,14 +74,14 @@ export default class PaneItem {
         return `agda-mode://${this.editor.id}/${this.name}`
     }
 
-    open() {
+    open(options = {
+        searchAllPanes: true,
+        split: 'right'
+    }) {
         const uri = this.getURI();
         const previousActivePane = atom.workspace.getActivePane();
 
-        atom.workspace.open(uri, {
-            searchAllPanes: true,
-            split: 'right'
-        }).then(paneItem => {
+        atom.workspace.open(uri, options).then(paneItem => {
             this.paneItem = paneItem;
 
             const currentPane = atom.workspace.paneForItem(paneItem);
@@ -109,8 +109,9 @@ export default class PaneItem {
     close() {
         if (this.paneItem) {
             this.closedDeliberately = true;
-            const currentPane = atom.workspace.paneForItem(this.paneItem);
-            currentPane.destroyItem(this.paneItem);
+            const pane = atom.workspace.paneForItem(this.paneItem);
+            if (pane)
+                pane.destroyItem(this.paneItem);
             this.paneItem = null;
         }
     }
