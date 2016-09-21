@@ -5,7 +5,7 @@ import { EventEmitter } from 'events'
 declare var atom: any;
 
 import { View } from '../types';
-import { EVENT, VIEW, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
+import { EVENT, VIEW, DEV, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -17,7 +17,11 @@ const defaultState: View.State = {
         mountAt: {
             previous: null,
             current: View.MountingPosition.Bottom
-        }
+        },
+        devView: false
+    },
+    dev: {
+        messages: []
     },
     header: {
         text: '',
@@ -72,8 +76,26 @@ const view = handleActions<View.ViewState, VIEW>({
             previous: state.mountAt.current,
             current: View.MountingPosition.Bottom
         }
+    }),
+    [VIEW.TOGGLE_DEV_VIEW]: (state: View.ViewState, action: Action<VIEW.TOGGLE_DEV_VIEW>) => _.assign({}, state, {
+        devView: !state.devView
     })
 }, defaultState.view);
+
+const dev = handleActions<View.DevState, DEV>({
+    [DEV.REQUEST]: (state: View.DevState, action: Action<DEV.REQUEST>) => _.assign({}, state, {
+        messages: _.concat([{
+            kind: 'request',
+            message: action.payload
+        }], state.messages)
+    }),
+    [DEV.RESPONSE]: (state: View.DevState, action: Action<DEV.RESPONSE>) => _.assign({}, state, {
+        messages: _.concat([{
+            kind: 'response',
+            message: action.payload
+        }], state.messages)
+    })
+}, defaultState.dev);
 
 const inputMethod = handleActions<View.InputMethodState, INPUT_METHOD>({
     [INPUT_METHOD.ACTIVATE]: (state: View.InputMethodState, action: Action<INPUT_METHOD.ACTIVATE>) => {
@@ -149,6 +171,7 @@ const body = handleActions<View.BodyState, BODY>({
 // export default reducer;
 export default combineReducers<View.State>({
     view,
+    dev,
     header,
     inputMethod,
     miniEditor,

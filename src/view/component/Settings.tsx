@@ -13,16 +13,20 @@ declare var atom: any;
 
 interface Props {
     mountingPosition: View.MountingPosition;
+    devView: boolean;
     // callbacks
     mountAtPane: () => void;
     mountAtBottom: () => void;
+    toggleDevView: () => void;
     // dispatch to the store
     handleMountAtPane: () => void
     handleMountAtBottom: () => void;
+    handleToggleDevView: () => void;
 }
 
 const mapStateToProps = (state: View.State) => ({
-    mountingPosition: state.view.mountAt.current
+    mountingPosition: state.view.mountAt.current,
+    devView: state.view.devView
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
@@ -31,12 +35,16 @@ const mapDispatchToProps = (dispatch: any) => ({
     },
     handleMountAtBottom: () => {
         dispatch(Action.mountAtBottom());
+    },
+    handleToggleDevView: () => {
+        dispatch(Action.toggleDevView());
     }
 });
 
 class Settings extends React.Component<Props, void> {
     private subscriptions: CompositeDisposable;
     private toggleMountingPositionButton: HTMLElement;
+    private toggleDevViewButton: HTMLElement;
 
 
     constructor() {
@@ -51,6 +59,10 @@ class Settings extends React.Component<Props, void> {
             keyBindingCommand: 'agda-mode:toggle-docking'
 
         }));
+        this.subscriptions.add(atom.tooltips.add(this.toggleDevViewButton, {
+            title: 'toggle dev view (only available in dev mode)',
+            delay: 100
+        }));
     }
 
     componentWillUnmount() {
@@ -58,14 +70,33 @@ class Settings extends React.Component<Props, void> {
     }
 
     render() {
-        const { mountingPosition } = this.props;
-        const { mountAtPane, mountAtBottom } = this.props;
-        const { handleMountAtPane, handleMountAtBottom } = this.props;
+        const { mountingPosition, devView } = this.props;
+        const { mountAtPane, mountAtBottom, toggleDevView } = this.props;
+        const { handleMountAtPane, handleMountAtBottom, handleToggleDevView } = this.props;
+        // show dev view button only when in dev mode
+        const devViewClassList = classNames({
+            activated: devView,
+            hidden: !atom.inDevMode()
+        }, 'no-btn');
         const toggleMountingPosition = classNames({
             activated: mountingPosition === View.MountingPosition.Pane
         }, 'no-btn');
         return (
             <ul className="agda-settings">
+                <li>
+                    <button
+                        className={devViewClassList}
+                        onClick={() => {
+                            handleToggleDevView()
+                            toggleDevView()
+                        }}
+                        ref={(ref) => {
+                            this.toggleDevViewButton = ref;
+                        }}
+                    >
+                        <span className="icon icon-tools"></span>
+                    </button>
+                </li>
                 <li>
                     <button
                         className={toggleMountingPosition}

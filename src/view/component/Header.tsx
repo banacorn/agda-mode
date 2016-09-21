@@ -21,6 +21,7 @@ interface Props extends View.HeaderState {
     inputMethodActivated: boolean;
     mountAtPane: () => void;
     mountAtBottom: () => void;
+    toggleDevView: () => void;
 }
 
 const mapStateToProps = (state: View.State) => {
@@ -34,7 +35,7 @@ const mapStateToProps = (state: View.State) => {
 class Header extends React.Component<Props, void> {
     render() {
         const { text, style, inputMethodActivated } = this.props;
-        const { mountAtPane, mountAtBottom } = this.props;
+        const { mountAtPane, mountAtBottom, toggleDevView } = this.props;
         const classes = classNames({
             hidden: inputMethodActivated || _.isEmpty(text)
         }, 'agda-header')
@@ -44,6 +45,7 @@ class Header extends React.Component<Props, void> {
                 <Settings
                     mountAtPane={mountAtPane}
                     mountAtBottom={mountAtBottom}
+                    toggleDevView={toggleDevView}
                 />
             </div>
         )

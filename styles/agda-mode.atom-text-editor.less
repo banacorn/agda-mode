@@ -18,7 +18,7 @@
 
     // so that .agda-body will overflow and be scrollable
     height: 100%;
-    > section { // pane item
+    > section, .agda-dev-view { // pane item
         height: 100%;
     }
 
@@ -63,8 +63,13 @@
             height: @headerHeight;
             line-height: @headerHeight;
 
+            // flexbox
+            display: flex;
+
             button {
                 color: @text-color-subtle;
+                width: 30px;
+                height: 30px;
             }
             button:hover {
                 color: @text-color;
@@ -227,6 +232,36 @@
 
     }
 
+    .agda-dev-view {
+        @height: 30px;
+        // so that it would overflow and be scrollable
+        height: 100%;
+        overflow-y: scroll;
+
+
+        list-style: none;
+        margin: 0;
+        padding: 0 @component-padding;
+
+        li {
+            background: @base-background-color;
+            min-height: @height;
+            line-height: @height !important;
+            padding: 0px @component-padding;
+            margin: 10px 0;
+
+            // display: flex;
+            white-space: pre-wrap;       // preserves whitespaces
+        }
+
+        .request {
+            color: @text-color-success;
+        }
+
+        .response {
+            // color: green;
+        }
+    }
 
     // Makes buttons look like ordinary texts
     button.no-btn {
