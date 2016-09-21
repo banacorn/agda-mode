@@ -19,7 +19,7 @@ class Dev extends React.Component<Props, void> {
         console.log(messages.length)
         return (
             <ol className="agda-dev-view">{messages.map((msg, i) =>
-                    <li key={i}>
+                    <li key={i} className={msg.kind}>
                         {msg.message}
                     </li>
             )}</ol>

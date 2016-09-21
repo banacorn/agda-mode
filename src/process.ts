@@ -248,6 +248,9 @@ export default class Process {
         } else {    // interaction is a callback
             command = `IOTCM \"${filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction()} )\n`;
         }
+        if (atom.inDevMode()) {
+            this.core.view.store.dispatch(Action.devRequest(command));
+        }
         this.agdaProcess.stdin.write(command);
         return Promise.resolve(this.agdaProcess);
     }
