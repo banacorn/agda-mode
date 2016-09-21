@@ -84,16 +84,16 @@ const view = handleActions<View.ViewState, VIEW>({
 
 const dev = handleActions<View.DevState, DEV>({
     [DEV.REQUEST]: (state: View.DevState, action: Action<DEV.REQUEST>) => _.assign({}, state, {
-        messages: _.concat(state.messages, [{
+        messages: _.concat([{
             kind: 'request',
             message: action.payload
-        }])
+        }], state.messages)
     }),
     [DEV.RESPONSE]: (state: View.DevState, action: Action<DEV.RESPONSE>) => _.assign({}, state, {
-        messages: _.concat(state.messages, [{
+        messages: _.concat([{
             kind: 'response',
             message: action.payload
-        }])
+        }], state.messages)
     })
 }, defaultState.dev);
 
