@@ -171,6 +171,7 @@ const body = handleActions<View.BodyState, BODY>({
 // export default reducer;
 export default combineReducers<View.State>({
     view,
+    dev,
     header,
     inputMethod,
     miniEditor,

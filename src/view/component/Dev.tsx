@@ -2,39 +2,32 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
+import { View } from '../../types';
 
-// interface Props extends View.HeaderState {
-//     // inputMethodActivated: boolean;
-//     // mountAtPane: () => void;
-//     // mountAtBottom: () => void;
-//     // toggleDevView: () => void;
-// }
+interface Props extends View.DevState {
+}
 
-// const mapStateToProps = (state: View.State) => {
-//     return {
-//         text: state.header.text,
-//         style: state.header.style,
-//         inputMethodActivated: state.inputMethod.activated
-//     }
-// }
+const mapStateToProps = (state: View.State) => {
+    return {
+        messages: state.dev.messages
+    }
+}
 
-class Dev extends React.Component<void, void> {
+class Dev extends React.Component<Props, void> {
     render() {
-        // const { text, style, inputMethodActivated } = this.props;
-        // const { mountAtPane, mountAtBottom, toggleDevView } = this.props;
-        // const classes = classNames({
-        //     hidden: inputMethodActivated || _.isEmpty(text)
-        // }, 'agda-header')
+        const { messages } = this.props;
+        console.log(messages.length)
         return (
-            <div>
-                dev
-            </div>
+            <ol className="agda-dev-view">{messages.map((msg, i) =>
+                    <li key={i}>
+                        {msg.message}
+                    </li>
+            )}</ol>
         )
     }
 }
 
 export default connect<any, any, any>(
-    null,
-    // mapStateToProps,
+    mapStateToProps,
     null
 )(Dev);

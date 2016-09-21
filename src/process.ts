@@ -7,6 +7,7 @@ import { handleAgdaResponse } from './handler';
 import { InvalidExecutablePathError, ProcExecError, AutoExecPathSearchError, AgdaParseError } from './error';
 import { Goal, Normalization, View } from './types';
 import Core from './core';
+import * as Action from './view/actions';
 
 var semver = require('semver');
 declare var atom: any;
@@ -196,6 +197,9 @@ export default class Process {
                             .pipe(new Rectifier)
                             .on('data', (data) => {
                                 try {
+                                    if (atom.inDevMode()) {
+                                        this.core.view.store.dispatch(Action.devResponse(data));
+                                    }
                                     const response = parseAgdaResponse(data);
                                     handleAgdaResponse(this.core, response);
                                 } catch (error) {
