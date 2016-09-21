@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as path from 'path';
 import { EventEmitter } from 'events';
 
@@ -47,16 +48,18 @@ export default class PaneItem {
     private opener = (uri: string) => {
         // e.g. "agda-mode://12312/view"
         //       [scheme ]   [dir] [name]
-        const [scheme, pathRest] = uri.split('://');
-        const { dir, name } = path.parse(pathRest);
 
-        const openedByAgdaMode = scheme === 'agda-mode';
-        const openedByTheSameEditor = dir === this.editor.id.toString();
-        const openedForTheSamePurpose = name === this.name;
-        if (openedByAgdaMode && openedByTheSameEditor && openedForTheSamePurpose) {
-            return this.createPaneItem();
+        const openedByAgdaMode = _.startsWith(uri, 'agda-mode://');
+        if (openedByAgdaMode) {
+            const { dir, name } = path.parse(uri.substr(12));
+            const openedByTheSameEditor = dir === this.editor.id.toString();
+            const openedForTheSamePurpose = name === this.name;
+            if (openedByTheSameEditor && openedForTheSamePurpose)
+                return this.createPaneItem();
+            else
+                return null;
         } else {
-            return null;
+            return null
         }
     }
 

@@ -16,7 +16,6 @@ const mapStateToProps = (state: View.State) => {
 class Dev extends React.Component<Props, void> {
     render() {
         const { messages } = this.props;
-        console.log(messages.length)
         return (
             <ol className="agda-dev-view">{messages.map((msg, i) =>
                     <li key={i} className={msg.kind}>
