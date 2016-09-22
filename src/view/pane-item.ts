@@ -123,6 +123,17 @@ export default class PaneItem {
         }
     }
 
+    isActive(): boolean {
+        if (this.paneItem) {
+            const pane = atom.workspace.paneForItem(this.paneItem);
+            if (pane && pane.isActive()) {
+                return pane.getActiveItem().getURI() === this.getURI()
+            }
+        }
+        return false;
+
+    }
+
     // events
     onOpen(callback: (any, panes?: {
         previous: any,
