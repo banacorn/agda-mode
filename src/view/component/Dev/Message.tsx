@@ -9,13 +9,26 @@ interface Props extends React.HTMLProps<HTMLDivElement> {
 
 class Message extends React.Component<Props, void> {
     render() {
-        const { kind, raw, processed } = this.props.message;
-        return (
-            <li className={kind}>
-                {raw}
-            </li>
-        )
+        const { kind, raw, parsed } = this.props.message;
+
+        if (kind === 'response') {
+            return (
+                <li className={`dev-message response`}>
+                    <div className={`dev-message-item raw`}>{raw}</div>
+                    <div className={`dev-message-item parsed`}>{parsed}</div>
+                </li>
+            )
+        } else {
+            return (
+                <li className={`dev-message request`}>
+                    <div className={`dev-message-item raw`}>{raw}</div>
+                </li>
+            )
+        }
     }
 }
+// {_.isEmpty(parsed)
+//     ? null
+//     : <div className={`dev-message parsed`}>[{parsed}]</div>}
 
 export default Message;

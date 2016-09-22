@@ -1,9 +1,11 @@
 import * as _ from 'lodash';
 import { combineReducers } from 'redux';
+import { inspect } from 'util';
 import { createAction, handleActions, Action } from 'redux-actions';
 import { EventEmitter } from 'events'
 declare var atom: any;
 
+import * as Parser from '../parser';
 import { View } from '../types';
 import { EVENT, VIEW, DEV, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
 import { translate } from '../input-method';
@@ -94,7 +96,8 @@ const dev = handleActions<View.DevState, DEV>({
     [DEV.ADD_RESPONSE]: (state: View.DevState, action: Action<DEV.ADD_RESPONSE>) => _.assign({}, state, {
         messages: _.take(_.concat([{
             kind: 'response',
-            raw: action.payload
+            raw: action.payload,
+            parsed: inspect(Parser.parseAgdaResponse(action.payload), false, null)
         }], state.messages), MAX_DEV_MSG_SIZE)
     }),
     [DEV.CLEAR_ALL]: (state: View.DevState, action: Action<DEV.CLEAR_ALL>) => _.assign({}, state, {

@@ -20,9 +20,9 @@ class Dev extends React.Component<Props, void> {
     render() {
         const { messages } = this.props;
         return (
-            <section>
+            <section className="agda-dev-view">
                 <Panel/>
-                <ol className="agda-dev-view">{messages.map((msg, i) =>
+                <ol className="agda-dev-body">{messages.map((msg, i) =>
                     <Message
                         key={i}
                         message={msg}
