@@ -46,18 +46,22 @@ export const mountAtBottom = createAction(VIEW.MOUNT_AT_BOTTOM);
 export const toggleDevView = createAction(VIEW.TOGGLE_DEV_VIEW);
 
 export type DEV
-    = DEV.REQUEST
-    | DEV.RESPONSE
+    = DEV.ADD_REQUEST
+    | DEV.ADD_RESPONSE
+    | DEV.CLEAR_ALL
 
 export namespace DEV {
-    export const REQUEST = 'DEV.REQUEST';
-    export type REQUEST = string;
-    export const RESPONSE = 'DEV.RESPONSE';
-    export type RESPONSE = string;
+    export const ADD_REQUEST = 'DEV.ADD_REQUEST';
+    export type ADD_REQUEST = string;
+    export const ADD_RESPONSE = 'DEV.ADD_RESPONSE';
+    export type ADD_RESPONSE = string;
+    export const CLEAR_ALL = 'DEV.CLEAR_ALL';
+    export type CLEAR_ALL = void;
 }
 
-export const devRequest = createAction(DEV.REQUEST);
-export const devResponse = createAction(DEV.RESPONSE);
+export const devAddRequest = createAction(DEV.ADD_REQUEST);
+export const devAddResponse = createAction(DEV.ADD_RESPONSE);
+export const devClearAll= createAction(DEV.CLEAR_ALL);
 
 export type INPUT_METHOD = INPUT_METHOD.ACTIVATE
     | INPUT_METHOD.DEACTIVATE

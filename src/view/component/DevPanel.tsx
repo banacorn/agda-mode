@@ -12,14 +12,8 @@ var { CompositeDisposable } = require('atom');
 declare var atom: any;
 
 interface Props {
-    // mountingPosition: View.MountingPosition;
-    // devView: boolean;
-    // // callbacks
-    // mountAtPane: () => void;
-    // mountAtBottom: () => void;
-    // toggleDevView: () => void;
     // dispatch to the store
-    // clearAll: () => void
+    clearAll: () => void
 }
 
 const mapStateToProps = (state: View.State) => ({
@@ -27,15 +21,9 @@ const mapStateToProps = (state: View.State) => ({
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
-    // clearAll: () => {
-    //     dispatch(Action.mountAtPane());
-    // },
-    // handleMountAtBottom: () => {
-    //     dispatch(Action.mountAtBottom());
-    // },
-    // handleToggleDevView: () => {
-    //     dispatch(Action.toggleDevView());
-    // }
+    clearAll: () => {
+        dispatch(Action.devClearAll());
+    }
 });
 
 class DevPanel extends React.Component<Props, void> {
@@ -53,10 +41,6 @@ class DevPanel extends React.Component<Props, void> {
             delay: 100
 
         }));
-        // this.subscriptions.add(atom.tooltips.add(this.toggleDevViewButton, {
-        //     title: 'toggle dev view (only available in dev mode)',
-        //     delay: 100
-        // }));
     }
 
     componentWillUnmount() {
@@ -64,10 +48,7 @@ class DevPanel extends React.Component<Props, void> {
     }
 
     render() {
-        // const { mountingPosition, devView } = this.props;
-        // const { mountAtPane, mountAtBottom, toggleDevView } = this.props;
-        // const { handleMountAtPane, handleMountAtBottom, handleToggleDevView } = this.props;
-        // show dev view button only when in dev mode
+        const { clearAll } = this.props;
         // const devViewClassList = classNames({
         //     activated: devView,
         //     hidden: !atom.inDevMode()
@@ -80,8 +61,7 @@ class DevPanel extends React.Component<Props, void> {
                 <li>
                     <button
                         className="no-btn"
-                        onClick={() => {
-                        }}
+                        onClick={clearAll}
                         ref={(ref) => {
                             this.clearAllButton = ref;
                         }}
@@ -96,7 +76,5 @@ class DevPanel extends React.Component<Props, void> {
 
 export default connect<any, any, any>(
     null,
-    null
-    // mapStateToProps,
-    // mapDispatchToProps
+    mapDispatchToProps
 )(DevPanel);

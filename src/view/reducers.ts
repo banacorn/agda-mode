@@ -85,17 +85,20 @@ const view = handleActions<View.ViewState, VIEW>({
 const MAX_DEV_MSG_SIZE = 100;
 
 const dev = handleActions<View.DevState, DEV>({
-    [DEV.REQUEST]: (state: View.DevState, action: Action<DEV.REQUEST>) => _.assign({}, state, {
+    [DEV.ADD_REQUEST]: (state: View.DevState, action: Action<DEV.ADD_REQUEST>) => _.assign({}, state, {
         messages: _.take(_.concat([{
             kind: 'request',
             message: action.payload
         }], state.messages), MAX_DEV_MSG_SIZE)
     }),
-    [DEV.RESPONSE]: (state: View.DevState, action: Action<DEV.RESPONSE>) => _.assign({}, state, {
+    [DEV.ADD_RESPONSE]: (state: View.DevState, action: Action<DEV.ADD_RESPONSE>) => _.assign({}, state, {
         messages: _.take(_.concat([{
             kind: 'response',
             message: action.payload
         }], state.messages), MAX_DEV_MSG_SIZE)
+    }),
+    [DEV.CLEAR_ALL]: (state: View.DevState, action: Action<DEV.CLEAR_ALL>) => _.assign({}, state, {
+        messages: []
     })
 }, defaultState.dev);
 
