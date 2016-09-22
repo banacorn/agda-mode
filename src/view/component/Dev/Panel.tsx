@@ -57,19 +57,23 @@ class DevPanel extends React.Component<Props, void> {
         //     activated: mountingPosition === View.MountingPosition.Pane
         // }, 'no-btn');
         return (
-            <ul className="agda-dev-panel">
-                <li>
-                    <button
-                        className="no-btn"
-                        onClick={clearAll}
-                        ref={(ref) => {
-                            this.clearAllButton = ref;
-                        }}
-                    >
-                        <span className="icon icon-trashcan"></span>
-                    </button>
-                </li>
-            </ul>
+            <section className="agda-dev-panel">
+                <ul className="button-groups">
+                </ul>
+                <ul className="button-groups">
+                    <li>
+                        <button
+                            className="no-btn"
+                            onClick={clearAll}
+                            ref={(ref) => {
+                                this.clearAllButton = ref;
+                            }}
+                        >
+                            <span className="icon icon-trashcan"></span>
+                        </button>
+                    </li>
+                </ul>
+            </section>
         )
     }
 }

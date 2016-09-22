@@ -239,18 +239,24 @@
         overflow-y: scroll;
 
         .agda-dev-panel {
-            @height: 30px;
 
-            list-style: none;
-            margin: 0;
+            @height: 30px;
+            height: @height + 21px;
+            line-height: @height;
             padding: 10px @component-padding;
             border-bottom: 1px solid @tool-panel-border-color;
 
-            height: @height + 21px;
-            line-height: @height;
+            ul.button-groups {
+                list-style: none;
+                padding: 0;
 
-            // flexbox
+                // flexbox to contain multiple <button>s
+                display: flex;
+            }
+
+            // flexbox to contain multiple .button-groups
             display: flex;
+            justify-content: space-between;
 
             button {
                 color: @text-color-subtle;
@@ -259,6 +265,7 @@
                 text-align: center;
             }
             button:hover {
+                background: none;
                 color: @text-color;
             }
             button.activated {
