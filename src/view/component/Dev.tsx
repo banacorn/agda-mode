@@ -4,7 +4,8 @@ import * as _ from 'lodash';
 import * as classNames from 'classnames';
 import { View } from '../../types';
 
-import DevPanel from './DevPanel';
+import Panel from './Dev/Panel';
+import Message from './Dev/Message';
 
 interface Props extends View.DevState {
 }
@@ -20,11 +21,12 @@ class Dev extends React.Component<Props, void> {
         const { messages } = this.props;
         return (
             <section>
-                <DevPanel/>
+                <Panel/>
                 <ol className="agda-dev-view">{messages.map((msg, i) =>
-                        <li key={i} className={msg.kind}>
-                            {msg.message}
-                        </li>
+                    <Message
+                        key={i}
+                        message={msg}
+                    />
                 )}</ol>
             </section>
         )

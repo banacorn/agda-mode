@@ -54,7 +54,8 @@ namespace View {
 
     export interface DevMsg {
         kind: 'request' | 'response',
-        message: string
+        raw: string,
+        processed: string
     }
 
     export interface ViewState {

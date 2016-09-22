@@ -88,13 +88,13 @@ const dev = handleActions<View.DevState, DEV>({
     [DEV.ADD_REQUEST]: (state: View.DevState, action: Action<DEV.ADD_REQUEST>) => _.assign({}, state, {
         messages: _.take(_.concat([{
             kind: 'request',
-            message: action.payload
+            raw: action.payload
         }], state.messages), MAX_DEV_MSG_SIZE)
     }),
     [DEV.ADD_RESPONSE]: (state: View.DevState, action: Action<DEV.ADD_RESPONSE>) => _.assign({}, state, {
         messages: _.take(_.concat([{
             kind: 'response',
-            message: action.payload
+            raw: action.payload
         }], state.messages), MAX_DEV_MSG_SIZE)
     }),
     [DEV.CLEAR_ALL]: (state: View.DevState, action: Action<DEV.CLEAR_ALL>) => _.assign({}, state, {
