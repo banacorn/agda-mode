@@ -49,6 +49,7 @@ export type DEV
     = DEV.ADD_REQUEST
     | DEV.ADD_RESPONSE
     | DEV.CLEAR_ALL
+    | DEV.TOGGLE_ACCUMULATE
 
 export namespace DEV {
     export const ADD_REQUEST = 'DEV.ADD_REQUEST';
@@ -57,11 +58,14 @@ export namespace DEV {
     export type ADD_RESPONSE = string;
     export const CLEAR_ALL = 'DEV.CLEAR_ALL';
     export type CLEAR_ALL = void;
+    export const TOGGLE_ACCUMULATE = 'DEV.TOGGLE_ACCUMULATE';
+    export type TOGGLE_ACCUMULATE = void;
 }
 
 export const devAddRequest = createAction(DEV.ADD_REQUEST);
 export const devAddResponse = createAction(DEV.ADD_RESPONSE);
-export const devClearAll= createAction(DEV.CLEAR_ALL);
+export const devClearAll = createAction(DEV.CLEAR_ALL);
+export const devToggleAccumulate = createAction(DEV.TOGGLE_ACCUMULATE);
 
 export type INPUT_METHOD = INPUT_METHOD.ACTIVATE
     | INPUT_METHOD.DEACTIVATE

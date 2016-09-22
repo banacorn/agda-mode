@@ -23,7 +23,8 @@ const defaultState: View.State = {
         devView: false
     },
     dev: {
-        messages: []
+        messages: [],
+        accumulate: false
     },
     header: {
         text: '',
@@ -102,6 +103,9 @@ const dev = handleActions<View.DevState, DEV>({
     }),
     [DEV.CLEAR_ALL]: (state: View.DevState, action: Action<DEV.CLEAR_ALL>) => _.assign({}, state, {
         messages: []
+    }),
+    [DEV.TOGGLE_ACCUMULATE]: (state: View.DevState, action: Action<DEV.TOGGLE_ACCUMULATE>) => _.assign({}, state, {
+        accumulate: !state.accumulate
     })
 }, defaultState.dev);
 

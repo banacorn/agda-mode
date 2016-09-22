@@ -12,23 +12,29 @@ var { CompositeDisposable } = require('atom');
 declare var atom: any;
 
 interface Props {
+    accumulate: boolean;
     // dispatch to the store
-    clearAll: () => void
+    clearAll: () => void;
+    toogleAccumulate: () => void;
 }
 
 const mapStateToProps = (state: View.State) => ({
-    // devView: state.view.devView
+    accumulate: state.dev.accumulate
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
     clearAll: () => {
         dispatch(Action.devClearAll());
+    },
+    toogleAccumulate: () => {
+        dispatch(Action.devToggleAccumulate());
     }
 });
 
 class DevPanel extends React.Component<Props, void> {
     private subscriptions: CompositeDisposable;
     private clearAllButton: HTMLElement;
+    private toggleAccumulateButton: HTMLElement;
 
     constructor() {
         super();
@@ -39,7 +45,10 @@ class DevPanel extends React.Component<Props, void> {
         this.subscriptions.add(atom.tooltips.add(this.clearAllButton, {
             title: 'clear all messages',
             delay: 100
-
+        }));
+        this.subscriptions.add(atom.tooltips.add(this.toggleAccumulateButton, {
+            title: 'accumulate messages',
+            delay: 100
         }));
     }
 
@@ -48,17 +57,25 @@ class DevPanel extends React.Component<Props, void> {
     }
 
     render() {
-        const { clearAll } = this.props;
-        // const devViewClassList = classNames({
-        //     activated: devView,
-        //     hidden: !atom.inDevMode()
-        // }, 'no-btn');
-        // const toggleMountingPosition = classNames({
-        //     activated: mountingPosition === View.MountingPosition.Pane
-        // }, 'no-btn');
+        const { accumulate } = this.props;
+        const { clearAll, toogleAccumulate } = this.props;
+        const toggleAccumulateClassList = classNames({
+            activated: accumulate,
+        }, 'no-btn');
         return (
             <section className="agda-dev-panel">
                 <ul className="button-groups">
+                    <li>
+                        <button
+                            className={toggleAccumulateClassList}
+                            onClick={toogleAccumulate}
+                            ref={(ref) => {
+                                this.toggleAccumulateButton = ref;
+                            }}
+                        >
+                            <span className="icon icon-inbox"></span>
+                        </button>
+                    </li>
                 </ul>
                 <ul className="button-groups">
                     <li>
@@ -79,6 +96,6 @@ class DevPanel extends React.Component<Props, void> {
 }
 
 export default connect<any, any, any>(
-    null,
+    mapStateToProps,
     mapDispatchToProps
 )(DevPanel);

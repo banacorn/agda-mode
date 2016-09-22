@@ -48,7 +48,8 @@ namespace View {
     }
 
     export interface DevState {
-        messages: DevMsg[]
+        messages: DevMsg[];
+        accumulate: boolean;
     }
 
 
