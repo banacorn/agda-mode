@@ -44,31 +44,35 @@ function divideContent(lines: string[]): {
 
 // concatenate multiline judgements
 function concatItems(lines: string[]): string[] {
-    const newlineRegex = /^(?:Goal\:|Have\:|[^\(\{]+\s+\:\s*|Sort) \S*/;
 
-    let result = [];
-    let currentLine = 0;
-    lines.forEach((line, i) => {
-        const notTheLastLine = i + 1 < lines.length;
-        const preemptLine = notTheLastLine ? line + '\n' + lines[i + 1] : line;
+    function isNewLine(line: string): boolean {
+        const newlineRegex = /^(?:Goal\:|Have\:|[^\(\{]+\s+\:\s*|Sort) \S*/;
+        return newlineRegex.test(line);
+    }
 
-        const thisLineIsNewLine = newlineRegex.test(line);
-        const nextLineIsNewLine = notTheLastLine ? newlineRegex.test(lines[i + 1]) : false;
-        const thisLineAndNextLineIsNewLine = newlineRegex.test(preemptLine);
-
-        // console.log(`[${line}]`)
-        // console.log(`Line: ${thisLineIsNewLine} ${newlineRegex.test(preemptLine)} ${nextLineIsNewLine} [${line}]`)
-        if (thisLineIsNewLine || (thisLineAndNextLineIsNewLine && !nextLineIsNewLine)) {
-            currentLine = i;
-            result[currentLine] = line;
-        } else {
-            if (result[currentLine])
-                result[currentLine] = result[currentLine].concat('\n' + line);
-            else
-                result[currentLine] = line;
+    function aggregate(startFrom: number): [number, string] {
+        let aggregated = '';
+        // if is not a new line, then join the next line and try again
+        for (let i = startFrom; i < lines.length; i++) {
+            aggregated += lines[i];
+            if (isNewLine(aggregated)) {
+                return [i, aggregated]
+            }
         }
-    });
-    return _.compact(result);
+
+        return [lines.length, aggregated];
+    }
+
+
+    let aggregatedLines = []
+
+    for (let i = 0; i < lines.length; i++) {
+        const [ next, aggregated ] = aggregate(i);
+        aggregatedLines.push(aggregated);
+        i = next;
+    }
+    
+    return aggregatedLines;
 }
 
 
