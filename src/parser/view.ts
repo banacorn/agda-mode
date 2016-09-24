@@ -44,31 +44,54 @@ function divideContent(lines: string[]): {
 
 // concatenate multiline judgements
 function concatItems(lines: string[]): string[] {
-    const newlineRegex = /^(?:Goal\:|Have\:|[^\(\{]+\s+\:\s*|Sort) \S*/;
 
-    let result = [];
-    let currentLine = 0;
-    lines.forEach((line, i) => {
-        const notTheLastLine = i + 1 < lines.length;
-        const preemptLine = notTheLastLine ? line + '\n' + lines[i + 1] : line;
 
-        const thisLineIsNewLine = newlineRegex.test(line);
-        const nextLineIsNewLine = notTheLastLine ? newlineRegex.test(lines[i + 1]) : false;
-        const thisLineAndNextLineIsNewLine = newlineRegex.test(preemptLine);
+    function isNewLine(line: string): boolean {
+        //      Goal: Banana
+        const goal = /^Goal\: \S*/;
 
-        // console.log(`[${line}]`)
-        // console.log(`Line: ${thisLineIsNewLine} ${newlineRegex.test(preemptLine)} ${nextLineIsNewLine} [${line}]`)
-        if (thisLineIsNewLine || (thisLineAndNextLineIsNewLine && !nextLineIsNewLine)) {
-            currentLine = i;
-            result[currentLine] = line;
-        } else {
-            if (result[currentLine])
-                result[currentLine] = result[currentLine].concat('\n' + line);
-            else
-                result[currentLine] = line;
-        }
-    });
-    return _.compact(result);
+        //      Have: Banana
+        const have = /^Have\: \S*/;
+
+        //      Sort 123
+        const sort = /^Sort \S*/;
+
+        //      banana : Banana
+        const completeJudgement = /^[^\(\{\s]+\s+\:\s* \S*/;
+
+        // case when the term's name is too long, the rest of the judgement
+        // would go to the next line, e.g:
+        //      banananananananananananananananana
+        //          : Banana
+        const reallyLongTermIdentifier = /^\S+$/;
+
+        return goal.test(line)
+        || have.test(line)
+        || sort.test(line)
+        || reallyLongTermIdentifier.test(line)
+        || completeJudgement.test(line)
+    }
+
+
+    const newLineIndices = lines.map((line, index) => {
+            // console.log(isNewLine(line), line)
+            return { line, index }
+        })
+        .filter(pair => isNewLine(pair.line))
+        .map(pair => pair.index)
+
+    const aggregatedLines = newLineIndices.map((index, i) => {
+            if (i === newLineIndices.length - 1) {
+                // the last inteval
+                return [index, lines.length];
+            } else {
+                return [index, newLineIndices[i + 1]];
+            }
+        }).map(interval => {
+            return lines.slice(interval[0], interval[1]).join('\n');
+        });
+
+    return aggregatedLines;
 }
 
 

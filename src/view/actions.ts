@@ -19,6 +19,7 @@ export type VIEW
     | VIEW.UNMOUNT
     | VIEW.MOUNT_AT_PANE
     | VIEW.MOUNT_AT_BOTTOM
+    | VIEW.TOGGLE_DEV_VIEW
 export namespace VIEW {
     export const ACTIVATE = 'VIEW.ACTIVATE';
     export type ACTIVATE = void;
@@ -32,6 +33,8 @@ export namespace VIEW {
     export type MOUNT_AT_PANE = void;
     export const MOUNT_AT_BOTTOM = 'VIEW.MOUNT_AT_BOTTOM';
     export type MOUNT_AT_BOTTOM = void;
+    export const TOGGLE_DEV_VIEW = 'VIEW.TOGGLE_DEV_VIEW';
+    export type TOGGLE_DEV_VIEW = void;
 }
 
 export const activateView = createAction(VIEW.ACTIVATE);
@@ -40,6 +43,29 @@ export const mountView = createAction(VIEW.MOUNT);
 export const unmountView = createAction(VIEW.UNMOUNT);
 export const mountAtPane = createAction(VIEW.MOUNT_AT_PANE);
 export const mountAtBottom = createAction(VIEW.MOUNT_AT_BOTTOM);
+export const toggleDevView = createAction(VIEW.TOGGLE_DEV_VIEW);
+
+export type DEV
+    = DEV.ADD_REQUEST
+    | DEV.ADD_RESPONSE
+    | DEV.CLEAR_ALL
+    | DEV.TOGGLE_ACCUMULATE
+
+export namespace DEV {
+    export const ADD_REQUEST = 'DEV.ADD_REQUEST';
+    export type ADD_REQUEST = string;
+    export const ADD_RESPONSE = 'DEV.ADD_RESPONSE';
+    export type ADD_RESPONSE = string;
+    export const CLEAR_ALL = 'DEV.CLEAR_ALL';
+    export type CLEAR_ALL = void;
+    export const TOGGLE_ACCUMULATE = 'DEV.TOGGLE_ACCUMULATE';
+    export type TOGGLE_ACCUMULATE = void;
+}
+
+export const devAddRequest = createAction(DEV.ADD_REQUEST);
+export const devAddResponse = createAction(DEV.ADD_RESPONSE);
+export const devClearAll = createAction(DEV.CLEAR_ALL);
+export const devToggleAccumulate = createAction(DEV.TOGGLE_ACCUMULATE);
 
 export type INPUT_METHOD = INPUT_METHOD.ACTIVATE
     | INPUT_METHOD.DEACTIVATE

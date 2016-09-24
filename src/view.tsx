@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import * as Promise from 'bluebird';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import * as path from 'path';
 import { Provider, connect } from 'react-redux';
 import { createStore } from 'redux';
 import { EventEmitter } from 'events';
@@ -9,6 +10,7 @@ import { basename, extname } from 'path';
 
 import Core from './core';
 import Panel from './view/component/Panel';
+import Dev from './view/component/Dev';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
 import { View as V, Location } from './types';
@@ -16,6 +18,7 @@ import { EVENT } from "./view/actions";
 import * as Action from "./view/actions";
 import { parseContent, parseError} from './parser';
 import { updateHeader, activateMiniEditor, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
+import PaneItem from './view/pane-item';
 
 // Atom shits
 type CompositeDisposable = any;
@@ -25,24 +28,20 @@ declare var atom: any;
 export default class View {
     private emitter: EventEmitter;
     private subscriptions: CompositeDisposable;
-    private paneItemSubscriptions: CompositeDisposable;
-    public paneItemDestroyedByAtom: boolean;
     private editor: any;
     public store: Redux.Store<V.State>;
     public miniEditor: MiniEditor;
     private mountingPosition: HTMLElement;
     private bottomPanel: any;
-    private uri: string;
+    private devViewElement: HTMLElement;
+    private viewPaneItem: PaneItem;
+    private devViewPaneItem: PaneItem;
 
     constructor(private core: Core) {
         this.store = createStore(reducer);
         this.emitter = new EventEmitter;
         this.subscriptions = new CompositeDisposable;
-        this.paneItemSubscriptions = new CompositeDisposable;
-        this.paneItemDestroyedByAtom = true;
         this.editor = core.editor;
-
-        this.uri = `agda-mode://${this.core.editor.id}`;
 
         // global events
         this.emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
@@ -52,54 +51,55 @@ export default class View {
             this.core.textBuffer.jumpToLocation(loc);
         });
 
+        this.viewPaneItem = new PaneItem(this.editor, 'view');
+        this.viewPaneItem.onOpen((paneItem, panes) => {
+            // activate the previous pane (which opened this pane item)
+            panes.previous.activate();
+            // mounting position
+            this.mountingPosition = paneItem;
+            // render
+            this.render();
+        });
 
-        this.subscriptions.add(atom.workspace.addOpener((uri: string) => {
-            const {protocol, path} = this.parseURI(uri);
-
-            const openedByAgdaMode = protocol === 'agda-mode';
-            const openedByTheSameEditor = path === this.core.editor.id.toString();
-            if (openedByAgdaMode && openedByTheSameEditor) {
-                return this.createPaneItem(path);
+        this.viewPaneItem.onClose((paneItem, closedDeliberately) => {
+            // console.log(`[${this.editor.id}] ${paneItem.getURI()} closed ${closedDeliberately ? 'deliberately' : 'by atom'}`)
+            if (closedDeliberately === false) {
+                this.store.dispatch(Action.mountAtBottom());
+                this.unmount(V.MountingPosition.Pane);
+                this.mount(V.MountingPosition.Bottom);
             }
-        }));
-    }
+        });
 
-    private parseURI(uri: string) {
-        const [protocol, path] = uri.split('://');
-        return {
-            protocol: protocol,
-            path: path
-        }
-    }
+        // initialize dev view
+        this.devViewPaneItem = new PaneItem(this.editor, 'dev', () => {
+            const { name } = path.parse(this.editor.getPath());
+            return `[Dev] ${name}`
+        });
+        this.devViewPaneItem.onOpen((paneItem, panes) => {
+            // activate the previous pane (which opened this pane item)
+            panes.previous.activate();
 
-    private ownedPaneItem(item: any) {
+            this.devViewElement = paneItem;
 
-        return false;
+            this.renderDevView()
+        });
+        this.devViewPaneItem.onClose((paneItem, closedDeliberately) => {
+            // console.log(`dev view closed (deliberately: ${closedDeliberately})`)
+            if (closedDeliberately === false) {
+                this.store.dispatch(Action.toggleDevView());
+            }
+        });
     }
 
     private state() {
         return this.store.getState().view;
     }
 
-    private createPaneItem(path: string) {
-        const paneItem = document.createElement('article');
-        paneItem.classList.add('agda-view');
-        paneItem['getURI'] = () => this.uri;
-        //
-        const base = basename(this.editor.getPath())
-        const ext = extname(base)
-        const title = `[Agda Mode] ${base.substr(0, base.length - ext.length)}`
-        paneItem['getTitle'] = () => title;
-        paneItem['getEditor'] = () => this.editor;
-        paneItem.id = this.uri;
-        return paneItem;
-    }
 
     private render() {
         if (this.mountingPosition === null) {
             console.error(`this.mountingPosition === null`)
         }
-
         ReactDOM.render(
             <Provider store={this.store}>
                 <Panel
@@ -107,6 +107,13 @@ export default class View {
                     emitter={this.emitter}
                     onMiniEditorMount={(editor) => {
                         this.miniEditor = editor;
+                    }}
+                    toggleDevView={() => {
+                        const activated = this.store.getState().view.devView;
+                        if (activated)
+                            this.devViewPaneItem.open();
+                        else
+                            this.devViewPaneItem.close();
                     }}
                     mountAtPane={() => {
                         this.unmount(this.state().mountAt.previous);
@@ -123,6 +130,18 @@ export default class View {
         )
     }
 
+    private renderDevView() {
+        if (this.devViewElement === null) {
+            console.error(`this.devViewElement === null`)
+        }
+
+        ReactDOM.render(
+            <Provider store={this.store}>
+                <Dev/>
+            </Provider>,
+            this.devViewElement
+        )
+    }
     getEditor(): any {
         return this.editor;
     }
@@ -137,7 +156,7 @@ export default class View {
 
     mount(mountAt: V.MountingPosition) {
         if (!this.state().mounted) {
-            // console.log(`[${this.uri.substr(12)}] %cmount at ${toText(mountAt)}`, 'color: green')
+            // console.log(`[${this.editor.id}] %cmount at ${toText(mountAt)}`, 'color: green')
             // Redux
             this.store.dispatch(Action.mountView());
 
@@ -154,37 +173,7 @@ export default class View {
                     this.render();
                     break;
                 case V.MountingPosition.Pane:
-                    const uri = this.uri;
-                    const previousActivePane = atom.workspace.getActivePane()
-                    atom.workspace.open(uri, {
-                        searchAllPanes: true,
-                        split: 'right'
-                    }).then(view => {
-                        // mounting position
-                        this.mountingPosition = view;
-                        previousActivePane.activate();
-
-                        // on destroy
-                        const pane = atom.workspace.paneForItem(this.mountingPosition);
-                        if (pane) {
-                            this.paneItemSubscriptions.add(pane.onWillDestroyItem(event => {
-                                if (event.item.getURI() === this.uri) {
-                                    // console.log(`[${this.uri.substr(12)}] %cpane item destroyed by ${this.paneItemDestroyedByAtom ? `Atom` : 'agda-mode'}`, 'color: red');
-                                    if (this.paneItemDestroyedByAtom) {
-                                        this.store.dispatch(Action.mountAtBottom());
-                                        this.unmountPrim(V.MountingPosition.Pane);
-                                        this.mount(V.MountingPosition.Bottom);
-                                        // console.log(`[${this.uri.substr(12)}] %cstate of activation: ${this.state().activated}`, 'color: cyan')
-                                    } else {
-                                        this.paneItemDestroyedByAtom = true;
-                                    }
-                                }
-                            }));
-                        }
-
-                        // render
-                        this.render();
-                    })
+                    this.viewPaneItem.open()
                     break;
                 default:
                     console.error('no mounting position to transist to')
@@ -193,41 +182,17 @@ export default class View {
     }
 
     unmount(mountAt: V.MountingPosition) {
-        switch (mountAt) {
-            case V.MountingPosition.Bottom:
-                // do nothing
-                break;
-            case V.MountingPosition.Pane:
-                this.paneItemDestroyedByAtom = false;
-                break;
-            default:
-                // do nothing
-                break;
-        }
-        this.unmountPrim(mountAt);
-    }
-
-    private unmountPrim(mountAt: V.MountingPosition) {
         if (this.state().mounted) {
-            // console.log(`[${this.uri.substr(12)}] %cunmount at ${toText(mountAt)}`, 'color: orange')
+            // console.log(`[${this.editor.id}] %cunmount at ${toText(mountAt)}`, 'color: orange')
             // Redux
             this.store.dispatch(Action.unmountView());
 
             switch (mountAt) {
                 case V.MountingPosition.Bottom:
-                    // mounting position
                     this.bottomPanel.destroy();
                     break;
                 case V.MountingPosition.Pane:
-                    // destroy the pane item, but don't bother if it's already destroyed by Atom
-                    if (!this.paneItemDestroyedByAtom) {
-                        const pane = atom.workspace.paneForItem(this.mountingPosition);
-                        if (pane) {
-                            pane.destroyItem(this.mountingPosition);
-                            // unsubscribe
-                            this.paneItemSubscriptions.dispose();
-                        }
-                    }
+                    this.viewPaneItem.close()
                     break;
                 default:
                     // do nothing
@@ -251,9 +216,7 @@ export default class View {
                 // do nothing
                 break;
             case V.MountingPosition.Pane:
-                const pane = atom.workspace.paneForItem(this.mountingPosition);
-                if (pane)
-                    pane.activateItem(this.mountingPosition);
+                this.viewPaneItem.activate()
                 break;
             default:
                 // do nothing
@@ -271,6 +234,7 @@ export default class View {
         // console.log(`[${this.uri.substr(12)}] %cdestroy`, 'color: red');
         this.unmount(this.state().mountAt.current);
         this.subscriptions.dispose();
+        this.viewPaneItem.destroy();
     }
 
     set(header: string, payload: string[], type = V.Style.PlainText) {
@@ -341,7 +305,7 @@ export default class View {
 function toText(mp: V.MountingPosition): string {
     switch (mp) {
         case V.MountingPosition.Bottom:
-            return 'Bottom;'
+            return 'Bottom'
         case V.MountingPosition.Pane:
             return 'Pane'
         default:

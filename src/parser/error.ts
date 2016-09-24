@@ -360,12 +360,20 @@ const installedLibrary: Parser<{name: string, path: string}> = seq(
 const libraryNotFoundItem: Parser<{}> =  seq(
     token('Library \'').then(trimBeforeAndSkip('\' not found.\nAdd the path to its .agda-lib file to\n  \'')),
     trimBeforeAndSkip('\'\nto install.\nInstalled libraries:'),
-    installedLibrary.many()
+    alt(token('(none)'), installedLibrary.atLeast(1))
 ).map((result) => {
-    return <{}>{
-        name: result[0],
-        agdaLibFilePath: result[1],
-        installedLibraries: result[2]
+    if (result[2] === '(none)') {
+        return <{}>{
+            name: result[0],
+            agdaLibFilePath: result[1],
+            installedLibraries: []
+        }
+    } else {
+        return <{}>{
+            name: result[0],
+            agdaLibFilePath: result[1],
+            installedLibraries: result[2]
+        }
     }
 });
 
@@ -408,7 +416,17 @@ const errorParser: Parser<Error> = alt(
 );
 
 function parseError(input: string): Error {
-    return errorParser.parse(input).value;
+    const parseResult = errorParser.parse(input);
+    if (parseResult.status) {
+        return parseResult.value;
+    } else {
+        console.warn(parseResult)
+        return <Error.Unparsed>{
+            kind: 'Unparsed',
+            header: 'Error',
+            input: input
+        }
+    }
 }
 
 export {
