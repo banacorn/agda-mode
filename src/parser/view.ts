@@ -45,33 +45,52 @@ function divideContent(lines: string[]): {
 // concatenate multiline judgements
 function concatItems(lines: string[]): string[] {
 
+
     function isNewLine(line: string): boolean {
-        const newlineRegex = /^(?:Goal\:|Have\:|[^\(\{]+\s+\:\s*|Sort) \S*/;
-        return newlineRegex.test(line);
+        //      Goal: Banana
+        const goal = /^Goal\: \S*/;
+
+        //      Have: Banana
+        const have = /^Have\: \S*/;
+
+        //      Sort 123
+        const sort = /^Sort \S*/;
+
+        //      banana : Banana
+        const completeJudgement = /^[^\(\{\s]+\s+\:\s* \S*/;
+
+        // case when the term's name is too long, the rest of the judgement
+        // would go to the next line, e.g:
+        //      banananananananananananananananana
+        //          : Banana
+        const reallyLongTermIdentifier = /^\S+$/;
+
+        return goal.test(line)
+        || have.test(line)
+        || sort.test(line)
+        || reallyLongTermIdentifier.test(line)
+        || completeJudgement.test(line)
     }
 
-    function aggregate(startFrom: number): [number, string] {
-        let aggregated = '';
-        // if is not a new line, then join the next line and try again
-        for (let i = startFrom; i < lines.length; i++) {
-            aggregated += lines[i];
-            if (isNewLine(aggregated)) {
-                return [i, aggregated]
+
+    const newLineIndices = lines.map((line, index) => {
+            // console.log(isNewLine(line), line)
+            return { line, index }
+        })
+        .filter(pair => isNewLine(pair.line))
+        .map(pair => pair.index)
+
+    const aggregatedLines = newLineIndices.map((index, i) => {
+            if (i === newLineIndices.length - 1) {
+                // the last inteval
+                return [index, lines.length];
+            } else {
+                return [index, newLineIndices[i + 1]];
             }
-        }
+        }).map(interval => {
+            return lines.slice(interval[0], interval[1]).join('\n');
+        });
 
-        return [lines.length, aggregated];
-    }
-
-
-    let aggregatedLines = []
-
-    for (let i = 0; i < lines.length; i++) {
-        const [ next, aggregated ] = aggregate(i);
-        aggregatedLines.push(aggregated);
-        i = next;
-    }
-    
     return aggregatedLines;
 }
 
