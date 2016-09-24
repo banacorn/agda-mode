@@ -1,3 +1,7 @@
+## 0.6.3
+* Fix judgement parsing (#23)
+* Introduce dev-mode-only monitor (for debugging)
+
 ## 0.6.2
 * Fix mini editor won't go away
 * Fix S-expression parsing
