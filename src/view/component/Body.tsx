@@ -68,8 +68,8 @@ class Body extends React.Component<Props, void> {
                                 const index = parseInt(item.index.substr(1));
                                 emitter.emit(EVENT.JUMP_TO_GOAL, index);
                             }}>{item.index}</button>
-                            <span> : </span>
                         </div>
+                        <div className="item-colon"><span> : </span></div>
                         <div className="item-body">
                             <Expr emitter={emitter}>{item.type}</Expr>
                         </div>
@@ -78,8 +78,8 @@ class Body extends React.Component<Props, void> {
                     <li className="list-item body-item" key={i}>
                         <div className="item-heading">
                             <span className="text-success">{item.expr}</span>
-                            <span> : </span>
                         </div>
+                        <div className="item-colon"><span> : </span></div>
                         <div className="item-body">
                             <Expr emitter={emitter}>{item.type}</Expr>
                         </div>
@@ -94,8 +94,8 @@ class Body extends React.Component<Props, void> {
                     <li className="list-item body-item" key={i}>
                         <div className="item-heading">
                             <span className="text-success">{item.index}</span>
-                            <span> : </span>
                         </div>
+                        <div className="item-colon"><span> : </span></div>
                         <div className="item-body">
                             <Expr emitter={emitter}>{item.type}</Expr>
                             <Location abbr emitter={emitter}>{item.location}</Location>
