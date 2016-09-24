@@ -57,8 +57,11 @@ class Body extends React.Component<Props, void> {
             >
                 <ul className="list-group">{banner.map((item, i) =>
                     <li className="list-item banner-item" key={i}>
-                        <span><span className="text-info">{item.label}</span> : </span>
-                        <Expr emitter={emitter}>{item.type}</Expr>
+                        <div className="item-heading text-info">{item.label}</div>
+                        <div className="item-colon"><span> : </span></div>
+                        <div className="item-body">
+                            <Expr emitter={emitter}>{item.type}</Expr>
+                        </div>
                     </li>
                 )}</ul>
                 <ul className="list-group">{body.goal.map((item, i) =>
