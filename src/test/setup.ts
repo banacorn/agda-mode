@@ -9,6 +9,8 @@ var Mocha = require('mocha')
 
 module.exports = function(args) {
     const promise = new Promise((resolve, reject) => {
+        process.env.MOCHA_COLORS = "1"
+
         // constructs a headless Atom
         window['atom'] = args.buildAtomEnvironment({
             applicationDelegate: args.buildDefaultApplicationDelegate(),
@@ -21,6 +23,8 @@ module.exports = function(args) {
 
         // using Mocha programatically
         const mocha = new Mocha;
+
+        // add testing files to Mocha
         Mocha.utils
             .lookupFiles(testPath, ['js'], true)
             .forEach(mocha.addFile.bind(mocha))
@@ -32,6 +36,7 @@ module.exports = function(args) {
                     const [format, ...rest] = args;
                     const formatted = util.format(format, ...rest);
 
+                    // process.stdout.write(JSON.stringify(args) + '\n');
                     process.stdout.write(formatted + '\n');
                 }
             }
@@ -41,6 +46,7 @@ module.exports = function(args) {
                 stderr: { value: remote.process.stderr }
             })
 
+            // mocha.reporter('dot')
         }
 
 
@@ -48,6 +54,7 @@ module.exports = function(args) {
         const runner = mocha.run((failure) => {
             resolve(failure)
         });
+
     });
 
     // catch and report errors occured in test scripts!
