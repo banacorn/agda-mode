@@ -38,7 +38,6 @@
         "src/parser/util.ts",
         "src/parser/view.ts",
         "src/process.ts",
-        "src/test/runner.ts",
         "src/test/setup.ts",
         "src/test/test/activation.ts",
         "src/text-buffer.ts",

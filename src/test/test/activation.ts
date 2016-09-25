@@ -17,8 +17,6 @@ chai.use(require('chai-as-promised'));
 // Automatically track and cleanup files at exit
 temp.track()
 
-console.log('loading language-agda')
-
 // opens a new Agda file, and returns correspoding TextEditor
 const openFile = (options) => new Promise((resolve, reject) => {
     temp.open(options, (error, info) => {
@@ -67,7 +65,6 @@ describe('Spawn a group of files', () => {
         // let textEditor_ = null;
 
         beforeEach(() => {
-            console.log('%cfuck', 'color: red')
             atom.packages.deactivatePackage('agda-mode');
             atom.packages.activatePackage('agda-mode');
             return

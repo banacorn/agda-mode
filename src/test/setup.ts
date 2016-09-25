@@ -1,5 +1,6 @@
 // courtesy of @jccguimaraes, https://gist.github.com/jccguimaraes/2e08be6f549448d9361c
 import * as path from 'path';
+import * as util from 'util';
 // import * as Mocha from 'mocha';
 import * as Promise from 'bluebird';
 var Mocha = require('mocha')
@@ -22,6 +23,16 @@ module.exports = function(args) {
         Mocha.utils
             .lookupFiles(testPath, ['js'], true)
             .forEach(mocha.addFile.bind(mocha))
+
+        if (args.headless) {
+            // redirect console.log to stdout
+            console.log = (...args) => {
+                const [format, ...rest] = args;
+                const formatted = util.format(format, ...rest);
+                process.stdout.write(formatted + '\n');
+            }
+        }
+
 
         // run!
         const runner = mocha.run((failure) => {
@@ -46,7 +57,7 @@ module.exports = function(args) {
     })
     return promise
 }
-    // 
+    //
     // describe 'activating agda-mode', ->
     //
     //     textEditor_ = null
@@ -56,7 +67,7 @@ module.exports = function(args) {
     //         atom.packages.activatePackage('agda-mode')
     //         return
     //
-    //     it 'should be activated after triggering "agda-mode:load" in .agda files', (done) ->
+    //     it 'should be activated after triggering 'agda-mode:load' in .agda files', (done) ->
     //         openFile agdaFD
     //             .then (textEditor) ->
     //                 element = atom.views.getView(textEditor)
@@ -68,7 +79,7 @@ module.exports = function(args) {
     //                 textEditor_.core.should.be.defined
     //                 done()
     //
-    //     it 'should be activated after triggering "agda-mode:load" in .lagda files', (done) ->
+    //     it 'should be activated after triggering 'agda-mode:load' in .lagda files', (done) ->
     //         openFile lagdaFD
     //             .then (textEditor) ->
     //                 element = atom.views.getView(textEditor)
@@ -80,7 +91,7 @@ module.exports = function(args) {
     //                 textEditor_.core.should.be.defined
     //                 done()
     //
-    //     it 'should be activated after triggering "agda-mode:input-symbol" in .agda files', (done) ->
+    //     it 'should be activated after triggering 'agda-mode:input-symbol' in .agda files', (done) ->
     //         openFile agdaFD
     //             .then (textEditor) ->
     //                 element = atom.views.getView(textEditor)
@@ -92,7 +103,7 @@ module.exports = function(args) {
     //                 textEditor_.core.should.be.defined
     //                 done()
     //
-    //     it 'should be activated after triggering "agda-mode:input-symbol" in .lagda files', (done) ->
+    //     it 'should be activated after triggering 'agda-mode:input-symbol' in .lagda files', (done) ->
     //         openFile lagdaFD
     //             .then (textEditor) ->
     //                 element = atom.views.getView(textEditor)
