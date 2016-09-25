@@ -81,7 +81,7 @@ describe('Spawn a group of files', () => {
                 })
                 .then(() => {
                     getActivePackageNames().should.contain('agda-mode');
-                    console.log(editor.core)
+                    // console.log(editor.core)
                     done();
                 })
         });

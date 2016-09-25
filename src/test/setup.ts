@@ -1,6 +1,7 @@
 // courtesy of @jccguimaraes, https://gist.github.com/jccguimaraes/2e08be6f549448d9361c
 import * as path from 'path';
 import * as util from 'util';
+import { remote } from 'electron';
 // import * as Mocha from 'mocha';
 import * as Promise from 'bluebird';
 var Mocha = require('mocha')
@@ -27,10 +28,19 @@ module.exports = function(args) {
         if (args.headless) {
             // redirect console.log to stdout
             console.log = (...args) => {
-                const [format, ...rest] = args;
-                const formatted = util.format(format, ...rest);
-                process.stdout.write(formatted + '\n');
+                if (args.length > 0) {
+                    const [format, ...rest] = args;
+                    const formatted = util.format(format, ...rest);
+
+                    process.stdout.write(formatted + '\n');
+                }
             }
+
+            Object.defineProperties(process, {
+                stdout: { value: remote.process.stdout },
+                stderr: { value: remote.process.stderr }
+            })
+
         }
 
 

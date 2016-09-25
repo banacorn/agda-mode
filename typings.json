@@ -4,6 +4,7 @@
   },
   "globalDependencies": {
     "classnames": "registry:dt/classnames#0.0.0+20160316155526",
+    "electron": "registry:env/electron#0.37.6+20160909065630",
     "lodash": "registry:dt/lodash#4.14.0+20160830145422",
     "mocha": "registry:dt/mocha#2.2.5+20160720003353",
     "node": "registry:dt/node#6.0.0+20160923124626",

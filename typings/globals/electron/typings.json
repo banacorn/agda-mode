@@ -1,0 +1,43 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/types/env-electron/33b7814e99a685288e87a8756167d3230acaefeb/typings.json",
+    "raw": "registry:env/electron#0.37.6+20160909065630",
+    "main": "index.d.ts",
+    "version": "0.37.4",
+    "files": [
+      "index.d.ts",
+      "lib/app.d.ts",
+      "lib/auto-updater.d.ts",
+      "lib/browser-window.d.ts",
+      "lib/clipboard.d.ts",
+      "lib/content-tracing.d.ts",
+      "lib/crash-reporter.d.ts",
+      "lib/desktop-capturer.d.ts",
+      "lib/dialog.d.ts",
+      "lib/download-item.d.ts",
+      "lib/event-emitter.d.ts",
+      "lib/file-object.d.ts",
+      "lib/global-shortcut.d.ts",
+      "lib/ipc-main.d.ts",
+      "lib/ipc-renderer.d.ts",
+      "lib/menu-item.d.ts",
+      "lib/menu.d.ts",
+      "lib/native-image.d.ts",
+      "lib/power-monitor.d.ts",
+      "lib/power-save-blocker.d.ts",
+      "lib/protocol.d.ts",
+      "lib/remote.d.ts",
+      "lib/screen.d.ts",
+      "lib/session.d.ts",
+      "lib/shell.d.ts",
+      "lib/tray.d.ts",
+      "lib/web-contents.d.ts",
+      "lib/web-frame.d.ts",
+      "lib/web-view.d.ts",
+      "lib/window-open.d.ts"
+    ],
+    "name": "electron",
+    "type": "typings"
+  }
+}
