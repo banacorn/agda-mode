@@ -247,15 +247,20 @@ export default class View {
 
         if (type === V.Style.Info || type === V.Style.Success) {
             const { banner, body } = parseContent(payload);
-            const grouped = _.groupBy(body, 'judgementForm');
-            this.store.dispatch(updateBanner(banner));
-            this.store.dispatch(updateBody({
-                goal: (grouped['goal'] || []) as V.Goal[],
-                judgement: (grouped['type judgement'] || []) as V.Judgement[],
-                term: (grouped['term'] || []) as V.Term[],
-                meta: (grouped['meta'] || []) as V.Meta[],
-                sort: (grouped['sort'] || []) as V.Sort[]
-            }));
+            // if parseContent failed, fallback to displaying plain text
+            if (_.isEmpty(banner) && _.isEmpty(body)) {
+                this.store.dispatch(updatePlainText(payload.join('\n')));
+            } else {
+                const grouped = _.groupBy(body, 'judgementForm');
+                this.store.dispatch(updateBanner(banner));
+                this.store.dispatch(updateBody({
+                    goal: (grouped['goal'] || []) as V.Goal[],
+                    judgement: (grouped['type judgement'] || []) as V.Judgement[],
+                    term: (grouped['term'] || []) as V.Term[],
+                    meta: (grouped['meta'] || []) as V.Meta[],
+                    sort: (grouped['sort'] || []) as V.Sort[]
+                }));
+            }
         } else if (type === V.Style.Error) {
             const error = parseError(payload.join('\n'));
             this.store.dispatch(updateError(error));
