@@ -223,8 +223,4 @@ const config = {
 export {
     config,
     activate
-    // instantiateCore,
-    // registerEditorActivation,
-    // commands,
-    // registerCommands
 }

@@ -2,8 +2,10 @@ import * as Promise from 'bluebird';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as temp from 'temp';
+import * as util from 'util';
 
 import * as AgdaMode from '../../agda-mode';
+AgdaMode; // a dummy refernce here so that the module will be imported
 declare var atom: any;
 
 import * as chai from 'chai';
@@ -32,9 +34,6 @@ describe('Spawn a group of files', () => {
     const directory = null;
     let [agdaFD, lagdaFD, potatoFD] = [null, null, null];
 
-    // somehow we have to keep this line although it makes no sense
-    atom.packages.activatePackage('agda-mode')
-
     // spawn files
     agdaFD = {dir: directory, suffix: '.agda'}
     lagdaFD = {dir: directory, suffix: '.lagda'}
@@ -60,30 +59,30 @@ describe('Spawn a group of files', () => {
         });
     });
 
-    describe('activating language-agda', () => {
+    describe('activating agda-mode', () => {
 
-        // let textEditor_ = null;
+        let activationPromise;
 
         beforeEach(() => {
-            atom.packages.deactivatePackage('agda-mode');
-            atom.packages.activatePackage('agda-mode');
+            // atom.packages.deactivatePackage('agda-mode');
+            activationPromise = atom.packages.activatePackage('agda-mode');
             return
         });
 
         it('should be activated after triggering "agda-mode:load" in .agda files', (done) => {
-            let editor;
+
             openFile(agdaFD)
                 .then((textEditor) => {
+                    // get the element of the editor so that we could dispatch commands
                     const element = atom.views.getView(textEditor)
-                    atom.commands.dispatch(element, 'agda-mode:load')
-                    editor = textEditor;
-                    return atom.packages.activatePackage('agda-mode')
-                })
-                .then(() => {
-                    getActivePackageNames().should.contain('agda-mode');
-                    console.log(editor.core)
-                    done();
-                })
+                    atom.commands.dispatch(element, 'agda-mode:load');
+                    // wait after it's activated
+                    activationPromise.then(() => {
+                        getActivePackageNames().should.contain('agda-mode');
+                        textEditor.should.have.property('core');
+                        done();
+                    });
+                });
         });
     });
 
