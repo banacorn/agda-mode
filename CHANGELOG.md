@@ -1,3 +1,7 @@
+## 0.6.4
+* Fix judgement parsing (#23)
+* Fix plain text message won't display
+
 ## 0.6.3
 * Fix judgement parsing (#23)
 * Introduce dev-mode-only monitor (for debugging)

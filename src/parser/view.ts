@@ -46,7 +46,7 @@ function divideContent(lines: string[]): {
 function concatItems(lines: string[]): string[] {
 
 
-    function isNewLine(line: string): boolean {
+    function isNewLine({ line, nextLine, index }): boolean {
         //      Goal: Banana
         const goal = /^Goal\: \S*/;
 
@@ -64,20 +64,24 @@ function concatItems(lines: string[]): string[] {
         //      banananananananananananananananana
         //          : Banana
         const reallyLongTermIdentifier = /^\S+$/;
+        const restOfTheJudgement = /^\s*\:\s* \S*$/;
 
         return goal.test(line)
         || have.test(line)
         || sort.test(line)
-        || reallyLongTermIdentifier.test(line)
+        || reallyLongTermIdentifier.test(line) && (nextLine && restOfTheJudgement.test(nextLine))
         || completeJudgement.test(line)
     }
 
 
     const newLineIndices = lines.map((line, index) => {
-            // console.log(isNewLine(line), line)
-            return { line, index }
+            return {
+                line: line,
+                nextLine: lines[index + 1],
+                index: index
+            }
         })
-        .filter(pair => isNewLine(pair.line))
+        .filter(obj => isNewLine(obj))
         .map(pair => pair.index)
 
     const aggregatedLines = newLineIndices.map((index, i) => {
