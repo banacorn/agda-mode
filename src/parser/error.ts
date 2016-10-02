@@ -77,7 +77,7 @@ const didYouMean: Parser<string[]> = alt(seq(
 
 const notInScope: Parser<Error.NotInScope> = seq(
         location,
-        token('Not in scope:').then(trimBeforeAndSkip('at')).skip(location),
+        token('Not in scope:').then(trimBeforeAndSkip('at ')).skip(location),
         didYouMean,
         all
     ).map((result) => {
@@ -411,8 +411,7 @@ const errorParser: Parser<Error> = alt(
     termination,
     typeMismatch,
     parse,
-    patternMatchOnNonDatatype,
-    unparsed
+    patternMatchOnNonDatatype
 );
 
 function parseError(input: string): Error {
