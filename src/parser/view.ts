@@ -64,7 +64,11 @@ function concatItems(lines: string[]): string[] {
         //      banananananananananananananananana
         //          : Banana
         const reallyLongTermIdentifier = /^\S+$/;
-        const restOfTheJudgement = /^\s*\:\s* \S*$/;
+        const restOfTheJudgement = /^\s*\:\s* \S*/;
+
+        // console.log(`%c${line}`, 'color: green')
+        // console.log(`reallyLongTermIdentifier: ${reallyLongTermIdentifier.test(line)}`)
+        // console.log(`restOfTheJudgement: ${(nextLine && restOfTheJudgement.test(nextLine))}`)
 
         return goal.test(line)
         || have.test(line)
