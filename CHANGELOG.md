@@ -1,3 +1,7 @@
+## 0.6.5
+* Fix judgement parsing (#23)
+* Fix "Not In Scope" error parsing
+
 ## 0.6.4
 * Fix judgement parsing (#23)
 * Fix plain text message won't display
