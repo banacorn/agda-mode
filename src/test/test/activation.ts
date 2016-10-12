@@ -51,8 +51,6 @@ describe('Spawn a group of files', () => {
     describe('before activating agda-mode', () => {
         it('should not be activated before triggering events', () => {
             getActivePackageNames().should.not.contain('agda-mode');
-        });
-        it('should not have property `core` before activation', () => {
             openFile(agdaFD).should.eventually.not.have.property('core');
             openFile(lagdaFD).should.eventually.not.have.property('core');
             openFile(potatoFD).should.eventually.not.have.property('core');
@@ -64,7 +62,7 @@ describe('Spawn a group of files', () => {
         let activationPromise;
 
         beforeEach(() => {
-            // atom.packages.deactivatePackage('agda-mode');
+            atom.packages.deactivatePackage('agda-mode');
             activationPromise = atom.packages.activatePackage('agda-mode');
             return
         });
@@ -84,6 +82,83 @@ describe('Spawn a group of files', () => {
                     });
                 });
         });
+        //
+        // it('should be activated after triggering "agda-mode:load" in .lagda files', (done) => {
+        //
+        //     openFile(lagdaFD)
+        //         .then((textEditor) => {
+        //             // get the element of the editor so that we could dispatch commands
+        //             const element = atom.views.getView(textEditor)
+        //             atom.commands.dispatch(element, 'agda-mode:load');
+        //             // wait after it's activated
+        //             activationPromise.then(() => {
+        //                 getActivePackageNames().should.contain('agda-mode');
+        //                 textEditor.should.have.property('core');
+        //                 done();
+        //             });
+        //         });
+        // });
+
+        // it('should not be activated after triggering "agda-mode:load" in some other files', (done) => {
+        //
+        //     openFile(potatoFD)
+        //         .then((textEditor) => {
+        //             // get the element of the editor so that we could dispatch commands
+        //             const element = atom.views.getView(textEditor)
+        //             atom.commands.dispatch(element, 'agda-mode:load')
+        //         }).catch((error) => {
+        //             console.log(error)
+        //             done()
+        //         });
+        // });
+
+        // it('should be activated after triggering "agda-mode:load" in .lagda files', (done) => {
+        //
+        //     openFile(lagdaFD)
+        //         .then((textEditor) => {
+        //             // get the element of the editor so that we could dispatch commands
+        //             const element = atom.views.getView(textEditor)
+        //             atom.commands.dispatch(element, 'agda-mode:load');
+        //             // wait after it's activated
+        //             activationPromise.then(() => {
+        //                 getActivePackageNames().should.contain('agda-mode');
+        //                 textEditor.should.have.property('core');
+        //                 done();
+        //             });
+        //         });
+        // });
+        //
+        // it('should be activated after triggering "agda-mode:input-symbol" in .agda files', (done) => {
+        //
+        //     openFile(agdaFD)
+        //         .then((textEditor) => {
+        //             // get the element of the editor so that we could dispatch commands
+        //             const element = atom.views.getView(textEditor)
+        //             atom.commands.dispatch(element, 'agda-mode:input-symbol');
+        //             // wait after it's activated
+        //             activationPromise.then(() => {
+        //                 getActivePackageNames().should.contain('agda-mode');
+        //                 textEditor.should.have.property('core');
+        //                 done();
+        //             });
+        //         });
+        // });
+        //
+        // it('should be activated after triggering "agda-mode:input-symbol" in .lagda files', (done) => {
+        //
+        //     openFile(lagdaFD)
+        //         .then((textEditor) => {
+        //             // get the element of the editor so that we could dispatch commands
+        //             const element = atom.views.getView(textEditor)
+        //             atom.commands.dispatch(element, 'agda-mode:input-symbol');
+        //             // wait after it's activated
+        //             activationPromise.then(() => {
+        //                 getActivePackageNames().should.contain('agda-mode');
+        //                 textEditor.should.have.property('core');
+        //                 done();
+        //             });
+        //         });
+        // });
     });
 
 });

@@ -141,7 +141,7 @@ export default class Process {
         return this.validateExecutablePath(path);
     }
 
-    // get executable path by the command 'which'
+    // get executable path by the command 'F'
     autoGetPath(): Promise<string> {
         return new Promise((resolve: (string) => void, reject) => {
             const onWindows = process.platform === 'win32';
@@ -151,7 +151,7 @@ export default class Process {
             } else {
                 exec(`which ${programName}`, (error, stdout, stderr) => {
                     if (error) {
-                        console.error(error);
+                        // console.error(error);
                         reject(new AutoExecPathSearchError(error.toString(), programName));
                     } else {
                         resolve(this.validateExecutablePath(stdout));
