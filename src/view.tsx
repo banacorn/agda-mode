@@ -207,7 +207,6 @@ export default class View {
     }
 
     activate() {
-        // console.log(`[${this.uri.substr(12)}] %cactivated`, 'color: blue')
         setTimeout(() => {
             this.store.dispatch(Action.activateView());
         })

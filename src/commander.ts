@@ -1,5 +1,6 @@
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
+import { inspect } from 'util';
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError } from './error';
 import { Command, Normalization, View, CommandKind, PendingCommand } from './types';
 import Core from './core';
@@ -113,7 +114,7 @@ export default class Commander {
                     this.core.view.set('Query cancelled', [], View.Style.Warning);
                 })
                 .catch((error) => { // catch all the rest
-                    console.error(command);
+                    console.error(error);
                 })
         }
     }

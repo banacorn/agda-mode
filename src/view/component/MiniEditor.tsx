@@ -151,7 +151,10 @@ class MiniEditor extends React.Component<Props, State> {
             <atom-text-editor
                 class={classes}
                 mini
-                ref={(ref) => { this.ref = ref; }}
+                ref={(ref) => {
+                    if (ref)
+                        this.ref = ref
+                }}
             ></atom-text-editor>
         )
     }
