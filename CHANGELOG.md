@@ -1,6 +1,6 @@
 ## 0.6.5
 * Allow clicking through those annoying invisible goal index overlays
-
+* Restore indirect highlighting information passing
 
 ## 0.6.4
 * Fix judgement parsing (#23)

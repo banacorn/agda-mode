@@ -1,7 +1,8 @@
 import * as _ from 'lodash';
+import * as fs from 'fs';
 import { Agda, View } from './types';
 import Core from './core';
-import { parseJudgements, parseError } from './parser';
+import { parseSExpression, parseAnnotation, parseJudgements, parseError } from './parser';
 
 function handleAgdaResponse(core: Core, response: Agda.Response) {
     switch (response.kind) {
@@ -74,6 +75,18 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
 
 
         case 'HighlightLoadAndDeleteAction':
+            fs.readFile(response.content, (err, data) => {
+                const annotations = parseSExpression(data.toString()).map(parseAnnotation);
+                annotations.forEach((annotation) => {
+                    let unsolvedmeta = _.includes(annotation.type, 'unsolvedmeta');
+                    let terminationproblem = _.includes(annotation.type, 'terminationproblem')
+                    if (unsolvedmeta || terminationproblem) {
+                        core.highlightManager.highlight(annotation);
+                    }
+                });
+
+            })
+
             // ???
             break;
 

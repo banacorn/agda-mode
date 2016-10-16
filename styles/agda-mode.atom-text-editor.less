@@ -377,12 +377,12 @@ atom-text-editor.agda {
 
 .agda-highlight.unsolvedmeta .region {
     @color: saturate(@background-color-warning, 100%);
-    background: mix(@color, @syntax-background-color, 40%);
+    background: fade(mix(@color, @syntax-background-color, 60%), 50%);
 }
 
 .agda-highlight.terminationproblem .region {
     @color: saturate(@background-color-error, 100%);
-    background: mix(@color, @syntax-background-color, 40%);
+    background: fade(mix(@color, @syntax-background-color, 80%), 50%);
 }
 
 //

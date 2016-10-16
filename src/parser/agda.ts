@@ -85,26 +85,7 @@ function parseAgdaResponse(raw: string): Agda.Response {
         case 'agda2-highlight-add-annotations':
             let annotations: Agda.Annotation[] = _
                 .tail(tokens)
-                .map((obj) => {
-                    if (obj[4]) {
-                        return {
-                            start: obj[0],
-                            end: obj[1],
-                            type: obj[2],
-                            sourse: {
-                                filepath: obj[4][0],
-                                index: obj[4][2]
-                            }
-                        };
-
-                    } else {
-                        return {
-                            start: obj[0],
-                            end: obj[1],
-                            type: obj[2]
-                        };
-                    }
-                });
+                .map(parseAnnotation);
             return {
                 kind: 'HighlightAddAnnotations',
                 content: annotations
@@ -138,6 +119,27 @@ function parseInfoActionType(s: String): string {
         case '*Constraints*':       return 'Constraints';
         case '*Scope Info*':        return 'ScopeInfo';
         default:                    return 'Unknown';
+    }
+}
+
+function parseAnnotation(obj: any[]): Agda.Annotation {
+    if (obj[4]) {
+        return {
+            start: obj[0],
+            end: obj[1],
+            type: obj[2],
+            source: {
+                filepath: obj[4][0],
+                index: obj[4][2]
+            }
+        };
+
+    } else {
+        return {
+            start: obj[0],
+            end: obj[1],
+            type: obj[2]
+        };
     }
 }
 
@@ -202,5 +204,7 @@ function preprocess(chunk: string): string {
 }
 
 export {
-    parseAgdaResponse
+    parseAgdaResponse,
+    parseAnnotation,
+    parseSExpression
 }
