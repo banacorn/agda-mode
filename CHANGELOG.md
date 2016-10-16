@@ -1,3 +1,7 @@
+## 0.6.5
+* Allow clicking through those annoying invisible goal index overlays
+
+
 ## 0.6.4
 * Fix judgement parsing (#23)
 * Fix plain text message won't display
