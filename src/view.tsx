@@ -13,10 +13,10 @@ import Panel from './view/component/Panel';
 import Dev from './view/component/Dev';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
-import { View as V, Location } from './types';
+import { View as V, Location, Error } from './types';
 import { EVENT } from "./view/actions";
 import * as Action from "./view/actions";
-import { parseContent, parseError} from './parser';
+import { parseContent, parseError } from './parser';
 import { updateHeader, activateMiniEditor, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
 import PaneItem from './view/pane-item';
 
@@ -240,40 +240,55 @@ export default class View {
     set(header: string, payload: string[], type = V.Style.PlainText) {
         this.store.dispatch(Action.deactivateMiniEditor());
         atom.views.getView(this.getEditor()).focus()
+
         this.store.dispatch(updateHeader({
             text: header,
             style: type
         }));
+        this.store.dispatch(updatePlainText(payload.join('\n')));
 
-        if (type === V.Style.Info || type === V.Style.Success) {
-            const { banner, body } = parseContent(payload);
-            // if parseContent failed, fallback to displaying plain text
-            if (_.isEmpty(banner) && _.isEmpty(body)) {
-                this.store.dispatch(updatePlainText(payload.join('\n')));
-            } else {
-                const grouped = _.groupBy(body, 'judgementForm');
-                this.store.dispatch(updateBanner(banner));
-                this.store.dispatch(updateBody({
-                    goal: (grouped['goal'] || []) as V.Goal[],
-                    judgement: (grouped['type judgement'] || []) as V.Judgement[],
-                    term: (grouped['term'] || []) as V.Term[],
-                    meta: (grouped['meta'] || []) as V.Meta[],
-                    sort: (grouped['sort'] || []) as V.Sort[]
-                }));
-            }
-        } else if (type === V.Style.Error) {
-            const error = parseError(payload.join('\n'));
-            this.store.dispatch(updateError(error));
-            if (error) {
-                this.store.dispatch(updateHeader({
-                    style: V.Style.Error,
-                    text: error.header
-                }));
-            }
-        } else {
-            this.store.dispatch(updatePlainText(payload.join('\n')));
+    }
+
+    setError(error: Error) {
+
+        this.store.dispatch(Action.deactivateMiniEditor());
+        atom.views.getView(this.getEditor()).focus()
+
+        this.store.dispatch(updateHeader({
+            text: 'Error',
+            style: V.Style.Error
+        }));
+
+        this.store.dispatch(updateError(error));
+        if (error) {
+            this.store.dispatch(updateHeader({
+                style: V.Style.Error,
+                text: error.header
+            }));
         }
     }
+
+    setJudgements(header: string = 'Judgements', { banner, body }: V.Content) {
+        this.store.dispatch(Action.deactivateMiniEditor());
+        atom.views.getView(this.getEditor()).focus()
+
+        this.store.dispatch(updateHeader({
+            text: header,
+            style: V.Style.Info
+        }));
+
+        this.store.dispatch(updateBanner(banner));
+
+        const grouped = _.groupBy(body, 'judgementForm');
+        this.store.dispatch(updateBody({
+            goal: (grouped['goal'] || []) as V.Goal[],
+            judgement: (grouped['type judgement'] || []) as V.Judgement[],
+            term: (grouped['term'] || []) as V.Term[],
+            meta: (grouped['meta'] || []) as V.Meta[],
+            sort: (grouped['sort'] || []) as V.Sort[]
+        }));
+    }
+
 
     query(header: string = '', message: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {
         this.store.dispatch(Action.enableInMiniEditor(inputMethodOn));
