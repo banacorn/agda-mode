@@ -386,6 +386,19 @@ const libraryNotFound: Parser<Error.LibraryNotFound> =  seq(
         libraries: result[0]
     }
 });
+
+const unparsedButLocated: Parser<Error.UnparsedButLocated> = seq(
+    location,
+    all
+).map((result) => {
+    return <Error.UnparsedButLocated>{
+        kind: 'UnparsedButLocated',
+        location: result[0],
+        header: 'Error',
+        input: result[1]
+    }
+});
+
 const unparsed: Parser<Error.Unparsed> = all.map((result) => {
     return <Error.Unparsed>{
         kind: 'Unparsed',
@@ -411,12 +424,18 @@ const errorParser: Parser<Error> = alt(
     termination,
     typeMismatch,
     parse,
-    patternMatchOnNonDatatype
+    patternMatchOnNonDatatype,
+    unparsedButLocated,
+    unparsed
 );
 
 function parseError(input: string): Error {
     const parseResult = errorParser.parse(input);
     if (parseResult.status) {
+        if (parseResult.value.kind === 'UnparsedButLocated') {
+            console.info(parseResult.value.location);
+            console.warn(parseResult.value.input);
+        }
         return parseResult.value;
     } else {
         console.warn(parseResult)
