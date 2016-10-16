@@ -16,7 +16,7 @@ import reducer from './view/reducers';
 import { View as V, Location, Error } from './types';
 import { EVENT } from "./view/actions";
 import * as Action from "./view/actions";
-import { parseContent, parseError } from './parser';
+import { parseJudgements, parseError } from './parser';
 import { updateHeader, activateMiniEditor, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
 import PaneItem from './view/pane-item';
 
@@ -268,7 +268,7 @@ export default class View {
         }
     }
 
-    setJudgements(header: string = 'Judgements', { banner, body }: V.Content) {
+    setJudgements(header: string = 'Judgements', { banner, body }: V.Judgements) {
         this.store.dispatch(Action.deactivateMiniEditor());
         atom.views.getView(this.getEditor()).focus()
 

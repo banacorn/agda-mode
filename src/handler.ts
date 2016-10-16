@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Agda, View } from './types';
 import Core from './core';
-import { parseContent, parseError } from './parser';
+import { parseJudgements, parseError } from './parser';
 
 function handleAgdaResponse(core: Core, response: Agda.Response) {
     switch (response.kind) {
@@ -93,7 +93,7 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
                 core.view.set('No Goals', [], View.Style.Success);
 
             } else {
-                core.view.setJudgements('Goals', parseContent(action.content));
+                core.view.setJudgements('Goals', parseJudgements(action.content));
             }
             break;
         case 'Error':
@@ -116,10 +116,10 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
             core.view.set('Module Contents', action.content, View.Style.Info);
             break;
         case 'Context':
-            core.view.setJudgements('Context', parseContent(action.content));
+            core.view.setJudgements('Context', parseJudgements(action.content));
             break;
         case 'GoalTypeEtc':
-            core.view.setJudgements('Goal Type and Context', parseContent(action.content));
+            core.view.setJudgements('Goal Type and Context', parseJudgements(action.content));
             break;
         case 'NormalForm':
             core.view.set('Normal Form', action.content, View.Style.Info);

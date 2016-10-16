@@ -8,8 +8,8 @@ import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom, succeed,
 
 var { Point, Range } = require('atom');
 
-function parseContent(lines: string[]): View.Content {
-    const {banner, body} = divideContent(lines);
+function parseJudgements(lines: string[]): View.Judgements {
+    const {banner, body} = divideJudgements(lines);
     const bannerItems = concatItems(banner).map(parseBannerItem);
     const bodyItems = concatItems(body).map(parseBodyItem);
     return {
@@ -20,7 +20,7 @@ function parseContent(lines: string[]): View.Content {
 
 
 // divide content into header and body
-function divideContent(lines: string[]): {
+function divideJudgements(lines: string[]): {
     banner: string[],
     body: string[]
 } {
@@ -236,5 +236,5 @@ function parseLocation(str: string): Location {
 }
 
 export {
-    parseContent
+    parseJudgements
 }

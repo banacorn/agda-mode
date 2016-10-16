@@ -132,7 +132,7 @@ namespace View {
     // Body components
     ////////////////////////////////////////////
 
-    export interface Content {
+    export interface Judgements {
         banner: BannerItem[],
         body: BodyItem[]
     }
