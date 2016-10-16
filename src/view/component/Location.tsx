@@ -74,7 +74,7 @@ class Location extends React.Component<Props, void> {
                     onClick={() => {
                         emitter.emit(EVENT.JUMP_TO_LOCATION, this.location);
                     }}
-                >{this.locationPath}</span>
+                > {this.locationPath}</span>
             )
         }
     }
