@@ -52,24 +52,23 @@ const commands = [
     'agda-mode:input-symbol-back-quote'
 ]
 
-const subscriptions = new CompositeDisposable;
+let subscriptions = null;
 
 // register keymap bindings and emit commands
 function registerCommands() {
     commands.forEach((command) => {
-        atom.commands.add('atom-text-editor', command, () => {
-            // const paneItem = atom.workspace.getActivePaneItem()
-            // let editor = null;
-            // // since the pane item may be a spawned agda view
-            // if (_.includes(paneItem.classList, 'agda-view') && paneItem.getEditor) {
-            //     editor = paneItem.getEditor();
-            // } else {
-            //     editor = paneItem;
-            // }
-            console.log(command)
-            // console.log(`${command} ${editor.getPath()}`)
-            // editor.core.commander.activate(parseCommand(command));
-        });
+        subscriptions.add(atom.commands.add('atom-text-editor', command, () => {
+            const paneItem = atom.workspace.getActivePaneItem()
+            let editor = null;
+            // since the pane item may be a spawned agda view
+            if (_.includes(paneItem.classList, 'agda-view') && paneItem.getEditor) {
+                editor = paneItem.getEditor();
+            } else {
+                editor = paneItem;
+            }
+            console.log(`[${editor.id}] ${command}`)
+            editor.core.commander.activate(parseCommand(command));
+        }));
     })
 }
 
@@ -77,7 +76,7 @@ function registerCommands() {
 function registerEditorActivation() {
     let previousEditor = atom.workspace.getActivePaneItem();
     // console.log(editor.id, previousEditor)
-    atom.workspace.onDidChangeActivePaneItem((nextEditor) => {
+    subscriptions.add(atom.workspace.onDidChangeActivePaneItem((nextEditor) => {
         if (nextEditor) {
             if (previousEditor.core)
                 previousEditor.core.deactivate();
@@ -88,23 +87,22 @@ function registerEditorActivation() {
             if (previousEditor.core)
                 previousEditor.core.deactivate();
         }
-    });
+    }));
 }
 
 function deactivate() {
-    console.error('DEACTIVATE!!!!!!!!!!!!!!!');
-    subscriptions.dispose()
+    subscriptions.dispose();
 }
 
 function activate(state: any) {
+    subscriptions = new CompositeDisposable;
     subscriptions.add(atom.workspace.observeTextEditors((editor) => {
-        let subscriptions = new CompositeDisposable
-
+        let editorSubscriptions = new CompositeDisposable
         // instantiate core if it's .agda
         if (isAgdaFile(editor))
             instantiateCore(editor);
 
-        subscriptions.add(editor.onDidChangePath(() => {
+        editorSubscriptions.add(editor.onDidChangePath(() => {
             // agda => not agda
             if (editor.core && !isAgdaFile(editor)) {
                 const editorElement = atom.views.getView(editor);
@@ -119,8 +117,8 @@ function activate(state: any) {
             }
         }));
 
-        subscriptions.add(editor.onDidDestroy(() => {
-            subscriptions.dispose();
+        editorSubscriptions.add(editor.onDidDestroy(() => {
+            editorSubscriptions.dispose();
         }))
     }));
 
@@ -129,19 +127,16 @@ function activate(state: any) {
 }
 
 function instantiateCore(editor) {
-    console.log(`[${editor.id}] instantiating`)
-
     // add 'agda' class to the editor element
     // so that keymaps and styles know what to select
     const editorElement = atom.views.getView(editor);
     editorElement.classList.add('agda');
     editor.core = new Core(editor);
-    const subscription = editor.onDidDestroy(() => {
+    const editorSubscriptions = editor.onDidDestroy(() => {
         editor.core.destroy();
         editorElement.classList.remove('agda');
-        subscription.dispose();
+        editorSubscriptions.dispose();
     });
-
 }
 
 
@@ -241,5 +236,6 @@ const config = {
 
 export {
     config,
-    activate
+    activate,
+    deactivate
 }
