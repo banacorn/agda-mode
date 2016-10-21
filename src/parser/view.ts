@@ -8,8 +8,8 @@ import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom, succeed,
 
 var { Point, Range } = require('atom');
 
-function parseContent(lines: string[]): View.Content {
-    const {banner, body} = divideContent(lines);
+function parseJudgements(lines: string[]): View.Judgements {
+    const {banner, body} = divideJudgements(lines);
     const bannerItems = concatItems(banner).map(parseBannerItem);
     const bodyItems = concatItems(body).map(parseBodyItem);
     return {
@@ -20,7 +20,7 @@ function parseContent(lines: string[]): View.Content {
 
 
 // divide content into header and body
-function divideContent(lines: string[]): {
+function divideJudgements(lines: string[]): {
     banner: string[],
     body: string[]
 } {
@@ -46,7 +46,7 @@ function divideContent(lines: string[]): {
 function concatItems(lines: string[]): string[] {
 
 
-    function isNewLine(line: string): boolean {
+    function isNewLine({ line, nextLine, index }): boolean {
         //      Goal: Banana
         const goal = /^Goal\: \S*/;
 
@@ -64,20 +64,28 @@ function concatItems(lines: string[]): string[] {
         //      banananananananananananananananana
         //          : Banana
         const reallyLongTermIdentifier = /^\S+$/;
+        const restOfTheJudgement = /^\s*\:\s* \S*/;
+
+        // console.log(`%c${line}`, 'color: green')
+        // console.log(`reallyLongTermIdentifier: ${reallyLongTermIdentifier.test(line)}`)
+        // console.log(`restOfTheJudgement: ${(nextLine && restOfTheJudgement.test(nextLine))}`)
 
         return goal.test(line)
         || have.test(line)
         || sort.test(line)
-        || reallyLongTermIdentifier.test(line)
+        || reallyLongTermIdentifier.test(line) && (nextLine && restOfTheJudgement.test(nextLine))
         || completeJudgement.test(line)
     }
 
 
     const newLineIndices = lines.map((line, index) => {
-            // console.log(isNewLine(line), line)
-            return { line, index }
+            return {
+                line: line,
+                nextLine: lines[index + 1],
+                index: index
+            }
         })
-        .filter(pair => isNewLine(pair.line))
+        .filter(obj => isNewLine(obj))
         .map(pair => pair.index)
 
     const aggregatedLines = newLineIndices.map((index, i) => {
@@ -228,5 +236,5 @@ function parseLocation(str: string): Location {
 }
 
 export {
-    parseContent
+    parseJudgements
 }

@@ -1,6 +1,8 @@
 import * as _ from 'lodash';
+import * as fs from 'fs';
 import { Agda, View } from './types';
 import Core from './core';
+import { parseSExpression, parseAnnotation, parseJudgements, parseError } from './parser';
 
 function handleAgdaResponse(core: Core, response: Agda.Response) {
     switch (response.kind) {
@@ -73,6 +75,18 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
 
 
         case 'HighlightLoadAndDeleteAction':
+            fs.readFile(response.content, (err, data) => {
+                const annotations = parseSExpression(data.toString()).map(parseAnnotation);
+                annotations.forEach((annotation) => {
+                    let unsolvedmeta = _.includes(annotation.type, 'unsolvedmeta');
+                    let terminationproblem = _.includes(annotation.type, 'terminationproblem')
+                    if (unsolvedmeta || terminationproblem) {
+                        core.highlightManager.highlight(annotation);
+                    }
+                });
+
+            })
+
             // ???
             break;
 
@@ -88,14 +102,19 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
 function handleInfoAction(core: Core, action: Agda.InfoAction)  {
     switch (action.infoActionKind) {
         case 'AllGoals':
-            if (action.content.length === 0)
+            if (action.content.length === 0) {
                 core.view.set('No Goals', [], View.Style.Success);
-            else
-                core.view.set('Goals', action.content, View.Style.Info);
+
+            } else {
+                core.view.setJudgements('Goals', parseJudgements(action.content));
+            }
             break;
         case 'Error':
             core.commander.pendingQueue.reject();
-            core.view.set('Error', action.content, View.Style.Error);
+
+            const error = parseError(action.content.join('\n'));
+            core.view.setError(error);
+
             break;
         case 'TypeChecking':
             core.view.set('Type Checking', action.content);
@@ -110,10 +129,10 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
             core.view.set('Module Contents', action.content, View.Style.Info);
             break;
         case 'Context':
-            core.view.set('Context', action.content, View.Style.Info);
+            core.view.setJudgements('Context', parseJudgements(action.content));
             break;
         case 'GoalTypeEtc':
-            core.view.set('Goal Type and Context', action.content, View.Style.Info);
+            core.view.setJudgements('Goal Type and Context', parseJudgements(action.content));
             break;
         case 'NormalForm':
             core.view.set('Normal Form', action.content, View.Style.Info);

@@ -132,7 +132,7 @@ namespace View {
     // Body components
     ////////////////////////////////////////////
 
-    export interface Content {
+    export interface Judgements {
         banner: BannerItem[],
         body: BodyItem[]
     }
@@ -349,6 +349,7 @@ type Error
     | Error.RHSOmitted
     | Error.TypeMismatch
     | Error.Termination
+    | Error.UnparsedButLocated
     | Error.Unparsed;
 
 namespace Error {
@@ -508,6 +509,14 @@ namespace Error {
             }[]
         }[]
     }
+
+    export interface UnparsedButLocated {
+        kind: 'UnparsedButLocated',
+        location: Location,
+        header: string,
+        input: string,
+    }
+
     export interface Unparsed {
         kind: 'Unparsed',
         header: string,

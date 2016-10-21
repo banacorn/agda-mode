@@ -365,18 +365,24 @@ atom-text-editor[data-grammar="source agda"] {
     position: relative;
 }
 
+atom-text-editor.agda {
+    atom-overlay {
+        pointer-events: none;
+    }
+}
+
 //
 // highlighting
 //
 
 .agda-highlight.unsolvedmeta .region {
     @color: saturate(@background-color-warning, 100%);
-    background: mix(@color, @syntax-background-color, 40%);
+    background: fade(mix(@color, @syntax-background-color, 60%), 50%);
 }
 
 .agda-highlight.terminationproblem .region {
     @color: saturate(@background-color-error, 100%);
-    background: mix(@color, @syntax-background-color, 40%);
+    background: fade(mix(@color, @syntax-background-color, 80%), 50%);
 }
 
 //

@@ -129,6 +129,10 @@ class Error extends React.Component<Props, void> {
                     when checking that the expression <Expr emitter={emitter}>{error.expr}</Expr><br/>
                     has type <Expr emitter={emitter}>{error.exprType}</Expr>
             </p>
+            case 'UnparsedButLocated': return <p className="error">
+                    <Location emitter={emitter}>{error.location}</Location><br/>
+                    {error.input}
+            </p>
             case 'Unparsed': return <p className="error">{error.input}</p>
             default: return <p className="error">{inspect(error, false, null)}</p>
         }

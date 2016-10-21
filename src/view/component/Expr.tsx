@@ -38,7 +38,7 @@ class Expr extends React.Component<ExprProps, void> {
         let expressions;
         if (typeof this.props.children === 'string') {
             //                                         1       2                3
-            const tokens = this.props.children.split(/(\?\d+)|(\_[^\.]\S*)|Set (\_\S+)/g);
+            const tokens = this.props.children.split(/(\?\d+)|(\_[^\.][^\}\)\s]*)|(Set \_\S+)/g);
             expressions = tokens.map((token, i) => {
                 switch (i % 4) {
                     case 0: return {

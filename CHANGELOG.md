@@ -1,3 +1,15 @@
+## 0.6.6
+* Allow clicking through those annoying invisible goal index overlays
+* Restore indirect highlighting information passing
+
+## 0.6.5
+* Fix judgement parsing (#23)
+* Fix "Not In Scope" error parsing
+
+## 0.6.4
+* Fix judgement parsing (#23)
+* Fix plain text message won't display
+
 ## 0.6.3
 * Fix judgement parsing (#23)
 * Introduce dev-mode-only monitor (for debugging)
