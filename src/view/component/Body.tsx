@@ -52,7 +52,7 @@ class Body extends React.Component<Props, void> {
         return (
             <section
                 className={classes}
-                tabIndex="-1"
+                tabIndex={-1}
                 style={style}
             >
                 <ul className="list-group">{banner.map((item, i) =>

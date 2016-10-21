@@ -66,8 +66,8 @@ class SizingHandle extends React.Component<Props, State> {
                         }
                     }}
                     // to enable Drag & Drop
-                    draggable="true"
-                    tabIndex="-1"
+                    draggable={true}
+                    tabIndex={-1}
                 ></div>
             </div>
         )

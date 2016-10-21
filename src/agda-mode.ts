@@ -66,7 +66,7 @@ function registerCommands() {
             } else {
                 editor = paneItem;
             }
-            console.log(`[${editor.id}] ${command}`)
+            // console.log(`[${editor.id}] ${command}`)
             editor.core.commander.activate(parseCommand(command));
         }));
     })

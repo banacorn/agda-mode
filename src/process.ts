@@ -93,16 +93,16 @@ export default class Process {
             ].concat(_.compact(error.message.split('\n')));
             type = View.Style.Warning;
             placeholder = 'please enter the path by manual or change the settings again';
-        } else if (error instanceof ProcExecError) {
-            name = `Process execution error`;
-            message = error.message.split('\n');
-            type = View.Style.Warning;
-            placeholder = 'please enter the path by manual or change the settings again';
         } else if (error instanceof InvalidExecutablePathError) {
             name = `Invalid executable path`;
             message = [`Path: ${error.path}`].concat(error.message.split('\n'));
             type = View.Style.Error;
             placeholder = 'try another path';
+        } else if (error instanceof ProcExecError) {
+            name = `Process execution error`;
+            message = error.message.split('\n');
+            type = View.Style.Warning;
+            placeholder = 'please enter the path by manual or change the settings again';
         }
 
         return this.core.view.query(name, message, type, placeholder, false) // disable input method in the mini editor
