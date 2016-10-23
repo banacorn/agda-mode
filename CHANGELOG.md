@@ -1,3 +1,6 @@
+## 0.6.7
+* Fix memory leak of event handlers on package deactivation
+
 ## 0.6.6
 * Allow clicking through those annoying invisible goal index overlays
 * Restore indirect highlighting information passing
