@@ -37,7 +37,7 @@ function parseHole(text: string, indices: number[]): Hole[] {
 
             // in case the goalIndex wasn't given, make it '*'
             // this happens when splitting case, agda2-goals-action is one index short
-            const goalIndex = indices[i].toString() || '*';
+            const goalIndex = indices[i] && indices[i].toString() || '*';
 
 
             // {! zero 42!}

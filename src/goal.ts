@@ -40,7 +40,10 @@ export default class Goal {
         // overlay element
         const indexWidth = this.index === -1 ? 1 : this.index.toString().length;
         const element = document.createElement('div');
-        element.innerHTML = this.index.toString();
+        if (this.index === -1)
+            element.innerHTML = '*';
+        else
+            element.innerHTML = this.index.toString();
         element.classList.add('agda-goal-index');
         // those measurement functions are no longer part of the public API
         // we should come up with a new way to steal those measurements
