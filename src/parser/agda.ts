@@ -65,7 +65,7 @@ function parseAgdaResponse(raw: string): Agda.Response {
             return {
                 kind: 'SolveAllAction',
                 solutions: _.chunk(tokens[1], 2).map((arr) => {
-                    return { index: arr[0], expression: arr[1] }
+                    return { index: parseInt(arr[0] as string), expression: arr[1] }
                 })
             } as Agda.SolveAllAction;
         case 'agda2-make-case-action':
