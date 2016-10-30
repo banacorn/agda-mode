@@ -1,3 +1,7 @@
+## 0.6.8
+* Fix hole index parsing and display
+* Fix agda-mode:solve-constraints unable to fill out solutions
+
 ## 0.6.7
 * Fix memory leak of event handlers on package deactivation
 
