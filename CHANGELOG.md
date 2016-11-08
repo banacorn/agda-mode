@@ -1,3 +1,6 @@
+## 0.6.9
+* Fix unable to input certain symbols before agda-mode:load
+
 ## 0.6.8
 * Fix hole index parsing and display
 * Fix agda-mode:solve-constraints unable to fill out solutions
