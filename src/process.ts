@@ -293,7 +293,7 @@ export default class Process {
         const path = atom.config.get('agda-mode.executablePath');
         const args = this.getProgramArgs();
         args.push('--interaction');
-        const agdaVersion = this.agdaVersion ? this.agdaVersion.raw : 'null';
+        const agdaVersion = this.agdaVersion ? this.agdaVersion.raw : 'unknown';
         this.core.view.set('Info', [
             `Agda version: ${agdaVersion}`,
             `Agda executable path: ${path}`,

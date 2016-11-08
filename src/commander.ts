@@ -90,7 +90,11 @@ export default class Commander {
 
     activate(command: Command) {
         // some commands can only be executed after 'loaded'
-        const exception = ['Load', 'Quit', 'Info', 'InputSymbol',
+        const exception = [
+                'Load',
+                'Quit',
+                'Info',
+                'InputSymbol',
                 'InputSymbolCurlyBracket',
                 'InputSymbolBracket',
                 'InputSymbolParenthesis',
