@@ -90,7 +90,14 @@ export default class Commander {
 
     activate(command: Command) {
         // some commands can only be executed after 'loaded'
-        const exception = ['Load', 'Quit', 'Info', 'InputSymbol'];
+        const exception = ['Load', 'Quit', 'Info', 'InputSymbol',
+                'InputSymbolCurlyBracket',
+                'InputSymbolBracket',
+                'InputSymbolParenthesis',
+                'InputSymbolDoubleQuote',
+                'InputSymbolSingleQuote',
+                'InputSymbolBackQuote'
+            ];
         if(this.loaded || _.includes(exception, command.kind)) {
             this.dispatchCommand(command)
                 .then((result) => {
