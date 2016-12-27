@@ -22,7 +22,7 @@
           { 'label': 'Infer Type', 'command': 'agda-mode:infer-type[Simplified]' }
           { 'label': 'Module Contents', 'command': 'agda-mode:module-contents[Simplified]' }
           { 'label': 'Why In Scope', 'command': 'agda-mode:why-in-scope' }
-          { 'label': 'Compute Normal Form', 'command': 'agda-mode:compute-normal-form' }
+          { 'label': 'Compute Normal Form', 'command': 'agda-mode:compute-normal-form[DefaultCompute]' }
           { 'label': 'Goal Type', 'command': 'agda-mode:goal-type[Simplified]' }
           { 'label': 'Context', 'command': 'agda-mode:context[Simplified]' }
           { 'label': 'Goal Type and Context', 'command': 'agda-mode:goal-type-and-context[Simplified]' }

@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { Command, Normalization } from '../types';
+import { Command, Normalization, ComputeMode } from '../types';
 
 function parseNormalization(raw: string): Normalization {
     switch (raw) {
@@ -9,11 +9,18 @@ function parseNormalization(raw: string): Normalization {
         default:                throw `unknown normalization: ${raw}`;
     }
 }
+function parseComputeMode(raw: string): ComputeMode {
+    switch (raw) {
+        case 'DefaultCompute':  return 'DefaultCompute';
+        case 'IgnoreAbstract':  return 'IgnoreAbstract';
+        case 'UseShowInstance': return 'UseShowInstance';
+        default:                throw `unknown compute mode: ${raw}`;
+    }
+}
 
 function parseCommand(raw: string): Command {
     const result = raw.match(/^agda-mode:((?:\w|\-)*)(?:\[(\w*)\])?/);
     if (result === null) throw 'command parse error';
-
     switch (result[1]) {
         case 'load': return {
             kind: 'Load',
@@ -94,11 +101,7 @@ function parseCommand(raw: string): Command {
         };
         case 'compute-normal-form': return {
             kind: 'ComputeNormalForm',
-            editsFile: false,
-            expectedGoalsActionReplies: 1
-        };
-        case 'compute-normal-form-ignore-abstract': return {
-            kind: 'ComputeNormalFormIgnoreAbstract',
+            computeMode: parseComputeMode(result[2]),
             editsFile: false,
             expectedGoalsActionReplies: 1
         };

@@ -290,16 +290,18 @@ type CommandKind = 'Load' | 'Quit' | 'Restart' | 'Compile' |
     'SolveConstraints' | 'ShowGoals' | 'NextGoal' | 'PreviousGoal' |
     'ToggleDocking' |
     'WhyInScope' | 'InferType' | 'ModuleContents' | 'ComputeNormalForm' |
-    'ComputeNormalFormIgnoreAbstract' | 'Give' | 'Refine' | 'Auto' | 'Case' |
+    'Give' | 'Refine' | 'Auto' | 'Case' |
     'GoalType' | 'Context' | 'GoalTypeAndContext' | 'GoalTypeAndInferredType' |
     'InputSymbol' | 'InputSymbolCurlyBracket' | 'InputSymbolBracket'
     | 'InputSymbolParenthesis' | 'InputSymbolDoubleQuote' | 'InputSymbolSingleQuote'
     | 'InputSymbolBackQuote'
 type Normalization = 'Simplified' | 'Instantiated' | 'Normalised';
+type ComputeMode = 'DefaultCompute' | 'IgnoreAbstract' | 'UseShowInstance';
 
 type Command = {
     kind: CommandKind,
     normalization?: Normalization,
+    computeMode?: ComputeMode,
     editsFile: boolean,
     // the expected number of GoalsAction replies if it succeeds
     expectedGoalsActionReplies: number
@@ -535,6 +537,7 @@ export {
     CommandKind,
     Command,
     Normalization,
+    ComputeMode,
     // view
     View,
     // Errors

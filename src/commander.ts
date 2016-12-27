@@ -2,7 +2,7 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { inspect } from 'util';
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError } from './error';
-import { Command, Normalization, View, CommandKind, PendingCommand } from './types';
+import { Command, Normalization, ComputeMode, View, CommandKind, PendingCommand } from './types';
 import Core from './core';
 
 declare var atom: any;
@@ -154,9 +154,7 @@ export default class Commander {
             case 'ModuleContents':
                 return this.moduleContents(command.normalization);
             case 'ComputeNormalForm':
-                return this.computeNormalForm();
-            case 'ComputeNormalFormIgnoreAbstract':
-                return this.computeNormalFormIgnoreAbstract();
+                return this.computeNormalForm(command.computeMode);
             case 'Give':          return this.give();
             case 'Refine':        return this.refine();
             case 'Auto':          return this.auto();
@@ -323,41 +321,41 @@ export default class Commander {
     }
 
 
-    computeNormalForm(): Promise<{}> {
+    computeNormalForm(computeMode: ComputeMode): Promise<{}> {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
                     return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, 'expression to normalize:')
-                        .then(this.core.process.computeNormalForm(goal))
+                        .then(this.core.process.computeNormalForm(computeMode, goal))
                 } else {
-                    return this.core.process.computeNormalForm(goal)(goal.getContent())
+                    return this.core.process.computeNormalForm(computeMode, goal)(goal.getContent())
                 }
             })
             .catch(OutOfGoalError, () => {
                 return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, 'expression to normalize:')
-                    .then(this.core.process.computeNormalForm())
+                    .then(this.core.process.computeNormalForm(computeMode))
             })
             .then(() => Promise.resolve({}));
 
     }
 
 
-    computeNormalFormIgnoreAbstract(): Promise<{}> {
-        return this.core.textBuffer.getCurrentGoal()
-            .then((goal) => {
-                if (goal.isEmpty()) {
-                    return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Style.PlainText, 'expression to normalize:')
-                        .then(this.core.process.computeNormalFormIgnoreAbstract(goal))
-                } else {
-                    return this.core.process.computeNormalFormIgnoreAbstract(goal)(goal.getContent())
-                }
-            })
-            .catch(OutOfGoalError, () => {
-                return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Style.PlainText, 'expression to normalize:')
-                    .then(this.core.process.computeNormalFormIgnoreAbstract())
-            })
-            .then(() => Promise.resolve({}));
-    }
+    // computeNormalFormIgnoreAbstract(): Promise<{}> {
+    //     return this.core.textBuffer.getCurrentGoal()
+    //         .then((goal) => {
+    //             if (goal.isEmpty()) {
+    //                 return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Style.PlainText, 'expression to normalize:')
+    //                     .then(this.core.process.computeNormalFormIgnoreAbstract(goal))
+    //             } else {
+    //                 return this.core.process.computeNormalFormIgnoreAbstract(goal)(goal.getContent())
+    //             }
+    //         })
+    //         .catch(OutOfGoalError, () => {
+    //             return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Style.PlainText, 'expression to normalize:')
+    //                 .then(this.core.process.computeNormalFormIgnoreAbstract())
+    //         })
+    //         .then(() => Promise.resolve({}));
+    // }
 
     //
     //  The following commands only working in the context of a specific goal

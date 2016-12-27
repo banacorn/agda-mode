@@ -52,8 +52,9 @@
     'ctrl-c               ctrl-o': 'agda-mode:module-contents[Simplified]'
     'ctrl-u ctrl-c        ctrl-o': 'agda-mode:module-contents[Instantiated]'
     'ctrl-u ctrl-u ctrl-c ctrl-o': 'agda-mode:module-contents[Normalised]'
-    'ctrl-c               ctrl-n': 'agda-mode:compute-normal-form'
-    'ctrl-u ctrl-c        ctrl-n': 'agda-mode:compute-normal-form-ignore-abstract'
+    'ctrl-c               ctrl-n': 'agda-mode:compute-normal-form[DefaultCompute]'
+    'ctrl-u ctrl-c        ctrl-n': 'agda-mode:compute-normal-form[IgnoreAbstract]'
+    'ctrl-u ctrl-u ctrl-c ctrl-n': 'agda-mode:compute-normal-form[UseShowInstance]'
 
     # Commands working in the context of a specific goal
     'ctrl-c               ctrl-space': 'agda-mode:give'
