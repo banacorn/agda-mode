@@ -103,7 +103,7 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
     switch (action.infoActionKind) {
         case 'AllGoals':
             if (action.content.length === 0) {
-                core.view.set('No Goals', [], View.Style.Success);
+                core.view.set('All Done', [], View.Style.Success);
 
             } else {
                 core.view.setJudgements('Goals', parseJudgements(action.content));
@@ -150,7 +150,7 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
             core.view.set('Scope Info', action.content, View.Style.Info);
             break;
         case 'Unknown':
-            core.view.set(_.head(action.content), _.tail(action.content), View.Style.Info);
+            core.view.set(_.head(action.content) || 'UNKNOWN INFO ACTION FROM AGDA', _.tail(action.content), View.Style.Warning);
             break;
         default:
             console.error(`unknown info action:`);

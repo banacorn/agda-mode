@@ -106,6 +106,7 @@ function parseAgdaResponse(raw: string): Agda.Response {
 function parseInfoActionType(s: String): string {
     switch (s) {
         case '*All Goals*':         return 'AllGoals';
+        case '*All Done*':          return 'AllGoals'; // since Agda-2.6
         case '*Error*':             return 'Error';
         case '*Type-checking*':     return 'TypeChecking';
         case '*Current Goal*':      return 'CurrentGoal';
