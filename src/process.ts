@@ -85,26 +85,24 @@ export default class Process {
         let message: string[];
         let type: View.Style;
         let placeholder: string;
-
-        if (error instanceof AutoExecPathSearchError) {
+        if (error.name === 'AutoExecPathSearchError') {
             name = `Automatic executable path searching failed`;
             message = [
-                `searching for: \"${ error.programName }\" in the environment`
+                `searching for: \"${ error['programName'] }\" in the environment`
             ].concat(_.compact(error.message.split('\n')));
             type = View.Style.Warning;
             placeholder = 'please enter the path by manual or change the settings again';
-        } else if (error instanceof InvalidExecutablePathError) {
+        } else if (error.name === 'InvalidExecutablePathError') {
             name = `Invalid executable path`;
-            message = [`Path: ${error.path}`].concat(error.message.split('\n'));
+            message = [`Path: ${error['path']}`].concat(error.message.split('\n'));
             type = View.Style.Error;
             placeholder = 'try another path';
-        } else if (error instanceof ProcExecError) {
+        } else if (error.name === 'ProcExecError') {
             name = `Process execution error`;
             message = error.message.split('\n');
             type = View.Style.Warning;
             placeholder = 'please enter the path by manual or change the settings again';
         }
-
         return this.core.view.query(name, message, type, placeholder, false) // disable input method in the mini editor
             .then(this.validateExecutablePath)
             .then((path) => {

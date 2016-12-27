@@ -1,7 +1,7 @@
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { inspect } from 'util';
-import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError } from './error';
+import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError, InvalidExecutablePathError } from './error';
 import { Command, Normalization, ComputeMode, View, CommandKind, PendingCommand } from './types';
 import Core from './core';
 
@@ -125,7 +125,13 @@ export default class Commander {
                     this.core.view.set('Query cancelled', [], View.Style.Warning);
                 })
                 .catch((error) => { // catch all the rest
-                    console.error(error);
+                    switch (error.name) {
+                        case 'InvalidExecutablePathError':
+                            this.core.view.set(error.message, [error.path], View.Style.Error);
+                            break;
+                        default:
+                            console.error(error);
+                    }
                 })
         }
     }
