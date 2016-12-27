@@ -38,7 +38,7 @@ export default class TextBuffer {
                     this.core.editor.setCursorBufferPosition(position);
                 }
                 return result;
-            }).catch(OutOfGoalError, () => {
+            }).catch(() => {
                 this.core.editor.setCursorBufferPosition(position);
                 return result;
             })
