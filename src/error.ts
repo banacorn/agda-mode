@@ -1,51 +1,60 @@
 import { Goal } from './types';
 
 
-class AgdaParseError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.message = message;
-        this.name = 'AgdaParseError';
-        Error.captureStackTrace(this, AgdaParseError);
-    }
-}
+// class AgdaParseError extends Error {
+//     constructor(message: string) {
+//         super(message);
+//         this.message = message;
+//         this.name = 'AgdaParseError';
+//         Error.captureStackTrace(this, AgdaParseError);
+//     }
+// }
+//
 
-class NotLoadedError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'NotLoadedError';
-        Error.captureStackTrace(this, NotLoadedError);
-    }
+function AgdaParseError(message: string) {
+    this.message = message;
+    this.name = 'AgdaParseError';
+    Error.captureStackTrace(this, AgdaParseError);
 }
+AgdaParseError.prototype = new Error();
+AgdaParseError.prototype.constructor = AgdaParseError;
 
-class OutOfGoalError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'OutOfGoalError';
-        Error.captureStackTrace(this, OutOfGoalError);
-    }
+function OutOfGoalError(message: string) {
+    this.message = message;
+    this.name = 'OutOfGoalError';
+    Error.captureStackTrace(this, OutOfGoalError);
 }
+OutOfGoalError.prototype = new Error();
+OutOfGoalError.prototype.constructor = OutOfGoalError;
 
-class EmptyGoalError extends Error {
-    constructor(message: string, goal: Goal) {
-        super(message);
-        this.name = 'EmptyGoalError';
-        Error.captureStackTrace(this, EmptyGoalError);
-    }
+function NotLoadedError(message: string) {
+    this.message = message;
+    this.name = 'NotLoadedError';
+    Error.captureStackTrace(this, NotLoadedError);
 }
+NotLoadedError.prototype = new Error();
+NotLoadedError.prototype.constructor = NotLoadedError;
 
-class QueryCancelledError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.message = message;
-        this.name = 'QueryCancelledError';
-        Error.captureStackTrace(this, QueryCancelledError);
-    }
+function EmptyGoalError(message: string, goal: Goal) {
+    this.message = message;
+    this.name = 'EmptyGoalError';
+    this.goal = goal;
+    Error.captureStackTrace(this, EmptyGoalError);
 }
+EmptyGoalError.prototype = new Error();
+EmptyGoalError.prototype.constructor = EmptyGoalError;
+
+
+function QueryCancelledError(message: string) {
+    this.message = message;
+    this.name = 'QueryCancelledError';
+    Error.captureStackTrace(this, QueryCancelledError);
+}
+QueryCancelledError.prototype = new Error();
+QueryCancelledError.prototype.constructor = QueryCancelledError;
 
 class InvalidExecutablePathError extends Error {
-    path: string;
-    constructor(message: string, path: string) {
+    constructor(message: string, public path: string) {
         super(message);
         this.message = message;
         this.path = path;
@@ -55,12 +64,11 @@ class InvalidExecutablePathError extends Error {
 }
 
 class AutoExecPathSearchError extends Error {
-    programName: string;
-    constructor(message: string, programName: string) {
+    constructor(message: string, public programName: string) {
         super(message);
         this.message = message;
-        this.name = 'AutoExecPathSearchError';
         this.programName = programName;
+        this.name = 'AutoExecPathSearchError';
         Error.captureStackTrace(this, AutoExecPathSearchError);
     }
 }
