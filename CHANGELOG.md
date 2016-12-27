@@ -1,3 +1,6 @@
+## 0.6.10
+* Fix #39 and #41 (thanks to @jonaprieto and @ruhatch)
+
 ## 0.6.9
 * Fix unable to input certain symbols before agda-mode:load
 
