@@ -345,24 +345,6 @@ export default class Commander {
 
     }
 
-
-    // computeNormalFormIgnoreAbstract(): Promise<{}> {
-    //     return this.core.textBuffer.getCurrentGoal()
-    //         .then((goal) => {
-    //             if (goal.isEmpty()) {
-    //                 return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Style.PlainText, 'expression to normalize:')
-    //                     .then(this.core.process.computeNormalFormIgnoreAbstract(goal))
-    //             } else {
-    //                 return this.core.process.computeNormalFormIgnoreAbstract(goal)(goal.getContent())
-    //             }
-    //         })
-    //         .catch(OutOfGoalError, () => {
-    //             return this.core.view.query(`Compute normal form (ignoring abstract)`, [], View.Style.PlainText, 'expression to normalize:')
-    //                 .then(this.core.process.computeNormalFormIgnoreAbstract())
-    //         })
-    //         .then(() => Promise.resolve({}));
-    // }
-
     //
     //  The following commands only working in the context of a specific goal
     //
