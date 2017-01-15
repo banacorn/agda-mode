@@ -10,7 +10,6 @@ import { Goal } from './types';
 //     }
 // }
 //
-
 function AgdaParseError(message: string) {
     this.message = message;
     this.name = 'AgdaParseError';
