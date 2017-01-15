@@ -6,6 +6,9 @@ node_modules
 *.agdai
 dev
 
+# yarn
+yarn.lock
+
 # Logs
 logs
 *.log

@@ -7,7 +7,7 @@
     "electron": "registry:env/electron#0.37.6+20160909065630",
     "lodash": "registry:dt/lodash#4.14.0+20160830145422",
     "mocha": "registry:dt/mocha#2.2.5+20160720003353",
-    "node": "registry:dt/node#6.0.0+20160923124626",
+    "node": "registry:dt/node#7.0.0+20170110233017",
     "parsimmon": "registry:dt/parsimmon#0.5.0+20160317120654",
     "react": "registry:dt/react#0.14.0+20160817201227",
     "react-dom": "registry:dt/react-dom#0.14.0+20160412154040",
