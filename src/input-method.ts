@@ -16,7 +16,10 @@ function getKeySuggestions(trie: any): string[] {
 }
 
 function getCandidateSymbols(trie: any): string[] {
-    return trie['>>'];
+    if (trie['>>'])
+        return trie['>>'];
+    else
+        return [];
 }
 
 // see if input is in the keymap
