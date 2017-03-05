@@ -95,13 +95,15 @@ The key mapping of symbols are the same as in Emacs. For example: `\bn` for `ℕ
 ```
 apm develop agda-mode
 atom -d ~/github/agda-mode
+cd ~/github/agda-mode
+
 npm install
 git checkout dev
 ```
 
 The project is written in TypeScript so you would probably need these:
 ```
-npm install -g typescript@beta
+npm install -g typescript@2.2
 apm install atom-typescript
 ```
 
