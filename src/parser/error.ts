@@ -11,7 +11,7 @@ import { normalize } from 'path';
 //  Error
 ////////////////////////////////////////////////////////////////////////////////
 
-const singleLineRange: Parser<[Range, Boolean]> = seq(
+const singleLineRange: Parser<[Range, boolean]> = seq(
         digits,
         string(','),
         digits,
@@ -21,10 +21,10 @@ const singleLineRange: Parser<[Range, Boolean]> = seq(
         const row = parseInt(result[0]) - 1;
         const start = new Point(row, parseInt(result[2]) - 1);
         const end   = new Point(row, parseInt(result[4]) - 1);
-        return <[Range, Boolean]>[new Range(start, end), true];
+        return <[Range, boolean]>[new Range(start, end), true];
     });
 
-const multiLineRange: Parser<[Range, Boolean]> = seq(
+const multiLineRange: Parser<[Range, boolean]> = seq(
         digits,
         string(','),
         digits,
@@ -35,7 +35,7 @@ const multiLineRange: Parser<[Range, Boolean]> = seq(
     ).map((result) => {
         const start = new Point(parseInt(result[0]) - 1, parseInt(result[2]) - 1);
         const end   = new Point(parseInt(result[4]) - 1, parseInt(result[6]) - 1);
-        return <[Range, Boolean]>[new Range(start, end), false];
+        return <[Range, boolean]>[new Range(start, end), false];
     });
 
 const range = alt(multiLineRange, singleLineRange).skip(spaces);
