@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "bluebird": "registry:npm/bluebird#3.3.4+20160515010139",
+    "bluebird": "registry:dt/bluebird#3.0.0+20161229155504",
     "lodash": "registry:dt/lodash#4.14.0+20170302013423",
     "parsimmon": "registry:dt/parsimmon#1.0.0+20170223151516"
   },
