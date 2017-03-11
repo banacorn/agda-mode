@@ -15,6 +15,7 @@ import Process from './process';
 import TextBuffer from './text-buffer';
 import InputMethod from './input-method';
 import HighlightManager from './highlight-manager';
+import LSP from './lsp';
 import View from './view';
 import * as Action from './view/actions';
 
@@ -24,6 +25,7 @@ export default class Core {
     public textBuffer: TextBuffer;
     public inputMethod: InputMethod;
     public highlightManager: HighlightManager;
+    public lsp: LSP;
     public commander: Commander;
     public view: View;
 
@@ -55,7 +57,8 @@ export default class Core {
         if (atom.config.get('agda-mode.inputMethod'))
             this.inputMethod    = new InputMethod(this);
         this.highlightManager   = new HighlightManager(this);
-        this.commander  = new Commander(this);
+        this.lsp                = new LSP();
+        this.commander          = new Commander(this);
 
         // dispatch config related data to the store on initialization
         this.view.store.dispatch(Action.updateMaxBodyHeight(atom.config.get('agda-mode.maxBodyHeight')));

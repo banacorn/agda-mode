@@ -27,6 +27,7 @@
         "src/highlight-manager.ts",
         "src/input-method.ts",
         "src/keymap.ts",
+        "src/lsp.ts",
         "src/parser.ts",
         "src/parser/agda.ts",
         "src/parser/combinator.ts",
