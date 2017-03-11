@@ -55,48 +55,14 @@ const commands = [
 
 let subscriptions = null;
 
-// register keymap bindings and emit commands
-function registerCommands() {
-    commands.forEach((command) => {
-        subscriptions.add(atom.commands.add('atom-text-editor', command, () => {
-            const paneItem = atom.workspace.getActivePaneItem()
-            let editor = null;
-            // since the pane item may be a spawned agda view
-            if (_.includes(paneItem.classList, 'agda-view') && paneItem.getEditor) {
-                editor = paneItem.getEditor();
-            } else {
-                editor = paneItem;
-            }
-            // console.log(`[${editor.id}] ${command}`)
-            editor.core.commander.activate(parseCommand(command));
-        }));
-    })
-}
-
-// editor active/inactive event
-function registerEditorActivation() {
-    let previousEditor = atom.workspace.getActivePaneItem();
-    // console.log(editor.id, previousEditor)
-    subscriptions.add(atom.workspace.onDidChangeActivePaneItem((nextEditor) => {
-        if (nextEditor) {
-            if (previousEditor.core)
-                previousEditor.core.deactivate();
-            if (nextEditor.core)
-                nextEditor.core.activate();
-            previousEditor = nextEditor;
-        } else {
-            if (previousEditor.core)
-                previousEditor.core.deactivate();
-        }
-    }));
-}
-
+// the opposite of activate, duh
 function deactivate() {
     subscriptions.dispose();
 }
 
+// the "entry point" of the whole package
 function activate(state: any) {
-    subscriptions = new CompositeDisposable;
+    subscriptions = new CompositeDisposable; // gets disposed on deactivated
     subscriptions.add(atom.workspace.observeTextEditors((editor) => {
         let editorSubscriptions = new CompositeDisposable
         // instantiate core if it's .agda
@@ -127,6 +93,43 @@ function activate(state: any) {
     registerEditorActivation();
 }
 
+// register keymap bindings and emit commands
+function registerCommands() {
+    commands.forEach((command) => {
+        subscriptions.add(atom.commands.add('atom-text-editor', command, () => {
+            const paneItem = atom.workspace.getActivePaneItem()
+            let editor = null;
+            // since the pane item may be a spawned agda view
+            if (_.includes(paneItem.classList, 'agda-view') && paneItem.getEditor) {
+                editor = paneItem.getEditor();
+            } else {
+                editor = paneItem;
+            }
+            // console.log(`[${editor.id}] ${command}`)
+            if (editor.core)
+                editor.core.commander.activate(parseCommand(command));
+        }));
+    })
+}
+
+// editor active/inactive event
+function registerEditorActivation() {
+    let previousEditor = atom.workspace.getActivePaneItem();
+    // console.log(editor.id, previousEditor)
+    subscriptions.add(atom.workspace.onDidChangeActivePaneItem((nextEditor) => {
+        if (nextEditor) {
+            if (previousEditor.core)
+                previousEditor.core.deactivate();
+            if (nextEditor.core)
+                nextEditor.core.activate();
+            previousEditor = nextEditor;
+        } else {
+            if (previousEditor.core)
+                previousEditor.core.deactivate();
+        }
+    }));
+}
+
 function instantiateCore(editor) {
     // add 'agda' class to the editor element
     // so that keymaps and styles know what to select
@@ -150,7 +153,13 @@ function isAgdaFile(editor): boolean {
     } else {
         filepath = atom.workspace.getActivePaneItem().getPath();
     }
-    return /\.agda$|\.lagda$/.test(filepath);
+
+    // filenames are case insensitive on Windows
+    const onWindows = process.platform === 'win32';
+    if (onWindows)
+        return /\.agda$|\.lagda$/i.test(filepath);
+    else
+        return /\.agda$|\.lagda$/.test(filepath);
 }
 
 // https://atom.io/docs/api/latest/Config
