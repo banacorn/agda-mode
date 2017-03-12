@@ -1,3 +1,6 @@
+## 0.6.12
+* Fix #38
+
 ## 0.6.11
 * Renew the unicode symbols input keymap
 
