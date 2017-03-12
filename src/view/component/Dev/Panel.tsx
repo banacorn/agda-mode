@@ -13,13 +13,16 @@ declare var atom: any;
 
 interface Props {
     accumulate: boolean;
+    lsp: boolean;
     // dispatch to the store
     clearAll: () => void;
     toogleAccumulate: () => void;
+    toggleLSP: () => void;
 }
 
 const mapStateToProps = (state: View.State) => ({
-    accumulate: state.dev.accumulate
+    accumulate: state.dev.accumulate,
+    lsp: state.dev.lsp
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
@@ -28,6 +31,9 @@ const mapDispatchToProps = (dispatch: any) => ({
     },
     toogleAccumulate: () => {
         dispatch(Action.devToggleAccumulate());
+    },
+    toggleLSP: () => {
+        dispatch(Action.devToggleLSP());
     }
 });
 
@@ -35,6 +41,7 @@ class DevPanel extends React.Component<Props, void> {
     private subscriptions: CompositeDisposable;
     private clearAllButton: HTMLElement;
     private toggleAccumulateButton: HTMLElement;
+    private toggleLSPButton: HTMLElement;
 
     constructor() {
         super();
@@ -50,6 +57,10 @@ class DevPanel extends React.Component<Props, void> {
             title: 'accumulate messages',
             delay: 100
         }));
+        this.subscriptions.add(atom.tooltips.add(this.toggleLSPButton, {
+            title: 'language protocol server',
+            delay: 100
+        }));
     }
 
     componentWillUnmount() {
@@ -57,14 +68,28 @@ class DevPanel extends React.Component<Props, void> {
     }
 
     render() {
-        const { accumulate } = this.props;
-        const { clearAll, toogleAccumulate } = this.props;
+        const { accumulate, lsp } = this.props;
+        const { clearAll, toogleAccumulate, toggleLSP } = this.props;
         const toggleAccumulateClassList = classNames({
             activated: accumulate,
+        }, 'no-btn');
+        const toggleLSPClassList = classNames({
+            activated: lsp,
         }, 'no-btn');
         return (
             <section className="agda-dev-panel">
                 <ul className="button-groups">
+                    <li>
+                        <button
+                            className="no-btn"
+                            onClick={clearAll}
+                            ref={(ref) => {
+                                this.clearAllButton = ref;
+                            }}
+                        >
+                            <span className="icon icon-trashcan"></span>
+                        </button>
+                    </li>
                     <li>
                         <button
                             className={toggleAccumulateClassList}
@@ -80,13 +105,14 @@ class DevPanel extends React.Component<Props, void> {
                 <ul className="button-groups">
                     <li>
                         <button
-                            className="no-btn"
-                            onClick={clearAll}
+                            className={toggleLSPClassList}
+                            onClick={toggleLSP}
                             ref={(ref) => {
-                                this.clearAllButton = ref;
+                                this.toggleLSPButton = ref;
                             }}
                         >
-                            <span className="icon icon-trashcan"></span>
+                            <span className="icon icon-radio-tower"></span>
+                            <span className="button-label">LSP</span>
                         </button>
                     </li>
                 </ul>

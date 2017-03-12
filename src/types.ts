@@ -50,6 +50,7 @@ namespace View {
     export interface DevState {
         messages: DevMsg[];
         accumulate: boolean;
+        lsp: boolean;
     }
 
 

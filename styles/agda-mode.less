@@ -25,6 +25,11 @@
     @sizingHandleHeight: 5px;
     @headerHeight: 50px;
 
+    // label of buttons
+    .button-label {
+        padding: 0 5px;
+    }
+
     // <SizingHandle>
     .agda-sizing-handle-anchor {
         position: relative;
@@ -68,7 +73,7 @@
 
             button {
                 color: @text-color-subtle;
-                width: 30px;
+                min-width: 30px;
                 height: 30px;
             }
             button:hover {
@@ -261,7 +266,7 @@
 
             button {
                 color: @text-color-subtle;
-                width: 30px;
+                min-width: 30px;
                 height: 30px;
                 text-align: center;
             }
