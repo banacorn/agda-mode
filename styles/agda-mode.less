@@ -252,32 +252,16 @@
             padding: 10px @component-padding;
             border-bottom: 1px solid @tool-panel-border-color;
 
-            ul.button-groups {
-                list-style: none;
-                padding: 0;
-
-                // flexbox to contain multiple <button>s
-                display: flex;
-            }
-
             // flexbox to contain multiple .button-groups
             display: flex;
             justify-content: space-between;
 
             button {
-                color: @text-color-subtle;
                 min-width: 30px;
                 height: 30px;
                 text-align: center;
+                line-height: normal;
             }
-            button:hover {
-                background: none;
-                color: @text-color;
-            }
-            button.activated {
-                color: @button-background-color-selected
-            }
-
         }
 
 

@@ -12,17 +12,21 @@ interface Props extends View.DevState {
 
 const mapStateToProps = (state: View.State) => {
     return {
-        messages: state.dev.messages
+        messages: state.dev.messages,
+        lsp: state.dev.lsp
     }
 }
 
 class Dev extends React.Component<Props, void> {
     render() {
-        const { messages } = this.props;
+        const { messages, lsp } = this.props;
+        const messagesClassList = classNames({
+            hidden: lsp,
+        }, "agda-dev-body");
         return (
             <section className="agda-dev-view">
                 <Panel/>
-                <ol className="agda-dev-body">{messages.map((msg, i) =>
+                <ol className={messagesClassList}>{messages.map((msg, i) =>
                     <Message
                         key={i}
                         message={msg}
