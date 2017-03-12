@@ -70,8 +70,12 @@ class DevPanel extends React.Component<Props, void> {
     render() {
         const { accumulate, lsp } = this.props;
         const { clearAll, toogleAccumulate, toggleLSP } = this.props;
+        const clearAllButtonClassList = classNames({
+            hidden: lsp
+        }, 'btn');
         const toggleAccumulateClassList = classNames({
             selected: accumulate,
+            hidden: lsp
         }, 'btn');
         const toggleLSPClassList = classNames({
             selected: lsp,
@@ -80,7 +84,7 @@ class DevPanel extends React.Component<Props, void> {
             <section className="agda-dev-panel">
                 <div className="btn-group">
                     <button
-                        className="btn"
+                        className={clearAllButtonClassList}
                         onClick={clearAll}
                         ref={(ref) => {
                             this.clearAllButton = ref;
