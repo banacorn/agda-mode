@@ -146,9 +146,6 @@
 
     .agda-dev-view {
         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
-        // so that it would overflow and be scrollable
-        height: 100%;
-        overflow-y: scroll;
 
         .agda-dev-panel {
 
@@ -173,11 +170,16 @@
 
 
         .agda-dev-body {
+
+            // make it scrollable
+            height: 100%;
+            overflow-y: scroll;
+
             @height: 30px;
 
             list-style: none;
             margin: 0;
-            padding: 0 @component-padding;
+            padding: 0 @component-padding 51px;
 
 
             li.dev-message {
