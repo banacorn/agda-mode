@@ -5,379 +5,246 @@
 @import "ui-variables";
 @import "syntax-variables";
 
-.agda-view {
-
-    // For hiding React components
-    .hidden { display: none }
-
-    // So that we can stop goal indices from floating around
-    // see #14: https://github.com/banacorn/agda-mode/issues/14
-    z-index: 4;
-
-
-
-    // so that .agda-body will overflow and be scrollable
-    height: 100%;
-    > section { // pane item
-        height: 100%;
-    }
-
-    @sizingHandleHeight: 5px;
-    @headerHeight: 50px;
-
-    // label of buttons
-    .button-label {
-        padding: 0 5px;
-    }
-
-    // <SizingHandle>
-    .agda-sizing-handle-anchor {
-        position: relative;
-        height: 0px;
-        width: 100%;
-        .agda-sizing-handle {
-            height: @sizingHandleHeight;
-            width: 100%;
-            position: absolute;
-            cursor: row-resize;
-        }
-    }
-
-    .agda-header-container {
-        padding: 0 @component-padding;
-
-        // <Header>
-        .agda-header {
-            // flexbox
-            display: flex;
-            justify-content: space-between;
-
-            h1 {
-                height: @headerHeight;
-                line-height: @headerHeight;
-                font-size: 150%;
-                margin: 0;
-            }
-        }
-
-        // <Settings>
-        .agda-settings {
-            list-style: none;
-            margin: 0;
-
-            height: @headerHeight;
-            line-height: @headerHeight;
-
-            // flexbox
-            display: flex;
-
-            button {
-                color: @text-color-subtle;
-                min-width: 30px;
-                height: 30px;
-            }
-            button:hover {
-                color: @text-color;
-            }
-            button.activated {
-                color: @text-color-selected;
-            }
-        }
-
-    }
-
-    // <InputMethod>
-    .agda-input-method {
-        @button-height: 20px;
-
-        height: @headerHeight;
-        line-height: @headerHeight;
-
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-
-        font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
-
-        .keyboard {
-            display: flex;
-            align-items: flex-start;
-            margin-top: 5px;
-
-            // Buffer
-            .buffer {
-                height: 20px;
-                line-height: 20px;
-                font-size: 100%;
-                background: @input-background-color;
-                border-radius: @component-border-radius;
-                padding: 0 @component-padding;
-            }
-        }
-
-        .candidates {
-            margin-top: 5px;
-        }
-
-        // key buttons
-        button.btn {
-            top: 0;
-            width: @button-height;
-            height: @button-height;
-            line-height: @button-height;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-            border-radius: @component-border-radius;
-            background: @background-color-selected;
-            &:hover {
-                font-size: 200%;
-                position: relative;
-                width: 40px;
-                height: 40px;
-                margin: -10px;
-                z-index: 5;
-                background: @button-background-color-selected;
-            }
-            &.selected {
-                background: @button-background-color-selected;
-            }
-        }
-    }
-
-
-    // <MiniEditor>
-    .agda-mini-editor {
-        @height: 30px;
-
-        min-height: @height;
-        line-height: @height;
-        padding: 0 @component-padding;
-        margin: 10px 0;
-        font-size: 100%;
-
-    }
-
-
-    // <Body>
-    .agda-body-container {
-        @height: 30px;
-
-        // so that .agda-body will overflow and be scrollable
-        height: 100%;
-
-        overflow-y: scroll;
-        font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
-
-        margin: 0;
-        padding: 0 @component-padding;
-
-        font-size: 125%;
-        white-space: pre-wrap;       // preserves whitespaces
-
-
-        li {
-            min-height: @height;
-            line-height: @height !important;
-            padding: 0px @component-padding;
-            margin: 10px 0;
-
-            display: flex;
-            white-space: pre-wrap;       // preserves whitespaces
-
-            // prevents parent <li> from collapsing
-            &:after {
-               content: " ";
-               display: block;
-               height: 0;
-               clear: both;
-            }
-
-            .item-heading {
-                align-self: flex-start;
-                white-space: nowrap;
-            }
-
-            .item-body {
-                flex-grow: 100;
-            }
-
-
-            // <Location>
-            .location {
-                float: right;
-            }
-        }
-        li.banner-item {
-            background: @base-background-color;
-
-        }
-
-        p, div.error {
-            min-height: @height;
-            line-height: @height;
-            padding: 0 @component-padding;
-            margin: 10px 0;
-        }
-
-        // <Expr>
-        .expr {
-            vertical-align: top;
-        }
-
-        // <Location>
-        .location {
-            &:hover {
-                color: @text-color;
-                cursor: pointer;
-            }
-            &.no-float {
-                float: none;
-            }
-        }
-
-    }
-
-    .agda-dev-view {
-        font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
-        // so that it would overflow and be scrollable
-        height: 100%;
-        overflow-y: scroll;
-
-        .agda-dev-panel {
-
-            @height: 30px;
-            height: @height + 21px;
-            line-height: @height;
-            padding: 10px @component-padding;
-            border-bottom: 1px solid @tool-panel-border-color;
-
-            // flexbox to contain multiple .button-groups
-            display: flex;
-            justify-content: space-between;
-
-            button {
-                min-width: 30px;
-                height: 30px;
-                text-align: center;
-                line-height: normal;
-            }
-        }
-
-
-
-        .agda-dev-body {
-            @height: 30px;
-
-            list-style: none;
-            margin: 0;
-            padding: 0 @component-padding;
-
-
-            li.dev-message {
-                margin: 10px 0;
-            }
-
-            .dev-message.request {
-                color: @text-color-success;
-            }
-
-            // flexbox for response since there will be 2 columns
-            .dev-message.response {
-                display: flex;
-                justify-content: space-between;
-
-                .dev-message-item.raw {
-                    flex-grow: 1;
-                    flex-basis: 0;
-                    margin-right: 5px;
-                }
-                .dev-message-item.parsed {
-                    flex-grow: 1;
-                    flex-basis: 0;
-                    margin-left: 5px;
-                }
-            }
-
-            .dev-message-item {
-                background: @base-background-color;
-                min-height: @height;
-                line-height: @height !important;
-                padding: 0px @component-padding;
-
-                overflow-x: scroll;
-                white-space: pre-wrap;       // preserves whitespaces
-            }
-
-            .dev-message-item.parsed {
-                color: @text-color-info;
-            }
-
-        }
-    }
-
-    // no margin on icons
-    .icon::before {
-        margin: 0;
-    }
-
-    // Makes buttons look like ordinary texts
-    button.no-btn {
-        background: inherit;
-        border: none;
-        border-radius: @component-border-radius;
-        padding: 0;
-    }
-    button.no-btn:hover {
-        background: @base-background-color;
-    }
-}
-
-// prevents goal indices from floating above the status bar
-status-bar.status-bar           { z-index: 4 }
-atom-pane > [is="atom-tabs"]    { z-index: 5 }
-atom-text-editor[data-grammar="source agda"] {
-    z-index: 0;
-    // overflow: scroll;
-}
-
+// .agda-view {
 //
-// goal
+//     // For hiding React components
+//     .hidden { display: none }
 //
-
-.agda-goal .region {
-    background: fade(mix(@syntax-background-color, @syntax-text-color, 60%), 50%);
-}
-
-.agda-goal-index {
-    color: @background-color-info;
-    position: relative;
-}
-
-atom-text-editor.agda {
-    atom-overlay {
-        pointer-events: none;
-    }
-}
-
+//     // label of buttons
+//     .button-label {
+//         padding: 0 5px;
+//     }
 //
-// highlighting
 //
-
-.agda-highlight.unsolvedmeta .region {
-    @color: saturate(@background-color-warning, 100%);
-    background: fade(mix(@color, @syntax-background-color, 60%), 50%);
-}
-
-.agda-highlight.terminationproblem .region {
-    @color: saturate(@background-color-error, 100%);
-    background: fade(mix(@color, @syntax-background-color, 80%), 50%);
-}
-
+//     .agda-header-container {
+//         padding: 0 @component-padding;
 //
-// input method
+//         // <Header>
+//         .agda-header {
+//             // flexbox
+//             display: flex;
+//             justify-content: space-between;
 //
-
-.agda-input-method .region {
-    border-bottom: 2px dotted @syntax-text-color;
-}
+//             h1 {
+//                 height: @headerHeight;
+//                 line-height: @headerHeight;
+//                 font-size: 150%;
+//                 margin: 0;
+//             }
+//         }
+//
+//         // <Settings>
+//         .agda-settings {
+//             list-style: none;
+//             margin: 0;
+//
+//             height: @headerHeight;
+//             line-height: @headerHeight;
+//
+//             // flexbox
+//             display: flex;
+//
+//             button {
+//                 color: @text-color-subtle;
+//                 min-width: 30px;
+//                 height: 30px;
+//             }
+//             button:hover {
+//                 color: @text-color;
+//             }
+//             button.activated {
+//                 color: @text-color-selected;
+//             }
+//         }
+//
+//     }
+//
+//
+//
+//     // <MiniEditor>
+//     .agda-mini-editor {
+//         @height: 30px;
+//
+//         min-height: @height;
+//         line-height: @height;
+//         padding: 0 @component-padding;
+//         margin: 10px 0;
+//         font-size: 100%;
+//
+//     }
+//
+//
+//     // <Body>
+//     .agda-body-container {
+//         @height: 30px;
+//
+//         // so that .agda-body will overflow and be scrollable
+//         height: 100%;
+//
+//         overflow-y: scroll;
+//         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
+//
+//         margin: 0;
+//         padding: 0 @component-padding;
+//
+//         font-size: 125%;
+//         white-space: pre-wrap;       // preserves whitespaces
+//
+//
+//         li {
+//             min-height: @height;
+//             line-height: @height !important;
+//             padding: 0px @component-padding;
+//             margin: 10px 0;
+//
+//             display: flex;
+//             white-space: pre-wrap;       // preserves whitespaces
+//
+//             // prevents parent <li> from collapsing
+//             &:after {
+//                content: " ";
+//                display: block;
+//                height: 0;
+//                clear: both;
+//             }
+//
+//             .item-heading {
+//                 align-self: flex-start;
+//                 white-space: nowrap;
+//             }
+//
+//             .item-body {
+//                 flex-grow: 100;
+//             }
+//
+//
+//             // <Location>
+//             .location {
+//                 float: right;
+//             }
+//         }
+//         li.banner-item {
+//             background: @base-background-color;
+//
+//         }
+//
+//         p, div.error {
+//             min-height: @height;
+//             line-height: @height;
+//             padding: 0 @component-padding;
+//             margin: 10px 0;
+//         }
+//
+//         // <Expr>
+//         .expr {
+//             vertical-align: top;
+//         }
+//
+//         // <Location>
+//         .location {
+//             &:hover {
+//                 color: @text-color;
+//                 cursor: pointer;
+//             }
+//             &.no-float {
+//                 float: none;
+//             }
+//         }
+//
+//     }
+//
+//     .agda-dev-view {
+//         font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
+//         // so that it would overflow and be scrollable
+//         height: 100%;
+//         overflow-y: scroll;
+//
+//         .agda-dev-panel {
+//
+//             @height: 30px;
+//             height: @height + 21px;
+//             line-height: @height;
+//             padding: 10px @component-padding;
+//             border-bottom: 1px solid @tool-panel-border-color;
+//
+//             // flexbox to contain multiple .button-groups
+//             display: flex;
+//             justify-content: space-between;
+//
+//             button {
+//                 min-width: 30px;
+//                 height: 30px;
+//                 text-align: center;
+//                 line-height: normal;
+//             }
+//         }
+//
+//
+//
+//         .agda-dev-body {
+//             @height: 30px;
+//
+//             list-style: none;
+//             margin: 0;
+//             padding: 0 @component-padding;
+//
+//
+//             li.dev-message {
+//                 margin: 10px 0;
+//             }
+//
+//             .dev-message.request {
+//                 color: @text-color-success;
+//             }
+//
+//             // flexbox for response since there will be 2 columns
+//             .dev-message.response {
+//                 display: flex;
+//                 justify-content: space-between;
+//
+//                 .dev-message-item.raw {
+//                     flex-grow: 1;
+//                     flex-basis: 0;
+//                     margin-right: 5px;
+//                 }
+//                 .dev-message-item.parsed {
+//                     flex-grow: 1;
+//                     flex-basis: 0;
+//                     margin-left: 5px;
+//                 }
+//             }
+//
+//             .dev-message-item {
+//                 background: @base-background-color;
+//                 min-height: @height;
+//                 line-height: @height !important;
+//                 padding: 0px @component-padding;
+//
+//                 overflow-x: scroll;
+//                 white-space: pre-wrap;       // preserves whitespaces
+//             }
+//
+//             .dev-message-item.parsed {
+//                 color: @text-color-info;
+//             }
+//
+//         }
+//     }
+//
+//     // no margin on icons
+//     .icon::before {
+//         margin: 0;
+//     }
+//
+//     // Makes buttons look like ordinary texts
+//     button.no-btn {
+//         background: inherit;
+//         border: none;
+//         border-radius: @component-border-radius;
+//         padding: 0;
+//     }
+//     button.no-btn:hover {
+//         background: @base-background-color;
+//     }
+// }
+//

@@ -1,0 +1,140 @@
+// The ui-variables file is provided by base themes provided by Atom.
+@import "ui-variables";
+@import "syntax-variables";
+
+// ".agda", a namespace for modules in atom-text-editor
+atom-text-editor.agda {
+
+
+    //////////////////////////////////////////////////////
+    // Goals
+    //////////////////////////////////////////////////////
+
+    // the background of the hole
+    .goal .region {
+        background: fade(mix(@syntax-background-color, @syntax-text-color, 60%), 50%);
+    }
+
+    // the index that appears at the end of a hole
+    .goal-index {
+        color: @background-color-info;
+        position: relative;
+    }
+
+    // this seemly-over-referenced (it does!) selector refers to the parent
+    // of .goal-index.
+    //
+    // Fixes the problem that the "ghost" of a goal index that remains at the
+    // original unshifted position would block some events (e.g. mouse clicks)
+    // from getting through.
+    atom-overlay {
+        pointer-events: none;
+    }
+
+    //////////////////////////////////////////////////////
+    // Highlightings
+    //////////////////////////////////////////////////////
+
+    .highlight-decoration.unsolvedmeta .region {
+        @color: saturate(@background-color-warning, 100%);
+        background: fade(mix(@color, @syntax-background-color, 60%), 50%);
+    }
+
+    .highlight-decoration.terminationproblem .region {
+        @color: saturate(@background-color-error, 100%);
+        background: fade(mix(@color, @syntax-background-color, 80%), 50%);
+    }
+
+    //////////////////////////////////////////////////////
+    // Input Method
+    //////////////////////////////////////////////////////
+
+    // the visual indicator
+    .input-method-decoration .region {
+        border-bottom: 2px dotted @syntax-text-color;
+    }
+
+}
+
+.agda-mode {
+
+    @headerHeight: 50px;
+
+    //////////////////////////////////////////////////////
+    // <SizingHandle>
+    //////////////////////////////////////////////////////
+
+    .sizing-handle-anchor {
+        position: relative;
+        height: 0px;
+        width: 100%;
+        .sizing-handle {
+            height: 5px;
+            width: 100%;
+            position: absolute;
+            cursor: row-resize;
+        }
+    }
+
+    //////////////////////////////////////////////////////
+    // <InputMethod>
+    //////////////////////////////////////////////////////
+
+    .input-method {
+        @button-height: 20px;
+
+        height: @headerHeight;
+        line-height: @headerHeight;
+
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+
+        font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
+
+        .keyboard {
+            display: flex;
+            align-items: flex-start;
+            margin-top: 5px;
+
+            // Buffer
+            .buffer {
+                height: 20px;
+                line-height: 20px;
+                font-size: 100%;
+                background: @input-background-color;
+                border-radius: @component-border-radius;
+                padding: 0 @component-padding;
+            }
+        }
+
+        .candidates {
+            margin-top: 5px;
+        }
+
+        // key buttons
+        button.btn {
+            top: 0;
+            width: @button-height;
+            height: @button-height;
+            line-height: @button-height;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            border-radius: @component-border-radius;
+            background: @background-color-selected;
+            &:hover {
+                font-size: 200%;
+                position: relative;
+                width: 40px;
+                height: 40px;
+                margin: -10px;
+                z-index: 5;
+                background: @button-background-color-selected;
+            }
+            &.selected {
+                background: @button-background-color-selected;
+            }
+        }
+    }
+}

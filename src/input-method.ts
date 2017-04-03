@@ -153,7 +153,7 @@ export default class InputMethod {
             // decoration
             this.decoration = this.editor.decorateMarker(this.textEditorMarker, {
                 type: 'highlight',
-                class: 'agda-input-method'
+                class: 'input-method-decoration'
             });
 
             // insert '\' at the cursor quitely without triggering any shit

@@ -20,7 +20,7 @@ export default class HighlightManager {
         this.markers.push(marker);
         const decorator = this.core.editor.decorateMarker(marker, {
             type: 'highlight',
-            class: `agda-highlight ${annotation.type}`
+            class: `highlight-decoration ${annotation.type}`
         });
     }
 

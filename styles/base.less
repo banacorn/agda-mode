@@ -1,0 +1,11 @@
+// The ui-variables file is provided by base themes provided by Atom.
+@import "ui-variables";
+@import "syntax-variables";
+
+// prevents goal indices from floating above the status bar
+// see #14: https://github.com/banacorn/agda-mode/issues/14
+status-bar.status-bar           { z-index: 4 }
+atom-pane > [is="atom-tabs"]    { z-index: 5 }
+atom-text-editor[data-grammar="source agda"] {
+    z-index: 0;
+}
