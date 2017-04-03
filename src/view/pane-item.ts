@@ -37,7 +37,7 @@ export default class PaneItem {
     private createPaneItem(): any {
         // classList
         const paneItem = document.createElement('article');
-        paneItem.classList.add('agda-view');
+        paneItem.classList.add('agda-mode');
         // methods
         paneItem['getURI'] = this.getURI;
         paneItem['getTitle'] = this.getTitle;
