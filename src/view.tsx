@@ -167,7 +167,7 @@ export default class View {
                     this.bottomPanel = atom.workspace.addBottomPanel({
                         item: this.mountingPosition,
                         visible: true,
-                        className: 'agda-view'
+                        className: 'agda-mode'
                     });
                     // render
                     this.render();

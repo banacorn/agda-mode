@@ -4,15 +4,222 @@
 
 // the main component that houses everything
 .agda-mode {
+    @headerHeight: 50px;
 
     // So that we can stop goal indices from floating around
     // see #14: https://github.com/banacorn/agda-mode/issues/14
     z-index: 4;
-    
+
     // so that .agda-body will overflow and be scrollable
     height: 100%;
     > section { // pane item
         height: 100%;
+    }
+
+    //////////////////////////////////////////////////////
+    // Header Container
+    //////////////////////////////////////////////////////
+
+    .agda-header-container {
+        padding: 0 @component-padding;
+
+        // <Header>
+        .agda-header {
+            // flexbox
+            display: flex;
+            justify-content: space-between;
+
+            h1 {
+                height: @headerHeight;
+                line-height: @headerHeight;
+                font-size: 150%;
+                margin: 0;
+            }
+        }
+
+        // <Settings>
+        .agda-settings {
+            list-style: none;
+            margin: 0;
+
+            height: @headerHeight;
+            line-height: @headerHeight;
+
+            // flexbox
+            display: flex;
+
+            button {
+                color: @text-color-subtle;
+                min-width: 30px;
+                height: 30px;
+            }
+            button:hover {
+                color: @text-color;
+            }
+            button.activated {
+                color: @text-color-selected;
+            }
+        }
+    }
+
+    //////////////////////////////////////////////////////
+    // Body Container
+    //////////////////////////////////////////////////////
+
+    .agda-body-container {
+        @height: 30px;
+
+        // so that <Body> will overflow and be scrollable
+        height: 100%;
+        overflow-y: scroll;
+
+        // dimensions
+        margin: 0;
+        padding: 0 @component-padding;
+
+        font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
+        font-size: 125%;
+        white-space: pre-wrap;       // preserves whitespaces
+
+        li {
+            min-height: @height;
+            line-height: @height !important;
+            padding: 0px @component-padding;
+            margin: 10px 0;
+
+            display: flex;
+            white-space: pre-wrap;       // preserves whitespaces
+
+            // prevents parent <li> from collapsing
+            &:after {
+               content: " ";
+               display: block;
+               height: 0;
+               clear: both;
+            }
+
+            .item-heading {
+                align-self: flex-start;
+                white-space: nowrap;
+            }
+
+            .item-body {
+                flex-grow: 100;
+            }
+
+
+            // <Location>
+            .location {
+                float: right;
+            }
+        }
+        li.banner-item {
+            background: @base-background-color;
+
+        }
+
+        p, div.error {
+            min-height: @height;
+            line-height: @height;
+            padding: 0 @component-padding;
+            margin: 10px 0;
+        }
+
+        // <Expr>
+        .expr {
+            vertical-align: top;
+        }
+
+        // <Location>
+        .location {
+            &:hover {
+                color: @text-color;
+                cursor: pointer;
+            }
+            &.no-float {
+                float: none;
+            }
+        }
+
+    }
+
+
+    .agda-dev-view {
+        font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
+        // so that it would overflow and be scrollable
+        height: 100%;
+        overflow-y: scroll;
+
+        .agda-dev-panel {
+
+            @height: 30px;
+            height: @height + 21px;
+            line-height: @height;
+            padding: 10px @component-padding;
+            border-bottom: 1px solid @tool-panel-border-color;
+
+            // flexbox to contain multiple .button-groups
+            display: flex;
+            justify-content: space-between;
+
+            button {
+                min-width: 30px;
+                height: 30px;
+                text-align: center;
+                line-height: normal;
+            }
+        }
+
+
+
+        .agda-dev-body {
+            @height: 30px;
+
+            list-style: none;
+            margin: 0;
+            padding: 0 @component-padding;
+
+
+            li.dev-message {
+                margin: 10px 0;
+            }
+
+            .dev-message.request {
+                color: @text-color-success;
+            }
+
+            // flexbox for response since there will be 2 columns
+            .dev-message.response {
+                display: flex;
+                justify-content: space-between;
+
+                .dev-message-item.raw {
+                    flex-grow: 1;
+                    flex-basis: 0;
+                    margin-right: 5px;
+                }
+                .dev-message-item.parsed {
+                    flex-grow: 1;
+                    flex-basis: 0;
+                    margin-left: 5px;
+                }
+            }
+
+            .dev-message-item {
+                background: @base-background-color;
+                min-height: @height;
+                line-height: @height !important;
+                padding: 0px @component-padding;
+
+                overflow-x: scroll;
+                white-space: pre-wrap;       // preserves whitespaces
+            }
+
+            .dev-message-item.parsed {
+                color: @text-color-info;
+            }
+
+        }
     }
 
 }

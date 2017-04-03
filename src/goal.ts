@@ -44,7 +44,7 @@ export default class Goal {
             element.innerHTML = '*';
         else
             element.innerHTML = this.index.toString();
-        element.classList.add('agda-goal-index');
+        element.classList.add('goal-index');
         // those measurement functions are no longer part of the public API
         // we should come up with a new way to steal those measurements
         element.style.left = `${- indexWidth - 2}ex`;
@@ -55,7 +55,7 @@ export default class Goal {
         // decoration
         const holeDecoration = this.editor.decorateMarker(this.marker, {
             type: 'highlight',
-            class: 'agda-goal'
+            class: 'goal'
         });
         const indexDecoration = this.editor.decorateMarker(this.marker, {
             type: 'overlay',

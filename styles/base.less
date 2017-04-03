@@ -2,6 +2,33 @@
 @import "ui-variables";
 @import "syntax-variables";
 
+
+
+// the main component that houses everything
+.agda-mode {
+
+    // For hiding React components
+    .hidden { display: none }
+
+    // no margin on icons
+    .icon::before {
+        margin: 0;
+    }
+
+
+    // Makes buttons look like ordinary texts
+    button.no-btn {
+        background: inherit;
+        border: none;
+        border-radius: @component-border-radius;
+        padding: 0;
+    }
+    button.no-btn:hover {
+        background: @base-background-color;
+    }
+
+}
+
 // prevents goal indices from floating above the status bar
 // see #14: https://github.com/banacorn/agda-mode/issues/14
 status-bar.status-bar           { z-index: 4 }
