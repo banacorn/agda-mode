@@ -20,7 +20,7 @@ const defaultState: View.State = {
             previous: null,
             current: View.MountingPosition.Bottom
         },
-        devView: false
+        settingsView: false
     },
     dev: {
         messages: [],
@@ -81,8 +81,8 @@ const view = handleActions<View.ViewState, VIEW>({
             current: View.MountingPosition.Bottom
         }
     }),
-    [VIEW.TOGGLE_DEV_VIEW]: (state: View.ViewState, action: Action<VIEW.TOGGLE_DEV_VIEW>) => _.assign({}, state, {
-        devView: !state.devView
+    [VIEW.TOGGLE_SETTINGS_VIEW]: (state: View.ViewState, action: Action<VIEW.TOGGLE_SETTINGS_VIEW>) => _.assign({}, state, {
+        settingsView: !state.settingsView
     })
 }, defaultState.view);
 

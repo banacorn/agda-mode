@@ -13,20 +13,20 @@ declare var atom: any;
 
 interface Props {
     mountingPosition: View.MountingPosition;
-    devView: boolean;
+    settingsView: boolean;
     // callbacks
     mountAtPane: () => void;
     mountAtBottom: () => void;
-    toggleDevView: () => void;
+    toggleSettingsView: () => void;
     // dispatch to the store
     handleMountAtPane: () => void
     handleMountAtBottom: () => void;
-    handleToggleDevView: () => void;
+    handleToggleSettingsView: () => void;
 }
 
 const mapStateToProps = (state: View.State) => ({
     mountingPosition: state.view.mountAt.current,
-    devView: state.view.devView
+    settingsView: state.view.settingsView
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
@@ -36,15 +36,15 @@ const mapDispatchToProps = (dispatch: any) => ({
     handleMountAtBottom: () => {
         dispatch(Action.mountAtBottom());
     },
-    handleToggleDevView: () => {
-        dispatch(Action.toggleDevView());
+    handleToggleSettingsView: () => {
+        dispatch(Action.toggleSettingsView());
     }
 });
 
 class Settings extends React.Component<Props, void> {
     private subscriptions: CompositeDisposable;
     private toggleMountingPositionButton: HTMLElement;
-    private toggleDevViewButton: HTMLElement;
+    private toggleSettingsViewButton: HTMLElement;
 
 
     constructor() {
@@ -53,15 +53,15 @@ class Settings extends React.Component<Props, void> {
     }
 
     componentDidMount() {
+        this.subscriptions.add(atom.tooltips.add(this.toggleSettingsViewButton, {
+            title: 'settings',
+            delay: 100
+        }));
         this.subscriptions.add(atom.tooltips.add(this.toggleMountingPositionButton, {
             title: 'toggle panel docking position',
             delay: 300,
             keyBindingCommand: 'agda-mode:toggle-docking'
 
-        }));
-        this.subscriptions.add(atom.tooltips.add(this.toggleDevViewButton, {
-            title: 'toggle dev view (only available in dev mode)',
-            delay: 100
         }));
     }
 
@@ -70,13 +70,11 @@ class Settings extends React.Component<Props, void> {
     }
 
     render() {
-        const { mountingPosition, devView } = this.props;
-        const { mountAtPane, mountAtBottom, toggleDevView } = this.props;
-        const { handleMountAtPane, handleMountAtBottom, handleToggleDevView } = this.props;
-        // show dev view button only when in dev mode
-        const devViewClassList = classNames({
-            activated: devView,
-            hidden: !atom.inDevMode()
+        const { mountingPosition, settingsView } = this.props;
+        const { mountAtPane, mountAtBottom, toggleSettingsView } = this.props;
+        const { handleMountAtPane, handleMountAtBottom, handleToggleSettingsView } = this.props;
+        const settingsViewClassList = classNames({
+            activated: settingsView,
         }, 'no-btn');
         const toggleMountingPosition = classNames({
             activated: mountingPosition === View.MountingPosition.Pane
@@ -85,16 +83,16 @@ class Settings extends React.Component<Props, void> {
             <ul className="agda-settings">
                 <li>
                     <button
-                        className={devViewClassList}
+                        className={settingsViewClassList}
                         onClick={() => {
-                            handleToggleDevView()
-                            toggleDevView()
+                            handleToggleSettingsView()
+                            toggleSettingsView()
                         }}
                         ref={(ref) => {
-                            this.toggleDevViewButton = ref;
+                            this.toggleSettingsViewButton = ref;
                         }}
                     >
-                        <span className="icon icon-tools"></span>
+                        <span className="icon icon-settings"></span>
                     </button>
                 </li>
                 <li>

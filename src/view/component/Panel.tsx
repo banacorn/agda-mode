@@ -20,9 +20,9 @@ interface Props extends View.State {
     onMiniEditorMount: (editor: MiniEditor) => void;
     deactivateMiniEditor: () => void;
     onResize: (offset: number) => void;
+    toggleSettingsView: () => void;
     mountAtPane: () => void;
     mountAtBottom: () => void;
-    toggleDevView: () => void;
 }
 
 const mapStateToProps = (state : View.State) => state
@@ -40,7 +40,7 @@ const mapDispatchToProps = (dispatch: any) => ({
 class Panel extends React.Component<Props, void> {
     render() {
         const { core, emitter, onMiniEditorMount, onResize } = this.props;
-        const { mountAtPane, mountAtBottom, toggleDevView } = this.props;
+        const { mountAtPane, mountAtBottom, toggleSettingsView } = this.props;
         const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
         const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
@@ -70,9 +70,9 @@ class Panel extends React.Component<Props, void> {
                         }}
                     />
                     <Header
+                        toggleSettingsView={toggleSettingsView}
                         mountAtPane={mountAtPane}
                         mountAtBottom={mountAtBottom}
-                        toggleDevView={toggleDevView}
                     />
                 </header>
                 <section className="agda-body-container">

@@ -33,9 +33,9 @@ export default class View {
     public miniEditor: MiniEditor;
     private mountingPosition: HTMLElement;
     private bottomPanel: any;
-    private devViewElement: HTMLElement;
+    private settingsViewElement: HTMLElement;
     private viewPaneItem: PaneItem;
-    private devViewPaneItem: PaneItem;
+    private settingsViewPaneItem: PaneItem;
 
     constructor(private core: Core) {
         this.store = createStore(reducer);
@@ -70,23 +70,22 @@ export default class View {
             }
         });
 
-        // initialize dev view
-        this.devViewPaneItem = new PaneItem(this.editor, 'dev', () => {
+        // initialize settings view
+        this.settingsViewPaneItem = new PaneItem(this.editor, 'settings', () => {
             const { name } = path.parse(this.editor.getPath());
-            return `[Dev] ${name}`
+            return `[Settings] ${name}`
         });
-        this.devViewPaneItem.onOpen((paneItem, panes) => {
+        this.settingsViewPaneItem.onOpen((paneItem, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
 
-            this.devViewElement = paneItem;
+            this.settingsViewElement = paneItem;
 
             this.renderDevView()
         });
-        this.devViewPaneItem.onClose((paneItem, closedDeliberately) => {
-            // console.log(`dev view closed (deliberately: ${closedDeliberately})`)
+        this.settingsViewPaneItem.onClose((paneItem, closedDeliberately) => {
             if (closedDeliberately === false) {
-                this.store.dispatch(Action.toggleDevView());
+                this.store.dispatch(Action.toggleSettingsView());
             }
         });
     }
@@ -108,12 +107,12 @@ export default class View {
                     onMiniEditorMount={(editor) => {
                         this.miniEditor = editor;
                     }}
-                    toggleDevView={() => {
-                        const activated = this.store.getState().view.devView;
+                    toggleSettingsView={() => {
+                        const activated = this.store.getState().view.settingsView;
                         if (activated)
-                            this.devViewPaneItem.open();
+                            this.settingsViewPaneItem.open();
                         else
-                            this.devViewPaneItem.close();
+                            this.settingsViewPaneItem.close();
                     }}
                     mountAtPane={() => {
                         this.unmount(this.state().mountAt.previous);
@@ -131,15 +130,15 @@ export default class View {
     }
 
     private renderDevView() {
-        if (this.devViewElement === null) {
-            console.error(`this.devViewElement === null`)
+        if (this.settingsViewElement === null) {
+            console.error(`this.settingsViewElement === null`)
         }
 
         ReactDOM.render(
             <Provider store={this.store}>
                 <Dev/>
             </Provider>,
-            this.devViewElement
+            this.settingsViewElement
         )
     }
     getEditor(): any {
