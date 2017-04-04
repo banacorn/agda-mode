@@ -17,7 +17,7 @@ const mapStateToProps = (state: View.State) => {
     }
 }
 
-class Dev extends React.Component<Props, void> {
+class Settings extends React.Component<Props, void> {
     render() {
         const { messages, lsp } = this.props;
         const messagesClassList = classNames({
@@ -40,4 +40,4 @@ class Dev extends React.Component<Props, void> {
 export default connect<any, any, any>(
     mapStateToProps,
     null
-)(Dev);
+)(Settings);

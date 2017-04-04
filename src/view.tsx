@@ -10,7 +10,7 @@ import { basename, extname } from 'path';
 
 import Core from './core';
 import Panel from './view/component/Panel';
-import Dev from './view/component/Dev';
+import Settings from './view/component/Settings';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
 import { View as V, Location, Error } from './types';
@@ -81,7 +81,7 @@ export default class View {
 
             this.settingsViewElement = paneItem;
 
-            this.renderDevView()
+            this.renderSettingsView()
         });
         this.settingsViewPaneItem.onClose((paneItem, closedDeliberately) => {
             if (closedDeliberately === false) {
@@ -129,14 +129,14 @@ export default class View {
         )
     }
 
-    private renderDevView() {
+    private renderSettingsView() {
         if (this.settingsViewElement === null) {
             console.error(`this.settingsViewElement === null`)
         }
 
         ReactDOM.render(
             <Provider store={this.store}>
-                <Dev/>
+                <Settings/>
             </Provider>,
             this.settingsViewElement
         )
