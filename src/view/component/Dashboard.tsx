@@ -41,7 +41,7 @@ const mapDispatchToProps = (dispatch: any) => ({
     }
 });
 
-class Settings extends React.Component<Props, void> {
+class Dashboard extends React.Component<Props, void> {
     private subscriptions: CompositeDisposable;
     private toggleMountingPositionButton: HTMLElement;
     private toggleSettingsViewButton: HTMLElement;
@@ -127,4 +127,4 @@ class Settings extends React.Component<Props, void> {
 export default connect<any, any, any>(
     mapStateToProps,
     mapDispatchToProps
-)(Settings);
+)(Dashboard);

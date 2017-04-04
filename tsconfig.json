@@ -68,6 +68,7 @@
         "src/view.tsx",
         "src/view/component/Body.tsx",
         "src/view/component/CandidateSymbols.tsx",
+        "src/view/component/Dashboard.tsx",
         "src/view/component/Dev.tsx",
         "src/view/component/Dev/Message.tsx",
         "src/view/component/Dev/Panel.tsx",
@@ -78,7 +79,6 @@
         "src/view/component/Location.tsx",
         "src/view/component/MiniEditor.tsx",
         "src/view/component/Panel.tsx",
-        "src/view/component/Settings.tsx",
         "src/view/component/SizingHandle.tsx",
         "src/view/component/Suggestion.tsx"
     ],
