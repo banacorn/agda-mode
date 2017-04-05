@@ -28,7 +28,7 @@ class Settings extends React.Component<Props, void> {
                 <nav>
                     <ol>
                         <li className="selected"><span className='icon icon-plug'>Connections</span></li>
-                        <li><span className='icon icon-pulse'>Conversations</span></li>
+                        <li><span className='icon icon-comment-discussion'>Conversations</span></li>
                     </ol>
                 </nav>
             </section>
