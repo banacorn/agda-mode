@@ -20,19 +20,27 @@ const mapStateToProps = (state: View.State) => {
 class Settings extends React.Component<Props, void> {
     render() {
         const { messages, lsp } = this.props;
-        const messagesClassList = classNames({
-            hidden: lsp,
-        }, "agda-dev-body");
+        // const messagesClassList = classNames({
+        //     hidden: lsp,
+        // }, "agda-dev-body");
         return (
-            <section className="agda-dev-view">
-                <Panel/>
-                <ol className={messagesClassList}>{messages.map((msg, i) =>
-                    <Message
-                        key={i}
-                        message={msg}
-                    />
-                )}</ol>
+            <section className="agda-settings">
+                <nav>
+                    <ol>
+                        <li className="selected"><span className='icon icon-plug'>Connections</span></li>
+                        <li><span className='icon icon-pulse'>Conversations</span></li>
+                    </ol>
+                </nav>
             </section>
+            // <section className="agda-dev-view">
+            //     <Panel/>
+            //     <ol className={messagesClassList}>{messages.map((msg, i) =>
+            //         <Message
+            //             key={i}
+            //             message={msg}
+            //         />
+            //     )}</ol>
+            // </section>
         )
     }
 }

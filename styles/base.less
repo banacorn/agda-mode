@@ -11,9 +11,9 @@
     .hidden { display: none }
 
     // no margin on icons
-    .icon::before {
-        margin: 0;
-    }
+    // .icon::before {
+    //     margin: 0;
+    // }
 
 
     // Makes buttons look like ordinary texts
@@ -25,6 +25,13 @@
     }
     button.no-btn:hover {
         background: @base-background-color;
+    }
+
+    nav > ul,
+    nav > ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
     }
 
 }

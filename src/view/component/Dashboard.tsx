@@ -80,7 +80,7 @@ class Dashboard extends React.Component<Props, void> {
             activated: mountingPosition === View.MountingPosition.Pane
         }, 'no-btn');
         return (
-            <ul className="agda-settings">
+            <ul className="agda-dashboard">
                 <li>
                     <button
                         className={settingsViewClassList}
