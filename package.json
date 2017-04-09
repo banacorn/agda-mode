@@ -20,24 +20,24 @@
     "atom": ">0.180.0"
   },
   "dependencies": {
-    "bluebird": "^3.5.0",
-    "classnames": "^2.2.5",
-    "lodash": "^4.14.0",
-    "parsimmon": "^1.0.0",
-    "react": "^15.3.1",
-    "react-dom": "^15.3.1",
-    "react-redux": "^4.4.5",
-    "redux": "^3.5.2",
-    "redux-actions": "^0.11.0",
-    "semver": "^5.1.1"
+    "bluebird": "3.5.0",
+    "classnames": "2.2.5",
+    "lodash": "4.14.0",
+    "parsimmon": "1.0.0",
+    "react": "15.3.1",
+    "react-dom": "15.3.1",
+    "react-redux": "4.4.5",
+    "redux": "3.5.2",
+    "redux-actions": "0.11.0",
+    "semver": "5.1.1"
   },
   "devDependencies": {
-    "atom-mocha": "^1.0.0",
-    "atom-mocha-test-runner": "^0.3.0",
-    "chai": "^3.4.1",
-    "chai-as-promised": "^5.1.0",
-    "chai-things": "^0.2.0",
-    "mocha": "^2.3.4",
-    "temp": "^0.8.3"
+    "atom-mocha": "1.0.0",
+    "atom-mocha-test-runner": "0.3.0",
+    "chai": "3.4.1",
+    "chai-as-promised": "5.1.0",
+    "chai-things": "0.2.0",
+    "mocha": "2.3.4",
+    "temp": "0.8.3"
   }
 }
