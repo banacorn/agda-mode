@@ -104,7 +104,7 @@ export default class Process {
             type = View.Style.Warning;
             placeholder = 'please enter the path by manual or change the settings again';
         }
-        
+
         return this.core.view.query(name, message, type, placeholder, false) // disable input method in the mini editor
             .then(this.validateExecutablePath)
             .then((path) => {
@@ -359,7 +359,7 @@ export default class Process {
     }
 
     computeNormalForm = (computeMode: ComputeMode, goal?: Goal): (expr: string) => Promise<ChildProcess> => {
-        if (semver.gte(this.agdaVersion.sem, '2.6.0')) {  // after 2.6
+        if (semver.gte(this.agdaVersion.sem, '2.5.2')) {  // after 2.5.2
             return (expr) => {
                 if (goal) {
                     return this.sendCommand('NonInteractive', `Cmd_compute ${computeMode} ${goal.index} noRange \"${expr}\"`);
