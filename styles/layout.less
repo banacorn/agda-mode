@@ -233,9 +233,10 @@
         font-size: @font-size;
         background: @base-background-color;
 
+        display: flex;
+
         nav {
-            height: 100%;
-            width: 150px;
+            flex: 0 0 150px;
             border-right: 1px solid @base-border-color;
 
             li {
@@ -253,6 +254,11 @@
             li.selected {
                 background: @background-color-selected;
             }
+        }
+
+        .settings-panel {
+            padding: @component-padding;
+            flex: 0 0 100%;
         }
     }
 

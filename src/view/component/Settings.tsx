@@ -7,45 +7,78 @@ import { View } from '../../types';
 import Panel from './Dev/Panel';
 import Message from './Dev/Message';
 
-interface Props extends View.DevState {
+interface Props extends React.HTMLProps<HTMLElement> {
 }
 
-const mapStateToProps = (state: View.State) => {
-    return {
-        messages: state.dev.messages,
-        lsp: state.dev.lsp
+interface State {
+    tabIndex: number
+}
+
+
+// const mapStateToProps = (state: View.State) => {
+//     return {
+//         messages: state.dev.messages,
+//         lsp: state.dev.lsp
+//     }
+// }
+
+class Settings extends React.Component<Props, State> {
+    constructor(props) {
+        super(props);
+        this.state = {
+            tabIndex: 0
+        };
+        this.tabClassName = this.tabClassName.bind(this);
+        this.panelClassName = this.panelClassName.bind(this);
+        this.handleClick = this.handleClick.bind(this);
     }
-}
-
-class Settings extends React.Component<Props, void> {
     render() {
-        const { messages, lsp } = this.props;
-        // const messagesClassList = classNames({
-        //     hidden: lsp,
-        // }, "agda-dev-body");
         return (
             <section className="agda-settings">
                 <nav>
                     <ol>
-                        <li className="selected"><span className='icon icon-plug'>Connections</span></li>
-                        <li><span className='icon icon-comment-discussion'>Conversations</span></li>
+                        <li
+                            className={this.tabClassName(0)}
+                            onClick={this.handleClick(0)}
+                        ><span className='icon icon-plug'>Connections</span></li>
+                        <li
+                            className={this.tabClassName(1)}
+                            onClick={this.handleClick(1)}
+                        ><span className='icon icon-comment-discussion'>Conversations</span></li>
                     </ol>
                 </nav>
+                <section className={this.panelClassName(0)}>
+                    0
+                </section>
+                <section className={this.panelClassName(1)}>
+                    1
+                </section>
             </section>
-            // <section className="agda-dev-view">
-            //     <Panel/>
-            //     <ol className={messagesClassList}>{messages.map((msg, i) =>
-            //         <Message
-            //             key={i}
-            //             message={msg}
-            //         />
-            //     )}</ol>
-            // </section>
         )
     }
+
+    tabClassName(tabIndex: number) {
+        return this.state.tabIndex === tabIndex ? 'selected' : null;
+    }
+
+    panelClassName(tabIndex: number) {
+        return classNames('settings-panel', {
+            hidden: this.state.tabIndex !== tabIndex
+        })
+    }
+
+
+    handleClick(tabIndex: number) {
+        return () => {
+            this.setState({
+                tabIndex: tabIndex
+            });
+        }
+    }
+
 }
 
 export default connect<any, any, any>(
-    mapStateToProps,
+    null,
     null
 )(Settings);
