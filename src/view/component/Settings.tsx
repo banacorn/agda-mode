@@ -2,10 +2,10 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
-import { View } from '../../types';
+// import { View } from '../../types';
 
-import Panel from './Dev/Panel';
-import Message from './Dev/Message';
+import Connections from './Settings/Connections';
+import Conversations from './Settings/Conversations';
 
 interface Props extends React.HTMLProps<HTMLElement> {
 }
@@ -47,12 +47,12 @@ class Settings extends React.Component<Props, State> {
                         ><span className='icon icon-comment-discussion'>Conversations</span></li>
                     </ol>
                 </nav>
-                <section className={this.panelClassName(0)}>
+                <Connections className={this.panelClassName(0)}>
                     0
-                </section>
-                <section className={this.panelClassName(1)}>
+                </Connections>
+                <Conversations className={this.panelClassName(1)}>
                     1
-                </section>
+                </Conversations>
             </section>
         )
     }
