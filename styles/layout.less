@@ -230,10 +230,11 @@
     //////////////////////////////////////////////////////
 
     .agda-settings {
+        height: 100%;
+        display: flex;
+
         font-size: @font-size;
         background: @base-background-color;
-
-        display: flex;
 
         nav {
             flex: 0 0 150px;
@@ -257,9 +258,32 @@
         }
 
         .settings-panel {
-            padding: @component-padding;
-            flex: 0 0 100%;
+            // padding: (@component-padding) (@component-padding * 2);
+            height: 100%;
+            flex: 0 1 100%;
+            min-width: 400px;
+
+            > section {
+                padding: 3em;
+            }
+
+            > section:not(:first-child) {
+                border-top: 1px solid @base-border-color;
+            }
         }
+    }
+
+    //////////////////////////////////////////////////////
+    // <Connections>
+    //////////////////////////////////////////////////////
+
+    .current-connection {
+        // height: 200px;
+    }
+    .previous-connections {
+        height: 100%;
+        overflow-y: scroll;
+        padding-bottom: 250px !important;
     }
 
 }

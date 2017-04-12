@@ -47,9 +47,7 @@ class Settings extends React.Component<Props, State> {
                         ><span className='icon icon-comment-discussion'>Conversations</span></li>
                     </ol>
                 </nav>
-                <Connections className={this.panelClassName(0)}>
-                    0
-                </Connections>
+                <Connections className={this.panelClassName(0)} />
                 <Conversations className={this.panelClassName(1)}>
                     1
                 </Conversations>
