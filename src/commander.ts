@@ -195,14 +195,18 @@ export default class Commander {
     //
 
     load(): Promise<{}> {
+        // activate the view
         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
         this.core.view.mount(currentMountingPosition);
         this.core.view.activate();
-        return this.core.process.load()
-            .then(() => {
-                this.loaded = true;
-            })
-            .then(() => Promise.resolve({}));
+
+        return Promise.resolve({});
+
+        // return this.core.process.load()
+        //     .then(() => {
+        //         this.loaded = true;
+        //     })
+            // .then(() => Promise.resolve({}));
     }
 
     quit(): Promise<{}> {

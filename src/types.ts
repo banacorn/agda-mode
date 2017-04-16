@@ -527,6 +527,15 @@ namespace Error {
     }
 }
 
+//
+// Connection
+//
+// 
+// export type Connection = {
+//     connected: boolean
+//     uri: string,
+//     version: string
+// }
 
 export {
     Agda,
