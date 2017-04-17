@@ -4,15 +4,15 @@ import * as Promise from 'bluebird';
 // type Point = any;
 // type Range = any;
 // var { Range } = require('atom');
-// import { Connection } from './types';
 
 import * as _ from 'lodash';
 import { spawn, exec, ChildProcess } from 'child_process';
 import { Duplex } from 'stream';
 var duplex = require('duplexer');
 
-import { parseFilepath } from './parser';
+import { Connection } from './types';
 import Core from './core';
+import { parseFilepath } from './parser';
 
 
 export class AutoConnectFailure extends Error {
@@ -24,7 +24,6 @@ export class AutoConnectFailure extends Error {
     }
 }
 
-
 export class ConnectionError extends Error {
     constructor(message: string, public conn?: Connection) {
         super(message);
@@ -35,14 +34,6 @@ export class ConnectionError extends Error {
     }
 }
 
-export type Connection = {
-    uri: string;
-    version?: {
-        raw: string;
-        sem: string;
-    };
-    stream?: Duplex;
-}
 // export class Connection {
 //     readonly uri: string;
 //     public version: {
@@ -113,7 +104,6 @@ function validate(conn: Connection): Promise<Connection> {
             }
 
             if (error) {
-                console.error(error);
                 return reject(new ConnectionError(`Unable to execute the given command`, conn));
             }
 

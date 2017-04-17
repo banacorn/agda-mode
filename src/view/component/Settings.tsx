@@ -76,7 +76,4 @@ class Settings extends React.Component<Props, State> {
 
 }
 
-export default connect<any, any, any>(
-    null,
-    null
-)(Settings);
+export default connect()(Settings);

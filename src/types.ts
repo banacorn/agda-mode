@@ -2,6 +2,8 @@ import Goal from './goal';
 import * as Promise from 'bluebird';
 import { EventEmitter } from 'events';
 import { ParsedPath } from 'path';
+import { Duplex } from 'stream';
+
 type Range = any;
 
 export type TextInput = string;
@@ -40,11 +42,17 @@ namespace View {
 
     export interface State {
         view: ViewState;
+        connection: ConnectionState;
         dev: DevState;
         header: HeaderState;
         inputMethod: InputMethodState;
         miniEditor: MiniEditorState;
         body: BodyState;
+    }
+
+    export interface ConnectionState {
+        connections: Connection[];
+        // connected?: number;
     }
 
     export interface DevState {
@@ -530,12 +538,14 @@ namespace Error {
 //
 // Connection
 //
-// 
-// export type Connection = {
-//     connected: boolean
-//     uri: string,
-//     version: string
-// }
+export type Connection = {
+    uri: string;
+    version?: {
+        raw: string;
+        sem: string;
+    };
+    stream?: Duplex;
+}
 
 export {
     Agda,

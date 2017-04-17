@@ -7,7 +7,7 @@ declare var atom: any;
 
 import * as Parser from '../parser';
 import { View } from '../types';
-import { EVENT, VIEW, DEV, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
+import { EVENT, VIEW, CONNECTION, DEV, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -21,6 +21,9 @@ const defaultState: View.State = {
             current: View.MountingPosition.Bottom
         },
         settingsView: false
+    },
+    connection: {
+        connections: []
     },
     dev: {
         messages: [],
@@ -85,6 +88,30 @@ const view = handleActions<View.ViewState, VIEW>({
         settingsView: !state.settingsView
     })
 }, defaultState.view);
+
+const connection = handleActions<View.ConnectionState, CONNECTION>({
+    [CONNECTION.ADD_CONNECTION]: (state: View.ConnectionState, action: Action<CONNECTION.ADD_CONNECTION>) =>
+        _.assign({}, state, {
+            connections: _.concat([action.payload], state.connections)
+        })
+    // [DEV.ADD_RESPONSE]: (state: View.DevState, action: Action<DEV.ADD_RESPONSE>) => _.assign({}, state, {
+    //     messages: _.concat([{
+    //         kind: 'response',
+    //         raw: action.payload,
+    //         parsed: inspect(Parser.parseAgdaResponse(action.payload), false, null)
+    //     }], state.messages)
+    // }),
+    // [DEV.CLEAR_ALL]: (state: View.DevState, action: Action<DEV.CLEAR_ALL>) => _.assign({}, state, {
+    //     messages: []
+    // }),
+    // [DEV.TOGGLE_ACCUMULATE]: (state: View.DevState, action: Action<DEV.TOGGLE_ACCUMULATE>) => _.assign({}, state, {
+    //     accumulate: !state.accumulate
+    // }),
+    // [DEV.TOGGLE_LSP]: (state: View.DevState, action: Action<DEV.TOGGLE_LSP>) => _.assign({}, state, {
+    //     lsp: !state.lsp
+    // })
+}, defaultState.connection);
+
 
 const dev = handleActions<View.DevState, DEV>({
     [DEV.ADD_REQUEST]: (state: View.DevState, action: Action<DEV.ADD_REQUEST>) => {
@@ -196,6 +223,7 @@ const body = handleActions<View.BodyState, BODY>({
 // export default reducer;
 export default combineReducers<View.State>({
     view,
+    connection,
     dev,
     header,
     inputMethod,

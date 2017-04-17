@@ -1,6 +1,6 @@
 import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
-import { View, Error, Location } from '../types';
+import { View, Error, Location, Connection } from '../types';
 
 export type EVENT =
     EVENT.JUMP_TO_GOAL |
@@ -44,6 +44,19 @@ export const unmountView = createAction(VIEW.UNMOUNT);
 export const mountAtPane = createAction(VIEW.MOUNT_AT_PANE);
 export const mountAtBottom = createAction(VIEW.MOUNT_AT_BOTTOM);
 export const toggleSettingsView = createAction(VIEW.TOGGLE_SETTINGS_VIEW);
+
+export type CONNECTION
+    = CONNECTION.ADD_CONNECTION
+    // | CONNECTION.REMOVE_CONNECTION
+
+export namespace CONNECTION {
+    export const ADD_CONNECTION = 'CONNECTION.ADD_CONNECTION';
+    export type ADD_CONNECTION = Connection;
+    // export const REMOVE_CONNECTION = 'CONNECTION.REMOVE_CONNECTION';
+    // export type REMOVE_CONNECTION = number;
+}
+
+export const connectionAddConnection = createAction(CONNECTION.ADD_CONNECTION);
 
 export type DEV
     = DEV.ADD_REQUEST
