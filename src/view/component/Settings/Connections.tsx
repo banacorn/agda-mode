@@ -31,7 +31,7 @@ class Connections extends React.Component<DopedProps, void> {
         // console.log(connections);
 
         const previousConnections = connections.map((conn, i) =>
-            <li key={i.toString()}>
+            <li key={conn.guid}>
                 <ConnectionItem
                     connected={false}
                     version={conn.version.raw}

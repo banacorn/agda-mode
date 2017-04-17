@@ -11,6 +11,7 @@ import { Duplex } from 'stream';
 var duplex = require('duplexer');
 
 import { Connection } from './types';
+import { guid } from './util';
 import Core from './core';
 import { parseFilepath } from './parser';
 
@@ -87,6 +88,7 @@ function autoConnect(): Promise<Connection> {
                 reject(new AutoConnectFailure(error.toString()));
             } else {
                 resolve({
+                    guid: guid(),
                     uri: parseFilepath(stdout)
                 });
             }
