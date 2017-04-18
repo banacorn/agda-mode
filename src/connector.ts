@@ -10,6 +10,8 @@ import { spawn, exec, ChildProcess } from 'child_process';
 import { Duplex } from 'stream';
 var duplex = require('duplexer');
 
+declare var atom: any;
+
 import { Connection } from './types';
 import { guid } from './util';
 import Core from './core';
@@ -52,20 +54,21 @@ export class ConnectionError extends Error {
 
 export default class Connector {
     // private markers: any[];
-    public connections: Connection[];
+    // public connections: Connection[];
 
     constructor(private core: Core) {
-        this.connections = [];
 
-        autoConnect()
-            .then(validate)
-            .then(connect)
+        // initialize previous connections
+        // this.connections = [];
+
+        // console.log(this.getConnections());
+        this.connect()
             .then((conn) => {
                 console.log(conn)
-                this.connections.push(conn);
-                // conn.stream.on('data', (data) => {
-                //     console.log(data.toString());
-                // });
+                // this.addConnection(conn);
+                conn.stream.on('data', (data) => {
+                    console.log(data.toString());
+                });
             }).catch(AutoConnectFailure, (err) => {
                 console.error(err);
             }).catch(ConnectionError, (err) => {
@@ -74,16 +77,42 @@ export default class Connector {
                 console.error(err);
             });
     }
+
+    connect(): Promise<Connection> {
+        const previousConnections = this.getConnections();
+
+        if (previousConnections.length === 0) {
+            return autoConnect()
+                .then(validate)
+                .then(connect)
+                .catch(AutoConnectFailure, (err) => {
+                    console.warn(err.message);
+                });
+        } else {
+            return Promise.resolve(previousConnections[0]);
+        }
+    }
+
+    getConnections(): Connection[] {
+        const raw = atom.config.get('agda-mode.internalState');
+        return JSON.parse(raw).connections;
+    }
+
+    addConnection({ guid, uri, version }: Connection) {
+        const state = JSON.parse(atom.config.get('agda-mode.internalState'));
+        state.connections.push({ guid, uri, version });
+        atom.config.set('agda-mode.internalState', JSON.stringify(state));
+    }
 }
 
 // automatically searches for available Agda connections
 function autoConnect(): Promise<Connection> {
     if (process.platform === 'win32') {
-        return Promise.reject(new AutoConnectFailure('on windows'));
+        return Promise.reject(new AutoConnectFailure('win32'));
     }
 
     return new Promise<Connection>((resolve, reject) => {
-        exec(`which agda`, (error, stdout, stderr) => {
+        exec(`which mama`, (error, stdout, stderr) => {
             if (error) {
                 reject(new AutoConnectFailure(error.toString()));
             } else {
@@ -95,7 +124,6 @@ function autoConnect(): Promise<Connection> {
         });
     });
 }
-
 
 function validate(conn: Connection): Promise<Connection> {
     return new Promise<Connection>((resolve, reject) => {

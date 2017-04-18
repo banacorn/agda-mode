@@ -538,6 +538,7 @@ namespace Error {
 //
 // Connection
 //
+
 export type Connection = {
     guid: string;
     uri: string;

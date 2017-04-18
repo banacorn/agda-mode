@@ -240,6 +240,15 @@ const config = {
         type: 'boolean',
         default: true,
         order: 9
+    },
+    internalState: {
+        title: 'Internal state gibberish',
+        description: 'Please don\'t touch',
+        type: 'string',
+        default: JSON.stringify({
+            connections: []
+        }),
+        order: 10
     }
 }
 
