@@ -5,21 +5,11 @@ import * as classNames from 'classnames';
 import { View, Connection } from '../../../types';
 import ConnectionItem from './ConnectionItem';
 
-interface Props extends React.HTMLProps<HTMLElement> {
-    // connections: Connection[];
-    // connected?: number;
-}
+type Props = React.HTMLProps<HTMLElement> & View.ConnectionState;
 
-interface DopedProps extends Props {
-    connections: Connection[];
-    // connected?: number;
-}
+const mapStateToProps = ({ connection } : View.State) => connection
 
-const mapStateToProps = (state: View.State) => {
-    return state.connection
-}
-
-class Connections extends React.Component<DopedProps, void> {
+class Connections extends React.Component<Props, void> {
     constructor(props) {
         super(props);
         // this.handleClick = this.handleClick.bind(this);
@@ -27,25 +17,38 @@ class Connections extends React.Component<DopedProps, void> {
     render() {
         // <button className='btn btn-error icon icon-trashcan inline-block-tight'>Delete</button>
 
-        const {dispatch, connections, ...props} = this.props;
+        const {dispatch, connections, setupView, ...props} = this.props;
         // console.log(connections);
+        const currentConnectionClassList = classNames('current-connection', {
+            // hidden: setupView
+        });
+        const setupConnectionClassList = classNames('setup-connection', {
+            hidden: !setupView
+        });
+        // const previousConnections = connections.map((conn, i) =>
+        //     <li key={conn.guid}>
+        //         <ConnectionItem
+        //             connected={false}
+        //             version={conn.version.raw}
+        //             uri={conn.uri}
+        //         />
+        //     </li>
+        // );
 
-        const previousConnections = connections.map((conn, i) =>
-            <li key={conn.guid}>
-                <ConnectionItem
-                    connected={false}
-                    version={conn.version.raw}
-                    uri={conn.uri}
-                />
-            </li>
-        );
-
+        // <section className={setupConnectionClassList}>
+        //     <h2><span className="icon icon-plus">Set up New Connection</span></h2>
+        //     <input className='input-text' type='text' placeholder='the location of Agda'/>
+        //     <div>
+        //         <button className="btn icon icon-trashcan inline-block-tight">cancel</button>
+        //         <button className="btn icon btn-primary icon-plug inline-block-tight">connect</button>
+        //     </div>
+        // </section>
         return (
             <section {...props}>
-                <section className="current-connection">
+                <section className={currentConnectionClassList}>
                     <h2><span className="icon icon-plug">Current Connection</span></h2>
                     <ConnectionItem
-                        connected={true}
+                        phase="connected"
                         version="Agda-2.5.2"
                         uri="path/to/agda"
                     />
@@ -56,7 +59,34 @@ class Connections extends React.Component<DopedProps, void> {
                         A list of previously established connections to Agda
                     </p>
                     <ol>
-                        {previousConnections}
+                        <li>
+                            <ConnectionItem
+                                phase="connecting"
+                                version="Agda-2.6-2ade23"
+                                uri="path/to/agda"
+                            />
+                        </li>
+                        <li>
+                            <ConnectionItem
+                                phase="connected"
+                                version="Agda-2.6"
+                                uri="path/to/agda"
+                            />
+                        </li>
+                        <li>
+                            <ConnectionItem
+                                phase="disconnected"
+                                version="Agda-2.6"
+                                uri="path/to/agda"
+                            />
+                        </li>
+                        <li>
+                            <ConnectionItem
+                                phase="disconnected"
+                                version="Agda-2.5.2"
+                                uri="path/to/agda"
+                            />
+                        </li>
                     </ol>
                 </section>
             </section>
@@ -66,17 +96,11 @@ class Connections extends React.Component<DopedProps, void> {
 
 }
 
-export default connect<View.ConnectionState, {}, Props>(
+// export default connect<View.ConnectionState, {}, Props>(
+export default connect<any, any, any>(
     mapStateToProps
 )(Connections);
 
-    // <li>
-    //     <ConnectionItem
-    //         connected={false}
-    //         version="Agda-2.6"
-    //         uri="path/to/agda"
-    //     />
-    // </li>
     // <li>
     //     <ConnectionItem
     //         connected={false}

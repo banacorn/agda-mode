@@ -52,7 +52,7 @@ namespace View {
 
     export interface ConnectionState {
         connections: Connection[];
-        // connected?: number;
+        setupView: boolean;
     }
 
     export interface DevState {

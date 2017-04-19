@@ -47,13 +47,18 @@ export const toggleSettingsView = createAction(VIEW.TOGGLE_SETTINGS_VIEW);
 
 export type CONNECTION
     = CONNECTION.ADD_CONNECTION
+    | CONNECTION.SHOW_SETUP_VIEW;
     // | CONNECTION.REMOVE_CONNECTION
 
 export namespace CONNECTION {
     export const ADD_CONNECTION = 'CONNECTION.ADD_CONNECTION';
     export type ADD_CONNECTION = Connection;
+    export const SHOW_SETUP_VIEW = 'CONNECTION.SHOW_SETUP_VIEW';
+    export type SHOW_SETUP_VIEW = boolean;
     // export const REMOVE_CONNECTION = 'CONNECTION.REMOVE_CONNECTION';
     // export type REMOVE_CONNECTION = number;
+
+    export const showSetupView = createAction(SHOW_SETUP_VIEW);
 }
 
 export const connectionAddConnection = createAction(CONNECTION.ADD_CONNECTION);

@@ -23,7 +23,8 @@ const defaultState: View.State = {
         settingsView: false
     },
     connection: {
-        connections: []
+        connections: [],
+        setupView: false
     },
     dev: {
         messages: [],
@@ -90,10 +91,12 @@ const view = handleActions<View.ViewState, VIEW>({
 }, defaultState.view);
 
 const connection = handleActions<View.ConnectionState, CONNECTION>({
-    [CONNECTION.ADD_CONNECTION]: (state: View.ConnectionState, action: Action<CONNECTION.ADD_CONNECTION>) =>
-        _.assign({}, state, {
-            connections: _.concat([action.payload], state.connections)
-        })
+    [CONNECTION.ADD_CONNECTION]: (state: View.ConnectionState, action: Action<CONNECTION.ADD_CONNECTION>) => _.assign({}, state, {
+        connections: _.concat([action.payload], state.connections)
+    }),
+    [CONNECTION.SHOW_SETUP_VIEW]: (state: View.ConnectionState, action: Action<CONNECTION.SHOW_SETUP_VIEW>) => _.assign({}, state, {
+        setupView: action.payload
+    }),
     // [DEV.ADD_RESPONSE]: (state: View.DevState, action: Action<DEV.ADD_RESPONSE>) => _.assign({}, state, {
     //     messages: _.concat([{
     //         kind: 'response',

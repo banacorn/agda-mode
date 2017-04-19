@@ -155,31 +155,129 @@ atom-text-editor.agda {
     //////////////////////////////////////////////////////
 
     .connection {
-        padding: 2em;
+        display: flex;
+        height: 100px;
         margin: 2em 0;
+
+        background: @button-background-color;
         border-radius: @component-border-radius;
-        background: @inset-panel-background-color;
+        box-shadow: 4px 4px @app-background-color;
+        // min(@button-background-color-hover, @base-background-color);
 
-        h3 {
-            font-size: 200%;
+        cursor: pointer;
+
+        .connection-info {
+            flex: 0 1 100%;
+            padding: 20px;
+
+
+            // border-top-left-radius: @component-border-radius;
+            // border-bottom-left-radius: @component-border-radius;
+
+            h3 {
+                font-size: 150%;
+                height: 40px;
+                margin-bottom: 0;
+            }
+
+            .connection-uri {
+                height: 20px;
+            }
         }
 
-        .connection-header {
-            display: flex;
-            justify-content: space-between;
-        }
+        .connection-status {
+            flex: 0 0 100px;
 
-        .connection-uri {
-            // margin: 1em 0;
-        }
+            border-top-right-radius: @component-border-radius;
+            border-bottom-right-radius: @component-border-radius;
+            // background: @background-color-success;
+            // background: @app-background-color;
+            color: @button-background-color;
+            text-align: center;
+            line-height: 100px;
 
-
-        .connection-panel {
-        }
-
-        .connection-delete:hover {
-            background: @background-color-error!important;
+            ::before {
+                font-size: 24px;
+                width: inherit;
+                margin: 0;
+                line-height: inherit;
+            }
         }
     }
+
+    .connection:hover {
+        background: @button-background-color-hover;
+
+        .connection-status { color: @app-background-color }
+    }
+
+    .connection.connected {
+        box-shadow: 4px 4px @background-color-success;
+        .connection-status { color: @background-color-success }
+    }
+
+    .connection.connecting {
+        box-shadow: 4px 4px @background-color-warning;
+        .connection-status { color: @background-color-warning }
+    }
+//     .connection {
+//         // dimensions
+//         padding: 20px;
+//         height: 100px;
+//         margin: 2em 0;
+// //
+//
+//
+//         //   display: flex;
+//         //   justify-content: flex-end;
+//         //   align-items: flex-end;
+//
+//         border-radius: @component-border-radius;
+//         background: @button-background-color;
+//         // background: @inset-panel-background-color;
+//         //
+//         // .connection-header {
+//         //     display: flex;
+//         //     justify-content: space-between;
+//         // }
+//         //
+//         //
+//         // .connection-panel {
+//         //     // text-align: right;
+//         // }
+//         //
+//         // .connection-delete:hover {
+//         //     background: @background-color-error!important;
+//         // }
+//         // border-right: 6px solid grey;
+//     }
+    //
+    // .connection .connection-overlay {
+    //     position: relative;
+    //     top: -77px;
+    //     height: 100px;
+    //
+    //     opacity: 0;
+    //
+    //     font-size: 300%;
+    //     text-align: center;
+    //     line-height: 100px;
+    // }
+    // .connection:hover {
+    //     background: @button-background-color-hover;
+    //     // opacity: 0.3;
+    //     cursor: pointer;
+    // }
+    //
+    // .connection:hover .connection-overlay {
+    //     color: white;
+    //     opacity: 0.5;
+    //     background: @button-background-color-hover;
+    //     // cursor: pointer;
+    // }
+    // .connection.connected {
+    //     cursor: pointer;
+    // }
+
 
 }

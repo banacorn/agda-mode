@@ -16,6 +16,7 @@ import { Connection } from './types';
 import { guid } from './util';
 import Core from './core';
 import { parseFilepath } from './parser';
+import * as Action from "./view/actions";
 
 
 export class AutoConnectFailure extends Error {
@@ -64,13 +65,14 @@ export default class Connector {
         // console.log(this.getConnections());
         this.connect()
             .then((conn) => {
-                console.log(conn)
-                // this.addConnection(conn);
+                // console.log(conn)
+                this.addConnection(conn);
                 conn.stream.on('data', (data) => {
                     console.log(data.toString());
                 });
             }).catch(AutoConnectFailure, (err) => {
                 console.error(err);
+                this.core.view.store.dispatch(Action.CONNECTION.showSetupView(true));
             }).catch(ConnectionError, (err) => {
                 console.error(err);
             }).catch((err) => {
@@ -85,9 +87,10 @@ export default class Connector {
             return autoConnect()
                 .then(validate)
                 .then(connect)
-                .catch(AutoConnectFailure, (err) => {
-                    console.warn(err.message);
-                });
+                // .catch(AutoConnectFailure, (err) => {
+                //     console.log(this.core.view.store.dispatch(Action.CONNECTION.setupView(true)));
+                //     // console.warn(err.message);
+                // });
         } else {
             return Promise.resolve(previousConnections[0]);
         }
