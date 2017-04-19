@@ -24,6 +24,7 @@ const defaultState: View.State = {
     },
     connection: {
         connections: [],
+        current: undefined,
         setupView: false
     },
     dev: {
@@ -96,6 +97,9 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
     }),
     [CONNECTION.SHOW_SETUP_VIEW]: (state: View.ConnectionState, action: Action<CONNECTION.SHOW_SETUP_VIEW>) => _.assign({}, state, {
         setupView: action.payload
+    }),
+    [CONNECTION.SET_CURRENT_CONNECTION]: (state: View.ConnectionState, action: Action<CONNECTION.SET_CURRENT_CONNECTION>) => _.assign({}, state, {
+        current: action.payload
     }),
     // [DEV.ADD_RESPONSE]: (state: View.DevState, action: Action<DEV.ADD_RESPONSE>) => _.assign({}, state, {
     //     messages: _.concat([{

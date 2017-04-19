@@ -5,6 +5,7 @@ import { ParsedPath } from 'path';
 import { Duplex } from 'stream';
 
 type Range = any;
+export type GUID = string;
 
 export type TextInput = string;
 
@@ -52,6 +53,7 @@ namespace View {
 
     export interface ConnectionState {
         connections: Connection[];
+        current?: GUID;
         setupView: boolean;
     }
 

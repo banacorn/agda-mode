@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 
 interface Props extends React.HTMLProps<HTMLElement> {
-    phase: 'disconnected' | 'connecting' | 'connected';
+    status: 'disconnected' | 'connecting' | 'connected';
     version: string;
     uri: string;
 }
@@ -20,20 +20,20 @@ class ConnectionItem extends React.Component<Props, void> {
         // const disconnectedClassNames = classNames({
         //     hidden: this.props.connected
         // }, 'connection-panel');
-        const { phase, ...props } = this.props;
-        const classList = classNames({
-            disconnected: phase === 'disconnected',
-            connecting: phase === 'connecting',
-            connected: phase === 'connected'
-        }, 'connection')
+        const { status, ...props } = this.props;
+        // const classList = classNames({
+        //     disconnected: status === 'disconnected',
+        //     connecting: status === 'connecting',
+        //     connected: status === 'connected'
+        // }, 'connection')
 
         const iconClassList = classNames({
-            'icon-hourglass': phase === 'connecting',
-            'icon-zap': phase !== 'connecting'
+            'icon-hourglass': status === 'connecting',
+            'icon-zap': status !== 'connecting'
         }, 'icon')
 
         return (
-            <div className={classList}>
+            <div className='connection' data-status={status}>
                 <div className="connection-info">
                     <h3>{this.props.version}</h3>
                     <div className="connection-uri">{this.props.uri}</div>

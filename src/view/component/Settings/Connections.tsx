@@ -17,14 +17,17 @@ class Connections extends React.Component<Props, void> {
     render() {
         // <button className='btn btn-error icon icon-trashcan inline-block-tight'>Delete</button>
 
-        const {dispatch, connections, setupView, ...props} = this.props;
-        // console.log(connections);
+        const {dispatch, connections, setupView, current, ...props} = this.props;
+        console.log(current);
         const currentConnectionClassList = classNames('current-connection', {
             // hidden: setupView
         });
         const setupConnectionClassList = classNames('setup-connection', {
             hidden: !setupView
         });
+
+
+        // const currentConnection =
         // const previousConnections = connections.map((conn, i) =>
         //     <li key={conn.guid}>
         //         <ConnectionItem
@@ -47,11 +50,16 @@ class Connections extends React.Component<Props, void> {
             <section {...props}>
                 <section className={currentConnectionClassList}>
                     <h2><span className="icon icon-plug">Current Connection</span></h2>
-                    <ConnectionItem
-                        phase="connected"
-                        version="Agda-2.5.2"
-                        uri="path/to/agda"
-                    />
+                    { current ?
+                        <ConnectionItem
+                            status="connected"
+                            version="Agda-2.5.2"
+                            uri="path/to/agda"
+                        /> :
+                        <div className="no-connection">
+                            <span className="icon icon-stop">no connection established</span>
+                        </div>
+                    }
                 </section>
                 <section className="previous-connections">
                     <h2><span className="icon icon-repo">Previous Connections</span></h2>
@@ -61,28 +69,35 @@ class Connections extends React.Component<Props, void> {
                     <ol>
                         <li>
                             <ConnectionItem
-                                phase="connecting"
+                                status="connecting"
                                 version="Agda-2.6-2ade23"
                                 uri="path/to/agda"
                             />
                         </li>
                         <li>
                             <ConnectionItem
-                                phase="connected"
+                                status="connected"
                                 version="Agda-2.6"
                                 uri="path/to/agda"
                             />
                         </li>
                         <li>
                             <ConnectionItem
-                                phase="disconnected"
+                                status="disconnected"
                                 version="Agda-2.6"
                                 uri="path/to/agda"
                             />
                         </li>
                         <li>
                             <ConnectionItem
-                                phase="disconnected"
+                                status="disconnected"
+                                version="Agda-2.5.2"
+                                uri="path/to/agda"
+                            />
+                        </li>
+                        <li>
+                            <ConnectionItem
+                                status="disconnected"
                                 version="Agda-2.5.2"
                                 uri="path/to/agda"
                             />
