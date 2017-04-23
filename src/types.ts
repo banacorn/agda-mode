@@ -54,7 +54,7 @@ namespace View {
     export interface ConnectionState {
         connections: Connection[];
         current?: GUID;
-        setupView: boolean;
+        showNewConnectionView: boolean;
     }
 
     export interface DevState {

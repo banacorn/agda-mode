@@ -47,25 +47,26 @@ export const toggleSettingsView = createAction(VIEW.TOGGLE_SETTINGS_VIEW);
 
 export type CONNECTION
     = CONNECTION.ADD_CONNECTION
-    | CONNECTION.SHOW_SETUP_VIEW
-    | CONNECTION.SET_CURRENT_CONNECTION;
+    | CONNECTION.SHOW_NEW_CONNECTION_VIEW
+    // | CONNECTION.NEW_CONNECTION
+    // | CONNECTION.SET_CURRENT_CONNECTION;
     // | CONNECTION.REMOVE_CONNECTION
 
 export namespace CONNECTION {
     export const ADD_CONNECTION = 'CONNECTION.ADD_CONNECTION';
     export type ADD_CONNECTION = Connection;
-    export const SHOW_SETUP_VIEW = 'CONNECTION.SHOW_SETUP_VIEW';
-    export type SHOW_SETUP_VIEW = boolean;
-    export const SET_CURRENT_CONNECTION = 'CONNECTION.SET_CURRENT_CONNECTION';
-    export type SET_CURRENT_CONNECTION = GUID;
+    export const SHOW_NEW_CONNECTION_VIEW = 'CONNECTION.SHOW_NEW_CONNECTION_VIEW';
+    export type SHOW_NEW_CONNECTION_VIEW = boolean;
+    // export const SET_CURRENT_CONNECTION = 'CONNECTION.SET_CURRENT_CONNECTION';
+    // export type SET_CURRENT_CONNECTION = GUID;
     // export const REMOVE_CONNECTION = 'CONNECTION.REMOVE_CONNECTION';
     // export type REMOVE_CONNECTION = number;
 
-    export const showSetupView = createAction(SHOW_SETUP_VIEW);
-    export const setCurrentConnection = createAction(SET_CURRENT_CONNECTION);
+    export const connectionAddConnection = createAction(CONNECTION.ADD_CONNECTION);
+    export const showNewConnectionView = createAction(SHOW_NEW_CONNECTION_VIEW);
+    // export const setCurrentConnection = createAction(SET_CURRENT_CONNECTION);
 }
 
-export const connectionAddConnection = createAction(CONNECTION.ADD_CONNECTION);
 
 export type DEV
     = DEV.ADD_REQUEST

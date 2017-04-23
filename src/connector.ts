@@ -72,7 +72,7 @@ export default class Connector {
                 });
             }).catch(AutoConnectFailure, (err) => {
                 console.error(err);
-                this.core.view.store.dispatch(Action.CONNECTION.showSetupView(true));
+                // this.core.view.store.dispatch(Action.CONNECTION.showSetupView(true));
             }).catch(ConnectionError, (err) => {
                 console.error(err);
             }).catch((err) => {

@@ -25,7 +25,7 @@ const defaultState: View.State = {
     connection: {
         connections: [],
         current: undefined,
-        setupView: false
+        showNewConnectionView: false
     },
     dev: {
         messages: [],
@@ -95,12 +95,12 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
     [CONNECTION.ADD_CONNECTION]: (state: View.ConnectionState, action: Action<CONNECTION.ADD_CONNECTION>) => _.assign({}, state, {
         connections: _.concat([action.payload], state.connections)
     }),
-    [CONNECTION.SHOW_SETUP_VIEW]: (state: View.ConnectionState, action: Action<CONNECTION.SHOW_SETUP_VIEW>) => _.assign({}, state, {
-        setupView: action.payload
+    [CONNECTION.SHOW_NEW_CONNECTION_VIEW]: (state: View.ConnectionState, action: Action<CONNECTION.SHOW_NEW_CONNECTION_VIEW>) => _.assign({}, state, {
+        showNewConnectionView: action.payload
     }),
-    [CONNECTION.SET_CURRENT_CONNECTION]: (state: View.ConnectionState, action: Action<CONNECTION.SET_CURRENT_CONNECTION>) => _.assign({}, state, {
-        current: action.payload
-    }),
+    // [CONNECTION.SET_CURRENT_CONNECTION]: (state: View.ConnectionState, action: Action<CONNECTION.SET_CURRENT_CONNECTION>) => _.assign({}, state, {
+    //     current: action.payload
+    // }),
     // [DEV.ADD_RESPONSE]: (state: View.DevState, action: Action<DEV.ADD_RESPONSE>) => _.assign({}, state, {
     //     messages: _.concat([{
     //         kind: 'response',
