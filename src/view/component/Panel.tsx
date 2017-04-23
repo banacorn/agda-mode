@@ -47,7 +47,7 @@ class Panel extends React.Component<Props, void> {
         const hideBody = classNames({'hidden': this.props.miniEditor.activate});
         return (
             <section className={hideEverything}>
-                <header className="panel-heading agda-header-container">
+                <section className="panel-heading agda-header-container">
                     <SizingHandle
                         onResize={(height) => {
                             onResize(height)
@@ -74,7 +74,7 @@ class Panel extends React.Component<Props, void> {
                         mountAtPane={mountAtPane}
                         mountAtBottom={mountAtBottom}
                     />
-                </header>
+                </section>
                 <section className="agda-body-container">
                     <MiniEditor
                         className={hideMiniEditor}

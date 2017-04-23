@@ -9,6 +9,12 @@ type Props = React.HTMLProps<HTMLElement> & View.ConnectionState;
 
 const mapStateToProps = ({ connection } : View.State) => connection
 
+// const mapDispatchToProps = (dispatch: any) => ({
+//     handleNewConnection: () => {
+//         dispatch(Action.mountAtPane());
+//     }
+// });
+
 class Connections extends React.Component<Props, void> {
     constructor(props) {
         super(props);
@@ -18,7 +24,6 @@ class Connections extends React.Component<Props, void> {
         // <button className='btn btn-error icon icon-trashcan inline-block-tight'>Delete</button>
 
         const {dispatch, connections, setupView, current, ...props} = this.props;
-        console.log(current);
         const currentConnectionClassList = classNames('current-connection', {
             // hidden: setupView
         });
@@ -48,62 +53,14 @@ class Connections extends React.Component<Props, void> {
         // </section>
         return (
             <section {...props}>
-                <section className={currentConnectionClassList}>
-                    <h2><span className="icon icon-plug">Current Connection</span></h2>
-                    { current ?
-                        <ConnectionItem
-                            status="connected"
-                            version="Agda-2.5.2"
-                            uri="path/to/agda"
-                        /> :
-                        <div className="no-connection">
-                            <span className="icon icon-stop">no connection established</span>
-                        </div>
-                    }
-                </section>
-                <section className="previous-connections">
-                    <h2><span className="icon icon-repo">Previous Connections</span></h2>
-                    <p>
-                        A list of previously established connections to Agda
-                    </p>
-                    <ol>
-                        <li>
-                            <ConnectionItem
-                                status="connecting"
-                                version="Agda-2.6-2ade23"
-                                uri="path/to/agda"
-                            />
-                        </li>
-                        <li>
-                            <ConnectionItem
-                                status="connected"
-                                version="Agda-2.6"
-                                uri="path/to/agda"
-                            />
-                        </li>
-                        <li>
-                            <ConnectionItem
-                                status="disconnected"
-                                version="Agda-2.6"
-                                uri="path/to/agda"
-                            />
-                        </li>
-                        <li>
-                            <ConnectionItem
-                                status="disconnected"
-                                version="Agda-2.5.2"
-                                uri="path/to/agda"
-                            />
-                        </li>
-                        <li>
-                            <ConnectionItem
-                                status="disconnected"
-                                version="Agda-2.5.2"
-                                uri="path/to/agda"
-                            />
-                        </li>
-                    </ol>
-                </section>
+                <header>
+                    <h2><span className="icon icon-plug">Connections</span></h2>
+                    <div>
+                        <button
+                            className="btn icon btn-primary icon-plus inline-block-tight"
+                        >new</button>
+                    </div>
+                </header>
             </section>
         )
     }
@@ -115,6 +72,66 @@ class Connections extends React.Component<Props, void> {
 export default connect<any, any, any>(
     mapStateToProps
 )(Connections);
+
+
+// <section {...props}>
+//     <section className={currentConnectionClassList}>
+//         <h2><span className="icon icon-plug">Current Connection</span></h2>
+//         { current ?
+//             <ConnectionItem
+//                 status="connected"
+//                 version="Agda-2.5.2"
+//                 uri="path/to/agda"
+//             /> :
+//             <div className="no-connection">
+//                 <span className="icon icon-stop">no connection established</span>
+//             </div>
+//         }
+//     </section>
+//     <section className="previous-connections">
+//         <h2><span className="icon icon-repo">Previous Connections</span></h2>
+//         <p>
+//             A list of previously established connections to Agda
+//         </p>
+//         <ol>
+//             <li>
+//                 <ConnectionItem
+//                     status="connecting"
+//                     version="Agda-2.6-2ade23"
+//                     uri="path/to/agda"
+//                 />
+//             </li>
+//             <li>
+//                 <ConnectionItem
+//                     status="connected"
+//                     version="Agda-2.6"
+//                     uri="path/to/agda"
+//                 />
+//             </li>
+//             <li>
+//                 <ConnectionItem
+//                     status="disconnected"
+//                     version="Agda-2.6"
+//                     uri="path/to/agda"
+//                 />
+//             </li>
+//             <li>
+//                 <ConnectionItem
+//                     status="disconnected"
+//                     version="Agda-2.5.2"
+//                     uri="path/to/agda"
+//                 />
+//             </li>
+//             <li>
+//                 <ConnectionItem
+//                     status="disconnected"
+//                     version="Agda-2.5.2"
+//                     uri="path/to/agda"
+//                 />
+//             </li>
+//         </ol>
+//     </section>
+// </section>
 
     // <li>
     //     <ConnectionItem

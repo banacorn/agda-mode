@@ -11,15 +11,22 @@
     .hidden { display: none }
 
     .icon::before {
-        width: 1ex;
+        width: 1em;
         height: 1em;
         line-height: 1em;
-        margin-right: 1ex;
         font-size: inherit;
     }
 
     h2, h3 {
         margin: 0 0 1em;
+    }
+
+    header {
+        // flexbox
+        display: flex;
+        justify-content: space-between;
+
+
     }
 
     // Makes buttons look like ordinary texts

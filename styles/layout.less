@@ -26,10 +26,6 @@
 
         // <Header>
         .agda-header {
-            // flexbox
-            display: flex;
-            justify-content: space-between;
-
             h1 {
                 height: @headerHeight;
                 line-height: @headerHeight;
@@ -53,6 +49,7 @@
                 color: @text-color-subtle;
                 min-width: 30px;
                 height: 30px;
+                font-size: 16px;
             }
             button:hover {
                 color: @text-color;
@@ -258,7 +255,7 @@
         }
 
         .settings-panel {
-            // padding: (@component-padding) (@component-padding * 2);
+            padding: 3em;
             height: 100%;
             flex: 0 1 100%;
             min-width: 400px;
