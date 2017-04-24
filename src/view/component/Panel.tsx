@@ -10,7 +10,7 @@ import InputMethod from './InputMethod';
 import Header from './Header';
 import Body from './Body';
 import SizingHandle from './SizingHandle';
-import { View, Location } from '../../types';
+import { View, Location } from '../../type';
 import MiniEditor from './MiniEditor';
 import { deactivateMiniEditor, updateMaxBodyHeight } from './../actions';
 

@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { Agda } from '../types';
+import { Agda } from '../type';
 
 function parseAgdaResponse(raw: string): Agda.Response {
 

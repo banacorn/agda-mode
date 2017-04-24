@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import Lexer from './lexer';
-import { Token, TokenType, Hole } from '../types';
+import { Token, TokenType, Hole } from '../type';
 
 // regular expressions
 const commentRegex = /(--[^\r\n]*[\r\n])|(\{-(?:[^-]|[\r\n]|(-+(?:[^-\}]|[\r\n])))*-+\})/;

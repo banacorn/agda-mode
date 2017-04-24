@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import * as fs from 'fs';
-import { Agda, View } from './types';
+import { Agda, View } from './type';
 import Core from './core';
 import { parseSExpression, parseAnnotation, parseJudgements, parseError } from './parser';
 

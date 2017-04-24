@@ -1,6 +1,6 @@
 import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
-import { View, Error, Location, Connection, GUID } from '../types';
+import { View, Error, Location, Connection, GUID } from '../type';
 
 export type EVENT =
     EVENT.JUMP_TO_GOAL |

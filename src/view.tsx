@@ -13,7 +13,7 @@ import Panel from './view/component/Panel';
 import Settings from './view/component/Settings';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
-import { View as V, Location, Error } from './types';
+import { View as V, Location, Error } from './type';
 import { EVENT } from "./view/actions";
 import * as Action from "./view/actions";
 import { parseJudgements, parseError } from './parser';

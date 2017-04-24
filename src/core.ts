@@ -7,7 +7,7 @@ var { Range, CompositeDisposable } = require('atom');
 
 import { parseFilepath } from './parser';
 import * as Redux from 'redux';
-import { View as ViewType } from './types';
+import { View as ViewType } from './type';
 
 // # Components
 import Commander from './commander';

@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as Promise from 'bluebird';
 import { EventEmitter } from 'events';
 
-import { View, Location as Loc } from '../../types';
+import { View, Location as Loc } from '../../type';
 import { EVENT } from '../actions';
 
 // Atom shits

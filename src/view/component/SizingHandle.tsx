@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
 
-import { View } from '../../types';
+import { View } from '../../type';
 
 interface Props {
     // initial: number;

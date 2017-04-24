@@ -2,7 +2,7 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { inspect } from 'util';
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError, InvalidExecutablePathError } from './error';
-import { Command, Normalization, ComputeMode, View, CommandKind, PendingCommand } from './types';
+import { Command, Normalization, ComputeMode, View, CommandKind, PendingCommand } from './type';
 import Core from './core';
 
 declare var atom: any;

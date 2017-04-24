@@ -3,7 +3,7 @@ import * as React from 'react';
 import * as Promise from 'bluebird';
 import { EventEmitter } from 'events';
 
-import { View } from '../../types';
+import { View } from '../../type';
 import Expr from './Expr';
 
 

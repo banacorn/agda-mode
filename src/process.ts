@@ -5,7 +5,7 @@ import { parseFilepath, parseAgdaResponse } from './parser';
 import Rectifier from './parser/stream/rectifier';
 import { handleAgdaResponse } from './handler';
 import { InvalidExecutablePathError, ProcExecError, AutoExecPathSearchError, AgdaParseError } from './error';
-import { Goal, Normalization, ComputeMode, View } from './types';
+import { Goal, Normalization, ComputeMode, View } from './type';
 import Core from './core';
 import * as Action from './view/actions';
 

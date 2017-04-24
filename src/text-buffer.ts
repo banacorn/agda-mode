@@ -1,11 +1,11 @@
 import * as fs from 'fs';
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
-import { Agda, Goal, View, Location } from './types';
+import { Agda, Goal, View, Location } from './type';
 import { parseHole } from './parser';
 import Core from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
-import { Command } from './types';
+import { Command } from './type';
 
 declare var atom: any;
 

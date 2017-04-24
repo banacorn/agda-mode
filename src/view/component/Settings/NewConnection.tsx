@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
-import { View, Connection } from '../../../types';
+import { View, Connection } from '../../../type';
 
 type Props = React.HTMLProps<HTMLElement> & {
     show: boolean;

@@ -43,7 +43,6 @@
         "src/test/setup.ts",
         "src/test/test/activation.ts",
         "src/text-buffer.ts",
-        "src/types.ts",
         "src/view/actions.ts",
         "src/view/pane-item.ts",
         "src/view/reducers.ts",

@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { Command, Normalization, ComputeMode } from '../types';
+import { Command, Normalization, ComputeMode } from '../type';
 
 function parseNormalization(raw: string): Normalization {
     switch (raw) {

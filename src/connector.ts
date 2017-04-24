@@ -12,7 +12,7 @@ var duplex = require('duplexer');
 
 declare var atom: any;
 
-import { Connection } from './types';
+import { Connection } from './type';
 import { guid } from './util';
 import Core from './core';
 import { parseFilepath } from './parser';

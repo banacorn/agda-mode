@@ -3,7 +3,7 @@ import * as Promise from 'bluebird';
 import { inspect } from 'util';
 import { EventEmitter } from 'events';
 
-import { View, Error as E, Location as Loc } from '../../types';
+import { View, Error as E, Location as Loc } from '../../type';
 
 import Expr from './Expr';
 import Location from './Location';

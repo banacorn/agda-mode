@@ -2,7 +2,7 @@ type TextBuffer = any;
 type Point = any;
 type Range = any;
 var { Range } = require('atom');
-import { Agda } from './types';
+import { Agda } from './type';
 import Core from './core';
 
 export default class HighlightManager {

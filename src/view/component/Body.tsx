@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 
 declare var atom: any;
 
-import { View, Error as E, Location as Loc } from '../../types';
+import { View, Error as E, Location as Loc } from '../../type';
 import { updateMaxBodyHeight, EVENT } from '../actions';
 import Expr from './Expr';
 import Error from './Error';

@@ -1,4 +1,4 @@
-import { Goal } from './types';
+import { Goal } from './type';
 
 
 export class AgdaParseError extends Error {
