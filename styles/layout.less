@@ -165,8 +165,6 @@
             }
         }
 
-
-
         .agda-dev-body {
 
             // make it scrollable
@@ -293,4 +291,40 @@
         padding-bottom: 250px !important;
     }
 
+
+    #new-connection-dashboard {
+        input[type="radio"] {
+            visibility: hidden;
+        }
+
+        input[type="radio"]:checked + label {
+            color: @text-color-selected;
+        }
+
+        input[type="radio"]:not(:checked) + label {
+            color: @text-color-subtle;
+        }
+
+        input[type="radio"]:not(:checked) + label:hover {
+            color: @text-color-highlight !important;
+            cursor: pointer;
+        }
+
+        label {
+            width: 100%;
+        }
+
+        #remote-connection-inputs {
+            display: flex;
+
+            #remote-connection-url {
+                flex: 0 1 100%;
+                margin-right: 1ch;
+            }
+
+            #remote-connection-port {
+                flex: 0 0 50px;
+            }
+        }
+    }
 }
