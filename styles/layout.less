@@ -305,7 +305,7 @@
             color: @text-color-subtle;
         }
 
-        input[type="radio"]:not(:checked) + label:hover {
+        input[type="radio"]:not(:checked):not(:disabled) + label:hover {
             color: @text-color-highlight !important;
             cursor: pointer;
         }
