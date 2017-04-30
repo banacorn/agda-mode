@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import Keymap from './keymap';
 import Core from './core';
-import { activateInputMethod, deactivateInputMethod, insertInputMethod, deleteInputMethod } from './view/actions';
+import { INPUT_METHOD } from './view/actions';
 
 type TextEditor = any;
 type CompositeDisposable = any;
@@ -162,7 +162,7 @@ export default class InputMethod {
             });
 
             // initialize input suggestion
-            this.core.view.store.dispatch(activateInputMethod());
+            this.core.view.store.dispatch(INPUT_METHOD.activate());
         } else {
             // input method already activated, it happens when we get the 2nd
             // backslash '\' coming in
@@ -183,7 +183,7 @@ export default class InputMethod {
             // add class 'agda-mode-input-method-activated'
             const editorElement = atom.views.getView(this.core.view.getEditor());
             editorElement.classList.remove('agda-mode-input-method-activated');
-            this.core.view.store.dispatch(deactivateInputMethod());
+            this.core.view.store.dispatch(INPUT_METHOD.deactivate());
             this.textEditorMarker.destroy();
             this.decoration.destroy();
             this.activated = false;
@@ -216,7 +216,7 @@ export default class InputMethod {
             }
             else if (change === INSERT) {
                 const char = buffer.substr(-1);
-                this.core.view.store.dispatch(insertInputMethod(char));
+                this.core.view.store.dispatch(INPUT_METHOD.insertChar(char));
                 const {translation, further} = this.core.view.store.getState().inputMethod;
 
                 // reflects current translation to the text buffer
@@ -231,7 +231,7 @@ export default class InputMethod {
                     this.deactivate();
                 }
             } else if (change === DELETE) {
-                this.core.view.store.dispatch(deleteInputMethod());
+                this.core.view.store.dispatch(INPUT_METHOD.deleteChar());
             }
 
         }

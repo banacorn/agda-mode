@@ -12,7 +12,7 @@ import Body from './Body';
 import SizingHandle from './SizingHandle';
 import { View, Location } from '../../type';
 import MiniEditor from './MiniEditor';
-import { deactivateMiniEditor, updateMaxBodyHeight } from './../actions';
+import { MINI_EDITOR, updateMaxBodyHeight } from './../actions';
 
 interface Props extends View.State {
     core: Core;
@@ -29,7 +29,7 @@ const mapStateToProps = (state : View.State) => state
 
 const mapDispatchToProps = (dispatch: any) => ({
     deactivateMiniEditor: () => {
-        dispatch(deactivateMiniEditor());
+        dispatch(MINI_EDITOR.deactivate());
     },
     onResize: (offset: number) => {
         dispatch(updateMaxBodyHeight(offset));

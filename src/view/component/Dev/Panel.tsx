@@ -27,13 +27,13 @@ const mapStateToProps = (state: View.State) => ({
 
 const mapDispatchToProps = (dispatch: any) => ({
     clearAll: () => {
-        dispatch(Action.devClearAll());
+        dispatch(Action.DEV.clearAll());
     },
     toogleAccumulate: () => {
-        dispatch(Action.devToggleAccumulate());
+        dispatch(Action.DEV.toggleAccumulate());
     },
     toggleLSP: () => {
-        dispatch(Action.devToggleLSP());
+        dispatch(Action.DEV.toggleLSP());
     }
 });
 

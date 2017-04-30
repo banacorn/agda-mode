@@ -198,7 +198,7 @@ export default class Process {
                             .on('data', (data) => {
                                 try {
                                     if (atom.inDevMode()) {
-                                        this.core.view.store.dispatch(Action.devAddResponse(data));
+                                        this.core.view.store.dispatch(Action.DEV.addResponse(data));
                                     }
                                     const response = parseAgdaResponse(data);
                                     handleAgdaResponse(this.core, response);
@@ -249,7 +249,7 @@ export default class Process {
             command = `IOTCM \"${filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction()} )\n`;
         }
         if (atom.inDevMode()) {
-            this.core.view.store.dispatch(Action.devAddRequest(command));
+            this.core.view.store.dispatch(Action.DEV.addRequest(command));
         }
         this.agdaProcess.stdin.write(command);
         return Promise.resolve(this.agdaProcess);

@@ -17,7 +17,7 @@ import { View as V, Location, Error } from './type';
 import { EVENT } from "./view/actions";
 import * as Action from "./view/actions";
 import { parseJudgements, parseError } from './parser';
-import { updateHeader, activateMiniEditor, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
+import { HEADER, MINI_EDITOR, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
 import PaneItem from './view/pane-item';
 
 // Atom shits
@@ -64,7 +64,7 @@ export default class View {
         this.viewPaneItem.onClose((paneItem, closedDeliberately) => {
             // console.log(`[${this.editor.id}] ${paneItem.getURI()} closed ${closedDeliberately ? 'deliberately' : 'by atom'}`)
             if (closedDeliberately === false) {
-                this.store.dispatch(Action.mountAtBottom());
+                this.store.dispatch(Action.VIEW.mountAtBottom());
                 this.unmount(V.MountingPosition.Pane);
                 this.mount(V.MountingPosition.Bottom);
             }
@@ -85,7 +85,7 @@ export default class View {
         });
         this.settingsViewPaneItem.onClose((paneItem, closedDeliberately) => {
             if (closedDeliberately === false) {
-                this.store.dispatch(Action.toggleSettingsView());
+                this.store.dispatch(Action.VIEW.toggleSettings());
             }
         });
     }
@@ -157,7 +157,7 @@ export default class View {
         if (!this.state().mounted) {
             // console.log(`[${this.editor.id}] %cmount at ${toText(mountAt)}`, 'color: green')
             // Redux
-            this.store.dispatch(Action.mountView());
+            this.store.dispatch(Action.VIEW.mount());
 
             switch (mountAt) {
                 case V.MountingPosition.Bottom:
@@ -184,7 +184,7 @@ export default class View {
         if (this.state().mounted) {
             // console.log(`[${this.editor.id}] %cunmount at ${toText(mountAt)}`, 'color: orange')
             // Redux
-            this.store.dispatch(Action.unmountView());
+            this.store.dispatch(Action.VIEW.unmount());
 
             switch (mountAt) {
                 case V.MountingPosition.Bottom:
@@ -207,7 +207,7 @@ export default class View {
 
     activate() {
         setTimeout(() => {
-            this.store.dispatch(Action.activateView());
+            this.store.dispatch(Action.VIEW.activate());
         })
         switch (this.state().mountAt.current) {
             case V.MountingPosition.Bottom:
@@ -224,7 +224,7 @@ export default class View {
 
     deactivate() {
         // console.log(`[${this.uri.substr(12)}] %cdeactivated`, 'color: purple')
-        this.store.dispatch(Action.deactivateView());
+        this.store.dispatch(Action.VIEW.deactivate());
     }
 
     // destructor
@@ -236,10 +236,10 @@ export default class View {
     }
 
     set(header: string, payload: string[], type = V.Style.PlainText) {
-        this.store.dispatch(Action.deactivateMiniEditor());
+        this.store.dispatch(Action.MINI_EDITOR.deactivate());
         atom.views.getView(this.getEditor()).focus()
 
-        this.store.dispatch(updateHeader({
+        this.store.dispatch(HEADER.update({
             text: header,
             style: type
         }));
@@ -249,17 +249,17 @@ export default class View {
 
     setError(error: Error) {
 
-        this.store.dispatch(Action.deactivateMiniEditor());
+        this.store.dispatch(Action.MINI_EDITOR.deactivate());
         atom.views.getView(this.getEditor()).focus()
 
-        this.store.dispatch(updateHeader({
+        this.store.dispatch(HEADER.update({
             text: 'Error',
             style: V.Style.Error
         }));
 
         this.store.dispatch(updateError(error));
         if (error) {
-            this.store.dispatch(updateHeader({
+            this.store.dispatch(HEADER.update({
                 style: V.Style.Error,
                 text: error.header
             }));
@@ -267,10 +267,10 @@ export default class View {
     }
 
     setJudgements(header: string = 'Judgements', { banner, body }: V.Judgements) {
-        this.store.dispatch(Action.deactivateMiniEditor());
+        this.store.dispatch(Action.MINI_EDITOR.deactivate());
         atom.views.getView(this.getEditor()).focus()
 
-        this.store.dispatch(updateHeader({
+        this.store.dispatch(HEADER.update({
             text: header,
             style: V.Style.Info
         }));
@@ -289,9 +289,9 @@ export default class View {
 
 
     query(header: string = '', message: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {
-        this.store.dispatch(Action.enableInMiniEditor(inputMethodOn));
-        this.store.dispatch(activateMiniEditor(placeholder));
-        this.store.dispatch(updateHeader({
+        this.store.dispatch(Action.INPUT_METHOD.enableInMiniEditor(inputMethodOn));
+        this.store.dispatch(MINI_EDITOR.activate(placeholder));
+        this.store.dispatch(HEADER.update({
             text: header,
             style: type
         }));
@@ -303,12 +303,12 @@ export default class View {
     toggleDocking(): Promise<{}> {
         switch (this.state().mountAt.current) {
             case V.MountingPosition.Bottom:
-                this.store.dispatch(Action.mountAtPane());
+                this.store.dispatch(Action.VIEW.mountAtPane());
                 this.unmount(V.MountingPosition.Bottom);
                 this.mount(V.MountingPosition.Pane);
                 break;
             case V.MountingPosition.Pane:
-                this.store.dispatch(Action.mountAtBottom());
+                this.store.dispatch(Action.VIEW.mountAtBottom());
                 this.unmount(V.MountingPosition.Pane);
                 this.mount(V.MountingPosition.Bottom);
                 break;

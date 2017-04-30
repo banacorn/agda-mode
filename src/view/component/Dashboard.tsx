@@ -31,13 +31,13 @@ const mapStateToProps = (state: View.State) => ({
 
 const mapDispatchToProps = (dispatch: any) => ({
     handleMountAtPane: () => {
-        dispatch(Action.mountAtPane());
+        dispatch(Action.VIEW.mountAtPane());
     },
     handleMountAtBottom: () => {
-        dispatch(Action.mountAtBottom());
+        dispatch(Action.VIEW.mountAtBottom());
     },
     handleToggleSettingsView: () => {
-        dispatch(Action.toggleSettingsView());
+        dispatch(Action.VIEW.toggleSettings());
     }
 });
 

@@ -35,36 +35,28 @@ export namespace VIEW {
     export type MOUNT_AT_BOTTOM = void;
     export const TOGGLE_SETTINGS_VIEW = 'VIEW.TOGGLE_SETTINGS_VIEW';
     export type TOGGLE_SETTINGS_VIEW = void;
-}
 
-export const activateView = createAction(VIEW.ACTIVATE);
-export const deactivateView = createAction(VIEW.DEACTIVATE);
-export const mountView = createAction(VIEW.MOUNT);
-export const unmountView = createAction(VIEW.UNMOUNT);
-export const mountAtPane = createAction(VIEW.MOUNT_AT_PANE);
-export const mountAtBottom = createAction(VIEW.MOUNT_AT_BOTTOM);
-export const toggleSettingsView = createAction(VIEW.TOGGLE_SETTINGS_VIEW);
+    export const activate = createAction(VIEW.ACTIVATE);
+    export const deactivate = createAction(VIEW.DEACTIVATE);
+    export const mount = createAction(VIEW.MOUNT);
+    export const unmount = createAction(VIEW.UNMOUNT);
+    export const mountAtPane = createAction(VIEW.MOUNT_AT_PANE);
+    export const mountAtBottom = createAction(VIEW.MOUNT_AT_BOTTOM);
+    export const toggleSettings = createAction(VIEW.TOGGLE_SETTINGS_VIEW);
+}
 
 export type CONNECTION
     = CONNECTION.ADD_CONNECTION
     | CONNECTION.SHOW_NEW_CONNECTION_VIEW
-    // | CONNECTION.NEW_CONNECTION
-    // | CONNECTION.SET_CURRENT_CONNECTION;
-    // | CONNECTION.REMOVE_CONNECTION
 
 export namespace CONNECTION {
     export const ADD_CONNECTION = 'CONNECTION.ADD_CONNECTION';
     export type ADD_CONNECTION = Connection;
     export const SHOW_NEW_CONNECTION_VIEW = 'CONNECTION.SHOW_NEW_CONNECTION_VIEW';
     export type SHOW_NEW_CONNECTION_VIEW = boolean;
-    // export const SET_CURRENT_CONNECTION = 'CONNECTION.SET_CURRENT_CONNECTION';
-    // export type SET_CURRENT_CONNECTION = GUID;
-    // export const REMOVE_CONNECTION = 'CONNECTION.REMOVE_CONNECTION';
-    // export type REMOVE_CONNECTION = number;
 
-    export const connectionAddConnection = createAction(CONNECTION.ADD_CONNECTION);
+    export const addConnection = createAction(CONNECTION.ADD_CONNECTION);
     export const showNewConnectionView = createAction(SHOW_NEW_CONNECTION_VIEW);
-    // export const setCurrentConnection = createAction(SET_CURRENT_CONNECTION);
 }
 
 
@@ -86,13 +78,14 @@ export namespace DEV {
     export type TOGGLE_ACCUMULATE = void;
     export const TOGGLE_LSP = 'DEV.TOGGLE_LSP';
     export type TOGGLE_LSP = void;
+
+    export const addRequest = createAction(DEV.ADD_REQUEST);
+    export const addResponse = createAction(DEV.ADD_RESPONSE);
+    export const clearAll = createAction(DEV.CLEAR_ALL);
+    export const toggleAccumulate = createAction(DEV.TOGGLE_ACCUMULATE);
+    export const toggleLSP = createAction(DEV.TOGGLE_LSP);
 }
 
-export const devAddRequest = createAction(DEV.ADD_REQUEST);
-export const devAddResponse = createAction(DEV.ADD_RESPONSE);
-export const devClearAll = createAction(DEV.CLEAR_ALL);
-export const devToggleAccumulate = createAction(DEV.TOGGLE_ACCUMULATE);
-export const devToggleLSP = createAction(DEV.TOGGLE_LSP);
 
 export type INPUT_METHOD = INPUT_METHOD.ACTIVATE
     | INPUT_METHOD.DEACTIVATE
@@ -114,22 +107,24 @@ export namespace INPUT_METHOD {
     export type REPLACE_SYMBOL = string;
     export const ENABLE_IN_MINI_EDITOR = 'INPUT_METHOD.ENABLE_IN_MINI_EDITOR';
     export type ENABLE_IN_MINI_EDITOR = boolean;
+
+    export const activate = createAction(INPUT_METHOD.ACTIVATE);
+    export const deactivate = createAction(INPUT_METHOD.DEACTIVATE);
+    export const insertChar = createAction(INPUT_METHOD.INSERT);
+    export const deleteChar = createAction(INPUT_METHOD.DELETE);
+    export const replaceSymbol = createAction(INPUT_METHOD.REPLACE_SYMBOL);
+    export const enableInMiniEditor = createAction(INPUT_METHOD.ENABLE_IN_MINI_EDITOR);
 }
 
-export const activateInputMethod = createAction(INPUT_METHOD.ACTIVATE);
-export const deactivateInputMethod = createAction(INPUT_METHOD.DEACTIVATE);
-export const insertInputMethod = createAction(INPUT_METHOD.INSERT);
-export const deleteInputMethod = createAction(INPUT_METHOD.DELETE);
-export const replaceSymbol = createAction(INPUT_METHOD.REPLACE_SYMBOL);
-export const enableInMiniEditor = createAction(INPUT_METHOD.ENABLE_IN_MINI_EDITOR);
 
 export type HEADER = HEADER.UPDATE;
 export namespace HEADER {
     export const UPDATE = 'HEADER.UPDATE';
     export type UPDATE = View.HeaderState;
+
+    export const update = createAction(HEADER.UPDATE);
 }
 
-export const updateHeader = createAction(HEADER.UPDATE);
 
 export type MINI_EDITOR =
     MINI_EDITOR.ACTIVATE |
@@ -139,10 +134,11 @@ export namespace MINI_EDITOR {
     export type ACTIVATE = string;
     export const DEACTIVATE = 'MINI_EDITOR.DEACTIVATE';
     export type DEACTIVATE = void;
+
+    export const activate = createAction(MINI_EDITOR.ACTIVATE);
+    export const deactivate = createAction(MINI_EDITOR.DEACTIVATE);
 }
 
-export const activateMiniEditor = createAction(MINI_EDITOR.ACTIVATE);
-export const deactivateMiniEditor = createAction(MINI_EDITOR.DEACTIVATE);
 
 export type BODY = BODY.UPDATE_BANNER | BODY.UPDATE_BODY | BODY.UPDATE_ERROR | BODY.UPDATE_PLAIN_TEXT | BODY.UPDATE_MAX_BODY_HEIGHT;
 export namespace BODY {
