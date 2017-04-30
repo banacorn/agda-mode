@@ -5,6 +5,7 @@ import * as classNames from 'classnames';
 
 import { View } from '../../type';
 import Dashboard from './Dashboard';
+import Core from '../../core';
 
 function toStyle(type: View.Style): string {
     switch (type) {
@@ -18,8 +19,8 @@ function toStyle(type: View.Style): string {
 }
 
 interface Props extends View.HeaderState {
+    core: Core;
     inputMethodActivated: boolean;
-    toggleSettingsView: () => void;
     mountAtPane: () => void;
     mountAtBottom: () => void;
 }
@@ -34,8 +35,8 @@ const mapStateToProps = (state: View.State) => {
 
 class Header extends React.Component<Props, void> {
     render() {
-        const { text, style, inputMethodActivated } = this.props;
-        const { mountAtPane, mountAtBottom, toggleSettingsView } = this.props;
+        const { text, style, core, inputMethodActivated } = this.props;
+        const { mountAtPane, mountAtBottom } = this.props;
         const classes = classNames({
             hidden: inputMethodActivated || _.isEmpty(text)
         }, 'agda-header')
@@ -43,7 +44,7 @@ class Header extends React.Component<Props, void> {
             <header className={classes}>
                 <h1 className={`text-${toStyle(style)}`}>{text}</h1>
                 <Dashboard
-                    toggleSettingsView={toggleSettingsView}
+                    core={core}
                     mountAtPane={mountAtPane}
                     mountAtBottom={mountAtBottom}
                 />

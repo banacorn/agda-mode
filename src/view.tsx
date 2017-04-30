@@ -35,7 +35,7 @@ export default class View {
     private bottomPanel: any;
     private settingsViewElement: HTMLElement;
     private viewPaneItem: PaneItem;
-    private settingsViewPaneItem: PaneItem;
+    public settingsViewPaneItem: PaneItem;
 
     constructor(private core: Core) {
         this.store = createStore(reducer);
@@ -107,13 +107,6 @@ export default class View {
                     onMiniEditorMount={(editor) => {
                         this.miniEditor = editor;
                     }}
-                    toggleSettingsView={() => {
-                        const activated = this.store.getState().view.settingsView;
-                        if (activated)
-                            this.settingsViewPaneItem.open();
-                        else
-                            this.settingsViewPaneItem.close();
-                    }}
                     mountAtPane={() => {
                         this.unmount(this.state().mountAt.previous);
                         this.mount(this.state().mountAt.current);
@@ -141,6 +134,7 @@ export default class View {
             this.settingsViewElement
         )
     }
+
     getEditor(): any {
         return this.editor;
     }

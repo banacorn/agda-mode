@@ -5,6 +5,7 @@ import * as classNames from 'classnames';
 
 import { View } from '../../type';
 import * as Action from '../actions';
+import Core from '../../core';
 
 // Atom shits
 type CompositeDisposable = any;
@@ -12,12 +13,13 @@ var { CompositeDisposable } = require('atom');
 declare var atom: any;
 
 interface Props {
+    core: Core;
+
     mountingPosition: View.MountingPosition;
     settingsView: boolean;
     // callbacks
     mountAtPane: () => void;
     mountAtBottom: () => void;
-    toggleSettingsView: () => void;
     // dispatch to the store
     handleMountAtPane: () => void
     handleMountAtBottom: () => void;
@@ -46,7 +48,6 @@ class Dashboard extends React.Component<Props, void> {
     private toggleMountingPositionButton: HTMLElement;
     private toggleSettingsViewButton: HTMLElement;
 
-
     constructor() {
         super();
         this.subscriptions = new CompositeDisposable;
@@ -71,7 +72,7 @@ class Dashboard extends React.Component<Props, void> {
 
     render() {
         const { mountingPosition, settingsView } = this.props;
-        const { mountAtPane, mountAtBottom, toggleSettingsView } = this.props;
+        const { mountAtPane, mountAtBottom, core } = this.props;
         const { handleMountAtPane, handleMountAtBottom, handleToggleSettingsView } = this.props;
         const settingsViewClassList = classNames({
             activated: settingsView,
@@ -86,7 +87,10 @@ class Dashboard extends React.Component<Props, void> {
                         className={settingsViewClassList}
                         onClick={() => {
                             handleToggleSettingsView()
-                            toggleSettingsView()
+                            if (settingsView)
+                                core.view.settingsViewPaneItem.close();
+                            else
+                                core.view.settingsViewPaneItem.open();
                         }}
                         ref={(ref) => {
                             this.toggleSettingsViewButton = ref;
