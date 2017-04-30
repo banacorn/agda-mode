@@ -107,15 +107,15 @@ export default class View {
                     onMiniEditorMount={(editor) => {
                         this.miniEditor = editor;
                     }}
-                    mountAtPane={() => {
-                        this.unmount(this.state().mountAt.previous);
-                        this.mount(this.state().mountAt.current);
-                    }}
-                    mountAtBottom={() => {
-                        this.unmount(this.state().mountAt.previous);
-                        this.mount(this.state().mountAt.current);
-                        // console.log(`[${this.uri.substr(12)}] %cstate of activation: ${this.state().activated}`, 'color: cyan')
-                    }}
+                    // mountAtPane={() => {
+                    //     this.unmount(this.state().mountAt.previous);
+                    //     this.mount(this.state().mountAt.current);
+                    // }}
+                    // mountAtBottom={() => {
+                    //     this.unmount(this.state().mountAt.previous);
+                    //     this.mount(this.state().mountAt.current);
+                    //     // console.log(`[${this.uri.substr(12)}] %cstate of activation: ${this.state().activated}`, 'color: cyan')
+                    // }}
                 />
             </Provider>,
             this.mountingPosition

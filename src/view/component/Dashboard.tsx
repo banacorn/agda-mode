@@ -14,12 +14,11 @@ declare var atom: any;
 
 interface Props {
     core: Core;
-
-    mountingPosition: View.MountingPosition;
+    mountAt: {
+        previous: View.MountingPosition,
+        current: View.MountingPosition
+    };
     settingsView: boolean;
-    // callbacks
-    mountAtPane: () => void;
-    mountAtBottom: () => void;
     // dispatch to the store
     handleMountAtPane: () => void
     handleMountAtBottom: () => void;
@@ -27,7 +26,7 @@ interface Props {
 }
 
 const mapStateToProps = (state: View.State) => ({
-    mountingPosition: state.view.mountAt.current,
+    mountAt: state.view.mountAt,
     settingsView: state.view.settingsView
 });
 
@@ -71,14 +70,14 @@ class Dashboard extends React.Component<Props, void> {
     }
 
     render() {
-        const { mountingPosition, settingsView } = this.props;
-        const { mountAtPane, mountAtBottom, core } = this.props;
+        const { mountAt, settingsView } = this.props;
+        const { core } = this.props;
         const { handleMountAtPane, handleMountAtBottom, handleToggleSettingsView } = this.props;
         const settingsViewClassList = classNames({
             activated: settingsView,
         }, 'no-btn');
         const toggleMountingPosition = classNames({
-            activated: mountingPosition === View.MountingPosition.Pane
+            activated: mountAt.current === View.MountingPosition.Pane
         }, 'no-btn');
         return (
             <ul className="agda-dashboard">
@@ -103,18 +102,7 @@ class Dashboard extends React.Component<Props, void> {
                     <button
                         className={toggleMountingPosition}
                         onClick={() => {
-                            switch (mountingPosition) {
-                                case View.MountingPosition.Bottom:
-                                    handleMountAtPane();
-                                    mountAtPane();
-                                    break;
-                                case View.MountingPosition.Pane:
-                                    handleMountAtBottom();
-                                    mountAtBottom();
-                                    break;
-                                default:
-                                    console.error('no mounting position to transist from')
-                            }
+                            core.view.toggleDocking();
                         }}
                         ref={(ref) => {
                             this.toggleMountingPositionButton = ref;

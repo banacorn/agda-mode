@@ -21,8 +21,6 @@ function toStyle(type: View.Style): string {
 interface Props extends View.HeaderState {
     core: Core;
     inputMethodActivated: boolean;
-    mountAtPane: () => void;
-    mountAtBottom: () => void;
 }
 
 const mapStateToProps = (state: View.State) => {
@@ -36,7 +34,6 @@ const mapStateToProps = (state: View.State) => {
 class Header extends React.Component<Props, void> {
     render() {
         const { text, style, core, inputMethodActivated } = this.props;
-        const { mountAtPane, mountAtBottom } = this.props;
         const classes = classNames({
             hidden: inputMethodActivated || _.isEmpty(text)
         }, 'agda-header')
@@ -45,8 +42,6 @@ class Header extends React.Component<Props, void> {
                 <h1 className={`text-${toStyle(style)}`}>{text}</h1>
                 <Dashboard
                     core={core}
-                    mountAtPane={mountAtPane}
-                    mountAtBottom={mountAtBottom}
                 />
             </header>
         )
