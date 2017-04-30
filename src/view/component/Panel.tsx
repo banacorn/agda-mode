@@ -17,7 +17,6 @@ import { MINI_EDITOR, updateMaxBodyHeight } from './../actions';
 interface Props extends View.State {
     core: Core;
     emitter: EventEmitter;
-    onMiniEditorMount: (editor: MiniEditor) => void;
     deactivateMiniEditor: () => void;
     onResize: (offset: number) => void;
 }
@@ -36,7 +35,7 @@ const mapDispatchToProps = (dispatch: any) => ({
 
 class Panel extends React.Component<Props, void> {
     render() {
-        const { core, emitter, onMiniEditorMount, onResize } = this.props;
+        const { core, emitter, onResize } = this.props;
         const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
         const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
@@ -74,7 +73,8 @@ class Panel extends React.Component<Props, void> {
                         className={hideMiniEditor}
                         placeholder={this.props.miniEditor.placeholder}
                         ref={(ref) => {
-                            if (ref) onMiniEditorMount(ref);
+                            if (ref)
+                                core.view.miniEditor = ref;
                         }}
                         onConfirm={() => {
                             atom.views.getView(core.view.getEditor()).focus()
