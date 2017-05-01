@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 import { View } from '../../type';
 import { EVENT } from '../actions';
 
-interface TermProps extends React.HTMLAttributes {
+interface TermProps extends React.HTMLProps<HTMLElement> {
     jumpToGoal: (index: number) => void;
     kind: 'unmarked' | 'goal' | 'meta' | 'sort';
 }
@@ -27,7 +27,7 @@ class Term extends React.Component<TermProps, void> {
 }
 
 
-interface ExprProps extends React.HTMLAttributes {
+interface ExprProps extends React.HTMLProps<HTMLElement> {
     emitter: EventEmitter
 }
 

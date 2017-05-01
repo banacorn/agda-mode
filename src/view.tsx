@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import * as Promise from 'bluebird';
 import * as React from 'react';
+import * as Redux from 'redux';
 import * as ReactDOM from 'react-dom';
 import * as path from 'path';
 import { Provider, connect } from 'react-redux';

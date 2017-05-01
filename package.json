@@ -20,6 +20,11 @@
     "atom": ">0.180.0"
   },
   "dependencies": {
+    "@types/electron": "^1.4.37",
+    "@types/mocha": "^2.2.41",
+    "@types/node": "^7.0.14",
+    "@types/react": "^15.0.23",
+    "@types/redux": "^3.6.0",
     "bluebird": "3.5.0",
     "classnames": "2.2.5",
     "duplexer": "^0.1.1",

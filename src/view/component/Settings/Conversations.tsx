@@ -29,7 +29,7 @@ class Conversations extends React.Component<Props, State> {
         // this.handleClick = this.handleClick.bind(this);
     }
     render() {
-        const {children, dispatch, ...props} = this.props;
+        const {children, ...props} = this.props;
         return (
             <section {...props}>
                 {children}
@@ -40,7 +40,4 @@ class Conversations extends React.Component<Props, State> {
 
 }
 
-export default connect<any, any, any>(
-    null,
-    null
-)(Conversations);
+export default Conversations;

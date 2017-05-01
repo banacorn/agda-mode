@@ -11,9 +11,15 @@ import { QueryCancelledError } from '../../error';
 type CompositeDisposable = any;
 var { CompositeDisposable } = require('atom');
 declare var atom: any;
+declare global {
+    namespace JSX {
+        interface IntrinsicElements {
+            'atom-text-editor': any
+        }
+    }
+}
 
-
-interface Props extends React.HTMLAttributes {
+interface Props extends React.HTMLProps<HTMLElement> {
     placeholder?: string;
 
     onConfirm?: (payload: string) => void;
