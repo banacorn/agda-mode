@@ -4,11 +4,11 @@ import * as _ from 'lodash';
 import * as classNames from 'classnames';
 import { View, Connection } from '../../../type';
 
-type Props = React.HTMLProps<HTMLElement> & {
+type OwnProps = {
     show: boolean;
     onCancel: () => void;
 };
-
+type Props = React.HTMLProps<HTMLElement> & OwnProps;
 type State = {
     method: 'local' | 'remote';
 };

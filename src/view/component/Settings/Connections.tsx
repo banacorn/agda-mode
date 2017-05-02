@@ -6,8 +6,8 @@ import { View, Connection } from '../../../type';
 import ConnectionItem from './ConnectionItem';
 import NewConnection from './NewConnection';
 
-
-type Props = React.HTMLProps<HTMLElement> & View.ConnectionState;
+type OwnProps = View.ConnectionState;
+type Props = React.HTMLProps<HTMLElement> & OwnProps;
 type State = {
     showNewConnectionView: boolean;
     method: 'local' | 'remote';

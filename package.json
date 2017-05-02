@@ -20,11 +20,18 @@
     "atom": ">0.180.0"
   },
   "dependencies": {
+    "@types/bluebird": "^3.5.3",
+    "@types/classnames": "0.0.32",
     "@types/electron": "^1.4.37",
+    "@types/lodash": "^4.14.63",
     "@types/mocha": "^2.2.41",
     "@types/node": "^7.0.14",
     "@types/react": "^15.0.23",
+    "@types/react-dom": "^15.5.0",
+    "@types/react-redux": "^4.4.40",
     "@types/redux": "^3.6.0",
+    "@types/redux-actions": "^1.2.4",
+    "@types/semver": "^5.3.31",
     "bluebird": "3.5.0",
     "classnames": "2.2.5",
     "duplexer": "^0.1.1",
