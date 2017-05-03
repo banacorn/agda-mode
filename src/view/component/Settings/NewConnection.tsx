@@ -3,8 +3,10 @@ import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
 import { View, Connection } from '../../../type';
+import Core from '../../../core';
 
 type Props = React.HTMLProps<HTMLElement> & {
+    core: Core;
     show: boolean;
     onCancel: () => void;
 };

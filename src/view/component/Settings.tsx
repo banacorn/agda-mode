@@ -3,11 +3,14 @@ import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
 // import { View } from '../../type';
+import Core from '../../core';
 
 import Connections from './Settings/Connections';
 import Conversations from './Settings/Conversations';
 
-type Props = React.HTMLProps<HTMLElement>;
+type Props = React.HTMLProps<HTMLElement> & {
+    core: Core
+};
 type State = {
     tabIndex: number
 };
@@ -37,7 +40,10 @@ class Settings extends React.Component<Props, State> {
                         ><span className='icon icon-comment-discussion'>Conversations</span></li>
                     </ol>
                 </nav>
-                <Connections className={this.panelClassName(0)} />
+                <Connections
+                    core={this.props.core}
+                    className={this.panelClassName(0)}
+                />
                 <Conversations className={this.panelClassName(1)}>
                     1
                 </Conversations>

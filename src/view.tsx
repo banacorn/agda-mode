@@ -118,7 +118,9 @@ export default class View {
 
         ReactDOM.render(
             <Provider store={this.store}>
-                <Settings/>
+                <Settings
+                    core={this.core}
+                />
             </Provider>,
             this.settingsViewElement
         )

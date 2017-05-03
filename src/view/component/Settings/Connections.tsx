@@ -5,8 +5,11 @@ import * as classNames from 'classnames';
 import { View, Connection } from '../../../type';
 import ConnectionItem from './ConnectionItem';
 import NewConnection from './NewConnection';
+import Core from '../../../core';
 
-type OwnProps = React.HTMLProps<HTMLElement> & {};
+type OwnProps = React.HTMLProps<HTMLElement> & {
+    core: Core;
+};
 type InjProps = View.ConnectionState;
 type Props = OwnProps & InjProps;
 
@@ -84,6 +87,7 @@ class Connections extends React.Component<Props, State> {
                     </header>
                 </section>
                 <NewConnection
+                    core={this.props.core}
                     show={showNewConnectionView}
                     onCancel={() => {
                         this.setState({
