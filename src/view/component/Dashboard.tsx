@@ -12,35 +12,43 @@ type CompositeDisposable = any;
 var { CompositeDisposable } = require('atom');
 declare var atom: any;
 
-interface Props {
+type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
+}
+type InjProps = {
     mountAt: {
         previous: View.MountingPosition,
         current: View.MountingPosition
     };
     settingsView: boolean;
-    // dispatch to the store
+}
+type DispatchProps = {
     handleMountAtPane: () => void
     handleMountAtBottom: () => void;
     handleToggleSettingsView: () => void;
 }
+type Props = OwnProps & InjProps & DispatchProps;
 
-const mapStateToProps = (state: View.State) => ({
-    mountAt: state.view.mountAt,
-    settingsView: state.view.settingsView
-});
-
-const mapDispatchToProps = (dispatch: any) => ({
-    handleMountAtPane: () => {
-        dispatch(Action.VIEW.mountAtPane());
-    },
-    handleMountAtBottom: () => {
-        dispatch(Action.VIEW.mountAtBottom());
-    },
-    handleToggleSettingsView: () => {
-        dispatch(Action.VIEW.toggleSettings());
+function mapStateToProps(state: View.State): InjProps {
+    return {
+        mountAt: state.view.mountAt,
+        settingsView: state.view.settingsView
     }
-});
+}
+
+function mapDispatchToProps(dispatch): DispatchProps {
+    return {
+        handleMountAtPane: () => {
+            dispatch(Action.VIEW.mountAtPane());
+        },
+        handleMountAtBottom: () => {
+            dispatch(Action.VIEW.mountAtBottom());
+        },
+        handleToggleSettingsView: () => {
+            dispatch(Action.VIEW.toggleSettings());
+        }
+    };
+}
 
 class Dashboard extends React.Component<Props, void> {
     private subscriptions: CompositeDisposable;
@@ -116,7 +124,7 @@ class Dashboard extends React.Component<Props, void> {
     }
 }
 
-export default connect<any, any, any>(
+export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
     mapDispatchToProps
 )(Dashboard);

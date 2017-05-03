@@ -4,15 +4,14 @@ import * as classNames from 'classnames';
 
 import { View } from '../../type';
 
-interface Props {
-    // initial: number;
+type Props = {
     onResizeStart?: (pageY: number) => void;
     onResize?: (offset: number) => void;
     onResizeEnd?: (pageY: number) => void;
     atBottom: boolean;
 }
 
-interface State {
+type State = {
     initial: number
 }
 

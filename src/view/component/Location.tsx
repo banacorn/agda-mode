@@ -10,7 +10,7 @@ type CompositeDisposable = any;
 var { CompositeDisposable } = require('atom');
 declare var atom: any;
 
-interface Props {
+type Props = React.HTMLProps<HTMLElement> & {
     emitter: EventEmitter;
     abbr?: boolean;
 }

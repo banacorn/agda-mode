@@ -18,12 +18,15 @@ function toStyle(type: View.Style): string {
     }
 }
 
-interface Props extends View.HeaderState {
+type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
-    inputMethodActivated: boolean;
 }
+type InjProps = View.HeaderState & {
+    inputMethodActivated: boolean;
+};
+type Props = OwnProps & InjProps;
 
-const mapStateToProps = (state: View.State) => {
+function mapStateToProps(state: View.State): InjProps {
     return {
         text: state.header.text,
         style: state.header.style,
@@ -47,8 +50,6 @@ class Header extends React.Component<Props, void> {
         )
     }
 }
-
-export default connect<any, any, any>(
-    mapStateToProps,
-    null
+export default connect<InjProps, {}, OwnProps>(
+    mapStateToProps
 )(Header);

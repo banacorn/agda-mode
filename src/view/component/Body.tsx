@@ -12,25 +12,26 @@ import Expr from './Expr';
 import Error from './Error';
 import Location from './Location';
 
-
-interface Props extends React.HTMLProps<HTMLElement> {
+type OwnProps = React.HTMLProps<HTMLElement> & {
     emitter: EventEmitter;
-    banner: View.BannerItem[];
-    body: View.Body;
-    error: E;
-    plainText: string;
-    maxBodyHeight: number;
+}
+
+type InjProps = View.BodyState & {
+    mountAtBottom: boolean
+};
+type DispatchProps = {
     onMaxBodyHeightChange: (count: number) => void;
-    mountAtBottom: boolean;
+};
+type Props = OwnProps & InjProps & DispatchProps;
+
+function mapStateToProps(state: View.State): InjProps {
+    return {
+        mountAtBottom: state.view.mountAt.current === View.MountingPosition.Bottom,
+        ...state.body
+    }
 }
 
-const mapStateToProps = (state: View.State) => {
-    let obj = state.body;
-    obj['mountAtBottom'] = state.view.mountAt.current === View.MountingPosition.Bottom;
-    return obj;
-}
-
-const mapDispatchToProps = (dispatch: any) => ({
+const mapDispatchToProps = (dispatch) => ({
     onMaxBodyHeightChange: (count: number) => {
         dispatch(updateMaxBodyHeight(count));
     }
@@ -122,7 +123,7 @@ class Body extends React.Component<Props, void> {
     }
 }
 
-export default connect<any, any, any>(
+export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
     mapDispatchToProps
 )(Body);

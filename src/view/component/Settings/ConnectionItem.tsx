@@ -1,11 +1,11 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
 
-interface Props extends React.HTMLProps<HTMLElement> {
+type Props = React.HTMLProps<HTMLElement> & {
     status: 'disconnected' | 'connecting' | 'connected';
     version: string;
     uri: string;
-}
+};
 
 class ConnectionItem extends React.Component<Props, void> {
     constructor(props) {

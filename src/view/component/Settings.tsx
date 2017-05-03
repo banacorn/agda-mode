@@ -7,20 +7,10 @@ import * as classNames from 'classnames';
 import Connections from './Settings/Connections';
 import Conversations from './Settings/Conversations';
 
-interface Props extends React.HTMLProps<HTMLElement> {
-}
-
-interface State {
+type Props = React.HTMLProps<HTMLElement>;
+type State = {
     tabIndex: number
-}
-
-
-// const mapStateToProps = (state: View.State) => {
-//     return {
-//         messages: state.dev.messages,
-//         lsp: state.dev.lsp
-//     }
-// }
+};
 
 class Settings extends React.Component<Props, State> {
     constructor(props) {
@@ -76,4 +66,4 @@ class Settings extends React.Component<Props, State> {
 
 }
 
-export default connect()(Settings);
+export default Settings;

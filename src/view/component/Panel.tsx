@@ -14,24 +14,31 @@ import { View, Location } from '../../type';
 import MiniEditor from './MiniEditor';
 import { MINI_EDITOR, updateMaxBodyHeight } from './../actions';
 
-interface Props extends View.State {
+type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
     emitter: EventEmitter;
+}
+type InjProps = View.State;
+type DispatchProps = {
     deactivateMiniEditor: () => void;
     onResize: (offset: number) => void;
 }
+type Props = OwnProps & InjProps & DispatchProps;
 
-const mapStateToProps = (state : View.State) => state
+function mapStateToProps(state: View.State): InjProps {
+    return state
+}
 
-const mapDispatchToProps = (dispatch: any) => ({
-    deactivateMiniEditor: () => {
-        dispatch(MINI_EDITOR.deactivate());
-    },
-    onResize: (offset: number) => {
-        dispatch(updateMaxBodyHeight(offset));
-    }
-})
-
+function mapDispatchToProps(dispatch): DispatchProps {
+    return {
+        deactivateMiniEditor: () => {
+            dispatch(MINI_EDITOR.deactivate());
+        },
+        onResize: (offset: number) => {
+            dispatch(updateMaxBodyHeight(offset));
+        }
+    };
+}
 
 class Panel extends React.Component<Props, void> {
     render() {
@@ -95,7 +102,7 @@ class Panel extends React.Component<Props, void> {
     }
 }
 
-export default connect<any, any, any>(
+export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
     mapDispatchToProps
 )(Panel);

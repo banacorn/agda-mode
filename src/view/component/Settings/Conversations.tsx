@@ -4,13 +4,8 @@ import * as _ from 'lodash';
 import * as classNames from 'classnames';
 // import { View } from '../../../type';
 
-interface Props extends React.HTMLProps<HTMLElement> {
-}
 
-interface State {
-}
-
-
+type Props = React.HTMLProps<HTMLElement>;
 // const mapStateToProps = (state: View.State) => {
 //     return {
 //         messages: state.dev.messages,
@@ -18,7 +13,7 @@ interface State {
 //     }
 // }
 
-class Conversations extends React.Component<Props, State> {
+class Conversations extends React.Component<Props, void> {
     constructor(props) {
         super(props);
         // this.state = {

@@ -6,16 +6,18 @@ import { View, Connection } from '../../../type';
 import ConnectionItem from './ConnectionItem';
 import NewConnection from './NewConnection';
 
-type OwnProps = View.ConnectionState;
-type Props = React.HTMLProps<HTMLElement> & OwnProps;
+type OwnProps = React.HTMLProps<HTMLElement> & {};
+type InjProps = View.ConnectionState;
+type Props = OwnProps & InjProps;
+
 type State = {
     showNewConnectionView: boolean;
     method: 'local' | 'remote';
 };
 
-const mapStateToProps = ({ connection } : View.State) => connection
+const mapStateToProps = ({ connection }): InjProps => connection
 
-// const mapDispatchToProps = (dispatch: any) => ({
+// const mapDispatchToProps = (dispatch) => ({
 //     handleNewConnection: () => {
 //         dispatch(Action.mountAtPane());
 //     }
@@ -97,7 +99,7 @@ class Connections extends React.Component<Props, State> {
 }
 
 // export default connect<View.ConnectionState, {}, Props>(
-export default connect<any, any, any>(
+export default connect<InjProps, {}, OwnProps>(
     mapStateToProps
 )(Connections);
 

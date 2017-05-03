@@ -25,7 +25,7 @@ const mapStateToProps = (state: View.State) => ({
     lsp: state.dev.lsp
 });
 
-const mapDispatchToProps = (dispatch: any) => ({
+const mapDispatchToProps = (dispatch) => ({
     clearAll: () => {
         dispatch(Action.DEV.clearAll());
     },

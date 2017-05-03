@@ -6,10 +6,9 @@ import { EventEmitter } from 'events';
 import { View } from '../../type';
 import Expr from './Expr';
 
-
-interface Props extends React.HTMLProps<HTMLElement> {
-    emitter: EventEmitter
-}
+type Props = React.HTMLProps<HTMLElement> & {
+    emitter: EventEmitter;
+};
 
 class Suggestion extends React.Component<Props, void> {
     render() {

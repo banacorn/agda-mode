@@ -19,14 +19,14 @@ declare global {
     }
 }
 
-interface Props extends React.HTMLProps<HTMLElement> {
+type Props = React.HTMLProps<HTMLElement> & {
     placeholder?: string;
 
     onConfirm?: (payload: string) => void;
     onCancel?: () => void;
 }
 
-interface State {
+type State = {
     focused: boolean;
 }
 

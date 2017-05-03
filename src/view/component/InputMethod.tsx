@@ -5,19 +5,19 @@ import * as classNames from 'classnames';
 import { View } from '../../type';
 import CandidateSymbols from './CandidateSymbols';
 
-interface InputMethodProps extends View.InputMethodState {
-    updateTranslation: (symbol: string) => void,
-    insertCharacter: (char: string) => void,
-    chooseSymbol: (symbol: string) => void
-};
+type OwnProps = React.HTMLProps<HTMLElement> & {
+    updateTranslation: (symbol: string) => void;
+    insertCharacter: (char: string) => void;
+    chooseSymbol: (symbol: string) => void;
+}
+type InjProps = View.InputMethodState;
+type Props = OwnProps & InjProps;
 
-
-const mapStateToProps = (state: View.State) => {
-    return state.inputMethod
+function mapStateToProps(state: View.State): InjProps {
+    return state.inputMethod;
 }
 
-
-class InputMethod extends React.Component<InputMethodProps, void> {
+class InputMethod extends React.Component<Props, void> {
     render() {
         const { activated, buffer, translation, further, keySuggestions, updateTranslation, insertCharacter, chooseSymbol, candidateSymbols } = this.props;
         const hideEverything = classNames({ 'hidden': !activated}, 'input-method');
@@ -44,7 +44,6 @@ class InputMethod extends React.Component<InputMethodProps, void> {
     }
 }
 
-export default connect<any, any, any>(
-    mapStateToProps,
-    null
+export default connect<InjProps, {}, OwnProps>(
+    mapStateToProps
 )(InputMethod);

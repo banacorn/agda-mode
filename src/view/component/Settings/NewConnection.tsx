@@ -4,11 +4,10 @@ import * as _ from 'lodash';
 import * as classNames from 'classnames';
 import { View, Connection } from '../../../type';
 
-type OwnProps = {
+type Props = React.HTMLProps<HTMLElement> & {
     show: boolean;
     onCancel: () => void;
 };
-type Props = React.HTMLProps<HTMLElement> & OwnProps;
 type State = {
     method: 'local' | 'remote';
 };
@@ -99,8 +98,4 @@ class NewConnection extends React.Component<Props, State> {
     }
 }
 
-// export default connect<View.ConnectionState, {}, Props>(
 export default NewConnection;
-// export default connect<any, any, any>(
-//     mapStateToProps
-// )(NewConnection);
