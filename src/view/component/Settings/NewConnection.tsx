@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
 import { View, Connection } from '../../../type';
+import { validate, mkConnection } from '../../../connector';
 import Core from '../../../core';
 
 type Props = React.HTMLProps<HTMLElement> & {
@@ -12,16 +13,21 @@ type Props = React.HTMLProps<HTMLElement> & {
 };
 type State = {
     method: 'local' | 'remote';
+    localURL: string;
+    localMessage: string;
 };
 
 class NewConnection extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            method: 'local'
+            method: 'local',
+            localURL: '',
+            localMessage: ''
         };
         this.selectLocal = this.selectLocal.bind(this);
         this.selectRemote = this.selectRemote.bind(this);
+        this.handleLocalURLChange = this.handleLocalURLChange.bind(this);
     }
 
     selectLocal() {
@@ -34,6 +40,12 @@ class NewConnection extends React.Component<Props, State> {
         this.setState({
             method: 'remote'
         } as State);
+    }
+
+    handleLocalURLChange(event) {
+        this.setState({
+            localURL: event.target.value
+        });
     }
 
     render() {
@@ -69,17 +81,36 @@ class NewConnection extends React.Component<Props, State> {
                                 className='input-text native-key-bindings'
                                 type='text' placeholder='path to Agda'
                                 disabled={disableLocal}
+                                value={this.state.localURL}
+                                onChange={this.handleLocalURLChange}
                             />
                             <button
                                 className="btn icon btn-primary icon-zap inline-block-tight"
                                 disabled={disableLocal}
+                                onClick={() => {
+                                    validate(mkConnection(this.state.localURL))
+                                        .then((conn) => {
+                                            console.log(conn)
+                                            this.setState({
+                                                localMessage: ''
+                                            });
+                                        })
+                                        .catch((error) => {
+                                            this.setState({
+                                                localMessage: error.message
+                                            });
+                                        })
+                                    // console.log(this.props.core.connector.)
+                                }}
                             >connect</button>
+                            <div className='text-warning'>{this.state.localMessage}</div>
                         </label>
                         <hr/>
                         <input
                             id="remote-connection" className='input-radio'
                             type='radio' name='connection-method'
                             onChange={this.selectRemote}
+                            disabled={true}
                         />
                         <label htmlFor="remote-connection">
                             <h3><span className="icon icon-globe">Remote</span></h3>

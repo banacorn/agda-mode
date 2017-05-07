@@ -108,8 +108,15 @@ export default class Connector {
     }
 }
 
+export function mkConnection(uri: string): Connection {
+    return {
+        guid: guid(),
+        uri: parseFilepath(uri)
+    }
+}
+
 // automatically searches for available Agda connections
-function autoConnect(): Promise<Connection> {
+export function autoConnect(): Promise<Connection> {
     if (process.platform === 'win32') {
         return Promise.reject(new AutoConnectFailure('win32'));
     }
@@ -119,16 +126,13 @@ function autoConnect(): Promise<Connection> {
             if (error) {
                 reject(new AutoConnectFailure(error.toString()));
             } else {
-                resolve({
-                    guid: guid(),
-                    uri: parseFilepath(stdout)
-                });
+                resolve(mkConnection(stdout));
             }
         });
     });
 }
 
-function validate(conn: Connection): Promise<Connection> {
+export function validate(conn: Connection): Promise<Connection> {
     return new Promise<Connection>((resolve, reject) => {
         exec(`${conn.uri} --version`, (error, stdout, stderr) => {
 
@@ -137,7 +141,13 @@ function validate(conn: Connection): Promise<Connection> {
             }
 
             if (error) {
-                return reject(new ConnectionError(`Unable to execute the given command`, conn));
+                // command not found
+                if (error.message.toString().match(/command not found/)) {
+                    return reject(new ConnectionError(`Unable to connect the given executable:\n${error.message}`, conn));
+                // command found however the arguments are invalid
+                } else {
+                    return reject(new ConnectionError(`This doesn't seem like Agda:\n${error.message}`, conn));
+                }
             }
 
             if (stderr) {
@@ -156,14 +166,14 @@ function validate(conn: Connection): Promise<Connection> {
                 };
                 resolve(conn);
             } else {
-                const message = `Spawned process returned with the following result (from stdout):\n\"${stdout.toString()}\"`;
+                const message = `Doesn't seem like Agda to me: \n\"${stdout.toString()}\"`;
                 reject(new ConnectionError(message, conn));
             }
         });
     });
 }
 
-function connect(conn: Connection): Promise<Connection> {
+export function connect(conn: Connection): Promise<Connection> {
     return new Promise<Connection>((resolve, reject) => {
         const agdaProcess = spawn(conn.uri, ['--interaction']);
         agdaProcess.on('error', (error) => {
@@ -175,4 +185,8 @@ function connect(conn: Connection): Promise<Connection> {
         conn.stream = duplex(agdaProcess.stdin, agdaProcess.stdout);
         resolve(conn);
     });
+}
+
+export function close(conn: Connection) {
+    conn.stream.end();
 }
