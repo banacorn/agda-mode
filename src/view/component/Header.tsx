@@ -41,12 +41,12 @@ class Header extends React.Component<Props, void> {
             hidden: inputMethodActivated || _.isEmpty(text)
         }, 'agda-header')
         return (
-            <header className={classes}>
+            <div className={classes}>
                 <h1 className={`text-${toStyle(style)}`}>{text}</h1>
                 <Dashboard
                     core={core}
                 />
-            </header>
+            </div>
         )
     }
 }
