@@ -8,7 +8,6 @@ import Core from '../../../core';
 
 type Props = React.HTMLProps<HTMLElement> & {
     core: Core;
-    show: boolean;
     onCancel: () => void;
 };
 type State = {
@@ -51,11 +50,8 @@ class NewConnection extends React.Component<Props, State> {
     render() {
         const disableLocal = this.state.method !== 'local';
         const disableRemote = this.state.method !== 'remote';
-        const classList = classNames({
-            hidden: !this.props.show
-        })
         return (
-            <section className={classList}>
+            <section className={this.props.className}>
                 <header>
                     <h2><span className="icon icon-plus">New Connection</span></h2>
                     <div>

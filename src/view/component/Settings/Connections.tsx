@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import * as _ from 'lodash';
+// import * as _ from 'lodash';
 import * as classNames from 'classnames';
 import { View, Connection } from '../../../type';
-import ConnectionItem from './ConnectionItem';
 import NewConnection from './NewConnection';
+import ConnectionList from './ConnectionList';
 import Core from '../../../core';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
@@ -68,38 +68,24 @@ class Connections extends React.Component<Props, State> {
             showNewConnectionView
         } = this.state;
 
-
-        const mainClassList = classNames({
-            hidden: showNewConnectionView
-        });
-
         return (
             <div className={this.props.className}>
-                <section className={mainClassList}>
-                    <header>
-                        <h2><span className="icon icon-plug">Connections</span></h2>
-                        <div>
-                            <button
-                                className="btn icon btn-primary icon-plus inline-block-tight"
-                                onClick={this.showNewConnectionView}
-                            >new</button>
-                        </div>
-                    </header>
-                </section>
+                <ConnectionList
+                    className={classNames({
+                        hidden: showNewConnectionView
+                    })}
+                    onNew={this.showNewConnectionView}
+                />
                 <NewConnection
                     core={this.props.core}
-                    show={showNewConnectionView}
-                    onCancel={() => {
-                        this.setState({
-                            showNewConnectionView: false
-                        } as State);
-                    }}
+                    className={classNames({
+                        hidden: !showNewConnectionView
+                    })}
+                    onCancel={this.hideNewConnectionView}
                 />
             </div>
         )
     }
-
-
 }
 
 // export default connect<View.ConnectionState, {}, Props>(
