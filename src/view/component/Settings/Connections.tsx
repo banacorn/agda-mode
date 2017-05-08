@@ -33,34 +33,14 @@ class Connections extends React.Component<Props, State> {
             showNewConnectionView: props.showNewConnectionView,
             method: 'local'
         };
-        this.showNewConnectionView = this.showNewConnectionView.bind(this);
-        this.hideNewConnectionView = this.hideNewConnectionView.bind(this);
-        this.selectLocal = this.selectLocal.bind(this);
-        this.selectRemote = this.selectRemote.bind(this);
     }
 
-    showNewConnectionView() {
-        this.setState({
-            showNewConnectionView: true
-        } as State);
-    }
-
-    hideNewConnectionView() {
-        this.setState({
-            showNewConnectionView: false
-        } as State);
-    }
-
-    selectLocal() {
-        this.setState({
-            method: 'local'
-        } as State);
-    }
-
-    selectRemote() {
-        this.setState({
-            method: 'remote'
-        } as State);
+    toggleNewConnectionView(show: boolean) {
+        return () => {
+            this.setState({
+                showNewConnectionView: show
+            } as State);
+        }
     }
 
     render() {
@@ -74,14 +54,14 @@ class Connections extends React.Component<Props, State> {
                     className={classNames({
                         hidden: showNewConnectionView
                     })}
-                    onNew={this.showNewConnectionView}
+                    onNew={this.toggleNewConnectionView(true)}
                 />
                 <NewConnection
                     core={this.props.core}
                     className={classNames({
                         hidden: !showNewConnectionView
                     })}
-                    onCancel={this.hideNewConnectionView}
+                    onCancel={this.toggleNewConnectionView(false)}
                 />
             </div>
         )

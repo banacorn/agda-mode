@@ -3,7 +3,8 @@ import * as React from 'react';
 // import * as _ from 'lodash';
 // import * as classNames from 'classnames';
 // import { View, Connection } from '../../../type';
-// import { validate, mkConnection } from '../../../connector';
+import * as Conn from '../../../connector';
+import ConnectionItem from './ConnectionItem';
 // import Core from '../../../core';
 
 type Props = React.HTMLProps<HTMLElement> & {
@@ -27,6 +28,7 @@ class ConnectionList extends React.Component<Props, State> {
     }
 
     render() {
+        console.log(Conn.getConnections())
         return (
             <section className={this.props.className}>
                 <header>
@@ -38,6 +40,15 @@ class ConnectionList extends React.Component<Props, State> {
                         >new</button>
                     </div>
                 </header>
+                <ol>
+                    {Conn.getConnections().map((conn) => {
+                        return <ConnectionItem
+                            key={conn.guid}
+                            uri={conn.uri}
+                            version={conn.version.sem}
+                        />
+                    })}
+                </ol>
             </section>
         )
     }

@@ -38,21 +38,6 @@ export class ConnectionError extends Error {
     }
 }
 
-// export class Connection {
-//     readonly uri: string;
-//     public version: {
-//         raw: string;
-//         sem: string;
-//     }
-//
-//     // private connected: boolean;
-//     // private stream: Duplex;
-//
-//     constructor(uri: string) {
-//         this.uri = uri;
-//     }
-// }
-
 export default class Connector {
     // private markers: any[];
     // public connections: Connection[];
@@ -63,25 +48,25 @@ export default class Connector {
         // this.connections = [];
 
         // console.log(this.getConnections());
-        this.connect()
-            .then((conn) => {
-                // console.log(conn)
-                this.addConnection(conn);
-                conn.stream.on('data', (data) => {
-                    console.log(data.toString());
-                });
-            }).catch(AutoConnectFailure, (err) => {
-                console.error(err);
-                // this.core.view.store.dispatch(Action.CONNECTION.showSetupView(true));
-            }).catch(ConnectionError, (err) => {
-                console.error(err);
-            }).catch((err) => {
-                console.error(err);
-            });
+        // this.connect()
+        //     .then((conn) => {
+        //         // console.log(conn)
+        //         this.addConnection(conn);
+        //         conn.stream.on('data', (data) => {
+        //             console.log(data.toString());
+        //         });
+        //     }).catch(AutoConnectFailure, (err) => {
+        //         console.error(err);
+        //         // this.core.view.store.dispatch(Action.CONNECTION.showSetupView(true));
+        //     }).catch(ConnectionError, (err) => {
+        //         console.error(err);
+        //     }).catch((err) => {
+        //         console.error(err);
+        //     });
     }
 
     connect(): Promise<Connection> {
-        const previousConnections = this.getConnections();
+        const previousConnections = getConnections();
 
         if (previousConnections.length === 0) {
             return autoConnect()
@@ -95,17 +80,34 @@ export default class Connector {
             return Promise.resolve(previousConnections[0]);
         }
     }
+}
 
-    getConnections(): Connection[] {
-        const raw = atom.config.get('agda-mode.internalState');
-        return JSON.parse(raw).connections;
-    }
+//
+// export function connect(): Promise<Connection> {
+//     const previousConnections = getConnections();
+//
+//     if (previousConnections.length === 0) {
+//         return autoConnect()
+//             .then(validate)
+//             .then(connect)
+//             // .catch(AutoConnectFailure, (err) => {
+//             //     console.log(this.core.view.store.dispatch(Action.CONNECTION.setupView(true)));
+//             //     // console.warn(err.message);
+//             // });
+//     } else {
+//         return Promise.resolve(previousConnections[0]);
+//     }
+// }
 
-    addConnection({ guid, uri, version }: Connection) {
-        const state = JSON.parse(atom.config.get('agda-mode.internalState'));
-        state.connections.push({ guid, uri, version });
-        atom.config.set('agda-mode.internalState', JSON.stringify(state));
-    }
+export function getConnections(): Connection[] {
+    const raw = atom.config.get('agda-mode.internalState');
+    return JSON.parse(raw).connections;
+}
+
+export function addConnection({ guid, uri, version }: Connection) {
+    const state = JSON.parse(atom.config.get('agda-mode.internalState'));
+    state.connections.push({ guid, uri, version });
+    atom.config.set('agda-mode.internalState', JSON.stringify(state));
 }
 
 export function mkConnection(uri: string): Connection {

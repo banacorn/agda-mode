@@ -2,46 +2,30 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 
 type Props = React.HTMLProps<HTMLElement> & {
-    status: 'disconnected' | 'connecting' | 'connected';
+    // status: 'disconnected' | 'connecting' | 'connected';
     version: string;
     uri: string;
 };
 
-class ConnectionItem extends React.Component<Props, void> {
+class ConnectionItem extends React.Component<Props, {}> {
     constructor(props) {
         super(props);
-        // this.handleClick = this.handleClick.bind(this);
     }
     render() {
-        // const connectedClassNames = classNames({
-        //     hidden: !this.props.connected
-        // }, 'connection-panel');
-        //
-        // const disconnectedClassNames = classNames({
-        //     hidden: this.props.connected
-        // }, 'connection-panel');
-        const { status, ...props } = this.props;
-        // const classList = classNames({
-        //     disconnected: status === 'disconnected',
-        //     connecting: status === 'connecting',
-        //     connected: status === 'connected'
-        // }, 'connection')
+        // const { status, ...props } = this.props;
 
-        const iconClassList = classNames({
-            'icon-hourglass': status === 'connecting',
-            'icon-zap': status !== 'connecting'
-        }, 'icon')
+        // const iconClassList = classNames({
+        //     'icon-hourglass': status === 'connecting',
+        //     'icon-zap': status !== 'connecting'
+        // }, 'icon')
 
         return (
-            <div className='connection' data-status={status}>
+            <li className='connection'>
                 <div className="connection-info">
                     <h3>{this.props.version}</h3>
                     <div className="connection-uri">{this.props.uri}</div>
                 </div>
-                <div className="connection-status">
-                    <span className={iconClassList}></span>
-                </div>
-            </div>
+            </li>
         )
         // <div className="connection-header">
         //

@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
 import { View, Connection } from '../../../type';
-import { validate, mkConnection } from '../../../connector';
+import * as Conn from '../../../connector';
 import Core from '../../../core';
 
 type Props = React.HTMLProps<HTMLElement> & {
@@ -84,9 +84,10 @@ class NewConnection extends React.Component<Props, State> {
                                 className="btn icon btn-primary icon-zap inline-block-tight"
                                 disabled={disableLocal}
                                 onClick={() => {
-                                    validate(mkConnection(this.state.localURL))
+                                    Conn.validate(Conn.mkConnection(this.state.localURL))
                                         .then((conn) => {
-                                            console.log(conn)
+                                            Conn.addConnection(conn);
+                                            this.props.onCancel();
                                             this.setState({
                                                 localMessage: ''
                                             });
