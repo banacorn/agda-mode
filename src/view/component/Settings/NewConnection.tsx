@@ -86,7 +86,7 @@ class NewConnection extends React.Component<Props, State> {
                                 onClick={() => {
                                     Conn.validate(Conn.mkConnection(this.state.localURL))
                                         .then((conn) => {
-                                            Conn.addConnection(conn);
+                                            // Conn.addConnection(conn);
                                             this.props.onCancel();
                                             this.setState({
                                                 localMessage: ''

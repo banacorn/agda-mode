@@ -1,10 +1,4 @@
 import * as Promise from 'bluebird';
-
-// type TextBuffer = any;
-// type Point = any;
-// type Range = any;
-// var { Range } = require('atom');
-
 import * as _ from 'lodash';
 import { spawn, exec, ChildProcess } from 'child_process';
 import { Duplex } from 'stream';
@@ -100,15 +94,21 @@ export default class Connector {
 // }
 
 export function getConnections(): Connection[] {
-    const raw = atom.config.get('agda-mode.internalState');
-    return JSON.parse(raw).connections;
+    const state = atom.config.get('agda-mode.internalState');
+    return JSON.parse(state).connections;
 }
+//
+// export function addConnection({ guid, uri, version }: Connection) {
+//     const state = JSON.parse(atom.config.get('agda-mode.internalState'));
+//     state.connections.push({ guid, uri, version });
+//     atom.config.set('agda-mode.internalState', JSON.stringify(state));
+// }
 
-export function addConnection({ guid, uri, version }: Connection) {
-    const state = JSON.parse(atom.config.get('agda-mode.internalState'));
-    state.connections.push({ guid, uri, version });
-    atom.config.set('agda-mode.internalState', JSON.stringify(state));
-}
+// export function removeConnection(guid: string) {
+//     const state = JSON.parse(atom.config.get('agda-mode.internalState'));
+//     _.remove(state.connections, (conn) => conn['guid'] === guid);
+//     atom.config.set('agda-mode.internalState', JSON.stringify(state));
+// }
 
 export function mkConnection(uri: string): Connection {
     return {

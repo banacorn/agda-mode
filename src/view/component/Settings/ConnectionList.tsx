@@ -28,7 +28,7 @@ class ConnectionList extends React.Component<Props, State> {
     }
 
     render() {
-        console.log(Conn.getConnections())
+        // console.log(Conn.getConnections())
         return (
             <section className={this.props.className}>
                 <header>
@@ -41,13 +41,18 @@ class ConnectionList extends React.Component<Props, State> {
                     </div>
                 </header>
                 <ol>
-                    {Conn.getConnections().map((conn) => {
-                        return <ConnectionItem
-                            key={conn.guid}
-                            uri={conn.uri}
-                            version={conn.version.sem}
-                        />
-                    })}
+                    {
+                        // Conn.getConnections().map((conn) => {
+                        //     return <ConnectionItem
+                        //         key={conn.guid}
+                        //         uri={conn.uri}
+                        //         version={conn.version.sem}
+                        //         onRemove={() => {
+                        //             // Conn.removeConnection(conn.guid);
+                        //         }}
+                        //     />
+                        // })
+                }
                 </ol>
             </section>
         )

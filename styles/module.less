@@ -166,7 +166,6 @@ atom-text-editor.agda {
 
     .connection {
         display: flex;
-        height: 100px;
         margin: 2em 0;
 
         background: @button-background-color;
@@ -179,48 +178,58 @@ atom-text-editor.agda {
             flex: 0 1 100%;
             padding: 20px;
 
-            h3 {
+            header {
+                margin-bottom: 1em;
                 font-size: 150%;
-                height: 40px;
-                margin-bottom: 0;
             }
-
             .connection-uri {
                 height: 20px;
             }
         }
 
-        .connection-status {
-            flex: 0 0 100px;
-
-            border-top-right-radius: @component-border-radius;
-            border-bottom-right-radius: @component-border-radius;
-            color: @button-background-color;
-            text-align: center;
-            line-height: 100px;
-
-            ::before {
-                font-size: 24px;
-                width: inherit;
-                margin: 0;
-                line-height: inherit;
+        .connection-dashboard {
+            .icon:last-of-type::before {
+                margin: 0px;
             }
+            .icon-pin:hover {
+                color: @text-color-info;
+            }
+            .icon-x:hover {
+                color: @text-color-error;
+            }
+            color: mix(@app-background-color, @button-background-color);
         }
+
+        // .connection-status {
+        //     flex: 0 0 100px;
+        //
+        //     border-top-right-radius: @component-border-radius;
+        //     border-bottom-right-radius: @component-border-radius;
+        //     color: @button-background-color;
+        //     text-align: center;
+        //     line-height: 100px;
+        //
+        //     ::before {
+        //         font-size: 24px;
+        //         width: inherit;
+        //         margin: 0;
+        //         line-height: inherit;
+        //     }
+        // }
     }
 
     .connection:hover {
         background: @button-background-color-hover;
-
-        .connection-status { color: @app-background-color }
+        // .connection-dashboard { color: @app-background-color };
     }
 
     .connection[data-status=connected] {
         box-shadow: 4px 4px @background-color-success;
-        .connection-status { color: @background-color-success }
+        // .connection-status { color: @background-color-success }
     }
 
     .connection[data-status=connecting] {
         box-shadow: 4px 4px @background-color-warning;
-        .connection-status { color: @background-color-warning }
+        // .connection-status { color: @background-color-warning }
     }
 }

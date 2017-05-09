@@ -5,12 +5,15 @@ type Props = React.HTMLProps<HTMLElement> & {
     // status: 'disconnected' | 'connecting' | 'connected';
     version: string;
     uri: string;
+    // callbacks
+    onRemove: () => void;
 };
 
 class ConnectionItem extends React.Component<Props, {}> {
     constructor(props) {
         super(props);
     }
+
     render() {
         // const { status, ...props } = this.props;
 
@@ -22,7 +25,16 @@ class ConnectionItem extends React.Component<Props, {}> {
         return (
             <li className='connection'>
                 <div className="connection-info">
-                    <h3>{this.props.version}</h3>
+                    <header className="compact">
+                        <h3>{this.props.version}</h3>
+                        <div className="connection-dashboard">
+                            <span className="icon icon-pin"></span>
+                            <span
+                                className="icon icon-x"
+                                onClick={this.props.onRemove}
+                            ></span>
+                        </div>
+                    </header>
                     <div className="connection-uri">{this.props.uri}</div>
                 </div>
             </li>
