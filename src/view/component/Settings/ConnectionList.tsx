@@ -2,9 +2,11 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 // import * as _ from 'lodash';
 // import * as classNames from 'classnames';
-import { View } from '../../../type';
+import { View, GUID } from '../../../type';
 import * as Conn from '../../../connector';
 import ConnectionItem from './ConnectionItem';
+import * as Action from '../../actions';
+
 // import Core from '../../../core';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
@@ -14,7 +16,10 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
 type InjProps = {
     state: View.ConnectionState
 };
-type Props = OwnProps & InjProps;
+type DispatchProps = {
+    handleRemoveConnection: (guid: GUID) => void
+}
+type Props = OwnProps & InjProps & DispatchProps;
 
 function mapStateToProps(state: View.State): InjProps {
     return {
@@ -22,17 +27,17 @@ function mapStateToProps(state: View.State): InjProps {
     };
 }
 
+function mapDispatchToProps(dispatch): DispatchProps {
+    return {
+        handleRemoveConnection: (guid) => {
+            dispatch(Action.CONNECTION.removeConnection(guid));
+        }
+    };
+}
+
 class ConnectionList extends React.Component<Props, {}> {
     constructor(props: Props) {
         super(props);
-        // this.state = {
-        //     method: 'local',
-        //     localURL: '',
-        //     localMessage: ''
-        // };
-        // this.selectLocal = this.selectLocal.bind(this);
-        // this.selectRemote = this.selectRemote.bind(this);
-        // this.handleLocalURLChange = this.handleLocalURLChange.bind(this);
     }
 
     render() {
@@ -55,7 +60,7 @@ class ConnectionList extends React.Component<Props, {}> {
                                 uri={conn.uri}
                                 version={conn.version.sem}
                                 onRemove={() => {
-                                    // Conn.removeConnection(conn.guid);
+                                    this.props.handleRemoveConnection(conn.guid)
                                 }}
                             />
                         })
@@ -66,7 +71,7 @@ class ConnectionList extends React.Component<Props, {}> {
     }
 }
 
-export default connect<InjProps, {}, OwnProps>(
-    mapStateToProps
-    // mapDispatchToProps
+export default connect<InjProps, DispatchProps, OwnProps>(
+    mapStateToProps,
+    mapDispatchToProps
 )(ConnectionList);

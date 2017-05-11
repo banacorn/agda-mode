@@ -96,9 +96,12 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
     [CONNECTION.ADD_CONNECTION]: (state, action: Action<CONNECTION.ADD_CONNECTION>) => ({ ...state,
         connections: _.concat([action.payload], state.connections)
     }),
+    [CONNECTION.REMOVE_CONNECTION]: (state, action: Action<CONNECTION.REMOVE_CONNECTION>) => ({ ...state,
+        connections: _.remove(state.connections, (conn) => conn['guid'] !== action.payload)
+    }),
     [CONNECTION.SHOW_NEW_CONNECTION_VIEW]: (state, action: Action<CONNECTION.SHOW_NEW_CONNECTION_VIEW>) => ({ ...state,
         showNewConnectionView: action.payload
-    }),
+    })
 }, defaultState.connection);
 
 

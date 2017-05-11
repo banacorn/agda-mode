@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
 import { View, Error, Location, Connection, GUID } from '../type';
@@ -48,11 +49,14 @@ export namespace VIEW {
 
 export type CONNECTION
     = CONNECTION.ADD_CONNECTION
+    | CONNECTION.REMOVE_CONNECTION
     | CONNECTION.SHOW_NEW_CONNECTION_VIEW
 
 export namespace CONNECTION {
     export const ADD_CONNECTION = 'CONNECTION.ADD_CONNECTION';
     export type ADD_CONNECTION = Connection;
+    export const REMOVE_CONNECTION = 'CONNECTION.REMOVE_CONNECTION';
+    export type REMOVE_CONNECTION = GUID;
     export const SHOW_NEW_CONNECTION_VIEW = 'CONNECTION.SHOW_NEW_CONNECTION_VIEW';
     export type SHOW_NEW_CONNECTION_VIEW = boolean;
 
@@ -68,6 +72,16 @@ export namespace CONNECTION {
         atom.config.set('agda-mode.internalState', JSON.stringify(state));
         // dispatch action
         dispatch(addConnectionPure(conn));
+    }
+
+    const removeConnectionPure = createAction(CONNECTION.REMOVE_CONNECTION);
+    export const removeConnection = (guid: GUID) => dispatch => {
+        // update the internal state
+        const state = JSON.parse(atom.config.get('agda-mode.internalState'));
+        _.remove(state.connections, (conn) => conn['guid'] === guid);
+        atom.config.set('agda-mode.internalState', JSON.stringify(state));
+        // dispatch action
+        dispatch(removeConnectionPure(guid));
     }
 
     export const showNewConnectionView = createAction(SHOW_NEW_CONNECTION_VIEW);
