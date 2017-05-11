@@ -53,6 +53,7 @@ namespace View {
 
     export interface ConnectionState {
         connections: Connection[];
+        pinned?: GUID;
         current?: GUID;
         showNewConnectionView: boolean;
     }

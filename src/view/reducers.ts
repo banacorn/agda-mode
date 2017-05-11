@@ -25,6 +25,7 @@ const defaultState: View.State = {
     },
     connection: {
         connections: Conn.getConnections(),
+        pinned: JSON.parse(atom.config.get('agda-mode.internalState')).pinned,
         current: undefined,
         showNewConnectionView: false
     },
@@ -98,6 +99,9 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
     }),
     [CONNECTION.REMOVE_CONNECTION]: (state, action: Action<CONNECTION.REMOVE_CONNECTION>) => ({ ...state,
         connections: _.remove(state.connections, (conn) => conn['guid'] !== action.payload)
+    }),
+    [CONNECTION.PIN_CONNECTION]: (state, action: Action<CONNECTION.PIN_CONNECTION>) => ({ ...state,
+        pinned: action.payload
     }),
     [CONNECTION.SHOW_NEW_CONNECTION_VIEW]: (state, action: Action<CONNECTION.SHOW_NEW_CONNECTION_VIEW>) => ({ ...state,
         showNewConnectionView: action.payload

@@ -18,6 +18,7 @@ type InjProps = {
 };
 type DispatchProps = {
     handleRemoveConnection: (guid: GUID) => void
+    handlePinConnection: (guid: GUID) => void
 }
 type Props = OwnProps & InjProps & DispatchProps;
 
@@ -31,6 +32,9 @@ function mapDispatchToProps(dispatch): DispatchProps {
     return {
         handleRemoveConnection: (guid) => {
             dispatch(Action.CONNECTION.removeConnection(guid));
+        },
+        handlePinConnection: (guid) => {
+            dispatch(Action.CONNECTION.pinConnection(guid));
         }
     };
 }
@@ -41,6 +45,7 @@ class ConnectionList extends React.Component<Props, {}> {
     }
 
     render() {
+        console.log(this.props.state.pinned)
         return (
             <section className={this.props.className}>
                 <header>
@@ -59,8 +64,12 @@ class ConnectionList extends React.Component<Props, {}> {
                                 key={conn.guid}
                                 uri={conn.uri}
                                 version={conn.version.sem}
+                                pinned={this.props.state.pinned === conn.guid}
                                 onRemove={() => {
                                     this.props.handleRemoveConnection(conn.guid)
+                                }}
+                                onPin={() => {
+                                    this.props.handlePinConnection(conn.guid)
                                 }}
                             />
                         })

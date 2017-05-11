@@ -5,8 +5,10 @@ type Props = React.HTMLProps<HTMLElement> & {
     // status: 'disconnected' | 'connecting' | 'connected';
     version: string;
     uri: string;
+    pinned: boolean;
     // callbacks
     onRemove: () => void;
+    onPin: () => void;
 };
 
 class ConnectionItem extends React.Component<Props, {}> {
@@ -28,7 +30,12 @@ class ConnectionItem extends React.Component<Props, {}> {
                     <header className="compact">
                         <h3>{this.props.version}</h3>
                         <div className="connection-dashboard">
-                            <span className="icon icon-pin"></span>
+                            <span
+                                className={classNames({
+                                    pinned: this.props.pinned
+                                }, "icon icon-pin")}
+                                onClick={this.props.onPin}
+                            ></span>
                             <span
                                 className="icon icon-x"
                                 onClick={this.props.onRemove}
