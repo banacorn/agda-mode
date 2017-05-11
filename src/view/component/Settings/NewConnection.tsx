@@ -4,9 +4,10 @@ import * as _ from 'lodash';
 import * as classNames from 'classnames';
 import { View, Connection } from '../../../type';
 import * as Conn from '../../../connector';
+import * as Action from '../../actions';
 import Core from '../../../core';
 
-type Props = React.HTMLProps<HTMLElement> & {
+type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
     onCancel: () => void;
 };
@@ -16,6 +17,18 @@ type State = {
     localMessage: string;
 };
 
+type DispatchProps = {
+    handleAddConnection: (conn: Connection) => void;
+}
+type Props = OwnProps & DispatchProps
+
+function mapDispatchToProps(dispatch): DispatchProps {
+    return {
+        handleAddConnection: (conn) => {
+            dispatch(Action.CONNECTION.addConnection(conn));
+        }
+    };
+}
 class NewConnection extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -86,7 +99,7 @@ class NewConnection extends React.Component<Props, State> {
                                 onClick={() => {
                                     Conn.validate(Conn.mkConnection(this.state.localURL))
                                         .then((conn) => {
-                                            // Conn.addConnection(conn);
+                                            this.props.handleAddConnection(conn)
                                             this.props.onCancel();
                                             this.setState({
                                                 localMessage: ''
@@ -128,4 +141,7 @@ class NewConnection extends React.Component<Props, State> {
     }
 }
 
-export default NewConnection;
+export default connect<{}, DispatchProps, OwnProps>(
+    null,
+    mapDispatchToProps
+)(NewConnection);

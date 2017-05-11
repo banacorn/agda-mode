@@ -1,6 +1,7 @@
 import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
 import { View, Error, Location, Connection, GUID } from '../type';
+declare var atom: any;
 
 export type EVENT =
     EVENT.JUMP_TO_GOAL |
@@ -55,7 +56,20 @@ export namespace CONNECTION {
     export const SHOW_NEW_CONNECTION_VIEW = 'CONNECTION.SHOW_NEW_CONNECTION_VIEW';
     export type SHOW_NEW_CONNECTION_VIEW = boolean;
 
-    export const addConnection = createAction(CONNECTION.ADD_CONNECTION);
+    const addConnectionPure = createAction(CONNECTION.ADD_CONNECTION);
+    export const addConnection = (conn: Connection) => dispatch => {
+        // update the internal state
+        const state = JSON.parse(atom.config.get('agda-mode.internalState'));
+        state.connections.push({
+            guid: conn.guid,
+            uri: conn.uri,
+            version: conn.version
+        });
+        atom.config.set('agda-mode.internalState', JSON.stringify(state));
+        // dispatch action
+        dispatch(addConnectionPure(conn));
+    }
+
     export const showNewConnectionView = createAction(SHOW_NEW_CONNECTION_VIEW);
 }
 

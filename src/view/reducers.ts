@@ -5,6 +5,7 @@ import { createAction, handleActions, Action } from 'redux-actions';
 import { EventEmitter } from 'events'
 declare var atom: any;
 
+import * as Conn from '../connector';
 import * as Parser from '../parser';
 import { View } from '../type';
 import { EVENT, VIEW, CONNECTION, DEV, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
@@ -23,7 +24,7 @@ const defaultState: View.State = {
         settingsView: false
     },
     connection: {
-        connections: [],
+        connections: Conn.getConnections(),
         current: undefined,
         showNewConnectionView: false
     },

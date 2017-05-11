@@ -1,20 +1,28 @@
 import * as React from 'react';
-// import { connect } from 'react-redux';
+import { connect } from 'react-redux';
 // import * as _ from 'lodash';
 // import * as classNames from 'classnames';
-// import { View, Connection } from '../../../type';
+import { View } from '../../../type';
 import * as Conn from '../../../connector';
 import ConnectionItem from './ConnectionItem';
 // import Core from '../../../core';
 
-type Props = React.HTMLProps<HTMLElement> & {
-    // core: Core;
+type OwnProps = React.HTMLProps<HTMLElement> & {
     onNew: () => void;
 };
-type State = {
-};
 
-class ConnectionList extends React.Component<Props, State> {
+type InjProps = {
+    state: View.ConnectionState
+};
+type Props = OwnProps & InjProps;
+
+function mapStateToProps(state: View.State): InjProps {
+    return {
+        state: state.connection
+    };
+}
+
+class ConnectionList extends React.Component<Props, {}> {
     constructor(props: Props) {
         super(props);
         // this.state = {
@@ -28,7 +36,6 @@ class ConnectionList extends React.Component<Props, State> {
     }
 
     render() {
-        // console.log(Conn.getConnections())
         return (
             <section className={this.props.className}>
                 <header>
@@ -42,16 +49,16 @@ class ConnectionList extends React.Component<Props, State> {
                 </header>
                 <ol>
                     {
-                        // Conn.getConnections().map((conn) => {
-                        //     return <ConnectionItem
-                        //         key={conn.guid}
-                        //         uri={conn.uri}
-                        //         version={conn.version.sem}
-                        //         onRemove={() => {
-                        //             // Conn.removeConnection(conn.guid);
-                        //         }}
-                        //     />
-                        // })
+                        this.props.state.connections.map((conn) => {
+                            return <ConnectionItem
+                                key={conn.guid}
+                                uri={conn.uri}
+                                version={conn.version.sem}
+                                onRemove={() => {
+                                    // Conn.removeConnection(conn.guid);
+                                }}
+                            />
+                        })
                 }
                 </ol>
             </section>
@@ -59,4 +66,7 @@ class ConnectionList extends React.Component<Props, State> {
     }
 }
 
-export default ConnectionList;
+export default connect<InjProps, {}, OwnProps>(
+    mapStateToProps
+    // mapDispatchToProps
+)(ConnectionList);

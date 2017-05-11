@@ -5,9 +5,10 @@ import * as Redux from 'redux';
 import * as ReactDOM from 'react-dom';
 import * as path from 'path';
 import { Provider, connect } from 'react-redux';
-import { createStore } from 'redux';
+import { createStore, applyMiddleware } from 'redux';
 import { EventEmitter } from 'events';
 import { basename, extname } from 'path';
+import ReduxThunk from 'redux-thunk'
 
 import Core from './core';
 import Panel from './view/component/Panel';
@@ -39,7 +40,10 @@ export default class View {
     public settingsViewPaneItem: PaneItem;
 
     constructor(private core: Core) {
-        this.store = createStore(reducer);
+        this.store = createStore(
+            reducer,
+            applyMiddleware(ReduxThunk)
+        );
         this.emitter = new EventEmitter;
         this.subscriptions = new CompositeDisposable;
         this.editor = core.editor;
