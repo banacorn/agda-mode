@@ -165,8 +165,9 @@ atom-text-editor.agda {
     //////////////////////////////////////////////////////
 
     .connection {
-        display: flex;
+        // display: flex;
         margin: 2em 0;
+        padding: 2em;
 
         background: @button-background-color;
         border-radius: @component-border-radius;
@@ -174,17 +175,12 @@ atom-text-editor.agda {
 
         cursor: pointer;
 
-        .connection-info {
-            flex: 0 1 100%;
-            padding: 20px;
-
-            header {
-                margin-bottom: 1em;
-                font-size: 150%;
-            }
-            .connection-uri {
-                height: 20px;
-            }
+        header {
+            margin-bottom: 1em;
+            font-size: 150%;
+        }
+        .connection-uri {
+            height: 20px;
         }
 
         .connection-dashboard {
@@ -224,6 +220,11 @@ atom-text-editor.agda {
     .connection:hover {
         background: @button-background-color-hover;
         // .connection-dashboard { color: @app-background-color };
+    }
+
+    .connection.current {
+        box-shadow: 4px 4px @background-color-success;
+        // .connection-status { color: @background-color-success }
     }
 
     .connection[data-status=connected] {

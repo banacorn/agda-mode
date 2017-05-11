@@ -51,6 +51,7 @@ export type CONNECTION
     = CONNECTION.ADD_CONNECTION
     | CONNECTION.REMOVE_CONNECTION
     | CONNECTION.PIN_CONNECTION
+    | CONNECTION.CONNECT
     | CONNECTION.SHOW_NEW_CONNECTION_VIEW
 
 export namespace CONNECTION {
@@ -60,6 +61,8 @@ export namespace CONNECTION {
     export type REMOVE_CONNECTION = GUID;
     export const PIN_CONNECTION = 'CONNECTION.PIN_CONNECTION';
     export type PIN_CONNECTION = GUID;
+    export const CONNECT = 'CONNECTION.CONNECT';
+    export type CONNECT = Connection;
     export const SHOW_NEW_CONNECTION_VIEW = 'CONNECTION.SHOW_NEW_CONNECTION_VIEW';
     export type SHOW_NEW_CONNECTION_VIEW = boolean;
 
@@ -95,6 +98,16 @@ export namespace CONNECTION {
         atom.config.set('agda-mode.internalState', JSON.stringify(state));
         // dispatch action
         dispatch(pinConnectionPure(guid));
+    }
+
+    const connectPure = createAction(CONNECTION.CONNECT);
+    export const connect = (conn: Connection) => dispatch => {
+        // update the internal state
+        const state = JSON.parse(atom.config.get('agda-mode.internalState'));
+        state.current = conn.guid;
+        atom.config.set('agda-mode.internalState', JSON.stringify(state));
+        // dispatch action
+        dispatch(connectPure(conn.guid));
     }
 
     export const showNewConnectionView = createAction(SHOW_NEW_CONNECTION_VIEW);

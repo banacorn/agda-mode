@@ -6,9 +6,11 @@ type Props = React.HTMLProps<HTMLElement> & {
     version: string;
     uri: string;
     pinned: boolean;
+    current: boolean;
     // callbacks
-    onRemove: () => void;
-    onPin: () => void;
+    onRemove: (e: any) => void;
+    onPin: (e: any) => void;
+    onConnect: () => void;
 };
 
 class ConnectionItem extends React.Component<Props, {}> {
@@ -25,25 +27,28 @@ class ConnectionItem extends React.Component<Props, {}> {
         // }, 'icon')
 
         return (
-            <li className='connection'>
-                <div className="connection-info">
-                    <header className="compact">
-                        <h3>{this.props.version}</h3>
-                        <div className="connection-dashboard">
-                            <span
-                                className={classNames({
-                                    pinned: this.props.pinned
-                                }, "icon icon-pin")}
-                                onClick={this.props.onPin}
-                            ></span>
-                            <span
-                                className="icon icon-x"
-                                onClick={this.props.onRemove}
-                            ></span>
-                        </div>
-                    </header>
-                    <div className="connection-uri">{this.props.uri}</div>
-                </div>
+            <li
+                className={classNames({
+                    current: this.props.current
+                }, 'connection')}
+                onClick={this.props.onConnect}
+            >
+                <header className="compact">
+                    <h3>{this.props.version}</h3>
+                    <div className="connection-dashboard">
+                        <span
+                            className={classNames({
+                                pinned: this.props.pinned
+                            }, "icon icon-pin")}
+                            onClick={this.props.onPin}
+                        ></span>
+                        <span
+                            className="icon icon-x"
+                            onClick={this.props.onRemove}
+                        ></span>
+                    </div>
+                </header>
+                <div className="connection-uri">{this.props.uri}</div>
             </li>
         )
         // <div className="connection-header">

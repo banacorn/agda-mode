@@ -2,12 +2,10 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 // import * as _ from 'lodash';
 // import * as classNames from 'classnames';
-import { View, GUID } from '../../../type';
+import { View, Connection, GUID } from '../../../type';
 import * as Conn from '../../../connector';
 import ConnectionItem from './ConnectionItem';
 import * as Action from '../../actions';
-
-// import Core from '../../../core';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     onNew: () => void;
@@ -19,6 +17,7 @@ type InjProps = {
 type DispatchProps = {
     handleRemoveConnection: (guid: GUID) => void
     handlePinConnection: (guid: GUID) => void
+    handleConnect: (conn: Connection) => void
 }
 type Props = OwnProps & InjProps & DispatchProps;
 
@@ -35,6 +34,9 @@ function mapDispatchToProps(dispatch): DispatchProps {
         },
         handlePinConnection: (guid) => {
             dispatch(Action.CONNECTION.pinConnection(guid));
+        },
+        handleConnect: (conn) => {
+            dispatch(Action.CONNECTION.connect(conn));
         }
     };
 }
@@ -45,6 +47,7 @@ class ConnectionList extends React.Component<Props, {}> {
     }
 
     render() {
+        console.log(this.props.state.current)
         return (
             <section className={this.props.className}>
                 <header>
@@ -64,11 +67,17 @@ class ConnectionList extends React.Component<Props, {}> {
                                 uri={conn.uri}
                                 version={conn.version.sem}
                                 pinned={this.props.state.pinned === conn.guid}
-                                onRemove={() => {
-                                    this.props.handleRemoveConnection(conn.guid)
+                                current={this.props.state.current === conn.guid}
+                                onConnect={() => {
+                                    this.props.handleConnect(conn)
                                 }}
-                                onPin={() => {
+                                onRemove={(e) => {
+                                    this.props.handleRemoveConnection(conn.guid)
+                                    e.stopPropagation()
+                                }}
+                                onPin={(e) => {
                                     this.props.handlePinConnection(conn.guid)
+                                    e.stopPropagation()
                                 }}
                             />
                         })

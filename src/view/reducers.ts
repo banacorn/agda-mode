@@ -13,6 +13,8 @@ import { translate } from '../input-method';
 
 // default state
 const { translation, further, keySuggestions, candidateSymbols } = translate('');
+
+const initialInternalState = JSON.parse(atom.config.get('agda-mode.internalState'));
 const defaultState: View.State = {
     view: {
         activated: false,
@@ -25,8 +27,8 @@ const defaultState: View.State = {
     },
     connection: {
         connections: Conn.getConnections(),
-        pinned: JSON.parse(atom.config.get('agda-mode.internalState')).pinned,
-        current: undefined,
+        pinned: initialInternalState.pinned,
+        current: initialInternalState.current,
         showNewConnectionView: false
     },
     dev: {
@@ -102,6 +104,9 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
     }),
     [CONNECTION.PIN_CONNECTION]: (state, action: Action<CONNECTION.PIN_CONNECTION>) => ({ ...state,
         pinned: action.payload
+    }),
+    [CONNECTION.CONNECT]: (state, action: Action<CONNECTION.CONNECT>) => ({ ...state,
+        current: action.payload
     }),
     [CONNECTION.SHOW_NEW_CONNECTION_VIEW]: (state, action: Action<CONNECTION.SHOW_NEW_CONNECTION_VIEW>) => ({ ...state,
         showNewConnectionView: action.payload
