@@ -45,7 +45,6 @@ class ConnectionList extends React.Component<Props, {}> {
     }
 
     render() {
-        console.log(this.props.state.pinned)
         return (
             <section className={this.props.className}>
                 <header>

@@ -113,6 +113,18 @@ class NewConnection extends React.Component<Props, State> {
                                     // console.log(this.props.core.connector.)
                                 }}
                             >connect</button>
+                            <button
+                                className="btn icon btn-warning icon-search inline-block-tight"
+                                disabled={disableLocal}
+                                onClick={() => {
+                                    Conn.autoSearch()
+                                        .then(uri => {
+                                            this.setState({
+                                                localURL: uri
+                                            })
+                                        });
+                                }}
+                            >auto</button>
                             <div className='text-warning'>{this.state.localMessage}</div>
                         </label>
                         <hr/>

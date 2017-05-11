@@ -63,9 +63,9 @@ export default class Connector {
         const previousConnections = getConnections();
 
         if (previousConnections.length === 0) {
-            return autoConnect()
-                .then(validate)
-                .then(connect)
+            // return autoConnect()
+            //     .then(validate)
+            //     .then(connect)
                 // .catch(AutoConnectFailure, (err) => {
                 //     console.log(this.core.view.store.dispatch(Action.CONNECTION.setupView(true)));
                 //     // console.warn(err.message);
@@ -105,22 +105,26 @@ export function mkConnection(uri: string): Connection {
     }
 }
 
-// automatically searches for available Agda connections
-export function autoConnect(): Promise<Connection> {
+export function autoSearch(): Promise<string> {
     if (process.platform === 'win32') {
         return Promise.reject(new AutoConnectFailure('win32'));
     }
 
-    return new Promise<Connection>((resolve, reject) => {
-        exec(`which mama`, (error, stdout, stderr) => {
+    return new Promise<string>((resolve, reject) => {
+        exec(`which agda`, (error, stdout, stderr) => {
             if (error) {
                 reject(new AutoConnectFailure(error.toString()));
             } else {
-                resolve(mkConnection(stdout));
+                resolve(stdout);
             }
         });
     });
 }
+
+// automatically searches for available Agda connections
+// export function autoConnect(): Promise<Connection> {
+//     return autoSearch.then(mkConnection)
+// }
 
 export function validate(conn: Connection): Promise<Connection> {
     return new Promise<Connection>((resolve, reject) => {
