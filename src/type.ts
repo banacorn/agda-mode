@@ -52,7 +52,7 @@ namespace View {
     }
 
     export interface ConnectionState {
-        connections: Connection[];
+        connectionInfos: ConnectionInfo[];
         pinned?: GUID;
         current?: GUID;
         showNewConnectionView: boolean;
@@ -542,14 +542,17 @@ namespace Error {
 // Connection
 //
 
-export type Connection = {
+export type ConnectionInfo = {
     guid: string;
     uri: string;
     version?: {
         raw: string;
         sem: string;
     };
-    stream?: Duplex;
+}
+
+export type Connection = ConnectionInfo & {
+    stream: Duplex;
 }
 
 export {

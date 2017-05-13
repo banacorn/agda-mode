@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
-import { View, Error, Location, Connection, GUID } from '../type';
+import { View, Error, Location, Connection, ConnectionInfo, GUID } from '../type';
 declare var atom: any;
 
 export type EVENT =
@@ -56,28 +56,28 @@ export type CONNECTION
 
 export namespace CONNECTION {
     export const ADD_CONNECTION = 'CONNECTION.ADD_CONNECTION';
-    export type ADD_CONNECTION = Connection;
+    export type ADD_CONNECTION = ConnectionInfo;
     export const REMOVE_CONNECTION = 'CONNECTION.REMOVE_CONNECTION';
     export type REMOVE_CONNECTION = GUID;
     export const PIN_CONNECTION = 'CONNECTION.PIN_CONNECTION';
     export type PIN_CONNECTION = GUID;
     export const CONNECT = 'CONNECTION.CONNECT';
-    export type CONNECT = Connection;
+    export type CONNECT = ConnectionInfo;
     export const SHOW_NEW_CONNECTION_VIEW = 'CONNECTION.SHOW_NEW_CONNECTION_VIEW';
     export type SHOW_NEW_CONNECTION_VIEW = boolean;
 
     const addConnectionPure = createAction(CONNECTION.ADD_CONNECTION);
-    export const addConnection = (conn: Connection) => dispatch => {
+    export const addConnection = (connInfo: ConnectionInfo) => dispatch => {
         // update the internal state
         const state = JSON.parse(atom.config.get('agda-mode.internalState'));
         state.connections.push({
-            guid: conn.guid,
-            uri: conn.uri,
-            version: conn.version
+            guid: connInfo.guid,
+            uri: connInfo.uri,
+            version: connInfo.version
         });
         atom.config.set('agda-mode.internalState', JSON.stringify(state));
         // dispatch action
-        dispatch(addConnectionPure(conn));
+        dispatch(addConnectionPure(connInfo));
     }
 
     const removeConnectionPure = createAction(CONNECTION.REMOVE_CONNECTION);
@@ -101,13 +101,13 @@ export namespace CONNECTION {
     }
 
     const connectPure = createAction(CONNECTION.CONNECT);
-    export const connect = (conn: Connection) => dispatch => {
+    export const connect = (connInfo: ConnectionInfo) => dispatch => {
         // update the internal state
         const state = JSON.parse(atom.config.get('agda-mode.internalState'));
-        state.current = conn.guid;
+        state.current = connInfo.guid;
         atom.config.set('agda-mode.internalState', JSON.stringify(state));
         // dispatch action
-        dispatch(connectPure(conn.guid));
+        dispatch(connectPure(connInfo.guid));
     }
 
     export const showNewConnectionView = createAction(SHOW_NEW_CONNECTION_VIEW);

@@ -2,14 +2,14 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 // import * as _ from 'lodash';
 // import * as classNames from 'classnames';
-import { View, Connection, GUID } from '../../../type';
+import { View, ConnectionInfo, GUID } from '../../../type';
 import * as Conn from '../../../connector';
 import ConnectionItem from './ConnectionItem';
 import * as Action from '../../actions';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     onNew: () => void;
-    onConnect: (conn: Connection) => void;
+    onConnect: (connInfo: ConnectionInfo) => void;
 };
 
 type InjProps = {
@@ -18,7 +18,7 @@ type InjProps = {
 type DispatchProps = {
     handleRemoveConnection: (guid: GUID) => void
     handlePinConnection: (guid: GUID) => void
-    handleConnect: (conn: Connection) => void
+    handleConnect: (connInfo: ConnectionInfo) => void
 }
 type Props = OwnProps & InjProps & DispatchProps;
 
@@ -61,25 +61,25 @@ class ConnectionList extends React.Component<Props, {}> {
                 </header>
                 <ol>
                     {
-                        this.props.state.connections.map((conn) => {
+                        this.props.state.connectionInfos.map((connInfo) => {
                             return <ConnectionItem
-                                key={conn.guid}
-                                uri={conn.uri}
-                                version={conn.version.sem}
-                                pinned={this.props.state.pinned === conn.guid}
-                                current={this.props.state.current === conn.guid}
+                                key={connInfo.guid}
+                                uri={connInfo.uri}
+                                version={connInfo.version.sem}
+                                pinned={this.props.state.pinned === connInfo.guid}
+                                current={this.props.state.current === connInfo.guid}
                                 onConnect={() => {
-                                    if (this.props.state.current !== conn.guid) {
-                                        this.props.handleConnect(conn);
-                                        this.props.onConnect(conn);
+                                    if (this.props.state.current !== connInfo.guid) {
+                                        this.props.handleConnect(connInfo);
+                                        this.props.onConnect(connInfo);
                                     }
                                 }}
                                 onRemove={(e) => {
-                                    this.props.handleRemoveConnection(conn.guid)
+                                    this.props.handleRemoveConnection(connInfo.guid)
                                     e.stopPropagation()
                                 }}
                                 onPin={(e) => {
-                                    this.props.handlePinConnection(conn.guid)
+                                    this.props.handlePinConnection(connInfo.guid)
                                     e.stopPropagation()
                                 }}
                             />

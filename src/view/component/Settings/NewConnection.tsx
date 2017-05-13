@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
-import { View, Connection } from '../../../type';
+import { View, ConnectionInfo } from '../../../type';
 import * as Conn from '../../../connector';
 import * as Action from '../../actions';
 import Core from '../../../core';
@@ -18,14 +18,14 @@ type State = {
 };
 
 type DispatchProps = {
-    handleAddConnection: (conn: Connection) => void;
+    handleAddConnection: (connInfo: ConnectionInfo) => void;
 }
 type Props = OwnProps & DispatchProps
 
 function mapDispatchToProps(dispatch): DispatchProps {
     return {
-        handleAddConnection: (conn) => {
-            dispatch(Action.CONNECTION.addConnection(conn));
+        handleAddConnection: (connInfo) => {
+            dispatch(Action.CONNECTION.addConnection(connInfo));
         }
     };
 }
