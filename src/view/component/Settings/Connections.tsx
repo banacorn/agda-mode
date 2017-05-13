@@ -5,6 +5,7 @@ import * as classNames from 'classnames';
 import { View, Connection } from '../../../type';
 import NewConnection from './NewConnection';
 import ConnectionList from './ConnectionList';
+import * as Conn from '../../../connector';
 import Core from '../../../core';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
@@ -44,9 +45,8 @@ class Connections extends React.Component<Props, State> {
     }
 
     render() {
-        const {
-            showNewConnectionView
-        } = this.state;
+        const { core } = this.props;
+        const { showNewConnectionView } = this.state;
 
         return (
             <div className={this.props.className}>
@@ -55,6 +55,18 @@ class Connections extends React.Component<Props, State> {
                         hidden: showNewConnectionView
                     })}
                     onNew={this.toggleNewConnectionView(true)}
+                    onConnect={(conn) => {
+                        core.connector.connect(conn);
+                        // if ()
+                        // Conn.connect(conn)
+                        //     .then(conn => {
+                        //         console.log(`success`, conn)
+                        //     })
+                        //     .catch(err => {
+                        //         console.error(err)
+                        //     })
+                        // core.connection = conn
+                    }}
                 />
                 <NewConnection
                     core={this.props.core}

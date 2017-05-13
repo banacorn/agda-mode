@@ -9,6 +9,7 @@ import * as Action from '../../actions';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     onNew: () => void;
+    onConnect: (conn: Connection) => void;
 };
 
 type InjProps = {
@@ -47,7 +48,6 @@ class ConnectionList extends React.Component<Props, {}> {
     }
 
     render() {
-        console.log(this.props.state.current)
         return (
             <section className={this.props.className}>
                 <header>
@@ -69,7 +69,10 @@ class ConnectionList extends React.Component<Props, {}> {
                                 pinned={this.props.state.pinned === conn.guid}
                                 current={this.props.state.current === conn.guid}
                                 onConnect={() => {
-                                    this.props.handleConnect(conn)
+                                    if (this.props.state.current !== conn.guid) {
+                                        this.props.handleConnect(conn);
+                                        this.props.onConnect(conn);
+                                    }
                                 }}
                                 onRemove={(e) => {
                                     this.props.handleRemoveConnection(conn.guid)

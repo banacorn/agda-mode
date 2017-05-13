@@ -200,13 +200,19 @@ export default class Commander {
         this.core.view.mount(currentMountingPosition);
         this.core.view.activate();
 
-        // return Promise.resolve({});
-
-        return this.core.process.load()
-            .then(() => {
+        this.core.connector.connect()
+            .then((conn) => {
                 this.loaded = true;
+                console.log(conn);
             })
-            .then(() => Promise.resolve({}));
+
+        return Promise.resolve({});
+
+        // return this.core.process.load()
+        //     .then(() => {
+        //         this.loaded = true;
+        //     })
+        //     .then(() => Promise.resolve({}));
     }
 
     quit(): Promise<{}> {

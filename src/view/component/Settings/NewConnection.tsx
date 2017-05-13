@@ -94,7 +94,7 @@ class NewConnection extends React.Component<Props, State> {
                                 onChange={this.handleLocalURLChange}
                             />
                             <button
-                                className="btn icon btn-primary icon-zap inline-block-tight"
+                                className="btn icon btn-primary icon-add inline-block-tight"
                                 disabled={disableLocal}
                                 onClick={() => {
                                     Conn.validate(Conn.mkConnection(this.state.localURL))
@@ -110,9 +110,8 @@ class NewConnection extends React.Component<Props, State> {
                                                 localMessage: error.message
                                             });
                                         })
-                                    // console.log(this.props.core.connector.)
                                 }}
-                            >connect</button>
+                            >add</button>
                             <button
                                 className="btn icon btn-warning icon-search inline-block-tight"
                                 disabled={disableLocal}

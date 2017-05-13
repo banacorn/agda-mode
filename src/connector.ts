@@ -32,46 +32,50 @@ export class ConnectionError extends Error {
     }
 }
 
+export class NoExistingConnections extends Error {
+    constructor() {
+        super('');
+        this.message = '';
+        this.name = 'NoExistingConnections';
+        Error.captureStackTrace(this, NoExistingConnections);
+    }
+}
+
 export default class Connector {
-    // private markers: any[];
-    // public connections: Connection[];
+    private current?: Connection;
 
     constructor(private core: Core) {
-
-        // initialize previous connections
-        // this.connections = [];
-
-        // console.log(this.getConnections());
-        // this.connect()
-        //     .then((conn) => {
-        //         // console.log(conn)
-        //         this.addConnection(conn);
-        //         conn.stream.on('data', (data) => {
-        //             console.log(data.toString());
-        //         });
-        //     }).catch(AutoConnectFailure, (err) => {
-        //         console.error(err);
-        //         // this.core.view.store.dispatch(Action.CONNECTION.showSetupView(true));
-        //     }).catch(ConnectionError, (err) => {
-        //         console.error(err);
-        //     }).catch((err) => {
-        //         console.error(err);
-        //     });
+        console.log(getConnections())
+        console.log(getPinnedConnection());
     }
 
-    connect(): Promise<Connection> {
-        const previousConnections = getConnections();
+    connect(conn?: Connection): Promise<Connection> {
+        // only one connection is allowed at a time, kill the old one
+        this.disconnect();
 
-        if (previousConnections.length === 0) {
-            // return autoConnect()
-            //     .then(validate)
-            //     .then(connect)
-                // .catch(AutoConnectFailure, (err) => {
-                //     console.log(this.core.view.store.dispatch(Action.CONNECTION.setupView(true)));
-                //     // console.warn(err.message);
-                // });
-        } else {
-            return Promise.resolve(previousConnections[0]);
+        if (conn) {
+            return connect(conn);
+        }
+
+        return getConnection()
+            .catch(NoExistingConnections, err => {
+                console.log(err);
+                return autoSearch()
+                    .then(mkConnection)
+                    .then(connect)
+            })
+            .then(conn => {
+                console.log('got connection from the internal state');
+                console.log(conn);
+                this.current = conn;
+                return conn;
+            })
+    }
+
+    disconnect() {
+        if (this.current) {
+            this.current.stream.end();
+            this.current = undefined;
         }
     }
 }
@@ -97,6 +101,31 @@ export function getConnections(): Connection[] {
     const state = atom.config.get('agda-mode.internalState');
     return JSON.parse(state).connections;
 }
+
+export function getPinnedConnection(): Connection | undefined {
+    const state = atom.config.get('agda-mode.internalState');
+    if (state.pinned) {
+        return _.find(state.connections, {
+            guid: state.pinned
+        }) as Connection;
+    }
+}
+
+export function getConnection(): Promise<Connection> {
+    const pinned = getPinnedConnection();
+    const connections = getConnections();
+    if (pinned) {
+        return Promise.resolve(pinned);
+    } else {
+        if (connections.length > 0) {
+            return Promise.resolve(connections[0]);
+        } else {
+            return Promise.reject(new NoExistingConnections)
+        }
+    }
+}
+
+
 
 export function mkConnection(uri: string): Connection {
     return {
