@@ -56,7 +56,7 @@ class Connections extends React.Component<Props, State> {
                     })}
                     onNew={this.toggleNewConnectionView(true)}
                     onConnect={(conn) => {
-                        core.connector.connect(conn);
+                        // core.connector.connect(conn);
                         // if ()
                         // Conn.connect(conn)
                         //     .then(conn => {

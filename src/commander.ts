@@ -4,6 +4,7 @@ import { inspect } from 'util';
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError, InvalidExecutablePathError } from './error';
 import { Normalization, ComputeMode, View } from './type';
 import Core from './core';
+import * as Command from './command';
 
 declare var atom: any;
 
@@ -138,16 +139,13 @@ export default class Commander {
         this.core.connector.connect()
             .then((conn) => {
                 this.loaded = true;
-                console.log(conn);
+                // force save before load
+                this.core.textBuffer.saveBuffer();
+                return conn;
             })
+            .then(Command.load(this.core.getPath()))
 
         return Promise.resolve({});
-
-        // return this.core.process.load()
-        //     .then(() => {
-        //         this.loaded = true;
-        //     })
-        //     .then(() => Promise.resolve({}));
     }
 
     quit(): Promise<{}> {
@@ -158,11 +156,9 @@ export default class Commander {
             this.loaded = false;
             this.core.textBuffer.removeGoals();
             this.core.highlightManager.destroyAll();
-            return this.core.process.quit()
-                .then(() => Promise.resolve({}));
-        } else {
-            return Promise.resolve({});
+            this.core.connector.disconnect();
         }
+        return Promise.resolve({});
     }
 
     restart(): Promise<{}> {
@@ -170,20 +166,28 @@ export default class Commander {
         return this.load();
     }
 
-
     compile(): Promise<{}> {
-        return this.core.process.compile()
-            .then(() => Promise.resolve({}));
+        this.core.connector.connect()
+            .then(Command.compile(this.core.getPath()));
+        return Promise.resolve({});
     }
 
     toggleDisplayOfImplicitArguments(): Promise<{}> {
-        return this.core.process.toggleDisplayOfImplicitArguments()
-            .then(() => Promise.resolve({}));
+        this.core.connector.connect()
+            .then(Command.toggleDisplayOfImplicitArguments(this.core.getPath()));
+        return Promise.resolve({});
     }
 
     info(): Promise<{}> {
-        return this.core.process.info()
-            .then(() => Promise.resolve({}));
+        this.core.connector.connect()
+            .then(conn => {
+                this.core.view.set('Info', [
+                    `Agda version: ${conn.version.raw}`,
+                    `Agda executable path: ${conn.uri}`
+                    // `Agda executable arguments: ${args.join(' ')}`
+                ], View.Style.PlainText);
+            });
+        return Promise.resolve({});
     }
 
     solveConstraints(): Promise<{}> {

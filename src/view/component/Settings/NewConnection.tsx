@@ -97,7 +97,7 @@ class NewConnection extends React.Component<Props, State> {
                                 className="btn icon btn-primary icon-add inline-block-tight"
                                 disabled={disableLocal}
                                 onClick={() => {
-                                    Conn.validate(Conn.mkConnection(this.state.localURL))
+                                    Conn.validate(this.state.localURL)
                                         .then((conn) => {
                                             this.props.handleAddConnection(conn)
                                             this.props.onCancel();
