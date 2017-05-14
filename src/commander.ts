@@ -2,7 +2,7 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { inspect } from 'util';
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError, InvalidExecutablePathError } from './error';
-import { Command, Normalization, ComputeMode, View, CommandKind, PendingCommand } from './type';
+import { Normalization, ComputeMode, View } from './type';
 import Core from './core';
 
 declare var atom: any;
@@ -17,78 +17,13 @@ function toDescription(normalization: Normalization): string {
     }
 }
 
-class PendingQueue {
-    private queue: PendingCommand[];
-
-    constructor() {
-        this.queue = []
-    }
-
-    issue(command: Command): Promise<CommandKind> {
-        if (command.expectedGoalsActionReplies === 0) {
-            // synchronous command, resolves the promise right away
-            return Promise.resolve(command.kind);
-        } else {
-            let pendingCommand: PendingCommand = {
-                kind: command.kind,
-                resolve: null,
-                reject: null,
-                count: command.expectedGoalsActionReplies
-            };
-            const promise = new Promise<CommandKind>((resolve, reject) => {
-                pendingCommand.resolve = resolve;
-                pendingCommand.reject  = reject;
-            });
-
-            this.queue.push(pendingCommand);
-            return promise;
-        }
-    }
-
-    // on Error
-    resolve() {
-        const pendingCommand = _.last(this.queue);
-        if (pendingCommand) {
-            if (pendingCommand.count > 0)
-                pendingCommand.count -= 1;
-            if (pendingCommand.count === 0) {
-                pendingCommand.resolve(pendingCommand.kind);
-                this.queue.pop();
-            }
-        }
-    }
-
-    // on GoalsAction
-    reject() {
-        const pendingCommand = _.last(this.queue);
-        if (pendingCommand) {
-            pendingCommand.reject({});
-            this.queue.pop();
-        }
-    }
-
-    clear() {
-        this.queue.forEach(command => {
-            command.reject({});
-        });
-        this.queue = [];
-    }
-
-    isEmpty() {
-        return this.queue.length === 0;
-    }
-}
-
-
 export default class Commander {
     private loaded: boolean;
-    public pendingQueue: PendingQueue;
 
     constructor(private core: Core) {
-        this.pendingQueue = new PendingQueue;
     }
 
-    activate(command: Command) {
+    activate(command) {
         // some commands can only be executed after 'loaded'
         const exception = [
                 'Load',
@@ -105,21 +40,21 @@ export default class Commander {
         if(this.loaded || _.includes(exception, command.kind)) {
             this.dispatchCommand(command)
                 .then((result) => {
-                    if (command.kind === 'Quit') {
-                        this.pendingQueue.clear();
-                    }
-
-                    // console.log(`Empty: ${this.pendingQueue.isEmpty()}`)
-                    const checkPoint = this.core.editor.createCheckpoint();
-                    this.pendingQueue.issue(command)
-                        .then((kind) => {
-                            // console.log(`Succeed: ${kind}`)
-                            this.core.editor.groupChangesSinceCheckpoint(checkPoint);
-                        })
-                        .catch(() => {
-                            // console.log('Failed')
-                            // this.core.editor.revertToCheckpoint(checkPoint);
-                        })
+                    // if (command.kind === 'Quit') {
+                    //     this.pendingQueue.clear();
+                    // }
+                    //
+                    // // console.log(`Empty: ${this.pendingQueue.isEmpty()}`)
+                    // const checkPoint = this.core.editor.createCheckpoint();
+                    // this.pendingQueue.issue(command)
+                    //     .then((kind) => {
+                    //         // console.log(`Succeed: ${kind}`)
+                    //         this.core.editor.groupChangesSinceCheckpoint(checkPoint);
+                    //     })
+                    //     .catch(() => {
+                    //         // console.log('Failed')
+                    //         // this.core.editor.revertToCheckpoint(checkPoint);
+                    //     })
                 })
                 .catch(QueryCancelledError, () => {
                     this.core.view.set('Query cancelled', [], View.Style.Warning);
@@ -136,7 +71,7 @@ export default class Commander {
         }
     }
 
-    dispatchCommand(command: Command): Promise<{}> {
+    dispatchCommand(command): Promise<{}> {
         switch(command.kind) {
             case 'Load':          return this.load();
             case 'Quit':          return this.quit();
@@ -466,7 +401,7 @@ export default class Commander {
         return Promise.resolve({});
     }
 
-    inputSymbolInterceptKey(kind: CommandKind, key: string): Promise<{}> {
+    inputSymbolInterceptKey(kind, key: string): Promise<{}> {
         this.core.inputMethod.interceptAndInsertKey(key);
         return Promise.resolve({});
     }

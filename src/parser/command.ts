@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { Command, Normalization, ComputeMode } from '../type';
+import { Normalization, ComputeMode } from '../type';
 
 function parseNormalization(raw: string): Normalization {
     switch (raw) {
@@ -18,7 +18,7 @@ function parseComputeMode(raw: string): ComputeMode {
     }
 }
 
-function parseCommand(raw: string): Command {
+function parseCommand(raw: string) {
     const result = raw.match(/^agda-mode:((?:\w|\-)*)(?:\[(\w*)\])?/);
     if (result === null) throw 'command parse error';
     switch (result[1]) {

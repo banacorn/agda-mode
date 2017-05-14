@@ -12,55 +12,8 @@
     "exclude": [
         "node_modules"
     ],
-    "filesGlob": [
-        "**/*.ts",
-        "**/*.tsx",
-        "!node_modules/**"
-    ],
-    "files": [
-        "src/agda-mode.ts",
-        "src/commander.ts",
-        "src/core.ts",
-        "src/error.ts",
-        "src/goal.ts",
-        "src/handler.ts",
-        "src/highlight-manager.ts",
-        "src/input-method.ts",
-        "src/keymap.ts",
-        "src/lsp.ts",
-        "src/parser.ts",
-        "src/parser/agda.ts",
-        "src/parser/combinator.ts",
-        "src/parser/command.ts",
-        "src/parser/error.ts",
-        "src/parser/hole.ts",
-        "src/parser/lexer.ts",
-        "src/parser/stream/rectifier.ts",
-        "src/parser/util.ts",
-        "src/parser/view.ts",
-        "src/process.ts",
-        "src/test/setup.ts",
-        "src/test/test/activation.ts",
-        "src/text-buffer.ts",
-        "src/view/actions.ts",
-        "src/view/pane-item.ts",
-        "src/view/reducers.ts",
-        "src/view.tsx",
-        "src/view/component/Body.tsx",
-        "src/view/component/CandidateSymbols.tsx",
-        "src/view/component/Dashboard.tsx",
-        "src/view/component/Dev/Message.tsx",
-        "src/view/component/Dev/Panel.tsx",
-        "src/view/component/Error.tsx",
-        "src/view/component/Expr.tsx",
-        "src/view/component/Header.tsx",
-        "src/view/component/InputMethod.tsx",
-        "src/view/component/Location.tsx",
-        "src/view/component/MiniEditor.tsx",
-        "src/view/component/Panel.tsx",
-        "src/view/component/Settings.tsx",
-        "src/view/component/SizingHandle.tsx",
-        "src/view/component/Suggestion.tsx"
+    "include": [
+        "src/**/*"
     ],
     "atom": {
         "rewriteTsconfig": true

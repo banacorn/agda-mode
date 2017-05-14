@@ -5,7 +5,6 @@ import { Agda, Goal, View, Location } from './type';
 import { parseHole } from './parser';
 import Core from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
-import { Command } from './type';
 
 declare var atom: any;
 

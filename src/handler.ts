@@ -17,7 +17,6 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
             break;
 
         case 'GoalsAction':
-            core.commander.pendingQueue.resolve();
             core.textBuffer.onGoalsAction(response.content);
             break;
 
@@ -26,7 +25,6 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
             break;
 
         case 'ParseError':
-            core.commander.pendingQueue.reject();
             console.error(`Agda parse error: ${response.content}`);
             break;
 
@@ -110,7 +108,7 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
             }
             break;
         case 'Error':
-            core.commander.pendingQueue.reject();
+            // core.commander.pendingQueue.reject();
 
             const error = parseError(action.content.join('\n'));
             core.view.setError(error);

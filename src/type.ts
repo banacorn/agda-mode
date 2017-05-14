@@ -293,39 +293,39 @@ namespace Agda {
     }
 }
 
+// //
+// //  agda-mode commands
+// //
 //
-//  agda-mode commands
-//
-
-type CommandKind = 'Load' | 'Quit' | 'Restart' | 'Compile' |
-    'ToggleDisplayOfImplicitArguments' | 'Info' | 'ShowConstraints' |
-    'SolveConstraints' | 'ShowGoals' | 'NextGoal' | 'PreviousGoal' |
-    'ToggleDocking' |
-    'WhyInScope' | 'InferType' | 'ModuleContents' | 'ComputeNormalForm' |
-    'Give' | 'Refine' | 'Auto' | 'Case' |
-    'GoalType' | 'Context' | 'GoalTypeAndContext' | 'GoalTypeAndInferredType' |
-    'InputSymbol' | 'InputSymbolCurlyBracket' | 'InputSymbolBracket'
-    | 'InputSymbolParenthesis' | 'InputSymbolDoubleQuote' | 'InputSymbolSingleQuote'
-    | 'InputSymbolBackQuote'
+// type CommandKind = 'Load' | 'Quit' | 'Restart' | 'Compile' |
+//     'ToggleDisplayOfImplicitArguments' | 'Info' | 'ShowConstraints' |
+//     'SolveConstraints' | 'ShowGoals' | 'NextGoal' | 'PreviousGoal' |
+//     'ToggleDocking' |
+//     'WhyInScope' | 'InferType' | 'ModuleContents' | 'ComputeNormalForm' |
+//     'Give' | 'Refine' | 'Auto' | 'Case' |
+//     'GoalType' | 'Context' | 'GoalTypeAndContext' | 'GoalTypeAndInferredType' |
+//     'InputSymbol' | 'InputSymbolCurlyBracket' | 'InputSymbolBracket'
+//     | 'InputSymbolParenthesis' | 'InputSymbolDoubleQuote' | 'InputSymbolSingleQuote'
+//     | 'InputSymbolBackQuote'
 type Normalization = 'Simplified' | 'Instantiated' | 'Normalised';
 type ComputeMode = 'DefaultCompute' | 'IgnoreAbstract' | 'UseShowInstance';
-
-type Command = {
-    kind: CommandKind,
-    normalization?: Normalization,
-    computeMode?: ComputeMode,
-    editsFile: boolean,
-    // the expected number of GoalsAction replies if it succeeds
-    expectedGoalsActionReplies: number
-}
-
-export type PendingCommand = {
-    kind: CommandKind,
-    resolve: (kind: CommandKind) => void,
-    reject: (any) => void,
-    // the expected number of GoalsAction replies left
-    count: number,
-};
+//
+// type Command = {
+//     kind: CommandKind,
+//     normalization?: Normalization,
+//     computeMode?: ComputeMode,
+//     editsFile: boolean,
+//     // the expected number of GoalsAction replies if it succeeds
+//     expectedGoalsActionReplies: number
+// }
+//
+// export type PendingCommand = {
+//     kind: CommandKind,
+//     resolve: (kind: CommandKind) => void,
+//     reject: (any) => void,
+//     // the expected number of GoalsAction replies left
+//     count: number,
+// };
 
 // Occurence & Location
 export interface Occurence {
@@ -562,8 +562,8 @@ export {
     Token,
     TokenType,
     // commands
-    CommandKind,
-    Command,
+    // CommandKind,
+    // Command,
     Normalization,
     ComputeMode,
     // view
