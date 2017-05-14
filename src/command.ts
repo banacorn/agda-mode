@@ -14,13 +14,13 @@ declare var atom: any;
 
 Promise.longStackTraces();  // for debugging
 
-function sendCommand(filepath: string, conn: Connection, highlightingLevel: string, interaction: string | (() => string)) {
+const sendCommand = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (conn: Connection)  => {
     const highlightingMethod = atom.config.get('agda-mode.highlightingMethod');
     let command: string;
     if (typeof interaction === 'string') {
-        command = `IOTCM \"${filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction} )\n`
+        command = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction} )\n`
     } else {    // interaction is a callback
-        command = `IOTCM \"${filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction()} )\n`;
+        command = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(conn)} )\n`;
     }
     conn.stream.write(command);
 }
@@ -31,29 +31,24 @@ function getLibraryPath(): string {
     return path.map((p) => { return `\"${ parseFilepath(p) }\"`; }).join(', ');
 }
 
-export const load = (filepath: string) => (conn: Connection) => {
+export const load = sendCommand('NonInteractive', (conn) => {
     // if version > 2.5, ignore library path configuration
-    sendCommand(filepath, conn, 'NonInteractive', () => {
-        if (semver.gte(conn.version.sem, '2.5.0'))
-            return `Cmd_load \"${filepath}\" []`
-        else
-            return `Cmd_load \"${filepath}\" [${getLibraryPath()}]`
-    });
-}
+    if (semver.gte(conn.version.sem, '2.5.0'))
+        return `Cmd_load \"${conn.filepath}\" []`
+    else
+        return `Cmd_load \"${conn.filepath}\" [${getLibraryPath()}]`
+});
 
-export const compile = (filepath: string) => (conn: Connection) => {
+export const compile = sendCommand('NonInteractive', (conn) => {
     const backend = atom.config.get('agda-mode.backend');
-    sendCommand(filepath, conn, 'NonInteractive', () => {
-        if (semver.gte(conn.version.sem, '2.5.0'))
-            return `Cmd_load ${backend} \"${filepath}\" []`
-        else
-            return `Cmd_load ${backend} \"${filepath}\" [${getLibraryPath()}]`
-    });
-}
+    if (semver.gte(conn.version.sem, '2.5.0'))
+        return `Cmd_load ${backend} \"${conn.filepath}\" []`
+    else
+        return `Cmd_load ${backend} \"${conn.filepath}\" [${getLibraryPath()}]`
+});
 
-export const toggleDisplayOfImplicitArguments = (filepath: string) => (conn: Connection) => {
-    sendCommand(filepath, conn, 'NonInteractive', 'ToggleImplicitArgs');
-}
+export const toggleDisplayOfImplicitArguments =
+    sendCommand('NonInteractive', 'ToggleImplicitArgs');
 
 
 //     toggleDisplayOfImplicitArguments = (): Promise<ChildProcess> => {

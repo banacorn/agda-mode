@@ -143,7 +143,7 @@ export default class Commander {
                 this.core.textBuffer.saveBuffer();
                 return conn;
             })
-            .then(Command.load(this.core.getPath()))
+            .then(Command.load)
 
         return Promise.resolve({});
     }
@@ -168,13 +168,13 @@ export default class Commander {
 
     compile(): Promise<{}> {
         this.core.connector.connect()
-            .then(Command.compile(this.core.getPath()));
+            .then(Command.compile);
         return Promise.resolve({});
     }
 
     toggleDisplayOfImplicitArguments(): Promise<{}> {
         this.core.connector.connect()
-            .then(Command.toggleDisplayOfImplicitArguments(this.core.getPath()));
+            .then(Command.toggleDisplayOfImplicitArguments);
         return Promise.resolve({});
     }
 

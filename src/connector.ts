@@ -83,13 +83,12 @@ export default class Connector {
                 .catch(NoExistingConnections, err => {
                     return autoSearch()
                         .then(validate)
-                        // .then(connect)
                 })
                 .then(connInfo => {
                     if (this.current && this.current.guid === connInfo.guid) {
                         return this.current;
                     } else {
-                        return connect(connInfo)
+                        return connect(connInfo, this.core.getPath())
                             .then(this.updateCurrentConnection);
                     }
                 })
@@ -222,7 +221,7 @@ export function validate(uri: string): Promise<ConnectionInfo> {
     });
 }
 
-export function connect(connInfo: ConnectionInfo): Promise<Connection> {
+export function connect(connInfo: ConnectionInfo, filepath): Promise<Connection> {
     return new Promise<Connection>((resolve, reject) => {
         const agdaProcess = spawn(connInfo.uri, ['--interaction']);
         agdaProcess.on('error', (error) => {
@@ -233,7 +232,8 @@ export function connect(connInfo: ConnectionInfo): Promise<Connection> {
         });
         resolve({
             ...connInfo,
-            stream: duplex(agdaProcess.stdin, agdaProcess.stdout)
+            stream: duplex(agdaProcess.stdin, agdaProcess.stdout),
+            filepath
         });
     });
 }
