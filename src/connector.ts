@@ -87,7 +87,6 @@ export default class Connector {
                     if (this.current && this.current.guid === connInfo.guid) {
                         return this.current;
                     } else {
-                        console.log(this.current, connInfo);
                         return connect(connInfo, this.core.getPath())
                             .then(this.updateCurrentConnection);
                     }
@@ -98,7 +97,6 @@ export default class Connector {
 
     disconnect() {
         if (this.current) {
-            console.warn(`disconnecting`, this.current)
             this.current.stream.end();
             this.current = undefined;
         }

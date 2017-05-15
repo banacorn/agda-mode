@@ -78,7 +78,7 @@ export default class Commander {
             case 'Quit':          return this.quit();
             case 'Restart':       return this.restart();
             case 'Info':          return this.info();
-            case 'ToggleDocking':  return this.toggleDocking();
+            case 'ToggleDocking': return this.toggleDocking();
             case 'Compile':       return this.compile();
             case 'ToggleDisplayOfImplicitArguments':
                 return this.toggleDisplayOfImplicitArguments();
@@ -246,32 +246,36 @@ export default class Commander {
                 // goal-specific
                 if (goal.isEmpty()) {
                     return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
-                        .then(this.core.process.inferType(normalization, goal))
-                        .then(() => Promise.resolve({}));
+                        .then(expr => this.core.connector.connect()
+                            .then(Command.inferType(normalization, goal)(expr))
+                        );
                 } else {
-                    return this.core.process.inferType(normalization, goal)(goal.getContent())
-                        .then(() => Promise.resolve({}));
+                    return this.core.connector.connect()
+                        .then(Command.inferType(normalization, goal)(goal.getContent()))
                 }
             })
             .catch(() => {
                 // global command
                 return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
-                    .then(this.core.process.inferType(normalization))
-                    .then(() => Promise.resolve({}));
+                    .then(expr => this.core.connector.connect()
+                        .then(Command.inferType(normalization)(expr))
+                    );
             })
     }
 
 
     moduleContents(normalization: Normalization): Promise<{}> {
         return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], View.Style.PlainText, 'module name:')
-            .then((expr) => {
+            .then(expr => {
                 return this.core.textBuffer.getCurrentGoal()
-                    .then(this.core.process.moduleContents(normalization, expr))
+                    .then(goal => this.core.connector.connect()
+                        .then(Command.moduleContents(normalization, expr)(goal))
+                    )
                     .catch((error) => {
-                        return this.core.process.moduleContents(normalization, expr)();
+                        return this.core.connector.connect()
+                            .then(Command.moduleContents(normalization, expr)())
                     });
             })
-            .then(() => Promise.resolve({}));
     }
 
 

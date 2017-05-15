@@ -5,7 +5,7 @@ import { parseFilepath, parseAgdaResponse } from './parser';
 // import Rectifier from './parser/stream/rectifier';
 // import { handleAgdaResponse } from './handler';
 // import { InvalidExecutablePathError, ProcExecError, AutoExecPathSearchError, AgdaParseError } from './error';
-import { Connection, View, Goal } from './type';
+import { Connection, View, Goal, Normalization } from './type';
 // import Core from './core';
 // import * as Action from './view/actions';
 
@@ -68,26 +68,22 @@ export const whyInScope = (expr: string, goal?: Goal) => {
         return sendCommand('None', `Cmd_why_in_scope_toplevel \"${expr}\"`);
     }
 }
-//
-//     inferType = (normalization: Normalization, goal?: Goal): (expr: string) => Promise<ChildProcess> => {
-//         return (expr) => {
-//             if (goal) {
-//                 return this.sendCommand('NonInteractive', `Cmd_infer ${normalization} ${goal.index} noRange \"${expr}\"`);
-//             } else {
-//                 return this.sendCommand('None', `Cmd_infer_toplevel ${normalization} \"${expr}\"`);
-//             }
-//         }
-//     }
-//
-//     moduleContents = (normalization: Normalization, expr: string): (goal?: Goal) => Promise<ChildProcess> => {
-//         return (goal) => {
-//             if (goal) {
-//                 return this.sendCommand('NonInteractive', `Cmd_show_module_contents ${normalization} ${goal.index} noRange \"${expr}\"`);
-//             } else {
-//                 return this.sendCommand('None', `Cmd_show_module_contents_toplevel ${normalization} \"${expr}\"`);
-//             }
-//         }
-//     }
+
+export const inferType = (normalization: Normalization, goal?: Goal) => (expr: string) => {
+        if (goal) {
+            return sendCommand('NonInteractive', `Cmd_infer ${normalization} ${goal.index} noRange \"${expr}\"`);
+        } else {
+            return sendCommand('None', `Cmd_infer_toplevel ${normalization} \"${expr}\"`);
+        }
+    }
+
+export const moduleContents = (normalization: Normalization, expr: string) => (goal?: Goal) => {
+        if (goal) {
+            return sendCommand('NonInteractive', `Cmd_show_module_contents ${normalization} ${goal.index} noRange \"${expr}\"`);
+        } else {
+            return sendCommand('None', `Cmd_show_module_contents_toplevel ${normalization} \"${expr}\"`);
+        }
+    }
 //
 //     computeNormalForm = (computeMode: ComputeMode, goal?: Goal): (expr: string) => Promise<ChildProcess> => {
 //         if (semver.gte(this.agdaVersion.sem, '2.5.2')) {  // after 2.5.2
