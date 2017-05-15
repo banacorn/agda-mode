@@ -55,9 +55,6 @@ export default class Connector {
             .pipe(new Rectifier)
             .on('data', (data) => {
                 try {
-                    if (atom.inDevMode()) {
-                        this.core.view.store.dispatch(Action.DEV.addResponse(data.toString()));
-                    }
                     const response = parseAgdaResponse(data.toString());
                     handleAgdaResponse(this.core, response);
                 } catch (error) {
@@ -78,7 +75,9 @@ export default class Connector {
     }
 
     connect(): Promise<Connection> {
-
+        if (this.current) {
+            return Promise.resolve(this.current);
+        } else {
             return getExistingConnectionInfo()
                 .catch(NoExistingConnections, err => {
                     return autoSearch()
@@ -88,39 +87,18 @@ export default class Connector {
                     if (this.current && this.current.guid === connInfo.guid) {
                         return this.current;
                     } else {
+                        console.log(this.current, connInfo);
                         return connect(connInfo, this.core.getPath())
                             .then(this.updateCurrentConnection);
                     }
                 })
                 .then(this.wireStream)
-
-        // // only one connection is allowed at a time, kill the old one
-        // this.disconnect();
-        //
-        // if (connInfo) {
-        //     return connect(connInfo)
-        //         .then(conn => {
-        //             this.current = conn;
-        //             return conn;
-        //         })
-        // } else {
-        //     return getConnection()
-        //         .then(connect)
-        //         .catch(NoExistingConnections, err => {
-        //             return autoSearch()
-        //                 .then(validate)
-        //                 .then(connect)
-        //         })
-        //         .then(conn => {
-        //             this.current = conn;
-        //             return conn;
-        //         })
-        //         .then(this.wireStream)
-        // }
+        }
     }
 
     disconnect() {
         if (this.current) {
+            console.warn(`disconnecting`, this.current)
             this.current.stream.end();
             this.current = undefined;
         }

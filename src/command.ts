@@ -5,7 +5,7 @@ import { parseFilepath, parseAgdaResponse } from './parser';
 // import Rectifier from './parser/stream/rectifier';
 // import { handleAgdaResponse } from './handler';
 // import { InvalidExecutablePathError, ProcExecError, AutoExecPathSearchError, AgdaParseError } from './error';
-import { Connection, View } from './type';
+import { Connection, View, Goal } from './type';
 // import Core from './core';
 // import * as Action from './view/actions';
 
@@ -14,7 +14,13 @@ declare var atom: any;
 
 Promise.longStackTraces();  // for debugging
 
-const sendCommand = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (conn: Connection)  => {
+function getLibraryPath(): string {
+    const path = atom.config.get('agda-mode.libraryPath');
+    path.unshift('.');
+    return path.map((p) => { return `\"${ parseFilepath(p) }\"`; }).join(', ');
+}
+
+const sendCommand = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (conn: Connection): Promise<{}> => {
     const highlightingMethod = atom.config.get('agda-mode.highlightingMethod');
     let command: string;
     if (typeof interaction === 'string') {
@@ -23,12 +29,8 @@ const sendCommand = (highlightingLevel: string, interaction: string | ((conn: Co
         command = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(conn)} )\n`;
     }
     conn.stream.write(command);
-}
-
-function getLibraryPath(): string {
-    const path = atom.config.get('agda-mode.libraryPath');
-    path.unshift('.');
-    return path.map((p) => { return `\"${ parseFilepath(p) }\"`; }).join(', ');
+    console.log(command)
+    return Promise.resolve({});
 }
 
 export const load = sendCommand('NonInteractive', (conn) => {
@@ -42,39 +44,30 @@ export const load = sendCommand('NonInteractive', (conn) => {
 export const compile = sendCommand('NonInteractive', (conn) => {
     const backend = atom.config.get('agda-mode.backend');
     if (semver.gte(conn.version.sem, '2.5.0'))
-        return `Cmd_load ${backend} \"${conn.filepath}\" []`
+        return `Cmd_compile ${backend} \"${conn.filepath}\" []`
     else
-        return `Cmd_load ${backend} \"${conn.filepath}\" [${getLibraryPath()}]`
+        return `Cmd_compile ${backend} \"${conn.filepath}\" [${getLibraryPath()}]`
 });
 
 export const toggleDisplayOfImplicitArguments =
     sendCommand('NonInteractive', 'ToggleImplicitArgs');
 
+export const solveConstraints =
+    sendCommand('NonInteractive', 'Cmd_solveAll');
 
-//     toggleDisplayOfImplicitArguments = (): Promise<ChildProcess> => {
-//         return this.sendCommand('NonInteractive', 'ToggleImplicitArgs');
-//     }
-//
-//     solveConstraints = (): Promise<ChildProcess> => {
-//         return this.sendCommand('NonInteractive', 'Cmd_solveAll');
-//     }
-//
-//     showConstraints = (): Promise<ChildProcess> => {
-//         return this.sendCommand('NonInteractive', 'Cmd_constraints');
-//     }
-//
-//     showGoals = (): Promise<ChildProcess> => {
-//         return this.sendCommand('NonInteractive', 'Cmd_metas');
-//     }
-//
-//     whyInScope = (expr: string, goal?: Goal): Promise<ChildProcess> => {
-//         if (goal) {
-//             return this.sendCommand('NonInteractive', `Cmd_why_in_scope ${goal.index} noRange \"${expr}\"`);
-//         } else {
-//             return this.sendCommand('None', `Cmd_why_in_scope_toplevel \"${expr}\"`);
-//         }
-//     }
-//
+export const showConstraints =
+    sendCommand('NonInteractive', 'Cmd_constraints');
+
+export const showGoals =
+    sendCommand('NonInteractive', 'Cmd_metas');
+
+export const whyInScope = (expr: string, goal?: Goal) => {
+    if (goal) {
+        return sendCommand('NonInteractive', `Cmd_why_in_scope ${goal.index} noRange \"${expr}\"`);
+    } else {
+        return sendCommand('None', `Cmd_why_in_scope_toplevel \"${expr}\"`);
+    }
+}
 //
 //     inferType = (normalization: Normalization, goal?: Goal): (expr: string) => Promise<ChildProcess> => {
 //         return (expr) => {

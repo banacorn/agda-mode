@@ -77,10 +77,11 @@ export default class Commander {
             case 'Load':          return this.load();
             case 'Quit':          return this.quit();
             case 'Restart':       return this.restart();
+            case 'Info':          return this.info();
+            case 'ToggleDocking':  return this.toggleDocking();
             case 'Compile':       return this.compile();
             case 'ToggleDisplayOfImplicitArguments':
                 return this.toggleDisplayOfImplicitArguments();
-            case 'Info':          return this.info();
             case 'SolveConstraints':
                 return this.solveConstraints();
             case 'ShowConstraints':
@@ -89,7 +90,6 @@ export default class Commander {
                 return this.showGoals();
             case 'NextGoal':      return this.nextGoal();
             case 'PreviousGoal':  return this.previousGoal();
-            case 'ToggleDocking':  return this.toggleDocking();
             case 'WhyInScope':    return this.whyInScope();
             case 'InferType':
                 return this.inferType(command.normalization);
@@ -166,43 +166,47 @@ export default class Commander {
         return this.load();
     }
 
-    compile(): Promise<{}> {
-        this.core.connector.connect()
-            .then(Command.compile);
-        return Promise.resolve({});
-    }
-
-    toggleDisplayOfImplicitArguments(): Promise<{}> {
-        this.core.connector.connect()
-            .then(Command.toggleDisplayOfImplicitArguments);
-        return Promise.resolve({});
-    }
-
     info(): Promise<{}> {
-        this.core.connector.connect()
+        return this.core.connector.connect()
             .then(conn => {
                 this.core.view.set('Info', [
                     `Agda version: ${conn.version.raw}`,
                     `Agda executable path: ${conn.uri}`
                     // `Agda executable arguments: ${args.join(' ')}`
                 ], View.Style.PlainText);
+
+                return {};
             });
-        return Promise.resolve({});
+    }
+
+    toggleDocking(): Promise<{}> {
+        return this.core.view.toggleDocking()
+            .then(() => Promise.resolve({}));
+    }
+
+    compile(): Promise<{}> {
+        return this.core.connector.connect()
+            .then(Command.compile);
+    }
+
+    toggleDisplayOfImplicitArguments(): Promise<{}> {
+        return this.core.connector.connect()
+            .then(Command.toggleDisplayOfImplicitArguments);
     }
 
     solveConstraints(): Promise<{}> {
-        return this.core.process.solveConstraints()
-            .then(() => Promise.resolve({}));
+        return this.core.connector.connect()
+            .then(Command.solveConstraints);
     }
 
     showConstraints(): Promise<{}> {
-        return this.core.process.showConstraints()
-            .then(() => Promise.resolve({}));
+        return this.core.connector.connect()
+            .then(Command.showConstraints);
     }
 
     showGoals(): Promise<{}> {
-        return this.core.process.showGoals()
-            .then(() => Promise.resolve({}));
+        return this.core.connector.connect()
+            .then(Command.showGoals);
     }
 
     nextGoal(): Promise<{}> {
@@ -212,11 +216,6 @@ export default class Commander {
 
     previousGoal(): Promise<{}> {
         return this.core.textBuffer.previousGoal()
-            .then(() => Promise.resolve({}));
-    }
-
-    toggleDocking(): Promise<{}> {
-        return this.core.view.toggleDocking()
             .then(() => Promise.resolve({}));
     }
 
@@ -230,15 +229,15 @@ export default class Commander {
                 return this.core.textBuffer.getCurrentGoal()
                     .then((goal) => {
                         // goal-specific
-                        return this.core.process.whyInScope(expr, goal);
+                        return this.core.connector.connect()
+                            .then(Command.whyInScope(expr, goal))
                     })
                     .catch(OutOfGoalError, () => {
                         // global command
-                        return this.core.process.whyInScope(expr);
+                        return this.core.connector.connect()
+                            .then(Command.whyInScope(expr))
                     });
             })
-            .then(() => Promise.resolve({}));
-
     }
 
     inferType(normalization: Normalization): Promise<{}> {
