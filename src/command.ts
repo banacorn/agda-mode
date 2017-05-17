@@ -33,6 +33,30 @@ const sendCommand = (highlightingLevel: string, interaction: string | ((conn: Co
     return Promise.resolve({});
 }
 
+
+// COMMANDS
+
+// data IOTCM = IOTCM FilePath HighlightingLevel HighlightingMethod (Interaction' range)
+// data HighlightingLevel = None | NonInteractive | Interactive
+// data HighlightingMethod = Direct | Indirect
+//
+// data Range a = Range [Interval' a]
+// data Interval a = Interval { iStart, iEnd :: !(Position' a) }
+// data Position a = Pn a !Int32 !Int32 !Int32
+
+function buildRange(goal: Goal): string {
+    const start       = goal.range.start;
+    const startIndex  = goal.rangeIndex.start;
+    const end         = goal.range.end;
+    const endIndex    = goal.rangeIndex.end;
+    if (semver.gte(this.agdaVersion.sem, '2.5.1')) {
+        return `(intervalsToRange (Just (mkAbsolute \"${this.core.getPath()}\")) [Interval (Pn () ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn () ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
+    } else {
+        return `(Range [Interval (Pn (Just (mkAbsolute \"${this.core.getPath()}\")) ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn (Just (mkAbsolute \"${this.core.getPath()}\")) ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
+    }
+}
+
+
 export const load = sendCommand('NonInteractive', (conn) => {
     // if version > 2.5, ignore library path configuration
     if (semver.gte(conn.version.sem, '2.5.0'))
@@ -99,20 +123,20 @@ export const computeNormalFormGlobal = (computeMode: ComputeMode, expr: string) 
     });
 
 export const give = (goal: Goal) =>
-    sendCommand('NonInteractive', `Cmd_give ${goal.index} ${this.buildRange(goal)} \"${goal.getContent()}\"`);
+    sendCommand('NonInteractive', `Cmd_give ${goal.index} ${buildRange(goal)} \"${goal.getContent()}\"`);
 
 export const refine = (goal: Goal) =>
-    sendCommand('NonInteractive', `Cmd_refine_or_intro False ${goal.index} ${this.buildRange(goal)} \"${goal.getContent()}\"`);
+    sendCommand('NonInteractive', `Cmd_refine_or_intro False ${goal.index} ${buildRange(goal)} \"${goal.getContent()}\"`);
 
 export const auto = (goal: Goal) =>
-    sendCommand('NonInteractive', `Cmd_auto ${goal.index} ${this.buildRange(goal)} \"${goal.getContent()}\"`);
+    sendCommand('NonInteractive', `Cmd_auto ${goal.index} ${buildRange(goal)} \"${goal.getContent()}\"`);
 
 export const makeCase = (goal: Goal) =>
-    sendCommand('NonInteractive', `Cmd_make_case ${goal.index} ${this.buildRange(goal)} \"${goal.getContent()}\"`);
+    sendCommand('NonInteractive', `Cmd_make_case ${goal.index} ${buildRange(goal)} \"${goal.getContent()}\"`);
 
 
 //     'case' = (goal: Goal): Promise<ChildProcess> => {
-//         return this.sendCommand('NonInteractive', `Cmd_make_case ${goal.index} ${this.buildRange(goal)} \"${goal.getContent()}\"`);
+//         return this.sendCommand('NonInteractive', `Cmd_make_case ${goal.index} ${buildRange(goal)} \"${goal.getContent()}\"`);
 //     }
 //
 //     goalType = (normalization: Normalization): (Goal) => Promise<ChildProcess> => {

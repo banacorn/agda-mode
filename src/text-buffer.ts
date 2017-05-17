@@ -215,8 +215,10 @@ export default class TextBuffer {
                 let goal = new Goal(
                     this.core.editor,
                     hole.index,
-                    hole.modifiedRange.start,
-                    hole.modifiedRange.end
+                    {
+                        start: hole.modifiedRange.start,
+                        end: hole.modifiedRange.end,
+                    }
                 );
                 this.goals.push(goal);
             });

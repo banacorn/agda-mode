@@ -26,13 +26,15 @@ export default class Goal {
     constructor(
         private editor: TextEditor,
         public index: number = -1,         // -1 as Nothing, fuck TypeScript
-        startIndex: number,
-        endIndex: number
+        public rangeIndex: {
+            start: number;
+            end: number;
+        }
     ) {
         // initialization
         const textBuffer = this.editor.getBuffer();
-        const startPoint = textBuffer.positionForCharacterIndex(startIndex);
-        const endPoint   = textBuffer.positionForCharacterIndex(  endIndex);
+        const startPoint = textBuffer.positionForCharacterIndex(rangeIndex.start);
+        const endPoint   = textBuffer.positionForCharacterIndex(rangeIndex.end);
         this.range = new Range(startPoint, endPoint);
         this.content = textBuffer.getTextInRange(this.range);
         this.marker = this.editor.markBufferRange(this.range, {});
@@ -90,6 +92,11 @@ export default class Goal {
                 const contentLength = text.length;
                 const stretchRight = right - contentLength + 2;
                 this.range = resizeRange(textBuffer, newRange, left, stretchRight);
+                this.rangeIndex = {
+                    start: textBuffer.characterIndexForPosition(this.range.start),
+                    end: textBuffer.characterIndexForPosition(this.range.end),
+                }
+                // }resizeRange(textBuffer, newRange, left, stretchRight);
                 this.content = textBuffer.getTextInRange(this.range);
                 this.marker.setBufferRange(this.range, {
                     reversed: false
