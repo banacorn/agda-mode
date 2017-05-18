@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import * as fs from 'fs';
 import { Agda, View } from './type';
+import * as Command from './command';
 import Core from './core';
 import { parseSExpression, parseAnnotation, parseJudgements, parseError } from './parser';
 
@@ -36,7 +37,9 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
             const solutions = response.solutions;
             solutions.forEach((solution) => {
                 core.textBuffer.onSolveAllAction(solution.index, solution.expression)
-                    .then(core.process.give);
+                    .then(goal => core.connector.connect()
+                        .then(Command.give(goal))
+                    )
             });
             break;
         case 'MakeCaseAction':
