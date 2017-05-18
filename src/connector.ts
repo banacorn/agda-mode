@@ -12,6 +12,7 @@ import { guid } from './util';
 import Core from './core';
 import { parseFilepath, parseAgdaResponse } from './parser';
 import * as Action from "./view/actions";
+import * as Store from "./persist";
 import { handleAgdaResponse } from './handler';
 
 
@@ -71,6 +72,7 @@ export default class Connector {
     private updateCurrentConnection = (conn: Connection): Promise<Connection> => {
         this.disconnect();
         this.current = conn;
+
         return Promise.resolve(conn);
     }
 
@@ -104,17 +106,16 @@ export default class Connector {
 }
 
 export function getConnections(): ConnectionInfo[] {
-    const state = atom.config.get('agda-mode.internalState');
-    return JSON.parse(state).connections;
+    return Store.get().connections;
 }
 
 export function getPinnedConnection(): ConnectionInfo | undefined {
-    const state = atom.config.get('agda-mode.internalState');
+    const state = Store.get();
     if (state.pinned) {
         return _.find(state.connections, {
             guid: state.pinned
         }) as ConnectionInfo;
-    }
+    }``
 }
 
 export function getExistingConnectionInfo(): Promise<ConnectionInfo> {

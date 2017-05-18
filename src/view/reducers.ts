@@ -7,6 +7,7 @@ declare var atom: any;
 
 import * as Conn from '../connector';
 import * as Parser from '../parser';
+import * as Store from '../persist';
 import { View } from '../type';
 import { EVENT, VIEW, CONNECTION, DEV, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
 import { translate } from '../input-method';
@@ -14,7 +15,7 @@ import { translate } from '../input-method';
 // default state
 const { translation, further, keySuggestions, candidateSymbols } = translate('');
 
-const initialInternalState = JSON.parse(atom.config.get('agda-mode.internalState'));
+const initialInternalState = Store.get();
 const defaultState: View.State = {
     view: {
         activated: false,
@@ -26,7 +27,7 @@ const defaultState: View.State = {
         settingsView: false
     },
     connection: {
-        connectionInfos: Conn.getConnections(),
+        connectionInfos: initialInternalState.connections,
         pinned: initialInternalState.pinned,
         current: initialInternalState.current,
         showNewConnectionView: false

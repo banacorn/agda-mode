@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
 import { View, Error, Location, Connection, ConnectionInfo, GUID } from '../type';
+import * as Store from '../persist';
 declare var atom: any;
 
 export type EVENT =
@@ -69,13 +70,14 @@ export namespace CONNECTION {
     const addConnectionPure = createAction(CONNECTION.ADD_CONNECTION);
     export const addConnection = (connInfo: ConnectionInfo) => dispatch => {
         // update the internal state
-        const state = JSON.parse(atom.config.get('agda-mode.internalState'));
-        state.connections.push({
-            guid: connInfo.guid,
-            uri: connInfo.uri,
-            version: connInfo.version
+        Store.update(state => {
+            state.connections.push({
+                guid: connInfo.guid,
+                uri: connInfo.uri,
+                version: connInfo.version
+            });
+            return state;
         });
-        atom.config.set('agda-mode.internalState', JSON.stringify(state));
         // dispatch action
         dispatch(addConnectionPure(connInfo));
     }
@@ -83,9 +85,10 @@ export namespace CONNECTION {
     const removeConnectionPure = createAction(CONNECTION.REMOVE_CONNECTION);
     export const removeConnection = (guid: GUID) => dispatch => {
         // update the internal state
-        const state = JSON.parse(atom.config.get('agda-mode.internalState'));
-        _.remove(state.connections, (conn) => conn['guid'] === guid);
-        atom.config.set('agda-mode.internalState', JSON.stringify(state));
+        Store.update(state => {
+            _.remove(state.connections, (conn) => conn['guid'] === guid);
+            return state;
+        });
         // dispatch action
         dispatch(removeConnectionPure(guid));
     }
@@ -93,9 +96,10 @@ export namespace CONNECTION {
     const pinConnectionPure = createAction(CONNECTION.PIN_CONNECTION);
     export const pinConnection = (guid: GUID) => dispatch => {
         // update the internal state
-        const state = JSON.parse(atom.config.get('agda-mode.internalState'));
-        state.pinned = guid;
-        atom.config.set('agda-mode.internalState', JSON.stringify(state));
+        Store.update(state => {
+            state.pinned = guid;
+            return state;
+        });
         // dispatch action
         dispatch(pinConnectionPure(guid));
     }
@@ -103,9 +107,10 @@ export namespace CONNECTION {
     const connectPure = createAction(CONNECTION.CONNECT);
     export const connect = (connInfo: ConnectionInfo) => dispatch => {
         // update the internal state
-        const state = JSON.parse(atom.config.get('agda-mode.internalState'));
-        state.current = connInfo.guid;
-        atom.config.set('agda-mode.internalState', JSON.stringify(state));
+        Store.update(state => {
+            state.current = connInfo.guid;
+            return state;
+        });
         // dispatch action
         dispatch(connectPure(connInfo.guid));
     }

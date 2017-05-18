@@ -29,7 +29,6 @@ const sendCommand = (highlightingLevel: string, interaction: string | ((conn: Co
         command = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(conn)} )\n`;
     }
     conn.stream.write(command);
-    console.log(command)
     return Promise.resolve({});
 }
 
