@@ -105,27 +105,18 @@ export default class Connector {
     }
 }
 
-export function getConnections(): ConnectionInfo[] {
-    return Store.get().connections;
-}
-
-export function getPinnedConnection(): ConnectionInfo | undefined {
-    const state = Store.get();
-    if (state.pinned) {
-        return _.find(state.connections, {
-            guid: state.pinned
-        }) as ConnectionInfo;
-    }``
-}
-
 export function getExistingConnectionInfo(): Promise<ConnectionInfo> {
-    const pinned = getPinnedConnection();
-    const connections = getConnections();
+    const state = Store.get();
+
+    const pinned = _.find(state.connections, {
+        guid: state.pinned
+    });
+
     if (pinned) {
         return Promise.resolve(pinned);
     } else {
-        if (connections.length > 0) {
-            return Promise.resolve(connections[0]);
+        if (state.connections.length > 0) {
+            return Promise.resolve(state.connections[0]);
         } else {
             return Promise.reject(new NoExistingConnections)
         }
