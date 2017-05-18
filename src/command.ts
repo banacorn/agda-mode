@@ -44,15 +44,15 @@ const sendCommand = (highlightingLevel: string, interaction: string | ((conn: Co
 // data Interval a = Interval { iStart, iEnd :: !(Position' a) }
 // data Position a = Pn a !Int32 !Int32 !Int32
 
-function buildRange(goal: Goal): string {
+function buildRange(conn: Connection, goal: Goal): string {
     const start       = goal.range.start;
     const startIndex  = goal.rangeIndex.start;
     const end         = goal.range.end;
     const endIndex    = goal.rangeIndex.end;
-    if (semver.gte(this.agdaVersion.sem, '2.5.1')) {
-        return `(intervalsToRange (Just (mkAbsolute \"${this.core.getPath()}\")) [Interval (Pn () ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn () ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
+    if (semver.gte(conn.version.sem, '2.5.1')) {
+        return `(intervalsToRange (Just (mkAbsolute \"${conn.filepath}\")) [Interval (Pn () ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn () ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
     } else {
-        return `(Range [Interval (Pn (Just (mkAbsolute \"${this.core.getPath()}\")) ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn (Just (mkAbsolute \"${this.core.getPath()}\")) ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
+        return `(Range [Interval (Pn (Just (mkAbsolute \"${conn.filepath}\")) ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn (Just (mkAbsolute \"${this.core.getPath()}\")) ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
     }
 }
 
@@ -122,45 +122,34 @@ export const computeNormalFormGlobal = (computeMode: ComputeMode, expr: string) 
         }
     });
 
-export const give = (goal: Goal) =>
-    sendCommand('NonInteractive', `Cmd_give ${goal.index} ${buildRange(goal)} \"${goal.getContent()}\"`);
+export const give = (goal: Goal) => sendCommand('NonInteractive', conn =>
+    (`Cmd_give ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
+);
 
-export const refine = (goal: Goal) =>
-    sendCommand('NonInteractive', `Cmd_refine_or_intro False ${goal.index} ${buildRange(goal)} \"${goal.getContent()}\"`);
+export const refine = (goal: Goal) => sendCommand('NonInteractive', conn =>
+    (`Cmd_refine_or_intro False ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
+);
 
-export const auto = (goal: Goal) =>
-    sendCommand('NonInteractive', `Cmd_auto ${goal.index} ${buildRange(goal)} \"${goal.getContent()}\"`);
+export const auto = (goal: Goal) => sendCommand('NonInteractive', conn =>
+    (`Cmd_auto ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
+);
 
-export const makeCase = (goal: Goal) =>
-    sendCommand('NonInteractive', `Cmd_make_case ${goal.index} ${buildRange(goal)} \"${goal.getContent()}\"`);
+export const makeCase = (goal: Goal) => sendCommand('NonInteractive', conn =>
+    (`Cmd_make_case ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
+);
 
+export const goalType = (normalization: Normalization, goal: Goal) => sendCommand('NonInteractive', conn =>
+    (`Cmd_goal_type ${normalization} ${goal.index} noRange \"\"`)
+);
 
-//     'case' = (goal: Goal): Promise<ChildProcess> => {
-//         return this.sendCommand('NonInteractive', `Cmd_make_case ${goal.index} ${buildRange(goal)} \"${goal.getContent()}\"`);
-//     }
-//
-//     goalType = (normalization: Normalization): (Goal) => Promise<ChildProcess> => {
-//         return (goal) => {
-//             return this.sendCommand('NonInteractive', `Cmd_goal_type ${normalization} ${goal.index} noRange \"\"`);
-//         };
-//     }
-//
-//     context = (normalization: Normalization): (Goal) => Promise<ChildProcess> => {
-//         return (goal) => {
-//             return this.sendCommand('NonInteractive', `Cmd_context ${normalization} ${goal.index} noRange \"\"`);
-//         };
-//     }
-//
-//     goalTypeAndContext = (normalization: Normalization): (Goal) => Promise<ChildProcess> => {
-//         return (goal) => {
-//             return this.sendCommand('NonInteractive', `Cmd_goal_type_context ${normalization} ${goal.index} noRange \"\"`);
-//         };
-//     }
-//
-//     goalTypeAndInferredType = (normalization: Normalization): (Goal) => Promise<ChildProcess> => {
-//         return (goal) => {
-//             return this.sendCommand('NonInteractive', `Cmd_goal_type_context_infer ${normalization} ${goal.index} noRange \"${goal.getContent()}\"`);
-//         };
-//     }
-//
-// }
+export const context = (normalization: Normalization, goal: Goal) => sendCommand('NonInteractive', conn =>
+    (`Cmd_context ${normalization} ${goal.index} noRange \"\"`)
+);
+
+export const goalTypeAndContext = (normalization: Normalization, goal: Goal) => sendCommand('NonInteractive', conn =>
+    (`Cmd_goal_type_context ${normalization} ${goal.index} noRange \"\"`)
+);
+
+export const goalTypeAndInferredType = (normalization: Normalization, goal: Goal) => sendCommand('NonInteractive', conn =>
+    (`Cmd_goal_type_context_infer ${normalization} ${goal.index} noRange \"${goal.getContent()}\"`)
+);

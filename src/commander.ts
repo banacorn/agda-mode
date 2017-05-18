@@ -294,7 +294,6 @@ export default class Commander {
                     .then(expr => this.core.connector.connect()
                         .then(Command.computeNormalFormGlobal(computeMode, expr)))
             })
-            .then(() => Promise.resolve({}));
 
     }
 
@@ -318,7 +317,6 @@ export default class Commander {
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Give` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
-            .then(() => Promise.resolve({}));
     }
 
     refine(): Promise<{}> {
@@ -329,7 +327,6 @@ export default class Commander {
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Refine` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
-            .then(() => Promise.resolve({}));
     }
 
     auto(): Promise<{}> {
@@ -340,7 +337,6 @@ export default class Commander {
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Auto` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
-            .then(() => Promise.resolve({}));
     }
 
     case(): Promise<{}> {
@@ -359,21 +355,21 @@ export default class Commander {
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Case` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
-            .then(() => Promise.resolve({}));
     }
 
     goalType(normalization: Normalization): Promise<{}> {
         return this.core.textBuffer.getCurrentGoal()
-            .then(this.core.process.goalType(normalization))
+            .then(goal => this.core.connector.connect()
+                .then(Command.goalType(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
-            .then(() => Promise.resolve({}));
     }
 
     context(normalization: Normalization): Promise<{}> {
         return this.core.textBuffer.getCurrentGoal()
-            .then(this.core.process.context(normalization))
+            .then(goal => this.core.connector.connect()
+                .then(Command.context(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
@@ -382,7 +378,8 @@ export default class Commander {
 
     goalTypeAndContext(normalization: Normalization): Promise<{}> {
         return this.core.textBuffer.getCurrentGoal()
-            .then(this.core.process.goalTypeAndContext(normalization))
+            .then(goal => this.core.connector.connect()
+                .then(Command.goalTypeAndContext(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
@@ -391,7 +388,8 @@ export default class Commander {
 
     goalTypeAndInferredType(normalization: Normalization): Promise<{}> {
         return this.core.textBuffer.getCurrentGoal()
-            .then(this.core.process.goalTypeAndInferredType(normalization))
+            .then(goal => this.core.connector.connect()
+                .then(Command.goalTypeAndInferredType(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Inferred Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
