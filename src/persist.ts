@@ -6,13 +6,17 @@ declare var atom: any;
 
 export type Store = {
     connections: ConnectionInfo[];
-    pinned: GUID;
-    current: GUID;
+    pinned?: GUID;
+    current?: GUID;
 }
 
-
 export function get(): Store {
-    return JSON.parse(atom.config.get('agda-mode.internalState')) as Store;
+    if (atom.config.get('agda-mode.internalState')) {
+        return JSON.parse(atom.config.get('agda-mode.internalState')) as Store;
+    } else {
+        initialize();
+        return defaultStore;
+    }
 }
 
 export function set(store: Store) {
@@ -21,4 +25,12 @@ export function set(store: Store) {
 
 export function update(callback: (store: Store) => Store) {
     set(callback(get()));
+}
+
+export const defaultStore = {
+    connections: []
+}
+
+export function initialize() {
+    set(defaultStore);
 }

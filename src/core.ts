@@ -18,6 +18,7 @@ import HighlightManager from './highlight-manager';
 import LSP from './lsp';
 import View from './view';
 import * as Action from './view/actions';
+import * as Store from './persist';
 
 export default class Core {
     private disposables: CompositeDisposable;
@@ -30,6 +31,7 @@ export default class Core {
     public connector: Connector;
 
     constructor(public editor: any) {
+
 
         // helper methods on this.editor
         this.editor.fromIndex = (ind: number): number => {

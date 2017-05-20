@@ -72,7 +72,7 @@ export default class Connector {
     private updateCurrentConnection = (conn: Connection): Promise<Connection> => {
         this.disconnect();
         this.current = conn;
-
+        this.core.view.store.dispatch(Action.CONNECTION.addConnection(conn));
         return Promise.resolve(conn);
     }
 

@@ -71,15 +71,20 @@ export namespace CONNECTION {
     export const addConnection = (connInfo: ConnectionInfo) => dispatch => {
         // update the internal state
         Store.update(state => {
-            state.connections.push({
-                guid: connInfo.guid,
-                uri: connInfo.uri,
-                version: connInfo.version
+            const exists = _.find(state.connections, {
+                guid: connInfo.guid
             });
+            if (!exists) {
+                state.connections.push({
+                    guid: connInfo.guid,
+                    uri: connInfo.uri,
+                    version: connInfo.version
+                });
+                // dispatch action
+                dispatch(addConnectionPure(connInfo));
+            }
             return state;
         });
-        // dispatch action
-        dispatch(addConnectionPure(connInfo));
     }
 
     const removeConnectionPure = createAction(CONNECTION.REMOVE_CONNECTION);
@@ -87,6 +92,10 @@ export namespace CONNECTION {
         // update the internal state
         Store.update(state => {
             _.remove(state.connections, (conn) => conn['guid'] === guid);
+            if (state.current && state.current === guid)
+                state.current = undefined;
+            if (state.pinned && state.pinned === guid)
+                state.pinned = undefined;
             return state;
         });
         // dispatch action
