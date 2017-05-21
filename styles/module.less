@@ -171,7 +171,8 @@ atom-text-editor.agda {
 
         background: @button-background-color;
         border-radius: @component-border-radius;
-        box-shadow: 4px 4px @app-background-color;
+        border-left: 8px solid @button-background-color;
+        // box-shadow: 4px 4px @app-background-color;
 
         cursor: pointer;
 
@@ -198,42 +199,14 @@ atom-text-editor.agda {
             }
             color: mix(@app-background-color, @button-background-color);
         }
-
-        // .connection-status {
-        //     flex: 0 0 100px;
-        //
-        //     border-top-right-radius: @component-border-radius;
-        //     border-bottom-right-radius: @component-border-radius;
-        //     color: @button-background-color;
-        //     text-align: center;
-        //     line-height: 100px;
-        //
-        //     ::before {
-        //         font-size: 24px;
-        //         width: inherit;
-        //         margin: 0;
-        //         line-height: inherit;
-        //     }
-        // }
     }
 
     .connection:hover {
         background: @button-background-color-hover;
-        // .connection-dashboard { color: @app-background-color };
+        border-left: 8px solid @button-background-color-hover;
     }
 
     .connection.current {
-        box-shadow: 4px 4px @background-color-success;
-        // .connection-status { color: @background-color-success }
-    }
-
-    .connection[data-status=connected] {
-        box-shadow: 4px 4px @background-color-success;
-        // .connection-status { color: @background-color-success }
-    }
-
-    .connection[data-status=connecting] {
-        box-shadow: 4px 4px @background-color-warning;
-        // .connection-status { color: @background-color-warning }
+        border-left: 8px solid @background-color-success;
     }
 }
