@@ -135,8 +135,8 @@ export namespace BODY {
     export type UPDATE_MAX_BODY_HEIGHT = number;
 }
 
-export const updateBanner = createAction<BODY.UPDATE_BANNER, BODY.UPDATE_BANNER>(BODY.UPDATE_BANNER);
-export const updateBody = createAction<BODY.UPDATE_BODY, BODY.UPDATE_BODY>(BODY.UPDATE_BODY);
-export const updateError = createAction<BODY.UPDATE_ERROR, BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
-export const updatePlainText = createAction<BODY.UPDATE_PLAIN_TEXT, BODY.UPDATE_PLAIN_TEXT>(BODY.UPDATE_PLAIN_TEXT);
-export const updateMaxBodyHeight = createAction<BODY.UPDATE_MAX_BODY_HEIGHT, BODY.UPDATE_MAX_BODY_HEIGHT>(BODY.UPDATE_MAX_BODY_HEIGHT);
+export const updateBanner = createAction(BODY.UPDATE_BANNER);
+export const updateBody = createAction(BODY.UPDATE_BODY);
+export const updateError = createAction(BODY.UPDATE_ERROR);
+export const updatePlainText = createAction(BODY.UPDATE_PLAIN_TEXT);
+export const updateMaxBodyHeight = createAction(BODY.UPDATE_MAX_BODY_HEIGHT);

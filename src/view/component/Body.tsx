@@ -13,7 +13,7 @@ import Error from './Error';
 import Location from './Location';
 
 
-interface Props extends React.HTMLAttributes {
+interface Props extends React.HTMLProps<HTMLElement> {
     emitter: EventEmitter;
     banner: View.BannerItem[];
     body: View.Body;

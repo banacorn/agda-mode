@@ -7,7 +7,7 @@ import { View } from '../../types';
 import Expr from './Expr';
 
 
-interface Props extends React.HTMLAttributes {
+interface Props extends React.HTMLProps<HTMLElement> {
     emitter: EventEmitter
 }
 

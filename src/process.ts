@@ -198,9 +198,9 @@ export default class Process {
                             .on('data', (data) => {
                                 try {
                                     if (atom.inDevMode()) {
-                                        this.core.view.store.dispatch(Action.devAddResponse(data));
+                                        this.core.view.store.dispatch(Action.devAddResponse(data.toString()));
                                     }
-                                    const response = parseAgdaResponse(data);
+                                    const response = parseAgdaResponse(data.toString());
                                     handleAgdaResponse(this.core, response);
                                 } catch (error) {
                                     console.log(error)
