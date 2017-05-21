@@ -1,3 +1,7 @@
+## 0.6.15
+* Fix #46
+* Update TypeScript typing dependencies
+
 ## 0.6.14
 * Fix #44 and #45
 
