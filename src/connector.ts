@@ -7,7 +7,7 @@ var duplex = require('duplexer');
 declare var atom: any;
 
 import Rectifier from './parser/stream/rectifier';
-import { View, Connection, ConnectionInfo } from './type';
+import { View, Connection, ConnectionInfo, GUID } from './type';
 import { guid } from './util';
 import Core from './core';
 import { parseFilepath, parseAgdaResponse } from './parser';
@@ -73,6 +73,7 @@ export default class Connector {
         this.disconnect();
         this.current = conn;
         this.core.view.store.dispatch(Action.CONNECTION.addConnection(conn));
+        this.core.view.store.dispatch(Action.CONNECTION.connect(conn.guid));
         return Promise.resolve(conn);
     }
 
@@ -99,9 +100,14 @@ export default class Connector {
 
     disconnect() {
         if (this.current) {
+            this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.current.guid));
             this.current.stream.end();
             this.current = undefined;
         }
+    }
+
+    isCurrent(guid: GUID): boolean {
+        return guid === this.current.guid;
     }
 }
 

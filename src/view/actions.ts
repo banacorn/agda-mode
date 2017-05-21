@@ -53,6 +53,7 @@ export type CONNECTION
     | CONNECTION.REMOVE_CONNECTION
     | CONNECTION.PIN_CONNECTION
     | CONNECTION.CONNECT
+    | CONNECTION.DISCONNECT
     | CONNECTION.SHOW_NEW_CONNECTION_VIEW
 
 export namespace CONNECTION {
@@ -63,7 +64,9 @@ export namespace CONNECTION {
     export const PIN_CONNECTION = 'CONNECTION.PIN_CONNECTION';
     export type PIN_CONNECTION = GUID;
     export const CONNECT = 'CONNECTION.CONNECT';
-    export type CONNECT = ConnectionInfo;
+    export type CONNECT = GUID;
+    export const DISCONNECT = 'CONNECTION.DISCONNECT';
+    export type DISCONNECT = GUID;
     export const SHOW_NEW_CONNECTION_VIEW = 'CONNECTION.SHOW_NEW_CONNECTION_VIEW';
     export type SHOW_NEW_CONNECTION_VIEW = boolean;
 
@@ -114,16 +117,28 @@ export namespace CONNECTION {
     }
 
     const connectPure = createAction(CONNECTION.CONNECT);
-    export const connect = (connInfo: ConnectionInfo) => dispatch => {
+    export const connect = (guid: GUID) => dispatch => {
         // update the internal state
         Store.update(state => {
-            state.current = connInfo.guid;
+            state.current = guid;
             return state;
         });
         // dispatch action
-        dispatch(connectPure(connInfo.guid));
+        dispatch(connectPure(guid));
     }
 
+    const disconnectPure = createAction(CONNECTION.DISCONNECT);
+    export const disconnect = (guid: GUID) => dispatch => {
+        Store.update(state => {
+            if (state.current === guid) {
+                console.log('disconnecting', guid)
+                state.current = undefined;
+                // dispatch action
+                dispatch(disconnectPure(guid));
+            }
+            return state;
+        });
+    }
     export const showNewConnectionView = createAction(SHOW_NEW_CONNECTION_VIEW);
 }
 

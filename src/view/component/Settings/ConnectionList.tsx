@@ -10,6 +10,7 @@ import * as Action from '../../actions';
 type OwnProps = React.HTMLProps<HTMLElement> & {
     onNew: () => void;
     onConnect: (connInfo: ConnectionInfo) => void;
+    onRemove: (connInfo: ConnectionInfo) => void;
 };
 
 type InjProps = {
@@ -37,7 +38,7 @@ function mapDispatchToProps(dispatch): DispatchProps {
             dispatch(Action.CONNECTION.pinConnection(guid));
         },
         handleConnect: (conn) => {
-            dispatch(Action.CONNECTION.connect(conn));
+            dispatch(Action.CONNECTION.connect(conn.guid));
         }
     };
 }
@@ -76,6 +77,7 @@ class ConnectionList extends React.Component<Props, {}> {
                                 }}
                                 onRemove={(e) => {
                                     this.props.handleRemoveConnection(connInfo.guid)
+                                    this.props.onRemove(connInfo);
                                     e.stopPropagation()
                                 }}
                                 onPin={(e) => {
