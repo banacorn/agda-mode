@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import { inspect } from 'util';
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError, InvalidExecutablePathError } from './error';
 import { Normalization, ComputeMode, View } from './type';
+import { ConnectionNotEstablished } from './connector';
 import Core from './core';
 import * as Command from './command';
 
@@ -56,6 +57,9 @@ export default class Commander {
                     //         // console.log('Failed')
                     //         // this.core.editor.revertToCheckpoint(checkPoint);
                     //     })
+                })
+                .catch(ConnectionNotEstablished, () => {
+                    this.core.view.set('Connection to Agda not established', [], View.Style.Warning);
                 })
                 .catch(QueryCancelledError, () => {
                     this.core.view.set('Query cancelled', [], View.Style.Warning);
@@ -167,7 +171,8 @@ export default class Commander {
     }
 
     info(): Promise<{}> {
-        return this.core.connector.connect()
+        return this.core.connector
+            .getConnection()
             .then(conn => {
                 this.core.view.set('Info', [
                     `Agda version: ${conn.version.raw}`,
@@ -185,27 +190,32 @@ export default class Commander {
     }
 
     compile(): Promise<{}> {
-        return this.core.connector.connect()
+        return this.core.connector
+            .getConnection()
             .then(Command.compile);
     }
 
     toggleDisplayOfImplicitArguments(): Promise<{}> {
-        return this.core.connector.connect()
+        return this.core.connector
+            .getConnection()
             .then(Command.toggleDisplayOfImplicitArguments);
     }
 
     solveConstraints(): Promise<{}> {
-        return this.core.connector.connect()
+        return this.core.connector
+            .getConnection()
             .then(Command.solveConstraints);
     }
 
     showConstraints(): Promise<{}> {
-        return this.core.connector.connect()
+        return this.core.connector
+            .getConnection()
             .then(Command.showConstraints);
     }
 
     showGoals(): Promise<{}> {
-        return this.core.connector.connect()
+        return this.core.connector
+            .getConnection()
             .then(Command.showGoals);
     }
 
@@ -228,11 +238,13 @@ export default class Commander {
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
                     .then(goal =>
-                        this.core.connector.connect()
+                        this.core.connector
+                            .getConnection()
                             .then(Command.whyInScope(expr, goal))
                     )
                     .catch(OutOfGoalError, () =>
-                        this.core.connector.connect()
+                        this.core.connector
+                            .getConnection()
                             .then(Command.whyInScopeGlobal(expr))
                     );
             })
@@ -244,18 +256,21 @@ export default class Commander {
                 // goal-specific
                 if (goal.isEmpty()) {
                     return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
-                        .then(expr => this.core.connector.connect()
+                        .then(expr => this.core.connector
+                            .getConnection()
                             .then(Command.inferType(normalization, expr, goal))
                         );
                 } else {
-                    return this.core.connector.connect()
+                    return this.core.connector
+                        .getConnection()
                         .then(Command.inferType(normalization, goal.getContent(), goal))
                 }
             })
             .catch(() => {
                 // global command
                 return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
-                    .then(expr => this.core.connector.connect()
+                    .then(expr => this.core.connector
+                        .getConnection()
                         .then(Command.inferTypeGlobal(normalization, expr))
                     );
             })
@@ -266,11 +281,13 @@ export default class Commander {
         return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], View.Style.PlainText, 'module name:')
             .then(expr => {
                 return this.core.textBuffer.getCurrentGoal()
-                    .then(goal => this.core.connector.connect()
+                    .then(goal => this.core.connector
+                        .getConnection()
                         .then(Command.moduleContents(normalization, expr, goal))
                     )
                     .catch((error) => {
-                        return this.core.connector.connect()
+                        return this.core.connector
+                            .getConnection()
                             .then(Command.moduleContentsGlobal(normalization, expr))
                     });
             })
@@ -282,16 +299,19 @@ export default class Commander {
             .then((goal) => {
                 if (goal.isEmpty()) {
                     return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, 'expression to normalize:')
-                        .then(expr => this.core.connector.connect()
+                        .then(expr => this.core.connector
+                            .getConnection()
                             .then(Command.computeNormalForm(computeMode, expr, goal)))
                 } else {
-                    return this.core.connector.connect()
+                    return this.core.connector
+                        .getConnection()
                         .then(Command.computeNormalForm(computeMode, goal.getContent(), goal))
                 }
             })
             .catch(OutOfGoalError, () => {
                 return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, 'expression to normalize:')
-                    .then(expr => this.core.connector.connect()
+                    .then(expr => this.core.connector
+                        .getConnection()
                         .then(Command.computeNormalFormGlobal(computeMode, expr)))
             })
 
@@ -311,7 +331,8 @@ export default class Commander {
                     return goal;
                 }
             })
-            .then(goal => this.core.connector.connect()
+            .then(goal => this.core.connector
+                .getConnection()
                 .then(Command.give(goal))
             )
             .catch(OutOfGoalError, () => {
@@ -321,7 +342,8 @@ export default class Commander {
 
     refine(): Promise<{}> {
         return this.core.textBuffer.getCurrentGoal()
-            .then(goal => this.core.connector.connect()
+            .then(goal => this.core.connector
+                .getConnection()
                 .then(Command.refine(goal))
             )
             .catch(OutOfGoalError, () => {
@@ -331,7 +353,8 @@ export default class Commander {
 
     auto(): Promise<{}> {
         return this.core.textBuffer.getCurrentGoal()
-            .then(goal => this.core.connector.connect()
+            .then(goal => this.core.connector
+                .getConnection()
                 .then(Command.auto(goal))
             )
             .catch(OutOfGoalError, () => {
@@ -349,7 +372,8 @@ export default class Commander {
                     return goal;
                 }
             })
-            .then(goal => this.core.connector.connect()
+            .then(goal => this.core.connector
+                .getConnection()
                 .then(Command.makeCase(goal))
             )
             .catch(OutOfGoalError, () => {
@@ -359,7 +383,8 @@ export default class Commander {
 
     goalType(normalization: Normalization): Promise<{}> {
         return this.core.textBuffer.getCurrentGoal()
-            .then(goal => this.core.connector.connect()
+            .then(goal => this.core.connector
+                .getConnection()
                 .then(Command.goalType(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
@@ -368,7 +393,8 @@ export default class Commander {
 
     context(normalization: Normalization): Promise<{}> {
         return this.core.textBuffer.getCurrentGoal()
-            .then(goal => this.core.connector.connect()
+            .then(goal => this.core.connector
+                .getConnection()
                 .then(Command.context(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
@@ -378,7 +404,8 @@ export default class Commander {
 
     goalTypeAndContext(normalization: Normalization): Promise<{}> {
         return this.core.textBuffer.getCurrentGoal()
-            .then(goal => this.core.connector.connect()
+            .then(goal => this.core.connector
+                .getConnection()
                 .then(Command.goalTypeAndContext(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
@@ -388,7 +415,8 @@ export default class Commander {
 
     goalTypeAndInferredType(normalization: Normalization): Promise<{}> {
         return this.core.textBuffer.getCurrentGoal()
-            .then(goal => this.core.connector.connect()
+            .then(goal => this.core.connector
+                .getConnection()
                 .then(Command.goalTypeAndInferredType(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Inferred Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);

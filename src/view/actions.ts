@@ -131,7 +131,6 @@ export namespace CONNECTION {
     export const disconnect = (guid: GUID) => dispatch => {
         Store.update(state => {
             if (state.current === guid) {
-                console.log('disconnecting', guid)
                 state.current = undefined;
                 // dispatch action
                 dispatch(disconnectPure(guid));

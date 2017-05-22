@@ -1,5 +1,7 @@
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
+import * as path from 'path';
+import { inspect } from 'util';
 import { spawn, exec, ChildProcess } from 'child_process';
 import { Duplex } from 'stream';
 var duplex = require('duplexer');
@@ -44,6 +46,15 @@ export class NoExistingConnections extends Error {
     }
 }
 
+export class ConnectionNotEstablished extends Error {
+    constructor() {
+        super('');
+        this.message = 'Connection not established yet';
+        this.name = 'ConnectionNotEstablished';
+        Error.captureStackTrace(this, ConnectionNotEstablished);
+    }
+}
+
 export default class Connector {
     private current?: Connection;
 
@@ -77,37 +88,60 @@ export default class Connector {
         return Promise.resolve(conn);
     }
 
-    connect(): Promise<Connection> {
-        if (this.current) {
-            return Promise.resolve(this.current);
+    connect(connInfo?: ConnectionInfo): Promise<Connection> {
+        // console.log('connecting', connInfo || this.current)
+        if (connInfo) {
+            if (this.current && this.current.guid === connInfo.guid) {
+                return Promise.resolve(this.current)
+                    .then(this.wireStream);
+            } else {
+                return connect(connInfo, this.core.getPath())
+                    .then(this.updateCurrentConnection)
+                    .then(this.wireStream);
+            }
         } else {
-            return getExistingConnectionInfo()
-                .catch(NoExistingConnections, err => {
-                    return autoSearch()
-                        .then(validate)
-                })
-                .then(connInfo => {
-                    if (this.current && this.current.guid === connInfo.guid) {
-                        return this.current;
-                    } else {
+            if (this.current) {
+                return Promise.resolve(this.current);
+            } else {
+                return getExistingConnectionInfo()
+                    .catch(NoExistingConnections, err => {
+                        return autoSearch()
+                            .then(validate)
+                    })
+                    .then(connInfo => {
                         return connect(connInfo, this.core.getPath())
                             .then(this.updateCurrentConnection);
-                    }
-                })
-                .then(this.wireStream)
+                    })
+                    .then(this.wireStream)
+            }
         }
     }
 
-    disconnect() {
-        if (this.current) {
-            this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.current.guid));
-            this.current.stream.end();
-            this.current = undefined;
+    disconnect(connInfo?: ConnectionInfo) {
+        if (connInfo) {
+            // connection specified and happens to be the current connection
+            if (this.current && this.current.guid === connInfo.guid) {
+                // console.log('X', this.current)
+                this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.current.guid));
+                this.current.stream.end();
+                this.current = undefined;
+            }
+        } else {
+            // no connection specified, end the current connection
+            if (this.current) {
+                // console.log('X', this.current)
+                this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.current.guid));
+                this.current.stream.end();
+                this.current = undefined;
+            }
         }
     }
 
-    isCurrent(guid: GUID): boolean {
-        return guid === this.current.guid;
+    getConnection(): Promise<Connection> {
+        if (this.current)
+            return Promise.resolve(this.current)
+        else
+            return Promise.reject(new ConnectionNotEstablished)
     }
 }
 
@@ -154,6 +188,7 @@ export function autoSearch(): Promise<string> {
 
 
 export function validate(uri: string): Promise<ConnectionInfo> {
+    uri = parseFilepath(uri);
     return new Promise<ConnectionInfo>((resolve, reject) => {
         exec(`${uri} --version`, (error, stdout, stderr) => {
 
@@ -170,7 +205,6 @@ export function validate(uri: string): Promise<ConnectionInfo> {
                     return reject(new ConnectionError(`This doesn't seem like Agda:\n${error.message}`, uri));
                 }
             }
-
             if (stderr) {
                 const message = `Spawned process returned with the following result (from stderr):\n\"${stdout.toString()}\"`;
                 return reject(new ConnectionError(message, uri));
@@ -195,9 +229,10 @@ export function validate(uri: string): Promise<ConnectionInfo> {
     });
 }
 
+// '/Users/banacorn/haskell/agda-builds/agda-2.6.0'
 export function connect(connInfo: ConnectionInfo, filepath): Promise<Connection> {
     return new Promise<Connection>((resolve, reject) => {
-        const agdaProcess = spawn(connInfo.uri, ['--interaction']);
+        const agdaProcess = spawn(connInfo.uri, ['--interaction'], { shell: true });
         agdaProcess.on('error', (error) => {
             reject(new ConnectionError(error.message, connInfo.uri));
         });
@@ -210,8 +245,4 @@ export function connect(connInfo: ConnectionInfo, filepath): Promise<Connection>
             filepath
         });
     });
-}
-
-export function close(conn: Connection) {
-    conn.stream.end();
 }
