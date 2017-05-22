@@ -55,12 +55,12 @@ class Connections extends React.Component<Props, State> {
                         hidden: showNewConnectionView
                     })}
                     onNew={this.toggleNewConnectionView(true)}
-                    onConnect={(connInfo) => {
-                        core.connector.disconnect();
-                        core.connector.connect(connInfo);
+                    onSelect={(connInfo) => {
+                        // core.connector.disconnect();
+                        // core.connector.connect(connInfo);
                     }}
                     onRemove={(connInfo) => {
-                        core.connector.disconnect(connInfo);
+                        // core.connector.disconnect(connInfo);
                     }}
                 />
                 <NewConnection

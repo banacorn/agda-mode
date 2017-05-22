@@ -56,104 +56,135 @@ export class ConnectionNotEstablished extends Error {
 }
 
 export default class Connector {
-    private current?: Connection;
+    private selected?: ConnectionInfo;
+    private connection?: Connection;
 
     constructor(private core: Core) {
         // this.updateCurrentConnection = this.updateCurrentConnection.bind(this);
     }
 
-    private wireStream = (conn: Connection): Promise<Connection> => {
-        conn.stream
-            .pipe(new Rectifier)
-            .on('data', (data) => {
-                try {
-                    const response = parseAgdaResponse(data.toString());
-                    handleAgdaResponse(this.core, response);
-                } catch (error) {
-                    console.log(error)
-                    // show some message
-                    this.core.view.set('Agda Parse Error',
-                        [`Message from agda:`].concat(data.toString()),
-                        View.Style.Error);
-                }
-            })
-        return Promise.resolve(conn);
+    // select a target ConnectionInfo to be connected
+    select(connInfo: ConnectionInfo) {
+
     }
 
-    private updateCurrentConnection = (conn: Connection): Promise<Connection> => {
-        this.disconnect();
-        this.current = conn;
-        this.core.view.store.dispatch(Action.CONNECTION.addConnection(conn));
-        this.core.view.store.dispatch(Action.CONNECTION.connect(conn.guid));
-        return Promise.resolve(conn);
+    // connect with the selected ConnectionInfo
+    connect() {
+
     }
 
-    connect(connInfo?: ConnectionInfo): Promise<Connection> {
-        // console.log('connecting', connInfo || this.current)
-        if (connInfo) {
-            if (this.current && this.current.guid === connInfo.guid) {
-                return Promise.resolve(this.current)
-                    .then(this.wireStream);
-            } else {
-                return connect(connInfo, this.core.getPath())
-                    .then(this.updateCurrentConnection)
-                    .then(this.wireStream);
-            }
-        } else {
-            if (this.current) {
-                return Promise.resolve(this.current);
-            } else {
-                return getExistingConnectionInfo()
-                    .catch(NoExistingConnections, err => {
-                        return autoSearch()
-                            .then(validate)
-                    })
-                    .then(connInfo => {
-                        return connect(connInfo, this.core.getPath())
-                            .then(this.updateCurrentConnection);
-                    })
-                    .then(this.wireStream)
-            }
-        }
-    }
+    // disconnect the current connection
+    disconnect() {
 
-    disconnect(connInfo?: ConnectionInfo) {
-        if (connInfo) {
-            // connection specified and happens to be the current connection
-            if (this.current && this.current.guid === connInfo.guid) {
-                // console.log('X', this.current)
-                this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.current.guid));
-                this.current.stream.end();
-                this.current = undefined;
-            }
-        } else {
-            // no connection specified, end the current connection
-            if (this.current) {
-                // console.log('X', this.current)
-                this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.current.guid));
-                this.current.stream.end();
-                this.current = undefined;
-            }
-        }
     }
 
     getConnection(): Promise<Connection> {
-        if (this.current)
-            return Promise.resolve(this.current)
-        else
-            return Promise.reject(new ConnectionNotEstablished)
+        return null;
     }
+
+
+    //
+    // private wireStream = (conn: Connection): Promise<Connection> => {
+    //     conn.stream
+    //         .pipe(new Rectifier)
+    //         .on('data', (data) => {
+    //             try {
+    //                 const response = parseAgdaResponse(data.toString());
+    //                 handleAgdaResponse(this.core, response);
+    //             } catch (error) {
+    //                 console.log(error)
+    //                 // show some message
+    //                 this.core.view.set('Agda Parse Error',
+    //                     [`Message from agda:`].concat(data.toString()),
+    //                     View.Style.Error);
+    //             }
+    //         })
+    //     return Promise.resolve(conn);
+    // }
+    //
+    // private updateCurrentConnection = (conn: Connection): Promise<Connection> => {
+    //     this.disconnect();
+    //     this.current = conn;
+    //     this.core.view.store.dispatch(Action.CONNECTION.addConnection(conn));
+    //     this.core.view.store.dispatch(Action.CONNECTION.connect(conn.guid));
+    //     return Promise.resolve(conn);
+    // }
+    //
+    // setConnection(connInfo: ConnectionInfo) {
+    //     if (this.current) {
+    //         this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.current.guid));
+    //     }
+    //
+    //     this.selected = connInfo;
+    //
+    // }
+    //
+    // connect(connInfo?: ConnectionInfo): Promise<Connection> {
+    //     // console.log('connecting', connInfo || this.current)
+    //     if (connInfo) {
+    //         if (this.current && this.current.guid === connInfo.guid) {
+    //             return Promise.resolve(this.current)
+    //                 .then(this.wireStream);
+    //         } else {
+    //             return connect(connInfo, this.core.getPath())
+    //                 .then(this.updateCurrentConnection)
+    //                 .then(this.wireStream);
+    //         }
+    //     } else {
+    //         if (this.current) {
+    //             return Promise.resolve(this.current);
+    //         } else {
+    //             return getExistingConnectionInfo()
+    //                 .catch(NoExistingConnections, err => {
+    //                     return autoSearch()
+    //                         .then(validate)
+    //                 })
+    //                 .then(connInfo => {
+    //                     return connect(connInfo, this.core.getPath())
+    //                         .then(this.updateCurrentConnection);
+    //                 })
+    //                 .then(this.wireStream)
+    //         }
+    //     }
+    // }
+    //
+    // disconnect(connInfo?: ConnectionInfo) {
+    //     if (connInfo) {
+    //         // connection specified and happens to be the current connection
+    //         if (this.current && this.current.guid === connInfo.guid) {
+    //             // console.log('X', this.current)
+    //             this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.current.guid));
+    //             this.current.stream.end();
+    //             this.current = undefined;
+    //         }
+    //     } else {
+    //         // no connection specified, end the current connection
+    //         if (this.current) {
+    //             // console.log('X', this.current)
+    //             this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.current.guid));
+    //             this.current.stream.end();
+    //             this.current = undefined;
+    //         }
+    //     }
+    // }
+    //
+    // getConnection(): Promise<Connection> {
+    //     if (this.current)
+    //         return Promise.resolve(this.current)
+    //     else
+    //         return Promise.reject(new ConnectionNotEstablished)
+    // }
 }
 
 export function getExistingConnectionInfo(): Promise<ConnectionInfo> {
     const state = Store.get();
 
-    const pinned = _.find(state.connections, {
-        guid: state.pinned
+    const selected = _.find(state.connections, {
+        guid: state.selected
     });
 
-    if (pinned) {
-        return Promise.resolve(pinned);
+    if (selected) {
+        return Promise.resolve(selected);
     } else {
         if (state.connections.length > 0) {
             return Promise.resolve(state.connections[0]);

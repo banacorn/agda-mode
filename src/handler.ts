@@ -37,7 +37,8 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
             const solutions = response.solutions;
             solutions.forEach((solution) => {
                 core.textBuffer.onSolveAllAction(solution.index, solution.expression)
-                    .then(goal => core.connector.connect()
+                    .then(goal => core.connector
+                        .getConnection()
                         .then(Command.give(goal))
                     )
             });

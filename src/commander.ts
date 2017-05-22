@@ -140,14 +140,14 @@ export default class Commander {
         this.core.view.mount(currentMountingPosition);
         this.core.view.activate();
 
-        this.core.connector.connect()
-            .then((conn) => {
-                this.loaded = true;
-                // force save before load
-                this.core.textBuffer.saveBuffer();
-                return conn;
-            })
-            .then(Command.load)
+        // this.core.connector.connect()
+        //     .then((conn) => {
+        //         this.loaded = true;
+        //         // force save before load
+        //         this.core.textBuffer.saveBuffer();
+        //         return conn;
+        //     })
+        //     .then(Command.load)
 
         return Promise.resolve({});
     }

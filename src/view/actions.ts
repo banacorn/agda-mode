@@ -51,7 +51,7 @@ export namespace VIEW {
 export type CONNECTION
     = CONNECTION.ADD_CONNECTION
     | CONNECTION.REMOVE_CONNECTION
-    | CONNECTION.PIN_CONNECTION
+    | CONNECTION.SELECT_CONNECTION
     | CONNECTION.CONNECT
     | CONNECTION.DISCONNECT
     | CONNECTION.SHOW_NEW_CONNECTION_VIEW
@@ -61,8 +61,8 @@ export namespace CONNECTION {
     export type ADD_CONNECTION = ConnectionInfo;
     export const REMOVE_CONNECTION = 'CONNECTION.REMOVE_CONNECTION';
     export type REMOVE_CONNECTION = GUID;
-    export const PIN_CONNECTION = 'CONNECTION.PIN_CONNECTION';
-    export type PIN_CONNECTION = GUID;
+    export const SELECT_CONNECTION = 'CONNECTION.SELECT_CONNECTION';
+    export type SELECT_CONNECTION = GUID;
     export const CONNECT = 'CONNECTION.CONNECT';
     export type CONNECT = GUID;
     export const DISCONNECT = 'CONNECTION.DISCONNECT';
@@ -95,32 +95,32 @@ export namespace CONNECTION {
         // update the internal state
         Store.update(state => {
             _.remove(state.connections, (conn) => conn['guid'] === guid);
-            if (state.current && state.current === guid)
-                state.current = undefined;
-            if (state.pinned && state.pinned === guid)
-                state.pinned = undefined;
+            if (state.connected && state.connected === guid)
+                state.connected = undefined;
+            if (state.selected && state.selected === guid)
+                state.selected = undefined;
             return state;
         });
         // dispatch action
         dispatch(removeConnectionPure(guid));
     }
 
-    const pinConnectionPure = createAction(CONNECTION.PIN_CONNECTION);
-    export const pinConnection = (guid: GUID) => dispatch => {
+    const selectConnectionPure = createAction(CONNECTION.SELECT_CONNECTION);
+    export const selectConnection = (guid: GUID) => dispatch => {
         // update the internal state
         Store.update(state => {
-            state.pinned = guid;
+            state.selected = guid;
             return state;
         });
         // dispatch action
-        dispatch(pinConnectionPure(guid));
+        dispatch(selectConnectionPure(guid));
     }
 
     const connectPure = createAction(CONNECTION.CONNECT);
     export const connect = (guid: GUID) => dispatch => {
         // update the internal state
         Store.update(state => {
-            state.current = guid;
+            state.connected = guid;
             return state;
         });
         // dispatch action
@@ -130,8 +130,8 @@ export namespace CONNECTION {
     const disconnectPure = createAction(CONNECTION.DISCONNECT);
     export const disconnect = (guid: GUID) => dispatch => {
         Store.update(state => {
-            if (state.current === guid) {
-                state.current = undefined;
+            if (state.connected === guid) {
+                state.connected = undefined;
                 // dispatch action
                 dispatch(disconnectPure(guid));
             }

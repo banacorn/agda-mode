@@ -2,15 +2,14 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 
 type Props = React.HTMLProps<HTMLElement> & {
-    // status: 'disconnected' | 'connecting' | 'connected';
     version: string;
     uri: string;
-    pinned: boolean;
-    current: boolean;
+    selected: boolean;
+    connected: boolean;
     // callbacks
     onRemove: (e: any) => void;
-    onPin: (e: any) => void;
-    onConnect: () => void;
+    onSelect: () => void;
+    // on: (e: any) => void;
 };
 
 class ConnectionItem extends React.Component<Props, {}> {
@@ -29,18 +28,17 @@ class ConnectionItem extends React.Component<Props, {}> {
         return (
             <li
                 className={classNames({
-                    current: this.props.current
+                    selected: this.props.selected
                 }, 'connection')}
-                onClick={this.props.onConnect}
+                onClick={this.props.onSelect}
             >
                 <header className="compact">
                     <h3>{this.props.version}</h3>
                     <div className="connection-dashboard">
                         <span
                             className={classNames({
-                                pinned: this.props.pinned
-                            }, "icon icon-pin")}
-                            onClick={this.props.onPin}
+                                connected: this.props.connected
+                            }, "icon icon-zap")}
                         ></span>
                         <span
                             className="icon icon-x"

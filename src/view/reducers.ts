@@ -28,8 +28,8 @@ const defaultState: View.State = {
     },
     connection: {
         connectionInfos: initialInternalState.connections,
-        pinned: initialInternalState.pinned,
-        current: initialInternalState.current,
+        selected: initialInternalState.selected,
+        connected: initialInternalState.connected,
         showNewConnectionView: false
     },
     dev: {
@@ -103,14 +103,14 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
     [CONNECTION.REMOVE_CONNECTION]: (state, action: Action<CONNECTION.REMOVE_CONNECTION>) => ({ ...state,
         connectionInfos: _.remove(state.connectionInfos, (connInfo) => connInfo['guid'] !== action.payload)
     }),
-    [CONNECTION.PIN_CONNECTION]: (state, action: Action<CONNECTION.PIN_CONNECTION>) => ({ ...state,
-        pinned: action.payload
+    [CONNECTION.SELECT_CONNECTION]: (state, action: Action<CONNECTION.SELECT_CONNECTION>) => ({ ...state,
+        selected: action.payload
     }),
     [CONNECTION.CONNECT]: (state, action: Action<CONNECTION.CONNECT>) => ({ ...state,
-        current: action.payload
+        connected: action.payload
     }),
     [CONNECTION.DISCONNECT]: (state, action: Action<CONNECTION.CONNECT>) => ({ ...state,
-        current: undefined
+        connected: undefined
     }),
     [CONNECTION.SHOW_NEW_CONNECTION_VIEW]: (state, action: Action<CONNECTION.SHOW_NEW_CONNECTION_VIEW>) => ({ ...state,
         showNewConnectionView: action.payload

@@ -6,8 +6,8 @@ declare var atom: any;
 
 export type Store = {
     connections: ConnectionInfo[];
-    pinned?: GUID;
-    current?: GUID;
+    selected?: GUID;
+    connected?: GUID;
 }
 
 export function get(): Store {

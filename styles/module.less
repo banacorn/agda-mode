@@ -188,11 +188,8 @@ atom-text-editor.agda {
             .icon:last-of-type::before {
                 margin: 0px;
             }
-            .icon-pin.pinned {
-                color: @text-color-info;
-            }
-            .icon-pin:hover {
-                color: @text-color-info;
+            .icon-zap.connected {
+                color: @text-color-warning;
             }
             .icon-x:hover {
                 color: @text-color-error;
@@ -206,7 +203,11 @@ atom-text-editor.agda {
         border-left: 8px solid @button-background-color-hover;
     }
 
-    .connection.current {
+    .connection.selected {
+        border-left: 8px solid @background-color-info;
+    }
+
+    .connection.connected {
         border-left: 8px solid @background-color-success;
     }
 }

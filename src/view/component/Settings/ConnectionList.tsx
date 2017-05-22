@@ -9,8 +9,8 @@ import * as Action from '../../actions';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     onNew: () => void;
-    onConnect: (connInfo: ConnectionInfo) => void;
     onRemove: (connInfo: ConnectionInfo) => void;
+    onSelect: (connInfo: ConnectionInfo) => void;
 };
 
 type InjProps = {
@@ -18,8 +18,7 @@ type InjProps = {
 };
 type DispatchProps = {
     handleRemoveConnection: (guid: GUID) => void
-    handlePinConnection: (guid: GUID) => void
-    handleConnect: (connInfo: ConnectionInfo) => void
+    handleSelectConnection: (guid: GUID) => void
 }
 type Props = OwnProps & InjProps & DispatchProps;
 
@@ -34,11 +33,8 @@ function mapDispatchToProps(dispatch): DispatchProps {
         handleRemoveConnection: (guid) => {
             dispatch(Action.CONNECTION.removeConnection(guid));
         },
-        handlePinConnection: (guid) => {
-            dispatch(Action.CONNECTION.pinConnection(guid));
-        },
-        handleConnect: (conn) => {
-            dispatch(Action.CONNECTION.connect(conn.guid));
+        handleSelectConnection: (guid) => {
+            dispatch(Action.CONNECTION.selectConnection(guid));
         }
     };
 }
@@ -67,12 +63,14 @@ class ConnectionList extends React.Component<Props, {}> {
                                 key={connInfo.guid}
                                 uri={connInfo.uri}
                                 version={connInfo.version.sem}
-                                pinned={this.props.state.pinned === connInfo.guid}
-                                current={this.props.state.current === connInfo.guid}
-                                onConnect={() => {
-                                    if (this.props.state.current !== connInfo.guid) {
-                                        this.props.handleConnect(connInfo);
-                                        this.props.onConnect(connInfo);
+                                selected={this.props.state.selected === connInfo.guid}
+                                connected={this.props.state.connected === connInfo.guid}
+                                // pinned={this.props.state.pinned === connInfo.guid}
+                                // current={this.props.state.current === connInfo.guid}
+                                onSelect={() => {
+                                    if (this.props.state.connected !== connInfo.guid) {
+                                        this.props.handleSelectConnection(connInfo.guid);
+                                        this.props.onSelect(connInfo);
                                     }
                                 }}
                                 onRemove={(e) => {
@@ -80,10 +78,10 @@ class ConnectionList extends React.Component<Props, {}> {
                                     this.props.onRemove(connInfo);
                                     e.stopPropagation()
                                 }}
-                                onPin={(e) => {
-                                    this.props.handlePinConnection(connInfo.guid)
-                                    e.stopPropagation()
-                                }}
+                                // onPin={(e) => {
+                                //     this.props.handlePinConnection(connInfo.guid)
+                                //     e.stopPropagation()
+                                // }}
                             />
                         })
                 }
