@@ -28,6 +28,7 @@ const sendCommand = (highlightingLevel: string, interaction: string | ((conn: Co
     } else {    // interaction is a callback
         command = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(conn)} )\n`;
     }
+    console.log(command)
     conn.stream.write(command);
     return Promise.resolve({});
 }

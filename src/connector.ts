@@ -60,6 +60,7 @@ export default class Connector {
     private connection?: Connection;
 
     constructor(private core: Core) {
+
         // this.updateCurrentConnection = this.updateCurrentConnection.bind(this);
     }
 
@@ -69,7 +70,22 @@ export default class Connector {
     }
 
     // connect with the selected ConnectionInfo
-    connect() {
+    connect(): Promise<Connection> {
+        if (this.selected) {
+            return connect(this.selected, this.core.getPath())
+                .then(this.wireStream);
+        } else {
+            return getExistingConnectionInfo()
+                .then(selected => {
+                    console.log(selected);
+                    this.selected = selected
+                    return connect(this.selected, this.core.getPath())
+                        .then(this.wireStream);
+                })
+                .catch(NoExistingConnections, () => {
+                    return Promise.reject(new NoExistingConnections);
+                })
+        }
 
     }
 
@@ -82,26 +98,26 @@ export default class Connector {
         return null;
     }
 
+    //
+    private wireStream = (conn: Connection): Promise<Connection> => {
+        this.core.view.store.dispatch(Action.CONNECTION.connect(this.selected.guid));
+        conn.stream
+            .pipe(new Rectifier)
+            .on('data', (data) => {
+                try {
+                    const response = parseAgdaResponse(data.toString());
+                    handleAgdaResponse(this.core, response);
+                } catch (error) {
+                    console.log(error)
+                    // show some message
+                    this.core.view.set('Agda Parse Error',
+                        [`Message from agda:`].concat(data.toString()),
+                        View.Style.Error);
+                }
+            })
+        return Promise.resolve(conn);
+    }
 
-    //
-    // private wireStream = (conn: Connection): Promise<Connection> => {
-    //     conn.stream
-    //         .pipe(new Rectifier)
-    //         .on('data', (data) => {
-    //             try {
-    //                 const response = parseAgdaResponse(data.toString());
-    //                 handleAgdaResponse(this.core, response);
-    //             } catch (error) {
-    //                 console.log(error)
-    //                 // show some message
-    //                 this.core.view.set('Agda Parse Error',
-    //                     [`Message from agda:`].concat(data.toString()),
-    //                     View.Style.Error);
-    //             }
-    //         })
-    //     return Promise.resolve(conn);
-    // }
-    //
     // private updateCurrentConnection = (conn: Connection): Promise<Connection> => {
     //     this.disconnect();
     //     this.current = conn;
@@ -260,8 +276,7 @@ export function validate(uri: string): Promise<ConnectionInfo> {
     });
 }
 
-// '/Users/banacorn/haskell/agda-builds/agda-2.6.0'
-export function connect(connInfo: ConnectionInfo, filepath): Promise<Connection> {
+export function connect(connInfo: ConnectionInfo, filepath: string): Promise<Connection> {
     return new Promise<Connection>((resolve, reject) => {
         const agdaProcess = spawn(connInfo.uri, ['--interaction'], { shell: true });
         agdaProcess.on('error', (error) => {
@@ -270,10 +285,17 @@ export function connect(connInfo: ConnectionInfo, filepath): Promise<Connection>
         agdaProcess.on('close', (signal) => {
             reject(new ConnectionError(`exit with signal ${signal}`, connInfo.uri));
         });
-        resolve({
-            ...connInfo,
-            stream: duplex(agdaProcess.stdin, agdaProcess.stdout),
-            filepath
+        agdaProcess.stdout.once('data', (data) => {
+            const result = data.toString().match(/^Agda2\>/);
+            if (result) {
+                resolve({
+                    ...connInfo,
+                    stream: duplex(agdaProcess.stdin, agdaProcess.stdout),
+                    filepath
+                });
+            } else {
+                reject(new ConnectionError(`doesn't act like agda: ${data.toString()}`, connInfo.uri));
+            }
         });
     });
 }

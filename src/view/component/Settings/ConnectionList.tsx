@@ -65,8 +65,6 @@ class ConnectionList extends React.Component<Props, {}> {
                                 version={connInfo.version.sem}
                                 selected={this.props.state.selected === connInfo.guid}
                                 connected={this.props.state.connected === connInfo.guid}
-                                // pinned={this.props.state.pinned === connInfo.guid}
-                                // current={this.props.state.current === connInfo.guid}
                                 onSelect={() => {
                                     if (this.props.state.connected !== connInfo.guid) {
                                         this.props.handleSelectConnection(connInfo.guid);
@@ -78,10 +76,6 @@ class ConnectionList extends React.Component<Props, {}> {
                                     this.props.onRemove(connInfo);
                                     e.stopPropagation()
                                 }}
-                                // onPin={(e) => {
-                                //     this.props.handlePinConnection(connInfo.guid)
-                                //     e.stopPropagation()
-                                // }}
                             />
                         })
                 }
