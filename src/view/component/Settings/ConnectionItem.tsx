@@ -9,7 +9,7 @@ type Props = React.HTMLProps<HTMLElement> & {
     // callbacks
     onRemove: (e: any) => void;
     onSelect: () => void;
-    // on: (e: any) => void;
+    onSelectAndLoad: () => void;
 };
 
 class ConnectionItem extends React.Component<Props, {}> {
@@ -25,6 +25,7 @@ class ConnectionItem extends React.Component<Props, {}> {
                     connected: this.props.connected
                 }, 'connection')}
                 onClick={this.props.onSelect}
+                onDoubleClick={this.props.onSelectAndLoad}
             >
                 <header className="compact">
                     <h3>{this.props.version}</h3>

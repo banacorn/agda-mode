@@ -21,12 +21,6 @@ type State = {
 
 const mapStateToProps = ({ connection }): InjProps => connection
 
-// const mapDispatchToProps = (dispatch) => ({
-//     handleNewConnection: () => {
-//         dispatch(Action.mountAtPane());
-//     }
-// });
-
 class Connections extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -56,11 +50,16 @@ class Connections extends React.Component<Props, State> {
                     })}
                     onNew={this.toggleNewConnectionView(true)}
                     onSelect={(connInfo) => {
-                        // core.connector.disconnect();
-                        // core.connector.connect(connInfo);
+                        core.connector.select(connInfo);
+                    }}
+                    onSelectAndLoad={(connInfo) => {
+                        core.connector.select(connInfo);
+                        core.commander.activate({
+                            kind: 'Load',
+                        });
                     }}
                     onRemove={(connInfo) => {
-                        // core.connector.disconnect(connInfo);
+                        core.connector.disconnect();
                     }}
                 />
                 <NewConnection

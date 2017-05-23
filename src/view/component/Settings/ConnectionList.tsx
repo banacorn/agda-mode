@@ -11,14 +11,16 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
     onNew: () => void;
     onRemove: (connInfo: ConnectionInfo) => void;
     onSelect: (connInfo: ConnectionInfo) => void;
+    onSelectAndLoad: (connInfo: ConnectionInfo) => void;
 };
 
 type InjProps = {
     state: View.ConnectionState
 };
 type DispatchProps = {
-    handleRemoveConnection: (guid: GUID) => void
-    handleSelectConnection: (guid: GUID) => void
+    handleRemove: (guid: GUID) => void
+    handleSelect: (guid: GUID) => void
+    handleLoad: (guid: GUID) => void
 }
 type Props = OwnProps & InjProps & DispatchProps;
 
@@ -30,11 +32,14 @@ function mapStateToProps(state: View.State): InjProps {
 
 function mapDispatchToProps(dispatch): DispatchProps {
     return {
-        handleRemoveConnection: (guid) => {
+        handleRemove: (guid) => {
             dispatch(Action.CONNECTION.removeConnection(guid));
         },
-        handleSelectConnection: (guid) => {
+        handleSelect: (guid) => {
             dispatch(Action.CONNECTION.selectConnection(guid));
+        },
+        handleLoad: (guid) => {
+            dispatch(Action.CONNECTION.connect(guid));
         }
     };
 }
@@ -66,11 +71,16 @@ class ConnectionList extends React.Component<Props, {}> {
                                 selected={this.props.state.selected === connInfo.guid}
                                 connected={this.props.state.connected === connInfo.guid}
                                 onSelect={() => {
-                                    this.props.handleSelectConnection(connInfo.guid);
+                                    this.props.handleSelect(connInfo.guid);
                                     this.props.onSelect(connInfo);
                                 }}
+                                onSelectAndLoad={() => {
+                                    this.props.handleSelect(connInfo.guid);
+                                    this.props.handleLoad(connInfo.guid);
+                                    this.props.onSelectAndLoad(connInfo);
+                                }}
                                 onRemove={(e) => {
-                                    this.props.handleRemoveConnection(connInfo.guid)
+                                    this.props.handleRemove(connInfo.guid)
                                     this.props.onRemove(connInfo);
                                     e.stopPropagation()
                                 }}

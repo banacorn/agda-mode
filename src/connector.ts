@@ -60,47 +60,69 @@ export default class Connector {
     private connection?: Connection;
 
     constructor(private core: Core) {
-
-        // this.updateCurrentConnection = this.updateCurrentConnection.bind(this);
     }
 
     // select a target ConnectionInfo to be connected
     select(connInfo: ConnectionInfo) {
-
+        this.selected = connInfo;
     }
 
     // connect with the selected ConnectionInfo
     connect(): Promise<Connection> {
-        if (this.selected) {
-            return connect(this.selected, this.core.getPath())
-                .then(this.wireStream);
-        } else {
+        if (!this.selected) {
+            console.log('no existing selections')
             return getExistingConnectionInfo()
                 .then(selected => {
-                    console.log(selected);
-                    this.selected = selected
+                    this.selected = selected;
                     return connect(this.selected, this.core.getPath())
-                        .then(this.wireStream);
+                        .then(this.wire);
                 })
                 .catch(NoExistingConnections, () => {
                     return Promise.reject(new NoExistingConnections);
                 })
         }
 
+        // only recoonect when the selected is different from the connected
+        if (this.connection && this.connection.guid === this.selected.guid) {
+            console.log('using the cached connection')
+            // there's no need of re-establish a new connection
+            return Promise.resolve(this.connection);
+        } else {
+            console.log('estalibsh and switch to a new connection')
+            // cut the old connection
+            this.disconnect();
+            // and establish a new one
+            return connect(this.selected, this.core.getPath())
+                .then(this.wire);
+        }
     }
 
     // disconnect the current connection
     disconnect() {
-
+        if (this.connection) {
+            // the view
+            this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.connection.guid));
+            // the streams
+            this.connection.stream.end();
+            // the property
+            this.connection = undefined;
+        }
     }
 
     getConnection(): Promise<Connection> {
-        return null;
+        if (this.connection)
+            return Promise.resolve(this.connection);
+        else
+            return Promise.reject(new ConnectionNotEstablished);
     }
 
     //
-    private wireStream = (conn: Connection): Promise<Connection> => {
+    private wire = (conn: Connection): Promise<Connection> => {
+        // the view
         this.core.view.store.dispatch(Action.CONNECTION.connect(this.selected.guid));
+        // the properties
+        this.connection = conn;
+        // the streams
         conn.stream
             .pipe(new Rectifier)
             .on('data', (data) => {
@@ -114,7 +136,7 @@ export default class Connector {
                         [`Message from agda:`].concat(data.toString()),
                         View.Style.Error);
                 }
-            })
+            });
         return Promise.resolve(conn);
     }
 
