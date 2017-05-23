@@ -18,28 +18,17 @@ class ConnectionItem extends React.Component<Props, {}> {
     }
 
     render() {
-        // const { status, ...props } = this.props;
-
-        // const iconClassList = classNames({
-        //     'icon-hourglass': status === 'connecting',
-        //     'icon-zap': status !== 'connecting'
-        // }, 'icon')
-
         return (
             <li
                 className={classNames({
-                    selected: this.props.selected
+                    selected: this.props.selected,
+                    connected: this.props.connected
                 }, 'connection')}
                 onClick={this.props.onSelect}
             >
                 <header className="compact">
                     <h3>{this.props.version}</h3>
                     <div className="connection-dashboard">
-                        <span
-                            className={classNames({
-                                connected: this.props.connected
-                            }, "icon icon-zap")}
-                        ></span>
                         <span
                             className="icon icon-x"
                             onClick={this.props.onRemove}
@@ -49,14 +38,6 @@ class ConnectionItem extends React.Component<Props, {}> {
                 <div className="connection-uri">{this.props.uri}</div>
             </li>
         )
-        // <div className="connection-header">
-        //
-        // </div>
-        // <div className="connection-uri">{this.props.uri}</div>
-        // <div className="connection-overlay">
-        // DISCONNECT
-        // </div>
-        // {connected.toString()}
     }
 
     // <div className={connectedClassNames}>

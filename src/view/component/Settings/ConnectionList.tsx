@@ -66,10 +66,8 @@ class ConnectionList extends React.Component<Props, {}> {
                                 selected={this.props.state.selected === connInfo.guid}
                                 connected={this.props.state.connected === connInfo.guid}
                                 onSelect={() => {
-                                    if (this.props.state.connected !== connInfo.guid) {
-                                        this.props.handleSelectConnection(connInfo.guid);
-                                        this.props.onSelect(connInfo);
-                                    }
+                                    this.props.handleSelectConnection(connInfo.guid);
+                                    this.props.onSelect(connInfo);
                                 }}
                                 onRemove={(e) => {
                                     this.props.handleRemoveConnection(connInfo.guid)
