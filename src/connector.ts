@@ -67,6 +67,15 @@ export default class Connector {
         this.selected = connInfo;
     }
 
+    unselect(connInfo: ConnectionInfo) {
+        if (this.selected.guid === connInfo.guid) {
+            this.selected = undefined;
+        }
+        if (this.connection.guid === connInfo.guid) {
+            this.disconnect();
+        }
+    }
+
     // connect with the selected ConnectionInfo
     connect(): Promise<Connection> {
         if (!this.selected) {
