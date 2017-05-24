@@ -32,7 +32,7 @@ export class ConnectionError extends Error {
         super(message);
         this.message = message;
         this.uri = uri;
-        this.name = 'ConnectionError';
+        this.name = 'Connection Error';
         Error.captureStackTrace(this, ConnectionError);
     }
 }
@@ -148,79 +148,6 @@ export default class Connector {
             });
         return Promise.resolve(conn);
     }
-
-    // private updateCurrentConnection = (conn: Connection): Promise<Connection> => {
-    //     this.disconnect();
-    //     this.current = conn;
-    //     this.core.view.store.dispatch(Action.CONNECTION.addConnection(conn));
-    //     this.core.view.store.dispatch(Action.CONNECTION.connect(conn.guid));
-    //     return Promise.resolve(conn);
-    // }
-    //
-    // setConnection(connInfo: ConnectionInfo) {
-    //     if (this.current) {
-    //         this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.current.guid));
-    //     }
-    //
-    //     this.selected = connInfo;
-    //
-    // }
-    //
-    // connect(connInfo?: ConnectionInfo): Promise<Connection> {
-    //     // console.log('connecting', connInfo || this.current)
-    //     if (connInfo) {
-    //         if (this.current && this.current.guid === connInfo.guid) {
-    //             return Promise.resolve(this.current)
-    //                 .then(this.wireStream);
-    //         } else {
-    //             return connect(connInfo, this.core.getPath())
-    //                 .then(this.updateCurrentConnection)
-    //                 .then(this.wireStream);
-    //         }
-    //     } else {
-    //         if (this.current) {
-    //             return Promise.resolve(this.current);
-    //         } else {
-    //             return getExistingConnectionInfo()
-    //                 .catch(NoExistingConnections, err => {
-    //                     return autoSearch()
-    //                         .then(validate)
-    //                 })
-    //                 .then(connInfo => {
-    //                     return connect(connInfo, this.core.getPath())
-    //                         .then(this.updateCurrentConnection);
-    //                 })
-    //                 .then(this.wireStream)
-    //         }
-    //     }
-    // }
-    //
-    // disconnect(connInfo?: ConnectionInfo) {
-    //     if (connInfo) {
-    //         // connection specified and happens to be the current connection
-    //         if (this.current && this.current.guid === connInfo.guid) {
-    //             // console.log('X', this.current)
-    //             this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.current.guid));
-    //             this.current.stream.end();
-    //             this.current = undefined;
-    //         }
-    //     } else {
-    //         // no connection specified, end the current connection
-    //         if (this.current) {
-    //             // console.log('X', this.current)
-    //             this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.current.guid));
-    //             this.current.stream.end();
-    //             this.current = undefined;
-    //         }
-    //     }
-    // }
-    //
-    // getConnection(): Promise<Connection> {
-    //     if (this.current)
-    //         return Promise.resolve(this.current)
-    //     else
-    //         return Promise.reject(new ConnectionNotEstablished)
-    // }
 }
 
 export function getExistingConnectionInfo(): Promise<ConnectionInfo> {

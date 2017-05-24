@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import { inspect } from 'util';
 import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError, InvalidExecutablePathError } from './error';
 import { Normalization, ComputeMode, View } from './type';
-import { ConnectionNotEstablished } from './connector';
+import { ConnectionNotEstablished, ConnectionError } from './connector';
 import Core from './core';
 import * as Command from './command';
 
@@ -70,7 +70,7 @@ export default class Commander {
                             this.core.view.set(error.message, [error.path], View.Style.Error);
                             break;
                         default:
-                            console.error(error);
+                            this.core.view.set(error.name, error.message.split('\n'), View.Style.Error);
                     }
                 })
         }
@@ -141,7 +141,7 @@ export default class Commander {
         this.core.view.activate();
 
 
-        this.core.connector
+        return this.core.connector
             .connect()
             .then((conn) => {
                 this.loaded = true;
@@ -150,17 +150,6 @@ export default class Commander {
                 return conn;
             })
             .then(Command.load)
-        //     .then
-        // this.core.connector.connect()
-        //     .then((conn) => {
-        //         this.loaded = true;
-        //         // force save before load
-        //         this.core.textBuffer.saveBuffer();
-        //         return conn;
-        //     })
-        //     .then(Command.load)
-
-        return Promise.resolve({});
     }
 
     quit(): Promise<{}> {
@@ -258,7 +247,7 @@ export default class Commander {
                             .getConnection()
                             .then(Command.whyInScopeGlobal(expr))
                     );
-            })
+            });
     }
 
     inferType(normalization: Normalization): Promise<{}> {
