@@ -82,11 +82,13 @@ export default class Connector {
             console.log('no existing selections')
             return getExistingConnectionInfo()
                 .then(selected => {
+                    console.log(`selected`, selected)
                     this.selected = selected;
                     return connect(this.selected, this.core.getPath())
                         .then(this.wire);
                 })
                 .catch(NoExistingConnections, () => {
+                    this.openNewConnectionView()
                     return Promise.reject(new NoExistingConnections);
                 })
         }
@@ -123,6 +125,10 @@ export default class Connector {
             return Promise.resolve(this.connection);
         else
             return Promise.reject(new ConnectionNotEstablished);
+    }
+
+    openNewConnectionView() {
+        this.core.view.settingsViewPaneItem.open();
     }
 
     //

@@ -94,7 +94,7 @@ class NewConnection extends React.Component<Props, State> {
                                 onChange={this.handleLocalURLChange}
                             />
                             <button
-                                className="btn icon btn-primary icon-add inline-block-tight"
+                                className="btn icon btn-primary icon-plus inline-block-tight"
                                 disabled={disableLocal}
                                 onClick={() => {
                                     Conn.validate(this.state.localURL)
