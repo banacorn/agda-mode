@@ -121,7 +121,12 @@ class NewConnection extends React.Component<Props, State> {
                                             this.setState({
                                                 localURL: uri
                                             })
-                                        });
+                                        })
+                                        .catch(Conn.AutoSearchFailure, () => {
+                                            this.setState({
+                                                localMessage: 'failed to search for the location of Agda'
+                                            });
+                                        })
                                 }}
                             >auto</button>
                             <div className='text-warning'>{this.state.localMessage}</div>
