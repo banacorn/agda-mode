@@ -61,6 +61,10 @@ class ConnectionList extends React.Component<Props, {}> {
                         >new</button>
                     </div>
                 </header>
+                <p>
+                    <span className='inline-block highlight-info'>appointed default</span>
+                    <span className='inline-block highlight-success'>connected</span>
+                </p>
                 <ol>
                     {
                         this.props.state.connectionInfos.map((connInfo) => {
