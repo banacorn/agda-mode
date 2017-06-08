@@ -18,12 +18,12 @@ import * as Store from "./persist";
 import { handleAgdaResponse } from './handler';
 
 
-export class AutoConnectFailure extends Error {
+export class AutoSearchFailure extends Error {
     constructor(message: string) {
         super(message);
         this.message = message;
-        this.name = 'AutoConnectFailure';
-        Error.captureStackTrace(this, AutoConnectFailure);
+        this.name = 'AutoSearchFailure';
+        Error.captureStackTrace(this, AutoSearchFailure);
     }
 }
 
@@ -88,8 +88,20 @@ export default class Connector {
                         .then(this.wire);
                 })
                 .catch(NoExistingConnections, () => {
-                    this.openNewConnectionView()
-                    return Promise.reject(new NoExistingConnections);
+                    return autoSearch()
+                        .then(validate)
+                        .then(connInfo => {
+                            // let it be selected
+                            this.selected = connInfo;
+                            // update the view
+                            this.core.view.store.dispatch(Action.CONNECTION.addConnection(connInfo));
+                            return connect(connInfo, this.core.getPath())
+                                .then(this.wire);
+                        })
+                })
+                .catch(AutoSearchFailure, () => {
+                    console.log('AutoSearchFailure')
+                    return this.queryConnection()
                 })
         }
 
@@ -127,10 +139,6 @@ export default class Connector {
             return Promise.reject(new ConnectionNotEstablished);
     }
 
-    openNewConnectionView() {
-        this.core.view.settingsViewPaneItem.open();
-    }
-
     //
     private wire = (conn: Connection): Promise<Connection> => {
         // the view
@@ -153,6 +161,12 @@ export default class Connector {
                 }
             });
         return Promise.resolve(conn);
+    }
+
+    queryConnection(): Promise<Connection> {
+        this.core.view.query('No Existing Connections')
+        console.log('querying')
+        return Promise.reject(new NoExistingConnections)
     }
 }
 
@@ -183,13 +197,13 @@ export function mkConnectionInfo(uri: string): ConnectionInfo {
 
 export function autoSearch(): Promise<string> {
     if (process.platform === 'win32') {
-        return Promise.reject(new AutoConnectFailure('win32'));
+        return Promise.reject(new AutoSearchFailure('win32'));
     }
 
     return new Promise<string>((resolve, reject) => {
         exec(`which agda`, (error, stdout, stderr) => {
             if (error) {
-                reject(new AutoConnectFailure(error.toString()));
+                reject(new AutoSearchFailure(error.toString()));
             } else {
                 resolve(parseFilepath(stdout));
             }
