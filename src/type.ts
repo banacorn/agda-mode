@@ -43,6 +43,7 @@ namespace View {
 
     export interface State {
         view: ViewState;
+        mode: Mode;
         connection: ConnectionState;
         dev: DevState;
         header: HeaderState;
@@ -51,6 +52,11 @@ namespace View {
         body: BodyState;
     }
 
+    export const enum Mode {
+        Display,
+        Query
+    }
+    
     export interface ConnectionState {
         connectionInfos: ConnectionInfo[];
         selected?: GUID;
@@ -108,6 +114,7 @@ namespace View {
         text: string;
         style: Style;
     }
+
 
     export interface BodyState {
         banner: BannerItem[];

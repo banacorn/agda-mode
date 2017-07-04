@@ -9,7 +9,7 @@ import * as Conn from '../connector';
 import * as Parser from '../parser';
 import * as Store from '../persist';
 import { View } from '../type';
-import { EVENT, VIEW, CONNECTION, DEV, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
+import { EVENT, MODE, VIEW, CONNECTION, DEV, INPUT_METHOD, HEADER, MINI_EDITOR, BODY } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -26,6 +26,7 @@ const defaultState: View.State = {
         },
         settingsView: false
     },
+    mode: View.Mode.Display,
     connection: {
         connectionInfos: initialInternalState.connections,
         selected: initialInternalState.selected,
@@ -95,6 +96,11 @@ const view = handleActions<View.ViewState, VIEW>({
         settingsView: !state.settingsView
     })
 }, defaultState.view);
+
+const mode = handleActions<View.Mode, MODE>({
+    [MODE.DISPLAY]: (state, action) => View.Mode.Display,
+    [MODE.QUERY]: (state, action) => View.Mode.Query
+}, defaultState.mode);
 
 const connection = handleActions<View.ConnectionState, CONNECTION>({
     [CONNECTION.ADD_CONNECTION]: (state, action: Action<CONNECTION.ADD_CONNECTION>) => ({ ...state,

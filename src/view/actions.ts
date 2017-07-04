@@ -48,6 +48,19 @@ export namespace VIEW {
     export const toggleSettings = createAction(VIEW.TOGGLE_SETTINGS_VIEW);
 }
 
+export type MODE =
+    MODE.DISPLAY |
+    MODE.QUERY;
+export namespace MODE {
+    export const DISPLAY = 'MODE.DISPLAY';
+    export type DISPLAY = void;
+    export const QUERY = 'MODE.QUERY';
+    export type QUERY = void;
+
+    export const display = createAction(MODE.DISPLAY);
+    export const query = createAction(MODE.QUERY);
+}
+
 export type CONNECTION
     = CONNECTION.ADD_CONNECTION
     | CONNECTION.REMOVE_CONNECTION
