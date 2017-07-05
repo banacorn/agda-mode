@@ -48,7 +48,6 @@ namespace View {
         dev: DevState;
         header: HeaderState;
         inputMethod: InputMethodState;
-        miniEditor: MiniEditorState;
         body: BodyState;
     }
 
@@ -56,7 +55,7 @@ namespace View {
         Display,
         Query
     }
-    
+
     export interface ConnectionState {
         connectionInfos: ConnectionInfo[];
         selected?: GUID;
@@ -122,11 +121,6 @@ namespace View {
         error: Error;
         plainText: string;
         maxBodyHeight: number;
-    }
-
-    export interface MiniEditorState {
-        activate: boolean;
-        placeholder: string;
     }
 
     // Legacy shit below

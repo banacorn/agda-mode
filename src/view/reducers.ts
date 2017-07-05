@@ -48,10 +48,6 @@ const defaultState: View.State = {
         buffer: '',
         translation, further, keySuggestions, candidateSymbols
     },
-    miniEditor: {
-        activate: false,
-        placeholder: ''
-    },
     body: {
         banner: [],
         body: {
@@ -191,17 +187,6 @@ const header = handleActions<View.HeaderState, HEADER>({
     [HEADER.UPDATE]: (state, action: Action<HEADER.UPDATE>) => action.payload
 }, defaultState.header);
 
-
-const miniEditor = handleActions<View.MiniEditorState, MINI_EDITOR>({
-    [MINI_EDITOR.ACTIVATE]: (state, action: Action<MINI_EDITOR.ACTIVATE>) => ({ ...state,
-        activate: true,
-        placeholder: action.payload
-    }),
-    [MINI_EDITOR.DEACTIVATE]: (state, action: Action<MINI_EDITOR.DEACTIVATE>) => ({ ...state,
-        activate: false
-    })
-}, defaultState.miniEditor);
-
 const body = handleActions<View.BodyState, BODY>({
     [BODY.UPDATE_BANNER]: (state, action: Action<BODY.UPDATE_BANNER>) => ({ ...state,
         banner: action.payload,
@@ -234,10 +219,10 @@ const body = handleActions<View.BodyState, BODY>({
 // export default reducer;
 export default combineReducers<View.State>({
     view,
+    mode,
     connection,
     dev,
     header,
     inputMethod,
-    miniEditor,
     body
 });

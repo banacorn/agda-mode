@@ -19,7 +19,7 @@ import { View as V, Location, Error } from './type';
 import { EVENT } from "./view/actions";
 import * as Action from "./view/actions";
 import { parseJudgements, parseError } from './parser';
-import { HEADER, MINI_EDITOR, updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
+import { updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
 import PaneItem from './view/pane-item';
 
 // Atom shits
@@ -225,10 +225,10 @@ export default class View {
     }
 
     set(header: string, payload: string[], type = V.Style.PlainText) {
-        this.store.dispatch(Action.MINI_EDITOR.deactivate());
+        this.store.dispatch(Action.MODE.display());
         atom.views.getView(this.getEditor()).focus()
 
-        this.store.dispatch(HEADER.update({
+        this.store.dispatch(Action.HEADER.update({
             text: header,
             style: type
         }));
@@ -238,17 +238,17 @@ export default class View {
 
     setError(error: Error) {
 
-        this.store.dispatch(Action.MINI_EDITOR.deactivate());
+        this.store.dispatch(Action.MODE.display());
         atom.views.getView(this.getEditor()).focus()
 
-        this.store.dispatch(HEADER.update({
+        this.store.dispatch(Action.HEADER.update({
             text: 'Error',
             style: V.Style.Error
         }));
 
         this.store.dispatch(updateError(error));
         if (error) {
-            this.store.dispatch(HEADER.update({
+            this.store.dispatch(Action.HEADER.update({
                 style: V.Style.Error,
                 text: error.header
             }));
@@ -256,10 +256,10 @@ export default class View {
     }
 
     setJudgements(header: string = 'Judgements', { banner, body }: V.Judgements) {
-        this.store.dispatch(Action.MINI_EDITOR.deactivate());
+        this.store.dispatch(Action.MODE.display());
         atom.views.getView(this.getEditor()).focus()
 
-        this.store.dispatch(HEADER.update({
+        this.store.dispatch(Action.HEADER.update({
             text: header,
             style: V.Style.Info
         }));
@@ -279,13 +279,13 @@ export default class View {
 
     query(header: string = '', message: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {
         this.store.dispatch(Action.INPUT_METHOD.enableInMiniEditor(inputMethodOn));
-        this.store.dispatch(MINI_EDITOR.activate(placeholder));
-        this.store.dispatch(HEADER.update({
+        this.store.dispatch(Action.MODE.query());
+        this.store.dispatch(Action.HEADER.update({
             text: header,
             style: type
         }));
 
-        this.miniEditor.activate();
+        this.miniEditor.activate(placeholder);
         return this.miniEditor.query();
     }
 

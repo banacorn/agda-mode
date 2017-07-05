@@ -221,20 +221,6 @@ export namespace HEADER {
 }
 
 
-export type MINI_EDITOR =
-    MINI_EDITOR.ACTIVATE |
-    MINI_EDITOR.DEACTIVATE;
-export namespace MINI_EDITOR {
-    export const ACTIVATE = 'MINI_EDITOR.ACTIVATE';
-    export type ACTIVATE = string;
-    export const DEACTIVATE = 'MINI_EDITOR.DEACTIVATE';
-    export type DEACTIVATE = void;
-
-    export const activate = createAction(MINI_EDITOR.ACTIVATE);
-    export const deactivate = createAction(MINI_EDITOR.DEACTIVATE);
-}
-
-
 export type BODY = BODY.UPDATE_BANNER | BODY.UPDATE_BODY | BODY.UPDATE_ERROR | BODY.UPDATE_PLAIN_TEXT | BODY.UPDATE_MAX_BODY_HEIGHT;
 export namespace BODY {
     export const UPDATE_BANNER = 'BODY.UPDATE_BANNER';

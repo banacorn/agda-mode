@@ -20,8 +20,6 @@ declare global {
 }
 
 type Props = React.HTMLProps<HTMLElement> & {
-    placeholder?: string;
-
     onConfirm?: (payload: string) => void;
     onCancel?: () => void;
 }
@@ -35,6 +33,7 @@ class MiniEditor extends React.Component<Props, State> {
     private ref: any;
     private observer: MutationObserver;
     private emitter: EventEmitter;
+    public placeholder?: string;
 
     constructor() {
         super();
@@ -43,6 +42,7 @@ class MiniEditor extends React.Component<Props, State> {
             focused: false
         }
         this.emitter = new EventEmitter;
+        this.placeholder = "";
     }
 
     observeFocus() {
@@ -99,8 +99,8 @@ class MiniEditor extends React.Component<Props, State> {
         this.observeFocus();
 
         // placeholder
-        if (this.props.placeholder)
-            this.ref.getModel().setPlaceholderText(this.props.placeholder);
+        if (this.placeholder)
+            this.ref.getModel().setPlaceholderText(this.placeholder);
     }
 
     componentWillUnmount() {
@@ -133,7 +133,11 @@ class MiniEditor extends React.Component<Props, State> {
         return this.ref.getModel();
     }
 
-    activate() {
+    activate(placeholder?: string) {
+        if (placeholder) {
+            this.placeholder = placeholder;
+            this.ref.getModel().setPlaceholderText(this.placeholder);
+        }
         this.focus();
         this.select();
     }

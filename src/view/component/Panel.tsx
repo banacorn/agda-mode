@@ -12,7 +12,7 @@ import Body from './Body';
 import SizingHandle from './SizingHandle';
 import { View, Location } from '../../type';
 import MiniEditor from './MiniEditor';
-import { MINI_EDITOR, updateMaxBodyHeight } from './../actions';
+import { MODE, updateMaxBodyHeight } from './../actions';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
@@ -32,7 +32,7 @@ function mapStateToProps(state: View.State): InjProps {
 function mapDispatchToProps(dispatch): DispatchProps {
     return {
         deactivateMiniEditor: () => {
-            dispatch(MINI_EDITOR.deactivate());
+            dispatch(MODE.display());
         },
         onResize: (offset: number) => {
             dispatch(updateMaxBodyHeight(offset));
@@ -45,8 +45,32 @@ class Panel extends React.Component<Props, void> {
         const { core, emitter, onResize } = this.props;
         const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
-        const hideMiniEditor = classNames({'hidden': !this.props.miniEditor.activate});
-        const hideBody = classNames({'hidden': this.props.miniEditor.activate});
+        let body;
+        switch (this.props.mode) {
+            case View.Mode.Display:
+                body =
+                    <Body
+                        emitter={emitter}
+                    />;
+                break;
+            case View.Mode.Query:
+                body =
+                    <MiniEditor
+                        ref={(ref) => {
+                            if (ref)
+                                core.view.miniEditor = ref;
+                        }}
+                        onConfirm={() => {
+                            atom.views.getView(core.view.getEditor()).focus()
+                            this.props.deactivateMiniEditor();
+                        }}
+                        onCancel={() => {
+                            atom.views.getView(core.view.getEditor()).focus()
+                            this.props.deactivateMiniEditor();
+                        }}
+                    />
+                break;
+        }
         return (
             <section className={hideEverything}>
                 <section className="panel-heading agda-header-container">
@@ -76,26 +100,7 @@ class Panel extends React.Component<Props, void> {
                     />
                 </section>
                 <section className="agda-body-container">
-                    <MiniEditor
-                        className={hideMiniEditor}
-                        placeholder={this.props.miniEditor.placeholder}
-                        ref={(ref) => {
-                            if (ref)
-                                core.view.miniEditor = ref;
-                        }}
-                        onConfirm={() => {
-                            atom.views.getView(core.view.getEditor()).focus()
-                            this.props.deactivateMiniEditor();
-                        }}
-                        onCancel={() => {
-                            atom.views.getView(core.view.getEditor()).focus()
-                            this.props.deactivateMiniEditor();
-                        }}
-                    />
-                    <Body
-                        emitter={emitter}
-                        className={hideBody}
-                    />
+                    {body}
                 </section>
             </section>
         )
