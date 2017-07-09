@@ -70,6 +70,27 @@ class Panel extends React.Component<Props, void> {
                         }}
                     />
                 break;
+            case View.Mode.InquireConnection:
+                body =
+                    <div>
+                        Unable to find Agda on your machine, please enter the path of Agda manually.
+                        <MiniEditor
+                            onConfirm={(path) => {
+                                if (core.view.connectionInquisitorPromise)
+                                    core.view.connectionInquisitorPromise.resolve(path);
+                                atom.views.getView(core.view.getEditor()).focus()
+                                this.props.deactivateMiniEditor();
+                            }}
+                            onCancel={() => {
+                                if (core.view.connectionInquisitorPromise)
+                                    core.view.connectionInquisitorPromise.reject();
+                                atom.views.getView(core.view.getEditor()).focus()
+                                this.props.deactivateMiniEditor();
+                            }}
+                        />
+                    </div>
+                break;
+
         }
         return (
             <section className={hideEverything}>

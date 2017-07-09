@@ -33,6 +33,10 @@ export default class View {
     private editor: any;
     public store: Redux.Store<V.State>;
     public miniEditor: MiniEditor;
+    public connectionInquisitorPromise: {
+        resolve: (s: string) => void;
+        reject: (e?: Error) => void;
+    };
     private mountingPosition: HTMLElement;
     private bottomPanel: any;
     private settingsViewElement: HTMLElement;
@@ -287,6 +291,22 @@ export default class View {
 
         this.miniEditor.activate(placeholder);
         return this.miniEditor.query();
+    }
+
+    inquireConnection(): Promise<string> {
+        // update the view
+        this.store.dispatch(Action.MODE.inquireConnection());
+        this.store.dispatch(Action.HEADER.update({
+            text: "Oh no!!",
+            style: V.Style.Warning
+        }));
+        // return a promise that get resolved when when the query is complete
+        return new Promise<string>((resolve, reject) => {
+            this.connectionInquisitorPromise = {
+                resolve: resolve,
+                reject: reject
+            }
+        });
     }
 
     toggleDocking(): Promise<{}> {

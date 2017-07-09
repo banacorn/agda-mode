@@ -101,7 +101,7 @@ export default class Connector {
                 })
                 .catch(AutoSearchFailure, () => {
                     console.log('AutoSearchFailure')
-                    return this.queryConnection()
+                    return this.inquireConnection()
                 })
         }
 
@@ -163,10 +163,18 @@ export default class Connector {
         return Promise.resolve(conn);
     }
 
-    queryConnection(): Promise<Connection> {
-        this.core.view.query('No Existing Connections')
-        console.log('querying')
-        return Promise.reject(new NoExistingConnections)
+    inquireConnection(): Promise<Connection> {
+        console.log('inquiring')
+        return this.core.view.inquireConnection()
+            .then(validate)
+            .then(connInfo => {
+                // let it be selected
+                this.selected = connInfo;
+                // update the view
+                this.core.view.store.dispatch(Action.CONNECTION.addConnection(connInfo));
+                return connect(connInfo, this.core.getPath())
+                    .then(this.wire);
+            })
     }
 }
 
