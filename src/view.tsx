@@ -287,13 +287,13 @@ export default class View {
 
     query(header: string = '', message: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {
         this.store.dispatch(Action.INPUT_METHOD.enableInMiniEditor(inputMethodOn));
+        this.store.dispatch(Action.QUERY.setPlaceholder(placeholder));
         this.store.dispatch(Action.MODE.query());
         this.store.dispatch(Action.HEADER.update({
             text: header,
             style: type
         }));
 
-        this.miniEditor.activate(placeholder);
         return new Promise(this.queryTP.wire());
     }
 

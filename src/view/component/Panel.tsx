@@ -59,6 +59,7 @@ class Panel extends React.Component<Props, void> {
             case View.Mode.Query:
                 body =
                     <MiniEditor
+                        placeholder={this.props.query.placeholder}
                         data-grammar="source agda"
                         ref={(ref) => {
                             if (ref)
