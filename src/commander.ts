@@ -1,7 +1,7 @@
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { inspect } from 'util';
-import { OutOfGoalError, EmptyGoalError, QueryCancelledError, NotLoadedError, InvalidExecutablePathError } from './error';
+import { OutOfGoalError, EmptyGoalError, QueryCancelled, NotLoadedError, InvalidExecutablePathError } from './error';
 import { Normalization, ComputeMode, View } from './type';
 import { ConnectionNotEstablished, ConnectionError } from './connector';
 import Core from './core';
@@ -61,7 +61,7 @@ export default class Commander {
                 .catch(ConnectionNotEstablished, () => {
                     this.core.view.set('Connection to Agda not established', [], View.Style.Warning);
                 })
-                .catch(QueryCancelledError, () => {
+                .catch(QueryCancelled, () => {
                     this.core.view.set('Query cancelled', [], View.Style.Warning);
                 })
                 .catch((error) => { // catch all the rest

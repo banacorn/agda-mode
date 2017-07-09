@@ -138,7 +138,6 @@ export default class InputMethod {
             // initializations
             this.activated = true;
 
-            const miniEditorFocused = this.core.view.miniEditor && this.core.view.miniEditor.isFocused();
             this.editor = this.core.view.getFocusedEditor();
 
             // add class 'agda-mode-input-method-activated'

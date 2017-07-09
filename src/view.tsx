@@ -34,6 +34,7 @@ export default class View {
     private editor: any;
     public store: Redux.Store<V.State>;
     public miniEditor: MiniEditor;
+    public queryTP: TelePromise<string>;
     public connectionInquisitorTP: TelePromise<string>;
     private mountingPosition: HTMLElement;
     private bottomPanel: any;
@@ -59,6 +60,7 @@ export default class View {
         });
 
         // TelePromises
+        this.queryTP = new TelePromise;
         this.connectionInquisitorTP = new TelePromise;
 
         // view pane item
@@ -292,7 +294,7 @@ export default class View {
         }));
 
         this.miniEditor.activate(placeholder);
-        return this.miniEditor.query();
+        return new Promise(this.queryTP.wire());
     }
 
     inquireConnection(): Promise<string> {

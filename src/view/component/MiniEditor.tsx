@@ -1,11 +1,9 @@
 import * as _ from 'lodash';
 import * as React from 'react';
 import * as Promise from 'bluebird';
-import { EventEmitter } from 'events';
 import * as classNames from 'classnames';
 
 import { parseInputContent } from '../../parser';
-import { QueryCancelledError } from '../../error';
 
 // Atom shits
 type CompositeDisposable = any;
@@ -32,7 +30,6 @@ class MiniEditor extends React.Component<Props, State> {
     private subscriptions: CompositeDisposable;
     private ref: any;
     private observer: MutationObserver;
-    private emitter: EventEmitter;
     public placeholder?: string;
 
     constructor() {
@@ -41,7 +38,6 @@ class MiniEditor extends React.Component<Props, State> {
         this.state = {
             focused: false
         }
-        this.emitter = new EventEmitter;
         this.placeholder = "";
     }
 
@@ -87,12 +83,10 @@ class MiniEditor extends React.Component<Props, State> {
         // subscribe to Atom's core events
         this.subscriptions.add(atom.commands.add(this.ref, 'core:confirm', () => {
             const payload = parseInputContent(this.ref.getModel().getText());
-            this.emitter.emit('confirm', payload);
             if (this.props.onConfirm)
                 this.props.onConfirm(payload);
         }));
         this.subscriptions.add(atom.commands.add(this.ref, 'core:cancel', () => {
-            this.emitter.emit('cancel');
             if (this.props.onCancel)
                 this.props.onCancel();
         }));
@@ -114,19 +108,13 @@ class MiniEditor extends React.Component<Props, State> {
     }
 
     // focus on the input box (with setTimeout quirk)
-    focus() {
+    private focus() {
         setTimeout(() => {
             this.ref.focus();
         });
     }
 
-    blur() {
-        setTimeout(() => {
-            this.ref.blur();
-        });
-    }
-
-    select() {
+    private select() {
         this.ref.getModel().selectAll();
     }
 
@@ -145,19 +133,6 @@ class MiniEditor extends React.Component<Props, State> {
         }
         this.focus();
         this.select();
-    }
-
-    query(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            this.emitter.once('confirm', (payload) => {
-                this.emitter.removeAllListeners()
-                resolve(payload);
-            });
-            this.emitter.once('cancel', () => {
-                this.emitter.removeAllListeners();
-                reject(new QueryCancelledError(''));
-            });
-        });
     }
 
     render() {

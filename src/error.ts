@@ -39,12 +39,12 @@ export class EmptyGoalError extends Error {
 }
 
 
-export class QueryCancelledError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.message = message;
-        this.name = 'QueryCancelledError';
-        Error.captureStackTrace(this, QueryCancelledError);
+export class QueryCancelled extends Error {
+    constructor() {
+        super('');
+        this.message = '';
+        this.name = 'QueryCancelled';
+        Error.captureStackTrace(this, QueryCancelled);
     }
 }
 

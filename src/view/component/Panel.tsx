@@ -14,6 +14,7 @@ import { View, Location } from '../../type';
 import MiniEditor from './MiniEditor';
 import { MODE, updateMaxBodyHeight } from './../actions';
 import { NoConnectionGiven } from './../../connector';
+import { QueryCancelled } from './../../error';
 
 //
 type OwnProps = React.HTMLProps<HTMLElement> & {
@@ -63,11 +64,13 @@ class Panel extends React.Component<Props, void> {
                             if (ref)
                                 core.view.miniEditor = ref;
                         }}
-                        onConfirm={() => {
+                        onConfirm={(result) => {
+                            core.view.queryTP.resolve(result);
                             atom.views.getView(core.view.getEditor()).focus()
                             this.props.deactivateMiniEditor();
                         }}
                         onCancel={() => {
+                            core.view.connectionInquisitorTP.reject(new QueryCancelled);
                             atom.views.getView(core.view.getEditor()).focus()
                             this.props.deactivateMiniEditor();
                         }}
