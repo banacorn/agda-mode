@@ -58,6 +58,7 @@ class Panel extends React.Component<Props, void> {
             case View.Mode.Query:
                 body =
                     <MiniEditor
+                        data-grammar="source agda"
                         ref={(ref) => {
                             if (ref)
                                 core.view.miniEditor = ref;

@@ -78,9 +78,11 @@ class MiniEditor extends React.Component<Props, State> {
     }
 
     componentDidMount() {
-        // set grammar: agda to enable input method
-        const agdaGrammar = atom.grammars.grammarForScopeName('source.agda');
-        this.ref.getModel().setGrammar(agdaGrammar);
+        // pass the grammar down to enable input method
+        if (this.props['data-grammar'] === "source agda") {
+            const agdaGrammar = atom.grammars.grammarForScopeName('source.agda');
+            this.ref.getModel().setGrammar(agdaGrammar);
+        }
 
         // subscribe to Atom's core events
         this.subscriptions.add(atom.commands.add(this.ref, 'core:confirm', () => {
@@ -95,7 +97,7 @@ class MiniEditor extends React.Component<Props, State> {
                 this.props.onCancel();
         }));
 
-        // focus on did mount 
+        // focus on did mount
         this.focus();
 
         // observe 'focus'
