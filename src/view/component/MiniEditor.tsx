@@ -91,8 +91,9 @@ class MiniEditor extends React.Component<Props, State> {
                 this.props.onCancel();
         }));
 
-        // focus on did mount
+        // focus and select on did mount
         this.focus();
+        this.select();
 
         // observe 'focus'
         this.observeFocus();
@@ -125,15 +126,6 @@ class MiniEditor extends React.Component<Props, State> {
     getModel() {
         return this.ref.getModel();
     }
-
-    // activate(placeholder?: string) {
-    //     if (placeholder) {
-    //         this.placeholder = placeholder;
-    //         this.ref.getModel().setPlaceholderText(this.placeholder);
-    //     }
-    //     this.focus();
-    //     this.select();
-    // }
 
     render() {
         const classes = classNames(this.props.className, 'mini-editor');
