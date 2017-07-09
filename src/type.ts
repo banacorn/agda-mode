@@ -48,6 +48,7 @@ namespace View {
         dev: DevState;
         header: HeaderState;
         inputMethod: InputMethodState;
+        query: QueryState;
         body: BodyState;
     }
 
@@ -115,6 +116,9 @@ namespace View {
         style: Style;
     }
 
+    export interface QueryState {
+        placeholder: string;
+    }
 
     export interface BodyState {
         banner: BannerItem[];

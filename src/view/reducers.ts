@@ -9,7 +9,7 @@ import * as Conn from '../connector';
 import * as Parser from '../parser';
 import * as Store from '../persist';
 import { View } from '../type';
-import { EVENT, MODE, VIEW, CONNECTION, DEV, INPUT_METHOD, HEADER, BODY } from './actions';
+import { EVENT, MODE, VIEW, CONNECTION, DEV, INPUT_METHOD, HEADER, QUERY, BODY } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -47,6 +47,9 @@ const defaultState: View.State = {
         activated: false,
         buffer: '',
         translation, further, keySuggestions, candidateSymbols
+    },
+    query: {
+        placeholder: ''
     },
     body: {
         banner: [],
@@ -188,6 +191,12 @@ const header = handleActions<View.HeaderState, HEADER>({
     [HEADER.UPDATE]: (state, action: Action<HEADER.UPDATE>) => action.payload
 }, defaultState.header);
 
+const query = handleActions<View.QueryState, QUERY>({
+    [QUERY.SET_PLACEHOLDER]: (state, action: Action<QUERY.SET_PLACEHOLDER>) => ({ ...state,
+        placeholder: action.payload
+    })
+}, defaultState.query);
+
 const body = handleActions<View.BodyState, BODY>({
     [BODY.UPDATE_BANNER]: (state, action: Action<BODY.UPDATE_BANNER>) => ({ ...state,
         banner: action.payload,
@@ -225,5 +234,6 @@ export default combineReducers<View.State>({
     dev,
     header,
     inputMethod,
+    query,
     body
 });

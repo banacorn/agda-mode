@@ -224,6 +224,14 @@ export namespace HEADER {
     export const update = createAction(HEADER.UPDATE);
 }
 
+export type QUERY = QUERY.SET_PLACEHOLDER;
+export namespace QUERY {
+    export const SET_PLACEHOLDER = 'QUERY.SET_PLACEHOLDER';
+    export type SET_PLACEHOLDER = string;
+
+    export const setPlaceholder = createAction(QUERY.SET_PLACEHOLDER);
+}
+
 
 export type BODY = BODY.UPDATE_BANNER | BODY.UPDATE_BODY | BODY.UPDATE_ERROR | BODY.UPDATE_PLAIN_TEXT | BODY.UPDATE_MAX_BODY_HEIGHT;
 export namespace BODY {
