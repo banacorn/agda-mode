@@ -76,14 +76,12 @@ class Panel extends React.Component<Props, void> {
                         Unable to find Agda on your machine, please enter the path of Agda manually.
                         <MiniEditor
                             onConfirm={(path) => {
-                                if (core.view.connectionInquisitorPromise)
-                                    core.view.connectionInquisitorPromise.resolve(path);
+                                core.view.connectionInquisitorTP.resolve(path);
                                 atom.views.getView(core.view.getEditor()).focus()
                                 this.props.deactivateMiniEditor();
                             }}
                             onCancel={() => {
-                                if (core.view.connectionInquisitorPromise)
-                                    core.view.connectionInquisitorPromise.reject();
+                                core.view.connectionInquisitorTP.reject();
                                 atom.views.getView(core.view.getEditor()).focus()
                                 this.props.deactivateMiniEditor();
                             }}

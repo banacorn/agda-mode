@@ -21,6 +21,7 @@ import * as Action from "./view/actions";
 import { parseJudgements, parseError } from './parser';
 import { updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
 import PaneItem from './view/pane-item';
+import { TelePromise } from './util';
 
 // Atom shits
 type CompositeDisposable = any;
@@ -33,10 +34,7 @@ export default class View {
     private editor: any;
     public store: Redux.Store<V.State>;
     public miniEditor: MiniEditor;
-    public connectionInquisitorPromise: {
-        resolve: (s: string) => void;
-        reject: (e?: Error) => void;
-    };
+    public connectionInquisitorTP: TelePromise<string>;
     private mountingPosition: HTMLElement;
     private bottomPanel: any;
     private settingsViewElement: HTMLElement;
@@ -60,6 +58,10 @@ export default class View {
             this.core.textBuffer.jumpToLocation(loc);
         });
 
+        // TelePromises
+        this.connectionInquisitorTP = new TelePromise;
+
+        // view pane item
         this.viewPaneItem = new PaneItem(this.editor, 'view');
         this.viewPaneItem.onOpen((paneItem, panes) => {
             // activate the previous pane (which opened this pane item)
@@ -301,12 +303,7 @@ export default class View {
             style: V.Style.Warning
         }));
         // return a promise that get resolved when when the query is complete
-        return new Promise<string>((resolve, reject) => {
-            this.connectionInquisitorPromise = {
-                resolve: resolve,
-                reject: reject
-            }
-        });
+        return new Promise(this.connectionInquisitorTP.wire());
     }
 
     toggleDocking(): Promise<{}> {
