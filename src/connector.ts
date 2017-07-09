@@ -17,6 +17,15 @@ import * as Action from "./view/actions";
 import * as Store from "./persist";
 import { handleAgdaResponse } from './handler';
 
+// Custom Errors
+export class NoConnectionGiven extends Error {
+    constructor() {
+        super('');
+        this.message = '';
+        this.name = 'NoConnectionGiven';
+        Error.captureStackTrace(this, NoConnectionGiven);
+    }
+}
 
 export class AutoSearchFailure extends Error {
     constructor(message: string) {
@@ -100,7 +109,6 @@ export default class Connector {
                         })
                 })
                 .catch(AutoSearchFailure, () => {
-                    console.log('AutoSearchFailure')
                     return this.inquireConnection()
                 })
         }
@@ -164,7 +172,6 @@ export default class Connector {
     }
 
     inquireConnection(): Promise<Connection> {
-        console.log('inquiring')
         return this.core.view.inquireConnection()
             .then(validate)
             .then(connInfo => {
@@ -174,6 +181,9 @@ export default class Connector {
                 this.core.view.store.dispatch(Action.CONNECTION.addConnection(connInfo));
                 return connect(connInfo, this.core.getPath())
                     .then(this.wire);
+            })
+            .catch(NoConnectionGiven, () => {
+                // this.inquireConnection();
             })
     }
 }

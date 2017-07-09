@@ -13,7 +13,9 @@ import SizingHandle from './SizingHandle';
 import { View, Location } from '../../type';
 import MiniEditor from './MiniEditor';
 import { MODE, updateMaxBodyHeight } from './../actions';
+import { NoConnectionGiven } from './../../connector';
 
+//
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
     emitter: EventEmitter;
@@ -73,7 +75,9 @@ class Panel extends React.Component<Props, void> {
             case View.Mode.InquireConnection:
                 body =
                     <div>
-                        Unable to find Agda on your machine, please enter the path of Agda manually.
+                        <p>
+                            Unable to find Agda on your machine, please enter the path of Agda manually.
+                        </p>
                         <MiniEditor
                             onConfirm={(path) => {
                                 core.view.connectionInquisitorTP.resolve(path);
@@ -81,7 +85,7 @@ class Panel extends React.Component<Props, void> {
                                 this.props.deactivateMiniEditor();
                             }}
                             onCancel={() => {
-                                core.view.connectionInquisitorTP.reject();
+                                core.view.connectionInquisitorTP.reject(new NoConnectionGiven);
                                 atom.views.getView(core.view.getEditor()).focus()
                                 this.props.deactivateMiniEditor();
                             }}

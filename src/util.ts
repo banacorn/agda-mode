@@ -20,12 +20,12 @@ export function hash(o: any): string {
 
 export class TelePromise<T> {
     private resolver: (result?: T) => void;
-    private rejecter: (error?: any) => void;
+    private rejecter: (error: any) => void;
 
     // extracts resolve/reject from a new Promise,
     //  usage:
     //      new Promise(someTelePromise.wire());
-    wire(): (resolve: (result?: T) => void, reject: (error?: any) => void) => void {
+    wire(): (resolve: (result?: T) => void, reject: (error: any) => void) => void {
         return (resolve, reject) => {
             this.resolver = resolve;
             this.rejecter = reject;
@@ -39,7 +39,7 @@ export class TelePromise<T> {
         }
     }
 
-    reject(error?: any): void {
+    reject(error: any): void {
         if (this.rejecter) {
             this.rejecter(error);
             this.cleanup();

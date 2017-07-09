@@ -65,12 +65,16 @@ export default class Commander {
                     this.core.view.set('Query cancelled', [], View.Style.Warning);
                 })
                 .catch((error) => { // catch all the rest
-                    switch (error.name) {
-                        case 'InvalidExecutablePathError':
+                    if (error) {
+                        switch (error.name) {
+                            case 'InvalidExecutablePathError':
                             this.core.view.set(error.message, [error.path], View.Style.Error);
                             break;
                         default:
                             this.core.view.set(error.name, error.message.split('\n'), View.Style.Error);
+                        }
+                    } else {
+                        this.core.view.set('Panic!', ['unknown error'], View.Style.Error);
                     }
                 })
         }
@@ -425,9 +429,9 @@ export default class Commander {
     }
 
     inputSymbol(): Promise<{}> {
-        const miniEditorEnabled = this.core.view.store.getState().inputMethod.enableInMiniEditor;
+        const enableInMiniEditor = this.core.view.store.getState().inputMethod.enableInMiniEditor;
         const miniEditorFocused = this.core.view.miniEditor && this.core.view.miniEditor.isFocused();
-        const shouldNotActivate = miniEditorFocused && !miniEditorEnabled;
+        const shouldNotActivate = miniEditorFocused && !enableInMiniEditor;
         const editor = this.core.view.getFocusedEditor();
         if (atom.config.get('agda-mode.inputMethod') && !shouldNotActivate) {
             if (!this.loaded) {

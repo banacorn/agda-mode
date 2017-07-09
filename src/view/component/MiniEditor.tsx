@@ -95,6 +95,9 @@ class MiniEditor extends React.Component<Props, State> {
                 this.props.onCancel();
         }));
 
+        // focus on did mount 
+        this.focus();
+
         // observe 'focus'
         this.observeFocus();
 
