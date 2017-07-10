@@ -12,7 +12,7 @@ import Body from './Body';
 import SizingHandle from './SizingHandle';
 import { View, Location } from '../../type';
 import MiniEditor from './MiniEditor';
-import { MODE, updateMaxBodyHeight } from './../actions';
+import { MODE, updateMaxBodyHeight, QUERY } from './../actions';
 import { NoConnectionGiven } from './../../connector';
 import { QueryCancelled } from './../../error';
 
@@ -25,6 +25,7 @@ type InjProps = View.State;
 type DispatchProps = {
     deactivateMiniEditor: () => void;
     onResize: (offset: number) => void;
+    handelQueryValueChange: (value: string) => void;
 }
 type Props = OwnProps & InjProps & DispatchProps;
 
@@ -39,13 +40,16 @@ function mapDispatchToProps(dispatch): DispatchProps {
         },
         onResize: (offset: number) => {
             dispatch(updateMaxBodyHeight(offset));
+        },
+        handelQueryValueChange: (value: string) => {
+            dispatch(QUERY.updateValue(value));
         }
     };
 }
 
 class Panel extends React.Component<Props, void> {
     render() {
-        const { core, emitter, onResize } = this.props;
+        const { core, emitter, onResize, handelQueryValueChange } = this.props;
         const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
         let body;
@@ -67,11 +71,14 @@ class Panel extends React.Component<Props, void> {
                         }}
                         onConfirm={(result) => {
                             core.view.queryTP.resolve(result);
+                            this.setState({
+
+                            })
                             atom.views.getView(core.view.getEditor()).focus()
                             this.props.deactivateMiniEditor();
                         }}
                         onCancel={() => {
-                            core.view.connectionInquisitorTP.reject(new QueryCancelled);
+                            core.view.queryTP.reject(new QueryCancelled);
                             atom.views.getView(core.view.getEditor()).focus()
                             this.props.deactivateMiniEditor();
                         }}
@@ -84,7 +91,9 @@ class Panel extends React.Component<Props, void> {
                             Unable to find Agda on your machine, please enter the path of Agda manually.
                         </p>
                         <MiniEditor
+                            value={this.props.query.value}
                             onConfirm={(path) => {
+                                this.props.handelQueryValueChange(path);
                                 core.view.connectionInquisitorTP.resolve(path);
                                 atom.views.getView(core.view.getEditor()).focus()
                                 this.props.deactivateMiniEditor();

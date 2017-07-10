@@ -118,6 +118,7 @@ namespace View {
 
     export interface QueryState {
         placeholder: string;
+        value: string;
     }
 
     export interface BodyState {

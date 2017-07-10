@@ -49,7 +49,8 @@ const defaultState: View.State = {
         translation, further, keySuggestions, candidateSymbols
     },
     query: {
-        placeholder: ''
+        placeholder: '',
+        value: ''
     },
     body: {
         banner: [],
@@ -194,6 +195,9 @@ const header = handleActions<View.HeaderState, HEADER>({
 const query = handleActions<View.QueryState, QUERY>({
     [QUERY.SET_PLACEHOLDER]: (state, action: Action<QUERY.SET_PLACEHOLDER>) => ({ ...state,
         placeholder: action.payload
+    }),
+    [QUERY.UPDATE_VALUE]: (state, action: Action<QUERY.UPDATE_VALUE>) => ({ ...state,
+        value: action.payload
     })
 }, defaultState.query);
 

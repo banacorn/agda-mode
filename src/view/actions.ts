@@ -224,11 +224,14 @@ export namespace HEADER {
     export const update = createAction(HEADER.UPDATE);
 }
 
-export type QUERY = QUERY.SET_PLACEHOLDER;
+export type QUERY = QUERY.SET_PLACEHOLDER | QUERY.UPDATE_VALUE;
 export namespace QUERY {
     export const SET_PLACEHOLDER = 'QUERY.SET_PLACEHOLDER';
     export type SET_PLACEHOLDER = string;
+    export const UPDATE_VALUE = 'QUERY.UPDATE_VALUE';
+    export type UPDATE_VALUE = string;
 
+    export const updateValue = createAction(QUERY.UPDATE_VALUE);
     export const setPlaceholder = createAction(QUERY.SET_PLACEHOLDER);
 }
 
