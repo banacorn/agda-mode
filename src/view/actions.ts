@@ -51,18 +51,18 @@ export namespace VIEW {
 export type MODE =
     MODE.DISPLAY |
     MODE.QUERY |
-    MODE.INQUIRE_CONNECTION;
+    MODE.QUERY_CONNECTION;
 export namespace MODE {
     export const DISPLAY = 'MODE.DISPLAY';
     export type DISPLAY = void;
     export const QUERY = 'MODE.QUERY';
     export type QUERY = void;
-    export const INQUIRE_CONNECTION = 'MODE.INQUIRE_CONNECTION';
-    export type INQUIRE_CONNECTION = void;
+    export const QUERY_CONNECTION = 'MODE.QUERY_CONNECTION';
+    export type QUERY_CONNECTION = void;
 
     export const display = createAction(MODE.DISPLAY);
     export const query = createAction(MODE.QUERY);
-    export const inquireConnection = createAction(MODE.INQUIRE_CONNECTION);
+    export const queryConnection = createAction(MODE.QUERY_CONNECTION);
 }
 
 export type CONNECTION

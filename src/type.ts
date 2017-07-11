@@ -55,7 +55,7 @@ namespace View {
     export const enum Mode {
         Display,
         Query,
-        InquireConnection
+        QueryConnection
     }
 
     export interface ConnectionState {

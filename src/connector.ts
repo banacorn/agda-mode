@@ -109,7 +109,7 @@ export default class Connector {
                         })
                 })
                 .catch(AutoSearchFailure, () => {
-                    return this.inquireConnection()
+                    return this.queryConnection()
                 })
         }
 
@@ -171,8 +171,8 @@ export default class Connector {
         return Promise.resolve(conn);
     }
 
-    inquireConnection(): Promise<Connection> {
-        return this.core.view.inquireConnection()
+    queryConnection(): Promise<Connection> {
+        return this.core.view.queryConnection()
             .then(validate)
             .then(connInfo => {
                 // let it be selected
@@ -183,7 +183,7 @@ export default class Connector {
                     .then(this.wire);
             })
             .catch(NoConnectionGiven, () => {
-                // this.inquireConnection();
+                // this.queryConnection();
             })
     }
 }

@@ -100,7 +100,7 @@ const view = handleActions<View.ViewState, VIEW>({
 const mode = handleActions<View.Mode, MODE>({
     [MODE.DISPLAY]: (state, action) => View.Mode.Display,
     [MODE.QUERY]: (state, action) => View.Mode.Query,
-    [MODE.INQUIRE_CONNECTION]: (state, action) => View.Mode.InquireConnection
+    [MODE.QUERY_CONNECTION]: (state, action) => View.Mode.QueryConnection
 }, defaultState.mode);
 
 const connection = handleActions<View.ConnectionState, CONNECTION>({

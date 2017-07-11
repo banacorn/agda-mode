@@ -301,14 +301,14 @@ export default class View {
         return new Promise(this.queryTP.wire());
     }
 
-    inquireConnection(): Promise<string> {
+    queryConnection(): Promise<string> {
         // update the view
-        this.store.dispatch(Action.MODE.inquireConnection());
+        this.store.dispatch(Action.MODE.queryConnection());
         this.store.dispatch(Action.HEADER.update({
             text: "Oh no!!",
             style: V.Style.Warning
         }));
-        // activate the connection query 
+        // activate the connection query
         this.miniEditors.connection.activate();
         // return a promise that get resolved when when the query is complete
         return new Promise(this.connectionInquisitorTP.wire());

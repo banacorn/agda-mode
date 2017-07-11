@@ -114,7 +114,7 @@ class Panel extends React.Component<Props, void> {
                         }}
                     />
                     <div
-                        className={show(View.Mode.InquireConnection, mode)}
+                        className={show(View.Mode.QueryConnection, mode)}
                     >
                         <p>
                             Unable to find Agda on your machine, please enter the path of Agda manually.
