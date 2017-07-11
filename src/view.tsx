@@ -23,19 +23,40 @@ import { updateBody, updateBanner, updateError, updatePlainText } from './view/a
 import PaneItem from './view/pane-item';
 
 // Atom shits
+type Editor = any;
 type CompositeDisposable = any;
 var { CompositeDisposable } = require('atom');
 declare var atom: any;
 
+class EditorManager {
+    main: Editor;
+    general: MiniEditor;
+    connection: MiniEditor;
+
+    constructor(main: Editor) {
+        this.main = main;
+    }
+
+    focusMain() {
+        atom.views.getView(this.main).focus();
+    }
+
+    getFocusedEditor() {
+        if (this.general && this.general.isFocused())
+            return this.general.getModel();
+
+        if (this.connection && this.connection.isFocused())
+            return this.connection.getModel();
+
+        return this.main.getModel();
+    }
+}
+
 export default class View {
     private emitter: EventEmitter;
     private subscriptions: CompositeDisposable;
-    private editor: any;
     public store: Redux.Store<V.State>;
-    public miniEditors: {
-        general: MiniEditor;
-        connection: MiniEditor;
-    };
+    public editors: EditorManager
     private mountingPosition: HTMLElement;
     private bottomPanel: any;
     private settingsViewElement: HTMLElement;
@@ -49,7 +70,9 @@ export default class View {
         );
         this.emitter = new EventEmitter;
         this.subscriptions = new CompositeDisposable;
-        this.editor = core.editor;
+
+        // editors
+        this.editors = new EditorManager(core.editor);
 
         // global events
         this.emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
@@ -60,7 +83,7 @@ export default class View {
         });
 
         // view pane item
-        this.viewPaneItem = new PaneItem(this.editor, 'view');
+        this.viewPaneItem = new PaneItem(this.editors.main, 'view');
         this.viewPaneItem.onOpen((paneItem, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
@@ -80,8 +103,8 @@ export default class View {
         });
 
         // initialize settings view
-        this.settingsViewPaneItem = new PaneItem(this.editor, 'settings', () => {
-            const { name } = path.parse(this.editor.getPath());
+        this.settingsViewPaneItem = new PaneItem(this.editors.main, 'settings', () => {
+            const { name } = path.parse(this.editors.main.getPath());
             return `[Settings] ${name}`
         });
         this.settingsViewPaneItem.onOpen((paneItem, panes) => {
@@ -132,18 +155,6 @@ export default class View {
             </Provider>,
             this.settingsViewElement
         )
-    }
-
-    getEditor(): any {
-        return this.editor;
-    }
-
-    getFocusedEditor(): any {
-        const generalMEFocused = this.miniEditors.general && this.miniEditors.general.isFocused();
-        if (generalMEFocused)
-            return this.miniEditors.general.getModel();
-        else
-            return this.editor;
     }
 
     mount(mountAt: V.MountingPosition) {
@@ -230,7 +241,7 @@ export default class View {
 
     set(header: string, payload: string[], type = V.Style.PlainText) {
         this.store.dispatch(Action.MODE.display());
-        atom.views.getView(this.getEditor()).focus()
+        this.editors.focusMain()
 
         this.store.dispatch(Action.HEADER.update({
             text: header,
@@ -243,7 +254,7 @@ export default class View {
     setError(error: Error) {
 
         this.store.dispatch(Action.MODE.display());
-        atom.views.getView(this.getEditor()).focus()
+        this.editors.focusMain()
 
         this.store.dispatch(Action.HEADER.update({
             text: 'Error',
@@ -261,7 +272,7 @@ export default class View {
 
     setJudgements(header: string = 'Judgements', { banner, body }: V.Judgements) {
         this.store.dispatch(Action.MODE.display());
-        atom.views.getView(this.getEditor()).focus()
+        this.editors.focusMain()
 
         this.store.dispatch(Action.HEADER.update({
             text: header,
@@ -289,9 +300,9 @@ export default class View {
             text: header,
             style: type
         }));
-        this.miniEditors.general.activate();
+        this.editors.general.activate();
 
-        return this.miniEditors.general.query();
+        return this.editors.general.query();
     }
 
     queryConnection(): Promise<string> {
@@ -302,8 +313,8 @@ export default class View {
             style: V.Style.Warning
         }));
         // activate the connection query
-        this.miniEditors.connection.activate();
-        return this.miniEditors.connection.query();
+        this.editors.connection.activate();
+        return this.editors.connection.query();
     }
 
     toggleDocking(): Promise<{}> {

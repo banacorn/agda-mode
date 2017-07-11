@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 type CompositeDisposable = any;
 type Range = any;
-
+type Editor = any;
 declare var atom: any;
 var { Range, CompositeDisposable } = require('atom');
 
@@ -30,7 +30,7 @@ export default class Core {
     public view: View;
     public connector: Connector;
 
-    constructor(public editor: any) {
+    constructor(public editor: Editor) {
 
 
         // helper methods on this.editor

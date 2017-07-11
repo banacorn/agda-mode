@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import Core from './core';
 import { parseCommand } from './parser';
 
+type Editor = any;
 declare var atom: any;
 var { Range, CompositeDisposable } = require('atom');
 
@@ -63,7 +64,7 @@ function deactivate() {
 // the "entry point" of the whole package
 function activate(state: any) {
     subscriptions = new CompositeDisposable; // gets disposed on deactivated
-    subscriptions.add(atom.workspace.observeTextEditors((editor) => {
+    subscriptions.add(atom.workspace.observeTextEditors((editor: Editor) => {
         let editorSubscriptions = new CompositeDisposable
         // instantiate core if it's .agda
         if (isAgdaFile(editor))
@@ -130,7 +131,7 @@ function registerEditorActivation() {
     }));
 }
 
-function instantiateCore(editor) {
+function instantiateCore(editor: Editor) {
     // add 'agda' class to the editor element
     // so that keymaps and styles know what to select
     const editorElement = atom.views.getView(editor);
@@ -146,7 +147,7 @@ function instantiateCore(editor) {
 
 
 // if end with '.agda' or '.lagda'
-function isAgdaFile(editor): boolean {
+function isAgdaFile(editor: Editor): boolean {
     let filepath: string;
     if (editor && editor.getPath) {
         filepath = editor.getPath();

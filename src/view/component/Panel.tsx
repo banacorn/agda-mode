@@ -74,12 +74,12 @@ class Panel extends React.Component<Props, void> {
                         updateTranslation={(c) => core.inputMethod.replaceBuffer(c)}
                         insertCharacter={(c) => {
                             core.inputMethod.insertCharToBuffer(c);
-                            atom.views.getView(core.view.getEditor()).focus();
+                            core.view.editors.focusMain()
                         }}
                         chooseSymbol={(c) => {
                             core.inputMethod.replaceBuffer(c);
                             core.inputMethod.deactivate();
-                            atom.views.getView(core.view.getEditor()).focus();
+                            core.view.editors.focusMain()
                         }}
                     />
                     <Header
@@ -98,15 +98,15 @@ class Panel extends React.Component<Props, void> {
                         data-grammar="source agda"
                         ref={(ref) => {
                             if (ref)
-                                core.view.miniEditors.general = ref;
+                                core.view.editors.general = ref;
                         }}
                         onConfirm={(result) => {
                             this.props.handelQueryValueChange(result);
-                            atom.views.getView(core.view.getEditor()).focus()
+                            core.view.editors.focusMain()
                             this.props.deactivateMiniEditor();
                         }}
                         onCancel={() => {
-                            atom.views.getView(core.view.getEditor()).focus()
+                            core.view.editors.focusMain()
                             this.props.deactivateMiniEditor();
                         }}
                     />
@@ -119,14 +119,14 @@ class Panel extends React.Component<Props, void> {
                         <MiniEditor
                             ref={(ref) => {
                                 if (ref)
-                                    core.view.miniEditors.connection = ref;
+                                    core.view.editors.connection = ref;
                             }}
                             onConfirm={(path) => {
-                                atom.views.getView(core.view.getEditor()).focus()
+                                core.view.editors.focusMain()
                                 this.props.deactivateMiniEditor();
                             }}
                             onCancel={() => {
-                                atom.views.getView(core.view.getEditor()).focus()
+                                core.view.editors.focusMain()
                                 this.props.deactivateMiniEditor();
                             }}
                         />
