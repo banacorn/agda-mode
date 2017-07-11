@@ -4,6 +4,8 @@ import * as Promise from 'bluebird';
 import * as classNames from 'classnames';
 
 import { parseInputContent } from '../../parser';
+import { TelePromise } from './../../util';
+import { QueryCancelled } from './../../error';
 
 // Atom shits
 type CompositeDisposable = any;
@@ -32,6 +34,7 @@ class MiniEditor extends React.Component<Props, State> {
     private subscriptions: CompositeDisposable;
     private ref: any;
     private observer: MutationObserver;
+    private queryTP: TelePromise<string>;
 
     constructor() {
         super();
@@ -39,6 +42,8 @@ class MiniEditor extends React.Component<Props, State> {
         this.state = {
             focused: false
         }
+        this.queryTP = new TelePromise;
+
     }
 
     observeFocus() {
@@ -85,10 +90,14 @@ class MiniEditor extends React.Component<Props, State> {
             const payload = parseInputContent(this.ref.getModel().getText());
             if (this.props.onConfirm)
                 this.props.onConfirm(payload);
+            // resolve TelePromise for queries
+            this.queryTP.resolve(payload);
         }));
         this.subscriptions.add(atom.commands.add(this.ref, 'core:cancel', () => {
             if (this.props.onCancel)
                 this.props.onCancel();
+            // reject TelePromise for queries
+            this.queryTP.reject(new QueryCancelled);
         }));
 
         // observe 'focus'
@@ -130,6 +139,10 @@ class MiniEditor extends React.Component<Props, State> {
     activate() {
         this.focus();
         this.select();
+    }
+
+    query(): Promise<string> {
+        return new Promise(this.queryTP.wire());
     }
 
     render() {

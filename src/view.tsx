@@ -21,7 +21,6 @@ import * as Action from "./view/actions";
 import { parseJudgements, parseError } from './parser';
 import { updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
 import PaneItem from './view/pane-item';
-import { TelePromise } from './util';
 
 // Atom shits
 type CompositeDisposable = any;
@@ -37,8 +36,6 @@ export default class View {
         general: MiniEditor;
         connection: MiniEditor;
     };
-    public queryTP: TelePromise<string>;
-    public connectionInquisitorTP: TelePromise<string>;
     private mountingPosition: HTMLElement;
     private bottomPanel: any;
     private settingsViewElement: HTMLElement;
@@ -61,10 +58,6 @@ export default class View {
         this.emitter.on(EVENT.JUMP_TO_LOCATION, (loc: Location) => {
             this.core.textBuffer.jumpToLocation(loc);
         });
-
-        // TelePromises
-        this.queryTP = new TelePromise;
-        this.connectionInquisitorTP = new TelePromise;
 
         // view pane item
         this.viewPaneItem = new PaneItem(this.editor, 'view');
@@ -298,7 +291,7 @@ export default class View {
         }));
         this.miniEditors.general.activate();
 
-        return new Promise(this.queryTP.wire());
+        return this.miniEditors.general.query();
     }
 
     queryConnection(): Promise<string> {
@@ -310,8 +303,7 @@ export default class View {
         }));
         // activate the connection query
         this.miniEditors.connection.activate();
-        // return a promise that get resolved when when the query is complete
-        return new Promise(this.connectionInquisitorTP.wire());
+        return this.miniEditors.connection.query();
     }
 
     toggleDocking(): Promise<{}> {
