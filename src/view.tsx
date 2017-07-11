@@ -33,7 +33,10 @@ export default class View {
     private subscriptions: CompositeDisposable;
     private editor: any;
     public store: Redux.Store<V.State>;
-    public miniEditor: MiniEditor;
+    public miniEditors: {
+        general: MiniEditor;
+        connection: MiniEditor;
+    };
     public queryTP: TelePromise<string>;
     public connectionInquisitorTP: TelePromise<string>;
     private mountingPosition: HTMLElement;
@@ -143,9 +146,9 @@ export default class View {
     }
 
     getFocusedEditor(): any {
-        const miniEditorFocused = this.miniEditor && this.miniEditor.isFocused();
-        if (miniEditorFocused)
-            return this.miniEditor.getModel();
+        const generalMEFocused = this.miniEditors.general && this.miniEditors.general.isFocused();
+        if (generalMEFocused)
+            return this.miniEditors.general.getModel();
         else
             return this.editor;
     }
@@ -293,7 +296,7 @@ export default class View {
             text: header,
             style: type
         }));
-        this.miniEditor.activate();
+        this.miniEditors.general.activate();
 
         return new Promise(this.queryTP.wire());
     }
@@ -305,6 +308,8 @@ export default class View {
             text: "Oh no!!",
             style: V.Style.Warning
         }));
+        // activate the connection query 
+        this.miniEditors.connection.activate();
         // return a promise that get resolved when when the query is complete
         return new Promise(this.connectionInquisitorTP.wire());
     }

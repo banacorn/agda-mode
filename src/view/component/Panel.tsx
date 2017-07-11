@@ -99,7 +99,7 @@ class Panel extends React.Component<Props, void> {
                         data-grammar="source agda"
                         ref={(ref) => {
                             if (ref)
-                                core.view.miniEditor = ref;
+                                core.view.miniEditors.general = ref;
                         }}
                         onConfirm={(result) => {
                             this.props.handelQueryValueChange(result);
@@ -120,6 +120,10 @@ class Panel extends React.Component<Props, void> {
                             Unable to find Agda on your machine, please enter the path of Agda manually.
                         </p>
                         <MiniEditor
+                            ref={(ref) => {
+                                if (ref)
+                                    core.view.miniEditors.connection = ref;
+                            }}
                             onConfirm={(path) => {
                                 core.view.connectionInquisitorTP.resolve(path);
                                 atom.views.getView(core.view.getEditor()).focus()
