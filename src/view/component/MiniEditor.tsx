@@ -91,10 +91,6 @@ class MiniEditor extends React.Component<Props, State> {
                 this.props.onCancel();
         }));
 
-        // focus and select on did mount
-        this.focus();
-        this.select();
-
         // observe 'focus'
         this.observeFocus();
 
@@ -113,13 +109,13 @@ class MiniEditor extends React.Component<Props, State> {
     }
 
     // focus on the input box (with setTimeout quirk)
-    private focus() {
+    focus() {
         setTimeout(() => {
             this.ref.focus();
         });
     }
 
-    private select() {
+    select() {
         this.ref.getModel().selectAll();
     }
 
@@ -129,6 +125,11 @@ class MiniEditor extends React.Component<Props, State> {
 
     getModel() {
         return this.ref.getModel();
+    }
+
+    activate() {
+        this.focus();
+        this.select();
     }
 
     render() {

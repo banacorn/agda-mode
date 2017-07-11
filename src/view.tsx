@@ -293,6 +293,7 @@ export default class View {
             text: header,
             style: type
         }));
+        this.miniEditor.activate();
 
         return new Promise(this.queryTP.wire());
     }

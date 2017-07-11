@@ -47,67 +47,18 @@ function mapDispatchToProps(dispatch): DispatchProps {
     };
 }
 
+function show(kind: View.Mode, mode: View.Mode, ...classes): string {
+    return classNames({
+        'hidden': kind !== mode,
+        ...classes
+    })
+}
+
 class Panel extends React.Component<Props, void> {
     render() {
-        const { core, emitter, onResize, handelQueryValueChange } = this.props;
+        const { core, emitter, mode, onResize, handelQueryValueChange } = this.props;
         const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
-        let body;
-        switch (this.props.mode) {
-            case View.Mode.Display:
-                body =
-                    <Body
-                        emitter={emitter}
-                    />;
-                break;
-            case View.Mode.Query:
-                body =
-                    <MiniEditor
-                        placeholder={this.props.query.placeholder}
-                        data-grammar="source agda"
-                        ref={(ref) => {
-                            if (ref)
-                                core.view.miniEditor = ref;
-                        }}
-                        onConfirm={(result) => {
-                            core.view.queryTP.resolve(result);
-                            this.setState({
-
-                            })
-                            atom.views.getView(core.view.getEditor()).focus()
-                            this.props.deactivateMiniEditor();
-                        }}
-                        onCancel={() => {
-                            core.view.queryTP.reject(new QueryCancelled);
-                            atom.views.getView(core.view.getEditor()).focus()
-                            this.props.deactivateMiniEditor();
-                        }}
-                    />
-                break;
-            case View.Mode.InquireConnection:
-                body =
-                    <div>
-                        <p>
-                            Unable to find Agda on your machine, please enter the path of Agda manually.
-                        </p>
-                        <MiniEditor
-                            value={this.props.query.value}
-                            onConfirm={(path) => {
-                                this.props.handelQueryValueChange(path);
-                                core.view.connectionInquisitorTP.resolve(path);
-                                atom.views.getView(core.view.getEditor()).focus()
-                                this.props.deactivateMiniEditor();
-                            }}
-                            onCancel={() => {
-                                core.view.connectionInquisitorTP.reject(new NoConnectionGiven);
-                                atom.views.getView(core.view.getEditor()).focus()
-                                this.props.deactivateMiniEditor();
-                            }}
-                        />
-                    </div>
-                break;
-
-        }
         return (
             <section className={hideEverything}>
                 <section className="panel-heading agda-header-container">
@@ -137,7 +88,50 @@ class Panel extends React.Component<Props, void> {
                     />
                 </section>
                 <section className="agda-body-container">
-                    {body}
+                    <Body
+                        className={show(View.Mode.Display, mode)}
+                        emitter={emitter}
+                    />
+                    <MiniEditor
+                        className={show(View.Mode.Query, mode)}
+                        value={this.props.query.value}
+                        placeholder={this.props.query.placeholder}
+                        data-grammar="source agda"
+                        ref={(ref) => {
+                            if (ref)
+                                core.view.miniEditor = ref;
+                        }}
+                        onConfirm={(result) => {
+                            this.props.handelQueryValueChange(result);
+                            core.view.queryTP.resolve(result);
+                            atom.views.getView(core.view.getEditor()).focus()
+                            this.props.deactivateMiniEditor();
+                        }}
+                        onCancel={() => {
+                            core.view.queryTP.reject(new QueryCancelled);
+                            atom.views.getView(core.view.getEditor()).focus()
+                            this.props.deactivateMiniEditor();
+                        }}
+                    />
+                    <div
+                        className={show(View.Mode.InquireConnection, mode)}
+                    >
+                        <p>
+                            Unable to find Agda on your machine, please enter the path of Agda manually.
+                        </p>
+                        <MiniEditor
+                            onConfirm={(path) => {
+                                core.view.connectionInquisitorTP.resolve(path);
+                                atom.views.getView(core.view.getEditor()).focus()
+                                this.props.deactivateMiniEditor();
+                            }}
+                            onCancel={() => {
+                                core.view.connectionInquisitorTP.reject(new NoConnectionGiven);
+                                atom.views.getView(core.view.getEditor()).focus()
+                                this.props.deactivateMiniEditor();
+                            }}
+                        />
+                    </div>
                 </section>
             </section>
         )
