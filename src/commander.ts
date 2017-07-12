@@ -429,10 +429,10 @@ export default class Commander {
     }
 
     inputSymbol(): Promise<{}> {
-        const enableInMiniEditor = this.core.view.store.getState().inputMethod.enableInMiniEditor;
-        const miniEditorFocused = this.core.view.editors.general && this.core.view.editors.general.isFocused();
-        const shouldNotActivate = miniEditorFocused && !enableInMiniEditor;
-        const editor = this.core.view.editors.getFocusedEditor();
+        // const miniEditorFocused = this.core.view.editors.general && this.core.view.editors.general.isFocused();
+        // const shouldNotActivate = miniEditorFocused && !enableInMiniEditor;
+
+        const shouldNotActivate = this.core.view.editors.focused() === 'connection';
         if (atom.config.get('agda-mode.inputMethod') && !shouldNotActivate) {
             if (!this.loaded) {
                 const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
@@ -442,7 +442,7 @@ export default class Commander {
             }
             this.core.inputMethod.activate();
         } else {
-            editor.insertText('\\');
+            this.core.view.editors.getFocusedEditorElement().insertText('\\');
         }
         return Promise.resolve({});
     }

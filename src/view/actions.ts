@@ -191,7 +191,6 @@ export type INPUT_METHOD = INPUT_METHOD.ACTIVATE
     | INPUT_METHOD.INSERT
     | INPUT_METHOD.DELETE
     | INPUT_METHOD.REPLACE_SYMBOL
-    | INPUT_METHOD.ENABLE_IN_MINI_EDITOR
 
 export namespace INPUT_METHOD {
     export const ACTIVATE = 'INPUT_METHOD.ACTIVATE';
@@ -204,15 +203,12 @@ export namespace INPUT_METHOD {
     export type DELETE = void;
     export const REPLACE_SYMBOL = 'INPUT_METHOD.REPLACE_SYMBOL';
     export type REPLACE_SYMBOL = string;
-    export const ENABLE_IN_MINI_EDITOR = 'INPUT_METHOD.ENABLE_IN_MINI_EDITOR';
-    export type ENABLE_IN_MINI_EDITOR = boolean;
 
     export const activate = createAction(INPUT_METHOD.ACTIVATE);
     export const deactivate = createAction(INPUT_METHOD.DEACTIVATE);
     export const insertChar = createAction(INPUT_METHOD.INSERT);
     export const deleteChar = createAction(INPUT_METHOD.DELETE);
     export const replaceSymbol = createAction(INPUT_METHOD.REPLACE_SYMBOL);
-    export const enableInMiniEditor = createAction(INPUT_METHOD.ENABLE_IN_MINI_EDITOR);
 }
 
 

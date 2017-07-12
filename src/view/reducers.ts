@@ -43,7 +43,6 @@ const defaultState: View.State = {
         style: View.Style.PlainText
     },
     inputMethod: {
-        enableInMiniEditor: true,
         activated: false,
         buffer: '',
         translation, further, keySuggestions, candidateSymbols
@@ -183,9 +182,6 @@ const inputMethod = handleActions<View.InputMethodState, INPUT_METHOD>({
         const { translation, further, keySuggestions, candidateSymbols } = translate(buffer);
         return ({ ...state, buffer, translation, further, keySuggestions, candidateSymbols });
     },
-    [INPUT_METHOD.ENABLE_IN_MINI_EDITOR]: (state, action: Action<INPUT_METHOD.ENABLE_IN_MINI_EDITOR>) => ({ ...state,
-        enableInMiniEditor: action.payload
-    })
 }, defaultState.inputMethod);
 
 const header = handleActions<View.HeaderState, HEADER>({

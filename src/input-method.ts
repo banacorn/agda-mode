@@ -138,7 +138,7 @@ export default class InputMethod {
             // initializations
             this.activated = true;
 
-            this.editor = this.core.view.editors.getFocusedEditor();
+            this.editor = this.core.view.editors.getFocusedEditorElement();
 
             // add class 'agda-mode-input-method-activated'
             const editorElement = atom.views.getView(this.editor);

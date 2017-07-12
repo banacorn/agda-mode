@@ -74,12 +74,12 @@ class Panel extends React.Component<Props, void> {
                         updateTranslation={(c) => core.inputMethod.replaceBuffer(c)}
                         insertCharacter={(c) => {
                             core.inputMethod.insertCharToBuffer(c);
-                            core.view.editors.focusMain()
+                            core.view.editors.focus('main')
                         }}
                         chooseSymbol={(c) => {
                             core.inputMethod.replaceBuffer(c);
                             core.inputMethod.deactivate();
-                            core.view.editors.focusMain()
+                            core.view.editors.focus('main')
                         }}
                     />
                     <Header
@@ -102,11 +102,11 @@ class Panel extends React.Component<Props, void> {
                         }}
                         onConfirm={(result) => {
                             this.props.handelQueryValueChange(result);
-                            core.view.editors.focusMain()
+                            core.view.editors.focus('main')
                             this.props.deactivateMiniEditor();
                         }}
                         onCancel={() => {
-                            core.view.editors.focusMain()
+                            core.view.editors.focus('main')
                             this.props.deactivateMiniEditor();
                         }}
                     />
@@ -122,11 +122,11 @@ class Panel extends React.Component<Props, void> {
                                     core.view.editors.connection = ref;
                             }}
                             onConfirm={(path) => {
-                                core.view.editors.focusMain()
+                                core.view.editors.focus('main')
                                 this.props.deactivateMiniEditor();
                             }}
                             onCancel={() => {
-                                core.view.editors.focusMain()
+                                core.view.editors.focus('main')
                                 this.props.deactivateMiniEditor();
                             }}
                         />

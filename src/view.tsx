@@ -34,21 +34,36 @@ class EditorManager {
     connection: MiniEditor;
 
     constructor(main: Editor) {
-        this.main = main;
+        this.main = atom.views.getView(main);
     }
 
-    focusMain() {
-        atom.views.getView(this.main).focus();
+    // focus the specified editor
+    focus(editor: 'main' | 'general' | 'connection') {
+        switch (editor) {
+            case 'main':
+                this.main.focus();
+                break;
+            case 'general':
+                this.general && this.general.focus();
+                break;
+            case 'connection':
+                this.connection && this.connection.focus();
+                break;
+        }
     }
 
-    getFocusedEditor() {
+    // tells which editor is focused
+    focused(): 'main' | 'general' | 'connection' {
         if (this.general && this.general.isFocused())
-            return this.general.getModel();
-
+            return 'general';
         if (this.connection && this.connection.isFocused())
-            return this.connection.getModel();
+            return 'connection';
+        return 'main';
+    }
 
-        return this.main.getModel();
+    // get the element of the focused editor
+    getFocusedEditorElement() {
+        return this[this.focused()].getModel();
     }
 }
 
@@ -241,7 +256,7 @@ export default class View {
 
     set(header: string, payload: string[], type = V.Style.PlainText) {
         this.store.dispatch(Action.MODE.display());
-        this.editors.focusMain()
+        this.editors.focus('main')
 
         this.store.dispatch(Action.HEADER.update({
             text: header,
@@ -254,7 +269,7 @@ export default class View {
     setError(error: Error) {
 
         this.store.dispatch(Action.MODE.display());
-        this.editors.focusMain()
+        this.editors.focus('main')
 
         this.store.dispatch(Action.HEADER.update({
             text: 'Error',
@@ -272,7 +287,7 @@ export default class View {
 
     setJudgements(header: string = 'Judgements', { banner, body }: V.Judgements) {
         this.store.dispatch(Action.MODE.display());
-        this.editors.focusMain()
+        this.editors.focus('main')
 
         this.store.dispatch(Action.HEADER.update({
             text: header,
@@ -293,7 +308,6 @@ export default class View {
 
 
     query(header: string = '', message: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {
-        this.store.dispatch(Action.INPUT_METHOD.enableInMiniEditor(inputMethodOn));
         this.store.dispatch(Action.QUERY.setPlaceholder(placeholder));
         this.store.dispatch(Action.MODE.query());
         this.store.dispatch(Action.HEADER.update({
