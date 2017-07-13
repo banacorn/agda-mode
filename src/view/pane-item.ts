@@ -9,7 +9,8 @@ declare var atom: any;
 
 // Events
 export const OPEN = 'OPEN';
-export const CLOSE = 'CLOSE';
+export const CLOSE = 'CLOSE';   // deliberately closing the pane item
+export const KILL = 'KILL';     //  unintentionally destroying the pane item
 
 export default class PaneItem {
     private emitter: EventEmitter;
@@ -95,7 +96,11 @@ export default class PaneItem {
                 this.subscriptions.add(currentPane.onWillDestroyItem(event => {
                     if (this.paneItem && event.item.getURI() === this.getURI()) {
                         this.paneItem = null;
-                        this.emitter.emit(CLOSE, paneItem, this.closedDeliberately);
+                        if (this.closedDeliberately) {
+                            this.emitter.emit(CLOSE, paneItem);
+                        } else {
+                            this.emitter.emit(KILL, paneItem);
+                        }
                         // reset flags
                         this.closedDeliberately = false;
                     }
@@ -134,7 +139,11 @@ export default class PaneItem {
 
     }
 
-    // events
+    ////////////////////////////////////
+    //  Events
+    ////////////////////////////////////
+
+
     onOpen(callback: (any, panes?: {
         previous: any,
         current: any
@@ -142,7 +151,11 @@ export default class PaneItem {
         this.emitter.on(OPEN, callback);
     }
 
-    onClose(callback: (any, boolean?) => void) {
+    onClose(callback: (any) => void) {
         this.emitter.on(CLOSE, callback);
+    }
+
+    onKill(callback: (any) => void) {
+        this.emitter.on(KILL, callback);
     }
 }

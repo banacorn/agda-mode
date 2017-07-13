@@ -67,11 +67,16 @@ class EditorManager {
     }
 }
 
+class PaneManager {
+
+}
+
 export default class View {
     private emitter: EventEmitter;
     private subscriptions: CompositeDisposable;
     public store: Redux.Store<V.State>;
-    public editors: EditorManager
+    public editors: EditorManager;
+    public panes: PaneManager;
     private mountingPosition: HTMLElement;
     private bottomPanel: any;
     private settingsViewElement: HTMLElement;
@@ -88,6 +93,9 @@ export default class View {
 
         // editors
         this.editors = new EditorManager(core.editor);
+
+        //  panes
+        this.panes = new PaneManager;
 
         // global events
         this.emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
@@ -108,13 +116,10 @@ export default class View {
             this.render();
         });
 
-        this.viewPaneItem.onClose((paneItem, closedDeliberately) => {
-            // console.log(`[${this.editor.id}] ${paneItem.getURI()} closed ${closedDeliberately ? 'deliberately' : 'by atom'}`)
-            if (closedDeliberately === false) {
-                this.store.dispatch(Action.VIEW.mountAtBottom());
-                this.unmount(V.MountingPosition.Pane);
-                this.mount(V.MountingPosition.Bottom);
-            }
+        this.viewPaneItem.onKill(paneItem => {
+            this.store.dispatch(Action.VIEW.mountAtBottom());
+            this.unmount(V.MountingPosition.Pane);
+            this.mount(V.MountingPosition.Bottom);
         });
 
         // initialize settings view
@@ -129,10 +134,8 @@ export default class View {
 
             this.renderSettingsView()
         });
-        this.settingsViewPaneItem.onClose((paneItem, closedDeliberately) => {
-            if (closedDeliberately === false) {
-                this.store.dispatch(Action.VIEW.toggleSettings());
-            }
+        this.settingsViewPaneItem.onKill(paneItem => {
+            this.store.dispatch(Action.VIEW.toggleSettings());
         });
     }
 
