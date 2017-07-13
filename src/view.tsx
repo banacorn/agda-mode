@@ -98,7 +98,7 @@ export default class View {
         });
 
         // view pane item
-        this.viewPaneItem = new PaneItem(this.editors.main, 'view');
+        this.viewPaneItem = new PaneItem(this.editors.main.getModel(), 'view');
         this.viewPaneItem.onOpen((paneItem, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
@@ -118,14 +118,13 @@ export default class View {
         });
 
         // initialize settings view
-        this.settingsViewPaneItem = new PaneItem(this.editors.main, 'settings', () => {
-            const { name } = path.parse(this.editors.main.getPath());
+        this.settingsViewPaneItem = new PaneItem(this.editors.main.getModel(), 'settings', () => {
+            const { name } = path.parse(this.editors.main.getModel().getPath());
             return `[Settings] ${name}`
         });
         this.settingsViewPaneItem.onOpen((paneItem, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
-
             this.settingsViewElement = paneItem;
 
             this.renderSettingsView()
