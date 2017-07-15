@@ -141,7 +141,7 @@ export default class Commander {
     load(): Promise<{}> {
         // activate the view
         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
-        this.core.view.mount(currentMountingPosition);
+        this.core.view.mountPanel(currentMountingPosition);
         this.core.view.activate();
 
 
@@ -159,7 +159,7 @@ export default class Commander {
     quit(): Promise<{}> {
         this.core.view.deactivate();
         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
-        this.core.view.unmount(currentMountingPosition);
+        this.core.view.unmountPanel(currentMountingPosition);
         if (this.loaded) {
             this.loaded = false;
             this.core.textBuffer.removeGoals();
@@ -436,7 +436,7 @@ export default class Commander {
         if (atom.config.get('agda-mode.inputMethod') && !shouldNotActivate) {
             if (!this.loaded) {
                 const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
-                this.core.view.mount(currentMountingPosition);
+                this.core.view.mountPanel(currentMountingPosition);
                 this.core.view.activate();
                 this.core.view.set('Not loaded', [], View.Style.PlainText);
             }

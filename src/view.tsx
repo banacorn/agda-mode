@@ -77,7 +77,7 @@ export default class View {
     public store: Redux.Store<V.State>;
     public editors: EditorManager;
     public panes: PaneManager;
-    private mountingPosition: HTMLElement;
+    private panelViewElement: HTMLElement;
     private bottomPanel: any;
     private settingsViewElement: HTMLElement;
     private viewPaneItem: PaneItem;
@@ -88,7 +88,17 @@ export default class View {
             reducer,
             applyMiddleware(ReduxThunk)
         );
+
+        // global events
         this.emitter = new EventEmitter;
+        this.emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
+            this.core.textBuffer.jumpToGoal(index);
+        });
+        this.emitter.on(EVENT.JUMP_TO_LOCATION, (loc: Location) => {
+            this.core.textBuffer.jumpToLocation(loc);
+        });
+
+        // the event emitter garbage collector
         this.subscriptions = new CompositeDisposable;
 
         // editors
@@ -97,29 +107,21 @@ export default class View {
         //  panes
         this.panes = new PaneManager;
 
-        // global events
-        this.emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
-            this.core.textBuffer.jumpToGoal(index);
-        });
-        this.emitter.on(EVENT.JUMP_TO_LOCATION, (loc: Location) => {
-            this.core.textBuffer.jumpToLocation(loc);
-        });
-
         // view pane item
         this.viewPaneItem = new PaneItem(this.editors.main.getModel(), 'view');
         this.viewPaneItem.onOpen((paneItem, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
             // mounting position
-            this.mountingPosition = paneItem;
+            this.panelViewElement = paneItem;
             // render
-            this.render();
+            this.renderPanel();
         });
 
         this.viewPaneItem.onKill(paneItem => {
             this.store.dispatch(Action.VIEW.mountAtBottom());
-            this.unmount(V.MountingPosition.Pane);
-            this.mount(V.MountingPosition.Bottom);
+            this.unmountPanel(V.MountingPosition.Pane);
+            this.mountPanel(V.MountingPosition.Bottom);
         });
 
         // initialize settings view
@@ -144,9 +146,9 @@ export default class View {
     }
 
 
-    private render() {
-        if (this.mountingPosition === null) {
-            console.error(`this.mountingPosition === null`)
+    private renderPanel() {
+        if (this.panelViewElement === null) {
+            console.error(`this.panelViewElement === null`)
         }
         ReactDOM.render(
             <Provider store={this.store}>
@@ -155,7 +157,7 @@ export default class View {
                     emitter={this.emitter}
                 />
             </Provider>,
-            this.mountingPosition
+            this.panelViewElement
         )
     }
 
@@ -174,7 +176,7 @@ export default class View {
         )
     }
 
-    mount(mountAt: V.MountingPosition) {
+    mountPanel(mountAt: V.MountingPosition) {
         if (!this.state().mounted) {
             // console.log(`[${this.editor.id}] %cmount at ${toText(mountAt)}`, 'color: green')
             // Redux
@@ -183,14 +185,14 @@ export default class View {
             switch (mountAt) {
                 case V.MountingPosition.Bottom:
                     // mounting position
-                    this.mountingPosition = document.createElement('article');
+                    this.panelViewElement = document.createElement('article');
                     this.bottomPanel = atom.workspace.addBottomPanel({
-                        item: this.mountingPosition,
+                        item: this.panelViewElement,
                         visible: true,
                         className: 'agda-mode'
                     });
                     // render
-                    this.render();
+                    this.renderPanel();
                     break;
                 case V.MountingPosition.Pane:
                     this.viewPaneItem.open()
@@ -201,7 +203,7 @@ export default class View {
         }
     }
 
-    unmount(mountAt: V.MountingPosition) {
+    unmountPanel(mountAt: V.MountingPosition) {
         if (this.state().mounted) {
             // console.log(`[${this.editor.id}] %cunmount at ${toText(mountAt)}`, 'color: orange')
             // Redux
@@ -220,9 +222,9 @@ export default class View {
             }
 
             // React
-            ReactDOM.unmountComponentAtNode(this.mountingPosition);
+            ReactDOM.unmountComponentAtNode(this.panelViewElement);
             // mounting position
-            this.mountingPosition = null;
+            this.panelViewElement = null;
         }
     }
 
@@ -251,7 +253,7 @@ export default class View {
     // destructor
     destroy() {
         // console.log(`[${this.uri.substr(12)}] %cdestroy`, 'color: red');
-        this.unmount(this.state().mountAt.current);
+        this.unmountPanel(this.state().mountAt.current);
         this.subscriptions.dispose();
         this.viewPaneItem.destroy();
     }
@@ -337,13 +339,13 @@ export default class View {
         switch (this.state().mountAt.current) {
             case V.MountingPosition.Bottom:
                 this.store.dispatch(Action.VIEW.mountAtPane());
-                this.unmount(V.MountingPosition.Bottom);
-                this.mount(V.MountingPosition.Pane);
+                this.unmountPanel(V.MountingPosition.Bottom);
+                this.mountPanel(V.MountingPosition.Pane);
                 break;
             case V.MountingPosition.Pane:
                 this.store.dispatch(Action.VIEW.mountAtBottom());
-                this.unmount(V.MountingPosition.Pane);
-                this.mount(V.MountingPosition.Bottom);
+                this.unmountPanel(V.MountingPosition.Pane);
+                this.mountPanel(V.MountingPosition.Bottom);
                 break;
             default:
                 // do nothing
