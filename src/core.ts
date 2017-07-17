@@ -74,11 +74,11 @@ export default class Core {
     // Editor Events
 
     activate() {
-        this.view.activate();
+        this.view.activatePanel();
     }
 
     deactivate() {
-        this.view.deactivate();
+        this.view.activatePanel();
     }
 
     destroy() {

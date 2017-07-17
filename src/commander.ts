@@ -142,7 +142,7 @@ export default class Commander {
         // activate the view
         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
         this.core.view.mountPanel(currentMountingPosition);
-        this.core.view.activate();
+        this.core.view.activatePanel();
 
 
         return this.core.connector
@@ -157,7 +157,7 @@ export default class Commander {
     }
 
     quit(): Promise<{}> {
-        this.core.view.deactivate();
+        this.core.view.deactivatePanel();
         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
         this.core.view.unmountPanel(currentMountingPosition);
         if (this.loaded) {
@@ -437,7 +437,7 @@ export default class Commander {
             if (!this.loaded) {
                 const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
                 this.core.view.mountPanel(currentMountingPosition);
-                this.core.view.activate();
+                this.core.view.activatePanel();
                 this.core.view.set('Not loaded', [], View.Style.PlainText);
             }
             this.core.inputMethod.activate();

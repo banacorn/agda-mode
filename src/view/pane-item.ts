@@ -74,14 +74,20 @@ export default class PaneItem {
         return `agda-mode://${this.editor.id}/${this.name}`
     }
 
-    open(options = {
-        searchAllPanes: true,
-        split: 'right'
-    }) {
+    getPaneItem = () : any => {
+        return this.paneItem;
+    }
+
+    open(): Promise<any> {
+        let options = {
+            searchAllPanes: true,
+            split: 'right'
+        };
         const uri = this.getURI();
         const previousActivePane = atom.workspace.getActivePane();
 
-        atom.workspace.open(uri, options).then(paneItem => {
+        // pane not specified, open a new pane
+        return atom.workspace.open(uri, options).then(paneItem => {
             this.paneItem = paneItem;
 
             const currentPane = atom.workspace.paneForItem(paneItem);
@@ -106,7 +112,10 @@ export default class PaneItem {
                     }
                 }));
             }
-        })
+
+            // pass it down the promise
+            return paneItem;
+        });
     }
 
     // idempotent, invoking PaneItem::close the second time won't have any effects

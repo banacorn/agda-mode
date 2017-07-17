@@ -67,8 +67,11 @@ class EditorManager {
     }
 }
 
-class PaneManager {
-
+class PanelManager {
+    private store: Redux.Store<V.State>;
+    constructor(store) {
+        this.store = store;
+    }
 }
 
 export default class View {
@@ -76,11 +79,11 @@ export default class View {
     private subscriptions: CompositeDisposable;
     public store: Redux.Store<V.State>;
     public editors: EditorManager;
-    public panes: PaneManager;
+    public panel: PanelManager;
     private panelViewElement: HTMLElement;
     private bottomPanel: any;
     private settingsViewElement: HTMLElement;
-    private viewPaneItem: PaneItem;
+    public viewPaneItem: PaneItem;
     public settingsViewPaneItem: PaneItem;
 
     constructor(private core: Core) {
@@ -104,8 +107,8 @@ export default class View {
         // editors
         this.editors = new EditorManager(core.editor);
 
-        //  panes
-        this.panes = new PaneManager;
+        // the main panel
+        this.panel = new PanelManager(this.store);
 
         // view pane item
         this.viewPaneItem = new PaneItem(this.editors.main.getModel(), 'view');
@@ -228,7 +231,7 @@ export default class View {
         }
     }
 
-    activate() {
+    activatePanel() {
         setTimeout(() => {
             this.store.dispatch(Action.VIEW.activate());
         })
@@ -245,7 +248,7 @@ export default class View {
         }
     }
 
-    deactivate() {
+    deactivatePanel() {
         // console.log(`[${this.uri.substr(12)}] %cdeactivated`, 'color: purple')
         this.store.dispatch(Action.VIEW.deactivate());
     }
