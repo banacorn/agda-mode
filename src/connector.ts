@@ -88,10 +88,8 @@ export default class Connector {
     // connect with the selected ConnectionInfo
     connect(): Promise<Connection> {
         if (!this.selected) {
-            console.log('no existing selections')
             return getExistingConnectionInfo()
                 .then(selected => {
-                    console.log(`selected`, selected)
                     this.selected = selected;
                     return connect(this.selected, this.core.getPath())
                         .then(this.wire);
@@ -115,11 +113,9 @@ export default class Connector {
 
         // only recoonect when the selected is different from the connected
         if (this.connection && this.connection.guid === this.selected.guid) {
-            console.log('using the cached connection')
             // there's no need of re-establish a new connection
             return Promise.resolve(this.connection);
         } else {
-            console.log('estalibsh and switch to a new connection')
             // cut the old connection
             this.disconnect();
             // and establish a new one

@@ -93,7 +93,6 @@ export default class TextBuffer {
     }
 
     warnOutOfGoal() {
-        console.log('beep', this)
         this.core.view.set('Out of goal', ['For this command, please place the cursor in a goal'], View.Style.Warning);
     }
 
