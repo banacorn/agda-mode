@@ -74,11 +74,11 @@ export default class PaneItem {
         return `agda-mode://${this.editor.id}/${this.name}`
     }
 
-    getPaneItem = () : any => {
-        return this.paneItem;
+    getPane = () : any => {
+        return atom.workspace.paneForItem(this.paneItem);
     }
 
-    open(): Promise<any> {
+    open(atPane?: any): Promise<any> {
         let options = {
             searchAllPanes: true,
             split: 'right'
@@ -86,7 +86,6 @@ export default class PaneItem {
         const uri = this.getURI();
         const previousActivePane = atom.workspace.getActivePane();
 
-        // pane not specified, open a new pane
         return atom.workspace.open(uri, options).then(paneItem => {
             this.paneItem = paneItem;
 
@@ -111,6 +110,12 @@ export default class PaneItem {
                         this.closedDeliberately = false;
                     }
                 }));
+            }
+
+            // move to the specified pane (if any) and remain activated
+            if (atPane) {
+                this.getPane().moveItemToPane(paneItem, atPane, 1)
+                this.activate();
             }
 
             // pass it down the promise

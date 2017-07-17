@@ -97,16 +97,9 @@ class Dashboard extends React.Component<Props, void> {
                             if (settingsView) {
                                 core.view.settingsViewPaneItem.close();
                             } else {
-                                core.view.settingsViewPaneItem.open()
-                                    .then(paneItem => {
-                                        const paneOfPanel = atom.workspace.paneForItem(core.view.viewPaneItem.getPaneItem());
-                                        const paneOfSettings = atom.workspace.paneForItem(core.view.settingsViewPaneItem.getPaneItem());
-                                        // if the pane of panel is already opened, move the pane item of settings there and activate it
-                                        if (paneOfPanel) {
-                                            paneOfSettings.moveItemToPane(paneItem, paneOfPanel, 1)
-                                            paneOfPanel.activateItemForURI(core.view.settingsViewPaneItem.getURI());
-                                        }
-                                    })
+                                core.view.settingsViewPaneItem.open(
+                                    core.view.viewPaneItem.getPane()
+                                );
                             }
                         }}
                         ref={(ref) => {
