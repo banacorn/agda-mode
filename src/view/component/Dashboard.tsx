@@ -95,10 +95,10 @@ class Dashboard extends React.Component<Props, void> {
                         onClick={() => {
                             handleToggleSettingsView()
                             if (settingsView) {
-                                core.view.settingsViewPaneItem.close();
+                                core.view.settingsPI.close();
                             } else {
-                                core.view.settingsViewPaneItem.open(
-                                    core.view.viewPaneItem.getPane()
+                                core.view.settingsPI.open(
+                                    core.view.panelPI.getPane()
                                 );
                             }
                         }}
