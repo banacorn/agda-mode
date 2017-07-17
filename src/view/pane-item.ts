@@ -88,18 +88,26 @@ export default class PaneItem {
 
         return atom.workspace.open(uri, options).then(paneItem => {
             this.paneItem = paneItem;
+            // move to the specified pane (if any) and remain activated
+            if (atPane) {
+                this.getPane().moveItemToPane(paneItem, atPane, 1)
 
-            const currentPane = atom.workspace.paneForItem(paneItem);
+                setTimeout(() => {
+                    this.activate();
+                });
+            }
+
+            const pane = this.getPane();
             // on open
             this.emitter.emit(OPEN, paneItem, {
                 previous: previousActivePane,
-                current: currentPane
+                current: pane
             });
 
             // on destroy
-            if (currentPane) {
-                this.subscriptions.add(currentPane.onWillDestroyItem(event => {
-                    if (this.paneItem && event.item.getURI() === this.getURI()) {
+            if (pane) {
+                this.subscriptions.add(pane.onWillDestroyItem(event => {
+                    if (this.paneItem && event.item.getURI() === uri) {
                         this.paneItem = null;
                         if (this.closedDeliberately) {
                             this.emitter.emit(CLOSE, paneItem);
@@ -112,12 +120,6 @@ export default class PaneItem {
                 }));
             }
 
-            // move to the specified pane (if any) and remain activated
-            if (atPane) {
-                this.getPane().moveItemToPane(paneItem, atPane, 1)
-                this.activate();
-            }
-
             // pass it down the promise
             return paneItem;
         });
@@ -127,7 +129,7 @@ export default class PaneItem {
     close() {
         if (this.paneItem) {
             this.closedDeliberately = true;
-            const pane = atom.workspace.paneForItem(this.paneItem);
+            const pane = this.getPane();
             if (pane)
                 pane.destroyItem(this.paneItem);
             this.paneItem = null;
@@ -136,15 +138,16 @@ export default class PaneItem {
 
     activate() {
         if (this.paneItem) {
-            const pane = atom.workspace.paneForItem(this.paneItem);
-            if (pane)
+            const pane = this.getPane();
+            if (pane) {
                 pane.activateItem(this.paneItem);
+            }
         }
     }
 
     isActive(): boolean {
         if (this.paneItem) {
-            const pane = atom.workspace.paneForItem(this.paneItem);
+            const pane = this.getPane();
             if (pane && pane.isActive()) {
                 return pane.getActiveItem().getURI() === this.getURI()
             }

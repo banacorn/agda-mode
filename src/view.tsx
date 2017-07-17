@@ -111,7 +111,7 @@ export default class View {
         this.panel = new PanelManager(this.store);
 
         // PaneItem for <Panel>
-        this.panelPI = new PaneItem(this.editors.main.getModel(), 'view');
+        this.panelPI = new PaneItem(this.editors.main.getModel(), 'panel');
         this.panelPI.onOpen((paneItem, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
