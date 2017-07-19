@@ -9,8 +9,8 @@ declare var atom: any;
 
 // Events
 export const OPEN = 'OPEN';
-export const CLOSE = 'CLOSE';   // deliberately closing the pane item
-export const KILL = 'KILL';     //  unintentionally destroying the pane item
+export const CLOSE = 'CLOSE';   // deliberately closing the tab
+export const KILL = 'KILL';     //  unintentionally destroying tab
 
 interface Item {
     element: HTMLElement;
@@ -19,11 +19,11 @@ interface Item {
     getDefaultLocation: () => string;
 };
 
-export default class PaneItem {
+export default class Tab {
     private emitter: EventEmitter;
     private subscriptions: CompositeDisposable;
 
-    // True if event CLOSE was invoked by PaneItem::close
+    // True if event CLOSE was invoked by close()
     private closedDeliberately: boolean;
 
     // null if closed
@@ -117,7 +117,7 @@ export default class PaneItem {
         });
     }
 
-    // idempotent, invoking PaneItem::close the second time won't have any effects
+    // idempotent, invoking close() the second time won't have any effects
     close() {
         if (this.item) {
             this.closedDeliberately = true;

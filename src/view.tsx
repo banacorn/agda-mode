@@ -20,7 +20,7 @@ import { EVENT } from "./view/actions";
 import * as Action from "./view/actions";
 import { parseJudgements, parseError } from './parser';
 import { updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
-import PaneItem from './view/pane-item';
+import Tab from './view/tab';
 
 // Atom shits
 type Editor = any;
@@ -83,8 +83,8 @@ export default class View {
     private panelViewElement: HTMLElement;
     private bottomPanel: any;
     private settingsViewElement: HTMLElement;
-    public panelPI: PaneItem;
-    public settingsPI: PaneItem;
+    public panelTab: Tab;
+    public settingsTab: Tab;
 
     constructor(private core: Core) {
         this.store = createStore(
@@ -110,9 +110,9 @@ export default class View {
         // the main panel
         this.panel = new PanelManager(this.store);
 
-        // PaneItem for <Panel>
-        this.panelPI = new PaneItem(this.editors.main.getModel(), 'panel');
-        this.panelPI.onOpen((paneItem, panes) => {
+        // Tab for <Panel>
+        this.panelTab = new Tab(this.editors.main.getModel(), 'panel');
+        this.panelTab.onOpen((paneItem, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
             // mounting position
@@ -121,25 +121,25 @@ export default class View {
             this.renderPanel();
         });
 
-        this.panelPI.onKill(paneItem => {
+        this.panelTab.onKill(paneItem => {
             this.store.dispatch(Action.VIEW.mountAtBottom());
             this.unmountPanel(V.MountingPosition.Pane);
             this.mountPanel(V.MountingPosition.Bottom);
         });
 
-        // PaneItem for <Settings>
-        this.settingsPI = new PaneItem(this.editors.main.getModel(), 'settings', () => {
+        // Tab for <Settings>
+        this.settingsTab = new Tab(this.editors.main.getModel(), 'settings', () => {
             const { name } = path.parse(this.editors.main.getModel().getPath());
             return `[Settings] ${name}`
         });
-        this.settingsPI.onOpen((paneItem, panes) => {
+        this.settingsTab.onOpen((paneItem, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
             this.settingsViewElement = paneItem.element;
 
             this.renderSettingsView()
         });
-        this.settingsPI.onKill(paneItem => {
+        this.settingsTab.onKill(paneItem => {
             this.store.dispatch(Action.VIEW.toggleSettings());
         });
     }
@@ -198,7 +198,7 @@ export default class View {
                     this.renderPanel();
                     break;
                 case V.MountingPosition.Pane:
-                    this.panelPI.open()
+                    this.panelTab.open()
                     break;
                 default:
                     console.error('no mounting position to transist to')
@@ -217,7 +217,7 @@ export default class View {
                     this.bottomPanel.destroy();
                     break;
                 case V.MountingPosition.Pane:
-                    this.panelPI.close()
+                    this.panelTab.close()
                     break;
                 default:
                     // do nothing
@@ -240,7 +240,7 @@ export default class View {
                 // do nothing
                 break;
             case V.MountingPosition.Pane:
-                this.panelPI.activate()
+                this.panelTab.activate()
                 break;
             default:
                 // do nothing
@@ -258,7 +258,7 @@ export default class View {
         // console.log(`[${this.uri.substr(12)}] %cdestroy`, 'color: red');
         this.unmountPanel(this.state().mountAt.current);
         this.subscriptions.dispose();
-        this.panelPI.destroy();
+        this.panelTab.destroy();
     }
 
     set(header: string, payload: string[], type = V.Style.PlainText) {
