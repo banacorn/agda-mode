@@ -67,7 +67,7 @@ export default class Tab {
         return atom.workspace.paneForItem(this.item);
     }
 
-    open(atPane?: any): Promise<any> {
+    open(): Promise<any> {
         let options = {
             searchAllPanes: true,
             split: 'right'
@@ -78,20 +78,11 @@ export default class Tab {
         const item = this.createPaneItem();
 
         // return atom.workspace.open(uri, options).then(paneItem => {
-        return atom.workspace.open(item).then(paneItem => {
-            this.item = paneItem;
-            // move to the specified pane (if any) and remain activated
-            if (atPane) {
-                this.getPane().moveItemToPane(paneItem, atPane, 1)
-
-                setTimeout(() => {
-                    this.activate();
-                });
-            }
-
+        return atom.workspace.open(item).then(item => {
+            this.item = item;
             const pane = this.getPane();
             // on open
-            this.emitter.emit(OPEN, paneItem, {
+            this.emitter.emit(OPEN, item, {
                 previous: previousActivePane,
                 current: pane
             });
@@ -102,9 +93,9 @@ export default class Tab {
                     if (this.item && event.item.getURI() === uri) {
                         this.item = null;
                         if (this.closedDeliberately) {
-                            this.emitter.emit(CLOSE, paneItem);
+                            this.emitter.emit(CLOSE, item);
                         } else {
-                            this.emitter.emit(KILL, paneItem);
+                            this.emitter.emit(KILL, item);
                         }
                         // reset flags
                         this.closedDeliberately = false;
@@ -113,7 +104,7 @@ export default class Tab {
             }
 
             // pass it down the promise
-            return paneItem;
+            return item;
         });
     }
 

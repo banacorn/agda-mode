@@ -97,9 +97,7 @@ class Dashboard extends React.Component<Props, void> {
                             if (settingsView) {
                                 core.view.settingsTab.close();
                             } else {
-                                core.view.settingsTab.open(
-                                    core.view.panelTab.getPane()
-                                );
+                                core.view.settingsTab.open();
                             }
                         }}
                         ref={(ref) => {
