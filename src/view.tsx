@@ -116,7 +116,7 @@ export default class View {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
             // mounting position
-            this.panelViewElement = paneItem;
+            this.panelViewElement = paneItem.element;
             // render
             this.renderPanel();
         });
@@ -135,7 +135,7 @@ export default class View {
         this.settingsPI.onOpen((paneItem, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
-            this.settingsViewElement = paneItem;
+            this.settingsViewElement = paneItem.element;
 
             this.renderSettingsView()
         });

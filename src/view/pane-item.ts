@@ -12,6 +12,13 @@ export const OPEN = 'OPEN';
 export const CLOSE = 'CLOSE';   // deliberately closing the pane item
 export const KILL = 'KILL';     //  unintentionally destroying the pane item
 
+interface Item {
+    element: HTMLElement;
+    getURI: () => string;
+    getTitle: () => string;
+    getDefaultLocation: () => string;
+};
+
 export default class PaneItem {
     private emitter: EventEmitter;
     private subscriptions: CompositeDisposable;
@@ -20,13 +27,13 @@ export default class PaneItem {
     private closedDeliberately: boolean;
 
     // null if closed
-    private paneItem: any;
+    private item: Item;
 
     constructor(private editor: any, private name: string, getTitle?: () => string) {
         this.subscriptions = new CompositeDisposable;
         this.emitter = new EventEmitter;
         this.closedDeliberately = false;
-        this.subscriptions.add(atom.workspace.addOpener(this.opener));
+        // this.subscriptions.add(atom.workspace.addOpener(this.opener));
         if (getTitle)
             this.getTitle = getTitle;
     }
@@ -35,32 +42,14 @@ export default class PaneItem {
         this.subscriptions.dispose();
     }
 
-    private createPaneItem(): any {
-        // classList
-        const paneItem = document.createElement('article');
-        paneItem.classList.add('agda-mode');
-        // methods
-        paneItem['getURI'] = this.getURI;
-        paneItem['getTitle'] = this.getTitle;
-        paneItem['getEditor'] = () => this.editor;
-        return paneItem;
-    }
-
-    private opener = (uri: string) => {
-        // e.g. "agda-mode://12312/view"
-        //       [scheme ]   [dir] [name]
-
-        const openedByAgdaMode = _.startsWith(uri, 'agda-mode://');
-        if (openedByAgdaMode) {
-            const { dir, name } = path.parse(uri.substr(12));
-            const openedByTheSameEditor = dir === this.editor.id.toString();
-            const openedForTheSamePurpose = name === this.name;
-            if (openedByTheSameEditor && openedForTheSamePurpose)
-                return this.createPaneItem();
-            else
-                return null;
-        } else {
-            return null
+    private createPaneItem(): Item {
+        const element = document.createElement('article');
+        element.classList.add('agda-mode');
+        return {
+            element,
+            getURI: this.getURI,
+            getTitle: this.getTitle,
+            getDefaultLocation: () => 'right'
         }
     }
 
@@ -74,8 +63,8 @@ export default class PaneItem {
         return `agda-mode://${this.editor.id}/${this.name}`
     }
 
-    getPane = () : any => {
-        return atom.workspace.paneForItem(this.paneItem);
+    getPane = (): any => {
+        return atom.workspace.paneForItem(this.item);
     }
 
     open(atPane?: any): Promise<any> {
@@ -86,8 +75,11 @@ export default class PaneItem {
         const uri = this.getURI();
         const previousActivePane = atom.workspace.getActivePane();
 
-        return atom.workspace.open(uri, options).then(paneItem => {
-            this.paneItem = paneItem;
+        const item = this.createPaneItem();
+
+        // return atom.workspace.open(uri, options).then(paneItem => {
+        return atom.workspace.open(item).then(paneItem => {
+            this.item = paneItem;
             // move to the specified pane (if any) and remain activated
             if (atPane) {
                 this.getPane().moveItemToPane(paneItem, atPane, 1)
@@ -107,8 +99,8 @@ export default class PaneItem {
             // on destroy
             if (pane) {
                 this.subscriptions.add(pane.onWillDestroyItem(event => {
-                    if (this.paneItem && event.item.getURI() === uri) {
-                        this.paneItem = null;
+                    if (this.item && event.item.getURI() === uri) {
+                        this.item = null;
                         if (this.closedDeliberately) {
                             this.emitter.emit(CLOSE, paneItem);
                         } else {
@@ -127,26 +119,26 @@ export default class PaneItem {
 
     // idempotent, invoking PaneItem::close the second time won't have any effects
     close() {
-        if (this.paneItem) {
+        if (this.item) {
             this.closedDeliberately = true;
             const pane = this.getPane();
             if (pane)
-                pane.destroyItem(this.paneItem);
-            this.paneItem = null;
+                pane.destroyItem(this.item);
+            this.item = null;
         }
     }
 
     activate() {
-        if (this.paneItem) {
+        if (this.item) {
             const pane = this.getPane();
             if (pane) {
-                pane.activateItem(this.paneItem);
+                pane.activateItem(this.item);
             }
         }
     }
 
     isActive(): boolean {
-        if (this.paneItem) {
+        if (this.item) {
             const pane = this.getPane();
             if (pane && pane.isActive()) {
                 return pane.getActiveItem().getURI() === this.getURI()
