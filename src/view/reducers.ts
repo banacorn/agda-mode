@@ -9,7 +9,7 @@ import * as Conn from '../connector';
 import * as Parser from '../parser';
 import * as Store from '../persist';
 import { View } from '../type';
-import { EVENT, MODE, VIEW, CONNECTION, DEV, INPUT_METHOD, HEADER, QUERY, BODY } from './actions';
+import { EVENT, MODE, VIEW, CONNECTION, DEV, INPUT_METHOD, HEADER, QUERY, BODY, SETTINGS } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -63,7 +63,8 @@ const defaultState: View.State = {
         error: null,
         plainText: '',
         maxBodyHeight: 170
-    }
+    },
+    settings: 'Connections'
 };
 
 const view = handleActions<View.ViewState, VIEW>({
@@ -225,6 +226,10 @@ const body = handleActions<View.BodyState, BODY>({
     })
 }, defaultState.body);
 
+const settings = handleActions<View.SettingsPath, SETTINGS>({
+    [SETTINGS.NAVIGATE]: (state, action: Action<SETTINGS.NAVIGATE>) => action.payload
+}, defaultState.settings);
+
 
 // export default reducer;
 export default combineReducers<View.State>({
@@ -235,5 +240,6 @@ export default combineReducers<View.State>({
     header,
     inputMethod,
     query,
-    body
+    body,
+    settings
 });

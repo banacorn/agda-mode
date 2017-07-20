@@ -4,6 +4,8 @@ import * as _ from 'lodash';
 import * as classNames from 'classnames';
 // import { View } from '../../type';
 import Core from '../../core';
+import { View } from '../../type';
+import * as Action from '../actions';
 
 import Breadcrumb from './Settings/Breadcrumb';
 import Connections from './Settings/Connections';
@@ -13,18 +15,21 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
 }
 type InjProps = {
-    // mountAt: {
-    //     previous: View.MountingPosition,
-    //     current: View.MountingPosition
-    // };
-    // settingsView: boolean;
+    path: View.SettingsPath
 }
+
 type DispatchProps = {
     // handleMountAtPane: () => void
     // handleMountAtBottom: () => void;
     // handleToggleSettingsView: () => void;
 }
 type Props = OwnProps & InjProps & DispatchProps;
+
+function mapStateToProps(state: View.State): InjProps {
+    return {
+        path: state.settings
+    }
+}
 
 class Settings extends React.Component<Props, void> {
     constructor(props) {
@@ -36,7 +41,7 @@ class Settings extends React.Component<Props, void> {
     render() {
         return (
             <section className="agda-settings">
-                <Breadcrumb path={"Nothing"} />
+                <Breadcrumb path={this.props.path} />
             </section>
         )
     }
@@ -62,7 +67,9 @@ class Settings extends React.Component<Props, void> {
 
 }
 
-export default Settings;
+export default connect<InjProps, DispatchProps, OwnProps>(
+    mapStateToProps
+)(Settings);
 
 
     // <nav>

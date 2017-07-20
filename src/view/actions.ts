@@ -251,3 +251,12 @@ export const updateBody = createAction(BODY.UPDATE_BODY);
 export const updateError = createAction(BODY.UPDATE_ERROR);
 export const updatePlainText = createAction(BODY.UPDATE_PLAIN_TEXT);
 export const updateMaxBodyHeight = createAction(BODY.UPDATE_MAX_BODY_HEIGHT);
+
+
+export type SETTINGS = SETTINGS.NAVIGATE;
+export namespace SETTINGS {
+    export const NAVIGATE = 'SETTINGS.NAVIGATE';
+    export type NAVIGATE = View.SettingsPath;
+
+    export const navigate = createAction(SETTINGS.NAVIGATE);
+}

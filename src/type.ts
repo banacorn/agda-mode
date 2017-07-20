@@ -50,6 +50,7 @@ namespace View {
         inputMethod: InputMethodState;
         query: QueryState;
         body: BodyState;
+        settings: SettingsPath;
     }
 
     export const enum Mode {
@@ -128,7 +129,7 @@ namespace View {
         maxBodyHeight: number;
     }
 
-    export type SettingsPath = "Nothing" | "Connections";
+    export type SettingsPath = 'Nothing' | 'Connections';
 
 
     // Legacy shit below
