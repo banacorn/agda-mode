@@ -63,6 +63,11 @@ export default class Tab {
         return `agda-mode://${this.editor.id}/${this.name}`
     }
 
+    getElement = (): HTMLElement => {
+        if (this.item)
+            return this.item.element;
+    }
+
     getPane = (): any => {
         return atom.workspace.paneForItem(this.item);
     }
@@ -91,12 +96,12 @@ export default class Tab {
             if (pane) {
                 this.subscriptions.add(pane.onWillDestroyItem(event => {
                     if (this.item && event.item.getURI() === uri) {
-                        this.item = null;
                         if (this.closedDeliberately) {
                             this.emitter.emit(CLOSE, item);
                         } else {
                             this.emitter.emit(KILL, item);
                         }
+                        this.item = null;
                         // reset flags
                         this.closedDeliberately = false;
                     }

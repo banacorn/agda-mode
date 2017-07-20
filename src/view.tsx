@@ -80,10 +80,9 @@ export default class View {
     public store: Redux.Store<V.State>;
     public editors: EditorManager;
     public panel: PanelManager;
-    private panelViewElement: HTMLElement;
     private bottomPanel: any;
-    private settingsViewElement: HTMLElement;
-    public panelTab: Tab;
+
+    private panelTab: Tab;
     public settingsTab: Tab;
 
     constructor(private core: Core) {
@@ -112,13 +111,11 @@ export default class View {
 
         // Tab for <Panel>
         this.panelTab = new Tab(this.editors.main.getModel(), 'panel');
-        this.panelTab.onOpen((paneItem, panes) => {
+        this.panelTab.onOpen((item, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
-            // mounting position
-            this.panelViewElement = paneItem.element;
             // render
-            this.renderPanel();
+            this.renderPanel(item.element);
         });
 
         this.panelTab.onKill(paneItem => {
@@ -135,9 +132,7 @@ export default class View {
         this.settingsTab.onOpen((paneItem, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
-            this.settingsViewElement = paneItem.element;
-
-            this.renderSettingsView()
+            this.renderSettingsView();
         });
         this.settingsTab.onKill(paneItem => {
             this.store.dispatch(Action.VIEW.toggleSettings());
@@ -149,10 +144,7 @@ export default class View {
     }
 
 
-    private renderPanel() {
-        if (this.panelViewElement === null) {
-            console.error(`this.panelViewElement === null`)
-        }
+    private renderPanel(mountingPoint: HTMLElement) {
         ReactDOM.render(
             <Provider store={this.store}>
                 <Panel
@@ -160,22 +152,18 @@ export default class View {
                     emitter={this.emitter}
                 />
             </Provider>,
-            this.panelViewElement
+            mountingPoint
         )
     }
 
     private renderSettingsView() {
-        if (this.settingsViewElement === null) {
-            console.error(`this.settingsViewElement === null`)
-        }
-
         ReactDOM.render(
             <Provider store={this.store}>
                 <Settings
                     core={this.core}
                 />
             </Provider>,
-            this.settingsViewElement
+            this.settingsTab.getElement()
         )
     }
 
@@ -188,14 +176,14 @@ export default class View {
             switch (mountAt) {
                 case V.MountingPosition.Bottom:
                     // mounting position
-                    this.panelViewElement = document.createElement('article');
+                    const element = document.createElement('article');
                     this.bottomPanel = atom.workspace.addBottomPanel({
-                        item: this.panelViewElement,
+                        item: element,
                         visible: true,
                         className: 'agda-mode'
                     });
                     // render
-                    this.renderPanel();
+                    this.renderPanel(element);
                     break;
                 case V.MountingPosition.Pane:
                     this.panelTab.open()
@@ -212,11 +200,16 @@ export default class View {
             // Redux
             this.store.dispatch(Action.VIEW.unmount());
 
+
             switch (mountAt) {
                 case V.MountingPosition.Bottom:
                     this.bottomPanel.destroy();
+                    ReactDOM.unmountComponentAtNode(this.bottomPanel.item);
                     break;
                 case V.MountingPosition.Pane:
+                    // saving the element for React to unmount
+                    const element = this.panelTab.getElement();
+                    ReactDOM.unmountComponentAtNode(element);
                     this.panelTab.close()
                     break;
                 default:
@@ -224,10 +217,6 @@ export default class View {
                     break;
             }
 
-            // React
-            ReactDOM.unmountComponentAtNode(this.panelViewElement);
-            // mounting position
-            this.panelViewElement = null;
         }
     }
 
@@ -259,6 +248,7 @@ export default class View {
         this.unmountPanel(this.state().mountAt.current);
         this.subscriptions.dispose();
         this.panelTab.destroy();
+        this.settingsTab.destroy();
     }
 
     set(header: string, payload: string[], type = V.Style.PlainText) {
