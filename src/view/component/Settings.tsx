@@ -36,31 +36,54 @@ function mapDispatchToProps(dispatch): DispatchProps {
         }
     };
 }
+
 class Settings extends React.Component<Props, void> {
+
     constructor(props) {
         super(props);
         // this.tabClassName = this.tabClassName.bind(this);
         // this.panelClassName = this.panelClassName.bind(this);
         // this.handleClick = this.handleClick.bind(this);
     }
+
     render() {
         return (
             <section className="agda-settings">
-                <Breadcrumb path={this.props.path} />
+                <Breadcrumb
+                    className={this.notAt('Main')}
+                    back={() => {
+                        this.props.navigate('Main')
+                    }}
+                    path={this.props.path}
+                />
                 <ul>
                     <li
+                        className={this.at('Main')}
                         onClick={() => {
-                            this.props.navigate("Connections")
+                            this.props.navigate('Connections')
                         }}
                     >
-                        <span className='icon icon-plug'>Connections</span>
-                    </li>
-                    <li>
-                        <span className='icon icon-comment-discussion'>Conversations</span>
+                        <span className="icon icon-plug">Connections</span>
                     </li>
                 </ul>
+                <Connections
+                    core={this.props.core}
+                    className={this.at('Connections')}
+                />
             </section>
         )
+    }
+
+    at(path: View.SettingsPath): string {
+        return classNames({
+            'hidden': path !== this.props.path
+        })
+    }
+
+    notAt(path: View.SettingsPath): string {
+        return classNames({
+            'hidden': path === this.props.path
+        })
     }
 
     // tabClassName(tabIndex: number) {

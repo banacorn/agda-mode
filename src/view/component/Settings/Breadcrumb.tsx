@@ -4,6 +4,7 @@ import * as classNames from 'classnames';
 import { View } from '../../../type';
 
 type Props = React.HTMLProps<HTMLElement> & {
+    back: () => void;
     path: View.SettingsPath;
 };
 
@@ -13,14 +14,11 @@ class Breadcrumb extends React.Component<Props, {}> {
     }
 
     render() {
-        // hide the whole thing when not navigating the pages
-        const hideBreadcrumb = classNames({
-            'hidden': this.props.path === 'Nothing'
-        })
+
         return (
-            <nav className={hideBreadcrumb}>
+            <nav className={this.props.className}>
                 <p>
-                    Settings > {this.props.path}
+                    <a onClick={this.props.back}>Settings</a> > {this.props.path}
                 </p>
             </nav>
         )
