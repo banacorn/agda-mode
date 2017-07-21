@@ -19,9 +19,7 @@ type InjProps = {
 }
 
 type DispatchProps = {
-    // handleMountAtPane: () => void
-    // handleMountAtBottom: () => void;
-    // handleToggleSettingsView: () => void;
+    navigate: (path: View.SettingsPath) => void
 }
 type Props = OwnProps & InjProps & DispatchProps;
 
@@ -31,6 +29,13 @@ function mapStateToProps(state: View.State): InjProps {
     }
 }
 
+function mapDispatchToProps(dispatch): DispatchProps {
+    return {
+        navigate: (path: View.SettingsPath) => {
+            dispatch(Action.SETTINGS.navigate(path));
+        }
+    };
+}
 class Settings extends React.Component<Props, void> {
     constructor(props) {
         super(props);
@@ -42,6 +47,18 @@ class Settings extends React.Component<Props, void> {
         return (
             <section className="agda-settings">
                 <Breadcrumb path={this.props.path} />
+                <ul>
+                    <li
+                        onClick={() => {
+                            this.props.navigate("Connections")
+                        }}
+                    >
+                        <span className='icon icon-plug'>Connections</span>
+                    </li>
+                    <li>
+                        <span className='icon icon-comment-discussion'>Conversations</span>
+                    </li>
+                </ul>
             </section>
         )
     }
@@ -68,7 +85,8 @@ class Settings extends React.Component<Props, void> {
 }
 
 export default connect<InjProps, DispatchProps, OwnProps>(
-    mapStateToProps
+    mapStateToProps,
+    mapDispatchToProps
 )(Settings);
 
 

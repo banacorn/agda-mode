@@ -64,7 +64,7 @@ const defaultState: View.State = {
         plainText: '',
         maxBodyHeight: 170
     },
-    settings: 'Connections'
+    settings: 'Nothing'
 };
 
 const view = handleActions<View.ViewState, VIEW>({
