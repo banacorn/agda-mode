@@ -7,7 +7,7 @@ interface Props extends React.HTMLProps<HTMLDivElement> {
     message: View.DevMsg
 };
 
-class Message extends React.Component<Props, void> {
+class Message extends React.Component<Props, {}> {
     render() {
         const { kind, raw, parsed } = this.props.message;
 

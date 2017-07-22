@@ -37,7 +37,7 @@ const mapDispatchToProps = (dispatch) => ({
     }
 });
 
-class DevPanel extends React.Component<Props, void> {
+class DevPanel extends React.Component<Props, {}> {
     private subscriptions: CompositeDisposable;
     private clearAllButton: HTMLElement;
     private toggleAccumulateButton: HTMLElement;

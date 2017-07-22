@@ -13,7 +13,7 @@ interface Props {
     emitter: EventEmitter;
 }
 
-class Error extends React.Component<Props, void> {
+class Error extends React.Component<Props, {}> {
     render() {
         const emitter = this.props.emitter;
         const error = this.props.children as E;

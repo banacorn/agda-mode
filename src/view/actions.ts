@@ -87,7 +87,7 @@ export namespace CONNECTION {
     export const SHOW_NEW_CONNECTION_VIEW = 'CONNECTION.SHOW_NEW_CONNECTION_VIEW';
     export type SHOW_NEW_CONNECTION_VIEW = boolean;
 
-    const addConnectionPure = createAction(CONNECTION.ADD_CONNECTION);
+    const addConnectionPure = createAction<CONNECTION.ADD_CONNECTION>(CONNECTION.ADD_CONNECTION);
     export const addConnection = (connInfo: ConnectionInfo) => dispatch => {
         // update the internal state
         Store.update(state => {
@@ -107,7 +107,7 @@ export namespace CONNECTION {
         });
     }
 
-    const removeConnectionPure = createAction(CONNECTION.REMOVE_CONNECTION);
+    const removeConnectionPure = createAction<CONNECTION.REMOVE_CONNECTION>(CONNECTION.REMOVE_CONNECTION);
     export const removeConnection = (guid: GUID) => dispatch => {
         // update the internal state
         Store.update(state => {
@@ -122,7 +122,7 @@ export namespace CONNECTION {
         dispatch(removeConnectionPure(guid));
     }
 
-    const selectConnectionPure = createAction(CONNECTION.SELECT_CONNECTION);
+    const selectConnectionPure = createAction<CONNECTION.SELECT_CONNECTION>(CONNECTION.SELECT_CONNECTION);
     export const selectConnection = (guid: GUID) => dispatch => {
         // update the internal state
         Store.update(state => {
@@ -133,7 +133,7 @@ export namespace CONNECTION {
         dispatch(selectConnectionPure(guid));
     }
 
-    const connectPure = createAction(CONNECTION.CONNECT);
+    const connectPure = createAction<CONNECTION.CONNECT>(CONNECTION.CONNECT);
     export const connect = (guid: GUID) => dispatch => {
         // update the internal state
         Store.update(state => {
@@ -144,7 +144,7 @@ export namespace CONNECTION {
         dispatch(connectPure(guid));
     }
 
-    const disconnectPure = createAction(CONNECTION.DISCONNECT);
+    const disconnectPure = createAction<CONNECTION.DISCONNECT>(CONNECTION.DISCONNECT);
     export const disconnect = (guid: GUID) => dispatch => {
         Store.update(state => {
             if (state.connected === guid) {
@@ -155,7 +155,7 @@ export namespace CONNECTION {
             return state;
         });
     }
-    export const showNewConnectionView = createAction(SHOW_NEW_CONNECTION_VIEW);
+    export const showNewConnectionView = createAction<SHOW_NEW_CONNECTION_VIEW>(SHOW_NEW_CONNECTION_VIEW);
 }
 
 
@@ -178,8 +178,8 @@ export namespace DEV {
     export const TOGGLE_LSP = 'DEV.TOGGLE_LSP';
     export type TOGGLE_LSP = void;
 
-    export const addRequest = createAction(DEV.ADD_REQUEST);
-    export const addResponse = createAction(DEV.ADD_RESPONSE);
+    export const addRequest = createAction<DEV.ADD_REQUEST>(DEV.ADD_REQUEST);
+    export const addResponse = createAction<DEV.ADD_RESPONSE>(DEV.ADD_RESPONSE);
     export const clearAll = createAction(DEV.CLEAR_ALL);
     export const toggleAccumulate = createAction(DEV.TOGGLE_ACCUMULATE);
     export const toggleLSP = createAction(DEV.TOGGLE_LSP);
@@ -206,9 +206,9 @@ export namespace INPUT_METHOD {
 
     export const activate = createAction(INPUT_METHOD.ACTIVATE);
     export const deactivate = createAction(INPUT_METHOD.DEACTIVATE);
-    export const insertChar = createAction(INPUT_METHOD.INSERT);
+    export const insertChar = createAction<INPUT_METHOD.INSERT>(INPUT_METHOD.INSERT);
     export const deleteChar = createAction(INPUT_METHOD.DELETE);
-    export const replaceSymbol = createAction(INPUT_METHOD.REPLACE_SYMBOL);
+    export const replaceSymbol = createAction<INPUT_METHOD.REPLACE_SYMBOL>(INPUT_METHOD.REPLACE_SYMBOL);
 }
 
 
@@ -217,7 +217,7 @@ export namespace HEADER {
     export const UPDATE = 'HEADER.UPDATE';
     export type UPDATE = View.HeaderState;
 
-    export const update = createAction(HEADER.UPDATE);
+    export const update = createAction<HEADER.UPDATE>(HEADER.UPDATE);
 }
 
 export type QUERY = QUERY.SET_PLACEHOLDER | QUERY.UPDATE_VALUE;
@@ -227,8 +227,8 @@ export namespace QUERY {
     export const UPDATE_VALUE = 'QUERY.UPDATE_VALUE';
     export type UPDATE_VALUE = string;
 
-    export const updateValue = createAction(QUERY.UPDATE_VALUE);
-    export const setPlaceholder = createAction(QUERY.SET_PLACEHOLDER);
+    export const updateValue = createAction<QUERY.UPDATE_VALUE>(QUERY.UPDATE_VALUE);
+    export const setPlaceholder = createAction<QUERY.SET_PLACEHOLDER>(QUERY.SET_PLACEHOLDER);
 }
 
 
@@ -246,11 +246,11 @@ export namespace BODY {
     export type UPDATE_MAX_BODY_HEIGHT = number;
 }
 
-export const updateBanner = createAction(BODY.UPDATE_BANNER);
-export const updateBody = createAction(BODY.UPDATE_BODY);
-export const updateError = createAction(BODY.UPDATE_ERROR);
-export const updatePlainText = createAction(BODY.UPDATE_PLAIN_TEXT);
-export const updateMaxBodyHeight = createAction(BODY.UPDATE_MAX_BODY_HEIGHT);
+export const updateBanner = createAction<BODY.UPDATE_BANNER>(BODY.UPDATE_BANNER);
+export const updateBody = createAction<BODY.UPDATE_BODY>(BODY.UPDATE_BODY);
+export const updateError = createAction<BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
+export const updatePlainText = createAction<BODY.UPDATE_PLAIN_TEXT>(BODY.UPDATE_PLAIN_TEXT);
+export const updateMaxBodyHeight = createAction<BODY.UPDATE_MAX_BODY_HEIGHT>(BODY.UPDATE_MAX_BODY_HEIGHT);
 
 
 export type SETTINGS = SETTINGS.NAVIGATE;
@@ -258,5 +258,5 @@ export namespace SETTINGS {
     export const NAVIGATE = 'SETTINGS.NAVIGATE';
     export type NAVIGATE = View.SettingsPath;
 
-    export const navigate = createAction(SETTINGS.NAVIGATE);
+    export const navigate = createAction<SETTINGS.NAVIGATE>(SETTINGS.NAVIGATE);
 }

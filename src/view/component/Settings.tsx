@@ -37,7 +37,7 @@ function mapDispatchToProps(dispatch): DispatchProps {
     };
 }
 
-class Settings extends React.Component<Props, void> {
+class Settings extends React.Component<Props, {}> {
 
     constructor(props) {
         super(props);

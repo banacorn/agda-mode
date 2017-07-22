@@ -11,7 +11,7 @@ interface TermProps extends React.HTMLProps<HTMLElement> {
     kind: 'unmarked' | 'goal' | 'meta' | 'sort';
 }
 
-class Term extends React.Component<TermProps, void> {
+class Term extends React.Component<TermProps, {}> {
     render() {
         const { jumpToGoal } = this.props;
         switch (this.props.kind) {
@@ -31,7 +31,7 @@ interface ExprProps extends React.HTMLProps<HTMLElement> {
     emitter: EventEmitter
 }
 
-class Expr extends React.Component<ExprProps, void> {
+class Expr extends React.Component<ExprProps, {}> {
     render() {
         const { emitter } = this.props;
         const otherProps = _.omit(this.props, 'jumpToGoal', 'emitter');

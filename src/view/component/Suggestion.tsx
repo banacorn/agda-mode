@@ -10,7 +10,7 @@ type Props = React.HTMLProps<HTMLElement> & {
     emitter: EventEmitter;
 };
 
-class Suggestion extends React.Component<Props, void> {
+class Suggestion extends React.Component<Props, {}> {
     render() {
         const { emitter } = this.props;
         const lines = this.props.children as string[];

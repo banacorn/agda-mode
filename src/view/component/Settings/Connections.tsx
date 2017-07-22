@@ -76,5 +76,6 @@ class Connections extends React.Component<Props, State> {
 
 // export default connect<View.ConnectionState, {}, Props>(
 export default connect<InjProps, {}, OwnProps>(
-    mapStateToProps
+    mapStateToProps,
+    null
 )(Connections);

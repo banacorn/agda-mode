@@ -50,7 +50,7 @@ function mapDispatchToProps(dispatch): DispatchProps {
     };
 }
 
-class Dashboard extends React.Component<Props, void> {
+class Dashboard extends React.Component<Props, {}> {
     private subscriptions: CompositeDisposable;
     private toggleMountingPositionButton: HTMLElement;
     private toggleSettingsViewButton: HTMLElement;

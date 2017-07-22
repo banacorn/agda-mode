@@ -15,7 +15,7 @@ type Props = React.HTMLProps<HTMLElement> & {
     abbr?: boolean;
 }
 
-class Location extends React.Component<Props, void> {
+class Location extends React.Component<Props, {}> {
     private subscriptions: CompositeDisposable;
     private locationLink: HTMLElement;
     private locationPath: string;

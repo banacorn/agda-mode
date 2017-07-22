@@ -34,7 +34,7 @@ function mapStateToProps(state: View.State): InjProps {
     }
 }
 
-class Header extends React.Component<Props, void> {
+class Header extends React.Component<Props, {}> {
     render() {
         const { text, style, core, inputMethodActivated } = this.props;
         const classes = classNames({
@@ -50,6 +50,8 @@ class Header extends React.Component<Props, void> {
         )
     }
 }
+
 export default connect<InjProps, {}, OwnProps>(
-    mapStateToProps
+    mapStateToProps,
+    null
 )(Header);
