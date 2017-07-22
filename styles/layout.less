@@ -231,27 +231,58 @@
         font-size: @font-size;
         background: @base-background-color;
 
-        // nav {
-        //     flex: 0 0 150px;
-        //     border-right: 1px solid @base-border-color;
-        //
-        //     li {
-        //         height: @component-line-height + @component-padding * 2;
-        //         line-height: @component-line-height;
-        //         padding: @component-padding @component-padding*2 @component-padding;
-        //
-        //         cursor: pointer;
-        //     }
-        //
-        //     li:hover {
-        //         background: @background-color-highlight;
-        //     }
-        //
-        //     li.selected {
-        //         background: @background-color-selected;
-        //     }
-        // }
-        //
+        .agda-settings-menu {
+            li {
+                height: @component-line-height * 2 + @component-padding * 2;
+                line-height: @component-line-height * 2;
+                padding: @component-padding @component-padding*2 @component-padding;
+                font-size: 125%;
+
+                cursor: pointer;
+            }
+
+            li:hover {
+                background: @background-color-highlight;
+            }
+
+            li.selected {
+                background: @background-color-selected;
+            }
+        }
+
+        nav.breadcrumb {
+
+            border-top: 1px solid @tab-border-color;
+            border-bottom: 1px solid @tab-border-color;
+            height: @component-line-height + @component-padding * 2;
+            line-height: @component-line-height;
+            background: @tab-background-color;
+
+            #breadcrumb-settings {
+                // background: red;
+
+                // width: @component-line-height + @component-padding * 2;
+            }
+            // flex: 0 0 150px;
+            // border-right: 1px solid @base-border-color;
+            //
+            // li {
+            //     height: @component-line-height + @component-padding * 2;
+            //     line-height: @component-line-height;
+            //     padding: @component-padding @component-padding*2 @component-padding;
+            //
+            //     cursor: pointer;
+            // }
+            //
+            // li:hover {
+            //     background: @background-color-highlight;
+            // }
+            //
+            // li.selected {
+            //     background: @background-color-selected;
+            // }
+        }
+
         // .settings-panel {
         //     padding: 3em;
         //     height: 100%;

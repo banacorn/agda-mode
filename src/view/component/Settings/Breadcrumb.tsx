@@ -14,12 +14,26 @@ class Breadcrumb extends React.Component<Props, {}> {
     }
 
     render() {
+        let category;
+        switch (this.props.path) {
+            case 'Connections':
+                category = <li><a href="#"><span className="icon icon-plug">Connections</span></a></li>;
+                break;
+            default:
+                category = null;
+        }
+
 
         return (
-            <nav className={this.props.className}>
-                <p>
-                    <a onClick={this.props.back}>Settings</a> > {this.props.path}
-                </p>
+            <nav className={classNames('breadcrumb', this.props.className)}>
+                <ol className="breadcrumb">
+                    <li><a
+                        id="breadcrumb-settings"
+                        onClick={this.props.back}
+                        href="#"><span className="icon icon-settings">Settings</span></a>
+                    </li>
+                    {category}
+                </ol>
             </nav>
         )
     }

@@ -206,4 +206,90 @@ atom-text-editor.agda {
     .connection.connected {
         border-left: 8px solid @background-color-success;
     }
+
+    //////////////////////////////////////////////////////
+    // Breadcrumbs
+    //////////////////////////////////////////////////////
+
+    .breadcrumb {
+        // overflow: hidden;
+        width: 100%;
+        display: flex;
+    }
+
+    .breadcrumb li a {
+        height: @component-line-height + @component-padding * 2;
+        line-height: @component-line-height;
+        padding:  @component-padding;
+        padding-left:  @component-padding * 2;
+        padding-right:  @component-padding * 1.5;
+
+        // remove the underline
+        text-decoration: none;
+
+        position: relative;
+        display: block;
+    }
+
+    .breadcrumb li a::after {
+        content: " ";
+        display: block;
+        width: 0;
+        height: 0;
+        border-top: 22.5px solid transparent; /* Go big on the size, and let overflow hide */
+        border-bottom: 22.5px solid transparent;
+        border-left: 10px solid transparent;
+        position: absolute;
+        top: 50%;
+        margin-top: -22.5px;
+        left: 100%;
+        z-index: 2;
+    }
+
+    .breadcrumb li a::before {
+        content: " ";
+        display: block;
+        width: 0;
+        height: 0;
+        border-top: 22.5px solid transparent;
+        border-bottom: 22.5px solid transparent;
+        border-left: 10px solid transparent;
+        position: absolute;
+        top: 50%;
+        margin-top: -22.5px;
+        // margin-left: 1px;
+        left: 100%;
+        z-index: 1;
+    }
+
+    .breadcrumb li:not(:first-child) a {
+        padding-left: @component-padding * 3;
+    }
+
+    @tier-0-color: @button-background-color;
+    @tier-1-color: mix( @button-background-color, @tab-background-color);
+    @tier-2-color: @tab-background-color;
+
+    .breadcrumb li:nth-child(-n+3) a       { background:        @tier-0-color; }
+    .breadcrumb li:nth-child(-n+3) a:after { border-left-color: @tier-0-color; }
+
+    .breadcrumb li:nth-last-child(-n+2) a       { background:        @tier-1-color; }
+    .breadcrumb li:nth-last-child(-n+2) a:after { border-left-color: @tier-1-color; }
+
+    .breadcrumb li:nth-last-child(-n+1) a       { background:        @tier-2-color; }
+    .breadcrumb li:nth-last-child(-n+1) a:after { border-left-color: @tier-2-color; }
+
+
+    .breadcrumb li:last-child a {
+        // background: transparent !important;
+        pointer-events: none;
+        cursor: default;
+    }
+
+    .breadcrumb li a:hover {
+        background: @button-background-color;
+    }
+    .breadcrumb li a:hover:after {
+        border-left-color: @button-background-color;
+    }
 }

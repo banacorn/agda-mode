@@ -19,7 +19,7 @@ type InjProps = {
 }
 
 type DispatchProps = {
-    navigate: (path: View.SettingsPath) => void
+    navigate: (path: View.SettingsPath) => () => void
 }
 type Props = OwnProps & InjProps & DispatchProps;
 
@@ -31,7 +31,7 @@ function mapStateToProps(state: View.State): InjProps {
 
 function mapDispatchToProps(dispatch): DispatchProps {
     return {
-        navigate: (path: View.SettingsPath) => {
+        navigate: (path: View.SettingsPath) => () => {
             dispatch(Action.SETTINGS.navigate(path));
         }
     };
@@ -50,18 +50,14 @@ class Settings extends React.Component<Props, {}> {
         return (
             <section className="agda-settings">
                 <Breadcrumb
-                    className={this.notAt('Main')}
-                    back={() => {
-                        this.props.navigate('Main')
-                    }}
+                    // className={this.notAt('Main')}
+                    back={this.props.navigate('Main')}
                     path={this.props.path}
                 />
-                <ul>
+                <ul className="agda-settings-menu">
                     <li
                         className={this.at('Main')}
-                        onClick={() => {
-                            this.props.navigate('Connections')
-                        }}
+                        onClick={this.props.navigate('Connections')}
                     >
                         <span className="icon icon-plug">Connections</span>
                     </li>
@@ -86,24 +82,6 @@ class Settings extends React.Component<Props, {}> {
         })
     }
 
-    // tabClassName(tabIndex: number) {
-    //     return this.state.tabIndex === tabIndex ? 'selected' : null;
-    // }
-    //
-    // panelClassName(tabIndex: number) {
-    //     return classNames('settings-panel', {
-    //         hidden: this.state.tabIndex !== tabIndex
-    //     })
-    // }
-    //
-    //
-    // handleClick(tabIndex: number) {
-    //     return () => {
-    //         this.setState({
-    //             tabIndex: tabIndex
-    //         });
-    //     }
-    // }
 
 }
 
