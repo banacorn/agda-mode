@@ -275,6 +275,6 @@ export default class TextBuffer {
     // those files are temporary and should be deleted once used.
     // note: no highlighting yet, we'll just delete them.
     onHighlightLoadAndDelete(filepath: string) {
-        fs.unlink(filepath);
+        fs.unlink(filepath, () => {});
     }
 }

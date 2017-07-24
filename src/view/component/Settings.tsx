@@ -51,7 +51,7 @@ class Settings extends React.Component<Props, {}> {
         return (
             <section className="agda-settings">
                 <Breadcrumb
-                    root={this.props.navigate('/')}
+                    navigate={this.props.navigate}
                     path={this.props.path}
                 />
                 <ul className="agda-settings-menu">

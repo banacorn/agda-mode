@@ -264,25 +264,24 @@ atom-text-editor.agda {
         padding-left: @component-padding * 2;
     }
 
-    @tier-0-color: @button-background-color;
-    @tier-1-color: mix( @button-background-color, @tab-background-color);
+    @tier-1-color: @base-background-color;
     @tier-2-color: @tab-background-color;
+    @tier-3-color: @tab-bar-border-color;
 
-    .breadcrumb li:nth-last-child(-n+3) a       { background:        @tier-0-color; }
-    .breadcrumb li:nth-last-child(-n+3) a:after { border-left-color: @tier-0-color; }
-    .breadcrumb li:nth-last-child(-n+3) a:hover       { background:        lighten(@tier-0-color, 10%);}
-    .breadcrumb li:nth-last-child(-n+3) a:hover:after { border-left-color: lighten(@tier-0-color, 10%);}
+    .breadcrumb li:nth-child(1) a       { background:        @tier-1-color; }
+    .breadcrumb li:nth-child(1) a:after { border-left-color: @tier-1-color; }
+    .breadcrumb li:nth-child(1) a:hover       { background:        lighten(@tier-1-color, 10%);}
+    .breadcrumb li:nth-child(1) a:hover:after { border-left-color: lighten(@tier-1-color, 10%);}
 
-    .breadcrumb li:nth-last-child(-n+2) a       { background:        @tier-1-color; }
-    .breadcrumb li:nth-last-child(-n+2) a:after { border-left-color: @tier-1-color; }
-    .breadcrumb li:nth-last-child(-n+2) a:hover       { background:        lighten(@tier-1-color, 10%);}
-    .breadcrumb li:nth-last-child(-n+2) a:hover:after { border-left-color: lighten(@tier-1-color, 10%);}
+    .breadcrumb li:nth-child(2) a       { background:        @tier-2-color; }
+    .breadcrumb li:nth-child(2) a:after { border-left-color: @tier-2-color; }
+    .breadcrumb li:nth-child(2) a:hover       { background:        lighten(@tier-2-color, 10%);}
+    .breadcrumb li:nth-child(2) a:hover:after { border-left-color: lighten(@tier-2-color, 10%);}
 
-    .breadcrumb li:nth-last-child(-n+1) a       { background:        @tier-2-color; }
-    .breadcrumb li:nth-last-child(-n+1) a:after { border-left-color: @tier-2-color; }
-    .breadcrumb li:nth-last-child(-n+1) a:hover       { background:        lighten(@tier-2-color, 10%);}
-    .breadcrumb li:nth-last-child(-n+1) a:hover:after { border-left-color: lighten(@tier-2-color, 10%);}
-
+    .breadcrumb li:nth-child(3) a       { background:        @tier-3-color; }
+    .breadcrumb li:nth-child(3) a:after { border-left-color: @tier-3-color; }
+    .breadcrumb li:nth-child(3) a:hover       { background:        lighten(@tier-3-color, 10%);}
+    .breadcrumb li:nth-child(3) a:hover:after { border-left-color: lighten(@tier-3-color, 10%);}
 
     .breadcrumb li:last-child a {
         // background: transparent !important;
