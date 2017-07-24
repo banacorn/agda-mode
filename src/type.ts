@@ -129,7 +129,8 @@ namespace View {
         maxBodyHeight: number;
     }
 
-    export type SettingsPath = 'Main' | 'Connections';
+    export type SettingsPath = '/'
+        | '/Connections' | '/Connections/New';
 
 
     // Legacy shit below

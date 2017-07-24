@@ -9,6 +9,7 @@ import * as Action from '../actions';
 
 import Breadcrumb from './Settings/Breadcrumb';
 import Connections from './Settings/Connections';
+import NewConnection from './Settings/NewConnection';
 import Conversations from './Settings/Conversations';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
@@ -50,22 +51,29 @@ class Settings extends React.Component<Props, {}> {
         return (
             <section className="agda-settings">
                 <Breadcrumb
-                    // className={this.notAt('Main')}
-                    back={this.props.navigate('Main')}
+                    root={this.props.navigate('/')}
                     path={this.props.path}
                 />
                 <ul className="agda-settings-menu">
                     <li
-                        className={this.at('Main')}
-                        onClick={this.props.navigate('Connections')}
+                        className={this.at('/')}
+                        onClick={this.props.navigate('/Connections')}
                     >
                         <span className="icon icon-plug">Connections</span>
                     </li>
                 </ul>
-                <Connections
-                    core={this.props.core}
-                    className={this.at('Connections')}
-                />
+                <div className="agda-settings-pages">
+                    <Connections
+                        core={this.props.core}
+                        className={this.at('/Connections')}
+                    />
+                    <NewConnection
+                        core={this.props.core}
+                        className={this.at('/Connections/New')}
+                        onCancel={this.props.navigate('/Connections')}
+                    />
+
+                </div>
             </section>
         )
     }

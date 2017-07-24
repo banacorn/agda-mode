@@ -53,13 +53,10 @@ class ConnectionList extends React.Component<Props, {}> {
         return (
             <section className={this.props.className}>
                 <header>
-                    <h2><span className="icon icon-plug">Connections</span></h2>
-                    <div>
                         <button
                             className="btn icon btn-primary icon-plus inline-block-tight"
                             onClick={this.props.onNew}
                         >new</button>
-                    </div>
                 </header>
                 <p>
                     <span className='inline-block highlight-info'>appointed default</span>

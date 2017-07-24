@@ -7,12 +7,16 @@ import NewConnection from './NewConnection';
 import ConnectionList from './ConnectionList';
 import * as Conn from '../../../connector';
 import Core from '../../../core';
+import * as Action from '../../actions';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
 };
 type InjProps = View.ConnectionState;
-type Props = OwnProps & InjProps;
+type DispatchProps = {
+    navigate: (path: View.SettingsPath) => () => void
+}
+type Props = OwnProps & InjProps & DispatchProps;
 
 type State = {
     showNewConnectionView: boolean;
@@ -21,6 +25,13 @@ type State = {
 
 const mapStateToProps = ({ connection }): InjProps => connection
 
+function mapDispatchToProps(dispatch): DispatchProps {
+    return {
+        navigate: (path: View.SettingsPath) => () => {
+            dispatch(Action.SETTINGS.navigate(path));
+        }
+    };
+}
 class Connections extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -48,7 +59,7 @@ class Connections extends React.Component<Props, State> {
                     className={classNames({
                         hidden: showNewConnectionView
                     })}
-                    onNew={this.toggleNewConnectionView(true)}
+                    onNew={this.props.navigate('/Connections/New')}
                     onSelect={(connInfo) => {
                         core.connector.select(connInfo);
                     }}
@@ -62,20 +73,22 @@ class Connections extends React.Component<Props, State> {
                         core.connector.unselect(connInfo);
                     }}
                 />
-                <NewConnection
-                    core={this.props.core}
-                    className={classNames({
-                        hidden: !showNewConnectionView
-                    })}
-                    onCancel={this.toggleNewConnectionView(false)}
-                />
             </div>
         )
     }
 }
 
 // export default connect<View.ConnectionState, {}, Props>(
-export default connect<InjProps, {}, OwnProps>(
+export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
-    null
+    mapDispatchToProps
 )(Connections);
+
+// <NewConnection
+
+//     core={this.props.core}
+//     className={classNames({
+//         hidden: !showNewConnectionView
+//     })}
+//     onCancel={this.toggleNewConnectionView(false)}
+// />

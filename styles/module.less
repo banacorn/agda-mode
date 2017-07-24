@@ -221,8 +221,6 @@ atom-text-editor.agda {
         height: @component-line-height + @component-padding * 2;
         line-height: @component-line-height;
         padding:  @component-padding;
-        padding-left:  @component-padding * 2;
-        padding-right:  @component-padding * 1.5;
 
         // remove the underline
         text-decoration: none;
@@ -263,21 +261,27 @@ atom-text-editor.agda {
     }
 
     .breadcrumb li:not(:first-child) a {
-        padding-left: @component-padding * 3;
+        padding-left: @component-padding * 2;
     }
 
     @tier-0-color: @button-background-color;
     @tier-1-color: mix( @button-background-color, @tab-background-color);
     @tier-2-color: @tab-background-color;
 
-    .breadcrumb li:nth-child(-n+3) a       { background:        @tier-0-color; }
-    .breadcrumb li:nth-child(-n+3) a:after { border-left-color: @tier-0-color; }
+    .breadcrumb li:nth-last-child(-n+3) a       { background:        @tier-0-color; }
+    .breadcrumb li:nth-last-child(-n+3) a:after { border-left-color: @tier-0-color; }
+    .breadcrumb li:nth-last-child(-n+3) a:hover       { background:        lighten(@tier-0-color, 10%);}
+    .breadcrumb li:nth-last-child(-n+3) a:hover:after { border-left-color: lighten(@tier-0-color, 10%);}
 
     .breadcrumb li:nth-last-child(-n+2) a       { background:        @tier-1-color; }
     .breadcrumb li:nth-last-child(-n+2) a:after { border-left-color: @tier-1-color; }
+    .breadcrumb li:nth-last-child(-n+2) a:hover       { background:        lighten(@tier-1-color, 10%);}
+    .breadcrumb li:nth-last-child(-n+2) a:hover:after { border-left-color: lighten(@tier-1-color, 10%);}
 
     .breadcrumb li:nth-last-child(-n+1) a       { background:        @tier-2-color; }
     .breadcrumb li:nth-last-child(-n+1) a:after { border-left-color: @tier-2-color; }
+    .breadcrumb li:nth-last-child(-n+1) a:hover       { background:        lighten(@tier-2-color, 10%);}
+    .breadcrumb li:nth-last-child(-n+1) a:hover:after { border-left-color: lighten(@tier-2-color, 10%);}
 
 
     .breadcrumb li:last-child a {
@@ -286,10 +290,10 @@ atom-text-editor.agda {
         cursor: default;
     }
 
-    .breadcrumb li a:hover {
-        background: @button-background-color;
-    }
-    .breadcrumb li a:hover:after {
-        border-left-color: @button-background-color;
-    }
+    // .breadcrumb li a:hover {
+    //     background: @button-background-color-hover;
+    // }
+    // .breadcrumb li a:hover:after {
+    //     border-left-color: @button-background-color-hover;
+    // }
 }

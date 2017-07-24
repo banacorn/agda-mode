@@ -64,7 +64,7 @@ const defaultState: View.State = {
         plainText: '',
         maxBodyHeight: 170
     },
-    settings: 'Main'
+    settings: '/'
 };
 
 const view = handleActions<View.ViewState, VIEW>({
