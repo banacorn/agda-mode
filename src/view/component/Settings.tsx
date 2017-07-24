@@ -83,6 +83,7 @@ class Settings extends React.Component<Props, {}> {
                     <NewConnection
                         core={this.props.core}
                         className={this.at('/Connections/New')}
+                        onSuccess={this.props.navigate('/Connections')}
                     />
                 </div>
             </section>

@@ -77,10 +77,10 @@ export default class Connector {
     }
 
     unselect(connInfo: ConnectionInfo) {
-        if (this.selected.guid === connInfo.guid) {
+        if (this.selected && this.selected.guid === connInfo.guid) {
             this.selected = undefined;
         }
-        if (this.connection.guid === connInfo.guid) {
+        if (this.connection && this.connection.guid === connInfo.guid) {
             this.disconnect();
         }
     }

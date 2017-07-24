@@ -9,6 +9,7 @@ import Core from '../../../core';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
+    onSuccess: () => void;
 };
 type State = {
     method: 'local' | 'remote';
@@ -90,6 +91,7 @@ class NewConnection extends React.Component<Props, State> {
                                     Conn.validate(this.state.localURL)
                                         .then((conn) => {
                                             this.props.handleAddConnection(conn)
+                                            this.props.onSuccess();
                                             this.setState({
                                                 localMessage: ''
                                             });
