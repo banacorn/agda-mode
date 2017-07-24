@@ -1,94 +1,100 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 // import * as _ from 'lodash';
-import * as classNames from 'classnames';
-import { View, Connection } from '../../../type';
-import NewConnection from './NewConnection';
-import ConnectionList from './ConnectionList';
+// import * as classNames from 'classnames';
+import { View, ConnectionInfo, GUID } from '../../../type';
 import * as Conn from '../../../connector';
-import Core from '../../../core';
+import ConnectionItem from './ConnectionItem';
 import * as Action from '../../actions';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
-    core: Core;
+    onNew: () => void;
+    onRemove: (connInfo: ConnectionInfo) => void;
+    onSelect: (connInfo: ConnectionInfo) => void;
+    onSelectAndLoad: (connInfo: ConnectionInfo) => void;
 };
-type InjProps = View.ConnectionState;
+
+type InjProps = {
+    state: View.ConnectionState
+};
 type DispatchProps = {
-    navigate: (path: View.SettingsPath) => () => void
+    handleRemove: (guid: GUID) => void
+    handleSelect: (guid: GUID) => void
+    handleLoad: (guid: GUID) => void
 }
 type Props = OwnProps & InjProps & DispatchProps;
 
-type State = {
-    showNewConnectionView: boolean;
-    method: 'local' | 'remote';
-};
-
-const mapStateToProps = ({ connection }): InjProps => connection
+function mapStateToProps(state: View.State): InjProps {
+    return {
+        state: state.connection
+    };
+}
 
 function mapDispatchToProps(dispatch): DispatchProps {
     return {
-        navigate: (path: View.SettingsPath) => () => {
-            dispatch(Action.SETTINGS.navigate(path));
+        handleRemove: (guid) => {
+            dispatch(Action.CONNECTION.removeConnection(guid));
+        },
+        handleSelect: (guid) => {
+            dispatch(Action.CONNECTION.selectConnection(guid));
+        },
+        handleLoad: (guid) => {
+            dispatch(Action.CONNECTION.connect(guid));
         }
     };
 }
-class Connections extends React.Component<Props, State> {
+
+class Connections extends React.Component<Props, {}> {
     constructor(props: Props) {
         super(props);
-        this.state = {
-            showNewConnectionView: props.showNewConnectionView,
-            method: 'local'
-        };
-    }
-
-    toggleNewConnectionView(show: boolean) {
-        return () => {
-            this.setState({
-                showNewConnectionView: show
-            } as State);
-        }
     }
 
     render() {
-        const { core } = this.props;
-        const { showNewConnectionView } = this.state;
-
         return (
-            <div className={this.props.className}>
-                <ConnectionList
-                    className={classNames({
-                        hidden: showNewConnectionView
-                    })}
-                    onNew={this.props.navigate('/Connections/New')}
-                    onSelect={(connInfo) => {
-                        core.connector.select(connInfo);
-                    }}
-                    onSelectAndLoad={(connInfo) => {
-                        core.connector.select(connInfo);
-                        core.commander.activate({
-                            kind: 'Load',
-                        });
-                    }}
-                    onRemove={(connInfo) => {
-                        core.connector.unselect(connInfo);
-                    }}
-                />
-            </div>
+            <section className={this.props.className}>
+                <header>
+                        <button
+                            className="btn icon btn-primary icon-plus inline-block-tight"
+                            onClick={this.props.onNew}
+                        >Establish new connection</button>
+                </header>
+                <p>
+                    <span className='inline-block highlight-info'>appointed default</span>
+                    <span className='inline-block highlight-success'>connected</span>
+                </p>
+                <ol>
+                    {
+                        this.props.state.connectionInfos.map((connInfo) => {
+                            return <ConnectionItem
+                                key={connInfo.guid}
+                                uri={connInfo.uri}
+                                version={connInfo.version.sem}
+                                selected={this.props.state.selected === connInfo.guid}
+                                connected={this.props.state.connected === connInfo.guid}
+                                onSelect={() => {
+                                    this.props.handleSelect(connInfo.guid);
+                                    this.props.onSelect(connInfo);
+                                }}
+                                onSelectAndLoad={() => {
+                                    this.props.handleSelect(connInfo.guid);
+                                    this.props.handleLoad(connInfo.guid);
+                                    this.props.onSelectAndLoad(connInfo);
+                                }}
+                                onRemove={(e) => {
+                                    this.props.handleRemove(connInfo.guid)
+                                    this.props.onRemove(connInfo);
+                                    e.stopPropagation()
+                                }}
+                            />
+                        })
+                }
+                </ol>
+            </section>
         )
     }
 }
 
-// export default connect<View.ConnectionState, {}, Props>(
 export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
     mapDispatchToProps
 )(Connections);
-
-// <NewConnection
-
-//     core={this.props.core}
-//     className={classNames({
-//         hidden: !showNewConnectionView
-//     })}
-//     onCancel={this.toggleNewConnectionView(false)}
-// />

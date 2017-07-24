@@ -48,6 +48,7 @@ class Settings extends React.Component<Props, {}> {
     }
 
     render() {
+        const { core } = this.props;
         return (
             <section className="agda-settings">
                 <Breadcrumb
@@ -64,15 +65,25 @@ class Settings extends React.Component<Props, {}> {
                 </ul>
                 <div className="agda-settings-pages">
                     <Connections
-                        core={this.props.core}
                         className={this.at('/Connections')}
+                        onNew={this.props.navigate('/Connections/New')}
+                        onSelect={(connInfo) => {
+                            core.connector.select(connInfo);
+                        }}
+                        onSelectAndLoad={(connInfo) => {
+                            core.connector.select(connInfo);
+                            core.commander.activate({
+                                kind: 'Load',
+                            });
+                        }}
+                        onRemove={(connInfo) => {
+                            core.connector.unselect(connInfo);
+                        }}
                     />
                     <NewConnection
                         core={this.props.core}
                         className={this.at('/Connections/New')}
-                        onCancel={this.props.navigate('/Connections')}
                     />
-
                 </div>
             </section>
         )
@@ -92,6 +103,12 @@ class Settings extends React.Component<Props, {}> {
 
 
 }
+
+
+// <Connections
+//     core={this.props.core}
+//     className={this.at('/Connections')}
+// />
 
 export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,

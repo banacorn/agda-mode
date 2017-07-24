@@ -9,7 +9,6 @@ import Core from '../../../core';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
-    onCancel: () => void;
 };
 type State = {
     method: 'local' | 'remote';
@@ -65,15 +64,6 @@ class NewConnection extends React.Component<Props, State> {
         const disableRemote = this.state.method !== 'remote';
         return (
             <section className={this.props.className}>
-                <header>
-                    <h2><span className="icon icon-plus">New Connection</span></h2>
-                    <div>
-                        <button
-                            className="btn icon icon-x inline-block-tight"
-                            onClick={this.props.onCancel}
-                        >cancel</button>
-                    </div>
-                </header>
                 <section>
                     <form id="new-connection-dashboard">
                         <input
@@ -100,7 +90,6 @@ class NewConnection extends React.Component<Props, State> {
                                     Conn.validate(this.state.localURL)
                                         .then((conn) => {
                                             this.props.handleAddConnection(conn)
-                                            this.props.onCancel();
                                             this.setState({
                                                 localMessage: ''
                                             });
