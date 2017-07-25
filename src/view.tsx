@@ -320,8 +320,8 @@ export default class View {
         // update the view
         this.store.dispatch(Action.MODE.queryConnection());
         this.store.dispatch(Action.HEADER.update({
-            text: "Oh no!!",
-            style: V.Style.Warning
+            text: "Connection Error",
+            style: V.Style.Error
         }));
         // activate the connection query
         this.editors.connection.activate();

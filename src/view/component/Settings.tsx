@@ -10,7 +10,7 @@ import * as Action from '../actions';
 import Breadcrumb from './Settings/Breadcrumb';
 import Connections from './Settings/Connections';
 import NewConnection from './Settings/NewConnection';
-import Conversations from './Settings/Conversations';
+import Protocol from './Settings/Protocol';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
@@ -62,6 +62,12 @@ class Settings extends React.Component<Props, {}> {
                     >
                         <span className="icon icon-plug">Connections</span>
                     </li>
+                    <li
+                        className={this.at('/')}
+                        onClick={this.props.navigate('/Protocol')}
+                    >
+                        <span className="icon icon-comment-discussion">Protocol</span>
+                    </li>
                 </ul>
                 <div className="agda-settings-pages">
                     <Connections
@@ -84,6 +90,10 @@ class Settings extends React.Component<Props, {}> {
                         core={this.props.core}
                         className={this.at('/Connections/New')}
                         onSuccess={this.props.navigate('/Connections')}
+                    />
+                    <Protocol
+                        // core={this.props.core}
+                        className={this.at('/Protocol')}
                     />
                 </div>
             </section>

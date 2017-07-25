@@ -28,6 +28,9 @@ class Breadcrumb extends React.Component<Props, {}> {
                     </li>;
                 tier2 = <li><a href="#"><span className="icon icon-plus">New</span></a></li>;
                 break;
+            case '/Protocol':
+                tier1 = <li><a href="#"><span className="icon icon-comment-discussion">Protocol</span></a></li>;
+                break;
             default:
                 tier1 = null;
                 tier2 = null;

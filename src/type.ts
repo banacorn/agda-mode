@@ -130,7 +130,8 @@ namespace View {
     }
 
     export type SettingsPath = '/'
-        | '/Connections' | '/Connections/New';
+        | '/Connections' | '/Connections/New'
+        | '/Protocol';
 
 
     // Legacy shit below

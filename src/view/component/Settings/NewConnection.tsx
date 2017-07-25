@@ -11,6 +11,7 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
     onSuccess: () => void;
 };
+
 type State = {
     method: 'local' | 'remote';
     localURL: string;

@@ -149,11 +149,18 @@ export default class Connector {
         this.core.view.store.dispatch(Action.CONNECTION.connect(this.selected.guid));
         // the properties
         this.connection = conn;
+        // modify the method write so that we can intercept and redirect data to the core;
+        const write = conn.stream.write;
+        conn.stream.write = data => {
+            this.core.view.store.dispatch(Action.DEV.addRequest(data.toString()));
+            return write(data);
+        };
         // the streams
         conn.stream
             .pipe(new Rectifier)
             .on('data', (data) => {
                 try {
+                    this.core.view.store.dispatch(Action.DEV.addResponse(data.toString()));
                     const response = parseAgdaResponse(data.toString());
                     handleAgdaResponse(this.core, response);
                 } catch (error) {
