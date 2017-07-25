@@ -45,7 +45,7 @@ namespace View {
         view: ViewState;
         mode: Mode;
         connection: ConnectionState;
-        dev: DevState;
+        protocol: Protocol;
         header: HeaderState;
         inputMethod: InputMethodState;
         query: QueryState;
@@ -66,9 +66,11 @@ namespace View {
         showNewConnectionView: boolean;
     }
 
-    export interface DevState {
-        messages: DevMsg[];
-        accumulate: boolean;
+    export interface Protocol {
+        vanilla: {
+            messages: DevMsg[];
+            accumulate: boolean;
+        };
         lsp: boolean;
     }
 

@@ -159,30 +159,30 @@ export namespace CONNECTION {
 }
 
 
-export type DEV
-    = DEV.ADD_REQUEST
-    | DEV.ADD_RESPONSE
-    | DEV.CLEAR_ALL
-    | DEV.TOGGLE_ACCUMULATE
-    | DEV.TOGGLE_LSP
+export type PROTOCOL
+    = PROTOCOL.ADD_REQUEST
+    | PROTOCOL.ADD_RESPONSE
+    | PROTOCOL.CLEAR_ALL
+    | PROTOCOL.TOGGLE_ACCUMULATE
+    | PROTOCOL.TOGGLE_LSP
 
-export namespace DEV {
-    export const ADD_REQUEST = 'DEV.ADD_REQUEST';
+export namespace PROTOCOL {
+    export const ADD_REQUEST = 'PROTOCOL.ADD_REQUEST';
     export type ADD_REQUEST = string;
-    export const ADD_RESPONSE = 'DEV.ADD_RESPONSE';
+    export const ADD_RESPONSE = 'PROTOCOL.ADD_RESPONSE';
     export type ADD_RESPONSE = string;
-    export const CLEAR_ALL = 'DEV.CLEAR_ALL';
+    export const CLEAR_ALL = 'PROTOCOL.CLEAR_ALL';
     export type CLEAR_ALL = void;
-    export const TOGGLE_ACCUMULATE = 'DEV.TOGGLE_ACCUMULATE';
+    export const TOGGLE_ACCUMULATE = 'PROTOCOL.TOGGLE_ACCUMULATE';
     export type TOGGLE_ACCUMULATE = void;
-    export const TOGGLE_LSP = 'DEV.TOGGLE_LSP';
+    export const TOGGLE_LSP = 'PROTOCOL.TOGGLE_LSP';
     export type TOGGLE_LSP = void;
 
-    export const addRequest = createAction<DEV.ADD_REQUEST>(DEV.ADD_REQUEST);
-    export const addResponse = createAction<DEV.ADD_RESPONSE>(DEV.ADD_RESPONSE);
-    export const clearAll = createAction(DEV.CLEAR_ALL);
-    export const toggleAccumulate = createAction(DEV.TOGGLE_ACCUMULATE);
-    export const toggleLSP = createAction(DEV.TOGGLE_LSP);
+    export const addRequest = createAction<PROTOCOL.ADD_REQUEST>(PROTOCOL.ADD_REQUEST);
+    export const addResponse = createAction<PROTOCOL.ADD_RESPONSE>(PROTOCOL.ADD_RESPONSE);
+    export const clearAll = createAction(PROTOCOL.CLEAR_ALL);
+    export const toggleAccumulate = createAction(PROTOCOL.TOGGLE_ACCUMULATE);
+    export const toggleLSP = createAction(PROTOCOL.TOGGLE_LSP);
 }
 
 

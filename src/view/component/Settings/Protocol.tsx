@@ -40,7 +40,7 @@ class Message extends React.Component<MsgProp, {}> {
 type OwnProps = React.HTMLProps<HTMLElement> & {
     // core: Core;
 }
-type InjProps = View.DevState;
+type InjProps = View.Protocol;
 
 type DispatchProps = {
     // navigate: (path: View.SettingsPath) => () => void
@@ -49,7 +49,7 @@ type DispatchProps = {
 type Props = OwnProps & InjProps & DispatchProps;
 
 function mapStateToProps(state: View.State): InjProps {
-    return state.dev
+    return state.protocol
 }
 
 class Protocol extends React.Component<Props, {}> {
@@ -66,7 +66,7 @@ class Protocol extends React.Component<Props, {}> {
         return (
             <section className={this.props.className}>
                 <p>Current Protocol: Emacs-vanilla</p>
-                <ol>{this.props.messages.map((msg, i) =>
+                <ol>{this.props.vanilla.messages.map((msg, i) =>
                     <li><Message message={msg} key={i} /></li>
                 )}</ol>
             </section>

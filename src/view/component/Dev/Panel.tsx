@@ -21,19 +21,19 @@ interface Props {
 }
 
 const mapStateToProps = (state: View.State) => ({
-    accumulate: state.dev.accumulate,
-    lsp: state.dev.lsp
+    accumulate: state.protocol.vanilla.accumulate,
+    lsp: state.protocol.lsp
 });
 
 const mapDispatchToProps = (dispatch) => ({
     clearAll: () => {
-        dispatch(Action.DEV.clearAll());
+        dispatch(Action.PROTOCOL.clearAll());
     },
     toogleAccumulate: () => {
-        dispatch(Action.DEV.toggleAccumulate());
+        dispatch(Action.PROTOCOL.toggleAccumulate());
     },
     toggleLSP: () => {
-        dispatch(Action.DEV.toggleLSP());
+        dispatch(Action.PROTOCOL.toggleLSP());
     }
 });
 

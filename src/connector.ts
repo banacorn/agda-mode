@@ -152,7 +152,7 @@ export default class Connector {
         // modify the method write so that we can intercept and redirect data to the core;
         const write = conn.stream.write;
         conn.stream.write = data => {
-            this.core.view.store.dispatch(Action.DEV.addRequest(data.toString()));
+            this.core.view.store.dispatch(Action.PROTOCOL.addRequest(data.toString()));
             return write(data);
         };
         // the streams
@@ -160,7 +160,7 @@ export default class Connector {
             .pipe(new Rectifier)
             .on('data', (data) => {
                 try {
-                    this.core.view.store.dispatch(Action.DEV.addResponse(data.toString()));
+                    this.core.view.store.dispatch(Action.PROTOCOL.addResponse(data.toString()));
                     const response = parseAgdaResponse(data.toString());
                     handleAgdaResponse(this.core, response);
                 } catch (error) {

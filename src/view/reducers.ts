@@ -9,7 +9,7 @@ import * as Conn from '../connector';
 import * as Parser from '../parser';
 import * as Store from '../persist';
 import { View } from '../type';
-import { EVENT, MODE, VIEW, CONNECTION, DEV, INPUT_METHOD, HEADER, QUERY, BODY, SETTINGS } from './actions';
+import { EVENT, MODE, VIEW, CONNECTION, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, SETTINGS } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -33,9 +33,11 @@ const defaultState: View.State = {
         connected: initialInternalState.connected,
         showNewConnectionView: false
     },
-    dev: {
-        messages: [],
-        accumulate: false,
+    protocol: {
+        vanilla: {
+            messages: [],
+            accumulate: false
+        },
         lsp: false
     },
     header: {
@@ -125,14 +127,14 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
 }, defaultState.connection);
 
 
-const dev = handleActions<View.DevState, DEV>({
-    [DEV.ADD_REQUEST]: (state, action: Action<DEV.ADD_REQUEST>) => {
-        if (state.accumulate) {
+const protocol = handleActions<View.Protocol, PROTOCOL>({
+    [PROTOCOL.ADD_REQUEST]: (state, action: Action<PROTOCOL.ADD_REQUEST>) => {
+        if (state.vanilla.accumulate) {
             return ({ ...state,
                 messages: _.concat([{
                     kind: 'request',
                     raw: action.payload
-                } as View.DevMsg], state.messages)
+                } as View.DevMsg], state.vanilla.messages)
             });
         } else {
             return ({ ...state,
@@ -143,23 +145,23 @@ const dev = handleActions<View.DevState, DEV>({
             });
         }
     },
-    [DEV.ADD_RESPONSE]: (state, action: Action<DEV.ADD_RESPONSE>) => ({ ...state,
+    [PROTOCOL.ADD_RESPONSE]: (state, action: Action<PROTOCOL.ADD_RESPONSE>) => ({ ...state,
         messages: _.concat([{
             kind: 'response',
             raw: action.payload,
             parsed: inspect(Parser.parseAgdaResponse(action.payload), false, null)
-        } as View.DevMsg], state.messages)
+        } as View.DevMsg], state.vanilla.messages)
     }),
-    [DEV.CLEAR_ALL]: (state, action: Action<DEV.CLEAR_ALL>) => ({ ...state,
+    [PROTOCOL.CLEAR_ALL]: (state, action: Action<PROTOCOL.CLEAR_ALL>) => ({ ...state,
         messages: []
     }),
-    [DEV.TOGGLE_ACCUMULATE]: (state, action: Action<DEV.TOGGLE_ACCUMULATE>) => ({ ...state,
-        accumulate: !state.accumulate
+    [PROTOCOL.TOGGLE_ACCUMULATE]: (state, action: Action<PROTOCOL.TOGGLE_ACCUMULATE>) => ({ ...state,
+        accumulate: !state.vanilla.accumulate
     }),
-    [DEV.TOGGLE_LSP]: (state, action: Action<DEV.TOGGLE_LSP>) => ({ ...state,
+    [PROTOCOL.TOGGLE_LSP]: (state, action: Action<PROTOCOL.TOGGLE_LSP>) => ({ ...state,
         lsp: !state.lsp
     })
-}, defaultState.dev);
+}, defaultState.protocol);
 
 const inputMethod = handleActions<View.InputMethodState, INPUT_METHOD>({
     [INPUT_METHOD.ACTIVATE]: (state, action: Action<INPUT_METHOD.ACTIVATE>) => {
@@ -236,7 +238,7 @@ export default combineReducers<View.State>({
     view,
     mode,
     connection,
-    dev,
+    protocol,
     header,
     inputMethod,
     query,
