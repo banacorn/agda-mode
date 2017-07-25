@@ -41,7 +41,6 @@ class Breadcrumb extends React.Component<Props, {}> {
             <nav className={classNames('breadcrumb', this.props.className)}>
                 <ol className="breadcrumb">
                     <li><a
-                        id="breadcrumb-settings"
                         onClick={this.props.navigate('/')}
                         href="#"><span className="icon icon-settings">Settings</span></a>
                     </li>

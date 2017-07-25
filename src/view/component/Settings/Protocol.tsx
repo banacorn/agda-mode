@@ -66,9 +66,11 @@ class Protocol extends React.Component<Props, {}> {
         return (
             <section className={this.props.className}>
                 <p>Current Protocol: Emacs-vanilla</p>
-                <ol>{this.props.vanilla.messages.map((msg, i) =>
-                    <li><Message message={msg} key={i} /></li>
-                )}</ol>
+                <section className="agda-settings-protocol-message-list">
+                    <ol>{this.props.messages.map((msg, i) =>
+                        <Message message={msg} key={i} />
+                    )}</ol>
+                </section>
             </section>
         )
     }

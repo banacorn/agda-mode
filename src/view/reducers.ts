@@ -34,10 +34,8 @@ const defaultState: View.State = {
         showNewConnectionView: false
     },
     protocol: {
-        vanilla: {
-            messages: [],
-            accumulate: false
-        },
+        messages: [],
+        accumulate: false,
         lsp: false
     },
     header: {
@@ -129,12 +127,12 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
 
 const protocol = handleActions<View.Protocol, PROTOCOL>({
     [PROTOCOL.ADD_REQUEST]: (state, action: Action<PROTOCOL.ADD_REQUEST>) => {
-        if (state.vanilla.accumulate) {
+        if (state.accumulate) {
             return ({ ...state,
                 messages: _.concat([{
                     kind: 'request',
                     raw: action.payload
-                } as View.DevMsg], state.vanilla.messages)
+                } as View.DevMsg], state.messages)
             });
         } else {
             return ({ ...state,
@@ -150,13 +148,13 @@ const protocol = handleActions<View.Protocol, PROTOCOL>({
             kind: 'response',
             raw: action.payload,
             parsed: inspect(Parser.parseAgdaResponse(action.payload), false, null)
-        } as View.DevMsg], state.vanilla.messages)
+        } as View.DevMsg], state.messages)
     }),
     [PROTOCOL.CLEAR_ALL]: (state, action: Action<PROTOCOL.CLEAR_ALL>) => ({ ...state,
         messages: []
     }),
     [PROTOCOL.TOGGLE_ACCUMULATE]: (state, action: Action<PROTOCOL.TOGGLE_ACCUMULATE>) => ({ ...state,
-        accumulate: !state.vanilla.accumulate
+        accumulate: !state.accumulate
     }),
     [PROTOCOL.TOGGLE_LSP]: (state, action: Action<PROTOCOL.TOGGLE_LSP>) => ({ ...state,
         lsp: !state.lsp

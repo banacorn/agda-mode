@@ -21,7 +21,7 @@ interface Props {
 }
 
 const mapStateToProps = (state: View.State) => ({
-    accumulate: state.protocol.vanilla.accumulate,
+    accumulate: state.protocol.accumulate,
     lsp: state.protocol.lsp
 });
 

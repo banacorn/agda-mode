@@ -67,10 +67,8 @@ namespace View {
     }
 
     export interface Protocol {
-        vanilla: {
-            messages: DevMsg[];
-            accumulate: boolean;
-        };
+        messages: DevMsg[];
+        accumulate: boolean;
         lsp: boolean;
     }
 

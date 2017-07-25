@@ -141,84 +141,83 @@
 
     }
 
-
-    .agda-dev-view {
-        font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
-
-        .agda-dev-panel {
-
-            @height: 30px;
-            height: @height + 21px;
-            line-height: @height;
-            padding: 10px @component-padding;
-            border-bottom: 1px solid @tool-panel-border-color;
-
-            // flexbox to contain multiple .button-groups
-            display: flex;
-            justify-content: space-between;
-
-            button {
-                min-width: 30px;
-                height: 30px;
-                text-align: center;
-                line-height: normal;
-            }
-        }
-
-        .agda-dev-body {
-
-            // make it scrollable
-            height: 100%;
-            overflow-y: scroll;
-
-            @height: 30px;
-
-            list-style: none;
-            margin: 0;
-            padding: 0 @component-padding 51px;
-
-
-            li.dev-message {
-                margin: 10px 0;
-            }
-
-            .dev-message.request {
-                color: @text-color-success;
-            }
-
-            // flexbox for response since there will be 2 columns
-            .dev-message.response {
-                display: flex;
-                justify-content: space-between;
-
-                .dev-message-item.raw {
-                    flex-grow: 1;
-                    flex-basis: 0;
-                    margin-right: 5px;
-                }
-                .dev-message-item.parsed {
-                    flex-grow: 1;
-                    flex-basis: 0;
-                    margin-left: 5px;
-                }
-            }
-
-            .dev-message-item {
-                background: @base-background-color;
-                min-height: @height;
-                line-height: @height !important;
-                padding: 0px @component-padding;
-
-                overflow-x: scroll;
-                white-space: pre-wrap;       // preserves whitespaces
-            }
-
-            .dev-message-item.parsed {
-                color: @text-color-info;
-            }
-
-        }
-    }
+    // .agda-dev-view {
+    //     font-family: inconsolata, Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
+    //
+    //     .agda-dev-panel {
+    //
+    //         @height: 30px;
+    //         height: @height + 21px;
+    //         line-height: @height;
+    //         padding: 10px @component-padding;
+    //         border-bottom: 1px solid @tool-panel-border-color;
+    //
+    //         // flexbox to contain multiple .button-groups
+    //         display: flex;
+    //         justify-content: space-between;
+    //
+    //         button {
+    //             min-width: 30px;
+    //             height: 30px;
+    //             text-align: center;
+    //             line-height: normal;
+    //         }
+    //     }
+    //
+    //     .agda-dev-body {
+    //
+    //         // make it scrollable
+    //         height: 100%;
+    //         overflow-y: scroll;
+    //
+    //         @height: 30px;
+    //
+    //         list-style: none;
+    //         margin: 0;
+    //         padding: 0 @component-padding 51px;
+    //
+    //
+    //         li.dev-message {
+    //             margin: 10px 0;
+    //         }
+    //
+    //         .dev-message.request {
+    //             color: @text-color-success;
+    //         }
+    //
+    //         // flexbox for response since there will be 2 columns
+    //         .dev-message.response {
+    //             display: flex;
+    //             justify-content: space-between;
+    //
+    //             .dev-message-item.raw {
+    //                 flex-grow: 1;
+    //                 flex-basis: 0;
+    //                 margin-right: 5px;
+    //             }
+    //             .dev-message-item.parsed {
+    //                 flex-grow: 1;
+    //                 flex-basis: 0;
+    //                 margin-left: 5px;
+    //             }
+    //         }
+    //
+    //         .dev-message-item {
+    //             background: @base-background-color;
+    //             min-height: @height;
+    //             line-height: @height !important;
+    //             padding: 0px @component-padding;
+    //
+    //             overflow-x: scroll;
+    //             white-space: pre-wrap;       // preserves whitespaces
+    //         }
+    //
+    //         .dev-message-item.parsed {
+    //             color: @text-color-info;
+    //         }
+    //
+    //     }
+    // }
 
     //////////////////////////////////////////////////////
     // <Settings>
@@ -226,12 +225,30 @@
 
     .agda-settings {
         height: 100%;
+        overflow-y: scroll;
         // display: flex;
 
         font-size: @font-size;
         background: @base-background-color;
 
+        .breadcrumb {
+            position: fixed;
+            z-index: 1;
+
+            border-top: 1px solid @tab-border-color;
+            border-bottom: 1px solid @tab-border-color;
+            height: @component-line-height + @component-padding * 2;
+            line-height: @component-line-height;
+            background: @tab-background-color;
+        }
+
+        .agda-settings-pages {
+            margin-top: @component-line-height + @component-padding * 2;
+            padding: 3em;
+        }
+
         .agda-settings-menu {
+            padding: 0;
             li {
                 height: @component-line-height * 2 + @component-padding * 2;
                 line-height: @component-line-height * 2;
@@ -250,44 +267,13 @@
             }
         }
 
-        .agda-settings-pages {
-            padding: 3em;
-        //     height: 100%;
 
-        }
-        nav.breadcrumb {
 
-            border-top: 1px solid @tab-border-color;
-            border-bottom: 1px solid @tab-border-color;
-            height: @component-line-height + @component-padding * 2;
-            line-height: @component-line-height;
-            background: @tab-background-color;
-
-            #breadcrumb-settings {
+        .agda-settings-protocol-message-list {
                 // background: red;
-
-                // width: @component-line-height + @component-padding * 2;
-            }
-            // flex: 0 0 150px;
-            // border-right: 1px solid @base-border-color;
-            //
-            // li {
-            //     height: @component-line-height + @component-padding * 2;
-            //     line-height: @component-line-height;
-            //     padding: @component-padding @component-padding*2 @component-padding;
-            //
-            //     cursor: pointer;
-            // }
-            //
-            // li:hover {
-            //     background: @background-color-highlight;
-            // }
-            //
-            // li.selected {
-            //     background: @background-color-selected;
-            // }
+                // make it scrollable
+                // overflow-y: scroll;
         }
-
         // .settings-panel {
         //     padding: 3em;
         //     height: 100%;
