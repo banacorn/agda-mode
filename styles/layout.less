@@ -243,6 +243,7 @@
         }
 
         .agda-settings-pages {
+            height: 100% - @component-line-height + @component-padding * 2;
             margin-top: @component-line-height + @component-padding * 2;
             padding: 3em;
         }
@@ -267,28 +268,25 @@
             }
         }
 
+        .agda-settings-protocol {
+            // height: 100%;
+
+            ol.agda-settings-protocol-message-list {
+                margin: 1em 0;
+
+                li {
+                    background: @inset-panel-background-color;
+                    padding: 1em;
+                    margin: 1em;
+                    // overflow: hidden;
+                    word-wrap: break-word;
+                }
+            }
 
 
-        .agda-settings-protocol-message-list {
-                // background: red;
-                // make it scrollable
-                // overflow-y: scroll;
         }
-        // .settings-panel {
-        //     padding: 3em;
-        //     height: 100%;
-        //     flex: 0 1 100%;
-        //     min-width: 400px;
-        //     overflow-y: scroll;
-        //
-        //     > section {
-        //         padding: 3em;
-        //     }
-        //
-        //     > section:not(:first-child) {
-        //         border-top: 1px solid @inset-panel-background-color;
-        //     }
-        // }
+
+
     }
 
     //////////////////////////////////////////////////////

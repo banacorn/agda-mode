@@ -13,23 +13,36 @@ interface MsgProp extends React.HTMLProps<HTMLElement> {
     message: View.DevMsg
 };
 
-class Message extends React.Component<MsgProp, {}> {
+interface MsgState {
+    showParsed: boolean;
+}
+
+class Message extends React.Component<MsgProp, MsgState> {
+    constructor() {
+        super()
+        this.state = {
+            showParsed: false
+        };
+
+        this.toggleShowParsed = this.toggleShowParsed.bind(this);
+    }
+
+    toggleShowParsed() {
+        this.setState({
+            showParsed: !this.state.showParsed
+        });
+    }
+
     render() {
         const { kind, raw, parsed } = this.props.message;
-
-        if (kind === 'response') {
-            return (
-                <li className="protocol-message response">
-                    <div className="protocol-message-item parsed">{parsed}</div>
-                </li>
-            )
-        } else {
-            return (
-                <li className="protocol-message request">
-                    <div className="protocol-message-item raw">{raw}</div>
-                </li>
-            )
-        }
+        return (
+            <li onClick={this.toggleShowParsed}>
+                <div>{this.state.showParsed && parsed
+                    ?   parsed
+                    :   raw
+                }</div>
+            </li>
+        )
     }
 }
 
@@ -63,19 +76,36 @@ class Protocol extends React.Component<Props, {}> {
         // this.handleClick = this.handleClick.bind(this);
     }
     render() {
+        const requests = this.props.messages.filter(msg => msg.kind === 'request');
+        const responses = this.props.messages.filter(msg => msg.kind === 'response');
+
         return (
-            <section className={this.props.className}>
+            <section className={classNames("agda-settings-protocol", this.props.className)}>
+                <h2>Protocol</h2>
                 <p>Current Protocol: Emacs-vanilla</p>
-                <section className="agda-settings-protocol-message-list">
-                    <ol>{this.props.messages.map((msg, i) =>
-                        <Message message={msg} key={i} />
-                    )}</ol>
-                </section>
+                <h2>Messages</h2>
+                <h3>Requests</h3>
+                <ol className="agda-settings-protocol-message-list">{requests.map((msg, i) =>
+                    <Message message={msg} key={i} />
+                )}</ol>
+                <h3>Responses</h3>
+                <ol className="agda-settings-protocol-message-list">{responses.map((msg, i) =>
+                    <Message message={msg} key={i} />
+                )}</ol>
             </section>
         )
     }
 }
 
+// <p>
+//     <span className='inline-block highlight'>from Agda</span>
+//     <span className='inline-block info'>to Agda</span>
+// </p>
+// <section className="agda-settings-protocol-message-list">
+//     <ol>{this.props.messages.map((msg, i) =>
+//         <Message message={msg} key={i} />
+//     )}</ol>
+// </section>
 export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
     null
