@@ -129,10 +129,10 @@ const protocol = handleActions<View.Protocol, PROTOCOL>({
     [PROTOCOL.ADD_REQUEST]: (state, action: Action<PROTOCOL.ADD_REQUEST>) => {
         if (state.accumulate) {
             return ({ ...state,
-                messages: _.concat([{
+                messages: _.concat(state.messages, [{
                     kind: 'request',
                     raw: action.payload
-                } as View.DevMsg], state.messages)
+                } as View.DevMsg])
             });
         } else {
             return ({ ...state,
@@ -144,11 +144,11 @@ const protocol = handleActions<View.Protocol, PROTOCOL>({
         }
     },
     [PROTOCOL.ADD_RESPONSE]: (state, action: Action<PROTOCOL.ADD_RESPONSE>) => ({ ...state,
-        messages: _.concat([{
+        messages: _.concat(state.messages, [{
             kind: 'response',
             raw: action.payload,
             parsed: inspect(Parser.parseAgdaResponse(action.payload), false, null)
-        } as View.DevMsg], state.messages)
+        } as View.DevMsg])
     }),
     [PROTOCOL.CLEAR_ALL]: (state, action: Action<PROTOCOL.CLEAR_ALL>) => ({ ...state,
         messages: []

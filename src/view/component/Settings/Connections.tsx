@@ -58,6 +58,7 @@ class Connections extends React.Component<Props, {}> {
                             onClick={this.props.onNew}
                         >Establish new connection</button>
                 </header>
+                <h2>List of Connections</h2>
                 <p>
                     <span className='inline-block highlight-info'>appointed default</span>
                     <span className='inline-block highlight-success'>connected</span>
