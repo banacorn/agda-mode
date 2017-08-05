@@ -34,6 +34,8 @@ class ConnectionItem extends React.Component<Props, {}> {
                         <div>{this.props.version}</div>
                     </h3>
                     <div className="connection-dashboard">
+                        {this.props.connected && <span className="connection-status">CONNECTED</span>}
+                        {this.props.selected && !this.props.connected && <span className="connection-status">APPOINTED</span>}
                         <span
                             className="icon icon-x"
                             onClick={this.props.onRemove}

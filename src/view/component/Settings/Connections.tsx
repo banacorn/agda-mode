@@ -50,17 +50,31 @@ class Connections extends React.Component<Props, {}> {
     }
 
     render() {
+        const noConnections = this.props.state.connectionInfos.length === 0;
+
         return (
             <section className={this.props.className}>
-                <header>
+                <h2>Connections</h2>
+                <p>
+                    A list of previously (or to be) established connections to Agda.
+                    <br/>
+                    The <span className='text-info'>appointed</span> connection will be established on reload or when double-clicked.
+                </p>
+                {noConnections
+                    ? <p className='background-message'>
+                        No Connections
+                        <br />
                         <button
                             className="btn icon btn-primary icon-plus inline-block-tight"
                             onClick={this.props.onNew}
-                        >Establish new connection</button>
-                </header>
-                <h2>List of Connections</h2>
-                {this.props.state.connectionInfos.length === 0 &&
-                    <p className='background-message'>No Connections</p>
+                        >Establish a new one</button>
+                      </p>
+                    : <p>
+                            <button
+                                className="btn icon icon-plus inline-block-tight"
+                                onClick={this.props.onNew}
+                            >Establish new connection</button>
+                      </p>
                 }
                 <ol>
                     {this.props.state.connectionInfos.map((connInfo) => {
