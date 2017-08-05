@@ -212,7 +212,8 @@ export function getExistingConnectionInfo(): Promise<ConnectionInfo> {
 export function mkConnectionInfo(uri: string): ConnectionInfo {
     return {
         guid: guid(),
-        uri: parseFilepath(uri)
+        uri: parseFilepath(uri),
+        protocol: 'Vanilla' // as default
     }
 }
 

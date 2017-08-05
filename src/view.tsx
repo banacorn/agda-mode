@@ -16,8 +16,8 @@ import Settings from './view/component/Settings';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
 import { View as V, Location, Error } from './type';
-import { EVENT } from "./view/actions";
-import * as Action from "./view/actions";
+import { EVENT } from './view/actions';
+import * as Action from './view/actions';
 import { parseJudgements, parseError } from './parser';
 import { updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
 import Tab from './view/tab';
@@ -320,7 +320,7 @@ export default class View {
         // update the view
         this.store.dispatch(Action.MODE.queryConnection());
         this.store.dispatch(Action.HEADER.update({
-            text: "Connection Error",
+            text: 'Connection Error',
             style: V.Style.Error
         }));
         // activate the connection query
@@ -345,6 +345,10 @@ export default class View {
                 break;
         }
         return Promise.resolve({});
+    }
+
+    navigateSettings(path: V.SettingsPath) {
+        this.store.dispatch(Action.SETTINGS.navigate(path));
     }
 }
 

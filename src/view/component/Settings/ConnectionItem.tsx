@@ -4,6 +4,7 @@ import * as classNames from 'classnames';
 type Props = React.HTMLProps<HTMLElement> & {
     version: string;
     uri: string;
+    protocol: 'Vanilla' | 'LSP';
     selected: boolean;
     connected: boolean;
     // callbacks
@@ -23,12 +24,15 @@ class ConnectionItem extends React.Component<Props, {}> {
                 className={classNames({
                     selected: this.props.selected,
                     connected: this.props.connected
-                }, 'connection')}
+                }, 'connection-item')}
                 onClick={this.props.onSelect}
                 onDoubleClick={this.props.onSelectAndLoad}
             >
                 <header className="compact">
-                    <h3>{this.props.version}</h3>
+                    <h3>
+                        <div className='icon icon-tag'></div>
+                        <div>{this.props.version}</div>
+                    </h3>
                     <div className="connection-dashboard">
                         <span
                             className="icon icon-x"
@@ -36,7 +40,16 @@ class ConnectionItem extends React.Component<Props, {}> {
                         ></span>
                     </div>
                 </header>
-                <div className="connection-uri">{this.props.uri}</div>
+                <ul className='list-group'>
+                    <li className='list-item'>
+                        <div className='icon icon-location'></div>
+                        <div>Location: {this.props.uri}</div>
+                    </li>
+                    <li className='list-item'>
+                        <div className='icon icon-comment-discussion'></div>
+                        <div>Protocol: {this.props.protocol}</div>
+                    </li>
+                </ul>
             </li>
         )
     }

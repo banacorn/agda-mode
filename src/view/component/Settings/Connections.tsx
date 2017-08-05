@@ -59,16 +59,15 @@ class Connections extends React.Component<Props, {}> {
                         >Establish new connection</button>
                 </header>
                 <h2>List of Connections</h2>
-                <p>
-                    <span className='inline-block highlight-info'>appointed default</span>
-                    <span className='inline-block highlight-success'>connected</span>
-                </p>
+                {this.props.state.connectionInfos.length === 0 &&
+                    <p className='background-message'>No Connections</p>
+                }
                 <ol>
-                    {
-                        this.props.state.connectionInfos.map((connInfo) => {
+                    {this.props.state.connectionInfos.map((connInfo) => {
                             return <ConnectionItem
                                 key={connInfo.guid}
                                 uri={connInfo.uri}
+                                protocol={connInfo.protocol}
                                 version={connInfo.version.sem}
                                 selected={this.props.state.selected === connInfo.guid}
                                 connected={this.props.state.connected === connInfo.guid}
@@ -99,3 +98,9 @@ export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
     mapDispatchToProps
 )(Connections);
+
+
+// <p>
+//     <span className='inline-block highlight-info'>appointed default</span>
+//     <span className='inline-block highlight-success'>connected</span>
+// </p>

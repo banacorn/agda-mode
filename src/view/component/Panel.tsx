@@ -141,3 +141,5 @@ export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
     mapDispatchToProps
 )(Panel);
+
+// <button className='btn icon icon-gear inline-block-tight'>Advenced Connection Settings</button>

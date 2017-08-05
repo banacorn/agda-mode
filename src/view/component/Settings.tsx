@@ -55,21 +55,21 @@ class Settings extends React.Component<Props, {}> {
                     navigate={this.props.navigate}
                     path={this.props.path}
                 />
-                <div className="agda-settings-pages">
-                    <ul
-                        className={classNames("agda-settings-menu", this.at('/'))}
+                <ul
+                    className={classNames("agda-settings-menu", this.at('/'))}
+                >
+                    <li
+                        onClick={this.props.navigate('/Connections')}
                     >
-                        <li
-                            onClick={this.props.navigate('/Connections')}
-                        >
-                            <span className="icon icon-plug">Connections</span>
-                        </li>
-                        <li
-                            onClick={this.props.navigate('/Protocol')}
-                        >
-                            <span className="icon icon-comment-discussion">Protocol</span>
-                        </li>
-                    </ul>
+                        <span className="icon icon-plug">Connections</span>
+                    </li>
+                    <li
+                        onClick={this.props.navigate('/Protocol')}
+                    >
+                        <span className="icon icon-comment-discussion">Protocol</span>
+                    </li>
+                </ul>
+                <div className="agda-settings-pages">
                     <Connections
                         className={this.at('/Connections')}
                         onNew={this.props.navigate('/Connections/New')}

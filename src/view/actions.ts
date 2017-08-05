@@ -98,7 +98,8 @@ export namespace CONNECTION {
                 state.connections.push({
                     guid: connInfo.guid,
                     uri: connInfo.uri,
-                    version: connInfo.version
+                    version: connInfo.version,
+                    protocol: connInfo.protocol
                 });
                 // dispatch action
                 dispatch(addConnectionPure(connInfo));

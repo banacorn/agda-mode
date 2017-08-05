@@ -561,6 +561,7 @@ export type ConnectionInfo = {
         raw: string;
         sem: string;
     };
+    protocol: 'Vanilla' | 'LSP';
 }
 
 export type Connection = ConnectionInfo & {
