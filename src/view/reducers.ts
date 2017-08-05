@@ -31,6 +31,7 @@ const defaultState: View.State = {
         connectionInfos: initialInternalState.connections,
         selected: initialInternalState.selected,
         connected: initialInternalState.connected,
+        erred: [],
         showNewConnectionView: false
     },
     protocol: {
@@ -108,19 +109,21 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
         connectionInfos: _.concat([action.payload], state.connectionInfos)
     }),
     [CONNECTION.REMOVE_CONNECTION]: (state, action: Action<CONNECTION.REMOVE_CONNECTION>) => ({ ...state,
-        connectionInfos: _.remove(state.connectionInfos, (connInfo) => connInfo['guid'] !== action.payload)
+        connectionInfos: _.filter(state.connectionInfos, (connInfo) => connInfo.guid !== action.payload),
+        erred: _.filter(state.erred, guid => guid !== action.payload)
     }),
     [CONNECTION.SELECT_CONNECTION]: (state, action: Action<CONNECTION.SELECT_CONNECTION>) => ({ ...state,
         selected: action.payload
     }),
     [CONNECTION.CONNECT]: (state, action: Action<CONNECTION.CONNECT>) => ({ ...state,
-        connected: action.payload
+        connected: action.payload,
+        erred: _.filter(state.erred, guid => guid !== action.payload)
     }),
     [CONNECTION.DISCONNECT]: (state, action: Action<CONNECTION.CONNECT>) => ({ ...state,
         connected: undefined
     }),
     [CONNECTION.ERR]: (state, action: Action<CONNECTION.ERR>) => ({ ...state,
-        erred: action.payload
+        erred: _.uniq(_.concat([action.payload], state.erred))
     }),
     [CONNECTION.SHOW_NEW_CONNECTION_VIEW]: (state, action: Action<CONNECTION.SHOW_NEW_CONNECTION_VIEW>) => ({ ...state,
         showNewConnectionView: action.payload

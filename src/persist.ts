@@ -8,7 +8,7 @@ export type Store = {
     connections: ConnectionInfo[];
     selected?: GUID;
     connected?: GUID;
-    erred?: GUID;
+    erred: GUID[];
 }
 
 export function get(): Store {
@@ -29,7 +29,8 @@ export function update(callback: (store: Store) => Store) {
 }
 
 export const defaultStore = {
-    connections: []
+    connections: [],
+    erred: []
 }
 
 export function initialize() {

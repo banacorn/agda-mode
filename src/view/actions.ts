@@ -120,8 +120,7 @@ export namespace CONNECTION {
                 state.connected = undefined;
             if (state.selected && state.selected === guid)
                 state.selected = undefined;
-            if (state.erred && state.erred === guid)
-                state.erred = undefined;
+            _.remove(state.erred, id => id === guid);
             return state;
         });
         // dispatch action
@@ -144,6 +143,7 @@ export namespace CONNECTION {
         // update the internal state and erase previously erred attempts
         Store.update(state => {
             state.connected = guid;
+            _.remove(state.erred, id => id === guid);
             return state;
         });
         // dispatch action
@@ -165,7 +165,8 @@ export namespace CONNECTION {
     export const err = (guid: GUID) => dispatch => {
         // update the internal state
         Store.update(state => {
-            state.erred = guid;
+            state.erred = _.uniq(_.concat([guid], state.erred));
+            // state.erred;
             return state;
         });
         // dispatch action

@@ -63,7 +63,7 @@ namespace View {
         connectionInfos: ConnectionInfo[];
         selected?: GUID;
         connected?: GUID;
-        erred?: GUID;
+        erred: GUID[];
         showNewConnectionView: boolean;
     }
 

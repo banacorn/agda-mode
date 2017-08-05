@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-// import * as _ from 'lodash';
+import * as _ from 'lodash';
 // import * as classNames from 'classnames';
 import { View, ConnectionInfo, GUID } from '../../../type';
 import * as Conn from '../../../connector';
@@ -85,14 +85,13 @@ class Connections extends React.Component<Props, {}> {
                                 version={connInfo.version.raw}
                                 selected={this.props.state.selected === connInfo.guid}
                                 connected={this.props.state.connected === connInfo.guid}
-                                erred={this.props.state.erred === connInfo.guid}
+                                erred={_.includes(this.props.state.erred, connInfo.guid)}
                                 onSelect={() => {
                                     this.props.handleSelect(connInfo.guid);
                                     this.props.onSelect(connInfo);
                                 }}
                                 onSelectAndLoad={() => {
                                     this.props.handleSelect(connInfo.guid);
-                                    // this.props.handleLoad(connInfo.guid);
                                     this.props.onSelectAndLoad(connInfo);
                                 }}
                                 onRemove={(e) => {
