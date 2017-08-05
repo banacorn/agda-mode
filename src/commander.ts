@@ -66,6 +66,7 @@ export default class Commander {
                 })
                 .catch((error) => { // catch all the rest
                     if (error) {
+                        console.log(error)
                         switch (error.name) {
                             case 'InvalidExecutablePathError':
                             this.core.view.set(error.message, [error.path], View.Style.Error);

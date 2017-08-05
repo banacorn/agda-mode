@@ -68,7 +68,7 @@ class Connections extends React.Component<Props, {}> {
                                 key={connInfo.guid}
                                 uri={connInfo.uri}
                                 protocol={connInfo.protocol}
-                                version={connInfo.version.sem}
+                                version={connInfo.version.raw}
                                 selected={this.props.state.selected === connInfo.guid}
                                 connected={this.props.state.connected === connInfo.guid}
                                 onSelect={() => {

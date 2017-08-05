@@ -261,7 +261,10 @@ export function validate(uri: string): Promise<ConnectionInfo> {
             if (result) {
                 // normalize version number to valid semver
                 const rawVerNum = result[1];
-                const semVerNum = _.take((result[1] + '.0.0.0').replace('-', '.').split('.'), 3).join('.');
+                const tokens = result[1].replace('-', '.').split('.');
+                const semVerNum = tokens.length > 3
+                    ? _.take(tokens, 3).join('.') + '-' + _.drop(tokens, 3).join('-')
+                    : tokens.join('.');
                 let connInfo = mkConnectionInfo(uri);
                 connInfo.version = {
                     raw: rawVerNum,
