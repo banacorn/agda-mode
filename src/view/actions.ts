@@ -71,6 +71,7 @@ export type CONNECTION
     | CONNECTION.SELECT_CONNECTION
     | CONNECTION.CONNECT
     | CONNECTION.DISCONNECT
+    | CONNECTION.ERR
     | CONNECTION.SHOW_NEW_CONNECTION_VIEW
 
 export namespace CONNECTION {
@@ -84,6 +85,8 @@ export namespace CONNECTION {
     export type CONNECT = GUID;
     export const DISCONNECT = 'CONNECTION.DISCONNECT';
     export type DISCONNECT = GUID;
+    export const ERR = 'CONNECTION.ERR';
+    export type ERR = GUID;
     export const SHOW_NEW_CONNECTION_VIEW = 'CONNECTION.SHOW_NEW_CONNECTION_VIEW';
     export type SHOW_NEW_CONNECTION_VIEW = boolean;
 
@@ -117,6 +120,8 @@ export namespace CONNECTION {
                 state.connected = undefined;
             if (state.selected && state.selected === guid)
                 state.selected = undefined;
+            if (state.erred && state.erred === guid)
+                state.erred = undefined;
             return state;
         });
         // dispatch action
@@ -136,7 +141,7 @@ export namespace CONNECTION {
 
     const connectPure = createAction<CONNECTION.CONNECT>(CONNECTION.CONNECT);
     export const connect = (guid: GUID) => dispatch => {
-        // update the internal state
+        // update the internal state and erase previously erred attempts
         Store.update(state => {
             state.connected = guid;
             return state;
@@ -144,7 +149,6 @@ export namespace CONNECTION {
         // dispatch action
         dispatch(connectPure(guid));
     }
-
     const disconnectPure = createAction<CONNECTION.DISCONNECT>(CONNECTION.DISCONNECT);
     export const disconnect = (guid: GUID) => dispatch => {
         Store.update(state => {
@@ -156,6 +160,18 @@ export namespace CONNECTION {
             return state;
         });
     }
+
+    const errPure = createAction<CONNECTION.ERR>(CONNECTION.ERR);
+    export const err = (guid: GUID) => dispatch => {
+        // update the internal state
+        Store.update(state => {
+            state.erred = guid;
+            return state;
+        });
+        // dispatch action
+        dispatch(errPure(guid));
+    }
+
     export const showNewConnectionView = createAction<SHOW_NEW_CONNECTION_VIEW>(SHOW_NEW_CONNECTION_VIEW);
 }
 

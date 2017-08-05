@@ -85,13 +85,14 @@ class Connections extends React.Component<Props, {}> {
                                 version={connInfo.version.raw}
                                 selected={this.props.state.selected === connInfo.guid}
                                 connected={this.props.state.connected === connInfo.guid}
+                                erred={this.props.state.erred === connInfo.guid}
                                 onSelect={() => {
                                     this.props.handleSelect(connInfo.guid);
                                     this.props.onSelect(connInfo);
                                 }}
                                 onSelectAndLoad={() => {
                                     this.props.handleSelect(connInfo.guid);
-                                    this.props.handleLoad(connInfo.guid);
+                                    // this.props.handleLoad(connInfo.guid);
                                     this.props.onSelectAndLoad(connInfo);
                                 }}
                                 onRemove={(e) => {

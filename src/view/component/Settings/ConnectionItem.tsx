@@ -7,6 +7,7 @@ type Props = React.HTMLProps<HTMLElement> & {
     protocol: 'Vanilla' | 'LSP';
     selected: boolean;
     connected: boolean;
+    erred: boolean;
     // callbacks
     onRemove: (e: any) => void;
     onSelect: () => void;
@@ -23,7 +24,8 @@ class ConnectionItem extends React.Component<Props, {}> {
             <li
                 className={classNames({
                     selected: this.props.selected,
-                    connected: this.props.connected
+                    connected: this.props.connected,
+                    erred: this.props.erred,
                 }, 'connection-item')}
                 onClick={this.props.onSelect}
                 onDoubleClick={this.props.onSelectAndLoad}
@@ -34,8 +36,9 @@ class ConnectionItem extends React.Component<Props, {}> {
                         <div>{this.props.version}</div>
                     </h3>
                     <div className="connection-dashboard">
-                        {this.props.connected && <span className="connection-status">CONNECTED</span>}
-                        {this.props.selected && !this.props.connected && <span className="connection-status">APPOINTED</span>}
+                        {this.props.connected && !this.props.erred && <span className="connection-status">CONNECTED</span>}
+                        {this.props.selected && !this.props.connected && !this.props.erred && <span className="connection-status">APPOINTED</span>}
+                        {this.props.erred && <span className="connection-status">ERRED</span>}
                         <span
                             className="icon icon-x"
                             onClick={this.props.onRemove}

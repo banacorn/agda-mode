@@ -8,6 +8,7 @@ export type Store = {
     connections: ConnectionInfo[];
     selected?: GUID;
     connected?: GUID;
+    erred?: GUID;
 }
 
 export function get(): Store {

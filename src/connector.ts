@@ -37,10 +37,11 @@ export class AutoSearchFailure extends Error {
 }
 
 export class ConnectionError extends Error {
-    constructor(message: string, public uri?: string) {
+    constructor(message: string, public uri: string, public guid?: GUID) {
         super(message);
         this.message = message;
         this.uri = uri;
+        this.guid = guid;
         this.name = 'Connection Error';
         Error.captureStackTrace(this, ConnectionError);
     }
@@ -164,6 +165,7 @@ export default class Connector {
                     const response = parseAgdaResponse(data.toString());
                     handleAgdaResponse(this.core, response);
                 } catch (error) {
+                    // this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
                     console.log(error)
                     // show some message
                     this.core.view.set('Agda Parse Error',
@@ -283,10 +285,10 @@ export function connect(connInfo: ConnectionInfo, filepath: string): Promise<Con
     return new Promise<Connection>((resolve, reject) => {
         const agdaProcess = spawn(connInfo.uri, ['--interaction'], { shell: true });
         agdaProcess.on('error', (error) => {
-            reject(new ConnectionError(error.message, connInfo.uri));
+            reject(new ConnectionError(error.message, connInfo.uri, connInfo.guid));
         });
         agdaProcess.on('close', (signal) => {
-            reject(new ConnectionError(`exit with signal ${signal}`, connInfo.uri));
+            reject(new ConnectionError(`exit with signal ${signal}`, connInfo.uri, connInfo.guid));
         });
         agdaProcess.stdout.once('data', (data) => {
             const result = data.toString().match(/^Agda2\>/);
@@ -297,7 +299,7 @@ export function connect(connInfo: ConnectionInfo, filepath: string): Promise<Con
                     filepath
                 });
             } else {
-                reject(new ConnectionError(`doesn't act like agda: ${data.toString()}`, connInfo.uri));
+                reject(new ConnectionError(`doesn't act like agda: ${data.toString()}`, connInfo.uri, connInfo.guid));
             }
         });
     });

@@ -119,6 +119,9 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
     [CONNECTION.DISCONNECT]: (state, action: Action<CONNECTION.CONNECT>) => ({ ...state,
         connected: undefined
     }),
+    [CONNECTION.ERR]: (state, action: Action<CONNECTION.ERR>) => ({ ...state,
+        erred: action.payload
+    }),
     [CONNECTION.SHOW_NEW_CONNECTION_VIEW]: (state, action: Action<CONNECTION.SHOW_NEW_CONNECTION_VIEW>) => ({ ...state,
         showNewConnectionView: action.payload
     })

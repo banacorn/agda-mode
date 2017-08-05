@@ -6,6 +6,7 @@ import { Normalization, ComputeMode, View } from './type';
 import { ConnectionNotEstablished, ConnectionError } from './connector';
 import Core from './core';
 import * as Command from './command';
+import * as Action from './view/actions';
 
 declare var atom: any;
 
@@ -57,6 +58,10 @@ export default class Commander {
                     //         // console.log('Failed')
                     //         // this.core.editor.revertToCheckpoint(checkPoint);
                     //     })
+                })
+                .catch(ConnectionError, error => {
+                    this.core.view.store.dispatch(Action.CONNECTION.err(error.guid));
+                    this.core.view.set(error.name, error.message.split('\n'), View.Style.Error);
                 })
                 .catch(ConnectionNotEstablished, () => {
                     this.core.view.set('Connection to Agda not established', [], View.Style.Warning);
