@@ -174,62 +174,91 @@ atom-text-editor.agda {
     .connection-item {
 
         margin: 2em 0;
-        padding: 2em;
         background: @button-background-color;
         border-radius: @component-border-radius;
-        border-left: 8px solid @button-background-color;
         -webkit-user-select: none !important;
         cursor: pointer;
 
-        // make the icon and the text apart
-        h3 {
-            display: flex;
+
+        ul {
+            padding: 1.5em;
+            cursor: pointer;
         }
 
         // make the icon and the text apart
         li {
             white-space: normal;
-            margin-top: 1em;
+            // margin-top: 1em;
 
             display: flex;
         }
 
         header {
-            margin-bottom: 1em;
+            padding: 1em;
+            border-radius: @component-border-radius;
+            background-color: @inset-panel-background-color;
+            // margin-bottom: 1em;
             font-size: 150%;
+
+            // make the icon and the text apart
+            h3 {
+                display: flex;
+            }
+
+
+            .connection-dashboard {
+                vertical-align: middle;
+                color: mix(@app-background-color, @button-background-color);
+
+                // .icon:last-of-type::before {
+                //     // margin: 0px;
+                // }
+                .icon { vertical-align: middle; }
+                .icon-x:hover { color: @text-color-error; }
+            }
+
+            .connection-status {
+                padding-right: 0.5em;
+                vertical-align: middle;
+                // font-size: 75%;
+            }
+
         }
 
-        .connection-status {
-            padding-right: 1em;
-        }
-
-        .connection-dashboard {
-            .icon:last-of-type::before {
-                margin: 0px;
-            }
-            .icon-x:hover {
-                color: @text-color-error;
-            }
-            color: mix(@app-background-color, @button-background-color);
-        }
     }
 
     .connection-item:hover {
         background: @button-background-color-hover;
-        border-left: 8px solid @button-background-color-hover;
     }
 
-    .connection-item.selected {
-        border-left: 8px solid @background-color-info;
+    .connection-item.selected header {
+        background: @background-color-info;
+        .connection-dashboard {
+            color: @text-color-info;
+        }
     }
 
-    .connection-item.connected {
-        border-left: 8px solid @background-color-success;
+    .connection-item.connected header {
+        background: @background-color-success;
+        .connection-dashboard {
+            color: @text-color-success;
+        }
     }
 
-    .connection-item.erred {
-        border-left: 8px solid @background-color-error;
+    .connection-item.erred header {
+        background: @background-color-error;
+        .connection-dashboard {
+            color: @text-color-error;
+        }
     }
+    //
+    // .connection-item.connected {
+    //     border-left: 8px solid @background-color-success;
+    // }
+    //
+    // .connection-item.erred {
+    //     border-left: 8px solid @background-color-error;
+    // }
 
     //////////////////////////////////////////////////////
     // Breadcrumbs
