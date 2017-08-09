@@ -48,15 +48,6 @@ export default class TextBuffer {
         textEditorElement.focus();
     }
 
-
-    ///////////////////////
-    //  File Management  //
-    ///////////////////////
-
-    saveBuffer() {
-        this.core.editor.save();
-    }
-
     ///////////////////////
     //  Goal Management  //
     ///////////////////////

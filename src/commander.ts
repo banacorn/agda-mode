@@ -156,8 +156,16 @@ export default class Commander {
             .then((conn) => {
                 this.loaded = true;
                 // force save before load
-                this.core.textBuffer.saveBuffer();
-                return conn;
+
+                // issue #48, TextBuffer::save will be async in Atom 1.19
+                let promise = this.core.editor.save();
+                if (promise && promise.then) {
+                    return promise.then((e) => {
+                        return conn;
+                    })
+                } else {
+                    return conn;
+                }
             })
             .then(Command.load)
     }
