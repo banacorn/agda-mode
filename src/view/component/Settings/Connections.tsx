@@ -51,7 +51,6 @@ class Connections extends React.Component<Props, {}> {
 
     render() {
         const noConnections = this.props.state.connectionInfos.length === 0;
-
         return (
             <section className={this.props.className}>
                 <h2>Connections</h2>

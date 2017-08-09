@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
-import { View } from '../../../type';
+import { View, ConnectionInfo } from '../../../type';
 
 //
 // Message
@@ -53,7 +53,10 @@ class Message extends React.Component<MsgProp, MsgState> {
 type OwnProps = React.HTMLProps<HTMLElement> & {
     // core: Core;
 }
-type InjProps = View.Protocol;
+type InjProps = {
+    connection?: ConnectionInfo;
+    protocol: View.Protocol;
+}
 
 type DispatchProps = {
     // navigate: (path: View.SettingsPath) => () => void
@@ -62,7 +65,12 @@ type DispatchProps = {
 type Props = OwnProps & InjProps & DispatchProps;
 
 function mapStateToProps(state: View.State): InjProps {
-    return state.protocol
+    return {
+        connection: _.find(state.connection.connectionInfos, {
+            guid: state.connection.connected
+        }),
+        protocol: state.protocol
+    }
 }
 
 class Protocol extends React.Component<Props, {}> {
@@ -76,24 +84,32 @@ class Protocol extends React.Component<Props, {}> {
         // this.handleClick = this.handleClick.bind(this);
     }
     render() {
-        const requests = this.props.messages.filter(msg => msg.kind === 'request');
-        const responses = this.props.messages.filter(msg => msg.kind === 'response');
-
-        return (
-            <section className={classNames("agda-settings-protocol", this.props.className)}>
-                <h2>Protocol</h2>
-                <p>Current Protocol: Emacs-vanilla</p>
-                <h2>Messages</h2>
-                <h3>Requests</h3>
-                <ol className="agda-settings-protocol-message-list">{requests.map((msg, i) =>
-                    <Message message={msg} key={i} />
-                )}</ol>
-                <h3>Responses</h3>
-                <ol className="agda-settings-protocol-message-list">{responses.map((msg, i) =>
-                    <Message message={msg} key={i} />
-                )}</ol>
-            </section>
-        )
+        const requests = this.props.protocol.messages.filter(msg => msg.kind === 'request');
+        const responses = this.props.protocol.messages.filter(msg => msg.kind === 'response');
+        const connInfo = this.props.connection;
+        if (connInfo) {
+            return (
+                <section className={classNames("agda-settings-protocol", this.props.className)}>
+                    <h2>Protocol</h2>
+                    <p>Current Protocol: {connInfo.protocol}</p>
+                    <h2>Messages</h2>
+                    <h3>Requests</h3>
+                    <ol className="agda-settings-protocol-message-list">{requests.map((msg, i) =>
+                        <Message message={msg} key={i} />
+                    )}</ol>
+                    <h3>Responses</h3>
+                    <ol className="agda-settings-protocol-message-list">{responses.map((msg, i) =>
+                        <Message message={msg} key={i} />
+                    )}</ol>
+                </section>
+            )
+        } else {
+            return <section className={classNames("agda-settings-protocol", this.props.className)}>
+                    <p className='background-message'>
+                        No Connections
+                    </p>
+                </section>
+        }
     }
 }
 
