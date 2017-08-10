@@ -1,3 +1,8 @@
+## 0.7.0
+* Connection management
+* Views in the panes are now migrated to the docks
+* Fix #48
+
 ## 0.6.15
 * Fix #46
 * Update TypeScript typing dependencies
