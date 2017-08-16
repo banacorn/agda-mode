@@ -95,7 +95,7 @@ class Panel extends React.Component<Props, {}> {
                         className={show(View.Mode.Query, mode)}
                         value={this.props.query.value}
                         placeholder={this.props.query.placeholder}
-                        data-grammar="source agda"
+                        data-grammar="agda"
                         ref={(ref) => {
                             if (ref)
                                 core.view.editors.general = ref;

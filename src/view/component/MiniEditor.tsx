@@ -80,7 +80,7 @@ class MiniEditor extends React.Component<Props, State> {
 
     componentDidMount() {
         // pass the grammar down to enable input method
-        if (this.props['data-grammar'] === "source agda") {
+        if (this.props['data-grammar'] === "agda") {
             const agdaGrammar = atom.grammars.grammarForScopeName('source.agda');
             this.ref.getModel().setGrammar(agdaGrammar);
         }

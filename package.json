@@ -4,11 +4,7 @@
   "version": "0.7.0",
   "description": "agda-mode on Atom",
   "activationCommands": {
-    "atom-text-editor[data-grammar='source agda']": [
-      "agda-mode:load",
-      "agda-mode:input-symbol"
-    ],
-    "atom-text-editor[data-grammar='source lagda']": [
+    "atom-text-editor[data-grammar~='agda']": [
       "agda-mode:load",
       "agda-mode:input-symbol"
     ]
