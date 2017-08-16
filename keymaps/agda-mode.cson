@@ -7,7 +7,7 @@
 
 # For more detailed documentation see
 # https://atom.io/docs/latest/behind-atom-keymaps-in-depth
-'atom-text-editor[data-grammar="source agda"]':
+'atom-text-editor[data-grammar~="agda"]':
     'ctrl-c        ctrl-l': 'agda-mode:load'
     # invoke input method
     '\\': 'agda-mode:input-symbol'
@@ -21,12 +21,6 @@
     '\"' : 'agda-mode:input-symbol-double-quote'
     '\'' : 'agda-mode:input-symbol-single-quote'
     '\`' : 'agda-mode:input-symbol-back-quote'
-
-'atom-text-editor[data-grammar="source lagda"]':
-    'ctrl-c        ctrl-l': 'agda-mode:load'
-    # invoke input method
-    '\\': 'agda-mode:input-symbol'
-    'alt-/': 'agda-mode:input-symbol'
 
 'atom-text-editor.agda':
     # Global commands
