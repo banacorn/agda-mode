@@ -1,3 +1,6 @@
+## 0.7.1
+* Pulls #49
+
 ## 0.7.0
 * Connection management
 * Views in the panes are now migrated to the docks
