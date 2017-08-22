@@ -239,12 +239,13 @@ export function autoSearch(): Promise<string> {
 export function validate(uri: string): Promise<ConnectionInfo> {
     uri = parseFilepath(uri);
     return new Promise<ConnectionInfo>((resolve, reject) => {
+        var stillHanging = true;
         exec(`${uri} --version`, (error, stdout, stderr) => {
+            stillHanging = false;
 
             if (uri === '') {
                 return reject(new ConnectionError(`The path must not be empty`, uri));
             }
-
             if (error) {
                 // command not found
                 if (error.message.toString().match(/command not found/)) {
@@ -278,6 +279,15 @@ export function validate(uri: string): Promise<ConnectionInfo> {
                 reject(new ConnectionError(message, uri));
             }
         });
+
+        // wait for the process for about 1 sec, if it still does not
+        // respond then reject
+        setTimeout(() => {
+            if (stillHanging) {
+                const message = `The provided program hangs`;
+                reject(new ConnectionError(message, uri));
+            }
+        }, 1000)
     });
 }
 
