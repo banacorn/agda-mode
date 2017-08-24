@@ -13,9 +13,11 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
 };
 
 type State = {
-    method: 'local' | 'remote';
-    localURL: string;
-    localMessage: string;
+    agdaLocation: string;
+    agdaMessage: string;
+    lspEnable: boolean;
+    lspLocation: string;
+    lspMessage: string;
 };
 
 type DispatchProps = {
@@ -30,122 +32,131 @@ function mapDispatchToProps(dispatch): DispatchProps {
         }
     };
 }
+
 class NewConnection extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            method: 'local',
-            localURL: '',
-            localMessage: ''
+            agdaLocation: '',
+            agdaMessage: '',
+            lspEnable: false,
+            lspLocation: '',
+            lspMessage: ''
         };
-        this.selectLocal = this.selectLocal.bind(this);
-        this.selectRemote = this.selectRemote.bind(this);
-        this.handleLocalURLChange = this.handleLocalURLChange.bind(this);
+        this.handleAgdaLocationChange = this.handleAgdaLocationChange.bind(this);
+        this.handleLanguageServerLocationChange = this.handleLanguageServerLocationChange.bind(this);
+        this.handleAddAgda = this.handleAddAgda.bind(this);
+        this.handleAutoSearch = this.handleAutoSearch.bind(this);
+        this.toggleLSPChange = this.toggleLSPChange.bind(this);
     }
 
-    selectLocal() {
+    handleAgdaLocationChange(event) {
         this.setState({
-            method: 'local'
-        } as State);
+            agdaLocation: event.target.value
+        });
     }
 
-    selectRemote() {
+    handleLanguageServerLocationChange(event) {
         this.setState({
-            method: 'remote'
-        } as State);
+            lspLocation: event.target.value
+        });
     }
 
-    handleLocalURLChange(event) {
+    handleAddAgda() {
+        Conn.validate(this.state.agdaLocation)
+            .then((conn) => {
+                this.props.handleAddConnection(conn)
+                this.props.onSuccess();
+                this.setState({
+                    agdaMessage: ''
+                });
+            })
+            .catch((error) => {
+                this.setState({
+                    agdaMessage: error.agdaMessage
+                });
+            })
+    }
+
+    handleAutoSearch() {
+        Conn.autoSearch()
+            .then(uri => {
+                this.setState({
+                    agdaLocation: uri
+                })
+            })
+            .catch(Conn.AutoSearchFailure, () => {
+                this.setState({
+                    agdaMessage: 'Failed searching for the location of Agda'
+                });
+            })
+        // prevent this button from submitting the entire form
+        return false;
+    }
+
+    toggleLSPChange() {
         this.setState({
-            localURL: event.target.value
+            lspEnable: !this.state.lspEnable
         });
     }
 
     render() {
-        const disableLocal = this.state.method !== 'local';
-        const disableRemote = this.state.method !== 'remote';
         return (
             <section className={this.props.className}>
-                <section>
-                    <form id="new-connection-dashboard">
+                <h2><span className="icon icon-plus">Establish new connection</span></h2>
+                <form>
+                    <input
+                        className='input-text native-key-bindings'
+                        type='text' placeholder='location of Agda'
+                        value={this.state.agdaLocation}
+                        onChange={this.handleAgdaLocationChange}
+                    />
+                    <p>
+                        <button
+                            className="btn icon btn-primary icon-plus inline-block-tight"
+                            onClick={this.handleAddAgda}
+                        >add</button>
+                        <button
+                            className="btn icon btn-success icon-search inline-block-tight"
+                            onClick={this.handleAutoSearch}
+                        >auto</button>
+                    </p>
+                </form>
+                {this.state.agdaMessage &&
+                    <div className="inset-panel padded text-warning">{this.state.agdaMessage}</div>
+                }
+                <hr/>
+                <h3><span className="icon icon-beaker">Experimental</span></h3>
+                <p>
+                    <label className='input-label'>
+                        <input className='input-toggle' type='checkbox' onChange={this.toggleLSPChange} /> Agda Language Server
+                    </label>
+                </p>
+                { this.state.lspEnable &&
+                    <form>
                         <input
-                            id="local-connection" className='input-radio'
-                            type='radio' name='connection-method'
-                            defaultChecked
-                            onChange={this.selectLocal}
+                            className='input-text native-key-bindings'
+                            type='text' placeholder='location of Agda Language Server'
+                            value={this.state.lspLocation}
+                            onChange={this.handleLanguageServerLocationChange}
                         />
-                        <label htmlFor="local-connection">
-                            <h3><span className="icon icon-home">Local</span></h3>
-                            <p>Establish connection to the Agda executable on your machine. The good old default.
-                            </p>
-                            <input
-                                className='input-text native-key-bindings'
-                                type='text' placeholder='path to Agda'
-                                disabled={disableLocal}
-                                value={this.state.localURL}
-                                onChange={this.handleLocalURLChange}
-                            />
+                        <p>
                             <button
-                                className="btn icon btn-primary icon-plus inline-block-tight"
-                                disabled={disableLocal}
-                                onClick={() => {
-                                    Conn.validate(this.state.localURL)
-                                        .then((conn) => {
-                                            this.props.handleAddConnection(conn)
-                                            this.props.onSuccess();
-                                            this.setState({
-                                                localMessage: ''
-                                            });
-                                        })
-                                        .catch((error) => {
-                                            this.setState({
-                                                localMessage: error.message
-                                            });
-                                        })
-                                }}
-                            >add</button>
-                            <button
-                                className="btn icon btn-warning icon-search inline-block-tight"
-                                disabled={disableLocal}
-                                onClick={() => {
-                                    Conn.autoSearch()
-                                        .then(uri => {
-                                            this.setState({
-                                                localURL: uri
-                                            })
-                                        })
-                                        .catch(Conn.AutoSearchFailure, () => {
-                                            this.setState({
-                                                localMessage: 'failed to search for the location of Agda'
-                                            });
-                                        })
-                                }}
-                            >auto</button>
-                            <div className='text-warning'>{this.state.localMessage}</div>
-                        </label>
-                        <hr/>
-                        <input
-                            id="remote-connection" className='input-radio'
-                            type='radio' name='connection-method'
-                            onChange={this.selectRemote}
-                            disabled={true}
-                        />
-                        <label htmlFor="remote-connection">
-                            <h3><span className="icon icon-globe">Remote</span></h3>
-                            <p>Establish connection to some remote Agda process on this planet via TCP/IP</p>
-                            <div id="remote-connection-inputs">
-                                <input id="remote-connection-url" className='input-text native-key-bindings' type='text' placeholder='URL' disabled={disableRemote}/>
-                                <input id="remote-connection-port" className='input-text native-key-bindings' type='text' placeholder='port' defaultValue="8192" disabled={disableRemote}/>
-                            </div>
-                            <button
-                                className="btn icon btn-primary icon-zap inline-block-tight"
-                                disabled={disableRemote}
+                                className="btn icon btn-primary icon-plug inline-block-tight"
+                                // onClick={this.handleAddAgda}
                             >connect</button>
-                        </label>
+                            <button
+                                className="btn icon btn-success icon-search inline-block-tight"
+                                // onClick={this.handleAutoSearch}
+                            >auto</button>
+                        </p>
                     </form>
-                </section>
+                }
+                {this.state.lspMessage &&
+                    <div className="inset-panel padded text-warning">{this.state.lspMessage}</div>
+                }
             </section>
-        )
+        );
     }
 }
 
