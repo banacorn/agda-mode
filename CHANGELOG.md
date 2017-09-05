@@ -1,3 +1,6 @@
+## 0.7.2
+* Updates the requirement of version of Atom
+
 ## 0.7.1
 * Pulls #49
 
