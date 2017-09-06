@@ -1,7 +1,7 @@
 {
   "name": "agda-mode",
   "main": "./lib/agda-mode",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "agda-mode on Atom",
   "activationCommands": {
     "atom-text-editor[data-grammar~='agda']": [
@@ -13,7 +13,7 @@
   "repository": "https://github.com/banacorn/agda-mode",
   "license": "MIT",
   "engines": {
-    "atom": "1.17"
+    "atom": ">=1.17.0 <2.0.0"
   },
   "dependencies": {
     "@types/bluebird": "^3.5.8",
