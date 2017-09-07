@@ -45,8 +45,9 @@ class NewConnection extends React.Component<Props, State> {
         };
         this.handleAgdaLocationChange = this.handleAgdaLocationChange.bind(this);
         this.handleLanguageServerLocationChange = this.handleLanguageServerLocationChange.bind(this);
-        this.handleAddAgda = this.handleAddAgda.bind(this);
-        this.handleAutoSearch = this.handleAutoSearch.bind(this);
+        this.addAgda = this.addAgda.bind(this);
+        this.searchAgda = this.searchAgda.bind(this);
+        this.searchLanguageServer = this.searchLanguageServer.bind(this);
         this.toggleLSPChange = this.toggleLSPChange.bind(this);
     }
 
@@ -62,24 +63,28 @@ class NewConnection extends React.Component<Props, State> {
         });
     }
 
-    handleAddAgda() {
-        Conn.validate(this.state.agdaLocation)
-            .then((conn) => {
-                this.props.handleAddConnection(conn)
-                this.props.onSuccess();
-                this.setState({
-                    agdaMessage: ''
-                });
-            })
-            .catch((error) => {
-                this.setState({
-                    agdaMessage: error.agdaMessage
-                });
-            })
+    addAgda() {
+        if (this.state.lspEnable) {
+            // Conn.validate(this.state.agdaLocation)
+        } else {
+            Conn.validateAgda(this.state.agdaLocation)
+                .then((conn) => {
+                    this.props.handleAddConnection(conn)
+                    this.props.onSuccess();
+                    this.setState({
+                        agdaMessage: ''
+                    });
+                })
+                .catch((error) => {
+                    this.setState({
+                        agdaMessage: error.agdaMessage
+                    });
+                })
+        }
     }
 
-    handleAutoSearch() {
-        Conn.autoSearch()
+    searchAgda() {
+        Conn.autoSearch('agda')
             .then(uri => {
                 this.setState({
                     agdaLocation: uri
@@ -88,6 +93,22 @@ class NewConnection extends React.Component<Props, State> {
             .catch(Conn.AutoSearchFailure, () => {
                 this.setState({
                     agdaMessage: 'Failed searching for the location of Agda'
+                });
+            })
+        // prevent this button from submitting the entire form
+        return false;
+    }
+
+    searchLanguageServer() {
+        Conn.autoSearch('agda-language-server')
+            .then(uri => {
+                this.setState({
+                    lspLocation: uri
+                })
+            })
+            .catch(Conn.AutoSearchFailure, () => {
+                this.setState({
+                    agdaMessage: 'Failed searching for the location of Agda Language Server'
                 });
             })
         // prevent this button from submitting the entire form
@@ -114,11 +135,11 @@ class NewConnection extends React.Component<Props, State> {
                     <p>
                         <button
                             className="btn icon btn-primary icon-plus inline-block-tight"
-                            onClick={this.handleAddAgda}
+                            onClick={this.addAgda}
                         >add</button>
                         <button
                             className="btn icon btn-success icon-search inline-block-tight"
-                            onClick={this.handleAutoSearch}
+                            onClick={this.searchAgda}
                         >auto</button>
                     </p>
                 </form>
@@ -142,12 +163,8 @@ class NewConnection extends React.Component<Props, State> {
                         />
                         <p>
                             <button
-                                className="btn icon btn-primary icon-plug inline-block-tight"
-                                // onClick={this.handleAddAgda}
-                            >connect</button>
-                            <button
                                 className="btn icon btn-success icon-search inline-block-tight"
-                                // onClick={this.handleAutoSearch}
+                                onClick={this.searchLanguageServer}
                             >auto</button>
                         </p>
                     </form>

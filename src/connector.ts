@@ -96,8 +96,8 @@ export default class Connector {
                         .then(this.wire);
                 })
                 .catch(NoExistingConnections, () => {
-                    return autoSearch()
-                        .then(validate)
+                    return autoSearch('agda')
+                        .then(validateAgda)
                         .then(connInfo => {
                             // let it be selected
                             this.selected = connInfo;
@@ -178,7 +178,7 @@ export default class Connector {
 
     queryConnection(): Promise<Connection> {
         return this.core.view.queryConnection()
-            .then(validate)
+            .then(validateAgda)
             .then(connInfo => {
                 // let it be selected
                 this.selected = connInfo;
@@ -219,13 +219,13 @@ export function mkConnectionInfo(uri: string): ConnectionInfo {
     }
 }
 
-export function autoSearch(): Promise<string> {
+export function autoSearch(filepath: string): Promise<string> {
     if (process.platform === 'win32') {
         return Promise.reject(new AutoSearchFailure('win32'));
     }
 
     return new Promise<string>((resolve, reject) => {
-        exec(`which agda`, (error, stdout, stderr) => {
+        exec(`which ${filepath}`, (error, stdout, stderr) => {
             if (error) {
                 reject(new AutoSearchFailure(error.toString()));
             } else {
@@ -236,7 +236,7 @@ export function autoSearch(): Promise<string> {
 }
 
 
-export function validate(uri: string): Promise<ConnectionInfo> {
+export function validateAgda(uri: string): Promise<ConnectionInfo> {
     uri = parseFilepath(uri);
     return new Promise<ConnectionInfo>((resolve, reject) => {
         var stillHanging = true;
