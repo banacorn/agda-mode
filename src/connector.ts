@@ -289,7 +289,7 @@ export function validateAgda(location: string): Promise<ProcessInfo> {
             const raw = result[1];
             const tokens = result[1].replace('-', '.').split('.');
             const sem = tokens.length > 3
-                ? _.take(tokens, 3).join('.') + '-' + _.drop(tokens, 3).join('-')
+                ? _.take(tokens, 3).join('.')
                 : tokens.join('.');
             const version = { raw, sem };
             resolve({
