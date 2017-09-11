@@ -92,8 +92,13 @@ export default class Connector {
             return getExistingConnectionInfo()
                 .then(selected => {
                     this.selected = selected;
-                    return connectAgda(this.selected, this.core.getPath())
-                        .then(this.wire);
+                    if (selected.languageServer) {
+                        return connectLanguageServer(this.selected, this.core.getPath())
+                            .then(this.wire);
+                    } else {
+                        return connectAgda(this.selected, this.core.getPath())
+                            .then(this.wire);
+                    }
                 })
                 .catch(NoExistingConnections, () => {
                     return autoSearch('agda')
@@ -325,6 +330,30 @@ export function connectAgda(connInfo: ConnectionInfo, filepath: string): Promise
                 resolve({
                     ...connInfo,
                     stream: duplex(agdaProcess.stdin, agdaProcess.stdout),
+                    filepath
+                });
+            } else {
+                reject(new ConnectionError(`doesn't act like agda: ${data.toString()}`, connInfo.agda.location, connInfo.guid));
+            }
+        });
+    });
+}
+
+export function connectLanguageServer(connInfo: ConnectionInfo, filepath: string): Promise<Connection> {
+    return new Promise<Connection>((resolve, reject) => {
+        const languageServerProcess = spawn(connInfo.languageServer.location, [], { shell: true });
+        languageServerProcess.on('error', (error) => {
+            reject(new ConnectionError(error.message, connInfo.agda.location, connInfo.guid));
+        });
+        languageServerProcess.on('close', (signal) => {
+            reject(new ConnectionError(`exit with signal ${signal}`, connInfo.agda.location, connInfo.guid));
+        });
+        languageServerProcess.stdout.once('data', (data) => {
+            const result = data.toString().match(/^Agda2\>/);
+            if (result) {
+                resolve({
+                    ...connInfo,
+                    stream: duplex(languageServerProcess.stdin, languageServerProcess.stdout),
                     filepath
                 });
             } else {

@@ -292,7 +292,10 @@ namespace Agda {
     }
     export interface UnknownAction {
         kind: 'UnknownAction';
-        content: string[];
+        content: {
+            raw: string;
+            parsedTokens: string[]
+        };
     }
 
     export interface Annotation {

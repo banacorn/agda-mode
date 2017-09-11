@@ -98,7 +98,10 @@ function parseAgdaResponse(raw: string): Agda.Response {
         default:
             return {
                 kind: 'UnknownAction',
-                content: tokens
+                content: {
+                    raw: raw,
+                    parsedTokens: tokens
+                }
             } as Agda.UnknownAction;
     }
 }
