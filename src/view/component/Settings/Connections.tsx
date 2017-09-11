@@ -79,7 +79,7 @@ class Connections extends React.Component<Props, {}> {
                     {this.props.state.connectionInfos.map((connInfo) => {
                             return <ConnectionItem
                                 key={connInfo.guid}
-                                uri={connInfo.agda.location}
+                                location={connInfo.agda.location}
                                 protocol={connInfo.languageServer ? 'LSP' : 'Vanilla'}
                                 version={connInfo.agda.version.raw}
                                 selected={this.props.state.selected === connInfo.guid}

@@ -85,9 +85,9 @@ class NewConnection extends React.Component<Props, State> {
 
     searchAgda() {
         Conn.autoSearch('agda')
-            .then(uri => {
+            .then(location => {
                 this.setState({
-                    agdaLocation: uri
+                    agdaLocation: location
                 })
             })
             .catch(Conn.AutoSearchFailure, () => {
@@ -101,9 +101,9 @@ class NewConnection extends React.Component<Props, State> {
 
     searchLanguageServer() {
         Conn.autoSearch('agda-language-server')
-            .then(uri => {
+            .then(location => {
                 this.setState({
-                    lspLocation: uri
+                    lspLocation: location
                 })
             })
             .catch(Conn.AutoSearchFailure, () => {

@@ -3,7 +3,7 @@ import * as classNames from 'classnames';
 
 type Props = React.HTMLProps<HTMLElement> & {
     version: string;
-    uri: string;
+    location: string;
     protocol: 'Vanilla' | 'LSP';
     selected: boolean;
     connected: boolean;
@@ -48,7 +48,7 @@ class ConnectionItem extends React.Component<Props, {}> {
                 <ul className='list-group'>
                     <li className='list-item'>
                         <div className='icon icon-location'></div>
-                        <div>Location: {this.props.uri}</div>
+                        <div>Location: {this.props.location}</div>
                     </li>
                     <li className='list-item'>
                         <div className='icon icon-comment-discussion'></div>

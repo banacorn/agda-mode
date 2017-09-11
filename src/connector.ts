@@ -37,10 +37,10 @@ export class AutoSearchFailure extends Error {
 }
 
 export class ConnectionError extends Error {
-    constructor(message: string, public uri: string, public guid?: GUID) {
+    constructor(message: string, public location: string, public guid?: GUID) {
         super(message);
         this.message = message;
-        this.uri = uri;
+        this.location = location;
         this.guid = guid;
         this.name = 'Connection Error';
         Error.captureStackTrace(this, ConnectionError);
@@ -216,8 +216,6 @@ export function mkConnectionInfo(agda: ProcessInfo): ConnectionInfo {
     return {
         guid: guid(),
         agda: agda
-        // uri: parseFilepath(uri),
-        // protocol: 'Vanilla' // as default
     }
 }
 
