@@ -193,8 +193,8 @@ export default class Commander {
             .getConnection()
             .then(conn => {
                 this.core.view.set('Info', [
-                    `Agda version: ${conn.version.raw}`,
-                    `Agda executable path: ${conn.uri}`
+                    `Agda version: ${conn.agda.version.raw}`,
+                    `Agda executable path: ${conn.agda.location}`
                     // `Agda executable arguments: ${args.join(' ')}`
                 ], View.Style.PlainText);
 

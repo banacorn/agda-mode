@@ -91,7 +91,7 @@ class Protocol extends React.Component<Props, {}> {
             return (
                 <section className={classNames("agda-settings-protocol", this.props.className)}>
                     <h2>Protocol</h2>
-                    <p>Current Protocol: {connInfo.protocol}</p>
+                    <p>Current Protocol: {connInfo.languageServer ? 'LSP' : 'Vanilla'}</p>
                     <h2>Messages</h2>
                     <h3>Requests</h3>
                     <ol className="agda-settings-protocol-message-list">{requests.map((msg, i) =>

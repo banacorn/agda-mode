@@ -79,9 +79,9 @@ class Connections extends React.Component<Props, {}> {
                     {this.props.state.connectionInfos.map((connInfo) => {
                             return <ConnectionItem
                                 key={connInfo.guid}
-                                uri={connInfo.uri}
-                                protocol={connInfo.protocol}
-                                version={connInfo.version.raw}
+                                uri={connInfo.agda.location}
+                                protocol={connInfo.languageServer ? 'LSP' : 'Vanilla'}
+                                version={connInfo.agda.version.raw}
                                 selected={this.props.state.selected === connInfo.guid}
                                 connected={this.props.state.connected === connInfo.guid}
                                 erred={_.includes(this.props.state.erred, connInfo.guid)}

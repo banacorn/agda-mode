@@ -49,7 +49,7 @@ function buildRange(conn: Connection, goal: Goal): string {
     const startIndex  = goal.rangeIndex.start;
     const end         = goal.range.end;
     const endIndex    = goal.rangeIndex.end;
-    if (semver.gte(conn.version.sem, '2.5.1')) {
+    if (semver.gte(conn.agda.version.sem, '2.5.1')) {
         return `(intervalsToRange (Just (mkAbsolute \"${conn.filepath}\")) [Interval (Pn () ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn () ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
     } else {
         return `(Range [Interval (Pn (Just (mkAbsolute \"${conn.filepath}\")) ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn (Just (mkAbsolute \"${this.core.getPath()}\")) ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
@@ -59,7 +59,7 @@ function buildRange(conn: Connection, goal: Goal): string {
 
 export const load = sendCommand('NonInteractive', (conn) => {
     // if version > 2.5, ignore library path configuration
-    if (semver.gte(conn.version.sem, '2.5.0'))
+    if (semver.gte(conn.agda.version.sem, '2.5.0'))
         return `Cmd_load \"${conn.filepath}\" []`
     else
         return `Cmd_load \"${conn.filepath}\" [${getLibraryPath()}]`
@@ -67,7 +67,7 @@ export const load = sendCommand('NonInteractive', (conn) => {
 
 export const compile = sendCommand('NonInteractive', (conn) => {
     const backend = atom.config.get('agda-mode.backend');
-    if (semver.gte(conn.version.sem, '2.5.0'))
+    if (semver.gte(conn.agda.version.sem, '2.5.0'))
         return `Cmd_compile ${backend} \"${conn.filepath}\" []`
     else
         return `Cmd_compile ${backend} \"${conn.filepath}\" [${getLibraryPath()}]`
@@ -104,7 +104,7 @@ export const moduleContentsGlobal = (normalization: Normalization, expr: string)
 
 export const computeNormalForm = (computeMode: ComputeMode, expr: string, goal: Goal) =>
     sendCommand('NonInteractive', conn => {
-        if (semver.gte(conn.version.sem, '2.5.2')) {
+        if (semver.gte(conn.agda.version.sem, '2.5.2')) {
             return `Cmd_compute ${computeMode} ${goal.index} noRange \"${expr}\"`;
         } else {
             const ignoreAbstract = computeMode === 'DefaultCompute' ? 'False' : 'True';
@@ -114,7 +114,7 @@ export const computeNormalForm = (computeMode: ComputeMode, expr: string, goal: 
 
 export const computeNormalFormGlobal = (computeMode: ComputeMode, expr: string) =>
     sendCommand('None', conn => {
-        if (semver.gte(conn.version.sem, '2.5.2')) {
+        if (semver.gte(conn.agda.version.sem, '2.5.2')) {
             return `Cmd_compute_toplevel ${computeMode} \"${expr}\"`;
         } else {
             const ignoreAbstract = computeMode === 'DefaultCompute' ? 'False' : 'True';

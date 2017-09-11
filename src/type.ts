@@ -555,14 +555,25 @@ namespace Error {
 // Connection
 //
 
-export type ConnectionInfo = {
-    guid: string;
-    uri: string;
+export type ProcessInfo = {
+    location: string;
     version?: {
         raw: string;
         sem: string;
     };
-    protocol: 'Vanilla' | 'LSP';
+};
+
+export type ConnectionInfo = {
+    guid: string;
+    agda: ProcessInfo;
+    languageServer?: ProcessInfo;
+    // uri: string;
+    // version?: {
+    //     raw: string;
+    //     sem: string;
+    // };
+    // protocol: 'Vanilla' | 'LSP';
+    // languageServerLocation?: string;
 }
 
 export type Connection = ConnectionInfo & {
