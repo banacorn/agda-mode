@@ -91,7 +91,6 @@ export default class Connector {
         if (!this.selected) {
             return getExistingConnectionInfo()
                 .then(selected => {
-                    console.log(selected.languageServer)
                     this.selected = selected;
                     return connectAgda(this.selected, this.core.getPath())
                         .then(this.wire);
@@ -99,6 +98,7 @@ export default class Connector {
                 .catch(NoExistingConnections, () => {
                     return autoSearch('agda')
                         .then(validateAgda)
+                        .then(mkConnectionInfo)
                         .then(connInfo => {
                             // let it be selected
                             this.selected = connInfo;
@@ -180,6 +180,7 @@ export default class Connector {
     queryConnection(): Promise<Connection> {
         return this.core.view.queryConnection()
             .then(validateAgda)
+            .then(mkConnectionInfo)
             .then(connInfo => {
                 // let it be selected
                 this.selected = connInfo;
@@ -237,9 +238,9 @@ export function autoSearch(filepath: string): Promise<string> {
 
 
 
-export function validateProgram(location: string, validator: (msg: string, resolve, reject) => void): Promise<ConnectionInfo> {
+export function validateProcess(location: string, validator: (msg: string, resolve, reject) => void): Promise<ProcessInfo> {
     location = parseFilepath(location);
-    return new Promise<ConnectionInfo>((resolve, reject) => {
+    return new Promise<ProcessInfo>((resolve, reject) => {
         var stillHanging = true;
         exec(`${location} --version`, (error, stdout, stderr) => {
             stillHanging = false;
@@ -275,8 +276,8 @@ export function validateProgram(location: string, validator: (msg: string, resol
     });
 }
 
-export function validateAgda(location: string): Promise<ConnectionInfo> {
-    return validateProgram(location, (message, resolve, reject) => {
+export function validateAgda(location: string): Promise<ProcessInfo> {
+    return validateProcess(location, (message, resolve, reject) => {
         const result = message.match(/^Agda version (.*)(?:\r\n?|\n)$/);
         if (result) {
             // normalize version number to valid semver
@@ -286,40 +287,28 @@ export function validateAgda(location: string): Promise<ConnectionInfo> {
                 ? _.take(tokens, 3).join('.') + '-' + _.drop(tokens, 3).join('-')
                 : tokens.join('.');
             const version = { raw, sem };
-            let connInfo = mkConnectionInfo({
-                location, version
+            resolve({
+                location,
+                version
             });
-            resolve(connInfo);
         } else {
             reject(new ConnectionError(`Doesn't seem like Agda to me: \n\"${message}\"`, location));
         }
     });
 }
 
-// export function validateLanguageServer(location: string): Promise<ConnectionInfo> {
-//     return validateProgram(location, (message, resolve, reject) => {
-//         const result = message.match(/^Agda Language Server (.*)(?:\r\n?|\n)$/);
-//         if (result) {
-//
-//
-//
-//             // // normalize version number to valid semver
-//             // const rawVerNum = result[1];
-//             // const tokens = result[1].replace('-', '.').split('.');
-//             // const semVerNum = tokens.length > 3
-//             //     ? _.take(tokens, 3).join('.') + '-' + _.drop(tokens, 3).join('-')
-//             //     : tokens.join('.');
-//             // let connInfo = mkConnectionInfo(location);
-//             // connInfo.version = {
-//             //     raw: rawVerNum,
-//             //     sem: semVerNum
-//             // };
-//             // resolve(connInfo);
-//         } else {
-//             reject(new ConnectionError(`Doesn't seem like Agda to me: \n\"${message}\"`, location));
-//         }
-//     });
-// }
+export function validateLanguageServer(location: string): Promise<ProcessInfo> {
+    return validateProcess(location, (message, resolve, reject) => {
+        const result = message.match(/^Agda Language Server (.*)(?:\r\n?|\n)$/);
+        if (result) {
+            resolve({
+                location: location
+            })
+        } else {
+            reject(new ConnectionError(`Doesn't seem like Agda to me: \n\"${message}\"`, location));
+        }
+    });
+}
 
 export function connectAgda(connInfo: ConnectionInfo, filepath: string): Promise<Connection> {
     return new Promise<Connection>((resolve, reject) => {

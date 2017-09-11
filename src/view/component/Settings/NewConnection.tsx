@@ -65,11 +65,35 @@ class NewConnection extends React.Component<Props, State> {
 
     addAgda() {
         if (this.state.lspEnable) {
+            Conn.validateAgda(this.state.agdaLocation)
+                .then(Conn.mkConnectionInfo)
+                .then(connInfo => {
+                    return Conn.validateLanguageServer(this.state.lspLocation)
+                        .then(lspProcInfo => {
+                            connInfo.languageServer = lspProcInfo;
+                            this.props.handleAddConnection(connInfo)
+                            this.props.onSuccess();
+                            this.setState({
+                                agdaMessage: ''
+                            });
+                        })
+                        .catch((error) => {
+                            this.setState({
+                                lspMessage: error.message
+                            });
+                        })
+                })
+                .catch((error) => {
+                    this.setState({
+                        agdaMessage: error.message
+                    });
+                })
             // Conn.validate(this.state.agdaLocation)
         } else {
             Conn.validateAgda(this.state.agdaLocation)
-                .then((conn) => {
-                    this.props.handleAddConnection(conn)
+                .then(Conn.mkConnectionInfo)
+                .then(connInfo => {
+                    this.props.handleAddConnection(connInfo)
                     this.props.onSuccess();
                     this.setState({
                         agdaMessage: ''
@@ -144,7 +168,7 @@ class NewConnection extends React.Component<Props, State> {
                     </p>
                 </form>
                 {this.state.agdaMessage &&
-                    <div className="inset-panel padded text-warning">{this.state.agdaMessage}</div>
+                    <div className="inset-panel padded text-warning">Agda: {this.state.agdaMessage}</div>
                 }
                 <hr/>
                 <h3><span className="icon icon-beaker">Experimental</span></h3>
@@ -170,7 +194,7 @@ class NewConnection extends React.Component<Props, State> {
                     </form>
                 }
                 {this.state.lspMessage &&
-                    <div className="inset-panel padded text-warning">{this.state.lspMessage}</div>
+                    <div className="inset-panel padded text-warning">Language Server: {this.state.lspMessage}</div>
                 }
             </section>
         );
