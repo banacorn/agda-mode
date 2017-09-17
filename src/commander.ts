@@ -3,7 +3,9 @@ import * as _ from 'lodash';
 import { inspect } from 'util';
 import { OutOfGoalError, EmptyGoalError, QueryCancelled, NotLoadedError, InvalidExecutablePathError } from './error';
 import { Normalization, ComputeMode, View } from './type';
+import { parseAgdaResponse } from './parser';
 import { ConnectionNotEstablished, ConnectionError } from './connector';
+import { handleAgdaResponse } from './handler';
 import Core from './core';
 import * as Command from './command';
 import * as Action from './view/actions';
@@ -42,11 +44,24 @@ export default class Commander {
             ];
         if(this.loaded || _.includes(exception, command.kind)) {
             this.dispatchCommand(command)
-                .then((result) => {
-                    // if (command.kind === 'Quit') {
-                    //     this.pendingQueue.clear();
-                    // }
-                    //
+                .then((responses) => {
+                    console.log(responses)
+                    if (Array.isArray(responses)) {
+                        responses.forEach(response => {
+                            try {
+                                this.core.view.store.dispatch(Action.PROTOCOL.addResponse(response));
+                                handleAgdaResponse(this.core, parseAgdaResponse(response));
+                            } catch (error) {
+                                // this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
+                                console.log(error)
+                                // show some message
+                                this.core.view.set('Agda Parse Error',
+                                [`Message from agda:`].concat(response),
+                                View.Style.Error);
+                            }
+
+                        })
+                    }
                     // // console.log(`Empty: ${this.pendingQueue.isEmpty()}`)
                     // const checkPoint = this.core.editor.createCheckpoint();
                     // this.pendingQueue.issue(command)
@@ -86,7 +101,7 @@ export default class Commander {
         }
     }
 
-    dispatchCommand(command): Promise<{}> {
+    dispatchCommand(command): Promise<any> {
         switch(command.kind) {
             case 'Load':          return this.load();
             case 'Quit':          return this.quit();
@@ -139,6 +154,8 @@ export default class Commander {
             default:    throw `undispatched command type ${command}`
         }
     }
+
+
 
     //
     //  Commands
@@ -417,7 +434,6 @@ export default class Commander {
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
-            .then(() => Promise.resolve({}));
     }
 
     goalTypeAndContext(normalization: Normalization): Promise<{}> {
@@ -428,7 +444,6 @@ export default class Commander {
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
-            .then(() => Promise.resolve({}));
     }
 
     goalTypeAndInferredType(normalization: Normalization): Promise<{}> {
@@ -439,7 +454,6 @@ export default class Commander {
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Inferred Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
-            .then(() => Promise.resolve({}));
     }
 
     inputSymbol(): Promise<{}> {

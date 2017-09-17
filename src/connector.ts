@@ -12,10 +12,9 @@ import Rectifier from './parser/stream/rectifier';
 import { View, Connection, ProcessInfo, ConnectionInfo, GUID } from './type';
 import { guid } from './util';
 import Core from './core';
-import { parseFilepath, parseAgdaResponse } from './parser';
+import { parseFilepath } from './parser';
 import * as Action from "./view/actions";
 import * as Store from "./persist";
-import { handleAgdaResponse } from './handler';
 
 // Custom Errors
 export class NoConnectionGiven extends Error {
@@ -166,18 +165,21 @@ export default class Connector {
         conn.stream
             .pipe(new Rectifier)
             .on('data', (data) => {
-                try {
-                    this.core.view.store.dispatch(Action.PROTOCOL.addResponse(data.toString()));
-                    const response = parseAgdaResponse(data.toString());
-                    handleAgdaResponse(this.core, response);
-                } catch (error) {
-                    // this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
-                    console.log(error)
-                    // show some message
-                    this.core.view.set('Agda Parse Error',
-                        [`Message from agda:`].concat(data.toString()),
-                        View.Style.Error);
-                }
+                const request = this.connection.queue.pop();
+                request.resolve(data.toString().trim().split('\n'));
+
+                // try {
+                //     this.core.view.store.dispatch(Action.PROTOCOL.addResponse(data.toString()));
+                //     const response = parseAgdaResponse(data.toString());
+                //     handleAgdaResponse(this.core, response);
+                // } catch (error) {
+                //     // this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
+                //     console.log(error)
+                //     // show some message
+                //     this.core.view.set('Agda Parse Error',
+                //         [`Message from agda:`].concat(data.toString()),
+                //         View.Style.Error);
+                // }
             });
         return Promise.resolve(conn);
     }
@@ -324,12 +326,14 @@ export function connectAgda(connInfo: ConnectionInfo, filepath: string): Promise
         agdaProcess.on('close', (signal) => {
             reject(new ConnectionError(`exit with signal ${signal}`, connInfo.agda.location, connInfo.guid));
         });
+        // validate the spawned process
         agdaProcess.stdout.once('data', (data) => {
             const result = data.toString().match(/^Agda2\>/);
             if (result) {
                 resolve({
                     ...connInfo,
                     stream: duplex(agdaProcess.stdin, agdaProcess.stdout),
+                    queue: [],
                     filepath
                 });
             } else {
@@ -354,6 +358,7 @@ export function connectLanguageServer(connInfo: ConnectionInfo, filepath: string
                 resolve({
                     ...connInfo,
                     stream: duplex(languageServerProcess.stdin, languageServerProcess.stdout),
+                    queue: [],
                     filepath
                 });
             } else {

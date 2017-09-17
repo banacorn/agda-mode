@@ -20,7 +20,7 @@ function getLibraryPath(): string {
     return path.map((p) => { return `\"${ parseFilepath(p) }\"`; }).join(', ');
 }
 
-const sendCommand = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (conn: Connection): Promise<{}> => {
+const sendRequest = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (conn: Connection): Promise<{}> => {
     const highlightingMethod = atom.config.get('agda-mode.highlightingMethod');
     let command: string;
     if (typeof interaction === 'string') {
@@ -28,9 +28,15 @@ const sendCommand = (highlightingLevel: string, interaction: string | ((conn: Co
     } else {    // interaction is a callback
         command = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(conn)} )\n`;
     }
-    // console.log(command)
+    // pushing the unfullfilled request to the back of the backlog queue of Connection
+    const promise = new Promise((resolve, reject) => {
+        conn.queue.unshift({ resolve, reject });
+    });
+    console.log(command)
+    // send it out
     conn.stream.write(command);
-    return Promise.resolve({});
+
+    return promise;
 }
 
 
@@ -57,7 +63,7 @@ function buildRange(conn: Connection, goal: Goal): string {
 }
 
 
-export const load = sendCommand('NonInteractive', (conn) => {
+export const load = sendRequest('NonInteractive', (conn) => {
     // if version > 2.5, ignore library path configuration
     if (semver.gte(conn.agda.version.sem, '2.5.0'))
         return `Cmd_load \"${conn.filepath}\" []`
@@ -65,7 +71,7 @@ export const load = sendCommand('NonInteractive', (conn) => {
         return `Cmd_load \"${conn.filepath}\" [${getLibraryPath()}]`
 });
 
-export const compile = sendCommand('NonInteractive', (conn) => {
+export const compile = sendRequest('NonInteractive', (conn) => {
     const backend = atom.config.get('agda-mode.backend');
     if (semver.gte(conn.agda.version.sem, '2.5.0'))
         return `Cmd_compile ${backend} \"${conn.filepath}\" []`
@@ -74,36 +80,36 @@ export const compile = sendCommand('NonInteractive', (conn) => {
 });
 
 export const toggleDisplayOfImplicitArguments =
-    sendCommand('NonInteractive', 'ToggleImplicitArgs');
+    sendRequest('NonInteractive', 'ToggleImplicitArgs');
 
 export const solveConstraints =
-    sendCommand('NonInteractive', 'Cmd_solveAll');
+    sendRequest('NonInteractive', 'Cmd_solveAll');
 
 export const showConstraints =
-    sendCommand('NonInteractive', 'Cmd_constraints');
+    sendRequest('NonInteractive', 'Cmd_constraints');
 
 export const showGoals =
-    sendCommand('NonInteractive', 'Cmd_metas');
+    sendRequest('NonInteractive', 'Cmd_metas');
 
 export const whyInScope = (expr: string, goal: Goal) =>
-    sendCommand('NonInteractive', `Cmd_why_in_scope ${goal.index} noRange \"${expr}\"`);
+    sendRequest('NonInteractive', `Cmd_why_in_scope ${goal.index} noRange \"${expr}\"`);
 
 export const whyInScopeGlobal = (expr: string) =>
-    sendCommand('None', `Cmd_why_in_scope_toplevel \"${expr}\"`)
+    sendRequest('None', `Cmd_why_in_scope_toplevel \"${expr}\"`)
 
 export const inferType = (normalization: Normalization, expr: string, goal: Goal) =>
-    sendCommand('NonInteractive', `Cmd_infer ${normalization} ${goal.index} noRange \"${expr}\"`);
+    sendRequest('NonInteractive', `Cmd_infer ${normalization} ${goal.index} noRange \"${expr}\"`);
 
 export const inferTypeGlobal = (normalization: Normalization, expr: string) =>
-    sendCommand('None', `Cmd_infer_toplevel ${normalization} \"${expr}\"`);
+    sendRequest('None', `Cmd_infer_toplevel ${normalization} \"${expr}\"`);
 
 export const moduleContents = (normalization: Normalization, expr: string, goal: Goal) =>
-    sendCommand('NonInteractive', `Cmd_show_module_contents ${normalization} ${goal.index} noRange \"${expr}\"`);
+    sendRequest('NonInteractive', `Cmd_show_module_contents ${normalization} ${goal.index} noRange \"${expr}\"`);
 export const moduleContentsGlobal = (normalization: Normalization, expr: string) =>
-    sendCommand('None', `Cmd_show_module_contents_toplevel ${normalization} \"${expr}\"`);
+    sendRequest('None', `Cmd_show_module_contents_toplevel ${normalization} \"${expr}\"`);
 
 export const computeNormalForm = (computeMode: ComputeMode, expr: string, goal: Goal) =>
-    sendCommand('NonInteractive', conn => {
+    sendRequest('NonInteractive', conn => {
         if (semver.gte(conn.agda.version.sem, '2.5.2')) {
             return `Cmd_compute ${computeMode} ${goal.index} noRange \"${expr}\"`;
         } else {
@@ -113,7 +119,7 @@ export const computeNormalForm = (computeMode: ComputeMode, expr: string, goal: 
     });
 
 export const computeNormalFormGlobal = (computeMode: ComputeMode, expr: string) =>
-    sendCommand('None', conn => {
+    sendRequest('None', conn => {
         if (semver.gte(conn.agda.version.sem, '2.5.2')) {
             return `Cmd_compute_toplevel ${computeMode} \"${expr}\"`;
         } else {
@@ -122,34 +128,34 @@ export const computeNormalFormGlobal = (computeMode: ComputeMode, expr: string) 
         }
     });
 
-export const give = (goal: Goal) => sendCommand('NonInteractive', conn =>
+export const give = (goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_give ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
 );
 
-export const refine = (goal: Goal) => sendCommand('NonInteractive', conn =>
+export const refine = (goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_refine_or_intro False ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
 );
 
-export const auto = (goal: Goal) => sendCommand('NonInteractive', conn =>
+export const auto = (goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_auto ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
 );
 
-export const makeCase = (goal: Goal) => sendCommand('NonInteractive', conn =>
+export const makeCase = (goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_make_case ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
 );
 
-export const goalType = (normalization: Normalization, goal: Goal) => sendCommand('NonInteractive', conn =>
+export const goalType = (normalization: Normalization, goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_goal_type ${normalization} ${goal.index} noRange \"\"`)
 );
 
-export const context = (normalization: Normalization, goal: Goal) => sendCommand('NonInteractive', conn =>
+export const context = (normalization: Normalization, goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_context ${normalization} ${goal.index} noRange \"\"`)
 );
 
-export const goalTypeAndContext = (normalization: Normalization, goal: Goal) => sendCommand('NonInteractive', conn =>
+export const goalTypeAndContext = (normalization: Normalization, goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_goal_type_context ${normalization} ${goal.index} noRange \"\"`)
 );
 
-export const goalTypeAndInferredType = (normalization: Normalization, goal: Goal) => sendCommand('NonInteractive', conn =>
+export const goalTypeAndInferredType = (normalization: Normalization, goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_goal_type_context_infer ${normalization} ${goal.index} noRange \"${goal.getContent()}\"`)
 );

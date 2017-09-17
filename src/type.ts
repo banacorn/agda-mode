@@ -574,6 +574,10 @@ export type ConnectionInfo = {
 
 export type Connection = ConnectionInfo & {
     stream: Duplex;
+    queue: {
+        resolve: any;
+        reject: any;
+    }[];
     filepath: string;   // path of the Agda file
 }
 
