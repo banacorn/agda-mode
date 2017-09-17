@@ -228,6 +228,12 @@ namespace Agda {
         HighlightLoadAndDeleteAction |
         UnknownAction
 
+    // for "local" requests that never gets to the server.
+    // e.g.: jump to the next goal
+    export interface NoOp {
+        kind: 'NoOp';
+    }
+
     export interface InfoAction {
         kind: 'InfoAction';
         infoActionKind: 'AllGoals' | 'Error' | 'TypeChecking' | 'CurrentGoal' |
@@ -575,8 +581,8 @@ export type ConnectionInfo = {
 export type Connection = ConnectionInfo & {
     stream: Duplex;
     queue: {
-        resolve: any;
-        reject: any;
+        resolve: (responses: Agda.Response[]) => void;
+        reject: (error?: any) => void;
     }[];
     filepath: string;   // path of the Agda file
 }

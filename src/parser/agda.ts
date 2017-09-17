@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Agda } from '../type';
 
-function parseAgdaResponse(raw: string): Agda.Response {
+function parseAgdaResponse(raw: string): Promise<Agda.Response> {
 
     const tokens: any[] = parseSExpression(raw);
 
@@ -9,100 +9,100 @@ function parseAgdaResponse(raw: string): Agda.Response {
         case 'agda2-info-action':
             let type = parseInfoActionType(tokens[1]);
             let content = tokens.length === 3 ? [] : _.compact(tokens[2].split('\\n'));
-            return {
+            return Promise.resolve({
                 kind: 'InfoAction',
                 infoActionKind: type,
                 content: content
-            } as Agda.InfoAction;
+            } as Agda.InfoAction);
         case 'agda2-status-action':
-            return {
+            return Promise.resolve({
                 kind: 'StatusAction',
                 content: tokens.slice(1, 2)
-            } as Agda.StatusAction;
+            } as Agda.StatusAction);
         case 'agda2-goals-action':
-            return {
+            return Promise.resolve({
                 kind: 'GoalsAction',
                 content: tokens[1].map((s) => parseInt(s))
-            } as Agda.GoalsAction;
+            } as Agda.GoalsAction);
         case 'agda2-give-action':
             let index = parseInt(tokens[1]);
             // with parenthesis: ["agda2-give-action", 1, "paren"]
             // w/o  parenthesis: ["agda2-give-action", 1, "no-paren"]
             // with content    : ["agda2-give-action", 0, ...]
             switch (tokens[2]) {
-                case 'paren': return {
+                case 'paren': return Promise.resolve({
                         kind: 'GiveAction',
                         index: index,
                         content: '',
                         hasParenthesis: true
-                    } as Agda.GiveAction;
-                case 'no-paren': return {
+                    } as Agda.GiveAction);
+                case 'no-paren': return Promise.resolve({
                         kind: 'GiveAction',
                         index: index,
                         content: '',
                         hasParenthesis: false
-                    } as Agda.GiveAction;
-                default: return {
+                    } as Agda.GiveAction);
+                default: return Promise.resolve({
                         kind: 'GiveAction',
                         index: index,
                         content: tokens[2],
                         hasParenthesis: false
-                    } as Agda.GiveAction;
+                    } as Agda.GiveAction);
             }
         case 'agda2-parse-error':
-            return {
+            return Promise.resolve({
                 kind: 'ParseError',
                 content: tokens.slice(1)
-            } as Agda.ParseError;
+            } as Agda.ParseError);
         case 'agda2-goto':
         case 'agda2-maybe-goto':
-            return {
+            return Promise.resolve({
                 kind: 'Goto',
                 filepath: tokens[1][0],
                 position: parseInt(tokens[1][2])
-            } as Agda.Goto;
+            } as Agda.Goto);
         case 'agda2-solveAll-action':
-            return {
+            return Promise.resolve({
                 kind: 'SolveAllAction',
                 solutions: _.chunk(tokens[1], 2).map((arr) => {
                     return { index: parseInt(arr[0] as string), expression: arr[1] }
                 })
-            } as Agda.SolveAllAction;
+            } as Agda.SolveAllAction);
         case 'agda2-make-case-action':
-            return {
+            return Promise.resolve({
                 kind: 'MakeCaseAction',
                 content: tokens[1]
-            } as Agda.MakeCaseAction;
+            } as Agda.MakeCaseAction);
         case 'agda2-make-case-action-extendlam':
-            return {
+            return Promise.resolve({
                 kind: 'MakeCaseActionExtendLam',
                 content: tokens[1]
-            } as Agda.MakeCaseActionExtendLam;
+            } as Agda.MakeCaseActionExtendLam);
         case 'agda2-highlight-clear':
-            return {
+            return Promise.resolve({
                 kind: 'HighlightClear',
-            } as Agda.HighlightClear;
+            } as Agda.HighlightClear);
         case 'agda2-highlight-add-annotations':
             let annotations: Agda.Annotation[] = _
                 .tail(tokens)
                 .map(parseAnnotation);
-            return {
+            return Promise.resolve({
                 kind: 'HighlightAddAnnotations',
                 content: annotations
-            } as Agda.HighlightAddAnnotations;
+            } as Agda.HighlightAddAnnotations);
         case 'agda2-highlight-load-and-delete-action':
-            return {
+            return Promise.resolve({
                 kind: 'HighlightLoadAndDeleteAction',
                 content: tokens[1]
-            } as Agda.HighlightLoadAndDeleteAction;
+            } as Agda.HighlightLoadAndDeleteAction);
         default:
-            return {
+            return Promise.resolve({
                 kind: 'UnknownAction',
                 content: {
                     raw: raw,
                     parsedTokens: tokens
                 }
-            } as Agda.UnknownAction;
+            } as Agda.UnknownAction);
     }
 }
 

@@ -1,15 +1,8 @@
 import * as Promise from 'bluebird';
-// import * as _ from 'lodash';
-// import { spawn, exec, ChildProcess } from 'child_process';
-import { parseFilepath, parseAgdaResponse } from './parser';
-// import Rectifier from './parser/stream/rectifier';
-// import { handleAgdaResponse } from './handler';
-// import { InvalidExecutablePathError, ProcExecError, AutoExecPathSearchError, AgdaParseError } from './error';
-import { Connection, View, Goal, Normalization, ComputeMode } from './type';
-// import Core from './core';
-// import * as Action from './view/actions';
+import { parseFilepath } from './parser';
+import { Agda, Connection, Goal, Normalization, ComputeMode } from './type';
+import * as semver from 'semver';
 
-var semver = require('semver');
 declare var atom: any;
 
 Promise.longStackTraces();  // for debugging
@@ -20,27 +13,26 @@ function getLibraryPath(): string {
     return path.map((p) => { return `\"${ parseFilepath(p) }\"`; }).join(', ');
 }
 
-const sendRequest = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (conn: Connection): Promise<{}> => {
+const sendRequest = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (conn: Connection): Promise<Agda.Response[]> => {
     const highlightingMethod = atom.config.get('agda-mode.highlightingMethod');
-    let command: string;
+    let reqeust: string;
     if (typeof interaction === 'string') {
-        command = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction} )\n`
+        reqeust = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction} )\n`
     } else {    // interaction is a callback
-        command = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(conn)} )\n`;
+        reqeust = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(conn)} )\n`;
     }
     // pushing the unfullfilled request to the back of the backlog queue of Connection
-    const promise = new Promise((resolve, reject) => {
+    const promise = new Promise<Agda.Response[]>((resolve, reject) => {
         conn.queue.unshift({ resolve, reject });
     });
-    console.log(command)
     // send it out
-    conn.stream.write(command);
+    conn.stream.write(reqeust);
 
     return promise;
 }
 
 
-// COMMANDS
+// REQUESTS
 
 // data IOTCM = IOTCM FilePath HighlightingLevel HighlightingMethod (Interaction' range)
 // data HighlightingLevel = None | NonInteractive | Interactive

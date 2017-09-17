@@ -12,7 +12,7 @@ import Rectifier from './parser/stream/rectifier';
 import { View, Connection, ProcessInfo, ConnectionInfo, GUID } from './type';
 import { guid } from './util';
 import Core from './core';
-import { parseFilepath } from './parser';
+import { parseFilepath, parseAgdaResponse } from './parser';
 import * as Action from "./view/actions";
 import * as Store from "./persist";
 
@@ -165,8 +165,21 @@ export default class Connector {
         conn.stream
             .pipe(new Rectifier)
             .on('data', (data) => {
-                const request = this.connection.queue.pop();
-                request.resolve(data.toString().trim().split('\n'));
+                const lines = data.toString().trim().split('\n');
+                // console.log(data);
+                // console.log(this.connection.queue);
+                const promise = this.connection.queue.pop();
+                Promise.map(lines, parseAgdaResponse)
+                    .then(responses => {
+                        console.log('agda response parsing success')
+                        promise.resolve(responses);
+                    })
+                    .catch(error => {
+                        console.warn('agda response parsing error')
+                        promise.resolve([]);
+                    })
+
+
 
                 // try {
                 //     this.core.view.store.dispatch(Action.PROTOCOL.addResponse(data.toString()));

@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import * as fs from 'fs';
 import { Agda, View } from './type';
-import * as Command from './command';
+import * as Req from './request';
 import Core from './core';
 import { parseSExpression, parseAnnotation, parseJudgements, parseError } from './parser';
 
@@ -39,7 +39,7 @@ function handleAgdaResponse(core: Core, response: Agda.Response) {
                 core.textBuffer.onSolveAllAction(solution.index, solution.expression)
                     .then(goal => core.connector
                         .getConnection()
-                        .then(Command.give(goal))
+                        .then(Req.give(goal))
                     )
             });
             break;

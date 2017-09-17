@@ -2,12 +2,11 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { inspect } from 'util';
 import { OutOfGoalError, EmptyGoalError, QueryCancelled, NotLoadedError, InvalidExecutablePathError } from './error';
-import { Normalization, ComputeMode, View } from './type';
-import { parseAgdaResponse } from './parser';
+import { Normalization, ComputeMode, View, Agda } from './type';
 import { ConnectionNotEstablished, ConnectionError } from './connector';
 import { handleAgdaResponse } from './handler';
 import Core from './core';
-import * as Command from './command';
+import * as Req from './request';
 import * as Action from './view/actions';
 
 declare var atom: any;
@@ -44,24 +43,28 @@ export default class Commander {
             ];
         if(this.loaded || _.includes(exception, command.kind)) {
             this.dispatchCommand(command)
-                .then((responses) => {
-                    console.log(responses)
-                    if (Array.isArray(responses)) {
-                        responses.forEach(response => {
-                            try {
-                                this.core.view.store.dispatch(Action.PROTOCOL.addResponse(response));
-                                handleAgdaResponse(this.core, parseAgdaResponse(response));
-                            } catch (error) {
-                                // this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
-                                console.log(error)
-                                // show some message
-                                this.core.view.set('Agda Parse Error',
-                                [`Message from agda:`].concat(response),
-                                View.Style.Error);
-                            }
-
-                        })
-                    }
+                .then((responses: Agda.Response[]) => {
+                    responses.forEach(response => {
+                        // this.core.view.store.dispatch(Action.PROTOCOL.addResponse(response));
+                        handleAgdaResponse(this.core, response);
+                    });
+                    // console.log(responses)
+                    // if (Array.isArray(responses)) {
+                    //     responses.forEach(response => {
+                    //         try {
+                    //             this.core.view.store.dispatch(Action.PROTOCOL.addResponse(response));
+                    //             handleAgdaResponse(this.core, parseAgdaResponse(response));
+                    //         } catch (error) {
+                    //             // this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
+                    //             console.log(error)
+                    //             // show some message
+                    //             this.core.view.set('Agda Parse Error',
+                    //             [`Message from agda:`].concat(response),
+                    //             View.Style.Error);
+                    //         }
+                    //
+                    //     })
+                    // }
                     // // console.log(`Empty: ${this.pendingQueue.isEmpty()}`)
                     // const checkPoint = this.core.editor.createCheckpoint();
                     // this.pendingQueue.issue(command)
@@ -101,7 +104,7 @@ export default class Commander {
         }
     }
 
-    dispatchCommand(command): Promise<any> {
+    dispatchCommand(command): Promise<Agda.Response[]> {
         switch(command.kind) {
             case 'Load':          return this.load();
             case 'Quit':          return this.quit();
@@ -161,7 +164,7 @@ export default class Commander {
     //  Commands
     //
 
-    load(): Promise<{}> {
+    load(): Promise<Agda.Response[]> {
         // activate the view
         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
         this.core.view.mountPanel(currentMountingPosition);
@@ -184,10 +187,10 @@ export default class Commander {
                     return conn;
                 }
             })
-            .then(Command.load)
+            .then(Req.load)
     }
 
-    quit(): Promise<{}> {
+    quit(): Promise<Agda.Response[]> {
         this.core.view.deactivatePanel();
         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
         this.core.view.unmountPanel(currentMountingPosition);
@@ -197,15 +200,15 @@ export default class Commander {
             this.core.highlightManager.destroyAll();
             this.core.connector.disconnect();
         }
-        return Promise.resolve({});
+        return Promise.resolve([]);
     }
 
-    restart(): Promise<{}> {
+    restart(): Promise<Agda.Response[]> {
         this.quit();
         return this.load();
     }
 
-    info(): Promise<{}> {
+    info(): Promise<Agda.Response[]> {
         return this.core.connector
             .getConnection()
             .then(conn => {
@@ -215,77 +218,77 @@ export default class Commander {
                     // `Agda executable arguments: ${args.join(' ')}`
                 ], View.Style.PlainText);
 
-                return {};
+                return [];
             });
     }
 
-    toggleDocking(): Promise<{}> {
+    toggleDocking(): Promise<Agda.Response[]> {
         return this.core.view.toggleDocking()
-            .then(() => Promise.resolve({}));
+            .then(() => Promise.resolve([]));
     }
 
-    compile(): Promise<{}> {
+    compile(): Promise<Agda.Response[]> {
         return this.core.connector
             .getConnection()
-            .then(Command.compile);
+            .then(Req.compile);
     }
 
-    toggleDisplayOfImplicitArguments(): Promise<{}> {
+    toggleDisplayOfImplicitArguments(): Promise<Agda.Response[]> {
         return this.core.connector
             .getConnection()
-            .then(Command.toggleDisplayOfImplicitArguments);
+            .then(Req.toggleDisplayOfImplicitArguments);
     }
 
-    solveConstraints(): Promise<{}> {
+    solveConstraints(): Promise<Agda.Response[]> {
         return this.core.connector
             .getConnection()
-            .then(Command.solveConstraints);
+            .then(Req.solveConstraints);
     }
 
-    showConstraints(): Promise<{}> {
+    showConstraints(): Promise<Agda.Response[]> {
         return this.core.connector
             .getConnection()
-            .then(Command.showConstraints);
+            .then(Req.showConstraints);
     }
 
-    showGoals(): Promise<{}> {
+    showGoals(): Promise<Agda.Response[]> {
         return this.core.connector
             .getConnection()
-            .then(Command.showGoals);
+            .then(Req.showGoals);
     }
 
-    nextGoal(): Promise<{}> {
+    nextGoal(): Promise<Agda.Response[]> {
         return this.core.textBuffer.nextGoal()
-            .then(() => Promise.resolve({}));
+            .then(() => Promise.resolve([]));
     }
 
-    previousGoal(): Promise<{}> {
+    previousGoal(): Promise<Agda.Response[]> {
         return this.core.textBuffer.previousGoal()
-            .then(() => Promise.resolve({}));
+            .then(() => Promise.resolve([]));
     }
 
     //
     //  The following commands may have a goal-specific version
     //
 
-    whyInScope(): Promise<{}> {
+    whyInScope(): Promise<Agda.Response[]> {
         return this.core.view.query('Scope info', [], View.Style.PlainText, 'name:')
             .then((expr) => {
                 return this.core.textBuffer.getCurrentGoal()
                     .then(goal =>
                         this.core.connector
                             .getConnection()
-                            .then(Command.whyInScope(expr, goal))
+                            .then(Req.whyInScope(expr, goal))
                     )
                     .catch(OutOfGoalError, () =>
                         this.core.connector
                             .getConnection()
-                            .then(Command.whyInScopeGlobal(expr))
+                            .then(Req.whyInScopeGlobal(expr))
                     );
             });
     }
 
-    inferType(normalization: Normalization): Promise<{}> {
+    inferType(normalization: Normalization): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then(goal => {
                 // goal-specific
@@ -293,12 +296,12 @@ export default class Commander {
                     return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
                         .then(expr => this.core.connector
                             .getConnection()
-                            .then(Command.inferType(normalization, expr, goal))
+                            .then(Req.inferType(normalization, expr, goal))
                         );
                 } else {
                     return this.core.connector
                         .getConnection()
-                        .then(Command.inferType(normalization, goal.getContent(), goal))
+                        .then(Req.inferType(normalization, goal.getContent(), goal))
                 }
             })
             .catch(() => {
@@ -306,48 +309,48 @@ export default class Commander {
                 return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
                     .then(expr => this.core.connector
                         .getConnection()
-                        .then(Command.inferTypeGlobal(normalization, expr))
+                        .then(Req.inferTypeGlobal(normalization, expr))
                     );
             })
     }
 
 
-    moduleContents(normalization: Normalization): Promise<{}> {
+    moduleContents(normalization: Normalization): Promise<Agda.Response[]> {
         return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], View.Style.PlainText, 'module name:')
             .then(expr => {
                 return this.core.textBuffer.getCurrentGoal()
                     .then(goal => this.core.connector
                         .getConnection()
-                        .then(Command.moduleContents(normalization, expr, goal))
+                        .then(Req.moduleContents(normalization, expr, goal))
                     )
                     .catch((error) => {
                         return this.core.connector
                             .getConnection()
-                            .then(Command.moduleContentsGlobal(normalization, expr))
+                            .then(Req.moduleContentsGlobal(normalization, expr))
                     });
             })
     }
 
 
-    computeNormalForm(computeMode: ComputeMode): Promise<{}> {
+    computeNormalForm(computeMode: ComputeMode): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
                     return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, 'expression to normalize:')
                         .then(expr => this.core.connector
                             .getConnection()
-                            .then(Command.computeNormalForm(computeMode, expr, goal)))
+                            .then(Req.computeNormalForm(computeMode, expr, goal)))
                 } else {
                     return this.core.connector
                         .getConnection()
-                        .then(Command.computeNormalForm(computeMode, goal.getContent(), goal))
+                        .then(Req.computeNormalForm(computeMode, goal.getContent(), goal))
                 }
             })
             .catch(OutOfGoalError, () => {
                 return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, 'expression to normalize:')
                     .then(expr => this.core.connector
                         .getConnection()
-                        .then(Command.computeNormalFormGlobal(computeMode, expr)))
+                        .then(Req.computeNormalFormGlobal(computeMode, expr)))
             })
 
     }
@@ -356,7 +359,7 @@ export default class Commander {
     //  The following commands only working in the context of a specific goal
     //
 
-    give(): Promise<{}> {
+    give(): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
@@ -368,36 +371,36 @@ export default class Commander {
             })
             .then(goal => this.core.connector
                 .getConnection()
-                .then(Command.give(goal))
+                .then(Req.give(goal))
             )
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Give` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
     }
 
-    refine(): Promise<{}> {
+    refine(): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then(goal => this.core.connector
                 .getConnection()
-                .then(Command.refine(goal))
+                .then(Req.refine(goal))
             )
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Refine` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
     }
 
-    auto(): Promise<{}> {
+    auto(): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then(goal => this.core.connector
                 .getConnection()
-                .then(Command.auto(goal))
+                .then(Req.auto(goal))
             )
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Auto` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
     }
 
-    case(): Promise<{}> {
+    case(): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
@@ -409,54 +412,54 @@ export default class Commander {
             })
             .then(goal => this.core.connector
                 .getConnection()
-                .then(Command.makeCase(goal))
+                .then(Req.makeCase(goal))
             )
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Case` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
     }
 
-    goalType(normalization: Normalization): Promise<{}> {
+    goalType(normalization: Normalization): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then(goal => this.core.connector
                 .getConnection()
-                .then(Command.goalType(normalization, goal)))
+                .then(Req.goalType(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
     }
 
-    context(normalization: Normalization): Promise<{}> {
+    context(normalization: Normalization): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then(goal => this.core.connector
                 .getConnection()
-                .then(Command.context(normalization, goal)))
+                .then(Req.context(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
     }
 
-    goalTypeAndContext(normalization: Normalization): Promise<{}> {
+    goalTypeAndContext(normalization: Normalization): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then(goal => this.core.connector
                 .getConnection()
-                .then(Command.goalTypeAndContext(normalization, goal)))
+                .then(Req.goalTypeAndContext(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
     }
 
-    goalTypeAndInferredType(normalization: Normalization): Promise<{}> {
+    goalTypeAndInferredType(normalization: Normalization): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then(goal => this.core.connector
                 .getConnection()
-                .then(Command.goalTypeAndInferredType(normalization, goal)))
+                .then(Req.goalTypeAndInferredType(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Inferred Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })
     }
 
-    inputSymbol(): Promise<{}> {
+    inputSymbol(): Promise<Agda.Response[]> {
         // const miniEditorFocused = this.core.view.editors.general && this.core.view.editors.general.isFocused();
         // const shouldNotActivate = miniEditorFocused && !enableInMiniEditor;
 
@@ -472,11 +475,11 @@ export default class Commander {
         } else {
             this.core.view.editors.getFocusedEditorElement().insertText('\\');
         }
-        return Promise.resolve({});
+        return Promise.resolve([]);
     }
 
-    inputSymbolInterceptKey(kind, key: string): Promise<{}> {
+    inputSymbolInterceptKey(kind, key: string): Promise<Agda.Response[]> {
         this.core.inputMethod.interceptAndInsertKey(key);
-        return Promise.resolve({});
+        return Promise.resolve([]);
     }
 }
