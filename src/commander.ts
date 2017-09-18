@@ -45,13 +45,9 @@ export default class Commander {
         if(this.loaded || _.includes(exception, command.kind)) {
             this.dispatchCommand(command)
                 .then((responses: Agda.Response[]) => {
-                    console.log(responses)
                     return Promise.each(responses, (response: Agda.Response) => {
                         // this.core.view.store.dispatch(Action.PROTOCOL.addResponse(response));
                         return handleAgdaResponse(this.core, response);
-                    })
-                    .then(() => {
-                        console.log('done handling stuffs')
                     })
                     // console.log(responses)
                     // if (Array.isArray(responses)) {
@@ -170,7 +166,6 @@ export default class Commander {
     //
 
     load(): Promise<Agda.Response[]> {
-        console.log(`loading`)
         // activate the view
         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
         this.core.view.mountPanel(currentMountingPosition);

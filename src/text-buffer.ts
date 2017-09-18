@@ -243,7 +243,6 @@ export default class TextBuffer {
         return this.protectCursor(() => {
             this.getCurrentGoal().then((goal) => {
                 goal.writeLines(content);
-                console.log('CASE: write lines')
             }).catch(() => this.warnOutOfGoal());
         });
     }

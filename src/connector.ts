@@ -166,16 +166,12 @@ export default class Connector {
             .pipe(new Rectifier)
             .on('data', (data) => {
                 const lines = data.toString().trim().split('\n');
-                // console.log(data);
-                // console.log(this.connection.queue);
                 const promise = this.connection.queue.pop();
                 Promise.map(lines, parseAgdaResponse)
                     .then(responses => {
-                        console.log('agda response parsing success')
                         promise.resolve(responses);
                     })
                     .catch(error => {
-                        console.warn('agda response parsing error')
                         promise.resolve([]);
                     })
 
