@@ -6,7 +6,7 @@ import * as Req from './request';
 import Core from './core';
 import { parseSExpression, parseAnnotation, parseJudgements, parseError } from './parser';
 
-const handleAgdaResponse = (core: Core) => (response: Agda.Response): Promise<any> => {
+const handleAgdaAction = (core: Core) => (response: Agda.Action): Promise<any> => {
     switch (response.kind) {
         case 'InfoAction':
             handleInfoAction(core, response);
@@ -81,7 +81,7 @@ const handleAgdaResponse = (core: Core) => (response: Agda.Response): Promise<an
             return Promise.resolve();
 
         default:
-            console.error(`Agda.ResponseType: ${JSON.stringify(response)}`);
+            console.error(`Agda.ActionType: ${JSON.stringify(response)}`);
             return Promise.resolve();
     }
 }
@@ -146,5 +146,5 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
 }
 
 export {
-    handleAgdaResponse
+    handleAgdaAction
 }

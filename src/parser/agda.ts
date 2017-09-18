@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Agda } from '../type';
 
-function parseAgdaResponse(raw: string): Promise<Agda.Response> {
+function parseAgdaResponse(raw: string): Promise<Agda.Action> {
 
     const tokens: any[] = parseSExpression(raw);
 

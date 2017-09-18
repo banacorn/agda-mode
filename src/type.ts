@@ -212,10 +212,8 @@ namespace View {
 }
 
 namespace Agda {
-
-
     //
-    //  agda-mode commands
+    //  Commands sent to Agda
     //
     export type CommandKind = 'Load' | 'Quit' | 'Restart' | 'Compile' |
         'ToggleDisplayOfImplicitArguments' | 'Info' | 'ShowConstraints' |
@@ -239,10 +237,9 @@ namespace Agda {
     }
 
     //
-    //  responses from Agda
+    //  Results sent from Agda
     //
-
-    export type Response =
+    export type Action =
         InfoAction |
         StatusAction |
         GoalsAction |
@@ -256,12 +253,6 @@ namespace Agda {
         HighlightAddAnnotations |
         HighlightLoadAndDeleteAction |
         UnknownAction
-
-    // for "local" requests that never gets to the server.
-    // e.g.: jump to the next goal
-    export interface NoOp {
-        kind: 'NoOp';
-    }
 
     export interface InfoAction {
         kind: 'InfoAction';
@@ -585,7 +576,7 @@ export type ConnectionInfo = {
 export type Connection = ConnectionInfo & {
     stream: Duplex;
     queue: {
-        resolve: (responses: Agda.Response[]) => void;
+        resolve: (actions: Agda.Action[]) => void;
         reject: (error?: any) => void;
     }[];
     filepath: string;   // path of the Agda file
