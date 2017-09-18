@@ -25,6 +25,7 @@ export default class Commander {
     private loaded: boolean;
 
     constructor(private core: Core) {
+        this.load = this.load.bind(this);
     }
 
     activate(command) {
@@ -44,10 +45,14 @@ export default class Commander {
         if(this.loaded || _.includes(exception, command.kind)) {
             this.dispatchCommand(command)
                 .then((responses: Agda.Response[]) => {
-                    responses.forEach(response => {
+                    console.log(responses)
+                    return Promise.each(responses, (response: Agda.Response) => {
                         // this.core.view.store.dispatch(Action.PROTOCOL.addResponse(response));
-                        handleAgdaResponse(this.core, response);
-                    });
+                        return handleAgdaResponse(this.core, response);
+                    })
+                    .then(() => {
+                        console.log('done handling stuffs')
+                    })
                     // console.log(responses)
                     // if (Array.isArray(responses)) {
                     //     responses.forEach(response => {
@@ -165,6 +170,7 @@ export default class Commander {
     //
 
     load(): Promise<Agda.Response[]> {
+        console.log(`loading`)
         // activate the view
         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
         this.core.view.mountPanel(currentMountingPosition);
@@ -414,6 +420,11 @@ export default class Commander {
                 .getConnection()
                 .then(Req.makeCase(goal))
             )
+            // .then(wtf => {
+            //     console.log('CASE: receiving responses')
+            //     console.log('LOAD: start')
+            //     return this.load();
+            // })
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Case` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
             })

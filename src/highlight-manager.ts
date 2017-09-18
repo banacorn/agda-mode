@@ -1,3 +1,4 @@
+import * as Promise from 'bluebird';
 type TextBuffer = any;
 type Point = any;
 type Range = any;
@@ -24,8 +25,9 @@ export default class HighlightManager {
         });
     }
 
-    destroyAll() {
+    destroyAll(): Promise<void> {
         this.markers.forEach((marker) => { marker.destroy(); });
         this.markers = [];
+        return Promise.resolve();
     }
 }

@@ -243,6 +243,7 @@ export default class TextBuffer {
         return this.protectCursor(() => {
             this.getCurrentGoal().then((goal) => {
                 goal.writeLines(content);
+                console.log('CASE: write lines')
             }).catch(() => this.warnOutOfGoal());
         });
     }
@@ -255,17 +256,19 @@ export default class TextBuffer {
         });
     }
 
-    onGoto(filepath: string, charIndex: number) {
+    onGoto(filepath: string, charIndex: number): Promise<void> {
         if (this.core.getPath() === filepath) {
             let position = this.core.editor.fromIndex(charIndex - 1);
             this.core.editor.setCursorBufferPosition(position);
         }
+        return Promise.resolve();
     }
 
     // Agda generates files with syntax highlighting notations,
     // those files are temporary and should be deleted once used.
     // note: no highlighting yet, we'll just delete them.
-    onHighlightLoadAndDelete(filepath: string) {
+    onHighlightLoadAndDelete(filepath: string): Promise<void> {
         fs.unlink(filepath, () => {});
+        return Promise.resolve();
     }
 }

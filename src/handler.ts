@@ -1,3 +1,4 @@
+import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import * as fs from 'fs';
 import { Agda, View } from './type';
@@ -5,99 +6,83 @@ import * as Req from './request';
 import Core from './core';
 import { parseSExpression, parseAnnotation, parseJudgements, parseError } from './parser';
 
-function handleAgdaResponse(core: Core, response: Agda.Response) {
+function handleAgdaResponse(core: Core, response: Agda.Response): Promise<any> {
     switch (response.kind) {
         case 'InfoAction':
             handleInfoAction(core, response);
-            break;
+            return Promise.resolve();
 
         case 'StatusAction':
             if (response.content.length !== 0) {
                 core.view.set('Status', response.content);
             }
-            break;
+            return Promise.resolve();
 
         case 'GoalsAction':
-            core.textBuffer.onGoalsAction(response.content);
-            break;
+            return core.textBuffer.onGoalsAction(response.content);
 
         case 'GiveAction':
-            core.textBuffer.onGiveAction(response.index, response.content, response.hasParenthesis);
-            break;
+            return core.textBuffer.onGiveAction(response.index, response.content, response.hasParenthesis);
 
         case 'ParseError':
             console.error(`Agda parse error: ${response.content}`);
-            break;
+            return Promise.resolve();
 
         case 'Goto':
-            core.textBuffer.onGoto(response.filepath, response.position);
-            break;
+            return core.textBuffer.onGoto(response.filepath, response.position);
 
         case 'SolveAllAction':
-            const solutions = response.solutions;
-            solutions.forEach((solution) => {
-                core.textBuffer.onSolveAllAction(solution.index, solution.expression)
+            return Promise.each(response.solutions, (solution) => {
+                return core.textBuffer.onSolveAllAction(solution.index, solution.expression)
                     .then(goal => core.connector
                         .getConnection()
                         .then(Req.give(goal))
                     )
-            });
-            break;
+            })
+
         case 'MakeCaseAction':
-            core.textBuffer
+            return core.textBuffer
                 .onMakeCaseAction(response.content)
-                .then(() => {
-                    core.commander.load()
-                        .catch((error) => { throw error; });
-                });
-            break;
+                .then(core.commander.load)
 
         case 'MakeCaseActionExtendLam':
-            core.textBuffer.onMakeCaseActionExtendLam(response.content)
-                .then(() => {
-                    core.commander.load()
-                        .catch((error) => { throw error; });
-                });
-            break;
+            return core.textBuffer.onMakeCaseActionExtendLam(response.content)
+                .then(core.commander.load);
 
         case 'HighlightClear':
-            core.highlightManager.destroyAll();
-            break;
+            return core.highlightManager.destroyAll();
 
         case 'HighlightAddAnnotations':
-            let annotations = response.content;
-            annotations.forEach((annotation) => {
+            const annotations = response.content;
+            return Promise.each(annotations, (annotation) => {
                 let unsolvedmeta = _.includes(annotation.type, 'unsolvedmeta');
                 let terminationproblem = _.includes(annotation.type, 'terminationproblem')
                 if (unsolvedmeta || terminationproblem) {
                     core.highlightManager.highlight(annotation);
                 }
-            });
-            break;
-
-
-        case 'HighlightLoadAndDeleteAction':
-            fs.readFile(response.content, (err, data) => {
-                const annotations = parseSExpression(data.toString()).map(parseAnnotation);
-                annotations.forEach((annotation) => {
-                    let unsolvedmeta = _.includes(annotation.type, 'unsolvedmeta');
-                    let terminationproblem = _.includes(annotation.type, 'terminationproblem')
-                    if (unsolvedmeta || terminationproblem) {
-                        core.highlightManager.highlight(annotation);
-                    }
-                });
-
             })
 
-            // ???
-            break;
+        case 'HighlightLoadAndDeleteAction':
+            return Promise.promisify(fs.readFile)(response.content)
+                .then(data => {
+                    const annotations = parseSExpression(data.toString()).map(parseAnnotation);
+                    annotations.forEach((annotation) => {
+                        let unsolvedmeta = _.includes(annotation.type, 'unsolvedmeta');
+                        let terminationproblem = _.includes(annotation.type, 'terminationproblem')
+                        if (unsolvedmeta || terminationproblem) {
+                            core.highlightManager.highlight(annotation);
+                        }
+                    });
+                })
 
         case 'UnknownAction':
             console.error(`'UnknownAction:`);
             console.error(response);
-            break;
+            return Promise.resolve();
+
         default:
             console.error(`Agda.ResponseType: ${JSON.stringify(response)}`);
+            return Promise.resolve();
     }
 }
 
