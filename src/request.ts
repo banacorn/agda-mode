@@ -1,6 +1,6 @@
 import * as Promise from 'bluebird';
 import { parseFilepath } from './parser';
-import { Agda, Connection, Goal, Normalization, ComputeMode } from './type';
+import { Agda, Connection, Goal } from './type';
 import * as semver from 'semver';
 
 declare var atom: any;
@@ -89,18 +89,18 @@ export const whyInScope = (expr: string, goal: Goal) =>
 export const whyInScopeGlobal = (expr: string) =>
     sendRequest('None', `Cmd_why_in_scope_toplevel \"${expr}\"`)
 
-export const inferType = (normalization: Normalization, expr: string, goal: Goal) =>
+export const inferType = (normalization: Agda.Normalization, expr: string, goal: Goal) =>
     sendRequest('NonInteractive', `Cmd_infer ${normalization} ${goal.index} noRange \"${expr}\"`);
 
-export const inferTypeGlobal = (normalization: Normalization, expr: string) =>
+export const inferTypeGlobal = (normalization: Agda.Normalization, expr: string) =>
     sendRequest('None', `Cmd_infer_toplevel ${normalization} \"${expr}\"`);
 
-export const moduleContents = (normalization: Normalization, expr: string, goal: Goal) =>
+export const moduleContents = (normalization: Agda.Normalization, expr: string, goal: Goal) =>
     sendRequest('NonInteractive', `Cmd_show_module_contents ${normalization} ${goal.index} noRange \"${expr}\"`);
-export const moduleContentsGlobal = (normalization: Normalization, expr: string) =>
+export const moduleContentsGlobal = (normalization: Agda.Normalization, expr: string) =>
     sendRequest('None', `Cmd_show_module_contents_toplevel ${normalization} \"${expr}\"`);
 
-export const computeNormalForm = (computeMode: ComputeMode, expr: string, goal: Goal) =>
+export const computeNormalForm = (computeMode: Agda.ComputeMode, expr: string, goal: Goal) =>
     sendRequest('NonInteractive', conn => {
         if (semver.gte(conn.agda.version.sem, '2.5.2')) {
             return `Cmd_compute ${computeMode} ${goal.index} noRange \"${expr}\"`;
@@ -110,7 +110,7 @@ export const computeNormalForm = (computeMode: ComputeMode, expr: string, goal: 
         }
     });
 
-export const computeNormalFormGlobal = (computeMode: ComputeMode, expr: string) =>
+export const computeNormalFormGlobal = (computeMode: Agda.ComputeMode, expr: string) =>
     sendRequest('None', conn => {
         if (semver.gte(conn.agda.version.sem, '2.5.2')) {
             return `Cmd_compute_toplevel ${computeMode} \"${expr}\"`;
@@ -136,18 +136,18 @@ export const makeCase = (goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_make_case ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
 );
 
-export const goalType = (normalization: Normalization, goal: Goal) => sendRequest('NonInteractive', conn =>
+export const goalType = (normalization: Agda.Normalization, goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_goal_type ${normalization} ${goal.index} noRange \"\"`)
 );
 
-export const context = (normalization: Normalization, goal: Goal) => sendRequest('NonInteractive', conn =>
+export const context = (normalization: Agda.Normalization, goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_context ${normalization} ${goal.index} noRange \"\"`)
 );
 
-export const goalTypeAndContext = (normalization: Normalization, goal: Goal) => sendRequest('NonInteractive', conn =>
+export const goalTypeAndContext = (normalization: Agda.Normalization, goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_goal_type_context ${normalization} ${goal.index} noRange \"\"`)
 );
 
-export const goalTypeAndInferredType = (normalization: Normalization, goal: Goal) => sendRequest('NonInteractive', conn =>
+export const goalTypeAndInferredType = (normalization: Agda.Normalization, goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_goal_type_context_infer ${normalization} ${goal.index} noRange \"${goal.getContent()}\"`)
 );

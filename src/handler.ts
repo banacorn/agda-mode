@@ -6,7 +6,7 @@ import * as Req from './request';
 import Core from './core';
 import { parseSExpression, parseAnnotation, parseJudgements, parseError } from './parser';
 
-function handleAgdaResponse(core: Core, response: Agda.Response): Promise<any> {
+const handleAgdaResponse = (core: Core) => (response: Agda.Response): Promise<any> => {
     switch (response.kind) {
         case 'InfoAction':
             handleInfoAction(core, response);

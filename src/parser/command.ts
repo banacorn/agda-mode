@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
-import { Normalization, ComputeMode } from '../type';
+import { Agda } from '../type';
 
-function parseNormalization(raw: string): Normalization {
+function parseNormalization(raw: string): Agda.Normalization {
     switch (raw) {
         case 'Simplified':      return 'Simplified';
         case 'Instantiated':    return 'Instantiated';
@@ -9,7 +9,7 @@ function parseNormalization(raw: string): Normalization {
         default:                throw `unknown normalization: ${raw}`;
     }
 }
-function parseComputeMode(raw: string): ComputeMode {
+function parseComputeMode(raw: string): Agda.ComputeMode {
     switch (raw) {
         case 'DefaultCompute':  return 'DefaultCompute';
         case 'IgnoreAbstract':  return 'IgnoreAbstract';
@@ -18,171 +18,147 @@ function parseComputeMode(raw: string): ComputeMode {
     }
 }
 
-function parseCommand(raw: string) {
+function parseCommand(raw: string): Agda.Command {
     const result = raw.match(/^agda-mode:((?:\w|\-)*)(?:\[(\w*)\])?/);
     if (result === null) throw 'command parse error';
     switch (result[1]) {
         case 'load': return {
             kind: 'Load',
-            editsFile: true,
-            expectedGoalsActionReplies: 1
+            editsFile: true
         };
         case 'quit': return {
             kind: 'Quit',
-            editsFile: false,
-            expectedGoalsActionReplies: 0
+            editsFile: false
         };
         case 'restart': return {
             kind: 'Restart',
-            editsFile: true,
-            expectedGoalsActionReplies: 0
+            editsFile: true
         };
         case 'compile': return {
             kind: 'Compile',
-            editsFile: false,
-            expectedGoalsActionReplies: 1
+            editsFile: false
         };
         case 'toggle-display-of-implicit-arguments': return {
             kind: 'ToggleDisplayOfImplicitArguments',
-            editsFile: false,
-            expectedGoalsActionReplies: 1
+            editsFile: false
         };
         case 'info': return {
             kind: 'Info',
-            editsFile: false,
-            expectedGoalsActionReplies: 0
+            editsFile: false
         };
         case 'show-constraints': return {
             kind: 'ShowConstraints',
-            editsFile: false,
-            expectedGoalsActionReplies: 1
+            editsFile: false
         };
         case 'show-goals': return {
             kind: 'ShowGoals',
-            editsFile: false,
-            expectedGoalsActionReplies: 1
+            editsFile: false
         };
         case 'solve-constraints': return {
             kind: 'SolveConstraints',
-            editsFile: true,
-            expectedGoalsActionReplies: 1
+            editsFile: true
         };
         case 'next-goal': return {
             kind: 'NextGoal',
-            editsFile: false,
-            expectedGoalsActionReplies: 0
+            editsFile: false
         };
         case 'previous-goal': return {
             kind: 'PreviousGoal',
-            editsFile: false,
-            expectedGoalsActionReplies: 0
+            editsFile: false
         };
         case 'toggle-docking': return {
             kind: 'ToggleDocking',
-            editsFile: false,
-            expectedGoalsActionReplies: 0
+            editsFile: false
         };
         case 'why-in-scope': return {
             kind: 'WhyInScope',
-            editsFile: false,
-            expectedGoalsActionReplies: 1
+            editsFile: false
         };
         case 'infer-type': return {
             kind: 'InferType',
             normalization: parseNormalization(result[2]),
-            editsFile: false,
-            expectedGoalsActionReplies: 1
+            editsFile: false
         };
         case 'module-contents': return {
             kind: 'ModuleContents',
             normalization: parseNormalization(result[2]),
-            editsFile: false,
-            expectedGoalsActionReplies: 1
+            editsFile: false
         };
         case 'compute-normal-form': return {
             kind: 'ComputeNormalForm',
             computeMode: parseComputeMode(result[2]),
-            editsFile: false,
-            expectedGoalsActionReplies: 1
+            editsFile: false
         };
         case 'give': return {
             kind: 'Give',
-            editsFile: true,
-            expectedGoalsActionReplies: 1
+            editsFile: true
         };
         case 'refine': return {
             kind: 'Refine',
-            editsFile: true,
-            expectedGoalsActionReplies: 1
+            editsFile: true
         };
         case 'auto': return {
             kind: 'Auto',
-            editsFile: true,
-            expectedGoalsActionReplies: 1
+            editsFile: true
         };
         case 'case': return {
             kind: 'Case',
-            editsFile: true,
-            expectedGoalsActionReplies: 2
+            editsFile: true
         };
         case 'goal-type': return {
             kind: 'GoalType',
             normalization: parseNormalization(result[2]),
-            editsFile: false,
-            expectedGoalsActionReplies: 1
+            editsFile: false
         };
         case 'context': return {
             kind: 'Context',
             normalization: parseNormalization(result[2]),
-            editsFile: false,
-            expectedGoalsActionReplies: 1
+            editsFile: false
         };
         case 'goal-type-and-context': return {
             kind: 'GoalTypeAndContext',
             normalization: parseNormalization(result[2]),
-            editsFile: false,
-            expectedGoalsActionReplies: 1
+            editsFile: false
         };
         case 'goal-type-and-inferred-type': return {
             kind: 'GoalTypeAndInferredType',
             normalization: parseNormalization(result[2]),
-            editsFile: false,
-            expectedGoalsActionReplies: 1
+            editsFile: false
         };
         case 'input-symbol': return {
             kind: 'InputSymbol',
             editsFile: true,
-            expectedGoalsActionReplies: 0
+
         };
         case 'input-symbol-curly-bracket': return {
             kind: 'InputSymbolCurlyBracket',
             editsFile: true,
-            expectedGoalsActionReplies: 0
+
         };
         case 'input-symbol-bracket': return {
             kind: 'InputSymbolBracket',
             editsFile: true,
-            expectedGoalsActionReplies: 0
+
         };
         case 'input-symbol-parenthesis': return {
             kind: 'InputSymbolParenthesis',
             editsFile: true,
-            expectedGoalsActionReplies: 0
+
         };
         case 'input-symbol-double-quote': return {
             kind: 'InputSymbolDoubleQuote',
             editsFile: true,
-            expectedGoalsActionReplies: 0
+
         };
         case 'input-symbol-single-quote': return {
             kind: 'InputSymbolSingleQuote',
             editsFile: true,
-            expectedGoalsActionReplies: 0
+
         };
         case 'input-symbol-back-quote': return {
             kind: 'InputSymbolBackQuote',
             editsFile: true,
-            expectedGoalsActionReplies: 0
+
         };
 
         default: throw `unknown command ${raw}`;

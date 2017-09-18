@@ -80,6 +80,7 @@ class Settings extends React.Component<Props, {}> {
                             core.connector.select(connInfo);
                             core.commander.activate({
                                 kind: 'Load',
+                                editsFile: false
                             });
                         }}
                         onRemove={(connInfo) => {

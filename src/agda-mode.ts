@@ -107,8 +107,10 @@ function registerCommands() {
                 editor = paneItem;
             }
             // console.log(`[${editor.id}] ${command}`)
-            if (editor.core)
-                editor.core.commander.activate(parseCommand(command));
+            if (editor.core) {
+                const core: Core = editor.core;
+                core.commander.activate(parseCommand(command));
+            }
         }));
     })
 }

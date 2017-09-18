@@ -2,7 +2,7 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { inspect } from 'util';
 import { OutOfGoalError, EmptyGoalError, QueryCancelled, NotLoadedError, InvalidExecutablePathError } from './error';
-import { Normalization, ComputeMode, View, Agda } from './type';
+import { View, Agda } from './type';
 import { ConnectionNotEstablished, ConnectionError } from './connector';
 import { handleAgdaResponse } from './handler';
 import Core from './core';
@@ -12,7 +12,7 @@ import * as Action from './view/actions';
 declare var atom: any;
 
 
-function toDescription(normalization: Normalization): string {
+function toDescription(normalization: Agda.Normalization): string {
     switch(normalization) {
         case 'Simplified':      return '';
         case 'Instantiated':    return '(no normalization)';
@@ -28,7 +28,7 @@ export default class Commander {
         this.load = this.load.bind(this);
     }
 
-    activate(command) {
+    activate(command: Agda.Command) {
         // some commands can only be executed after 'loaded'
         const exception = [
                 'Load',
@@ -45,10 +45,7 @@ export default class Commander {
         if(this.loaded || _.includes(exception, command.kind)) {
             this.dispatchCommand(command)
                 .then((responses: Agda.Response[]) => {
-                    return Promise.each(responses, (response: Agda.Response) => {
-                        // this.core.view.store.dispatch(Action.PROTOCOL.addResponse(response));
-                        return handleAgdaResponse(this.core, response);
-                    })
+                    return Promise.each(responses, handleAgdaResponse(this.core))
                     // console.log(responses)
                     // if (Array.isArray(responses)) {
                     //     responses.forEach(response => {
@@ -108,40 +105,40 @@ export default class Commander {
     dispatchCommand(command): Promise<Agda.Response[]> {
         switch(command.kind) {
             case 'Load':          return this.load();
-            case 'Quit':          return this.quit();
-            case 'Restart':       return this.restart();
-            case 'Info':          return this.info();
-            case 'ToggleDocking': return this.toggleDocking();
-            case 'Compile':       return this.compile();
-            case 'ToggleDisplayOfImplicitArguments':
-                return this.toggleDisplayOfImplicitArguments();
-            case 'SolveConstraints':
-                return this.solveConstraints();
-            case 'ShowConstraints':
-                return this.showConstraints();
-            case 'ShowGoals':
-                return this.showGoals();
-            case 'NextGoal':      return this.nextGoal();
-            case 'PreviousGoal':  return this.previousGoal();
-            case 'WhyInScope':    return this.whyInScope();
-            case 'InferType':
-                return this.inferType(command.normalization);
-            case 'ModuleContents':
-                return this.moduleContents(command.normalization);
-            case 'ComputeNormalForm':
-                return this.computeNormalForm(command.computeMode);
-            case 'Give':          return this.give();
-            case 'Refine':        return this.refine();
-            case 'Auto':          return this.auto();
-            case 'Case':          return this.case();
-            case 'GoalType':
-                return this.goalType(command.normalization);
-            case 'Context':
-                return this.context(command.normalization);
-            case 'GoalTypeAndContext':
-                return this.goalTypeAndContext(command.normalization);
-            case 'GoalTypeAndInferredType':
-                return this.goalTypeAndInferredType(command.normalization);
+            // case 'Quit':          return this.quit();
+            // case 'Restart':       return this.restart();
+            // case 'Info':          return this.info();
+            // case 'ToggleDocking': return this.toggleDocking();
+            // case 'Compile':       return this.compile();
+            // case 'ToggleDisplayOfImplicitArguments':
+            //     return this.toggleDisplayOfImplicitArguments();
+            // case 'SolveConstraints':
+            //     return this.solveConstraints();
+            // case 'ShowConstraints':
+            //     return this.showConstraints();
+            // case 'ShowGoals':
+            //     return this.showGoals();
+            // case 'NextGoal':      return this.nextGoal();
+            // case 'PreviousGoal':  return this.previousGoal();
+            // case 'WhyInScope':    return this.whyInScope();
+            // case 'InferType':
+            //     return this.inferType(command.normalization);
+            // case 'ModuleContents':
+            //     return this.moduleContents(command.normalization);
+            // case 'ComputeNormalForm':
+            //     return this.computeNormalForm(command.computeMode);
+            // case 'Give':          return this.give();
+            // case 'Refine':        return this.refine();
+            // case 'Auto':          return this.auto();
+            // case 'Case':          return this.case();
+            // case 'GoalType':
+            //     return this.goalType(command.normalization);
+            // case 'Context':
+            //     return this.context(command.normalization);
+            // case 'GoalTypeAndContext':
+            //     return this.goalTypeAndContext(command.normalization);
+            // case 'GoalTypeAndInferredType':
+            //     return this.goalTypeAndInferredType(command.normalization);
             case 'InputSymbol':   return this.inputSymbol();
             case 'InputSymbolCurlyBracket':
                 return this.inputSymbolInterceptKey(command.kind, '{');
@@ -155,7 +152,7 @@ export default class Commander {
                 return this.inputSymbolInterceptKey(command.kind, '\'');
             case 'InputSymbolBackQuote':
                 return this.inputSymbolInterceptKey(command.kind, '`');
-            default:    throw `undispatched command type ${command}`
+            default:    throw `undispatched command type\n${JSON.stringify(command)}`
         }
     }
 
@@ -177,7 +174,6 @@ export default class Commander {
             .then((conn) => {
                 this.loaded = true;
                 // force save before load
-
                 // issue #48, TextBuffer::save will be async in Atom 1.19
                 let promise = this.core.editor.save();
                 if (promise && promise.then) {
@@ -289,7 +285,7 @@ export default class Commander {
             });
     }
 
-    inferType(normalization: Normalization): Promise<Agda.Response[]> {
+    inferType(normalization: Agda.Normalization): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then(goal => {
                 // goal-specific
@@ -316,7 +312,7 @@ export default class Commander {
     }
 
 
-    moduleContents(normalization: Normalization): Promise<Agda.Response[]> {
+    moduleContents(normalization: Agda.Normalization): Promise<Agda.Response[]> {
         return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], View.Style.PlainText, 'module name:')
             .then(expr => {
                 return this.core.textBuffer.getCurrentGoal()
@@ -333,7 +329,7 @@ export default class Commander {
     }
 
 
-    computeNormalForm(computeMode: ComputeMode): Promise<Agda.Response[]> {
+    computeNormalForm(computeMode: Agda.ComputeMode): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then((goal) => {
                 if (goal.isEmpty()) {
@@ -425,7 +421,7 @@ export default class Commander {
             })
     }
 
-    goalType(normalization: Normalization): Promise<Agda.Response[]> {
+    goalType(normalization: Agda.Normalization): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then(goal => this.core.connector
                 .getConnection()
@@ -435,7 +431,7 @@ export default class Commander {
             })
     }
 
-    context(normalization: Normalization): Promise<Agda.Response[]> {
+    context(normalization: Agda.Normalization): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then(goal => this.core.connector
                 .getConnection()
@@ -445,7 +441,7 @@ export default class Commander {
             })
     }
 
-    goalTypeAndContext(normalization: Normalization): Promise<Agda.Response[]> {
+    goalTypeAndContext(normalization: Agda.Normalization): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then(goal => this.core.connector
                 .getConnection()
@@ -455,7 +451,7 @@ export default class Commander {
             })
     }
 
-    goalTypeAndInferredType(normalization: Normalization): Promise<Agda.Response[]> {
+    goalTypeAndInferredType(normalization: Agda.Normalization): Promise<Agda.Response[]> {
         return this.core.textBuffer.getCurrentGoal()
             .then(goal => this.core.connector
                 .getConnection()

@@ -213,6 +213,35 @@ namespace View {
 
 namespace Agda {
 
+
+    //
+    //  agda-mode commands
+    //
+    export type CommandKind = 'Load' | 'Quit' | 'Restart' | 'Compile' |
+        'ToggleDisplayOfImplicitArguments' | 'Info' | 'ShowConstraints' |
+        'SolveConstraints' | 'ShowGoals' | 'NextGoal' | 'PreviousGoal' |
+        'ToggleDocking' |
+        'WhyInScope' | 'InferType' | 'ModuleContents' | 'ComputeNormalForm' |
+        'Give' | 'Refine' | 'Auto' | 'Case' |
+        'GoalType' | 'Context' | 'GoalTypeAndContext' | 'GoalTypeAndInferredType' |
+        'InputSymbol' | 'InputSymbolCurlyBracket' | 'InputSymbolBracket'
+        | 'InputSymbolParenthesis' | 'InputSymbolDoubleQuote' | 'InputSymbolSingleQuote'
+        | 'InputSymbolBackQuote'
+
+    export type Normalization = 'Simplified' | 'Instantiated' | 'Normalised';
+    export type ComputeMode = 'DefaultCompute' | 'IgnoreAbstract' | 'UseShowInstance';
+
+    export type Command = {
+        kind: CommandKind,
+        normalization?: Normalization,
+        computeMode?: ComputeMode,
+        editsFile: boolean,
+    }
+
+    //
+    //  responses from Agda
+    //
+
     export type Response =
         InfoAction |
         StatusAction |
@@ -315,31 +344,6 @@ namespace Agda {
     }
 }
 
-// //
-// //  agda-mode commands
-// //
-//
-// type CommandKind = 'Load' | 'Quit' | 'Restart' | 'Compile' |
-//     'ToggleDisplayOfImplicitArguments' | 'Info' | 'ShowConstraints' |
-//     'SolveConstraints' | 'ShowGoals' | 'NextGoal' | 'PreviousGoal' |
-//     'ToggleDocking' |
-//     'WhyInScope' | 'InferType' | 'ModuleContents' | 'ComputeNormalForm' |
-//     'Give' | 'Refine' | 'Auto' | 'Case' |
-//     'GoalType' | 'Context' | 'GoalTypeAndContext' | 'GoalTypeAndInferredType' |
-//     'InputSymbol' | 'InputSymbolCurlyBracket' | 'InputSymbolBracket'
-//     | 'InputSymbolParenthesis' | 'InputSymbolDoubleQuote' | 'InputSymbolSingleQuote'
-//     | 'InputSymbolBackQuote'
-type Normalization = 'Simplified' | 'Instantiated' | 'Normalised';
-type ComputeMode = 'DefaultCompute' | 'IgnoreAbstract' | 'UseShowInstance';
-//
-// type Command = {
-//     kind: CommandKind,
-//     normalization?: Normalization,
-//     computeMode?: ComputeMode,
-//     editsFile: boolean,
-//     // the expected number of GoalsAction replies if it succeeds
-//     expectedGoalsActionReplies: number
-// }
 //
 // export type PendingCommand = {
 //     kind: CommandKind,
@@ -596,8 +600,6 @@ export {
     // commands
     // CommandKind,
     // Command,
-    Normalization,
-    ComputeMode,
     // view
     View,
     // Errors
