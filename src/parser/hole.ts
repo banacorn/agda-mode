@@ -9,7 +9,7 @@ const goalQuestionMarkRawRegex = /([\s\(\{\_\;\.\"@]\?)/
 const goalQuestionMarkRegex = /(\?)/
 const goalBracketContentRegex = /\{\!((?:(?!\!\})(?:.|\s))*)\!\}/
 
-function isHole(token: Token) {
+function isHole(token: Token): boolean {
     return token.type === TokenType.GoalQM || token.type === TokenType.GoalBracket;
 }
 

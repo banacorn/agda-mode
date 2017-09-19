@@ -1,12 +1,14 @@
 import { Goal } from './type';
 
-
-export class AgdaParseError extends Error {
-    constructor(message: string) {
+// for parsing related errors
+export class ParseError extends Error {
+    public raw: string; // raw input
+    constructor(raw: string, message: string) {
         super(message);
+        this.raw = raw;
         this.message = message;
-        this.name = 'AgdaParseError';
-        Error.captureStackTrace(this, AgdaParseError);
+        this.name = 'Parse Error';
+        Error.captureStackTrace(this, ParseError);
     }
 }
 

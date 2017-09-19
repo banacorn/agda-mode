@@ -244,22 +244,22 @@ namespace Agda {
         StatusAction |
         GoalsAction |
         GiveAction |
-        ParseError |
         Goto |
         SolveAllAction |
         MakeCaseAction |
         MakeCaseActionExtendLam |
         HighlightClear |
         HighlightAddAnnotations |
-        HighlightLoadAndDeleteAction |
-        UnknownAction
+        HighlightLoadAndDeleteAction;
+
+    export type InfoActionKind = 'AllGoals' | 'Error' | 'TypeChecking' | 'CurrentGoal' |
+        'InferredType' | 'ModuleContents' | 'Context' | 'GoalTypeEtc' |
+        'NormalForm' | 'Intro' | 'Auto' | 'Constraints' | 'ScopeInfo' |
+        'Unknown';
 
     export interface InfoAction {
         kind: 'InfoAction';
-        infoActionKind: 'AllGoals' | 'Error' | 'TypeChecking' | 'CurrentGoal' |
-            'InferredType' | 'ModuleContents' | 'Context' | 'GoalTypeEtc' |
-            'NormalForm' | 'Intro' | 'Auto' | 'Constraints' | 'ScopeInfo' |
-            'Unknown';
+        infoActionKind: InfoActionKind;
         content: string[];
     }
 
@@ -276,11 +276,6 @@ namespace Agda {
         index: number;
         content: string;
         hasParenthesis: boolean;
-    }
-
-    export interface ParseError {
-        kind: 'ParseError';
-        content: string[];
     }
 
     export interface Goto {
@@ -315,13 +310,6 @@ namespace Agda {
     export interface HighlightLoadAndDeleteAction {
         kind: 'HighlightLoadAndDeleteAction';
         content: string;
-    }
-    export interface UnknownAction {
-        kind: 'UnknownAction';
-        content: {
-            raw: string;
-            parsedTokens: string[]
-        };
     }
 
     export interface Annotation {

@@ -24,10 +24,6 @@ const handleAgdaAction = (core: Core) => (response: Agda.Action): Promise<any> =
         case 'GiveAction':
             return core.textBuffer.onGiveAction(response.index, response.content, response.hasParenthesis);
 
-        case 'ParseError':
-            console.error(`Agda parse error: ${response.content}`);
-            return Promise.resolve();
-
         case 'Goto':
             return core.textBuffer.onGoto(response.filepath, response.position);
 
@@ -74,11 +70,6 @@ const handleAgdaAction = (core: Core) => (response: Agda.Action): Promise<any> =
                         }
                     });
                 })
-
-        case 'UnknownAction':
-            console.error(`'UnknownAction:`);
-            console.error(response);
-            return Promise.resolve();
 
         default:
             console.error(`Agda.ActionType: ${JSON.stringify(response)}`);

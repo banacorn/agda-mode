@@ -18,6 +18,7 @@ function parseComputeMode(raw: string): Agda.ComputeMode {
     }
 }
 
+// Parses commands invoked by key-bindings
 function parseCommand(raw: string): Agda.Command {
     const result = raw.match(/^agda-mode:((?:\w|\-)*)(?:\[(\w*)\])?/);
     if (result === null) throw 'command parse error';

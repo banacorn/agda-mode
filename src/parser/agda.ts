@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import { ParseError } from '../error';
 import { Agda } from '../type';
 
 function parseAgdaResponse(raw: string): Promise<Agda.Action> {
@@ -50,10 +51,10 @@ function parseAgdaResponse(raw: string): Promise<Agda.Action> {
                     } as Agda.GiveAction);
             }
         case 'agda2-parse-error':
-            return Promise.resolve({
-                kind: 'ParseError',
-                content: tokens.slice(1)
-            } as Agda.ParseError);
+            return Promise.reject(new ParseError(
+                raw,
+                'agda2-parse-error'
+            ))
         case 'agda2-goto':
         case 'agda2-maybe-goto':
             return Promise.resolve({
@@ -96,18 +97,15 @@ function parseAgdaResponse(raw: string): Promise<Agda.Action> {
                 content: tokens[1]
             } as Agda.HighlightLoadAndDeleteAction);
         default:
-            return Promise.resolve({
-                kind: 'UnknownAction',
-                content: {
-                    raw: raw,
-                    parsedTokens: tokens
-                }
-            } as Agda.UnknownAction);
+            return Promise.reject(new ParseError(
+                raw,
+                'Unknown Agda action'
+            ));
     }
 }
 
-function parseInfoActionType(s: String): string {
-    switch (s) {
+function parseInfoActionType(raw: String): Agda.InfoActionKind {
+    switch (raw) {
         case '*All Goals*':         return 'AllGoals';
         case '*All Done*':          return 'AllGoals'; // since Agda-2.6
         case '*Error*':             return 'Error';
