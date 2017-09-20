@@ -75,9 +75,9 @@ namespace View {
 
 
     export interface DevMsg {
-        kind: 'request' | 'response',
-        raw: string,
-        parsed: string
+        kind: 'request' | 'response';
+        raw: string;
+        parsed: Agda.Action;
     }
 
     export interface ViewState {

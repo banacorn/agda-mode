@@ -6,7 +6,7 @@ import * as Req from './request';
 import Core from './core';
 import { parseSExpression, parseAnnotation, parseJudgements, parseError } from './parser';
 
-const handleAgdaAction = (core: Core) => (response: Agda.Action): Promise<any> => {
+const handleAgdaAction = (core: Core) => (response: Agda.Action): Promise<void> => {
     switch (response.kind) {
         case 'InfoAction':
             handleInfoAction(core, response);
@@ -34,16 +34,18 @@ const handleAgdaAction = (core: Core) => (response: Agda.Action): Promise<any> =
                         .getConnection()
                         .then(Req.give(goal))
                     )
-            })
+            }).then(() => {});
 
         case 'MakeCaseAction':
             return core.textBuffer
                 .onMakeCaseAction(response.content)
                 .then(core.commander.load)
+                .then(() => {});
 
         case 'MakeCaseActionExtendLam':
             return core.textBuffer.onMakeCaseActionExtendLam(response.content)
-                .then(core.commander.load);
+                .then(core.commander.load)
+                .then(() => {});
 
         case 'HighlightClear':
             return core.highlightManager.destroyAll();
@@ -56,7 +58,7 @@ const handleAgdaAction = (core: Core) => (response: Agda.Action): Promise<any> =
                 if (unsolvedmeta || terminationproblem) {
                     core.highlightManager.highlight(annotation);
                 }
-            })
+            }).then(() => {});
 
         case 'HighlightLoadAndDeleteAction':
             return Promise.promisify(fs.readFile)(response.content)

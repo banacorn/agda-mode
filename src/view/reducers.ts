@@ -152,8 +152,8 @@ const protocol = handleActions<View.Protocol, PROTOCOL>({
     [PROTOCOL.ADD_RESPONSE]: (state, action: Action<PROTOCOL.ADD_RESPONSE>) => ({ ...state,
         messages: _.concat(state.messages, [{
             kind: 'response',
-            raw: action.payload,
-            parsed: 'N/A' // inspect(Parser.parseAgdaResponse(action.payload), false, null)
+            raw: action.payload.raw,
+            parsed: action.payload.parsed
         } as View.DevMsg])
     }),
     [PROTOCOL.CLEAR_ALL]: (state, action: Action<PROTOCOL.CLEAR_ALL>) => ({ ...state,

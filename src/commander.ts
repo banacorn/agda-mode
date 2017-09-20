@@ -105,40 +105,40 @@ export default class Commander {
     dispatchCommand(command: Agda.Command): Promise<Agda.Action[]> {
         switch(command.kind) {
             case 'Load':          return this.load();
-            // case 'Quit':          return this.quit();
-            // case 'Restart':       return this.restart();
-            // case 'Info':          return this.info();
-            // case 'ToggleDocking': return this.toggleDocking();
-            // case 'Compile':       return this.compile();
-            // case 'ToggleDisplayOfImplicitArguments':
-            //     return this.toggleDisplayOfImplicitArguments();
-            // case 'SolveConstraints':
-            //     return this.solveConstraints();
-            // case 'ShowConstraints':
-            //     return this.showConstraints();
-            // case 'ShowGoals':
-            //     return this.showGoals();
-            // case 'NextGoal':      return this.nextGoal();
-            // case 'PreviousGoal':  return this.previousGoal();
-            // case 'WhyInScope':    return this.whyInScope();
-            // case 'InferType':
-            //     return this.inferType(command.normalization);
-            // case 'ModuleContents':
-            //     return this.moduleContents(command.normalization);
-            // case 'ComputeNormalForm':
-            //     return this.computeNormalForm(command.computeMode);
-            // case 'Give':          return this.give();
-            // case 'Refine':        return this.refine();
-            // case 'Auto':          return this.auto();
-            // case 'Case':          return this.case();
-            // case 'GoalType':
-            //     return this.goalType(command.normalization);
-            // case 'Context':
-            //     return this.context(command.normalization);
-            // case 'GoalTypeAndContext':
-            //     return this.goalTypeAndContext(command.normalization);
-            // case 'GoalTypeAndInferredType':
-            //     return this.goalTypeAndInferredType(command.normalization);
+            case 'Quit':          return this.quit();
+            case 'Restart':       return this.restart();
+            case 'Info':          return this.info();
+            case 'ToggleDocking': return this.toggleDocking();
+            case 'Compile':       return this.compile();
+            case 'ToggleDisplayOfImplicitArguments':
+                return this.toggleDisplayOfImplicitArguments();
+            case 'SolveConstraints':
+                return this.solveConstraints();
+            case 'ShowConstraints':
+                return this.showConstraints();
+            case 'ShowGoals':
+                return this.showGoals();
+            case 'NextGoal':      return this.nextGoal();
+            case 'PreviousGoal':  return this.previousGoal();
+            case 'WhyInScope':    return this.whyInScope();
+            case 'InferType':
+                return this.inferType(command.normalization);
+            case 'ModuleContents':
+                return this.moduleContents(command.normalization);
+            case 'ComputeNormalForm':
+                return this.computeNormalForm(command.computeMode);
+            case 'Give':          return this.give();
+            case 'Refine':        return this.refine();
+            case 'Auto':          return this.auto();
+            case 'Case':          return this.case();
+            case 'GoalType':
+                return this.goalType(command.normalization);
+            case 'Context':
+                return this.context(command.normalization);
+            case 'GoalTypeAndContext':
+                return this.goalTypeAndContext(command.normalization);
+            case 'GoalTypeAndInferredType':
+                return this.goalTypeAndInferredType(command.normalization);
             case 'InputSymbol':   return this.inputSymbol();
             case 'InputSymbolCurlyBracket':
                 return this.inputSymbolInterceptKey(command.kind, '{');

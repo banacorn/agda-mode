@@ -169,6 +169,12 @@ export default class Connector {
                 const promise = this.connection.queue.pop();
                 Promise.map(lines, parseAgdaResponse)
                     .then(responses => {
+                        responses.map((response, i) => {
+                            this.core.view.store.dispatch(Action.PROTOCOL.addResponse({
+                                raw: lines[i],
+                                parsed: response
+                            }));
+                        })
                         promise.resolve(responses);
                     })
                     .catch(error => {

@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
-import { View, Error, Location, Connection, ConnectionInfo, GUID } from '../type';
+import { Agda, View, Error, Location, Connection, ConnectionInfo, GUID } from '../type';
 import * as Store from '../persist';
 declare var atom: any;
 
@@ -183,7 +183,10 @@ export namespace PROTOCOL {
     export const ADD_REQUEST = 'PROTOCOL.ADD_REQUEST';
     export type ADD_REQUEST = string;
     export const ADD_RESPONSE = 'PROTOCOL.ADD_RESPONSE';
-    export type ADD_RESPONSE = string;
+    export type ADD_RESPONSE = {
+        raw: string;
+        parsed: Agda.Action;
+    };
     export const CLEAR_ALL = 'PROTOCOL.CLEAR_ALL';
     export type CLEAR_ALL = void;
     export const TOGGLE_ACCUMULATE = 'PROTOCOL.TOGGLE_ACCUMULATE';

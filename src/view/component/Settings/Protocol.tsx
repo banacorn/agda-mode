@@ -38,7 +38,7 @@ class Message extends React.Component<MsgProp, MsgState> {
         return (
             <li onClick={this.toggleShowParsed}>
                 <div>{this.state.showParsed && parsed
-                    ?   parsed
+                    ?   JSON.stringify(parsed)
                     :   raw
                 }</div>
             </li>
