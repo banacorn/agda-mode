@@ -433,12 +433,12 @@ function parseError(input: string): Error {
     const parseResult = errorParser.parse(input);
     if (parseResult.status) {
         if (parseResult.value.kind === 'UnparsedButLocated') {
-            console.info(parseResult.value.location);
-            console.warn(parseResult.value.input);
+            // console.info(parseResult.value.location);
+            // console.warn(parseResult.value.input);
         }
         return parseResult.value;
     } else {
-        console.warn(parseResult)
+        // console.warn(parseResult)
         return <Error.Unparsed>{
             kind: 'Unparsed',
             header: 'Error',

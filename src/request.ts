@@ -74,8 +74,8 @@ export const compile = sendRequest('NonInteractive', (conn) => {
 export const toggleDisplayOfImplicitArguments =
     sendRequest('NonInteractive', 'ToggleImplicitArgs');
 
-export const solveConstraints =
-    sendRequest('NonInteractive', 'Cmd_solveAll');
+export const solveConstraints = (normalization: Agda.Normalization) =>
+    sendRequest('NonInteractive', `Cmd_solveAll ${normalization}`);
 
 export const showConstraints =
     sendRequest('NonInteractive', 'Cmd_constraints');

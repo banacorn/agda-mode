@@ -46,7 +46,6 @@ export default class Commander {
             this.dispatchCommand(command)
                 .then((actions: Agda.Action[]) => {
                     return Promise.each(actions, handleAgdaAction(this.core))
-                    // console.log(responses)
                     // if (Array.isArray(responses)) {
                     //     responses.forEach(response => {
                     //         try {
@@ -239,7 +238,7 @@ export default class Commander {
     solveConstraints(): Promise<Agda.Action[]> {
         return this.core.connector
             .getConnection()
-            .then(Req.solveConstraints);
+            .then(Req.solveConstraints('Instantiated'));
     }
 
     showConstraints(): Promise<Agda.Action[]> {
@@ -372,6 +371,7 @@ export default class Commander {
             )
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Give` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                return []
             })
     }
 
@@ -383,6 +383,7 @@ export default class Commander {
             )
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Refine` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                return []
             })
     }
 
@@ -394,6 +395,7 @@ export default class Commander {
             )
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Auto` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                return []
             })
     }
 
@@ -413,6 +415,7 @@ export default class Commander {
             )
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Case` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                return []
             })
     }
 
@@ -423,6 +426,7 @@ export default class Commander {
                 .then(Req.goalType(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                return []
             })
     }
 
@@ -433,6 +437,7 @@ export default class Commander {
                 .then(Req.context(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                return []
             })
     }
 
@@ -443,6 +448,7 @@ export default class Commander {
                 .then(Req.goalTypeAndContext(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                return []
             })
     }
 
@@ -453,6 +459,7 @@ export default class Commander {
                 .then(Req.goalTypeAndInferredType(normalization, goal)))
             .catch(OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Inferred Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                return []
             })
     }
 

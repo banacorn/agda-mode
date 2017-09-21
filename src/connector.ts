@@ -10,6 +10,7 @@ declare var atom: any;
 
 import Rectifier from './parser/stream/rectifier';
 import { View, Connection, ProcessInfo, ConnectionInfo, GUID } from './type';
+import { ParseError } from './error';
 import { guid } from './util';
 import Core from './core';
 import { parseFilepath, parseAgdaResponse } from './parser';
@@ -177,11 +178,14 @@ export default class Connector {
                         })
                         promise.resolve(responses);
                     })
-                    .catch(error => {
+                    .catch(ParseError, error => {
+                        this.core.view.set('Parse Error', [error.message, error.raw], View.Style.Error);
                         promise.resolve([]);
                     })
-
-
+                    .catch(error => {
+                        this.core.view.set('Error', [error.message], View.Style.Error);
+                        promise.resolve([]);
+                    })
 
                 // try {
                 //     this.core.view.store.dispatch(Action.PROTOCOL.addResponse(data.toString()));
