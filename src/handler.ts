@@ -6,7 +6,32 @@ import * as Req from './request';
 import Core from './core';
 import { parseSExpression, parseAnnotation, parseJudgements, parseError } from './parser';
 
+function prioritiseResponses(responses: Agda.Action[]): Agda.Action[] {
+    //  Priority of responses:
+    //      agda2-maybe-goto: 3
+    //      agda2-make-case-action: 2
+    //      agda2-make-case-action-extendlam: 2
+    //      agda2-solveAll-action: 2
+    //      agda2-goals-action: 1
+    //      OTHERS: 0
+    return _.sortBy(responses, res => {
+        switch (res.kind) {
+            case 'Goto':
+                return 3;
+            case 'MakeCaseAction':
+            case 'MakeCaseActionExtendLam':
+            case 'SolveAllAction':
+                return 2;
+            case 'GoalsAction':
+                return 1;
+            default:
+                return 0;
+        }
+    });
+}
+
 const handleAgdaAction = (core: Core) => (response: Agda.Action): Promise<void> => {
+    // console.log(response.kind)
     switch (response.kind) {
         case 'InfoAction':
             handleInfoAction(core, response);
@@ -139,5 +164,6 @@ function handleInfoAction(core: Core, action: Agda.InfoAction)  {
 }
 
 export {
+    prioritiseResponses,
     handleAgdaAction
 }

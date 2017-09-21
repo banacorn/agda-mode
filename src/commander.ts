@@ -4,7 +4,7 @@ import { inspect } from 'util';
 import { OutOfGoalError, EmptyGoalError, QueryCancelled, NotLoadedError, InvalidExecutablePathError } from './error';
 import { View, Agda } from './type';
 import { ConnectionNotEstablished, ConnectionError } from './connector';
-import { handleAgdaAction } from './handler';
+import { prioritiseResponses, handleAgdaAction } from './handler';
 import Core from './core';
 import * as Req from './request';
 import * as Action from './view/actions';
@@ -44,8 +44,8 @@ export default class Commander {
             ];
         if(this.loaded || _.includes(exception, command.kind)) {
             this.dispatchCommand(command)
-                .then((actions: Agda.Action[]) => {
-                    return Promise.each(actions, handleAgdaAction(this.core))
+                .then((responses: Agda.Action[]) => {
+                    return Promise.each(prioritiseResponses(responses), handleAgdaAction(this.core))
                     // if (Array.isArray(responses)) {
                     //     responses.forEach(response => {
                     //         try {

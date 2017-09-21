@@ -190,7 +190,17 @@ function parseSExpression(s: string): any {
 function preprocess(chunk: string): string {
     // polyfill String::startsWith
     if (chunk.substr(0, 6) === '((last') {
-        // drop wierd prefix like ((last . 1))
+        // drop priority prefixes like ((last . 1)) as they are all constants with respect to responses
+        //
+        // the following text from agda-mode.el explains what are those
+        // "last . n" prefixes for:
+            // Every command is run by this function, unless it has the form
+            // \"(('last . priority) . cmd)\", in which case it is run by
+            // `agda2-run-last-commands' at the end, after the Agda2 prompt
+            // has reappeared, after all non-last commands, and after all
+            // interactive highlighting is complete. The last commands can have
+            // different integer priorities; those with the lowest priority are
+            // executed first.
         let index = chunk.indexOf('(agda');
         let length = chunk.length;
         chunk = chunk.substring(index, length - 1);
