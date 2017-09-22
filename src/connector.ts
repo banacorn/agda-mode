@@ -13,7 +13,7 @@ import { View, Connection, ProcessInfo, ConnectionInfo, GUID } from './type';
 import { ParseError } from './error';
 import { guid } from './util';
 import Core from './core';
-import { parseFilepath, parseAgdaResponse } from './parser';
+import { parseFilepath, parseResponses } from './parser';
 import * as Action from "./view/actions";
 import * as Store from "./persist";
 
@@ -166,9 +166,9 @@ export default class Connector {
         conn.stream
             .pipe(new Rectifier)
             .on('data', (data) => {
-                const lines = data.toString().trim().split('\n');
                 const promise = this.connection.queue.pop();
-                Promise.map(lines, parseAgdaResponse)
+                const lines = data.toString().trim().split('\n');
+                parseResponses(data.toString())
                     .then(responses => {
                         responses.map((response, i) => {
                             this.core.view.store.dispatch(Action.PROTOCOL.addResponse({
@@ -189,7 +189,7 @@ export default class Connector {
 
                 // try {
                 //     this.core.view.store.dispatch(Action.PROTOCOL.addResponse(data.toString()));
-                //     const response = parseAgdaResponse(data.toString());
+                //     const response = parseResponse(data.toString());
                 //     handleResponse(this.core, response);
                 // } catch (error) {
                 //     // this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));

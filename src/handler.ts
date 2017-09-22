@@ -7,32 +7,8 @@ import Core from './core';
 import { parseSExpression, parseAnnotation, parseJudgements, parseError } from './parser';
 
 const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<void> => {
-    return Promise.each(prioritiseResponses(responses), handleResponse(core))
+    return Promise.each(responses, handleResponse(core))
         .then(() => {});
-}
-
-function prioritiseResponses(responses: Agda.Response[]): Agda.Response[] {
-    //  Priority of responses:
-    //      agda2-maybe-goto: 3
-    //      agda2-make-case-response: 2
-    //      agda2-make-case-response-extendlam: 2
-    //      agda2-solveAll-response: 2
-    //      agda2-goals-response: 1
-    //      OTHERS: 0
-    return _.sortBy(responses, res => {
-        switch (res.kind) {
-            case 'Goto':
-                return 3;
-            case 'MakeCaseAction':
-            case 'MakeCaseActionExtendLam':
-            case 'SolveAllAction':
-                return 2;
-            case 'GoalsAction':
-                return 1;
-            default:
-                return 0;
-        }
-    });
 }
 
 const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> => {

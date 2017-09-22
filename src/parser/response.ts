@@ -1,8 +1,39 @@
+import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { ParseError } from '../error';
 import { Agda } from '../type';
 
-function parseAgdaResponse(raw: string): Promise<Agda.Response> {
+function parseResponses(raw: string): Promise<Agda.Response[]> {
+    const lines = raw.trim().split('\n');
+    return Promise.map(lines, parseResponse)
+        .then(prioritiseResponses)
+}
+
+function prioritiseResponses(responses: Agda.Response[]): Agda.Response[] {
+    //  Priority of responses:
+    //      agda2-maybe-goto: 3
+    //      agda2-make-case-response: 2
+    //      agda2-make-case-response-extendlam: 2
+    //      agda2-solveAll-response: 2
+    //      agda2-goals-response: 1
+    //      OTHERS: 0
+    return _.sortBy(responses, res => {
+        switch (res.kind) {
+            case 'Goto':
+                return 3;
+            case 'MakeCaseAction':
+            case 'MakeCaseActionExtendLam':
+            case 'SolveAllAction':
+                return 2;
+            case 'GoalsAction':
+                return 1;
+            default:
+                return 0;
+        }
+    });
+}
+
+function parseResponse(raw: string): Promise<Agda.Response> {
 
     const tokens: any[] = parseSExpression(raw);
 
@@ -216,7 +247,9 @@ function preprocess(chunk: string): string {
 }
 
 export {
-    parseAgdaResponse,
+    parseResponse,
+    parseResponses,
+    prioritiseResponses,
     parseAnnotation,
     parseSExpression
 }
