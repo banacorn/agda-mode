@@ -8,7 +8,7 @@ declare var atom: any;
 import * as Conn from '../connector';
 import * as Parser from '../parser';
 import * as Store from '../persist';
-import { View } from '../type';
+import { View, Agda, Parsed } from '../type';
 import { EVENT, MODE, VIEW, CONNECTION, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, SETTINGS } from './actions';
 import { translate } from '../input-method';
 
@@ -35,8 +35,7 @@ const defaultState: View.State = {
         showNewConnectionView: false
     },
     protocol: {
-        messages: [],
-        accumulate: false,
+        log: [],
         lsp: false
     },
     header: {
@@ -130,37 +129,52 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
     })
 }, defaultState.connection);
 
+function logResponse(log: View.ReqRes[], response: Parsed<Agda.Response>[]): View.ReqRes[] {
+    // append only to the last ReqRes;
+    const init = _.initial(log);
+    let { request, responses } = _.last(log);
+    return _.concat(init, [{
+        request,
+        responses: _.concat(responses, response)
+    }]);
+}
 
 const protocol = handleActions<View.Protocol, PROTOCOL>({
-    [PROTOCOL.ADD_REQUEST]: (state, action: Action<PROTOCOL.ADD_REQUEST>) => {
-        if (state.accumulate) {
-            return ({ ...state,
-                messages: _.concat(state.messages, [{
-                    kind: 'request',
-                    raw: action.payload
-                } as View.DevMsg])
-            });
-        } else {
-            return ({ ...state,
-                messages: [{
-                    kind: 'request',
-                    raw: action.payload
-                } as View.DevMsg]
-            });
-        }
-    },
-    [PROTOCOL.ADD_RESPONSE]: (state, action: Action<PROTOCOL.ADD_RESPONSE>) => ({ ...state,
-        messages: _.concat(state.messages, [{
-            kind: 'response',
-            raw: action.payload.raw,
-            parsed: action.payload.parsed
-        } as View.DevMsg])
+    // [PROTOCOL.ADD_REQUEST]: (state, action: Action<PROTOCOL.ADD_REQUEST>) => {
+    //     // if (state.accumulate) {
+    //     //     return ({ ...state,
+    //     //         messages: _.concat(state.messages, [{
+    //     //             kind: 'request',
+    //     //             raw: action.payload
+    //     //         } as View.DevMsg])
+    //     //     });
+    //     // } else {
+    //     //     return ({ ...state,
+    //     //         messages: [{
+    //     //             kind: 'request',
+    //     //             raw: action.payload
+    //     //         } as View.DevMsg]
+    //     //     });
+    //     // }
+    // },
+    // [PROTOCOL.ADD_RESPONSE]: (state, action: Action<PROTOCOL.ADD_RESPONSE>) => ({ ...state,
+    //     messages: _.concat(state.messages, [{
+    //         kind: 'response',
+    //         raw: action.payload.raw,
+    //         parsed: action.payload.parsed
+    //     } as View.DevMsg])
+    // }),
+    [PROTOCOL.LOG_REQUEST]: (state, action: Action<PROTOCOL.LOG_REQUEST>) => ({ ...state,
+        log: _.concat(state.log, [{
+            request: action.payload,
+            responses: []
+        }])
+    }),
+    [PROTOCOL.LOG_RESPONSES]: (state, action: Action<PROTOCOL.LOG_RESPONSES>) => ({ ...state,
+        log: logResponse(state.log, action.payload)
     }),
     [PROTOCOL.CLEAR_ALL]: (state, action: Action<PROTOCOL.CLEAR_ALL>) => ({ ...state,
-        messages: []
-    }),
-    [PROTOCOL.TOGGLE_ACCUMULATE]: (state, action: Action<PROTOCOL.TOGGLE_ACCUMULATE>) => ({ ...state,
-        accumulate: !state.accumulate
+        log: []
     }),
     [PROTOCOL.TOGGLE_LSP]: (state, action: Action<PROTOCOL.TOGGLE_LSP>) => ({ ...state,
         lsp: !state.lsp

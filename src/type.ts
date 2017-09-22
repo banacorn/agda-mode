@@ -35,6 +35,11 @@ interface Hole {
     content: string
 }
 
+export interface Parsed<T> {
+    raw: string;
+    parsed: T
+}
+
 //
 //  View
 //
@@ -68,16 +73,14 @@ namespace View {
     }
 
     export interface Protocol {
-        messages: DevMsg[];
-        accumulate: boolean;
+        log: ReqRes[];
         lsp: boolean;
     }
 
-
-    export interface DevMsg {
-        kind: 'request' | 'response';
-        raw: string;
-        parsed: Agda.Response;
+    // a request-response pair
+    export interface ReqRes {
+        request: Parsed<Agda.Command>
+        responses: Parsed<Agda.Response>[];
     }
 
     export interface ViewState {

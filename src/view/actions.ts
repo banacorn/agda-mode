@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
-import { Agda, View, Error, Location, Connection, ConnectionInfo, GUID } from '../type';
+import { Parsed, Agda, View, Error, Location, Connection, ConnectionInfo, GUID } from '../type';
 import * as Store from '../persist';
 declare var atom: any;
 
@@ -173,31 +173,26 @@ export namespace CONNECTION {
 
 
 export type PROTOCOL
-    = PROTOCOL.ADD_REQUEST
-    | PROTOCOL.ADD_RESPONSE
+    = PROTOCOL.LOG_REQUEST
+    | PROTOCOL.LOG_RESPONSES
     | PROTOCOL.CLEAR_ALL
-    | PROTOCOL.TOGGLE_ACCUMULATE
     | PROTOCOL.TOGGLE_LSP
 
 export namespace PROTOCOL {
-    export const ADD_REQUEST = 'PROTOCOL.ADD_REQUEST';
-    export type ADD_REQUEST = string;
-    export const ADD_RESPONSE = 'PROTOCOL.ADD_RESPONSE';
-    export type ADD_RESPONSE = {
-        raw: string;
-        parsed: Agda.Response;
-    };
+    export const LOG_REQUEST = 'PROTOCOL.LOG_REQUEST';
+    export type LOG_REQUEST = Parsed<Agda.Command>;
+    export const LOG_RESPONSES = 'PROTOCOL.LOG_RESPONSE';
+    export type LOG_RESPONSES = Parsed<Agda.Response>[];
+
     export const CLEAR_ALL = 'PROTOCOL.CLEAR_ALL';
     export type CLEAR_ALL = void;
-    export const TOGGLE_ACCUMULATE = 'PROTOCOL.TOGGLE_ACCUMULATE';
-    export type TOGGLE_ACCUMULATE = void;
+
     export const TOGGLE_LSP = 'PROTOCOL.TOGGLE_LSP';
     export type TOGGLE_LSP = void;
 
-    export const addRequest = createAction<PROTOCOL.ADD_REQUEST>(PROTOCOL.ADD_REQUEST);
-    export const addResponse = createAction<PROTOCOL.ADD_RESPONSE>(PROTOCOL.ADD_RESPONSE);
+    export const logRequest = createAction<PROTOCOL.LOG_REQUEST>(PROTOCOL.LOG_REQUEST);
+    export const logResponses = createAction<PROTOCOL.LOG_RESPONSES>(PROTOCOL.LOG_RESPONSES);
     export const clearAll = createAction(PROTOCOL.CLEAR_ALL);
-    export const toggleAccumulate = createAction(PROTOCOL.TOGGLE_ACCUMULATE);
     export const toggleLSP = createAction(PROTOCOL.TOGGLE_LSP);
 }
 

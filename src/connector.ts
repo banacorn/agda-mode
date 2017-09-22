@@ -159,7 +159,10 @@ export default class Connector {
         // modify the method write so that we can intercept and redirect data to the core;
         const write = conn.stream.write;
         conn.stream.write = data => {
-            this.core.view.store.dispatch(Action.PROTOCOL.addRequest(data.toString()));
+            this.core.view.store.dispatch(Action.PROTOCOL.logRequest({
+                raw: data.toString(),
+                parsed: null
+            }));
             return write(data);
         };
         // the streams
@@ -170,12 +173,10 @@ export default class Connector {
                 const lines = data.toString().trim().split('\n');
                 parseResponses(data.toString())
                     .then(responses => {
-                        responses.map((response, i) => {
-                            this.core.view.store.dispatch(Action.PROTOCOL.addResponse({
-                                raw: lines[i],
-                                parsed: response
-                            }));
-                        })
+                        this.core.view.store.dispatch(Action.PROTOCOL.logResponses(responses.map((response, i) => ({
+                            raw: lines[i],
+                            parsed: response
+                        }))));
                         promise.resolve(responses);
                     })
                     .catch(ParseError, error => {
