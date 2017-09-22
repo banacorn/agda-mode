@@ -140,30 +140,6 @@ function logResponse(log: View.ReqRes[], response: Parsed<Agda.Response>[]): Vie
 }
 
 const protocol = handleActions<View.Protocol, PROTOCOL>({
-    // [PROTOCOL.ADD_REQUEST]: (state, action: Action<PROTOCOL.ADD_REQUEST>) => {
-    //     // if (state.accumulate) {
-    //     //     return ({ ...state,
-    //     //         messages: _.concat(state.messages, [{
-    //     //             kind: 'request',
-    //     //             raw: action.payload
-    //     //         } as View.DevMsg])
-    //     //     });
-    //     // } else {
-    //     //     return ({ ...state,
-    //     //         messages: [{
-    //     //             kind: 'request',
-    //     //             raw: action.payload
-    //     //         } as View.DevMsg]
-    //     //     });
-    //     // }
-    // },
-    // [PROTOCOL.ADD_RESPONSE]: (state, action: Action<PROTOCOL.ADD_RESPONSE>) => ({ ...state,
-    //     messages: _.concat(state.messages, [{
-    //         kind: 'response',
-    //         raw: action.payload.raw,
-    //         parsed: action.payload.parsed
-    //     } as View.DevMsg])
-    // }),
     [PROTOCOL.LOG_REQUEST]: (state, action: Action<PROTOCOL.LOG_REQUEST>) => ({ ...state,
         log: _.concat(state.log, [{
             request: action.payload,

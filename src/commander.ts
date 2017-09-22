@@ -43,6 +43,7 @@ export default class Commander {
                 'InputSymbolBackQuote'
             ];
         if(this.loaded || _.includes(exception, command.kind)) {
+            this.core.view.store.dispatch(Action.PROTOCOL.clearAll());
             this.dispatchCommand(command)
                 .then((responses: Agda.Response[]) => {
                     return handleResponses(this.core)(responses);
