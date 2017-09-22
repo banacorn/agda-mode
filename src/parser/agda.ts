@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { ParseError } from '../error';
 import { Agda } from '../type';
 
-function parseAgdaResponse(raw: string): Promise<Agda.Action> {
+function parseAgdaResponse(raw: string): Promise<Agda.Response> {
 
     const tokens: any[] = parseSExpression(raw);
 

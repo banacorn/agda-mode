@@ -77,7 +77,7 @@ namespace View {
     export interface DevMsg {
         kind: 'request' | 'response';
         raw: string;
-        parsed: Agda.Action;
+        parsed: Agda.Response;
     }
 
     export interface ViewState {
@@ -237,9 +237,9 @@ namespace Agda {
     }
 
     //
-    //  Results sent from Agda
+    //  Response from Agda
     //
-    export type Action =
+    export type Response =
         InfoAction |
         StatusAction |
         GoalsAction |
@@ -564,7 +564,7 @@ export type ConnectionInfo = {
 export type Connection = ConnectionInfo & {
     stream: Duplex;
     queue: {
-        resolve: (actions: Agda.Action[]) => void;
+        resolve: (actions: Agda.Response[]) => void;
         reject: (error?: any) => void;
     }[];
     filepath: string;   // path of the Agda file

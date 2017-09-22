@@ -190,7 +190,7 @@ export default class Connector {
                 // try {
                 //     this.core.view.store.dispatch(Action.PROTOCOL.addResponse(data.toString()));
                 //     const response = parseAgdaResponse(data.toString());
-                //     handleAgdaAction(this.core, response);
+                //     handleResponse(this.core, response);
                 // } catch (error) {
                 //     // this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
                 //     console.log(error)

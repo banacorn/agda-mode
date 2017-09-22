@@ -185,7 +185,7 @@ export namespace PROTOCOL {
     export const ADD_RESPONSE = 'PROTOCOL.ADD_RESPONSE';
     export type ADD_RESPONSE = {
         raw: string;
-        parsed: Agda.Action;
+        parsed: Agda.Response;
     };
     export const CLEAR_ALL = 'PROTOCOL.CLEAR_ALL';
     export type CLEAR_ALL = void;
