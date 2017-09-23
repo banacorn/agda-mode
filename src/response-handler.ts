@@ -74,19 +74,11 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
         case 'MakeCaseAction':
             return core.textBuffer
                 .onMakeCaseAction(response.content)
-                .then(() => core.commander.dispatch({
-                        kind: 'Load',
-                        editsFile: true
-                    })
-                )
+                .then(() => core.commander.dispatch({ kind: 'Load' }))
 
         case 'MakeCaseActionExtendLam':
             return core.textBuffer.onMakeCaseActionExtendLam(response.content)
-                .then(() => core.commander.dispatch({
-                        kind: 'Load',
-                        editsFile: true
-                    })
-                )
+                .then(() => core.commander.dispatch({ kind: 'Load' }))
 
         case 'HighlightClear':
             return core.highlightManager.destroyAll();

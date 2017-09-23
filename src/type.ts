@@ -236,7 +236,6 @@ namespace Agda {
         kind: CommandKind,
         normalization?: Normalization,
         computeMode?: ComputeMode,
-        editsFile: boolean,
     }
 
     //

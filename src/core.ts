@@ -95,10 +95,7 @@ export default class Core {
     }
 
     destroy() {
-        this.commander.dispatch({
-            kind: "Quit",
-            editsFile: false
-        }).then(() => {
+        this.commander.dispatch({ kind: "Quit" }).then(() => {
             this.view.destroy();
             this.disposables.dispose();
         });
