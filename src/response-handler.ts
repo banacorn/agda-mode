@@ -94,8 +94,8 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
                     )
             }).then(() => {});
 
-        case 'InfoAction':
-            handleInfoAction(core, response);
+        case 'DisplayInfo':
+            handleDisplayInfo(core, response);
             return Promise.resolve();
 
 
@@ -108,62 +108,58 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
     }
 }
 
-function handleInfoAction(core: Core, response: Agda.InfoAction)  {
-    switch (response.infoActionKind) {
-        case 'AllGoals':
+function handleDisplayInfo(core: Core, response: Agda.DisplayInfo)  {
+    switch (response.displayInfoKind) {
+        case 'CompilationOk':
+        case 'Constraints':
+            core.view.set('Constraints', response.content, View.Style.Info);
+            break;
+        case 'AllGoalsWarnings':
             if (response.content.length === 0) {
                 core.view.set('All Done', [], View.Style.Success);
-
             } else {
-                core.view.setJudgements('Goals', parseJudgements(response.content));
+                // remove the astericks
+                const title = response.title.slice(1, -1);
+                core.view.setJudgements(title, parseJudgements(response.content));
             }
-            break;
-        case 'Error':
-            // core.commander.pendingQueue.reject();
-
-            const error = parseError(response.content.join('\n'));
-            core.view.setError(error);
-
-            break;
-        case 'TypeChecking':
-            core.view.set('Type Checking', response.content);
-            break;
-        case 'CurrentGoal':
-            core.view.set('Current Goal', response.content, View.Style.Info);
-            break;
-        case 'InferredType':
-            core.view.set('Inferred Type', response.content, View.Style.Info);
-            break;
-        case 'ModuleContents':
-            core.view.set('Module Contents', response.content, View.Style.Info);
-            break;
-        case 'Context':
-            core.view.setJudgements('Context', parseJudgements(response.content));
-            break;
-        case 'GoalTypeEtc':
-            core.view.setJudgements('Goal Type and Context', parseJudgements(response.content));
-            break;
-        case 'NormalForm':
-            core.view.set('Normal Form', response.content, View.Style.Info);
-            break;
-        case 'Intro':
-            core.view.set('Intro', ['No introduction forms found']);
             break;
         case 'Auto':
             core.view.set('Auto', ['No solution found'], View.Style.Info);
             break;
-        case 'Constraints':
-            core.view.set('Constraints', response.content, View.Style.Info);
+        case 'Error':
+            const error = parseError(response.content.join('\n'));
+            core.view.setError(error);
             break;
-        case 'ScopeInfo':
+        case 'NormalForm':
+            core.view.set('Normal Form', response.content, View.Style.Info);
+            break;
+        case 'InferredType':
+            core.view.set('Inferred Type', response.content, View.Style.Info);
+            break;
+        case 'CurrentGoal':
+            core.view.set('Current Goal', response.content, View.Style.Info);
+            break;
+        case 'GoalType':
+            core.view.setJudgements('Goal Type and Context', parseJudgements(response.content));
+            break;
+        case 'ModuleContents':
+            core.view.set('Module Contents', response.content, View.Style.Info);
+            break;
+        case 'WhyInScope':
             core.view.set('Scope Info', response.content, View.Style.Info);
             break;
-        case 'Unknown':
-            core.view.set(_.head(response.content) || 'UNKNOWN INFO ACTION FROM AGDA', _.tail(response.content), View.Style.Warning);
+        case 'Context':
+            core.view.setJudgements('Context', parseJudgements(response.content));
             break;
+        case 'HelperFunction':
+        case 'SearchAbout':
+        case 'Intro':
+            core.view.set('Intro', ['No introduction forms found']);
+            break;
+        case 'Version':
         default:
-            console.error(`unknown info response:`);
-            console.error(response);
+            core.view.set(response.title, response.content, View.Style.PlainText);
+            break;
     }
 }
 

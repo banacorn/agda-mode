@@ -257,9 +257,10 @@ namespace Agda {
         MakeCase |
         // Resp_SolveAll
         SolveAll |
+        // Resp_DisplayInfo
+        DisplayInfo |
 
 
-        InfoAction |
         HighlightClear
 
     // Resp_HighlightingInfo HighlightingInfo HighlightingMethod ModuleToSource
@@ -329,34 +330,25 @@ namespace Agda {
         }[];
     }
 
-    export type InfoActionKind = 'AllGoals' | 'Error' | 'TypeChecking' | 'CurrentGoal' |
-        'InferredType' | 'ModuleContents' | 'Context' | 'GoalTypeEtc' |
-        'NormalForm' | 'Intro' | 'Auto' | 'Constraints' | 'ScopeInfo' |
-        'Unknown';
+    // Resp_DisplayInfo DisplayInfo
+    export type DisplayInfoKind = 'CompilationOk' | 'Constraints' |
+        'AllGoalsWarnings' | 'Auto' | 'Error' | 'Time' | 'NormalForm' |
+        'InferredType' | 'CurrentGoal' | 'GoalType' | 'ModuleContents' |
+        'SearchAbout' | 'WhyInScope' | 'Context' | 'HelperFunction' | 'Intro' |
+        'Version';
+    export interface DisplayInfo {
+        kind: 'DisplayInfo';
+        displayInfoKind: DisplayInfoKind;
+        title: string;
+        content: string[];
+        append: boolean;
+    }
 
-    export interface InfoAction {
-        kind: 'InfoAction';
-        infoActionKind: InfoActionKind;
-        content: string[];
-    }
-    export interface MakeCaseActionExtendLam {
-        kind: 'MakeCaseActionExtendLam';
-        content: string[];
-    }
     export interface HighlightClear {
         kind: 'HighlightClear';
         content: string[];
     }
 }
-
-//
-// export type PendingCommand = {
-//     kind: CommandKind,
-//     resolve: (kind: CommandKind) => void,
-//     reject: (any) => void,
-//     // the expected number of GoalsAction replies left
-//     count: number,
-// };
 
 // Occurence & Location
 export interface Occurence {
