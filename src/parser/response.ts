@@ -115,7 +115,9 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 })
             } as Agda.SolveAll);
 
+        // Resp_DisplayInfo DisplayInfo
         case 'agda2-info-action':
+        case 'agda2-info-action-and-copy':
             let kind = parseDisplayInfoKind(tokens[1]);
             let content = tokens.length === 3 ? [] : _.compact(tokens[2].split('\\n'));
             return Promise.resolve({
@@ -125,10 +127,14 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 content: content,
                 append: tokens[3] === 't'
             } as Agda.DisplayInfo);
-        case 'agda2-info-action-and-copy':
-            kind = parseDisplayInfoKind(tokens[1]);
-            console.log(kind);
-            break;
+
+        // Resp_RunningInfo Int String
+        case 'agda2-verbose':
+            return Promise.resolve({
+                kind: 'RunningInfo',
+                verbosity: 1,
+                message: tokens[1]
+            } as Agda.RunningInfo);
 
         case 'agda2-parse-error':
             return Promise.reject(new ParseError(

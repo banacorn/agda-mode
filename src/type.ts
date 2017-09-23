@@ -257,8 +257,8 @@ namespace Agda {
         SolveAll |
         // Resp_DisplayInfo
         DisplayInfo |
-
-
+        // Resp_RunningInfo Int String
+        RunningInfo | // I have no idea what is this for
         HighlightClear
 
     // Resp_HighlightingInfo HighlightingInfo HighlightingMethod ModuleToSource
@@ -340,6 +340,13 @@ namespace Agda {
         title: string;
         content: string[];
         append: boolean;
+    }
+
+    // Resp_RunningInfo Int String
+    export interface RunningInfo {
+        kind: 'RunningInfo';
+        verbosity: number;
+        message: string;
     }
 
     export interface HighlightClear {
