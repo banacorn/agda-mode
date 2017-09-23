@@ -126,7 +126,6 @@ namespace View {
     }
 
     export interface BodyState {
-        banner: BannerItem[];
         body: Body;
         error: Error;
         plainText: string;
@@ -160,58 +159,57 @@ namespace View {
     // Body components
     ////////////////////////////////////////////
 
-    export interface Judgements {
-        banner: BannerItem[],
-        body: BodyItem[]
+    export interface Body {
+        goalAndHave: GoalAndHave[];
+        // ------
+        goals: Goal[];
+        judgements: Judgement[];
+        terms: Term[];
+        metas: Meta[];
+        sorts: Sort[];
+        // --------
+        warnings: string[];
+        // --------
+        errors: string[];
     }
 
-    export interface BannerItem {
-        type: string,
-        label: string
+    export interface GoalAndHave {
+        type: string;
+        label: string;
     }
+
+    export type BodyItem = Goal | Judgement | Term | Meta | Sort;
 
     export interface Goal {
         judgementForm: JudgementForm,
-        type: string,
-        index: string
+        type: string;
+        index: string;
     }
 
     export interface Judgement {
         judgementForm: JudgementForm,
-        type: string,
-        expr: string,
-        index?: string
+        type: string;
+        expr: string;
+        index?: string;
     }
 
     export interface Term {
-        judgementForm: JudgementForm,
-        expr: string
+        judgementForm: JudgementForm;
+        expr: string;
     }
 
     export interface Meta {
-        judgementForm: JudgementForm,
-        type: string,
-        location: Location,
-        index: string
+        judgementForm: JudgementForm;
+        type: string;
+        location: Location;
+        index: string;
     }
 
     export interface Sort {
-        judgementForm: JudgementForm,
-        location: Location,
-        index: string
+        judgementForm: JudgementForm;
+        location: Location;
+        index: string;
     }
-
-
-    export type BodyItem = Goal | Judgement | Term | Meta | Sort;
-
-    export interface Body {
-        goal: Goal[],
-        judgement: Judgement[],
-        term: Term[],
-        meta: Meta[],
-        sort: Sort[]
-    }
-
 }
 
 namespace Agda {

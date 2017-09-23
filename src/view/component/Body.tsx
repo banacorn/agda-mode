@@ -45,7 +45,7 @@ class Body extends React.Component<Props, {}> {
     }
 
     render() {
-        const { emitter, banner, body, error, plainText, maxBodyHeight, mountAtBottom } = this.props;
+        const { emitter, body, error, plainText, maxBodyHeight, mountAtBottom } = this.props;
         const classes = classNames(this.props.className, `native-key-bindings`, 'agda-body');
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
@@ -56,8 +56,8 @@ class Body extends React.Component<Props, {}> {
                 tabIndex={-1}
                 style={style}
             >
-                <ul className="list-group">{banner.map((item, i) =>
-                    <li className="list-item banner-item" key={i}>
+                <ul className="list-group">{body.goalAndHave.map((item, i) =>
+                    <li className="list-item special-item" key={i}>
                         <div className="item-heading text-info">{item.label}</div>
                         <div className="item-colon"><span> : </span></div>
                         <div className="item-body">
@@ -65,7 +65,7 @@ class Body extends React.Component<Props, {}> {
                         </div>
                     </li>
                 )}</ul>
-                <ul className="list-group">{body.goal.map((item, i) =>
+                <ul className="list-group">{body.goals.map((item, i) =>
                     <li className="list-item body-item" key={i}>
                         <div className="item-heading">
                             <button className="no-btn text-info" onClick={() => {
@@ -78,7 +78,7 @@ class Body extends React.Component<Props, {}> {
                             <Expr emitter={emitter}>{item.type}</Expr>
                         </div>
                     </li>
-                )}{body.judgement.map((item, i) =>
+                )}{body.judgements.map((item, i) =>
                     <li className="list-item body-item" key={i}>
                         <div className="item-heading">
                             <span className="text-success">{item.expr}</span>
@@ -88,13 +88,13 @@ class Body extends React.Component<Props, {}> {
                             <Expr emitter={emitter}>{item.type}</Expr>
                         </div>
                     </li>
-                )}{body.term.map((item, i) =>
+                )}{body.terms.map((item, i) =>
                     <li className="list-item body-item" key={i}>
                         <div className="item-body">
                             <Expr emitter={emitter}>{item.expr}</Expr>
                         </div>
                     </li>
-                )}{body.meta.map((item, i) =>
+                )}{body.metas.map((item, i) =>
                     <li className="list-item body-item" key={i}>
                         <div className="item-heading">
                             <span className="text-success">{item.index}</span>
@@ -105,7 +105,7 @@ class Body extends React.Component<Props, {}> {
                             <Location abbr emitter={emitter}>{item.location}</Location>
                         </div>
                     </li>
-                )}{body.sort.map((item, i) =>
+                )}{body.sorts.map((item, i) =>
                     <li className="list-item body-item" key={i}>
                         <div className="item-heading">
                             <span className="text-highlight">Sort </span>
@@ -116,6 +116,18 @@ class Body extends React.Component<Props, {}> {
                         </div>
                     </li>
                 )}</ul>
+                <ul className="list-group">
+                    {body.warnings.length > 0 &&
+                        <li className="list-item special-item">
+                            {body.warnings.join('\n')}
+                        </li>
+                    }
+                    {body.errors.length > 0 &&
+                        <li className="list-item special-item">
+                            {body.errors.join('\n')}
+                        </li>
+                    }
+                </ul>
                 {error ? <Error emitter={emitter}>{error}</Error> : null}
                 {plainText ? <p>{plainText}</p> : null}
             </section>

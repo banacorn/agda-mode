@@ -19,7 +19,7 @@ import { View as V, Location, Error } from './type';
 import { EVENT } from './view/actions';
 import * as Action from './view/actions';
 import { parseJudgements, parseError } from './parser';
-import { updateBody, updateBanner, updateError, updatePlainText } from './view/actions';
+import { updateBody, updateError, updatePlainText } from './view/actions';
 import Tab from './view/tab';
 
 // Atom shits
@@ -282,7 +282,7 @@ export default class View {
         }
     }
 
-    setJudgements(header: string = 'Judgements', { banner, body }: V.Judgements) {
+    setJudgements(header: string = 'Judgements', body: V.Body) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focus('main')
 
@@ -291,18 +291,8 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(updateBanner(banner));
-
-        const grouped = _.groupBy(body, 'judgementForm');
-        this.store.dispatch(updateBody({
-            goal: (grouped['goal'] || []) as V.Goal[],
-            judgement: (grouped['type judgement'] || []) as V.Judgement[],
-            term: (grouped['term'] || []) as V.Term[],
-            meta: (grouped['meta'] || []) as V.Meta[],
-            sort: (grouped['sort'] || []) as V.Sort[]
-        }));
+        this.store.dispatch(updateBody(body));
     }
-
 
     query(header: string = '', message: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {
         this.store.dispatch(Action.QUERY.setPlaceholder(placeholder));

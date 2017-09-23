@@ -243,10 +243,8 @@ export namespace QUERY {
 }
 
 
-export type BODY = BODY.UPDATE_BANNER | BODY.UPDATE_BODY | BODY.UPDATE_ERROR | BODY.UPDATE_PLAIN_TEXT | BODY.UPDATE_MAX_BODY_HEIGHT;
+export type BODY = BODY.UPDATE_BODY | BODY.UPDATE_ERROR | BODY.UPDATE_PLAIN_TEXT | BODY.UPDATE_MAX_BODY_HEIGHT;
 export namespace BODY {
-    export const UPDATE_BANNER = 'BODY.UPDATE_BANNER';
-    export type UPDATE_BANNER = View.BannerItem[];
     export const UPDATE_BODY = 'BODY.UPDATE_BODY';
     export type UPDATE_BODY = View.Body;
     export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
@@ -257,7 +255,6 @@ export namespace BODY {
     export type UPDATE_MAX_BODY_HEIGHT = number;
 }
 
-export const updateBanner = createAction<BODY.UPDATE_BANNER>(BODY.UPDATE_BANNER);
 export const updateBody = createAction<BODY.UPDATE_BODY>(BODY.UPDATE_BODY);
 export const updateError = createAction<BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
 export const updatePlainText = createAction<BODY.UPDATE_PLAIN_TEXT>(BODY.UPDATE_PLAIN_TEXT);

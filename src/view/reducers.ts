@@ -52,13 +52,15 @@ const defaultState: View.State = {
         value: ''
     },
     body: {
-        banner: [],
         body: {
-            goal: [],
-            judgement: [],
-            term: [],
-            meta: [],
-            sort: []
+            goalAndHave: [],
+            goals: [],
+            judgements: [],
+            terms: [],
+            metas: [],
+            sorts: [],
+            warnings: [],
+            errors: []
         },
         error: null,
         plainText: '',
@@ -195,24 +197,17 @@ const query = handleActions<View.QueryState, QUERY>({
 }, defaultState.query);
 
 const body = handleActions<View.BodyState, BODY>({
-    [BODY.UPDATE_BANNER]: (state, action: Action<BODY.UPDATE_BANNER>) => ({ ...state,
-        banner: action.payload,
-        error: null,
-        plainText: defaultState.body.plainText
-    }),
     [BODY.UPDATE_BODY]: (state, action: Action<BODY.UPDATE_BODY>) => ({ ...state,
         body: action.payload,
         error: null,
         plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_ERROR]: (state, action: Action<BODY.UPDATE_ERROR>) => ({ ...state,
-        banner: defaultState.body.banner,
         body: defaultState.body.body,
         error: action.payload,
         plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_PLAIN_TEXT]: (state, action: Action<BODY.UPDATE_PLAIN_TEXT>) => ({ ...state,
-        banner: defaultState.body.banner,
         body: defaultState.body.body,
         error: null,
         plainText: action.payload

@@ -8,38 +8,61 @@ import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom, succeed,
 
 var { Point, Range } = require('atom');
 
-function parseJudgements(lines: string[]): View.Judgements {
-    const {banner, body} = divideJudgements(lines);
-    const bannerItems = concatItems(banner).map(parseBannerItem);
-    const bodyItems = concatItems(body).map(parseBodyItem);
+function parseJudgements(lines: string[]): View.Body {
+    const {goalAndHave, body, warnings, errors} = divideJudgements(lines);
+
+    const grouped = _.groupBy(body.map(parseBodyItem), 'judgementForm');
     return {
-        banner: bannerItems,
-        body: bodyItems
+        goalAndHave: concatItems(goalAndHave).map(parseGoalAndHave),
+        goals: (grouped['goal'] || []) as View.Goal[],
+        judgements: (grouped['type judgement'] || []) as View.Judgement[],
+        terms: (grouped['term'] || []) as View.Term[],
+        metas: (grouped['meta'] || []) as View.Meta[],
+        sorts: (grouped['sort'] || []) as View.Sort[],
+        warnings, errors
     }
 }
 
 
-// divide content into header and body
+// divide lines into sections
 function divideJudgements(lines: string[]): {
-    banner: string[],
-    body: string[]
+    goalAndHave: string[],
+    body: string[],
+    warnings: string[],
+    errors: string[],
 } {
-    const notEmpty = lines.length > 0;
-    const index = lines.indexOf('————————————————————————————————————————————————————————————');
-    const isSectioned = index !== -1;
+    const bodyDelimeterIndex    = lines.indexOf('————————————————————————————————————————————————————————————');
+    const warningsDelimeterIndex = lines.indexOf('———— Warnings ——————————————————————————————————————————————');
+    const errorsDelimeterIndex   = lines.indexOf('———— Errors ————————————————————————————————————————————————');
+    let lastLineIndex = lines.length;
 
-    if (notEmpty && isSectioned) {
-        return {
-            banner: lines.slice(0, index),
-            body: lines.slice(index + 1, lines.length)
-        }
+    let goalAndHave = [];
+    let body = [];
+    let warnings = [];
+    let errors = [];
+
+    // starts segregating lines from the end, update lastLineIndex as we progress
+
+    // there are errors
+    if (errorsDelimeterIndex !== -1) {
+        errors = lines.slice(errorsDelimeterIndex + 1, lastLineIndex);
+        lastLineIndex = errorsDelimeterIndex;
     }
-    else {
-        return {
-            banner: [],
-            body: lines
-        }
+    // there are warnings
+    if (warningsDelimeterIndex !== -1) {
+        warnings = lines.slice(warningsDelimeterIndex + 1, lastLineIndex);
+        lastLineIndex = warningsDelimeterIndex;
     }
+    // there is the body & the Goal & Have brothers
+    if (bodyDelimeterIndex !== -1) {
+        body = lines.slice(bodyDelimeterIndex + 1, lastLineIndex);
+        goalAndHave = lines.slice(0, bodyDelimeterIndex);
+    // there is only the body
+    } else {
+        body = lines.slice(0, lastLineIndex);
+    }
+
+    return { goalAndHave, body, warnings, errors };
 }
 
 // concatenate multiline judgements
@@ -108,7 +131,7 @@ function concatItems(lines: string[]): string[] {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-function parseBannerItem(str: string): View.BannerItem {
+function parseGoalAndHave(str: string): View.GoalAndHave {
     const regex = /^(Goal|Have)\: ((?:\n|.)+)/;
     const result = str.match(regex);
     return {

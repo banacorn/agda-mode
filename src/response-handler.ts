@@ -14,27 +14,27 @@ const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<vo
     return Promise.each(responses, handleResponse(core))
         .then(() => {})
         .catch(ConnectionError, error => {
-            this.core.view.store.dispatch(Action.CONNECTION.err(error.guid));
-            this.core.view.set(error.name, error.message.split('\n'), View.Style.Error);
+            core.view.store.dispatch(Action.CONNECTION.err(error.guid));
+            core.view.set(error.name, error.message.split('\n'), View.Style.Error);
         })
         .catch(ConnectionNotEstablished, () => {
-            this.core.view.set('Connection to Agda not established', [], View.Style.Warning);
+            core.view.set('Connection to Agda not established', [], View.Style.Warning);
         })
         .catch(QueryCancelled, () => {
-            this.core.view.set('Query cancelled', [], View.Style.Warning);
+            core.view.set('Query cancelled', [], View.Style.Warning);
         })
         .catch((error) => { // catch all the rest
             if (error) {
                 console.log(error)
                 switch (error.name) {
                     case 'InvalidExecutablePathError':
-                    this.core.view.set(error.message, [error.path], View.Style.Error);
+                    core.view.set(error.message, [error.path], View.Style.Error);
                     break;
                 default:
-                    this.core.view.set(error.name, error.message.split('\n'), View.Style.Error);
+                    core.view.set(error.name, error.message.split('\n'), View.Style.Error);
                 }
             } else {
-                this.core.view.set('Panic!', ['unknown error'], View.Style.Error);
+                core.view.set('Panic!', ['unknown error'], View.Style.Error);
             }
         });
 }
