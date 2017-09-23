@@ -257,9 +257,15 @@ namespace Agda {
         SolveAll |
         // Resp_DisplayInfo
         DisplayInfo |
+
+        // Never tested
         // Resp_RunningInfo Int String
-        RunningInfo | // I have no idea what is this for
-        HighlightClear
+        RunningInfo |
+        // Resp_ClearRunningInfo
+        ClearRunningInfo |
+
+        // Resp_ClearHighlighting
+        ClearHighlighting
 
     // Resp_HighlightingInfo HighlightingInfo HighlightingMethod ModuleToSource
     export interface HighlightingInfo_Direct {
@@ -349,9 +355,14 @@ namespace Agda {
         message: string;
     }
 
-    export interface HighlightClear {
+    // Resp_ClearRunningInfo
+    export interface ClearRunningInfo {
+        kind: 'ClearRunningInfo';
+    }
+
+    // Resp_ClearHighlighting
+    export interface ClearHighlighting {
         kind: 'HighlightClear';
-        content: string[];
     }
 }
 

@@ -136,15 +136,18 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 message: tokens[1]
             } as Agda.RunningInfo);
 
+        // ClearHighlighting
+        case 'agda2-highlight-clear':
+            return Promise.resolve({
+                kind: 'HighlightClear',
+            } as Agda.ClearHighlighting);
+
         case 'agda2-parse-error':
             return Promise.reject(new ParseError(
                 raw,
                 'agda2-parse-error'
             ))
-        case 'agda2-highlight-clear':
-            return Promise.resolve({
-                kind: 'HighlightClear',
-            } as Agda.HighlightClear);
+
         default:
             return Promise.reject(new ParseError(
                 raw,
