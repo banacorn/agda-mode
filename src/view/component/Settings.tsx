@@ -78,7 +78,7 @@ class Settings extends React.Component<Props, {}> {
                         }}
                         onSelectAndLoad={(connInfo) => {
                             core.connector.select(connInfo);
-                            core.commander.activate({
+                            core.commander.dispatch({
                                 kind: 'Load',
                                 editsFile: false
                             });

@@ -1,5 +1,6 @@
 import * as _ from 'lodash';
 import Core from './core';
+import * as Action from './view/actions';
 import { parseCommand } from './parser';
 
 type Editor = any;
@@ -109,7 +110,8 @@ function registerCommands() {
             // console.log(`[${editor.id}] ${command}`)
             if (editor.core) {
                 const core: Core = editor.core;
-                core.commander.activate(parseCommand(command));
+                core.view.store.dispatch(Action.PROTOCOL.clearAll());
+                core.commander.dispatch(parseCommand(command));
             }
         }));
     })

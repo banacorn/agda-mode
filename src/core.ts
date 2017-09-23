@@ -4,9 +4,10 @@ type Range = any;
 type Editor = any;
 declare var atom: any;
 var { Range, CompositeDisposable } = require('atom');
+import * as Redux from 'redux';
+import * as Promise from 'bluebird';
 
 import { parseFilepath } from './parser';
-import * as Redux from 'redux';
 import { View as ViewType } from './type';
 
 // # Components
@@ -66,6 +67,18 @@ export default class Core {
         this.view.store.dispatch(Action.updateMaxBodyHeight(atom.config.get('agda-mode.maxBodyHeight')));
     }
 
+    // issue #48, TextBuffer::save will be async in Atom 1.19
+    saveEditor(): Promise<void> {
+        let promise = this.editor.save();
+        if (promise && promise.then) {
+            return promise.then((e) => {
+                return Promise.resolve();
+            })
+        } else {
+            return Promise.resolve();
+        }
+    }
+
     // shorthand for getting the path of the binded file
     getPath(): string {
         return parseFilepath(this.editor.getPath());
@@ -82,8 +95,12 @@ export default class Core {
     }
 
     destroy() {
-        this.commander.quit();
-        this.view.destroy();
-        this.disposables.dispose();
+        this.commander.dispatch({
+            kind: "Quit",
+            editsFile: false
+        }).then(() => {
+            this.view.destroy();
+            this.disposables.dispose();
+        });
     }
 }
