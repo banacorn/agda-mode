@@ -38,6 +38,7 @@ function parseResponse(raw: string): Promise<Agda.Response> {
     const tokens: any[] = parseSExpression(raw);
 
     switch (tokens[0]) {
+
         case 'agda2-highlight-add-annotations':
             let annotations: Agda.Annotation[] = _
                 .tail(tokens)
@@ -51,6 +52,14 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 kind: 'HighlightingInfo_Indirect',
                 filepath: tokens[1]
             } as Agda.HighlightingInfo_Indirect);
+
+        case 'agda2-status-action':
+            return Promise.resolve({
+                kind: 'Status',
+                showImplicit: _.includes(tokens, 'ShowImplicit'),
+                checked: _.includes(tokens, 'Checked')
+            } as Agda.Status);
+
         case 'agda2-info-action':
             let type = parseInfoActionType(tokens[1]);
             let content = tokens.length === 3 ? [] : _.compact(tokens[2].split('\\n'));
@@ -59,11 +68,6 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 infoActionKind: type,
                 content: content
             } as Agda.InfoAction);
-        case 'agda2-status-action':
-            return Promise.resolve({
-                kind: 'StatusAction',
-                content: tokens.slice(1, 2)
-            } as Agda.StatusAction);
         case 'agda2-goals-action':
             return Promise.resolve({
                 kind: 'GoalsAction',

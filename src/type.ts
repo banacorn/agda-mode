@@ -245,8 +245,9 @@ namespace Agda {
         // Resp_HighlightingInfo
         HighlightingInfo_Direct |
         HighlightingInfo_Indirect |
+        // Resp_Status
+        Status |
         InfoAction |
-        StatusAction |
         GoalsAction |
         GiveAction |
         Goto |
@@ -275,6 +276,16 @@ namespace Agda {
             index: string
         }
     }
+
+    // Resp_Status
+    export interface Status {
+        kind: 'Status';
+        // Are implicit arguments displayed?
+        showImplicit: boolean;
+        // Has the module been successfully type checked?
+        checked: boolean;
+    }
+
     export type InfoActionKind = 'AllGoals' | 'Error' | 'TypeChecking' | 'CurrentGoal' |
         'InferredType' | 'ModuleContents' | 'Context' | 'GoalTypeEtc' |
         'NormalForm' | 'Intro' | 'Auto' | 'Constraints' | 'ScopeInfo' |
@@ -286,10 +297,6 @@ namespace Agda {
         content: string[];
     }
 
-    export interface StatusAction {
-        kind: 'StatusAction';
-        content: string[];
-    }
     export interface GoalsAction {
         kind: 'GoalsAction';
         content: number[];
