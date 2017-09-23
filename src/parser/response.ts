@@ -19,7 +19,7 @@ function prioritiseResponses(responses: Agda.Response[]): Agda.Response[] {
     //      OTHERS: 0
     return _.sortBy(responses, res => {
         switch (res.kind) {
-            case 'Goto':
+            case 'JumpToError':
                 return 3;
             case 'MakeCaseAction':
             case 'MakeCaseActionExtendLam':
@@ -38,7 +38,7 @@ function parseResponse(raw: string): Promise<Agda.Response> {
     const tokens: any[] = parseSExpression(raw);
 
     switch (tokens[0]) {
-
+        // Resp_HighlightingInfo
         case 'agda2-highlight-add-annotations':
             let annotations: Agda.Annotation[] = _
                 .tail(tokens)
@@ -52,7 +52,7 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 kind: 'HighlightingInfo_Indirect',
                 filepath: tokens[1]
             } as Agda.HighlightingInfo_Indirect);
-
+        // Resp_Status
         case 'agda2-status-action':
             return Promise.resolve({
                 kind: 'Status',
@@ -60,6 +60,13 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 checked: _.includes(tokens, 'Checked')
             } as Agda.Status);
 
+        // Resp_JumpToError FilePath Int32
+        case 'agda2-maybe-goto':
+            return Promise.resolve({
+                kind: 'JumpToError',
+                filepath: tokens[1][0],
+                position: parseInt(tokens[1][2])
+            } as Agda.JumpToError);
         case 'agda2-info-action':
             let type = parseInfoActionType(tokens[1]);
             let content = tokens.length === 3 ? [] : _.compact(tokens[2].split('\\n'));
@@ -103,13 +110,6 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 raw,
                 'agda2-parse-error'
             ))
-        case 'agda2-goto':
-        case 'agda2-maybe-goto':
-            return Promise.resolve({
-                kind: 'Goto',
-                filepath: tokens[1][0],
-                position: parseInt(tokens[1][2])
-            } as Agda.Goto);
         case 'agda2-solveAll-action':
             return Promise.resolve({
                 kind: 'SolveAllAction',

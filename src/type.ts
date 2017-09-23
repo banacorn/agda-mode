@@ -247,16 +247,18 @@ namespace Agda {
         HighlightingInfo_Indirect |
         // Resp_Status
         Status |
+        // Resp_JumpToError
+        JumpToError |
+
         InfoAction |
         GoalsAction |
         GiveAction |
-        Goto |
         SolveAllAction |
         MakeCaseAction |
         MakeCaseActionExtendLam |
         HighlightClear
 
-    // Resp_HighlightingInfo
+    // Resp_HighlightingInfo HighlightingInfo HighlightingMethod ModuleToSource
     export interface HighlightingInfo_Direct {
         kind: 'HighlightingInfo_Direct';
         annotations: Annotation[];
@@ -277,7 +279,7 @@ namespace Agda {
         }
     }
 
-    // Resp_Status
+    // Resp_Status Status
     export interface Status {
         kind: 'Status';
         // Are implicit arguments displayed?
@@ -285,6 +287,14 @@ namespace Agda {
         // Has the module been successfully type checked?
         checked: boolean;
     }
+
+    // Resp_JumpToError FilePath Int32
+    export interface JumpToError {
+        kind: 'JumpToError';
+        filepath: string;
+        position: number;
+    }
+
 
     export type InfoActionKind = 'AllGoals' | 'Error' | 'TypeChecking' | 'CurrentGoal' |
         'InferredType' | 'ModuleContents' | 'Context' | 'GoalTypeEtc' |
@@ -308,11 +318,6 @@ namespace Agda {
         hasParenthesis: boolean;
     }
 
-    export interface Goto {
-        kind: 'Goto';
-        filepath: string;
-        position: number;
-    }
     export interface SolveAllAction {
         kind: 'SolveAllAction';
         solutions: {

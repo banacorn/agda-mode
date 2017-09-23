@@ -255,7 +255,7 @@ export default class TextBuffer {
         });
     }
 
-    onGoto(filepath: string, charIndex: number): Promise<void> {
+    onJumpToError(filepath: string, charIndex: number): Promise<void> {
         if (this.core.getPath() === filepath) {
             let position = this.core.editor.fromIndex(charIndex - 1);
             this.core.editor.setCursorBufferPosition(position);

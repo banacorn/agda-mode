@@ -71,6 +71,9 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             }
             return Promise.resolve();
 
+        case 'JumpToError':
+            return core.textBuffer.onJumpToError(response.filepath, response.position);
+
         case 'InfoAction':
             handleInfoAction(core, response);
             return Promise.resolve();
@@ -80,9 +83,6 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
 
         case 'GiveAction':
             return core.textBuffer.onGiveAction(response.index, response.content, response.hasParenthesis);
-
-        case 'Goto':
-            return core.textBuffer.onGoto(response.filepath, response.position);
 
         case 'SolveAllAction':
             return Promise.each(response.solutions, (solution) => {
