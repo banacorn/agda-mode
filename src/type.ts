@@ -242,6 +242,9 @@ namespace Agda {
     //  Response from Agda
     //
     export type Response =
+        // Resp_HighlightingInfo
+        HighlightingInfo_Direct |
+        HighlightingInfo_Indirect |
         InfoAction |
         StatusAction |
         GoalsAction |
@@ -250,10 +253,28 @@ namespace Agda {
         SolveAllAction |
         MakeCaseAction |
         MakeCaseActionExtendLam |
-        HighlightClear |
-        HighlightAddAnnotations |
-        HighlightLoadAndDeleteAction;
+        HighlightClear
 
+    // Resp_HighlightingInfo
+    export interface HighlightingInfo_Direct {
+        kind: 'HighlightingInfo_Direct';
+        annotations: Annotation[];
+    }
+
+    export interface HighlightingInfo_Indirect {
+        kind: 'HighlightingInfo_Indirect';
+        filepath: string;
+    }
+
+    export interface Annotation {
+        start: string,
+        end: string,
+        type: string[]
+        source?: {
+            filepath: string,
+            index: string
+        }
+    }
     export type InfoActionKind = 'AllGoals' | 'Error' | 'TypeChecking' | 'CurrentGoal' |
         'InferredType' | 'ModuleContents' | 'Context' | 'GoalTypeEtc' |
         'NormalForm' | 'Intro' | 'Auto' | 'Constraints' | 'ScopeInfo' |
@@ -303,25 +324,6 @@ namespace Agda {
     export interface HighlightClear {
         kind: 'HighlightClear';
         content: string[];
-    }
-    export interface HighlightAddAnnotations {
-        kind: 'HighlightAddAnnotations';
-        content: Annotation[];
-    }
-
-    export interface HighlightLoadAndDeleteAction {
-        kind: 'HighlightLoadAndDeleteAction';
-        content: string;
-    }
-
-    export interface Annotation {
-        start: string,
-        end: string,
-        type: string[]
-        source?: {
-            filepath: string,
-            index: string
-        }
     }
 }
 

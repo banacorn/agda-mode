@@ -42,6 +42,29 @@ const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<vo
 const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> => {
     // console.log(response.kind)
     switch (response.kind) {
+        case 'HighlightingInfo_Direct':
+            const annotations = response.annotations;
+            return Promise.each(annotations, (annotation) => {
+                let unsolvedmeta = _.includes(annotation.type, 'unsolvedmeta');
+                let terminationproblem = _.includes(annotation.type, 'terminationproblem')
+                if (unsolvedmeta || terminationproblem) {
+                    core.highlightManager.highlight(annotation);
+                }
+            }).then(() => {});
+
+        case 'HighlightingInfo_Indirect':
+            return Promise.promisify(fs.readFile)(response.filepath)
+                .then(data => {
+                    const annotations = parseSExpression(data.toString()).map(parseAnnotation);
+                    annotations.forEach((annotation) => {
+                        let unsolvedmeta = _.includes(annotation.type, 'unsolvedmeta');
+                        let terminationproblem = _.includes(annotation.type, 'terminationproblem')
+                        if (unsolvedmeta || terminationproblem) {
+                            core.highlightManager.highlight(annotation);
+                        }
+                    });
+                })
+
         case 'InfoAction':
             handleInfoAction(core, response);
             return Promise.resolve();
@@ -82,29 +105,6 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
 
         case 'HighlightClear':
             return core.highlightManager.destroyAll();
-
-        case 'HighlightAddAnnotations':
-            const annotations = response.content;
-            return Promise.each(annotations, (annotation) => {
-                let unsolvedmeta = _.includes(annotation.type, 'unsolvedmeta');
-                let terminationproblem = _.includes(annotation.type, 'terminationproblem')
-                if (unsolvedmeta || terminationproblem) {
-                    core.highlightManager.highlight(annotation);
-                }
-            }).then(() => {});
-
-        case 'HighlightLoadAndDeleteAction':
-            return Promise.promisify(fs.readFile)(response.content)
-                .then(data => {
-                    const annotations = parseSExpression(data.toString()).map(parseAnnotation);
-                    annotations.forEach((annotation) => {
-                        let unsolvedmeta = _.includes(annotation.type, 'unsolvedmeta');
-                        let terminationproblem = _.includes(annotation.type, 'terminationproblem')
-                        if (unsolvedmeta || terminationproblem) {
-                            core.highlightManager.highlight(annotation);
-                        }
-                    });
-                })
 
         default:
             console.error(`Agda.ResponseType: ${JSON.stringify(response)}`);

@@ -38,6 +38,19 @@ function parseResponse(raw: string): Promise<Agda.Response> {
     const tokens: any[] = parseSExpression(raw);
 
     switch (tokens[0]) {
+        case 'agda2-highlight-add-annotations':
+            let annotations: Agda.Annotation[] = _
+                .tail(tokens)
+                .map(parseAnnotation);
+            return Promise.resolve({
+                kind: 'HighlightingInfo_Direct',
+                annotations: annotations
+            } as Agda.HighlightingInfo_Direct);
+        case 'agda2-highlight-load-and-delete-action':
+            return Promise.resolve({
+                kind: 'HighlightingInfo_Indirect',
+                filepath: tokens[1]
+            } as Agda.HighlightingInfo_Indirect);
         case 'agda2-info-action':
             let type = parseInfoActionType(tokens[1]);
             let content = tokens.length === 3 ? [] : _.compact(tokens[2].split('\\n'));
@@ -114,19 +127,6 @@ function parseResponse(raw: string): Promise<Agda.Response> {
             return Promise.resolve({
                 kind: 'HighlightClear',
             } as Agda.HighlightClear);
-        case 'agda2-highlight-add-annotations':
-            let annotations: Agda.Annotation[] = _
-                .tail(tokens)
-                .map(parseAnnotation);
-            return Promise.resolve({
-                kind: 'HighlightAddAnnotations',
-                content: annotations
-            } as Agda.HighlightAddAnnotations);
-        case 'agda2-highlight-load-and-delete-action':
-            return Promise.resolve({
-                kind: 'HighlightLoadAndDeleteAction',
-                content: tokens[1]
-            } as Agda.HighlightLoadAndDeleteAction);
         default:
             return Promise.reject(new ParseError(
                 raw,
