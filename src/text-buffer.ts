@@ -215,7 +215,7 @@ export default class TextBuffer {
         });
     }
 
-    onSolveAllAction(index: number, content: string): Promise<Goal> {
+    onSolveAll(index: number, content: string): Promise<Goal> {
         return this.protectCursor(() => {
             let goal = this.findGoal(index);
             goal.setContent(content);

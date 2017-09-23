@@ -255,11 +255,11 @@ namespace Agda {
         GiveAction |
         // Resp_MakeCase
         MakeCase |
+        // Resp_SolveAll
+        SolveAll |
 
 
         InfoAction |
-        SolveAllAction |
-        // MakeCaseActionExtendLam |
         HighlightClear
 
     // Resp_HighlightingInfo HighlightingInfo HighlightingMethod ModuleToSource
@@ -320,6 +320,15 @@ namespace Agda {
         result: string[];
     }
 
+    // Resp_SolveAll  [(InteractionId, Expr)]
+    export interface SolveAll {
+        kind: 'SolveAll';
+        solutions: {
+            index: number,
+            expression: string
+        }[];
+    }
+
     export type InfoActionKind = 'AllGoals' | 'Error' | 'TypeChecking' | 'CurrentGoal' |
         'InferredType' | 'ModuleContents' | 'Context' | 'GoalTypeEtc' |
         'NormalForm' | 'Intro' | 'Auto' | 'Constraints' | 'ScopeInfo' |
@@ -329,13 +338,6 @@ namespace Agda {
         kind: 'InfoAction';
         infoActionKind: InfoActionKind;
         content: string[];
-    }
-    export interface SolveAllAction {
-        kind: 'SolveAllAction';
-        solutions: {
-            index: number,
-            expression: string
-        }[];
     }
     export interface MakeCaseActionExtendLam {
         kind: 'MakeCaseActionExtendLam';

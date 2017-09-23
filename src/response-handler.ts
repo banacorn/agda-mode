@@ -84,20 +84,19 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
                 .onMakeCase(response.variant, response.result)
                 .then(() => core.commander.dispatch({ kind: 'Load' }))
 
-        case 'InfoAction':
-            handleInfoAction(core, response);
-            return Promise.resolve();
-
-
-        case 'SolveAllAction':
+        case 'SolveAll':
             return Promise.each(response.solutions, (solution) => {
-                return core.textBuffer.onSolveAllAction(solution.index, solution.expression)
+                return core.textBuffer.onSolveAll(solution.index, solution.expression)
                     .then(goal => core.connector
                         .getConnection()
                         .then(Req.give(goal))
                         .then(handleResponses(core))
                     )
             }).then(() => {});
+
+        case 'InfoAction':
+            handleInfoAction(core, response);
+            return Promise.resolve();
 
 
         case 'HighlightClear':
