@@ -76,12 +76,18 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
         case 'InteractionPoints':
             return core.textBuffer.onInteractionPoints(response.indices);
 
+        case 'GiveAction':
+            return core.textBuffer.onGiveAction(response.index, response.giveResult, response.result);
+
+        case 'MakeCase':
+            return core.textBuffer
+                .onMakeCase(response.variant, response.result)
+                .then(() => core.commander.dispatch({ kind: 'Load' }))
+
         case 'InfoAction':
             handleInfoAction(core, response);
             return Promise.resolve();
 
-        case 'GiveAction':
-            return core.textBuffer.onGiveAction(response.index, response.giveResult, response.result);
 
         case 'SolveAllAction':
             return Promise.each(response.solutions, (solution) => {
@@ -93,14 +99,6 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
                     )
             }).then(() => {});
 
-        case 'MakeCaseAction':
-            return core.textBuffer
-                .onMakeCaseAction(response.content)
-                .then(() => core.commander.dispatch({ kind: 'Load' }))
-
-        case 'MakeCaseActionExtendLam':
-            return core.textBuffer.onMakeCaseActionExtendLam(response.content)
-                .then(() => core.commander.dispatch({ kind: 'Load' }))
 
         case 'HighlightClear':
             return core.highlightManager.destroyAll();

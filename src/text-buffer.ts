@@ -249,18 +249,17 @@ export default class TextBuffer {
         });
     }
 
-    onMakeCaseAction(content: string[]): Promise<void> {
+    onMakeCase(variant: 'Function' | 'ExtendedLambda', result: string[]): Promise<void> {
         return this.protectCursor(() => {
             this.getCurrentGoal().then((goal) => {
-                goal.writeLines(content);
-            }).catch(() => this.warnOutOfGoal());
-        });
-    }
-
-    onMakeCaseActionExtendLam(content: string[]): Promise<void> {
-        return this.protectCursor(() => {
-            this.getCurrentGoal().then((goal) => {
-                goal.writeLambda(content);
+                switch (variant) {
+                    case 'Function':
+                        goal.writeLines(result);
+                        break;
+                    case 'ExtendedLambda':
+                        goal.writeLambda(result);
+                        break;
+                }
             }).catch(() => this.warnOutOfGoal());
         });
     }

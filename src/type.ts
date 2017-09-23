@@ -253,11 +253,13 @@ namespace Agda {
         InteractionPoints |
         // Resp_GiveAction
         GiveAction |
+        // Resp_MakeCase
+        MakeCase |
+
 
         InfoAction |
         SolveAllAction |
-        MakeCaseAction |
-        MakeCaseActionExtendLam |
+        // MakeCaseActionExtendLam |
         HighlightClear
 
     // Resp_HighlightingInfo HighlightingInfo HighlightingMethod ModuleToSource
@@ -311,6 +313,13 @@ namespace Agda {
         result: string;
     }
 
+    // Resp_MakeCase MakeCaseVariant [String]
+    export interface MakeCase {
+        kind: 'MakeCase';
+        variant: 'Function' | 'ExtendedLambda';
+        result: string[];
+    }
+
     export type InfoActionKind = 'AllGoals' | 'Error' | 'TypeChecking' | 'CurrentGoal' |
         'InferredType' | 'ModuleContents' | 'Context' | 'GoalTypeEtc' |
         'NormalForm' | 'Intro' | 'Auto' | 'Constraints' | 'ScopeInfo' |
@@ -327,10 +336,6 @@ namespace Agda {
             index: number,
             expression: string
         }[];
-    }
-    export interface MakeCaseAction {
-        kind: 'MakeCaseAction';
-        content: string[];
     }
     export interface MakeCaseActionExtendLam {
         kind: 'MakeCaseActionExtendLam';

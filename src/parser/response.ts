@@ -21,8 +21,7 @@ function prioritiseResponses(responses: Agda.Response[]): Agda.Response[] {
         switch (res.kind) {
             case 'JumpToError':
                 return 3;
-            case 'MakeCaseAction':
-            case 'MakeCaseActionExtendLam':
+            case 'MakeCase':
             case 'SolveAllAction':
                 return 2;
             case 'InteractionPoints':
@@ -38,7 +37,7 @@ function parseResponse(raw: string): Promise<Agda.Response> {
     const tokens: any[] = parseSExpression(raw);
 
     switch (tokens[0]) {
-        // Resp_HighlightingInfo
+        // Resp_HighlightingInfo HighlightingInfo HighlightingMethod ModuleToSource
         case 'agda2-highlight-add-annotations':
             let annotations: Agda.Annotation[] = _
                 .tail(tokens)
@@ -53,7 +52,7 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 filepath: tokens[1]
             } as Agda.HighlightingInfo_Indirect);
 
-        // Resp_Status
+        // Resp_Status Status
         case 'agda2-status-action':
             return Promise.resolve({
                 kind: 'Status',
@@ -69,14 +68,14 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 position: parseInt(tokens[1][2])
             } as Agda.JumpToError);
 
-        // Resp_InteractionPoints
+        // Resp_InteractionPoints [InteractionId]
         case 'agda2-goals-action':
             return Promise.resolve({
                 kind: 'InteractionPoints',
                 indices: tokens[1].map((s) => parseInt(s))
             } as Agda.InteractionPoints);
 
-        // Resp_GiveAction
+        // Resp_GiveAction InteractionId GiveResult
         case 'agda2-give-action':
             let index = parseInt(tokens[1]);
             let giveResult = tokens[2] === 'paren' ?
@@ -92,6 +91,19 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 giveResult,
                 result: giveResult === 'String' ? tokens[2] : ''
             } as Agda.GiveAction);
+        // Resp_MakeCase MakeCaseVariant [String]
+        case 'agda2-make-case-action':
+            return Promise.resolve({
+                kind: 'MakeCase',
+                variant: 'Function',
+                result: tokens[1]
+            } as Agda.MakeCase);
+        case 'agda2-make-case-action-extendlam':
+            return Promise.resolve({
+                kind: 'MakeCase',
+                variant: 'ExtendedLambda',
+                result: tokens[1]
+            } as Agda.MakeCase);
 
         case 'agda2-info-action':
             let type = parseInfoActionType(tokens[1]);
@@ -113,16 +125,6 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                     return { index: parseInt(arr[0] as string), expression: arr[1] }
                 })
             } as Agda.SolveAllAction);
-        case 'agda2-make-case-action':
-            return Promise.resolve({
-                kind: 'MakeCaseAction',
-                content: tokens[1]
-            } as Agda.MakeCaseAction);
-        case 'agda2-make-case-action-extendlam':
-            return Promise.resolve({
-                kind: 'MakeCaseActionExtendLam',
-                content: tokens[1]
-            } as Agda.MakeCaseActionExtendLam);
         case 'agda2-highlight-clear':
             return Promise.resolve({
                 kind: 'HighlightClear',
