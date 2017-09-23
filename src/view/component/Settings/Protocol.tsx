@@ -11,17 +11,62 @@ interface ResProp extends React.HTMLProps<HTMLElement> {
     res: Parsed<Agda.Response>;
 };
 
+    // case 'HighlightingInfo_Direct':
+    //     return (<li>
+    //         <span className='inline-block highlight'>HighlightingInfo Direct</span>
+    //         {JSON.stringify(parsed.annotations)}
+    //     </li>)
+    // case 'HighlightingInfo_Indirect':
+    //     return (<li>
+    //         <span className='inline-block highlight'>HighlightingInfo Indirect</span>
+    //         <dl>
+    //             <dt>filepath</dt>
+    //             <dd>{parsed.filepath}</dd>
+    //         </dl>
+    //     </li>)
+    // case 'Status':
+    //     return (<li>
+    //         <span className='inline-block highlight'>Status</span>
+    //         <dl>
+    //             <dt>typechecked</dt>
+    //             <dd>{JSON.stringify(parsed.checked)}</dd>
+    //         </dl>
+    //         <dl>
+    //             <dt>display implicit arguments</dt>
+    //             <dd>{JSON.stringify(parsed.showImplicit)}</dd>
+    //         </dl>
+    //     </li>)
+    // case 'JumpToError':
+    //     return (<li>
+    //         <span className='inline-block highlight'>Jump to Error</span>
+    //         <dl>
+    //             <dt>filepath</dt>
+    //             <dd>{parsed.filepath}</dd>
+    //         </dl>
+    //         <dl>
+    //             <dt>position</dt>
+    //             <dd>{parsed.position}</dd>
+    //         </dl>
+    //     </li>)
 class Response extends React.Component<ResProp, {}> {
     constructor() {
         super()
     }
     render() {
         const { raw, parsed } = this.props.res;
-        return (
-            <li>
-                {JSON.stringify(parsed)}
-            </li>
-        )
+        switch (parsed.kind) {
+            default:
+                const pairs = _.toPairs(_.omit(parsed, 'kind'));
+                return (<li>
+                    <span className='inline-block highlight'>{parsed.kind}</span>
+                    {pairs.map((pair, i) => (
+                        <dl key={i}>
+                            <dt>{pair[0]}</dt>
+                            <dd>{JSON.stringify(pair[1])}</dd>
+                        </dl>
+                    ))}
+                </li>)
+        }
     }
 }
 
@@ -54,15 +99,6 @@ class ReqRes extends React.Component<ReqResProp, ReqResState> {
     }
 
     render() {
-        // const { kind, raw, parsed } = this.props.message;
-        // return (
-        //     <li onClick={this.toggleShowParsed}>
-        //         <div>{this.state.showParsed && parsed
-        //             ?   JSON.stringify(parsed)
-        //             :   raw
-        //         }</div>
-        //     </li>
-        // )
         const { request, responses } = this.props.reqRes;
         return (
             <li>

@@ -205,16 +205,34 @@
                 }
             }
 
-            ol.agda-settings-protocol-response {
-                // margin: 1em 0;
-                // > li {
-                //     background: @inset-panel-background-color;
-                //     padding: 1em;
-                //     margin: 1em 0;
-                //     word-wrap: break-word;
-                //
-                //     // cursor: pointer;
-                // }
+            ol.agda-settings-protocol-responses {
+                > li {
+                    margin: 3em 0;
+                    word-wrap: break-word;
+
+                    // cursor: pointer;
+                }
+
+                dl {
+                    background: @pane-item-background-color;
+                }
+            }
+
+            dl {
+                display: flex;
+                padding: 0.5em;
+                margin: 0.5em;
+                border-radius: @component-border-radius;
+                // align-items: center;
+            }
+
+            dt {
+                width: 50%;
+            }
+
+            dd {
+                width: 50%;
+                // padding: 0 1em;
             }
         }
 
