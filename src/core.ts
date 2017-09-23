@@ -16,7 +16,6 @@ import Connector from './connector';
 import TextBuffer from './text-buffer';
 import InputMethod from './input-method';
 import HighlightManager from './highlight-manager';
-import LSP from './lsp';
 import View from './view';
 import * as Action from './view/actions';
 import * as Store from './persist';
@@ -26,7 +25,6 @@ export default class Core {
     public textBuffer: TextBuffer;
     public inputMethod: InputMethod;
     public highlightManager: HighlightManager;
-    public lsp: LSP;
     public commander: Commander;
     public view: View;
     public connector: Connector;
@@ -59,7 +57,6 @@ export default class Core {
         if (atom.config.get('agda-mode.inputMethod'))
             this.inputMethod    = new InputMethod(this);
         this.highlightManager   = new HighlightManager(this);
-        this.lsp                = new LSP();
         this.commander          = new Commander(this);
         this.connector          = new Connector(this);
 
