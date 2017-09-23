@@ -25,7 +25,7 @@ function prioritiseResponses(responses: Agda.Response[]): Agda.Response[] {
             case 'MakeCaseActionExtendLam':
             case 'SolveAllAction':
                 return 2;
-            case 'GoalsAction':
+            case 'InteractionPoints':
                 return 1;
             default:
                 return 0;
@@ -52,6 +52,7 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 kind: 'HighlightingInfo_Indirect',
                 filepath: tokens[1]
             } as Agda.HighlightingInfo_Indirect);
+
         // Resp_Status
         case 'agda2-status-action':
             return Promise.resolve({
@@ -67,6 +68,14 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 filepath: tokens[1][0],
                 position: parseInt(tokens[1][2])
             } as Agda.JumpToError);
+
+        // Resp_InteractionPoints
+        case 'agda2-goals-action':
+            return Promise.resolve({
+                kind: 'InteractionPoints',
+                indices: tokens[1].map((s) => parseInt(s))
+            } as Agda.InteractionPoints);
+
         case 'agda2-info-action':
             let type = parseInfoActionType(tokens[1]);
             let content = tokens.length === 3 ? [] : _.compact(tokens[2].split('\\n'));
@@ -75,11 +84,6 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 infoActionKind: type,
                 content: content
             } as Agda.InfoAction);
-        case 'agda2-goals-action':
-            return Promise.resolve({
-                kind: 'GoalsAction',
-                content: tokens[1].map((s) => parseInt(s))
-            } as Agda.GoalsAction);
         case 'agda2-give-action':
             let index = parseInt(tokens[1]);
             // with parenthesis: ["agda2-give-action", 1, "paren"]

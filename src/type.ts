@@ -249,9 +249,10 @@ namespace Agda {
         Status |
         // Resp_JumpToError
         JumpToError |
+        // Resp_InteractionPoints
+        InteractionPoints |
 
         InfoAction |
-        GoalsAction |
         GiveAction |
         SolveAllAction |
         MakeCaseAction |
@@ -295,6 +296,11 @@ namespace Agda {
         position: number;
     }
 
+    // Resp_InteractionPoints [InteractionId]
+    export interface InteractionPoints {
+        kind: 'InteractionPoints';
+        indices: number[];
+    }
 
     export type InfoActionKind = 'AllGoals' | 'Error' | 'TypeChecking' | 'CurrentGoal' |
         'InferredType' | 'ModuleContents' | 'Context' | 'GoalTypeEtc' |
@@ -305,11 +311,6 @@ namespace Agda {
         kind: 'InfoAction';
         infoActionKind: InfoActionKind;
         content: string[];
-    }
-
-    export interface GoalsAction {
-        kind: 'GoalsAction';
-        content: number[];
     }
     export interface GiveAction {
         kind: 'GiveAction';

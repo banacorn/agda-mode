@@ -195,7 +195,7 @@ export default class TextBuffer {
     //  Command Handlers  //
     ////////////////////////
 
-    onGoalsAction(indices: number[]): Promise<void> {
+    onInteractionPoints(indices: number[]): Promise<void> {
         return this.protectCursor(() => {
             let textRaw = this.core.editor.getText();
             this.removeGoals();

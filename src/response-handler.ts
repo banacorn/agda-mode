@@ -74,12 +74,13 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
         case 'JumpToError':
             return core.textBuffer.onJumpToError(response.filepath, response.position);
 
+        case 'InteractionPoints':
+            return core.textBuffer.onInteractionPoints(response.indices);
+
         case 'InfoAction':
             handleInfoAction(core, response);
             return Promise.resolve();
 
-        case 'GoalsAction':
-            return core.textBuffer.onGoalsAction(response.content);
 
         case 'GiveAction':
             return core.textBuffer.onGiveAction(response.index, response.content, response.hasParenthesis);
