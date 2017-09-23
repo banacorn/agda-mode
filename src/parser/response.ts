@@ -76,6 +76,23 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 indices: tokens[1].map((s) => parseInt(s))
             } as Agda.InteractionPoints);
 
+        // Resp_GiveAction
+        case 'agda2-give-action':
+            let index = parseInt(tokens[1]);
+            let giveResult = tokens[2] === 'paren' ?
+                'Paren' : tokens[2] === 'no-paren' ?
+                'NoParen' :
+                'String';
+            // Give_Paren  : ["agda2-give-action", 1, "paren"]
+            // Give_NoParen: ["agda2-give-action", 1, "no-paren"]
+            // Give_String : ["agda2-give-action", 0, ...]
+            return Promise.resolve({
+                kind: 'GiveAction',
+                index: index,
+                giveResult,
+                result: giveResult === 'String' ? tokens[2] : ''
+            } as Agda.GiveAction);
+
         case 'agda2-info-action':
             let type = parseInfoActionType(tokens[1]);
             let content = tokens.length === 3 ? [] : _.compact(tokens[2].split('\\n'));
@@ -84,31 +101,6 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 infoActionKind: type,
                 content: content
             } as Agda.InfoAction);
-        case 'agda2-give-action':
-            let index = parseInt(tokens[1]);
-            // with parenthesis: ["agda2-give-action", 1, "paren"]
-            // w/o  parenthesis: ["agda2-give-action", 1, "no-paren"]
-            // with content    : ["agda2-give-action", 0, ...]
-            switch (tokens[2]) {
-                case 'paren': return Promise.resolve({
-                        kind: 'GiveAction',
-                        index: index,
-                        content: '',
-                        hasParenthesis: true
-                    } as Agda.GiveAction);
-                case 'no-paren': return Promise.resolve({
-                        kind: 'GiveAction',
-                        index: index,
-                        content: '',
-                        hasParenthesis: false
-                    } as Agda.GiveAction);
-                default: return Promise.resolve({
-                        kind: 'GiveAction',
-                        index: index,
-                        content: tokens[2],
-                        hasParenthesis: false
-                    } as Agda.GiveAction);
-            }
         case 'agda2-parse-error':
             return Promise.reject(new ParseError(
                 raw,

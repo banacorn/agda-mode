@@ -64,7 +64,6 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
                         }
                     });
                 })
-
         case 'Status':
             if (response.checked || response.showImplicit) {
                 core.view.set('Status', [`Typechecked: ${response.checked}`, `Display implicit arguments: ${response.showImplicit}`]);
@@ -81,9 +80,8 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             handleInfoAction(core, response);
             return Promise.resolve();
 
-
         case 'GiveAction':
-            return core.textBuffer.onGiveAction(response.index, response.content, response.hasParenthesis);
+            return core.textBuffer.onGiveAction(response.index, response.giveResult, response.result);
 
         case 'SolveAllAction':
             return Promise.each(response.solutions, (solution) => {

@@ -223,16 +223,26 @@ export default class TextBuffer {
         });
     }
 
-    onGiveAction(index: number, content: string, hasParenthesis: boolean): Promise<void> {
+
+    // Give_Paren  : ["agda2-give-action", 1, "paren"]
+    // Give_NoParen: ["agda2-give-action", 1, "no-paren"]
+    // Give_String : ["agda2-give-action", 0, ...]
+    onGiveAction(index: number, giveResult: 'Paren' | 'NoParen' | 'String', result: string): Promise<void> {
         return this.protectCursor(() => {
             let goal = this.findGoal(index);
-            if (!_.isEmpty(content)) {
-                content = content.replace(/\\n/g, '\n');
-                goal.setContent(content);
-            }
-            if (hasParenthesis) {
-                content = goal.getContent();
-                goal.setContent(`(${content})`);
+
+            switch (giveResult) {
+                case 'Paren':
+                    result = goal.getContent();
+                    goal.setContent(`(${result})`);
+                    break;
+                case 'NoParen':
+                    // do nothing
+                    break;
+                case 'String':
+                    result = result.replace(/\\n/g, '\n');
+                    goal.setContent(result);
+                    break;
             }
             goal.removeBoundary();
             this.removeGoal(index);

@@ -251,9 +251,10 @@ namespace Agda {
         JumpToError |
         // Resp_InteractionPoints
         InteractionPoints |
+        // Resp_GiveAction
+        GiveAction |
 
         InfoAction |
-        GiveAction |
         SolveAllAction |
         MakeCaseAction |
         MakeCaseActionExtendLam |
@@ -302,6 +303,14 @@ namespace Agda {
         indices: number[];
     }
 
+    // Resp_GiveAction InteractionId GiveResult
+    export interface GiveAction {
+        kind: 'GiveAction';
+        index: number;
+        giveResult: 'Paren' | 'NoParen' | 'String';
+        result: string;
+    }
+
     export type InfoActionKind = 'AllGoals' | 'Error' | 'TypeChecking' | 'CurrentGoal' |
         'InferredType' | 'ModuleContents' | 'Context' | 'GoalTypeEtc' |
         'NormalForm' | 'Intro' | 'Auto' | 'Constraints' | 'ScopeInfo' |
@@ -312,13 +321,6 @@ namespace Agda {
         infoActionKind: InfoActionKind;
         content: string[];
     }
-    export interface GiveAction {
-        kind: 'GiveAction';
-        index: number;
-        content: string;
-        hasParenthesis: boolean;
-    }
-
     export interface SolveAllAction {
         kind: 'SolveAllAction';
         solutions: {
