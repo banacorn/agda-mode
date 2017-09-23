@@ -183,8 +183,8 @@ const config = {
         title: 'Backend',
         description: 'The backend which is used to compile Agda programs.',
         type: 'string',
-        default: 'MAlonzo',
-        'enum': ['MAlonzo', 'MAlonzoNoMain', 'Epic', 'JS'],
+        default: 'GHCNoMain',
+        'enum': ['GHC', 'GHCNoMain'],
         order: 1
     },
     highlightingMethod: {
