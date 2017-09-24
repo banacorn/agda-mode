@@ -6,30 +6,26 @@ import * as Req from './request';
 import Core from './core';
 import * as Action from './view/actions';
 import { parseSExpression, parseAnnotation, parseJudgements, parseError } from './parser';
-import { ConnectionError, OutOfGoalError, EmptyGoalError, QueryCancelled, NotLoadedError, InvalidExecutablePathError } from './error';
+import * as Err from './error';
 
 const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<void> => {
     return Promise.each(responses, handleResponse(core))
         .then(() => {})
-        .catch(ConnectionError, error => {
-            switch (error.kind) {
-                case 'ConnectionNotEstablished':
-                    core.view.set('Connection to Agda not established', [], View.Style.Warning);
-                    break;
-                default:
-                    core.view.set(error.name, error.message.split('\n'), View.Style.Error);
-                    if (error.guid)
-                        core.view.store.dispatch(Action.CONNECTION.err(error.guid));
-            }
+        .catch(Err.Conn.NotEstablished, error => {
+            core.view.set('Connection to Agda not established', [], View.Style.Warning);
         })
-        .catch(QueryCancelled, () => {
+        .catch(Err.Conn.Connection, error => {
+                core.view.set(error.name, error.message.split('\n'), View.Style.Error);
+                core.view.store.dispatch(Action.CONNECTION.err(error.guid));
+        })
+        .catch(Err.QueryCancelled, () => {
             core.view.set('Query cancelled', [], View.Style.Warning);
         })
         .catch((error) => { // catch all the rest
             if (error) {
                 console.log(error)
                 switch (error.name) {
-                    case 'InvalidExecutablePathError':
+                    case 'Err.InvalidExecutablePathError':
                     core.view.set(error.message, [error.path], View.Style.Error);
                     break;
                 default:

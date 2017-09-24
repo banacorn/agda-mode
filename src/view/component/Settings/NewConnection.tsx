@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import * as classNames from 'classnames';
 import { View, ConnectionInfo } from '../../../type';
 import * as Conn from '../../../connector';
-import { ConnectionError } from '../../../error';
+import * as Err from '../../../error';
 import * as Action from '../../actions';
 import Core from '../../../core';
 
@@ -115,16 +115,15 @@ class NewConnection extends React.Component<Props, State> {
                     agdaLocation: location
                 })
             })
-            .catch(ConnectionError, error => {
-                if (error.kind === 'AutoSearchFailure') {
-                    this.setState({
-                        agdaMessage: 'Failed searching for the location of Agda'
-                    });
-                } else {
-                    this.setState({
-                        agdaMessage: error.message
-                    });
-                }
+            .catch(Err.Conn.AutoSearchError, error => {
+                this.setState({
+                    agdaMessage: 'Failed searching for the location of Agda'
+                });
+            })
+            .catch(error => {
+                this.setState({
+                    agdaMessage: error.message
+                });
             })
         // prevent this button from submitting the entire form
         return false;
@@ -137,16 +136,15 @@ class NewConnection extends React.Component<Props, State> {
                     lspLocation: location
                 })
             })
-            .catch(ConnectionError, error => {
-                if (error.kind === 'AutoSearchFailure') {
-                    this.setState({
-                        agdaMessage: 'Failed searching for the location of Agda Language Server'
-                    });
-                } else {
-                    this.setState({
-                        agdaMessage: error.message
-                    });
-                }
+            .catch(Err.Conn.AutoSearchError, error => {
+                this.setState({
+                    agdaMessage: 'Failed searching for the location of Agda'
+                });
+            })
+            .catch(error => {
+                this.setState({
+                    agdaMessage: error.message
+                });
             })
         // prevent this button from submitting the entire form
         return false;
