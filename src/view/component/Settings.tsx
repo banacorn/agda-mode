@@ -78,6 +78,7 @@ class Settings extends React.Component<Props, {}> {
                         }}
                         onSelectAndLoad={(connInfo) => {
                             core.connector.select(connInfo);
+                            core.view.store.dispatch(Action.PROTOCOL.clearAll());
                             core.commander.dispatch({ kind: 'Load' });
                         }}
                         onRemove={(connInfo) => {
@@ -123,24 +124,3 @@ export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
     mapDispatchToProps
 )(Settings);
-
-
-    // <nav>
-    //     <ol>
-    //         <li
-    //             className={this.tabClassName(0)}
-    //             onClick={this.handleClick(0)}
-    //         ><span className='icon icon-plug'>Connections</span></li>
-    //         <li
-    //             className={this.tabClassName(1)}
-    //             onClick={this.handleClick(1)}
-    //         ><span className='icon icon-comment-discussion'>Conversations</span></li>
-    //     </ol>
-    // </nav>
-// <Connections
-//     core={this.props.core}
-//     className={this.panelClassName(0)}
-// />
-// <Conversations className={this.panelClassName(1)}>
-//     1
-// </Conversations>

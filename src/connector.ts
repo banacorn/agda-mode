@@ -10,60 +10,12 @@ declare var atom: any;
 
 import Rectifier from './parser/stream/rectifier';
 import { View, Connection, ProcessInfo, ConnectionInfo, GUID } from './type';
-import { ParseError } from './error';
+import { ParseError, ConnectionError } from './error';
 import { guid } from './util';
 import Core from './core';
 import { parseFilepath, parseResponses } from './parser';
 import * as Action from "./view/actions";
 import * as Store from "./persist";
-
-// Custom Errors
-export class NoConnectionGiven extends Error {
-    constructor() {
-        super('');
-        this.message = '';
-        this.name = 'NoConnectionGiven';
-        Error.captureStackTrace(this, NoConnectionGiven);
-    }
-}
-
-export class AutoSearchFailure extends Error {
-    constructor(message: string) {
-        super(message);
-        this.message = message;
-        this.name = 'AutoSearchFailure';
-        Error.captureStackTrace(this, AutoSearchFailure);
-    }
-}
-
-export class ConnectionError extends Error {
-    constructor(message: string, public location: string, public guid?: GUID) {
-        super(message);
-        this.message = message;
-        this.location = location;
-        this.guid = guid;
-        this.name = 'Connection Error';
-        Error.captureStackTrace(this, ConnectionError);
-    }
-}
-
-export class NoExistingConnections extends Error {
-    constructor() {
-        super('');
-        this.message = '';
-        this.name = 'NoExistingConnections';
-        Error.captureStackTrace(this, NoExistingConnections);
-    }
-}
-
-export class ConnectionNotEstablished extends Error {
-    constructor() {
-        super('');
-        this.message = 'Connection not established yet';
-        this.name = 'ConnectionNotEstablished';
-        Error.captureStackTrace(this, ConnectionNotEstablished);
-    }
-}
 
 export default class Connector {
     private selected?: ConnectionInfo;
@@ -100,21 +52,26 @@ export default class Connector {
                             .then(this.wire);
                     }
                 })
-                .catch(NoExistingConnections, () => {
-                    return autoSearch('agda')
-                        .then(validateAgda)
-                        .then(mkConnectionInfo)
-                        .then(connInfo => {
-                            // let it be selected
-                            this.selected = connInfo;
-                            // update the view
-                            this.core.view.store.dispatch(Action.CONNECTION.addConnection(connInfo));
-                            return connectAgda(connInfo, this.core.getPath())
-                                .then(this.wire);
-                        })
-                })
-                .catch(AutoSearchFailure, () => {
-                    return this.queryConnection()
+                .catch(ConnectionError, error => {
+                    switch (error.kind) {
+                        case 'NoExistingConnections':
+                            return autoSearch('agda')
+                                .then(validateAgda)
+                                .then(mkConnectionInfo)
+                                .then(connInfo => {
+                                    // let it be selected
+                                    this.selected = connInfo;
+                                    // update the view
+                                    this.core.view.store.dispatch(Action.CONNECTION.addConnection(connInfo));
+                                    return connectAgda(connInfo, this.core.getPath())
+                                        .then(this.wire);
+                                });
+                        case 'AutoSearchFailure':
+                        default:
+                            return this.queryConnection()
+
+
+                    }
                 })
         }
 
@@ -147,7 +104,7 @@ export default class Connector {
         if (this.connection)
             return Promise.resolve(this.connection);
         else
-            return Promise.reject(new ConnectionNotEstablished);
+            return Promise.reject(new ConnectionError('Connection not established', 'ConnectionNotEstablished'));
     }
 
     //
@@ -216,7 +173,8 @@ export default class Connector {
                 return connectAgda(connInfo, this.core.getPath())
                     .then(this.wire);
             })
-            .catch(NoConnectionGiven, () => {
+            .catch(ConnectionError, (error) => {
+                console.log(error)
                 // this.queryConnection();
             })
     }
@@ -235,7 +193,7 @@ export function getExistingConnectionInfo(): Promise<ConnectionInfo> {
         if (state.connections.length > 0) {
             return Promise.resolve(state.connections[0]);
         } else {
-            return Promise.reject(new NoExistingConnections)
+            return Promise.reject(new ConnectionError('No existing connections available', 'NoExistingConnections'))
         }
     }
 }
@@ -249,13 +207,13 @@ export function mkConnectionInfo(agda: ProcessInfo): ConnectionInfo {
 
 export function autoSearch(filepath: string): Promise<string> {
     if (process.platform === 'win32') {
-        return Promise.reject(new AutoSearchFailure('win32'));
+        return Promise.reject(new ConnectionError('Unable to locate Agda on Windows systems now', 'AutoSearchFailure'));
     }
 
     return new Promise<string>((resolve, reject) => {
         exec(`which ${filepath}`, (error, stdout, stderr) => {
             if (error) {
-                reject(new AutoSearchFailure(error.toString()));
+                reject(new ConnectionError(`"which" failed with the following error message: ${error.toString()}`, 'AutoSearchFailure'));
             } else {
                 resolve(parseFilepath(stdout));
             }
@@ -273,20 +231,36 @@ export function validateProcess(location: string, validator: (msg: string, resol
             stillHanging = false;
 
             if (location === '') {
-                return reject(new ConnectionError(`The location must not be empty`, location));
+                return reject(new ConnectionError(
+                    `The location must not be empty`,
+                    'ValidationError',
+                    location
+                ));
             }
             if (error) {
                 // command not found
                 if (error.message.toString().match(/command not found/)) {
-                    return reject(new ConnectionError(`Unable to connect the given executable:\n${error.message}`, location));
+                    return reject(new ConnectionError(
+                        `Unable to connect the given executable:\n${error.message}`,
+                        'ValidationError',
+                        location
+                    ));
                 // command found however the arguments are invalid
                 } else {
-                    return reject(new ConnectionError(`This doesn't seem like Agda:\n${error.message}`, location));
+                    return reject(new ConnectionError(
+                        `The provided program doesn't seem like Agda:\n\n${error.message}`,
+                        'ValidationError',
+                        location
+                    ));
                 }
             }
             if (stderr) {
                 const message = `Spawned process returned with the following result (from stderr):\n\"${stdout.toString()}\"`;
-                return reject(new ConnectionError(message, location));
+                return reject(new ConnectionError(
+                    message,
+                    'ValidationError',
+                    location
+                ));
             }
 
             validator(stdout.toString(), resolve, reject);
@@ -297,7 +271,7 @@ export function validateProcess(location: string, validator: (msg: string, resol
         setTimeout(() => {
             if (stillHanging) {
                 const message = `The provided program hangs`;
-                reject(new ConnectionError(message, location));
+                reject(new ConnectionError(message));
             }
         }, 1000)
     });
@@ -319,7 +293,11 @@ export function validateAgda(location: string): Promise<ProcessInfo> {
                 version
             });
         } else {
-            reject(new ConnectionError(`Doesn't seem like Agda to me: \n\"${message}\"`, location));
+            reject(new ConnectionError(
+                `The provided program doesn't seem like Agda:\n ${message}`,
+                'ValidationError',
+                location
+            ));
         }
     });
 }
@@ -332,7 +310,11 @@ export function validateLanguageServer(location: string): Promise<ProcessInfo> {
                 location: location
             })
         } else {
-            reject(new ConnectionError(`Doesn't seem like Agda to me: \n\"${message}\"`, location));
+            reject(new ConnectionError(
+                `The provided program doesn't seem like Agda:\n ${message}`,
+                'ValidationError',
+                location
+            ));
         }
     });
 }
@@ -341,10 +323,20 @@ export function connectAgda(connInfo: ConnectionInfo, filepath: string): Promise
     return new Promise<Connection>((resolve, reject) => {
         const agdaProcess = spawn(connInfo.agda.location, ['--interaction'], { shell: true });
         agdaProcess.on('error', (error) => {
-            reject(new ConnectionError(error.message, connInfo.agda.location, connInfo.guid));
+            reject(new ConnectionError(
+                error.message,
+                'Generic',
+                connInfo.agda.location,
+                connInfo.guid,
+            ));
         });
         agdaProcess.on('close', (signal) => {
-            reject(new ConnectionError(`exit with signal ${signal}`, connInfo.agda.location, connInfo.guid));
+            reject(new ConnectionError(
+                `exit with signal ${signal}`,
+                'Generic',
+                connInfo.agda.location,
+                connInfo.guid,
+            ));
         });
         // validate the spawned process
         agdaProcess.stdout.once('data', (data) => {
@@ -357,7 +349,12 @@ export function connectAgda(connInfo: ConnectionInfo, filepath: string): Promise
                     filepath
                 });
             } else {
-                reject(new ConnectionError(`doesn't act like agda: ${data.toString()}`, connInfo.agda.location, connInfo.guid));
+                reject(new ConnectionError(
+                    `The provided program doesn't seem like Agda:\n ${data.toString()}`,
+                    'ValidationError',
+                    connInfo.agda.location,
+                    connInfo.guid,
+                ));
             }
         });
     });
@@ -367,10 +364,20 @@ export function connectLanguageServer(connInfo: ConnectionInfo, filepath: string
     return new Promise<Connection>((resolve, reject) => {
         const languageServerProcess = spawn(connInfo.languageServer.location, [], { shell: true });
         languageServerProcess.on('error', (error) => {
-            reject(new ConnectionError(error.message, connInfo.agda.location, connInfo.guid));
+            reject(new ConnectionError(
+                error.message,
+                'Generic',
+                connInfo.agda.location,
+                connInfo.guid,
+            ));
         });
         languageServerProcess.on('close', (signal) => {
-            reject(new ConnectionError(`exit with signal ${signal}`, connInfo.agda.location, connInfo.guid));
+            reject(new ConnectionError(
+                `exit with signal ${signal}`,
+                'Generic',
+                connInfo.agda.location,
+                connInfo.guid,
+            ));
         });
         languageServerProcess.stdout.once('data', (data) => {
             const result = data.toString().match(/^Agda2\>/);
@@ -382,7 +389,12 @@ export function connectLanguageServer(connInfo: ConnectionInfo, filepath: string
                     filepath
                 });
             } else {
-                reject(new ConnectionError(`doesn't act like agda: ${data.toString()}`, connInfo.agda.location, connInfo.guid));
+                reject(new ConnectionError(
+                    `The provided program doesn't seem like Agda:\n ${data.toString()}`,
+                    'ValidationError',
+                    connInfo.agda.location,
+                    connInfo.guid,
+                ));
             }
         });
     });

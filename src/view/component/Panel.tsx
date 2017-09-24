@@ -10,10 +10,9 @@ import InputMethod from './InputMethod';
 import Header from './Header';
 import Body from './Body';
 import SizingHandle from './SizingHandle';
-import { View, Location } from '../../type';
+import { View } from '../../type';
 import MiniEditor from './MiniEditor';
 import { MODE, updateMaxBodyHeight, QUERY } from './../actions';
-import { NoConnectionGiven } from './../../connector';
 
 //
 type OwnProps = React.HTMLProps<HTMLElement> & {

@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import { inspect } from 'util';
 import { OutOfGoalError, EmptyGoalError, QueryCancelled, NotLoadedError, InvalidExecutablePathError } from './error';
 import { View, Agda, Connection } from './type';
-import { ConnectionNotEstablished, ConnectionError } from './connector';
+import { ConnectionError } from './error';
 import { handleResponses } from './response-handler';
 import Core from './core';
 import * as Req from './request';

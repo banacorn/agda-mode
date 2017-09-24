@@ -12,6 +12,23 @@ export class ParseError extends Error {
     }
 }
 
+// for connection related errors
+export type ConnectionErrorKind = 'Generic' |
+    'ValidationError' |
+    'AutoSearchFailure' |
+    'NoExistingConnections' |
+    'ConnectionNotEstablished';
+export class ConnectionError extends Error {
+    public kind: ConnectionErrorKind;
+    constructor(message: string, kind?: ConnectionErrorKind, public location?: string, public guid?: string) {
+        super(message);
+        this.kind = kind || 'Generic';
+        this.message = message;
+        this.name = 'Connection Error';
+        Error.captureStackTrace(this, ConnectionError);
+    }
+}
+
 export class OutOfGoalError extends Error {
     constructor(message: string) {
         super(message);
