@@ -22,6 +22,8 @@ export default class Connector {
     private connection?: Connection;
 
     constructor(private core: Core) {
+        this.recoverAgda = this.recoverAgda.bind(this);
+        this.handleError = this.handleError.bind(this);
     }
 
     // select a target ConnectionInfo to be connected
@@ -57,6 +59,7 @@ export default class Connector {
                 .catch(Err.Conn.NoCandidates, error => {
                     return autoSearch('agda')
                         .then(validateAgda)
+                        .catch(Err.Conn.Invalid, this.recoverAgda)
                         .then(mkConnectionInfo)
                         .then(connInfo => {
                             // let it be selected
@@ -66,9 +69,6 @@ export default class Connector {
                             return connectAgda(connInfo, this.core.getPath())
                                 .then(this.wire);
                         });
-                })
-                .catch(error => {
-                    return this.queryConnection()
                 })
         }
 
@@ -138,42 +138,23 @@ export default class Connector {
                         promise.resolve([]);
                     })
                     .catch(error => {
-                        this.core.view.set('Error', [error.message], View.Style.Error);
+                        this.handleError(error);
                         promise.resolve([]);
                     })
-
-                // try {
-                //     this.core.view.store.dispatch(Action.PROTOCOL.addResponse(data.toString()));
-                //     const response = parseResponse(data.toString());
-                //     handleResponse(this.core, response);
-                // } catch (error) {
-                //     // this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
-                //     console.log(error)
-                //     // show some message
-                //     this.core.view.set('Agda Parse Error',
-                //         [`Message from agda:`].concat(data.toString()),
-                //         View.Style.Error);
-                // }
             });
         return Promise.resolve(conn);
     }
 
-    queryConnection(): Promise<Connection> {
+
+    recoverAgda(): Promise<ProcessInfo> {
         return this.core.view.queryConnection()
             .then(validateAgda)
-            .then(mkConnectionInfo)
-            .then(connInfo => {
-                // let it be selected
-                this.selected = connInfo;
-                // update the view
-                this.core.view.store.dispatch(Action.CONNECTION.addConnection(connInfo));
-                return connectAgda(connInfo, this.core.getPath())
-                    .then(this.wire);
-            })
-            .catch(error => {
-                console.log(error)
-                this.queryConnection();
-            })
+            .catch(Err.Conn.Invalid, this.recoverAgda);
+    }
+
+    handleError(error: Error) {
+        this.core.view.set('Error', [error.message], View.Style.Error);
+        this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
     }
 }
 
@@ -226,7 +207,7 @@ export function validateProcess(location: string, validator: (msg: string, resol
         var stillHanging = true;
 
         if (location === '') {
-            throw new Err.Conn.Invalid(`The location must not be empty`, location);
+            reject(new Err.Conn.Invalid(`The location must not be empty`, location));
         }
 
         // ask for the version and see if it's really Agda
@@ -236,15 +217,15 @@ export function validateProcess(location: string, validator: (msg: string, resol
             if (error) {
                 // command not found
                 if (error.message.toString().match(/command not found/)) {
-                    throw new Err.Conn.Invalid(`The provided program was not found`, location);
+                    reject(new Err.Conn.Invalid(`The provided program was not found`, location));
                 // command found however the arguments are invalid
                 } else {
-                    throw new Err.Conn.Invalid(`The provided program doesn't seem like Agda:\n\n${error.message}`, location);
+                    reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda:\n\n${error.message}`, location));
                 }
             }
             if (stderr) {
                 const message = `Spawned process returned with the following result (from stderr):\n\n\"${stdout.toString()}\"`;
-                throw new Err.Conn.Invalid(message, location);
+                reject(new Err.Conn.Invalid(message, location));
             }
 
             validator(stdout.toString(), resolve, reject);
@@ -255,7 +236,7 @@ export function validateProcess(location: string, validator: (msg: string, resol
         setTimeout(() => {
             if (stillHanging) {
                 const message = `The provided program hangs`;
-                throw new Err.Conn.Invalid(message, location);
+                return Promise.reject(new Err.Conn.Invalid(message, location));
             }
         }, 1000)
     });
@@ -277,7 +258,7 @@ export function validateAgda(location: string): Promise<ProcessInfo> {
                 version
             });
         } else {
-            throw new Err.Conn.Invalid(`The provided program doesn't seem like Agda`, location);
+            reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda`, location));
         }
     });
 }
@@ -290,7 +271,7 @@ export function validateLanguageServer(location: string): Promise<ProcessInfo> {
                 location: location
             })
         } else {
-            throw new Err.Conn.Invalid(`The provided program doesn't seem like Agda Language Server`, location);
+            reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda Language Server`, location));
         }
     });
 }
@@ -306,8 +287,11 @@ export function connectAgda(connInfo: ConnectionInfo, filepath: string): Promise
             ));
         });
         agdaProcess.on('close', (signal) => {
+            const message = signal === 127 ?
+                `exit with signal ${signal}, Agda is not found`:
+                `exit with signal ${signal}`;
             reject(new Err.Conn.Connection(
-                `exit with signal ${signal}`,
+                message,
                 connInfo.agda.location,
                 connInfo.guid,
             ));
@@ -332,43 +316,3 @@ export function connectAgda(connInfo: ConnectionInfo, filepath: string): Promise
         });
     });
 }
-//
-// export function connectLanguageServer(connInfo: ConnectionInfo, filepath: string): Promise<Connection> {
-//     return new Promise<Connection>((resolve, reject) => {
-//         const languageServerProcess = spawn(connInfo.languageServer.location, [], { shell: true });
-//         languageServerProcess.on('error', (error) => {
-//             reject(new ConnectionError(
-//                 error.message,
-//                 'Generic',
-//                 connInfo.agda.location,
-//                 connInfo.guid,
-//             ));
-//         });
-//         languageServerProcess.on('close', (signal) => {
-//             reject(new ConnectionError(
-//                 `exit with signal ${signal}`,
-//                 'Generic',
-//                 connInfo.agda.location,
-//                 connInfo.guid,
-//             ));
-//         });
-//         languageServerProcess.stdout.once('data', (data) => {
-//             const result = data.toString().match(/^Agda2\>/);
-//             if (result) {
-//                 resolve({
-//                     ...connInfo,
-//                     stream: duplex(languageServerProcess.stdin, languageServerProcess.stdout),
-//                     queue: [],
-//                     filepath
-//                 });
-//             } else {
-//                 reject(new ConnectionError(
-//                     `The provided program doesn't seem like Agda:\n ${data.toString()}`,
-//                     'ValidationError',
-//                     connInfo.agda.location,
-//                     connInfo.guid,
-//                 ));
-//             }
-//         });
-//     });
-// }

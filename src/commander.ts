@@ -43,9 +43,17 @@ export default class Commander {
             ];
         if(this.loaded || _.includes(exception, command.kind)) {
             if (command.kind === 'Load') {
+                // activate the view first
+                const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+                this.core.view.mountPanel(currentMountingPosition);
+                this.core.view.activatePanel();
                 return this.core.connector.connect()
+                    .then(conn => {
+                        return conn
+                    })
                     .then(this.dispatchCommand(command))
                     .then(handleResponses(this.core))
+                    .catch(this.core.connector.handleError)
             } else {
                 return this.core.connector.getConnection()
                     .then(this.dispatchCommand(command))
@@ -112,17 +120,14 @@ export default class Commander {
     //  Commands
     //
     private load = (conn: Connection): Promise<Agda.Response[]> => {
-        // activate the view
-        const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
-        this.core.view.mountPanel(currentMountingPosition);
-        this.core.view.activatePanel();
-
-        this.loaded = true;
-
         // force save before load
         return this.core.saveEditor()
             .then(() => conn)
-            .then(Req.load);
+            .then(Req.load)
+            .then(result => {
+                this.loaded = true;
+                return result;
+            })
 
     }
 
