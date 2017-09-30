@@ -122,7 +122,7 @@ function handleDisplayInfo(core: Core, response: Agda.DisplayInfo)  {
             }
             break;
         case 'Auto':
-            core.view.set('Auto', ['No solution found'], View.Style.Info);
+            core.view.set('Auto', response.content, View.Style.Info);
             break;
         case 'Error':
             const error = parseError(response.content.join('\n'));
