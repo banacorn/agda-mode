@@ -18,7 +18,7 @@ function parseSolution(raw: string): View.Expr | View.Solution[] {
         if (result[2]) {
             return parseSolutionCombination(result[2]);
         } else if (result[3]) {
-            return parseBodyItem(result[3]);
+            return parseExpression(result[3]);
         }
     }
 }
@@ -34,7 +34,7 @@ function parseSolutionCombination(raw: string): View.Solution[] {
             const result = raw.substring(index, indices[i + 1]).match(exprRegex);
             if (result) {
                 const goalIndex = parseInt(result[1]);
-                const expr = parseBodyItem(result[2]);
+                const expr = parseExpression(result[2]);
                 return { goalIndex, expr };
             }
         });
@@ -46,7 +46,7 @@ function parseSolutionCombination(raw: string): View.Solution[] {
 function parseJudgements(lines: string[]): View.Body {
     const {goalAndHave, body, warnings, errors} = divideJudgements(lines);
 
-    const grouped = _.groupBy(body.map(parseBodyItem), 'judgementForm');
+    const grouped = _.groupBy(body.map(parseExpression), 'judgementForm');
     return {
         goalAndHave: concatItems(goalAndHave).map(parseGoalAndHave),
         goals: (grouped['goal'] || []) as View.Goal[],
@@ -268,7 +268,7 @@ function parseSort(str: string): View.Sort {
     }
 }
 
-function parseBodyItem(str: string): View.BodyItem {
+function parseExpression(str: string): View.Expr {
     return parseGoal(str) || parseJudgement(str) || parseMeta(str) || parseSort(str) || parseTerm(str);
 }
 

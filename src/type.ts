@@ -136,28 +136,56 @@ namespace View {
         | '/Connections' | '/Connections/New'
         | '/Protocol';
 
-    export type Expr = BodyItem;
+
+    ////////////////////////////////////////////
+    // Expressions components
+    ////////////////////////////////////////////
+
+    export type Expr = Goal | Judgement | Term | Meta | Sort;
     export type Solution = {
         goalIndex: number;
         expr: Expr;
     }
 
-    // Legacy shit below
-
-
-    export const enum Type {
-        PlainText,
-        Error,
-        Warning,
-        Judgement,
-        Value
-    }
-
-    export type JudgementForm = 'goal' |
+    export type ExprKind = 'goal' |
         'type judgement' |
         'meta' |
         'term' |
         'sort' ;
+
+    export interface Goal {
+        judgementForm: ExprKind,
+        type: string;
+        index: string;
+    }
+
+    export interface Judgement {
+        judgementForm: ExprKind,
+        type: string;
+        expr: string;
+        index?: string;
+    }
+
+    export interface Term {
+        judgementForm: ExprKind;
+        expr: string;
+    }
+
+    export interface Meta {
+        judgementForm: ExprKind;
+        type: string;
+        location: Location;
+        index: string;
+    }
+
+    export interface Sort {
+        judgementForm: ExprKind;
+        location: Location;
+        index: string;
+    }
+
+
+    // Legacy shit below
 
 
 
@@ -184,39 +212,6 @@ namespace View {
     export interface GoalAndHave {
         type: string;
         label: string;
-    }
-
-    export type BodyItem = Goal | Judgement | Term | Meta | Sort;
-
-    export interface Goal {
-        judgementForm: JudgementForm,
-        type: string;
-        index: string;
-    }
-
-    export interface Judgement {
-        judgementForm: JudgementForm,
-        type: string;
-        expr: string;
-        index?: string;
-    }
-
-    export interface Term {
-        judgementForm: JudgementForm;
-        expr: string;
-    }
-
-    export interface Meta {
-        judgementForm: JudgementForm;
-        type: string;
-        location: Location;
-        index: string;
-    }
-
-    export interface Sort {
-        judgementForm: JudgementForm;
-        location: Location;
-        index: string;
     }
 }
 

@@ -56,66 +56,16 @@ class Body extends React.Component<Props, {}> {
                 tabIndex={-1}
                 style={style}
             >
-                <ul className="list-group">{body.goalAndHave.map((item, i) =>
-                    <li className="list-item special-item" key={i}>
-                        <div className="item-heading text-info">{item.label}</div>
-                        <div className="item-colon"><span> : </span></div>
-                        <div className="item-body">
-                            <Expr emitter={emitter}>{item.type}</Expr>
-                        </div>
-                    </li>
-                )}</ul>
-                <ul className="list-group">{body.goals.map((item, i) =>
-                    <li className="list-item body-item" key={i}>
-                        <div className="item-heading">
-                            <button className="no-btn text-info" onClick={() => {
-                                const index = parseInt(item.index.substr(1));
-                                emitter.emit(EVENT.JUMP_TO_GOAL, index);
-                            }}>{item.index}</button>
-                        </div>
-                        <div className="item-colon"><span> : </span></div>
-                        <div className="item-body">
-                            <Expr emitter={emitter}>{item.type}</Expr>
-                        </div>
-                    </li>
-                )}{body.judgements.map((item, i) =>
-                    <li className="list-item body-item" key={i}>
-                        <div className="item-heading">
-                            <span className="text-success">{item.expr}</span>
-                        </div>
-                        <div className="item-colon"><span> : </span></div>
-                        <div className="item-body">
-                            <Expr emitter={emitter}>{item.type}</Expr>
-                        </div>
-                    </li>
-                )}{body.terms.map((item, i) =>
-                    <li className="list-item body-item" key={i}>
-                        <div className="item-body">
-                            <Expr emitter={emitter}>{item.expr}</Expr>
-                        </div>
-                    </li>
-                )}{body.metas.map((item, i) =>
-                    <li className="list-item body-item" key={i}>
-                        <div className="item-heading">
-                            <span className="text-success">{item.index}</span>
-                        </div>
-                        <div className="item-colon"><span> : </span></div>
-                        <div className="item-body">
-                            <Expr emitter={emitter}>{item.type}</Expr>
-                            <Location abbr emitter={emitter}>{item.location}</Location>
-                        </div>
-                    </li>
-                )}{body.sorts.map((item, i) =>
-                    <li className="list-item body-item" key={i}>
-                        <div className="item-heading">
-                            <span className="text-highlight">Sort </span>
-                            <span className="text-warning">{item.index}</span>
-                        </div>
-                        <div className="item-body">
-                            <Location abbr emitter={emitter}>{item.location}</Location>
-                        </div>
-                    </li>
-                )}</ul>
+                <ul className="list-group">
+                    {body.goalAndHave.map(goalAndHave(emitter))}
+                </ul>
+                <ul className="list-group">
+                    {body.goals.map(goal(emitter))}
+                    {body.judgements.map(judgement(emitter))}
+                    {body.terms.map(term(emitter))}
+                    {body.metas.map(meta(emitter))}
+                    {body.sorts.map(sort(emitter))}
+                </ul>
                 <ul className="list-group">
                     {body.warnings.length > 0 &&
                         <li className="list-item special-item">
@@ -134,6 +84,68 @@ class Body extends React.Component<Props, {}> {
         )
     }
 }
+
+const goalAndHave = (emitter: EventEmitter) => (item: View.GoalAndHave, i: number): JSX.Element =>
+    <li className="list-item special-item" key={i}>
+        <div className="item-heading text-info">{item.label}</div>
+        <div className="item-colon"><span> : </span></div>
+        <div className="item-body">
+            <Expr emitter={emitter}>{item.type}</Expr>
+        </div>
+    </li>
+
+const goal = (emitter: EventEmitter) => (item: View.Goal, i: number): JSX.Element =>
+    <li className="list-item body-item" key={i}>
+        <div className="item-heading">
+            <button className="no-btn text-info" onClick={() => {
+                const index = parseInt(item.index.substr(1));
+                emitter.emit(EVENT.JUMP_TO_GOAL, index);
+            }}>{item.index}</button>
+        </div>
+        <div className="item-colon"><span> : </span></div>
+        <div className="item-body">
+            <Expr emitter={emitter}>{item.type}</Expr>
+        </div>
+    </li>
+
+const judgement = (emitter: EventEmitter) => (item: View.Judgement, i: number): JSX.Element =>
+    <li className="list-item body-item" key={i}>
+        <div className="item-heading">
+            <span className="text-success">{item.expr}</span>
+        </div>
+        <div className="item-colon"><span> : </span></div>
+        <div className="item-body">
+            <Expr emitter={emitter}>{item.type}</Expr>
+        </div>
+    </li>
+
+const term = (emitter: EventEmitter) => (item: View.Term, i: number): JSX.Element =>
+    <li className="list-item body-item" key={i}>
+        <div className="item-body">
+            <Expr emitter={emitter}>{item.expr}</Expr>
+        </div>
+    </li>
+const meta = (emitter: EventEmitter) => (item: View.Meta, i: number): JSX.Element =>
+    <li className="list-item body-item" key={i}>
+        <div className="item-heading">
+            <span className="text-success">{item.index}</span>
+        </div>
+        <div className="item-colon"><span> : </span></div>
+        <div className="item-body">
+            <Expr emitter={emitter}>{item.type}</Expr>
+            <Location abbr emitter={emitter}>{item.location}</Location>
+        </div>
+    </li>
+const sort = (emitter: EventEmitter) => (item: View.Sort, i: number): JSX.Element =>
+    <li className="list-item body-item" key={i}>
+        <div className="item-heading">
+            <span className="text-highlight">Sort </span>
+            <span className="text-warning">{item.index}</span>
+        </div>
+        <div className="item-body">
+            <Location abbr emitter={emitter}>{item.location}</Location>
+        </div>
+    </li>
 
 export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
