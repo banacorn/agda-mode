@@ -251,6 +251,17 @@ export default class View {
         this.settingsTab.destroy();
     }
 
+    // test(header: string, body: React.Component, type = V.Style.PlainText) {
+    //     this.store.dispatch(Action.MODE.display());
+    //     this.editors.focus('main')
+    //
+    //     this.store.dispatch(Action.HEADER.update({
+    //         text: header,
+    //         style: type
+    //     }));
+    //     // this.store.dispatch(updatePlainText(payload.join('\n')));
+    // }
+
     set(header: string, payload: string[], type = V.Style.PlainText) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focus('main')

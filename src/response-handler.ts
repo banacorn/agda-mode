@@ -5,7 +5,7 @@ import { Agda, View } from './type';
 import * as Req from './request';
 import Core from './core';
 import * as Action from './view/actions';
-import { parseSExpression, parseAnnotation, parseJudgements, parseError } from './parser';
+import { parseSExpression, parseAnnotation, parseJudgements, parseError, parseSolution } from './parser';
 import * as Err from './error';
 
 const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<void> => {
@@ -123,6 +123,11 @@ function handleDisplayInfo(core: Core, response: Agda.DisplayInfo)  {
             break;
         case 'Auto':
             core.view.set('Auto', response.content, View.Style.Info);
+            if (response.content.length > 1) {
+                let solutions = response.content.slice(1);
+                console.log(solutions.map(parseSolution));
+
+            }
             break;
         case 'Error':
             const error = parseError(response.content.join('\n'));

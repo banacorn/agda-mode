@@ -136,6 +136,11 @@ namespace View {
         | '/Connections' | '/Connections/New'
         | '/Protocol';
 
+    export type Expr = BodyItem;
+    export type Solution = {
+        goalIndex: number;
+        expr: Expr;
+    }
 
     // Legacy shit below
 
@@ -155,9 +160,12 @@ namespace View {
         'sort' ;
 
 
+
     ////////////////////////////////////////////
     // Body components
     ////////////////////////////////////////////
+
+
 
     export interface Body {
         goalAndHave: GoalAndHave[];

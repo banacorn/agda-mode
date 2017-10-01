@@ -8,6 +8,41 @@ import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom, succeed,
 
 var { Point, Range } = require('atom');
 
+function parseSolution(raw: string): View.Expr | View.Solution[] {
+    // 0  s
+    // 1  ?0 := ℕ ?1 := y
+    const regex = /(\d+)\s+(?:(\?.*)|(.*))/;
+    const result = raw.match(regex);
+    if (result) {
+        const index = parseInt(result[1]);
+        if (result[2]) {
+            return parseSolutionCombination(result[2]);
+        } else if (result[3]) {
+            return parseBodyItem(result[3]);
+        }
+    }
+}
+
+// parsing combination of solutions such as "?0 := ℕ ?1 := y"
+function parseSolutionCombination(raw: string): View.Solution[] {
+    const segmentRegex = /\?(\d+)/g;
+    const exprRegex = /\?(\d+)\s+\:\=\s+(.*)/;
+    const matches = raw.match(segmentRegex);
+    if (matches) {
+        const indices = matches.map(match => raw.indexOf(match))
+        return indices.map((index, i) => {
+            const result = raw.substring(index, indices[i + 1]).match(exprRegex);
+            if (result) {
+                const goalIndex = parseInt(result[1]);
+                const expr = parseBodyItem(result[2]);
+                return { goalIndex, expr };
+            }
+        });
+    } else {
+        return [];
+    }
+}
+
 function parseJudgements(lines: string[]): View.Body {
     const {goalAndHave, body, warnings, errors} = divideJudgements(lines);
 
@@ -259,5 +294,6 @@ function parseLocation(str: string): Location {
 }
 
 export {
-    parseJudgements
+    parseJudgements,
+    parseSolution
 }
