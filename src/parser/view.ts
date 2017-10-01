@@ -1,7 +1,7 @@
 import * as _ from 'lodash';;
 import { normalize } from 'path';
 import { parseFilepath } from './util';
-import { View, Error, Location, Occurence } from '../type';
+import { View, Location, Occurence } from '../type';
 import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom, succeed,
     regex, digits, string
     } from 'parsimmon';

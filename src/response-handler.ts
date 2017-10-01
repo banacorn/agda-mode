@@ -131,7 +131,7 @@ function handleDisplayInfo(core: Core, response: Agda.DisplayInfo)  {
             break;
         case 'Error':
             const error = parseError(response.content.join('\n'));
-            core.view.setError(error);
+            core.view.setAgdaError(error);
             break;
         case 'NormalForm':
             core.view.set('Normal Form', response.content, View.Style.Info);

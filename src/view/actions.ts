@@ -1,7 +1,8 @@
 import * as _ from 'lodash';
 import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
-import { Parsed, Agda, View, Error, Location, Connection, ConnectionInfo, GUID } from '../type';
+import { Parsed, Agda, View, Location, Connection, ConnectionInfo, GUID } from '../type';
+import { AgdaError } from '../parser';
 import * as Store from '../persist';
 declare var atom: any;
 
@@ -251,7 +252,7 @@ export namespace BODY {
     export const UPDATE_BODY = 'BODY.UPDATE_BODY';
     export type UPDATE_BODY = View.Body;
     export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
-    export type UPDATE_ERROR = Error;
+    export type UPDATE_ERROR = AgdaError;
     export const UPDATE_PLAIN_TEXT = 'BODY.UPDATE_PLAIN_TEXT';
     export type UPDATE_PLAIN_TEXT = string;
     export const UPDATE_MAX_BODY_HEIGHT = 'BODY.UPDATE_MAX_BODY_HEIGHT';

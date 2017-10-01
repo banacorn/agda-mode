@@ -185,15 +185,9 @@ namespace View {
     }
 
 
-    // Legacy shit below
-
-
-
     ////////////////////////////////////////////
     // Body components
     ////////////////////////////////////////////
-
-
 
     export interface Body {
         goalAndHave: GoalAndHave[];
@@ -383,202 +377,6 @@ export interface Location {
 
 
 // type Suggestion = string[];
-////////////////////////////////////////////
-// Errors
-////////////////////////////////////////////
-
-type Error
-    = Error.NotInScope
-    | Error.BadConstructor
-    | Error.ConstructorTarget
-    | Error.CaseSingleHole
-    | Error.DefinitionTypeMismatch
-    | Error.FunctionType
-    | Error.IlltypedPattern
-    | Error.LibraryNotFound
-    | Error.MissingType
-    | Error.MissingDefinition
-    | Error.ModuleMismatch
-    | Error.MultipleDefinition
-    | Error.Parse
-    | Error.PatternMatchOnNonDatatype
-    | Error.RHSOmitted
-    | Error.TypeMismatch
-    | Error.Termination
-    | Error.UnparsedButLocated
-    | Error.Unparsed;
-
-namespace Error {
-    export interface NotInScope {
-        kind: 'NotInScope',
-        header: string,
-        location: Location,
-        suggestion: string[],
-        expr: string
-    }
-
-    export interface TypeMismatch {
-        kind: 'TypeMismatch',
-        header: string,
-        location: Location
-        expected: string,
-        expectedType: string,
-        actual: string,
-        expr: string,
-        exprType: string
-    }
-
-
-    export interface BadConstructor {
-        kind: 'BadConstructor',
-        header: string,
-        location: Location,
-        constructor: string,
-        constructorType: string,
-        expr: string,
-        exprType: string
-    }
-
-    export interface DefinitionTypeMismatch {
-        kind: 'DefinitionTypeMismatch',
-        header: string,
-        location: Location
-        expected: string,
-        expectedType: string,
-        actual: string,
-        expr: string,
-        exprType: string
-    }
-
-    // https://github.com/agda/agda/blob/2794f9d84667e6f875d0c6b74bcbae9b1cc507d6/src/full/Agda/TypeChecking/Monad/Base.hs#L2341
-    export interface IlltypedPattern {
-        kind: 'IlltypedPattern';
-        header: string;
-        location: Location;
-        pattern: string;
-        type: string;
-    }
-
-    export interface MissingType {
-        kind: 'MissingType';
-        header: string,
-        location: Location;
-        expr: string;
-        decl: string;
-    }
-
-    export interface MultipleDefinition {
-        kind: 'MultipleDefinition',
-        header: string,
-        location: Location,
-        locationPrev: Location,
-        expr: string,
-        decl: string,
-        declType: string
-    }
-
-    export interface MissingDefinition {
-        kind: 'MissingDefinition',
-        header: string,
-        location: Location,
-        expr: string
-    }
-    export interface RHSOmitted {
-        kind: 'RHSOmitted',
-        header: string,
-        location: Location,
-        expr: string,
-        exprType: string
-    }
-
-
-    export interface Termination {
-        kind: 'Termination',
-        header: string,
-        location: Location,
-        expr: string,
-        calls: {
-            expr: string,
-            location: Location
-        }[]
-    }
-
-    export interface ConstructorTarget {
-        kind: 'ConstructorTarget',
-        header: string,
-        location: Location,
-        expr: string,
-        ctor: string,
-        decl: string
-    }
-
-    export interface FunctionType {
-        kind: 'FunctionType',
-        header: string,
-        location: Location,
-        expr: string,
-        exprType: string
-    }
-
-    export interface ModuleMismatch {
-        kind: 'ModuleMismatch',
-        header: string,
-        wrongPath: string,
-        rightPath: string,
-        moduleName: string
-    }
-
-    export interface Parse {
-        kind: 'Parse',
-        header: string,
-        location: Location
-        message: string,
-        expr: string,
-    }
-
-    export interface CaseSingleHole {
-        kind: 'CaseSingleHole',
-        header: string,
-        location: Location,
-        expr: string,
-        exprType: string
-    }
-
-    export interface PatternMatchOnNonDatatype {
-        kind: 'PatternMatchOnNonDatatype',
-        header: string,
-        location: Location,
-        nonDatatype: string,
-        expr: string,
-        exprType: string
-    }
-
-    export interface LibraryNotFound {
-        kind: 'LibraryNotFound',
-        header: string,
-        libraries: {
-            name: string,
-            agdaLibFilePath: string,
-            installedLibraries: {
-                name: string,
-                path: string
-            }[]
-        }[]
-    }
-
-    export interface UnparsedButLocated {
-        kind: 'UnparsedButLocated',
-        location: Location,
-        header: string,
-        input: string,
-    }
-
-    export interface Unparsed {
-        kind: 'Unparsed',
-        header: string,
-        input: string,
-    }
-}
 
 //
 // Connection
@@ -617,7 +415,5 @@ export {
     // CommandKind,
     // Command,
     // view
-    View,
-    // Errors
-    Error
+    View
 }

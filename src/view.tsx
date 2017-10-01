@@ -15,10 +15,10 @@ import Panel from './view/component/Panel';
 import Settings from './view/component/Settings';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
-import { View as V, Location, Error } from './type';
+import { View as V, Location } from './type';
 import { EVENT } from './view/actions';
 import * as Action from './view/actions';
-import { parseJudgements, parseError } from './parser';
+import { parseJudgements, parseError, AgdaError } from './parser';
 import { updateBody, updateError, updatePlainText } from './view/actions';
 import Tab from './view/tab';
 
@@ -274,7 +274,7 @@ export default class View {
 
     }
 
-    setError(error: Error) {
+    setAgdaError(error: AgdaError) {
 
         this.store.dispatch(Action.MODE.display());
         this.editors.focus('main')

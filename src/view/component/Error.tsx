@@ -3,7 +3,8 @@ import * as Promise from 'bluebird';
 import { inspect } from 'util';
 import { EventEmitter } from 'events';
 
-import { View, Error as E, Location as Loc } from '../../type';
+import { View, Location as Loc } from '../../type';
+import { AgdaError } from '../../parser';
 
 import Expr from './Expr';
 import Location from './Location';
@@ -16,7 +17,7 @@ interface Props {
 class Error extends React.Component<Props, {}> {
     render() {
         const emitter = this.props.emitter;
-        const error = this.props.children as E;
+        const error = this.props.children as AgdaError;
 
         let content = '';
         switch (error.kind) {
