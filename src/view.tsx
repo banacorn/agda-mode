@@ -19,7 +19,7 @@ import { View as V, Location } from './type';
 import { EVENT } from './view/actions';
 import * as Action from './view/actions';
 import { parseJudgements, parseError, AgdaError } from './parser';
-import { updateBody, updateError, updatePlainText } from './view/actions';
+import { updateBody, updateError, updatePlainText, updateSolutions } from './view/actions';
 import Tab from './view/tab';
 
 // Atom shits
@@ -303,6 +303,18 @@ export default class View {
         }));
 
         this.store.dispatch(updateBody(body));
+    }
+
+    setSolutions(solutions: V.Solutions) {
+        this.store.dispatch(Action.MODE.display());
+        this.editors.focus('main')
+
+        this.store.dispatch(Action.HEADER.update({
+            text: 'Auto',
+            style: V.Style.Info
+        }));
+
+        this.store.dispatch(updateSolutions(solutions));
     }
 
     query(header: string = '', message: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {

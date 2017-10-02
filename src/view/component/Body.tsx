@@ -11,6 +11,7 @@ import { updateMaxBodyHeight, EVENT } from '../actions';
 import Expr from './Expr';
 import Error from './Error';
 import Location from './Location';
+import Solution from './Body/Solution';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     emitter: EventEmitter;
@@ -45,7 +46,7 @@ class Body extends React.Component<Props, {}> {
     }
 
     render() {
-        const { emitter, body, error, plainText, maxBodyHeight, mountAtBottom } = this.props;
+        const { emitter, body, solutions, error, plainText, maxBodyHeight, mountAtBottom } = this.props;
         const classes = classNames(this.props.className, `native-key-bindings`, 'agda-body');
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
@@ -78,8 +79,14 @@ class Body extends React.Component<Props, {}> {
                         </li>
                     }
                 </ul>
-                {error ? <Error emitter={emitter}>{error}</Error> : null}
-                {plainText ? <p>{plainText}</p> : null}
+                {solutions.message &&
+                    <Solution
+                        emitter={emitter}
+                        solutions={solutions}
+                    />
+                }
+                {error && <Error emitter={emitter}>{error}</Error>}
+                {plainText && <p>{plainText}</p>}
             </section>
         )
     }

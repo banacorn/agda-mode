@@ -244,24 +244,27 @@ export namespace QUERY {
 }
 
 
-export type BODY = BODY.UPDATE_ERROR | BODY.UPDATE_PLAIN_TEXT | BODY.UPDATE_MAX_BODY_HEIGHT;
-// export type BODY = BODY.UPDATE_BODY | BODY.UPDATE_ERROR | BODY.UPDATE_PLAIN_TEXT | BODY.UPDATE_MAX_BODY_HEIGHT;
+export type BODY = BODY.UPDATE_BODY
+    | BODY.UPDATE_ERROR
+    | BODY.UPDATE_SOLUTIONS
+    | BODY.UPDATE_PLAIN_TEXT
+    | BODY.UPDATE_MAX_BODY_HEIGHT;
 export namespace BODY {
-    // export const UPDATE = 'BODY.UPDATE';
-    // export type UPDATE = React.Component;
     export const UPDATE_BODY = 'BODY.UPDATE_BODY';
     export type UPDATE_BODY = View.Body;
     export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
     export type UPDATE_ERROR = AgdaError;
+    export const UPDATE_SOLUTIONS = 'BODY.UPDATE_SOLUTIONS';
+    export type UPDATE_SOLUTIONS = View.Solutions;
     export const UPDATE_PLAIN_TEXT = 'BODY.UPDATE_PLAIN_TEXT';
     export type UPDATE_PLAIN_TEXT = string;
     export const UPDATE_MAX_BODY_HEIGHT = 'BODY.UPDATE_MAX_BODY_HEIGHT';
     export type UPDATE_MAX_BODY_HEIGHT = number;
 }
 
-// export const update = createAction<BODY.UPDATE>(BODY.UPDATE);
 export const updateBody = createAction<BODY.UPDATE_BODY>(BODY.UPDATE_BODY);
 export const updateError = createAction<BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
+export const updateSolutions = createAction<BODY.UPDATE_SOLUTIONS>(BODY.UPDATE_SOLUTIONS);
 export const updatePlainText = createAction<BODY.UPDATE_PLAIN_TEXT>(BODY.UPDATE_PLAIN_TEXT);
 export const updateMaxBodyHeight = createAction<BODY.UPDATE_MAX_BODY_HEIGHT>(BODY.UPDATE_MAX_BODY_HEIGHT);
 

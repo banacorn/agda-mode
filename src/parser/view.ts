@@ -8,39 +8,87 @@ import { Parser, seq, alt, takeWhile, sepBy1, all, any, custom, succeed,
 
 var { Point, Range } = require('atom');
 
-function parseSolution(raw: string): View.Expr | View.Solution[] {
-    // 0  s
-    // 1  ?0 := ℕ ?1 := y
-    const regex = /(\d+)\s+(?:(\?.*)|(.*))/;
-    const result = raw.match(regex);
-    if (result) {
-        const index = parseInt(result[1]);
-        if (result[2]) {
-            return parseSolutionCombination(result[2]);
-        } else if (result[3]) {
-            return parseExpression(result[3]);
+function parseSolutions(raw: string[]): View.Solutions {
+    // examine the first line and see if it's simple or indexed
+        // SimpleSolutions:   0  s
+        // IndexedSolutions:  1  ?0 := ℕ ?1 := y
+    const test = /(\d+)\s+(?:(\?.*)|(.*))/;
+
+    if (raw.length > 1) {
+        const result = raw[1].match(test);
+        if (result) {
+            const index = parseInt(result[1]);
+            if (result[2]) {
+                return parseIndexedSolutions(raw[0], _.tail(raw));
+            } else if (result[3]) {
+                return parseSimpleSolutions(raw[0], _.tail(raw));
+            }
+        }
+    } else {
+        return {
+            kind: 'SimpleSolutions',
+            message: raw[0],
+            solutions: []
         }
     }
 }
 
+function stripPrefixIndex(raw: string) {
+    const regex = /(\d+)\s+(.*)/;
+    const result = raw.match(regex);
+    if (result) {
+        return {
+            index: parseInt(result[1]),
+            payload: result[2]
+        };
+    } else {
+        return {
+            index: -1,
+            payload: ''
+        }
+    }
+}
+
+function parseSimpleSolutions(message: string, raw: string[]): View.SimpleSolutions {
+    const solutions = raw.map(stripPrefixIndex)
+        .map(({ index, payload }) => ({
+            index, expr: parseExpression(payload)
+        }));
+    return {
+        kind: 'SimpleSolutions',
+        message,
+        solutions
+    };
+}
+
 // parsing combination of solutions such as "?0 := ℕ ?1 := y"
-function parseSolutionCombination(raw: string): View.Solution[] {
+function parseIndexedSolutions(message: string, raw: string[]): View.IndexedSolutions {
     const segmentRegex = /\?(\d+)/g;
     const exprRegex = /\?(\d+)\s+\:\=\s+(.*)/;
-    const matches = raw.match(segmentRegex);
-    if (matches) {
-        const indices = matches.map(match => raw.indexOf(match))
-        return indices.map((index, i) => {
-            const result = raw.substring(index, indices[i + 1]).match(exprRegex);
-            if (result) {
-                const goalIndex = parseInt(result[1]);
-                const expr = parseExpression(result[2]);
-                return { goalIndex, expr };
+    const solutions = raw.map(stripPrefixIndex)
+        .map(({ index, payload }) => {
+            const matches = payload.match(segmentRegex);
+            if (matches) {
+                const indices = matches.map(match => payload.indexOf(match))
+                const combination = indices.map((start, i) => {
+                    const end = indices[i + 1];
+                    const result = payload.substring(start, end).match(exprRegex);
+                    if (result) {
+                        const goalIndex = parseInt(result[1]);
+                        const expr = parseExpression(result[2]);
+                        return { goalIndex, expr };
+                    }
+                });
+                return { index, combination }
+            } else {
+                return { index, combination: [] };
             }
         });
-    } else {
-        return [];
-    }
+    return {
+        kind: 'IndexedSolutions',
+        message,
+        solutions
+    };
 }
 
 function parseJudgements(lines: string[]): View.Body {
@@ -295,5 +343,5 @@ function parseLocation(str: string): Location {
 
 export {
     parseJudgements,
-    parseSolution
+    parseSolutions
 }

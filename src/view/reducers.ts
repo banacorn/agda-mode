@@ -62,6 +62,11 @@ const defaultState: View.State = {
             warnings: [],
             errors: []
         },
+        solutions: {
+            kind: 'SimpleSolutions',
+            message: '',
+            solutions: []
+        },
         error: null,
         plainText: '',
         maxBodyHeight: 170
@@ -199,16 +204,25 @@ const query = handleActions<View.QueryState, QUERY>({
 const body = handleActions<View.BodyState, BODY>({
     [BODY.UPDATE_BODY]: (state, action: Action<BODY.UPDATE_BODY>) => ({ ...state,
         body: action.payload,
+        solutions: defaultState.body.solutions,
         error: null,
         plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_ERROR]: (state, action: Action<BODY.UPDATE_ERROR>) => ({ ...state,
         body: defaultState.body.body,
+        solutions: defaultState.body.solutions,
         error: action.payload,
+        plainText: defaultState.body.plainText
+    }),
+    [BODY.UPDATE_SOLUTIONS]: (state, action: Action<BODY.UPDATE_SOLUTIONS>) => ({ ...state,
+        body: defaultState.body.body,
+        solutions: action.payload,
+        error: null,
         plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_PLAIN_TEXT]: (state, action: Action<BODY.UPDATE_PLAIN_TEXT>) => ({ ...state,
         body: defaultState.body.body,
+        solutions: defaultState.body.solutions,
         error: null,
         plainText: action.payload
     }),

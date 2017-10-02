@@ -3,6 +3,7 @@ import * as Promise from 'bluebird';
 import { EventEmitter } from 'events';
 import { ParsedPath } from 'path';
 import { Duplex } from 'stream';
+import { AgdaError } from './parser/error';
 
 type Range = any;
 export type GUID = string;
@@ -127,8 +128,9 @@ namespace View {
 
     export interface BodyState {
         body: Body;
-        error: Error;
+        error: AgdaError;
         plainText: string;
+        solutions: Solutions;
         maxBodyHeight: number;
     }
 
@@ -138,15 +140,35 @@ namespace View {
 
 
     ////////////////////////////////////////////
+    // Solutions
+    ////////////////////////////////////////////
+
+    export type Solutions = SimpleSolutions | IndexedSolutions;
+    export type SimpleSolutions = {
+        kind: 'SimpleSolutions';
+        message: string,
+        solutions: {
+            index: number;
+            expr: Expr;
+        }[];
+    }
+    export type IndexedSolutions = {
+        kind: 'IndexedSolutions';
+        message: string,
+        solutions: {
+            index: number;
+            combination: {
+                goalIndex: number;
+                expr: Expr;
+            }[];
+        }[];
+    }
+
+    ////////////////////////////////////////////
     // Expressions components
     ////////////////////////////////////////////
 
     export type Expr = Goal | Judgement | Term | Meta | Sort;
-    export type Solution = {
-        goalIndex: number;
-        expr: Expr;
-    }
-
     export type ExprKind = 'goal' |
         'type judgement' |
         'meta' |
