@@ -88,7 +88,7 @@ export default class Core {
     }
 
     deactivate() {
-        this.view.activatePanel();
+        this.view.deactivatePanel();
     }
 
     destroy() {
