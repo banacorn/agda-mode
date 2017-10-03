@@ -6,14 +6,15 @@ import { AgdaError } from '../parser';
 import * as Store from '../persist';
 declare var atom: any;
 
-export type EVENT =
-    EVENT.JUMP_TO_GOAL |
-    EVENT.JUMP_TO_LOCATION;
+// export type EVENT =
+//     EVENT.JUMP_TO_GOAL |
+//     EVENT.JUMP_TO_LOCATION |
+//     EVENT.FILL_IN_SOLUTION;
 export namespace EVENT {
     export const JUMP_TO_GOAL = 'EVENT.JUMP_TO_GOAL';
-    export type JUMP_TO_GOAL = number;
     export const JUMP_TO_LOCATION = 'EVENT.JUMP_TO_LOCATION';
-    export type JUMP_TO_LOCATION = Location;
+    export const FILL_IN_SIMPLE_SOLUTION = 'EVENT.FILL_IN_SIMPLE_SOLUTION';
+    export const FILL_IN_INDEXED_SOLUTIONS = 'EVENT.FILL_IN_INDEXED_SOLUTIONS';
 }
 
 export type VIEW

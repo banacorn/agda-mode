@@ -123,7 +123,6 @@ function handleDisplayInfo(core: Core, response: Agda.DisplayInfo)  {
             break;
         case 'Auto':
             let solutions = parseSolutions(response.content);
-            console.log(solutions);
             core.view.setSolutions(solutions);
             break;
         case 'Error':

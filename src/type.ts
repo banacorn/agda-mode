@@ -149,7 +149,7 @@ namespace View {
         message: string,
         solutions: {
             index: number;
-            expr: Expr;
+            expr: string;
         }[];
     }
     export type IndexedSolutions = {
@@ -159,7 +159,7 @@ namespace View {
             index: number;
             combination: {
                 goalIndex: number;
-                expr: Expr;
+                expr: string;
             }[];
         }[];
     }

@@ -21,6 +21,7 @@ import * as Action from './view/actions';
 import { parseJudgements, parseError, AgdaError } from './parser';
 import { updateBody, updateError, updatePlainText, updateSolutions } from './view/actions';
 import Tab from './view/tab';
+import { OutOfGoalError } from './error';
 
 // Atom shits
 type Editor = any;
@@ -98,6 +99,36 @@ export default class View {
         });
         this.emitter.on(EVENT.JUMP_TO_LOCATION, (loc: Location) => {
             this.core.textBuffer.jumpToLocation(loc);
+        });
+        this.emitter.on(EVENT.FILL_IN_SIMPLE_SOLUTION, (solution: string) => {
+            this.core.textBuffer.getCurrentGoal()
+                .then(goal => {
+                    goal.setContent(solution);
+                    this.core.commander.dispatch({ kind: 'Give' });
+                })
+                .catch(OutOfGoalError, () => {
+                    this.core.view.set('Out of goal', ['Please place the cursor in the goal before filling in the solution'], V.Style.Error);
+                    return []
+                })
+        });
+
+        this.emitter.on(EVENT.FILL_IN_INDEXED_SOLUTIONS, (solutions: {
+            goalIndex: number;
+            expr: string;
+        }[]) => {
+            const thunks = solutions.map(({goalIndex, expr}) => () => {
+                this.core.textBuffer.findGoal(goalIndex).setContent(expr);
+                this.core.textBuffer.findGoal(goalIndex).selectContent();
+                return this.core.commander.dispatch({ kind: 'Give' });
+            });
+
+            Promise.each(thunks, thunk => {
+                // invoke the thunk
+                return thunk()
+            }).then(() => {
+                // Load after Giving all solutions
+                return this.core.commander.dispatch({ kind: 'Load' });
+            })
         });
 
         // the event emitter garbage collector

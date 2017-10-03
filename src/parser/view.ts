@@ -39,21 +39,18 @@ function stripPrefixIndex(raw: string) {
     if (result) {
         return {
             index: parseInt(result[1]),
-            payload: result[2]
+            expr: result[2]
         };
     } else {
         return {
             index: -1,
-            payload: ''
+            expr: ''
         }
     }
 }
 
 function parseSimpleSolutions(message: string, raw: string[]): View.SimpleSolutions {
     const solutions = raw.map(stripPrefixIndex)
-        .map(({ index, payload }) => ({
-            index, expr: parseExpression(payload)
-        }));
     return {
         kind: 'SimpleSolutions',
         message,
@@ -66,16 +63,16 @@ function parseIndexedSolutions(message: string, raw: string[]): View.IndexedSolu
     const segmentRegex = /\?(\d+)/g;
     const exprRegex = /\?(\d+)\s+\:\=\s+(.*)/;
     const solutions = raw.map(stripPrefixIndex)
-        .map(({ index, payload }) => {
-            const matches = payload.match(segmentRegex);
+        .map(({ index, expr }) => {
+            const matches = expr.match(segmentRegex);
             if (matches) {
-                const indices = matches.map(match => payload.indexOf(match))
+                const indices = matches.map(match => expr.indexOf(match))
                 const combination = indices.map((start, i) => {
                     const end = indices[i + 1];
-                    const result = payload.substring(start, end).match(exprRegex);
+                    const result = expr.substring(start, end).match(exprRegex);
                     if (result) {
                         const goalIndex = parseInt(result[1]);
-                        const expr = parseExpression(result[2]);
+                        const expr = result[2];
                         return { goalIndex, expr };
                     }
                 });

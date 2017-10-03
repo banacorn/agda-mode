@@ -102,7 +102,7 @@
             }
 
             .item-body {
-                flex-grow: 100;
+                flex-grow: 1;
             }
 
 
@@ -110,6 +110,19 @@
             .location {
                 float: right;
             }
+
+            .item-cell {
+                display: flex;
+                background: @pane-item-background-color;
+                padding: 0 0.5em;
+                margin: 0 0.5em;
+            }
+
+            .check-solutions:hover {
+                background: inherit;
+                color: @text-color-success;
+            }
+
         }
         li.special-item {
             background: @base-background-color;
