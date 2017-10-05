@@ -7,7 +7,7 @@ declare var atom: any;
 
 import * as Conn from '../connector';
 import * as Parser from '../parser';
-import * as Store from '../persist';
+import * as InternalState from '../internal-state';
 import { View, Agda, Parsed } from '../type';
 import { EVENT, MODE, VIEW, CONNECTION, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, SETTINGS } from './actions';
 import { translate } from '../input-method';
@@ -15,7 +15,7 @@ import { translate } from '../input-method';
 // default state
 const { translation, further, keySuggestions, candidateSymbols } = translate('');
 
-const initialInternalState = Store.get();
+const initialInternalState = InternalState.get();
 const defaultState: View.State = {
     view: {
         activated: false,

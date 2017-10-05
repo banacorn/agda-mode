@@ -4,7 +4,7 @@ import { ConnectionInfo, GUID } from './type';
 
 declare var atom: any;
 
-export type Store = {
+export type InternalState = {
     connections: ConnectionInfo[];
     selected?: GUID;
     connected?: GUID;
@@ -35,14 +35,14 @@ function updateLegacyConnectionInfo(connInfo: any): ConnectionInfo {
     }
 }
 
-function updateLegacyState(state: any): Store {
+function updateLegacyState(state: any): InternalState {
     state.connections = state.connections.map(updateLegacyConnectionInfo);
     return state;
 }
 
-export function get(): Store {
+export function get(): InternalState {
     if (atom.config.get('agda-mode.internalState')) {
-        const state = JSON.parse(atom.config.get('agda-mode.internalState')) as Store;
+        const state = JSON.parse(atom.config.get('agda-mode.internalState')) as InternalState;
 
         if (isLegacyState(state)) {
             const newState = updateLegacyState(state);
@@ -51,23 +51,23 @@ export function get(): Store {
         return state;
     } else {
         initialize();
-        return defaultStore;
+        return defaultInternalState;
     }
 }
 
-export function set(store: Store) {
-    atom.config.set('agda-mode.internalState', JSON.stringify(store));
+export function set(state: InternalState) {
+    atom.config.set('agda-mode.internalState', JSON.stringify(state));
 }
 
-export function update(callback: (store: Store) => Store) {
+export function update(callback: (state: InternalState) => InternalState) {
     set(callback(get()));
 }
 
-export const defaultStore = {
+export const defaultInternalState = {
     connections: [],
     erred: []
 }
 
 export function initialize() {
-    set(defaultStore);
+    set(defaultInternalState);
 }

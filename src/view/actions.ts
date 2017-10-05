@@ -3,7 +3,7 @@ import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
 import { Parsed, Agda, View, Location, Connection, ConnectionInfo, GUID } from '../type';
 import { AgdaError } from '../parser';
-import * as Store from '../persist';
+import * as InternalState from '../internal-state';
 declare var atom: any;
 
 // export type EVENT =
@@ -95,7 +95,7 @@ export namespace CONNECTION {
     const addConnectionPure = createAction<CONNECTION.ADD_CONNECTION>(CONNECTION.ADD_CONNECTION);
     export const addConnection = (connInfo: ConnectionInfo) => dispatch => {
         // update the internal state
-        Store.update(state => {
+        InternalState.update(state => {
             const exists = _.find(state.connections, {
                 guid: connInfo.guid
             });
@@ -111,7 +111,7 @@ export namespace CONNECTION {
     const removeConnectionPure = createAction<CONNECTION.REMOVE_CONNECTION>(CONNECTION.REMOVE_CONNECTION);
     export const removeConnection = (guid: GUID) => dispatch => {
         // update the internal state
-        Store.update(state => {
+        InternalState.update(state => {
             _.remove(state.connections, (conn) => conn['guid'] === guid);
             if (state.connected && state.connected === guid)
                 state.connected = undefined;
@@ -127,7 +127,7 @@ export namespace CONNECTION {
     const selectConnectionPure = createAction<CONNECTION.SELECT_CONNECTION>(CONNECTION.SELECT_CONNECTION);
     export const selectConnection = (guid: GUID) => dispatch => {
         // update the internal state
-        Store.update(state => {
+        InternalState.update(state => {
             state.selected = guid;
             return state;
         });
@@ -138,7 +138,7 @@ export namespace CONNECTION {
     const connectPure = createAction<CONNECTION.CONNECT>(CONNECTION.CONNECT);
     export const connect = (guid: GUID) => dispatch => {
         // update the internal state and erase previously erred attempts
-        Store.update(state => {
+        InternalState.update(state => {
             state.connected = guid;
             _.remove(state.erred, id => id === guid);
             return state;
@@ -148,7 +148,7 @@ export namespace CONNECTION {
     }
     const disconnectPure = createAction<CONNECTION.DISCONNECT>(CONNECTION.DISCONNECT);
     export const disconnect = (guid: GUID) => dispatch => {
-        Store.update(state => {
+        InternalState.update(state => {
             if (state.connected === guid) {
                 state.connected = undefined;
                 // dispatch action
@@ -161,7 +161,7 @@ export namespace CONNECTION {
     const errPure = createAction<CONNECTION.ERR>(CONNECTION.ERR);
     export const err = (guid: GUID) => dispatch => {
         // update the internal state
-        Store.update(state => {
+        InternalState.update(state => {
             state.erred = _.uniq(_.concat([guid], state.erred));
             // state.erred;
             return state;

@@ -15,7 +15,7 @@ import { guid } from './util';
 import Core from './core';
 import { parseFilepath, parseResponses } from './parser';
 import * as Action from "./view/actions";
-import * as Store from "./persist";
+import * as InternalState from "./internal-state";
 
 export default class Connector {
     private selected?: ConnectionInfo;
@@ -159,7 +159,7 @@ export default class Connector {
 }
 
 export function getExistingConnectionInfo(): Promise<ConnectionInfo> {
-    const state = Store.get();
+    const state = InternalState.get();
 
     const selected = _.find(state.connections, {
         guid: state.selected

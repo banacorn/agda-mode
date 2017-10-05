@@ -18,7 +18,6 @@ import InputMethod from './input-method';
 import HighlightManager from './highlight-manager';
 import View from './view';
 import * as Action from './view/actions';
-import * as Store from './persist';
 
 export default class Core {
     private disposables: CompositeDisposable;
