@@ -1,3 +1,8 @@
+## 0.7.3
+* Fix #50, automatic proof search!
+* Fix #51
+* Synchronise requests and responses
+
 ## 0.7.2
 * Updates the requirement of version of Atom
 
