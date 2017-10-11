@@ -28,11 +28,9 @@ export default class Commander {
     }
 
     dispatch = (command: Agda.Command): Promise<void> => {
-        // some commands can only be executed after 'loaded'
-        const exception = [
-                'Load',
+        // some commands can be executed without connection to Agda
+        const needNoConnection = _.includes([
                 'Quit',
-                'Info',
                 'InputSymbol',
                 'InputSymbolCurlyBracket',
                 'InputSymbolBracket',
@@ -40,25 +38,29 @@ export default class Commander {
                 'InputSymbolDoubleQuote',
                 'InputSymbolSingleQuote',
                 'InputSymbolBackQuote'
-            ];
-        if(this.loaded || _.includes(exception, command.kind)) {
-            if (command.kind === 'Load') {
-                // activate the view first
-                const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
-                this.core.view.mountPanel(currentMountingPosition);
-                this.core.view.activatePanel();
-                return this.core.connector.connect()
-                    .then(conn => {
-                        return conn
-                    })
-                    .then(this.dispatchCommand(command))
-                    .then(handleResponses(this.core))
-                    .catch(this.core.connector.handleError)
-            } else {
-                return this.core.connector.getConnection()
-                    .then(this.dispatchCommand(command))
-                    .then(handleResponses(this.core))
-            }
+            ], command.kind);
+
+        if (command.kind === 'Load') {
+            // activate the view first
+            const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+            this.core.view.mountPanel(currentMountingPosition);
+            this.core.view.activatePanel();
+            return this.core.connector.connect()
+                .then(conn => {
+                    return conn
+                })
+                .then(this.dispatchCommand(command))
+                .then(handleResponses(this.core))
+                .catch(this.core.connector.handleError)
+        } else if (needNoConnection) {
+            this.dispatchCommand(command)(null)
+                .then(handleResponses(this.core))
+                .catch(this.core.connector.handleError)
+        } else {
+            return this.core.connector.getConnection()
+                .then(this.dispatchCommand(command))
+                .then(handleResponses(this.core))
+                .catch(this.core.connector.handleError)
         }
     }
 
