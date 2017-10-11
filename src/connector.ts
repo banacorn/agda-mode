@@ -101,7 +101,7 @@ export default class Connector {
         if (this.connection)
             return Promise.resolve(this.connection);
         else
-            throw new Err.Conn.NotEstablished;
+            return Promise.reject(new Err.Conn.NotEstablished);
     }
 
     //
@@ -154,7 +154,11 @@ export default class Connector {
 
     handleError(error: Error) {
         this.core.view.set('Error', [error.message], View.Style.Error);
-        this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
+        if (this.selected) {
+            this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
+        } else {
+            this.core.view.store.dispatch(Action.CONNECTION.showNewConnectionView(true));
+        }
     }
 }
 
@@ -171,7 +175,7 @@ export function getExistingConnectionInfo(): Promise<ConnectionInfo> {
         if (state.connections.length > 0) {
             return Promise.resolve(state.connections[0]);
         } else {
-            throw new Err.Conn.NoCandidates;
+            return Promise.reject(new Err.Conn.NoCandidates);
         }
     }
 }
@@ -185,13 +189,13 @@ export function mkConnectionInfo(agda: ProcessInfo): ConnectionInfo {
 
 export function autoSearch(location: string): Promise<string> {
     if (process.platform === 'win32') {
-        throw new Err.Conn.AutoSearchError('Unable to locate Agda on Windows systems', location);
+        return Promise.reject(new Err.Conn.AutoSearchError('Unable to locate Agda on Windows systems', location));
     }
 
     return new Promise<string>((resolve, reject) => {
         exec(`which ${location}`, (error, stdout, stderr) => {
             if (error) {
-                reject(new Err.Conn.AutoSearchError(`"which" failed with the following error message: ${error.toString()}`, location));
+                reject(new Err.Conn.AutoSearchError(`Cannot find "${location}".\nLocating "${location}" in the user's path with 'which' but failed with the following error message: ${error.toString()}`, location));
             } else {
                 resolve(parseFilepath(stdout));
             }
