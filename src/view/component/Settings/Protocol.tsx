@@ -103,7 +103,7 @@ class ReqRes extends React.Component<ReqResProp, ReqResState> {
         return (
             <li>
                 <h3>Request</h3>
-                <p>{JSON.stringify(request.raw)}</p>
+                <p className="agda-settings-protocol-request">{request.raw}</p>
                 <h3>Responses</h3>
                 <ol className="agda-settings-protocol-responses">{responses.map((res, i) =>
                     <Response res={res} key={i}/>
