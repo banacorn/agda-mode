@@ -50,7 +50,10 @@ class Settings extends React.Component<Props, {}> {
     render() {
         const { core } = this.props;
         return (
-            <section className="agda-settings">
+            <section
+                className="agda-settings native-key-bindings"
+                tabIndex={-1}
+            >
                 <Breadcrumb
                     navigate={this.props.navigate}
                     path={this.props.path}
