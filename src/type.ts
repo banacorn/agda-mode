@@ -236,7 +236,7 @@ namespace Agda {
     //  Commands sent to Agda
     //
     export type CommandKind = 'Load' | 'Quit' | 'Restart' | 'Compile' |
-        'ToggleDisplayOfImplicitArguments' | 'Info' | 'ShowConstraints' |
+        'ToggleDisplayOfImplicitArguments' | 'ShowConstraints' |
         'SolveConstraints' | 'ShowGoals' | 'NextGoal' | 'PreviousGoal' |
         'ToggleDocking' |
         'WhyInScope' | 'InferType' | 'ModuleContents' | 'ComputeNormalForm' |

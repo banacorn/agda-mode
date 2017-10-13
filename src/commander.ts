@@ -69,7 +69,6 @@ export default class Commander {
             case 'Load':          return this.load;
             case 'Quit':          return this.quit;
             case 'Restart':       return this.restart;
-            case 'Info':          return this.info;
             case 'ToggleDocking': return this.toggleDocking;
             case 'Compile':       return this.compile;
             case 'ToggleDisplayOfImplicitArguments':
@@ -150,20 +149,6 @@ export default class Commander {
         return this.quit(conn)
             .then(() => conn)
             .then(this.load);
-    }
-
-    private info = (conn: Connection): Promise<Agda.Response[]> => {
-        return this.core.connector
-            .getConnection()
-            .then(conn => {
-                this.core.view.set('Info', [
-                    `Agda version: ${conn.agda.version.raw}`,
-                    `Agda executable path: ${conn.agda.location}`
-                    // `Agda executable arguments: ${args.join(' ')}`
-                ], View.Style.PlainText);
-
-                return [];
-            });
     }
 
     private toggleDocking = (conn: Connection): Promise<Agda.Response[]> => {

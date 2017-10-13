@@ -38,9 +38,6 @@ function parseCommand(raw: string): Agda.Command {
         case 'toggle-display-of-implicit-arguments': return {
             kind: 'ToggleDisplayOfImplicitArguments',
         };
-        case 'info': return {
-            kind: 'Info',
-        };
         case 'show-constraints': return {
             kind: 'ShowConstraints',
         };

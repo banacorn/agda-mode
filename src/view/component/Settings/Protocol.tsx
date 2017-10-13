@@ -150,7 +150,9 @@ class Protocol extends React.Component<Props, {}> {
             return (
                 <section className={classNames("agda-settings-protocol", this.props.className)}>
                     <h2>Protocol</h2>
-                    <p>Current Protocol: {connInfo.languageServer ? 'LSP' : 'Vanilla'}</p>
+                    <p><span className="text-highlight">Agda Version: </span>{connInfo.agda.version.raw}</p>
+                    <p><span className="text-highlight">Agda Location: </span>{connInfo.agda.location}</p>
+                    <p><span className="text-highlight">Current Protocol: </span>{connInfo.languageServer ? 'LSP' : 'Vanilla'}</p>
                     <h2>Log</h2>
                     <ol className="agda-settings-protocol-log">{this.props.protocol.log.map((reqRes, i) =>
                         <ReqRes reqRes={reqRes} key={i} />
