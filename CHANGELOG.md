@@ -1,3 +1,8 @@
+## 0.7.4
+* Fix #51 (error when introducing latex symbols before agda-mode:load)
+* Fix #52
+* Remove agda-mode:info
+
 ## 0.7.3
 * Fix #50, automatic proof search!
 * Fix #51
