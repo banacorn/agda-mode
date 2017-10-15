@@ -1,3 +1,6 @@
+## 0.7.5
+* Fix #51 (error on agda-mode:give after Agda-2.5.3)
+
 ## 0.7.4
 * Fix #51 (error when introducing latex symbols before agda-mode:load)
 * Fix #52
