@@ -17,7 +17,7 @@ import { parseFilepath, parseResponses } from './parser';
 import * as Action from "./view/actions";
 import * as InternalState from "./internal-state";
 
-export default class Connector {
+export default class ConnectionManager {
     private selected?: ConnectionInfo;
     private connection?: Connection;
 

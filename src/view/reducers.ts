@@ -5,7 +5,7 @@ import { createAction, handleActions, Action } from 'redux-actions';
 import { EventEmitter } from 'events'
 declare var atom: any;
 
-import * as Conn from '../connector';
+import * as Conn from '../connection';
 import * as Parser from '../parser';
 import * as InternalState from '../internal-state';
 import { View, Agda, Parsed } from '../type';

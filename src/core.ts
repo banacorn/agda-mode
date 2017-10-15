@@ -12,7 +12,7 @@ import { View as ViewType } from './type';
 
 // # Components
 import Commander from './commander';
-import Connector from './connector';
+import ConnectionManager from './connection';
 import TextBuffer from './text-buffer';
 import InputMethod from './input-method';
 import HighlightManager from './highlight-manager';
@@ -26,7 +26,7 @@ export default class Core {
     public highlightManager: HighlightManager;
     public commander: Commander;
     public view: View;
-    public connector: Connector;
+    public connection: ConnectionManager;
 
     constructor(public editor: Editor) {
 
@@ -57,7 +57,7 @@ export default class Core {
             this.inputMethod    = new InputMethod(this);
         this.highlightManager   = new HighlightManager(this);
         this.commander          = new Commander(this);
-        this.connector          = new Connector(this);
+        this.connection         = new ConnectionManager(this);
 
         // dispatch config related data to the store on initialization
         this.view.store.dispatch(Action.updateMaxBodyHeight(atom.config.get('agda-mode.maxBodyHeight')));

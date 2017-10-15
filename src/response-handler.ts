@@ -85,7 +85,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
         case 'SolveAll':
             return Promise.each(response.solutions, (solution) => {
                 return core.textBuffer.onSolveAll(solution.index, solution.expression)
-                    .then(goal => core.connector
+                    .then(goal => core.connection
                         .getConnection()
                         .then(Req.give(goal))
                         .then(handleResponses(core))

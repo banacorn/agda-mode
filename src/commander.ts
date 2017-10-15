@@ -45,22 +45,22 @@ export default class Commander {
             const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
             this.core.view.mountPanel(currentMountingPosition);
             this.core.view.activatePanel();
-            return this.core.connector.connect()
+            return this.core.connection.connect()
                 .then(conn => {
                     return conn
                 })
                 .then(this.dispatchCommand(command))
                 .then(handleResponses(this.core))
-                .catch(this.core.connector.handleError)
+                .catch(this.core.connection.handleError)
         } else if (needNoConnection) {
             this.dispatchCommand(command)(null)
                 .then(handleResponses(this.core))
-                .catch(this.core.connector.handleError)
+                .catch(this.core.connection.handleError)
         } else {
-            return this.core.connector.getConnection()
+            return this.core.connection.getConnection()
                 .then(this.dispatchCommand(command))
                 .then(handleResponses(this.core))
-                .catch(this.core.connector.handleError)
+                .catch(this.core.connection.handleError)
         }
     }
 
@@ -140,7 +140,7 @@ export default class Commander {
             this.loaded = false;
             this.core.textBuffer.removeGoals();
             this.core.highlightManager.destroyAll();
-            this.core.connector.disconnect();
+            this.core.connection.disconnect();
         }
         return Promise.resolve([]);
     }
@@ -208,12 +208,12 @@ export default class Commander {
         return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], View.Style.PlainText, 'module name:')
             .then(expr => {
                 return this.core.textBuffer.getCurrentGoal()
-                    .then(goal => this.core.connector
+                    .then(goal => this.core.connection
                         .getConnection()
                         .then(Req.moduleContents(normalization, expr, goal))
                     )
                     .catch((error) => {
-                        return this.core.connector
+                        return this.core.connection
                             .getConnection()
                             .then(Req.moduleContentsGlobal(normalization, expr))
                     });

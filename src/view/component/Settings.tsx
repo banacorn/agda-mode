@@ -77,15 +77,15 @@ class Settings extends React.Component<Props, {}> {
                         className={this.at('/Connections')}
                         onNew={this.props.navigate('/Connections/New')}
                         onSelect={(connInfo) => {
-                            core.connector.select(connInfo);
+                            core.connection.select(connInfo);
                         }}
                         onSelectAndLoad={(connInfo) => {
-                            core.connector.select(connInfo);
+                            core.connection.select(connInfo);
                             core.view.store.dispatch(Action.PROTOCOL.clearAll());
                             core.commander.dispatch({ kind: 'Load' });
                         }}
                         onRemove={(connInfo) => {
-                            core.connector.unselect(connInfo);
+                            core.connection.unselect(connInfo);
                         }}
                     />
                     <NewConnection

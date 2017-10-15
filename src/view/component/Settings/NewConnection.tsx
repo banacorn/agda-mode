@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
 import { View, ConnectionInfo } from '../../../type';
-import * as Conn from '../../../connector';
+import * as Conn from '../../../connection';
 import * as Err from '../../../error';
 import * as Action from '../../actions';
 import Core from '../../../core';
