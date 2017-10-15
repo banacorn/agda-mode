@@ -53,7 +53,7 @@ export default class Commander {
                 .then(handleResponses(this.core))
                 .catch(this.core.connection.handleError)
         } else if (needNoConnection) {
-            this.dispatchCommand(command)(null)
+            return this.dispatchCommand(command)(null)
                 .then(handleResponses(this.core))
                 .catch(this.core.connection.handleError)
         } else {

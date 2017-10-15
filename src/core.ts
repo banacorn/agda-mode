@@ -28,13 +28,14 @@ export default class Core {
 
         // initialize all components
         this.disposables        = new CompositeDisposable();
-        // view
-        this.view               = new View(this);
         this.editor             = new Editor(this, textEditor);
         if (atom.config.get('agda-mode.inputMethod'))
             this.inputMethod    = new InputMethod(this);
         this.commander          = new Commander(this);
         this.connection         = new ConnectionManager(this);
+
+        // view
+        this.view               = new View(this);
 
         // dispatch config related data to the store on initialization
         this.view.store.dispatch(Action.updateMaxBodyHeight(atom.config.get('agda-mode.maxBodyHeight')));

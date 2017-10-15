@@ -71,12 +71,12 @@ export default class Editor {
         return this.textEditor.getBuffer().characterIndexForPosition(pos);
     }
     translate(pos: number, n: number): Point {
-        return this.textEditor.fromIndex((this.textEditor.toIndex(pos)) + n)
+        return this.fromIndex((this.toIndex(pos)) + n)
     }
 
     fromIndexRange(range: { start: number, end: number }): Range {
-        const start = this.textEditor.fromIndex(range.start);
-        const end   = this.textEditor.fromIndex(range.end);
+        const start = this.fromIndex(range.start);
+        const end   = this.fromIndex(range.end);
         return new Range(start, end);
     }
 
@@ -93,7 +93,7 @@ export default class Editor {
                 // reposition the cursor in the goal only if it's a fresh hole (coming from '?')
                 let isFreshHole = goal.isEmpty();
                 if (isFreshHole) {
-                    let newPosition = this.textEditor.translate(goal.range.start, 3);
+                    let newPosition = this.translate(goal.range.start, 3);
                     setTimeout(() => {
                         this.textEditor.setCursorBufferPosition(newPosition);
                     });
@@ -115,10 +115,9 @@ export default class Editor {
     jumpToNextGoal(): Promise<{}> {
         const cursor = this.textEditor.getCursorBufferPosition();
         let nextGoal = null;
-
         const positions = this.goal.getAll().map((goal) => {
             const start = goal.range.start;
-            return this.textEditor.translate(start, 3);
+            return this.translate(start, 3);
         });
 
         positions.forEach((position) => {
@@ -144,7 +143,7 @@ export default class Editor {
 
         const positions = this.goal.getAll().map((goal) => {
             const start = goal.range.start;
-            return this.textEditor.translate(start, 3);
+            return this.translate(start, 3);
         });
 
         positions.forEach((position) => {
@@ -168,7 +167,7 @@ export default class Editor {
         let goal = this.goal.find(index);
         if (goal) {
             let start = goal.range.start;
-            let position = this.textEditor.translate(start, 3);
+            let position = this.translate(start, 3);
             this.textEditor.setCursorBufferPosition(position);
             this.focus();
         }
@@ -208,7 +207,7 @@ export default class Editor {
             let textRaw = this.textEditor.getText();
             this.goal.removeAll();
             parseHole(textRaw, indices).forEach((hole) => {
-                let range = this.textEditor.fromIndexRange(hole.originalRange);
+                let range = this.fromIndexRange(hole.originalRange);
                 this.textEditor.setTextInBufferRange(range, hole.content);
                 let goal = new Goal(
                     this.textEditor,
@@ -274,7 +273,7 @@ export default class Editor {
 
     onJumpToError(filepath: string, charIndex: number): Promise<void> {
         if (this.getPath() === filepath) {
-            let position = this.textEditor.fromIndex(charIndex - 1);
+            let position = this.fromIndex(charIndex - 1);
             this.textEditor.setCursorBufferPosition(position);
         }
         return Promise.resolve();
