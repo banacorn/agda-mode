@@ -139,7 +139,7 @@ export default class Commander {
         if (this.loaded) {
             this.loaded = false;
             this.core.editor.removeGoals();
-            this.core.highlightManager.destroyAll();
+            this.core.editor.highlighting.destroyAll();
             this.core.connection.disconnect();
         }
         return Promise.resolve([]);

@@ -15,12 +15,14 @@ export default class Editor {
 
     private core: Core;
     private textEditor: TextEditor;
+    public highlighting: HighlightManager;
 
     private goals: Goal[];
 
     constructor(core: Core, textEditor: TextEditor) {
         this.core = core;
         this.textEditor = textEditor;
+        this.highlighting = new HighlightManager(this);
         this.goals = [];
     }
 
@@ -329,6 +331,32 @@ export default class Editor {
     // note: no highlighting yet, we'll just delete them.
     onHighlightLoadAndDelete(filepath: string): Promise<void> {
         fs.unlink(filepath, () => {});
+        return Promise.resolve();
+    }
+}
+
+class HighlightManager {
+    private markers: any[];
+
+    constructor(private editor: Editor) {
+        this.markers = [];
+    }
+
+    add(annotation: Agda.Annotation) {
+        const start = this.editor.fromIndex(parseInt(annotation.start) - 1);
+        const end = this.editor.fromIndex(parseInt(annotation.end) - 1);
+        const range = new Range(start, end);
+        const marker = this.editor.getTextEditor().markBufferRange(range);
+        this.markers.push(marker);
+        const decorator = this.editor.getTextEditor().decorateMarker(marker, {
+            type: 'highlight',
+            class: `highlight-decoration ${annotation.type}`
+        });
+    }
+
+    destroyAll(): Promise<void> {
+        this.markers.forEach((marker) => { marker.destroy(); });
+        this.markers = [];
         return Promise.resolve();
     }
 }

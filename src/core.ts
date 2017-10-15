@@ -13,7 +13,6 @@ import Commander from './commander';
 import ConnectionManager from './connection';
 import Editor from './editor';
 import InputMethod from './input-method';
-import HighlightManager from './highlight-manager';
 import View from './view';
 import * as Action from './view/actions';
 
@@ -21,7 +20,6 @@ export default class Core {
     private disposables: CompositeDisposable;
     public editor: Editor;
     public inputMethod: InputMethod;
-    public highlightManager: HighlightManager;
     public commander: Commander;
     public view: View;
     public connection: ConnectionManager;
@@ -35,7 +33,6 @@ export default class Core {
         this.editor             = new Editor(this, textEditor);
         if (atom.config.get('agda-mode.inputMethod'))
             this.inputMethod    = new InputMethod(this);
-        this.highlightManager   = new HighlightManager(this);
         this.commander          = new Commander(this);
         this.connection         = new ConnectionManager(this);
 

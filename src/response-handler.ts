@@ -46,7 +46,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
                 let unsolvedmeta = _.includes(annotation.type, 'unsolvedmeta');
                 let terminationproblem = _.includes(annotation.type, 'terminationproblem')
                 if (unsolvedmeta || terminationproblem) {
-                    core.highlightManager.highlight(annotation);
+                    core.editor.highlighting.add(annotation);
                 }
             }).then(() => {});
 
@@ -58,7 +58,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
                         let unsolvedmeta = _.includes(annotation.type, 'unsolvedmeta');
                         let terminationproblem = _.includes(annotation.type, 'terminationproblem')
                         if (unsolvedmeta || terminationproblem) {
-                            core.highlightManager.highlight(annotation);
+                            core.editor.highlighting.add(annotation);
                         }
                     });
                 })
@@ -98,7 +98,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
 
 
         case 'HighlightClear':
-            return core.highlightManager.destroyAll();
+            return core.editor.highlighting.destroyAll();
 
         default:
             console.error(`Agda.ResponseType: ${JSON.stringify(response)}`);
