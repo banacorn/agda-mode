@@ -16,14 +16,14 @@ export default class Editor {
     private core: Core;
     private textEditor: TextEditor;
     public highlighting: HighlightManager;
+    public goal: GoalManager;
 
-    private goals: Goal[];
 
     constructor(core: Core, textEditor: TextEditor) {
         this.core = core;
         this.textEditor = textEditor;
+        this.goal = new GoalManager(textEditor);
         this.highlighting = new HighlightManager(this);
-        this.goals = [];
     }
 
     getTextEditor(): TextEditor {
@@ -78,7 +78,7 @@ export default class Editor {
     protectCursor<T>(callback: () => T): Promise<T> {
         let position = this.textEditor.getCursorBufferPosition();
         let result = callback();
-        return this.getCurrentGoal(position)
+        return this.goal.pointing(position)
             .then((goal) => {
                 // reposition the cursor in the goal only if it's a fresh hole (coming from '?')
                 let isFreshHole = goal.isEmpty();
@@ -106,36 +106,6 @@ export default class Editor {
     //  Goal Management  //
     ///////////////////////
 
-    removeGoals() {
-        this.goals.forEach((goal) => {
-            goal.destroy();
-        });
-        this.goals = [];
-    }
-
-    removeGoal(index: number) {
-        this.goals
-            .filter((goal) => { return goal.index === index; })
-            .forEach((goal) => { goal.destroy(); });
-        this.goals = this.goals
-                .filter((goal) => { return goal.index !== index; })
-    }
-
-    findGoal(index: number): Goal {
-        let goals = this.goals.filter((goal) => { return goal.index === index; })
-        return goals[0];
-    }
-
-    getCurrentGoal(cursor = this.textEditor.getCursorBufferPosition()): Promise<Goal> {
-        const goals = this.goals.filter((goal) => {
-            return goal.range.containsPoint(cursor, false);
-        });
-
-        if (_.isEmpty(goals))
-            return Promise.reject(new OutOfGoalError('out of goal'));
-        else
-            return Promise.resolve(goals[0]);
-    }
 
     warnOutOfGoal() {
         this.core.view.set('Out of goal', ['For this command, please place the cursor in a goal'], View.Style.Warning);
@@ -145,24 +115,15 @@ export default class Editor {
         this.core.view.set('No content', [error.message], View.Style.Warning);
     }
 
-    // reject if goal is empty
-    guardGoalHasContent(goal : Goal): Promise<Goal> {
-        if (goal.getContent()) {
-            return Promise.resolve(goal);
-        } else {
-            return Promise.reject(new EmptyGoalError('goal is empty', goal));
-        }
-    }
-
-
     ////////////////
     //  Commands  //
     ////////////////
+
     nextGoal(): Promise<{}> {
         const cursor = this.textEditor.getCursorBufferPosition();
         let nextGoal = null;
 
-        const positions = this.goals.map((goal) => {
+        const positions = this.goal.getAll().map((goal) => {
             const start = goal.range.start;
             return this.textEditor.translate(start, 3);
         });
@@ -188,7 +149,7 @@ export default class Editor {
         const cursor = this.textEditor.getCursorBufferPosition();
         let previousGoal = null;
 
-        const positions = this.goals.map((goal) => {
+        const positions = this.goal.getAll().map((goal) => {
             const start = goal.range.start;
             return this.textEditor.translate(start, 3);
         });
@@ -211,7 +172,7 @@ export default class Editor {
     }
 
     jumpToGoal(index: number) {
-        let goal = this.goals.filter((goal) => { return goal.index === index })[0];
+        let goal = this.goal.find(index);
         if (goal) {
             let start = goal.range.start;
             let position = this.textEditor.translate(start, 3);
@@ -228,7 +189,7 @@ export default class Editor {
                     editor.setSelectedBufferRange(location.range, true);
                 })
         } else {
-            this.getCurrentGoal()
+            this.goal.pointing()
                 .then((goal) => {
                     let range;
                     if (location.range.start.row === 0) {
@@ -252,7 +213,7 @@ export default class Editor {
     onInteractionPoints(indices: number[]): Promise<void> {
         return this.protectCursor(() => {
             let textRaw = this.textEditor.getText();
-            this.removeGoals();
+            this.goal.removeAll();
             parseHole(textRaw, indices).forEach((hole) => {
                 let range = this.textEditor.fromIndexRange(hole.originalRange);
                 this.textEditor.setTextInBufferRange(range, hole.content);
@@ -264,14 +225,14 @@ export default class Editor {
                         end: hole.modifiedRange.end,
                     }
                 );
-                this.goals.push(goal);
+                this.goal.add(goal);
             });
         });
     }
 
     onSolveAll(index: number, content: string): Promise<Goal> {
         return this.protectCursor(() => {
-            let goal = this.findGoal(index);
+            let goal = this.goal.find(index);
             goal.setContent(content);
             return goal;
         });
@@ -283,7 +244,7 @@ export default class Editor {
     // Give_String : ["agda2-give-action", 0, ...]
     onGiveAction(index: number, giveResult: 'Paren' | 'NoParen' | 'String', result: string): Promise<void> {
         return this.protectCursor(() => {
-            let goal = this.findGoal(index);
+            let goal = this.goal.find(index);
 
             switch (giveResult) {
                 case 'Paren':
@@ -299,13 +260,13 @@ export default class Editor {
                     break;
             }
             goal.removeBoundary();
-            this.removeGoal(index);
+            this.goal.remove(index);
         });
     }
 
     onMakeCase(variant: 'Function' | 'ExtendedLambda', result: string[]): Promise<void> {
         return this.protectCursor(() => {
-            this.getCurrentGoal().then((goal) => {
+            this.goal.pointing().then((goal) => {
                 switch (variant) {
                     case 'Function':
                         goal.writeLines(result);
@@ -333,6 +294,65 @@ export default class Editor {
         fs.unlink(filepath, () => {});
         return Promise.resolve();
     }
+}
+
+class GoalManager {
+    private goals: Goal[];
+
+    constructor(private textEditor: TextEditor) {
+        this.goals = [];
+    }
+
+    getAll(): Goal[] {
+        return this.goals;
+    }
+
+    add(goal: Goal) {
+        this.goals.push(goal);
+    }
+
+    remove(index: number) {
+        this.goals
+            .filter((goal) => { return goal.index === index; })
+            .forEach((goal) => { goal.destroy(); });
+        this.goals = this.goals
+                .filter((goal) => { return goal.index !== index; })
+    }
+
+    removeAll() {
+        this.goals.forEach((goal) => {
+            goal.destroy();
+        });
+        this.goals = [];
+    }
+
+    find(index: number): Goal {
+        let goals = this.goals.filter((goal) => { return goal.index === index; })
+        return goals[0];
+    }
+
+    // the goal where the cursor is positioned
+    pointing(cursor = this.textEditor.getCursorBufferPosition()): Promise<Goal> {
+        const goals = this.goals.filter((goal) => {
+            return goal.range.containsPoint(cursor, false);
+        });
+
+        if (_.isEmpty(goals))
+            return Promise.reject(new OutOfGoalError('out of goal'));
+        else
+            return Promise.resolve(goals[0]);
+    }
+
+    // reject if goal is empty
+    guardGoalHasContent(goal : Goal): Promise<Goal> {
+        if (goal.getContent()) {
+            return Promise.resolve(goal);
+        } else {
+            return Promise.reject(new EmptyGoalError('goal is empty', goal));
+        }
+    }
+
+
 }
 
 class HighlightManager {

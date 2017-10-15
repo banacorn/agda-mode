@@ -101,7 +101,7 @@ export default class View {
             this.core.editor.jumpToLocation(loc);
         });
         this.emitter.on(EVENT.FILL_IN_SIMPLE_SOLUTION, (solution: string) => {
-            this.core.editor.getCurrentGoal()
+            this.core.editor.goal.pointing()
                 .then(goal => {
                     goal.setContent(solution);
                     this.core.commander.dispatch({ kind: 'Give' });
@@ -117,8 +117,8 @@ export default class View {
             expr: string;
         }[]) => {
             const thunks = solutions.map(({goalIndex, expr}) => () => {
-                this.core.editor.findGoal(goalIndex).setContent(expr);
-                this.core.editor.findGoal(goalIndex).selectContent();
+                this.core.editor.goal.find(goalIndex).setContent(expr);
+                this.core.editor.goal.find(goalIndex).selectContent();
                 return this.core.commander.dispatch({ kind: 'Give' });
             });
 
