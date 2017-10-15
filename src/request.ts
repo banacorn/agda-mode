@@ -120,9 +120,16 @@ export const computeNormalFormGlobal = (computeMode: Agda.ComputeMode, expr: str
         }
     });
 
-export const give = (goal: Goal) => sendRequest('NonInteractive', conn =>
-    (`Cmd_give ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
-);
+// Related issue and commit of agda/agda
+// https://github.com/agda/agda/issues/2730
+// https://github.com/agda/agda/commit/021e6d24f47bac462d8bc88e2ea685d6156197c4
+export const give = (goal: Goal) => sendRequest('NonInteractive', conn =>{
+    if (semver.gte(conn.agda.version.sem, '2.5.3')) {
+        return `Cmd_give WithoutForce ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`;
+    } else {
+        return `Cmd_give ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`;
+    }
+});
 
 export const refine = (goal: Goal) => sendRequest('NonInteractive', conn =>
     (`Cmd_refine_or_intro False ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
