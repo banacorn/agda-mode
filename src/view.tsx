@@ -95,13 +95,13 @@ export default class View {
         // global events
         this.emitter = new EventEmitter;
         this.emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
-            this.core.textBuffer.jumpToGoal(index);
+            this.core.editor.jumpToGoal(index);
         });
         this.emitter.on(EVENT.JUMP_TO_LOCATION, (loc: Location) => {
-            this.core.textBuffer.jumpToLocation(loc);
+            this.core.editor.jumpToLocation(loc);
         });
         this.emitter.on(EVENT.FILL_IN_SIMPLE_SOLUTION, (solution: string) => {
-            this.core.textBuffer.getCurrentGoal()
+            this.core.editor.getCurrentGoal()
                 .then(goal => {
                     goal.setContent(solution);
                     this.core.commander.dispatch({ kind: 'Give' });
@@ -117,8 +117,8 @@ export default class View {
             expr: string;
         }[]) => {
             const thunks = solutions.map(({goalIndex, expr}) => () => {
-                this.core.textBuffer.findGoal(goalIndex).setContent(expr);
-                this.core.textBuffer.findGoal(goalIndex).selectContent();
+                this.core.editor.findGoal(goalIndex).setContent(expr);
+                this.core.editor.findGoal(goalIndex).selectContent();
                 return this.core.commander.dispatch({ kind: 'Give' });
             });
 
@@ -135,7 +135,7 @@ export default class View {
         this.subscriptions = new CompositeDisposable;
 
         // views of editors
-        this.editors = new EditorViewManager(core.editor);
+        this.editors = new EditorViewManager(core.editor.getTextEditor());
 
         // the main panel
         this.panel = new PanelManager(this.store);

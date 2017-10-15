@@ -69,22 +69,22 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             return Promise.resolve();
 
         case 'JumpToError':
-            return core.textBuffer.onJumpToError(response.filepath, response.position);
+            return core.editor.onJumpToError(response.filepath, response.position);
 
         case 'InteractionPoints':
-            return core.textBuffer.onInteractionPoints(response.indices);
+            return core.editor.onInteractionPoints(response.indices);
 
         case 'GiveAction':
-            return core.textBuffer.onGiveAction(response.index, response.giveResult, response.result);
+            return core.editor.onGiveAction(response.index, response.giveResult, response.result);
 
         case 'MakeCase':
-            return core.textBuffer
+            return core.editor
                 .onMakeCase(response.variant, response.result)
                 .then(() => core.commander.dispatch({ kind: 'Load' }))
 
         case 'SolveAll':
             return Promise.each(response.solutions, (solution) => {
-                return core.textBuffer.onSolveAll(solution.index, solution.expression)
+                return core.editor.onSolveAll(solution.index, solution.expression)
                     .then(goal => core.connection
                         .getConnection()
                         .then(Req.give(goal))

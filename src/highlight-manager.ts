@@ -17,9 +17,9 @@ export default class HighlightManager {
         const start = this.core.editor.fromIndex(parseInt(annotation.start) - 1);
         const end = this.core.editor.fromIndex(parseInt(annotation.end) - 1);
         const range = new Range(start, end);
-        const marker = this.core.editor.markBufferRange(range);
+        const marker = this.core.editor.getTextEditor().markBufferRange(range);
         this.markers.push(marker);
-        const decorator = this.core.editor.decorateMarker(marker, {
+        const decorator = this.core.editor.getTextEditor().decorateMarker(marker, {
             type: 'highlight',
             class: `highlight-decoration ${annotation.type}`
         });

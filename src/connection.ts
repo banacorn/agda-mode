@@ -46,7 +46,7 @@ export default class ConnectionManager {
             return getExistingConnectionInfo()
                 .then(selected => {
                     this.selected = selected;
-                    return connectAgda(this.selected, this.core.getPath())
+                    return connectAgda(this.selected, this.core.editor.getPath())
                         .then(this.wire);
                     // if (selected.languageServer) {
                     //     return connectLanguageServer(this.selected, this.core.getPath())
@@ -66,7 +66,7 @@ export default class ConnectionManager {
                             this.selected = connInfo;
                             // update the view
                             this.core.view.store.dispatch(Action.CONNECTION.addConnection(connInfo));
-                            return connectAgda(connInfo, this.core.getPath())
+                            return connectAgda(connInfo, this.core.editor.getPath())
                                 .then(this.wire);
                         });
                 })
@@ -80,7 +80,7 @@ export default class ConnectionManager {
             // cut the old connection
             this.disconnect();
             // and establish a new one
-            return connectAgda(this.selected, this.core.getPath())
+            return connectAgda(this.selected, this.core.editor.getPath())
                 .then(this.wire);
         }
     }
