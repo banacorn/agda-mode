@@ -29,7 +29,7 @@ type CompositeDisposable = any;
 var { CompositeDisposable } = require('atom');
 declare var atom: any;
 
-class EditorManager {
+class EditorViewManager {
     main: Editor;
     general: MiniEditor;
     connection: MiniEditor;
@@ -79,7 +79,7 @@ export default class View {
     private emitter: EventEmitter;
     private subscriptions: CompositeDisposable;
     public store: Redux.Store<V.State>;
-    public editors: EditorManager;
+    public editors: EditorViewManager;
     public panel: PanelManager;
     private bottomPanel: any;
 
@@ -134,8 +134,8 @@ export default class View {
         // the event emitter garbage collector
         this.subscriptions = new CompositeDisposable;
 
-        // editors
-        this.editors = new EditorManager(core.editor);
+        // views of editors
+        this.editors = new EditorViewManager(core.editor);
 
         // the main panel
         this.panel = new PanelManager(this.store);
