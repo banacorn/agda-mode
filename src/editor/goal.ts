@@ -24,7 +24,7 @@ export default class Goal {
     private content: string;
 
     constructor(
-        private editor: TextEditor,
+        private textEditor: TextBuffer,
         public index: number = -1,         // -1 as Nothing, fuck TypeScript
         public rangeIndex: {
             start: number;
@@ -32,12 +32,12 @@ export default class Goal {
         }
     ) {
         // initialization
-        const textBuffer = this.editor.getBuffer();
+        const textBuffer = this.textEditor.getBuffer();
         const startPoint = textBuffer.positionForCharacterIndex(rangeIndex.start);
         const endPoint   = textBuffer.positionForCharacterIndex(rangeIndex.end);
         this.range = new Range(startPoint, endPoint);
         this.content = textBuffer.getTextInRange(this.range);
-        this.marker = this.editor.markBufferRange(this.range, {});
+        this.marker = this.textEditor.markBufferRange(this.range, {});
 
         // overlay element
         const indexWidth = this.index === -1 ? 1 : this.index.toString().length;
@@ -51,15 +51,15 @@ export default class Goal {
         // we should come up with a new way to steal those measurements
         element.style.left = `${- indexWidth - 2}ex`;
         element.style.top = `-1.5em`;
-        // element.style.left = `${- this.editor.getDefaultCharWidth() * (indexWidth + 2)}px`;
-        // element.style.top = `${- this.editor.getLineHeightInPixels()}px`;
+        // element.style.left = `${- this.textEditor.getDefaultCharWidth() * (indexWidth + 2)}px`;
+        // element.style.top = `${- this.textEditor.getLineHeightInPixels()}px`;
 
         // decoration
-        const holeDecoration = this.editor.decorateMarker(this.marker, {
+        const holeDecoration = this.textEditor.decorateMarker(this.marker, {
             type: 'highlight',
             class: 'goal'
         });
-        const indexDecoration = this.editor.decorateMarker(this.marker, {
+        const indexDecoration = this.textEditor.decorateMarker(this.marker, {
             type: 'overlay',
             position: 'head',
             item: element
@@ -70,7 +70,7 @@ export default class Goal {
             const newRange = this.marker.getBufferRange();
 
             // boundary positions
-            const text  = this.editor.getBuffer().getTextInRange(newRange);
+            const text  = this.textEditor.getBuffer().getTextInRange(newRange);
             const left  = text.indexOf('{!');
             const right = text.lastIndexOf('!}');
 
@@ -88,7 +88,7 @@ export default class Goal {
             }
 
             else if (left !== -1 && right !== -1) {
-                const textBuffer = this.editor.getBuffer();
+                const textBuffer = this.textEditor.getBuffer();
                 const contentLength = text.length;
                 const stretchRight = right - contentLength + 2;
                 this.range = resizeRange(textBuffer, newRange, left, stretchRight);
@@ -112,25 +112,25 @@ export default class Goal {
     }
 
     restoreBoundary(newRange: Range) {
-        this.editor.setTextInBufferRange(newRange, this.content);
+        this.textEditor.setTextInBufferRange(newRange, this.content);
     }
 
     removeBoundary() {
-        const textBuffer = this.editor.getBuffer();
+        const textBuffer = this.textEditor.getBuffer();
         const range = resizeRange(textBuffer, this.range, 2, -2)
-        const rawContent = this.editor.getTextInBufferRange(range);
-        this.editor.setTextInBufferRange(this.range, rawContent.trim());
+        const rawContent = this.textEditor.getTextInBufferRange(range);
+        this.textEditor.setTextInBufferRange(this.range, rawContent.trim());
     }
 
     // replace and insert one or more lines of content at the goal
     // usage: splitting case
     writeLines(contents: string[]) {
-        const textBuffer = this.editor.getBuffer();
+        const textBuffer = this.textEditor.getBuffer();
         const rows = this.range.getRows();
         const firstRowRange = textBuffer.rangeForRow(rows[0], false);
 
         // indent and join with \n
-        const indentSpaces = this.editor.getTextInBufferRange(firstRowRange).match(/^(\s)*/)[0];
+        const indentSpaces = this.textEditor.getTextInBufferRange(firstRowRange).match(/^(\s)*/)[0];
         const indentedContents = contents.map((s) => { return indentSpaces + s; }).join('\n') + '\n';
 
         // delete original rows
@@ -154,19 +154,19 @@ export default class Goal {
     writeLambda(contents: string[]) {
 
         // range to scan
-        const textBuffer = this.editor.getBuffer();
+        const textBuffer = this.textEditor.getBuffer();
         const beforeRange = new Range(textBuffer.getFirstPosition(), this.range.start);
         const afterRange = new Range(this.range.end, textBuffer.getEndPosition());
 
         // scan and build the range to replace text with
-        this.editor.backwardsScanInBufferRange(/\;\s*|\{\s*/, beforeRange, (result) => {
+        this.textEditor.backwardsScanInBufferRange(/\;\s*|\{\s*/, beforeRange, (result) => {
             const rewriteRangeStart = result.range.end;
             result.stop();
-            this.editor.scanInBufferRange(/\s*\;|\s*\}/, afterRange, (result) => {
+            this.textEditor.scanInBufferRange(/\s*\;|\s*\}/, afterRange, (result) => {
                 const rewriteRangeEnd = result.range.start;
                 result.stop();
                 const rewriteRange = new Range(rewriteRangeStart, rewriteRangeEnd);
-                this.editor.setTextInBufferRange(rewriteRange, contents.join(' ; '));
+                this.textEditor.setTextInBufferRange(rewriteRange, contents.join(' ; '));
             });
         });
     }
@@ -177,7 +177,7 @@ export default class Goal {
             new Point(0, 2),
             new Point(0, -2)
         );
-        const rawContent = this.editor.getTextInBufferRange(range);
+        const rawContent = this.textEditor.getTextInBufferRange(range);
         return parseInputContent(rawContent);
     }
 
@@ -188,7 +188,7 @@ export default class Goal {
         );
         const indexWidth = this.index === -1 ? 1 : this.index.toString().length;
         const paddingSpaces = _.repeat(' ', indexWidth);
-        this.editor.setTextInBufferRange(range, ` ${text} ${paddingSpaces}`);
+        this.textEditor.setTextInBufferRange(range, ` ${text} ${paddingSpaces}`);
         return this;
     }
 
@@ -198,7 +198,7 @@ export default class Goal {
             new Point(0, 3),
             new Point(0, -(3 + indexWidth))
         );
-        this.editor.setSelectedBufferRange(range, {
+        this.textEditor.setSelectedBufferRange(range, {
             reversed: false,
             preserveFolds: true
         });

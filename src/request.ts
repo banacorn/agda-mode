@@ -16,19 +16,18 @@ function getLibraryPath(): string {
 
 const sendRequest = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (conn: Connection): Promise<Agda.Response[]> => {
     const highlightingMethod = atom.config.get('agda-mode.highlightingMethod');
-    let reqeust: string;
+    let request: string;
     if (typeof interaction === 'string') {
-        reqeust = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction} )\n`
+        request = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction} )\n`
     } else {    // interaction is a callback
-        reqeust = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(conn)} )\n`;
+        request = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(conn)} )\n`;
     }
     // pushing the unfullfilled request to the back of the backlog queue of Connection
     const promise = new Promise<Agda.Response[]>((resolve, reject) => {
         conn.queue.unshift({ resolve, reject });
     });
     // send it out
-    conn.stream.write(reqeust);
-
+    conn.stream.write(request);
     return promise;
 }
 
