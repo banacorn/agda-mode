@@ -1,10 +1,11 @@
 import * as fs from 'fs';
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
-import { Agda, Goal, View, Location } from './type';
+import { Agda, View, Location } from './type';
 import { parseHole, parseFilepath } from './parser';
 import Core from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
+import Goal from './editor/goal';
 var { Range, Point, CompositeDisposable } = require('atom');
 
 declare var atom: any;
@@ -28,6 +29,15 @@ export default class Editor {
 
     getTextEditor(): TextEditor {
         return this.textEditor;
+    }
+
+
+    warnOutOfGoal() {
+        this.core.view.set('Out of goal', ['For this command, please place the cursor in a goal'], View.Style.Warning);
+    }
+
+    warnEmptyGoal(error: any) {
+        this.core.view.set('No content', [error.message], View.Style.Warning);
     }
 
     //////////////////
@@ -102,24 +112,7 @@ export default class Editor {
         textEditorElement.focus();
     }
 
-    ///////////////////////
-    //  Goal Management  //
-    ///////////////////////
-
-
-    warnOutOfGoal() {
-        this.core.view.set('Out of goal', ['For this command, please place the cursor in a goal'], View.Style.Warning);
-    }
-
-    warnEmptyGoal(error: any) {
-        this.core.view.set('No content', [error.message], View.Style.Warning);
-    }
-
-    ////////////////
-    //  Commands  //
-    ////////////////
-
-    nextGoal(): Promise<{}> {
+    jumpToNextGoal(): Promise<{}> {
         const cursor = this.textEditor.getCursorBufferPosition();
         let nextGoal = null;
 
@@ -145,7 +138,7 @@ export default class Editor {
         return Promise.resolve({});
     }
 
-    previousGoal(): Promise<{}> {
+    jumpToPreviousGoal(): Promise<{}> {
         const cursor = this.textEditor.getCursorBufferPosition();
         let previousGoal = null;
 

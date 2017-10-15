@@ -1,4 +1,4 @@
-import { Goal } from './type';
+import Goal from './editor/goal';
 
 // for parsing related errors
 export class ParseError extends Error {

@@ -163,12 +163,12 @@ export default class Commander {
     private showGoals = Req.showGoals
 
     private nextGoal = (conn: Connection): Promise<Agda.Response[]> => {
-        return this.core.editor.nextGoal()
+        return this.core.editor.jumpToNextGoal()
             .then(() => Promise.resolve([]));
     }
 
     private previousGoal = (conn: Connection): Promise<Agda.Response[]> => {
-        return this.core.editor.previousGoal()
+        return this.core.editor.jumpToPreviousGoal()
             .then(() => Promise.resolve([]));
     }
 

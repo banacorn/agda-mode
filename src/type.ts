@@ -1,4 +1,3 @@
-import Goal from './goal';
 import * as Promise from 'bluebird';
 import { EventEmitter } from 'events';
 import { ParsedPath } from 'path';
@@ -430,7 +429,6 @@ export type Connection = ConnectionInfo & {
 export {
     Agda,
     Hole,
-    Goal,
     Token,
     TokenType,
     // commands

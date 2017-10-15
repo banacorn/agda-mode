@@ -1,7 +1,8 @@
 import * as Promise from 'bluebird';
 import { parseFilepath } from './parser';
-import { Agda, Connection, Goal } from './type';
+import { Agda, Connection } from './type';
 import * as semver from 'semver';
+import Goal from './editor/goal';
 
 declare var atom: any;
 
