@@ -89,28 +89,29 @@ export default class Commander {
                 'InputSymbolBackQuote'
             ], command.kind);
 
-        if (command.kind === 'Load') {
-            // activate the view first
-            const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
-            this.core.view.mountPanel(currentMountingPosition);
-            this.core.view.activatePanel();
-            return this.core.connection.connect()
-                .then(this.startCheckpoint)
-                .then(this.dispatchCommand(command))
-                .then(handleResponses(this.core))
-                .finally(this.endCheckpoint)
-                .catch(this.core.connection.handleError)
-        } else if (needNoConnection) {
+        if (needNoConnection) {
             return this.dispatchCommand(command)(null)
                 .then(handleResponses(this.core))
                 .catch(this.core.connection.handleError)
         } else {
-            return this.core.connection.getConnection()
+            var connection: Promise<Connection>;
+            if (command.kind === 'Load') {
+                // activate the view first
+                const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+                this.core.view.mountPanel(currentMountingPosition);
+                this.core.view.activatePanel();
+                // initialize connection
+                connection = this.core.connection.connect();
+            } else {
+                // get existing connection
+                connection = this.core.connection.getConnection()
+            }
+            return connection
                 .then(this.startCheckpoint)
                 .then(this.dispatchCommand(command))
                 .then(handleResponses(this.core))
                 .finally(this.endCheckpoint)
-                .catch(this.core.connection.handleError)
+                .catch(this.core.connection.handleError);
         }
     }
 
