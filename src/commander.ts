@@ -24,25 +24,57 @@ function toDescription(normalization: Agda.Normalization): string {
 export default class Commander {
     private loaded: boolean;
 
-    private originalState: {
-        checkpoints: number[];
-        goals: Goal[];
+    private history: {
+        checkpoints: number[];  // checkpoint stack
+        goalIndices: number[];
     };
 
     constructor(private core: Core) {
         this.dispatchCommand = this.dispatchCommand.bind(this);
+        this.startCheckpoint = this.startCheckpoint.bind(this);
+        this.endCheckpoint = this.endCheckpoint.bind(this);
 
-        this.originalState = {
+        this.history = {
             checkpoints: [],
-            goals: []
+            goalIndices: []
         };
     }
 
-    dispatchUndo = () => {
-        // reset goals after undo
-        this.core.editor.getTextEditor().undo();
-        this.core.editor.onInteractionPoints(this.originalState.goals.map(o => o.index));
+    //
+    //  History Management
+    //
+
+    // sometimes a child command may be invoked by some parent command,
+    // in that case, both the parent and the child command should be
+    // regarded as a single action
+
+    private startCheckpoint = (conn: Connection): Connection => {
+        this.history.checkpoints.push(this.core.editor.getTextEditor().createCheckpoint());
+
+        // record the goal indices if it's a parent command
+        if (this.history.checkpoints.length === 1) {
+            this.history.goalIndices = this.core.editor.goal.getAll().map(o => o.index);
+        }
+        return conn;
     }
+
+    private endCheckpoint = () => {
+        const checkpoint = this.history.checkpoints.pop();
+        // group changes if it's a parent command
+        if (this.history.checkpoints.length === 0) { // popped
+            this.core.editor.getTextEditor().groupChangesSinceCheckpoint(checkpoint);
+        }
+    }
+
+    //
+    //  Dispatchers
+    //
+
+    // dispatchUndo = () => {
+    //     // reset goals after undo
+    //     this.core.editor.getTextEditor().undo();
+    //     this.core.editor.onInteractionPoints(this.history.goalIndices);
+    // }
 
     dispatch = (command: Agda.Command): Promise<void> => {
         // some commands can be executed without connection to Agda
@@ -63,18 +95,10 @@ export default class Commander {
             this.core.view.mountPanel(currentMountingPosition);
             this.core.view.activatePanel();
             return this.core.connection.connect()
-                // start grouping actions
-                .then(conn => {
-                    this.originalState.checkpoints.push(this.core.editor.getTextEditor().createCheckpoint());
-                    this.originalState.goals = this.core.editor.goal.getAll();
-                    return conn;
-                })
+                .then(this.startCheckpoint)
                 .then(this.dispatchCommand(command))
                 .then(handleResponses(this.core))
-                .then(() => {
-                    const checkpoint = this.originalState.checkpoints.pop();
-                    this.core.editor.getTextEditor().groupChangesSinceCheckpoint(checkpoint);
-                })
+                .finally(this.endCheckpoint)
                 .catch(this.core.connection.handleError)
         } else if (needNoConnection) {
             return this.dispatchCommand(command)(null)
@@ -82,17 +106,10 @@ export default class Commander {
                 .catch(this.core.connection.handleError)
         } else {
             return this.core.connection.getConnection()
-                .then(conn => {
-                    this.originalState.checkpoints.push(this.core.editor.getTextEditor().createCheckpoint());
-                    this.originalState.goals = this.core.editor.goal.getAll();
-                    return conn;
-                })
+                .then(this.startCheckpoint)
                 .then(this.dispatchCommand(command))
                 .then(handleResponses(this.core))
-                .then(() => {
-                    const checkpoint = this.originalState.checkpoints.pop();
-                    this.core.editor.getTextEditor().groupChangesSinceCheckpoint(checkpoint);
-                })
+                .finally(this.endCheckpoint)
                 .catch(this.core.connection.handleError)
         }
     }
