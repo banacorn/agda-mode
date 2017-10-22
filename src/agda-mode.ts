@@ -52,7 +52,9 @@ const commands = [
     'agda-mode:input-symbol-parenthesis',
     'agda-mode:input-symbol-double-quote',
     'agda-mode:input-symbol-single-quote',
-    'agda-mode:input-symbol-back-quote'
+    'agda-mode:input-symbol-back-quote',
+
+    'core:undo'
 ]
 
 let subscriptions = null;
@@ -111,14 +113,14 @@ function registerCommands() {
             if (editor.core) {
                 const core: Core = editor.core;
 
-                core.view.store.dispatch(Action.PROTOCOL.clearAll());
-                core.commander.dispatch(parseCommand(command));
-                // if (command === 'core:undo') {
-                //     // override UNDO
-                //     // event.stopImmediatePropagation();
-                //     // core.commander.dispatchUndo();
-                // } else {
-                // }
+                // hijack UNDO
+                if (command === 'core:undo') {
+                    event.stopImmediatePropagation();
+                    core.commander.dispatchUndo();
+                } else {
+                    core.view.store.dispatch(Action.PROTOCOL.clearAll());
+                    core.commander.dispatch(parseCommand(command));
+                }
             }
         }));
     })

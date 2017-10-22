@@ -26,7 +26,7 @@ export default class Commander {
 
     private history: {
         checkpoints: number[];  // checkpoint stack
-        goalIndices: number[];
+        reload: boolean;        // should reload to reconcile goals
     };
 
     constructor(private core: Core) {
@@ -36,7 +36,7 @@ export default class Commander {
 
         this.history = {
             checkpoints: [],
-            goalIndices: []
+            reload: false
         };
     }
 
@@ -48,12 +48,19 @@ export default class Commander {
     // in that case, both the parent and the child command should be
     // regarded as a single action
 
-    private startCheckpoint = (conn: Connection): Connection => {
+    private startCheckpoint = (command: Agda.Command) => (conn: Connection): Connection => {
         this.history.checkpoints.push(this.core.editor.getTextEditor().createCheckpoint());
 
-        // record the goal indices if it's a parent command
         if (this.history.checkpoints.length === 1) {
-            this.history.goalIndices = this.core.editor.goal.getAll().map(o => o.index);
+            // see if reloading is needed on undo
+            const needReload = _.includes([
+                'SolveConstraints',
+                'Give',
+                'Refine',
+                'Auto',
+                'Case'
+            ], command.kind);
+            this.history.reload = needReload;
         }
         return conn;
     }
@@ -70,11 +77,13 @@ export default class Commander {
     //  Dispatchers
     //
 
-    // dispatchUndo = () => {
-    //     // reset goals after undo
-    //     this.core.editor.getTextEditor().undo();
-    //     this.core.editor.onInteractionPoints(this.history.goalIndices);
-    // }
+    dispatchUndo = () => {
+        // reset goals after undo
+        this.core.editor.getTextEditor().undo();
+        // reload
+        if (this.history.reload)
+            this.dispatch({ kind: 'Load' });
+    }
 
     dispatch = (command: Agda.Command): Promise<void> => {
         // some commands can be executed without connection to Agda
@@ -107,7 +116,7 @@ export default class Commander {
                 connection = this.core.connection.getConnection()
             }
             return connection
-                .then(this.startCheckpoint)
+                .then(this.startCheckpoint(command))
                 .then(this.dispatchCommand(command))
                 .then(handleResponses(this.core))
                 .finally(this.endCheckpoint)
