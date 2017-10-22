@@ -2,6 +2,7 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { inspect } from 'util';
 import { OutOfGoalError, EmptyGoalError, QueryCancelled, NotLoadedError, InvalidExecutablePathError } from './error';
+import Goal from './editor/goal';
 import { View, Agda, Connection } from './type';
 import { handleResponses } from './response-handler';
 import Core from './core';
@@ -23,8 +24,24 @@ function toDescription(normalization: Agda.Normalization): string {
 export default class Commander {
     private loaded: boolean;
 
+    private originalState: {
+        checkpoints: number[];
+        goals: Goal[];
+    };
+
     constructor(private core: Core) {
         this.dispatchCommand = this.dispatchCommand.bind(this);
+
+        this.originalState = {
+            checkpoints: [],
+            goals: []
+        };
+    }
+
+    dispatchUndo = () => {
+        // reset goals after undo
+        this.core.editor.getTextEditor().undo();
+        this.core.editor.onInteractionPoints(this.originalState.goals.map(o => o.index));
     }
 
     dispatch = (command: Agda.Command): Promise<void> => {
@@ -40,8 +57,6 @@ export default class Commander {
                 'InputSymbolBackQuote'
             ], command.kind);
 
-        var checkpoint;
-
         if (command.kind === 'Load') {
             // activate the view first
             const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
@@ -50,12 +65,14 @@ export default class Commander {
             return this.core.connection.connect()
                 // start grouping actions
                 .then(conn => {
-                    checkpoint = this.core.editor.getTextEditor().createCheckpoint();
+                    this.originalState.checkpoints.push(this.core.editor.getTextEditor().createCheckpoint());
+                    this.originalState.goals = this.core.editor.goal.getAll();
                     return conn;
                 })
                 .then(this.dispatchCommand(command))
                 .then(handleResponses(this.core))
                 .then(() => {
+                    const checkpoint = this.originalState.checkpoints.pop();
                     this.core.editor.getTextEditor().groupChangesSinceCheckpoint(checkpoint);
                 })
                 .catch(this.core.connection.handleError)
@@ -66,12 +83,14 @@ export default class Commander {
         } else {
             return this.core.connection.getConnection()
                 .then(conn => {
-                    checkpoint = this.core.editor.getTextEditor().createCheckpoint();
+                    this.originalState.checkpoints.push(this.core.editor.getTextEditor().createCheckpoint());
+                    this.originalState.goals = this.core.editor.goal.getAll();
                     return conn;
                 })
                 .then(this.dispatchCommand(command))
                 .then(handleResponses(this.core))
                 .then(() => {
+                    const checkpoint = this.originalState.checkpoints.pop();
                     this.core.editor.getTextEditor().groupChangesSinceCheckpoint(checkpoint);
                 })
                 .catch(this.core.connection.handleError)

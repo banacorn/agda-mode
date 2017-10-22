@@ -204,12 +204,12 @@ export default class Editor {
 
     onInteractionPoints(indices: number[]): Promise<void> {
         return this.protectCursor(() => {
-            let textRaw = this.textEditor.getText();
+            const textRaw = this.textEditor.getText();
             this.goal.removeAll();
-            parseHole(textRaw, indices).forEach((hole) => {
+            const goals = parseHole(textRaw, indices).map((hole) => {
                 let range = this.fromIndexRange(hole.originalRange);
                 this.textEditor.setTextInBufferRange(range, hole.content);
-                let goal = new Goal(
+                return new Goal(
                     this.textEditor,
                     hole.index,
                     {
@@ -217,8 +217,8 @@ export default class Editor {
                         end: hole.modifiedRange.end,
                     }
                 );
-                this.goal.add(goal);
             });
+            this.goal.setAll(goals);
         });
     }
 
@@ -299,8 +299,8 @@ class GoalManager {
         return this.goals;
     }
 
-    add(goal: Goal) {
-        this.goals.push(goal);
+    setAll(goals: Goal[]) {
+        this.goals = goals;
     }
 
     remove(index: number) {
