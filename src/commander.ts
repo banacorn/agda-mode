@@ -40,17 +40,24 @@ export default class Commander {
                 'InputSymbolBackQuote'
             ], command.kind);
 
+        var checkpoint;
+
         if (command.kind === 'Load') {
             // activate the view first
             const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
             this.core.view.mountPanel(currentMountingPosition);
             this.core.view.activatePanel();
             return this.core.connection.connect()
+                // start grouping actions
                 .then(conn => {
-                    return conn
+                    checkpoint = this.core.editor.getTextEditor().createCheckpoint();
+                    return conn;
                 })
                 .then(this.dispatchCommand(command))
                 .then(handleResponses(this.core))
+                .then(() => {
+                    this.core.editor.getTextEditor().groupChangesSinceCheckpoint(checkpoint);
+                })
                 .catch(this.core.connection.handleError)
         } else if (needNoConnection) {
             return this.dispatchCommand(command)(null)
@@ -58,8 +65,15 @@ export default class Commander {
                 .catch(this.core.connection.handleError)
         } else {
             return this.core.connection.getConnection()
+                .then(conn => {
+                    checkpoint = this.core.editor.getTextEditor().createCheckpoint();
+                    return conn;
+                })
                 .then(this.dispatchCommand(command))
                 .then(handleResponses(this.core))
+                .then(() => {
+                    this.core.editor.getTextEditor().groupChangesSinceCheckpoint(checkpoint);
+                })
                 .catch(this.core.connection.handleError)
         }
     }
