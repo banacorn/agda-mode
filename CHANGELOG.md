@@ -1,3 +1,8 @@
+## 0.7.5
+* Undo/Redo
+* Implement #46
+* Fix #51 (errors in agda-mode:give after Agda-2.5.3)
+
 ## 0.7.4
 * Fix #51 (error when introducing latex symbols before agda-mode:load)
 * Fix #52
