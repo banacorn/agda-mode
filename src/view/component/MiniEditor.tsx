@@ -86,12 +86,13 @@ class MiniEditor extends React.Component<Props, State> {
         }
 
         // subscribe to Atom's core events
-        this.subscriptions.add(atom.commands.add(this.ref, 'core:confirm', () => {
+        this.subscriptions.add(atom.commands.add(this.ref, 'core:confirm', event => {
             const payload = parseInputContent(this.ref.getModel().getText());
             if (this.props.onConfirm)
                 this.props.onConfirm(payload);
             // resolve TelePromise for queries
             this.queryTP.resolve(payload);
+
         }));
         this.subscriptions.add(atom.commands.add(this.ref, 'core:cancel', () => {
             if (this.props.onCancel)

@@ -129,6 +129,13 @@ export default class InputMethod {
         this.insertCharToBuffer(key);
     }
 
+    confirm() {
+        if (this.activated) {
+            this.deactivate();
+            event.stopImmediatePropagation();
+        }
+    }
+
     destroy() {
         this.subscriptions.dispose();
     }
@@ -187,6 +194,10 @@ export default class InputMethod {
             this.decoration.destroy();
             this.activated = false;
         }
+    }
+
+    cancel() {
+        this.deactivate();
     }
 
     //////////////
