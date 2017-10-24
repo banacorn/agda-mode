@@ -101,11 +101,9 @@ function parseCommand(raw: string): Agda.Command {
         };
         case 'input-symbol': return {
             kind: 'InputSymbol',
-
         };
         case 'input-symbol-curly-bracket': return {
-            kind: 'InputSymbolCurlyBracket',
-
+            kind: 'InputSymbolCurlyBracket'
         };
         case 'input-symbol-bracket': return {
             kind: 'InputSymbolBracket',
@@ -121,6 +119,9 @@ function parseCommand(raw: string): Agda.Command {
         };
         case 'input-symbol-back-quote': return {
             kind: 'InputSymbolBackQuote',
+        };
+        case 'query-symbol': return {
+            kind: 'QuerySymbol',
         };
 
         default: throw `unknown command ${raw}`;

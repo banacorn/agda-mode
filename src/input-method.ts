@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import Keymap from './keymap';
+import Keymap from './asset/keymap';
 import Core from './core';
 import { INPUT_METHOD } from './view/actions';
 
@@ -129,6 +129,13 @@ export default class InputMethod {
         this.insertCharToBuffer(key);
     }
 
+    confirm() {
+        if (this.activated) {
+            this.deactivate();
+            event.stopImmediatePropagation();
+        }
+    }
+
     destroy() {
         this.subscriptions.dispose();
     }
@@ -189,6 +196,10 @@ export default class InputMethod {
         }
     }
 
+    cancel() {
+        this.deactivate();
+    }
+
     //////////////
     //  Events  //
     //////////////
@@ -242,7 +253,16 @@ export default class InputMethod {
 
     // inserts 1 character to the text buffer (may trigger some events)
     insertCharToBuffer(char: string) {
+        // replace previously selected text with '\'
+        const selectedRange = this.editor.getSelectedBufferRange();
+        this.editor.getBuffer().delete(selectedRange);
+        // insert the desired character
         this.editor.getBuffer().insert(this.textEditorMarker.getBufferRange().end, char);
+        // in case that '\' is being inserted and happens to be selected, unselected it
+        if (this.editor.getSelectedText() === '\\') {
+            const cursor = this.editor.getSelectedBufferRange().end;
+            this.editor.setCursorBufferPosition(cursor);
+        }
     }
 
     // replace content of the marker with supplied string (may trigger some events)

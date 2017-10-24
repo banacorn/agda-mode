@@ -52,7 +52,10 @@ const commands = [
     'agda-mode:input-symbol-parenthesis',
     'agda-mode:input-symbol-double-quote',
     'agda-mode:input-symbol-single-quote',
-    'agda-mode:input-symbol-back-quote'
+    'agda-mode:input-symbol-back-quote',
+    'agda-mode:query-symbol',
+
+    'core:undo'
 ]
 
 let subscriptions = null;
@@ -98,7 +101,7 @@ function activate(state: any) {
 // register keymap bindings and emit commands
 function registerCommands() {
     commands.forEach((command) => {
-        subscriptions.add(atom.commands.add('atom-text-editor', command, () => {
+        subscriptions.add(atom.commands.add('atom-text-editor', command, event => {
             const paneItem = atom.workspace.getActivePaneItem()
             let editor = null;
             // since the pane item may be a spawned agda view
@@ -110,8 +113,15 @@ function registerCommands() {
             // console.log(`[${editor.id}] ${command}`)
             if (editor.core) {
                 const core: Core = editor.core;
-                core.view.store.dispatch(Action.PROTOCOL.clearAll());
-                core.commander.dispatch(parseCommand(command));
+
+                // hijack UNDO
+                if (command === 'core:undo') {
+                    event.stopImmediatePropagation();
+                    core.commander.dispatchUndo();
+                } else {
+                    core.view.store.dispatch(Action.PROTOCOL.clearAll());
+                    core.commander.dispatch(parseCommand(command));
+                }
             }
         }));
     })

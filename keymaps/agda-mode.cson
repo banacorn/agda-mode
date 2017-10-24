@@ -6,12 +6,14 @@
 # the root workspace element.
 
 # For more detailed documentation see
-# https://atom.io/docs/latest/behind-atom-keymaps-in-depth
+# http://flight-manual.atom.io/behind-atom/sections/keymaps-in-depth
 'atom-text-editor[data-grammar~="agda"]':
     'ctrl-c        ctrl-l': 'agda-mode:load'
     # invoke input method
     '\\': 'agda-mode:input-symbol'
     'alt-/': 'agda-mode:input-symbol'
+    # query unicode symbol input sequence
+    'ctrl-u ctrl-x =': 'agda-mode:query-symbol'
 
 # intercepting opening brackets or quotes
 'atom-text-editor.agda-mode-input-method-activated':

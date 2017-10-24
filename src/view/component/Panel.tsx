@@ -103,10 +103,12 @@ class Panel extends React.Component<Props, {}> {
                             this.props.handelQueryValueChange(result);
                             core.view.editors.focus('main')
                             this.props.deactivateMiniEditor();
+                            core.inputMethod.confirm();
                         }}
                         onCancel={() => {
                             core.view.editors.focus('main')
                             this.props.deactivateMiniEditor();
+                            core.inputMethod.cancel();
                         }}
                     />
                     <div

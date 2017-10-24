@@ -1,12 +1,15 @@
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { inspect } from 'util';
-import { OutOfGoalError, EmptyGoalError, QueryCancelled, NotLoadedError, InvalidExecutablePathError } from './error';
+import * as Err from './error';
+// import { OutOfGoalError, EmptyGoalError, NotLoadedError, InvalidExecutablePathError } from './error';
+import Goal from './editor/goal';
 import { View, Agda, Connection } from './type';
 import { handleResponses } from './response-handler';
 import Core from './core';
 import * as Req from './request';
 import * as Action from './view/actions';
+import Table from './asset/query';
 
 declare var atom: any;
 
@@ -23,8 +26,65 @@ function toDescription(normalization: Agda.Normalization): string {
 export default class Commander {
     private loaded: boolean;
 
+    private history: {
+        checkpoints: number[];  // checkpoint stack
+        reload: boolean;        // should reload to reconcile goals
+    };
+
     constructor(private core: Core) {
         this.dispatchCommand = this.dispatchCommand.bind(this);
+        this.startCheckpoint = this.startCheckpoint.bind(this);
+        this.endCheckpoint = this.endCheckpoint.bind(this);
+
+        this.history = {
+            checkpoints: [],
+            reload: false
+        };
+    }
+
+    //
+    //  History Management
+    //
+
+    // sometimes a child command may be invoked by some parent command,
+    // in that case, both the parent and the child command should be
+    // regarded as a single action
+
+    private startCheckpoint = (command: Agda.Command) => (conn: Connection): Connection => {
+        this.history.checkpoints.push(this.core.editor.getTextEditor().createCheckpoint());
+
+        if (this.history.checkpoints.length === 1) {
+            // see if reloading is needed on undo
+            const needReload = _.includes([
+                'SolveConstraints',
+                'Give',
+                'Refine',
+                'Auto',
+                'Case'
+            ], command.kind);
+            this.history.reload = needReload;
+        }
+        return conn;
+    }
+
+    private endCheckpoint = () => {
+        const checkpoint = this.history.checkpoints.pop();
+        // group changes if it's a parent command
+        if (this.history.checkpoints.length === 0) { // popped
+            this.core.editor.getTextEditor().groupChangesSinceCheckpoint(checkpoint);
+        }
+    }
+
+    //
+    //  Dispatchers
+    //
+
+    dispatchUndo = () => {
+        // reset goals after undo
+        this.core.editor.getTextEditor().undo();
+        // reload
+        if (this.history.reload)
+            this.dispatch({ kind: 'Load' });
     }
 
     dispatch = (command: Agda.Command): Promise<void> => {
@@ -37,30 +97,36 @@ export default class Commander {
                 'InputSymbolParenthesis',
                 'InputSymbolDoubleQuote',
                 'InputSymbolSingleQuote',
-                'InputSymbolBackQuote'
+                'InputSymbolBackQuote',
+                'QuerySymbol'
             ], command.kind);
 
-        if (command.kind === 'Load') {
-            // activate the view first
-            const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
-            this.core.view.mountPanel(currentMountingPosition);
-            this.core.view.activatePanel();
-            return this.core.connection.connect()
-                .then(conn => {
-                    return conn
-                })
-                .then(this.dispatchCommand(command))
-                .then(handleResponses(this.core))
-                .catch(this.core.connection.handleError)
-        } else if (needNoConnection) {
+        if (needNoConnection) {
             return this.dispatchCommand(command)(null)
                 .then(handleResponses(this.core))
+                .catch(Err.QueryCancelled, () => {
+                    this.core.view.set('Query cancelled', [], View.Style.Warning);
+                })
                 .catch(this.core.connection.handleError)
         } else {
-            return this.core.connection.getConnection()
+            var connection: Promise<Connection>;
+            if (command.kind === 'Load') {
+                // activate the view first
+                const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+                this.core.view.mountPanel(currentMountingPosition);
+                this.core.view.activatePanel();
+                // initialize connection
+                connection = this.core.connection.connect();
+            } else {
+                // get existing connection
+                connection = this.core.connection.getConnection()
+            }
+            return connection
+                .then(this.startCheckpoint(command))
                 .then(this.dispatchCommand(command))
                 .then(handleResponses(this.core))
-                .catch(this.core.connection.handleError)
+                .finally(this.endCheckpoint)
+                .catch(this.core.connection.handleError);
         }
     }
 
@@ -113,6 +179,7 @@ export default class Commander {
                 return this.inputSymbolInterceptKey(command.kind, '\'');
             case 'InputSymbolBackQuote':
                 return this.inputSymbolInterceptKey(command.kind, '`');
+            case 'QuerySymbol':   return this.querySymbol;
             default:    throw `undispatched command type\n${JSON.stringify(command)}`
         }
     }
@@ -181,7 +248,7 @@ export default class Commander {
             .then((expr) => {
                 return this.core.editor.goal.pointing()
                     .then(goal => Req.whyInScope(expr, goal)(conn))
-                    .catch(OutOfGoalError, () => Req.whyInScopeGlobal(expr)(conn))
+                    .catch(Err.OutOfGoalError, () => Req.whyInScopeGlobal(expr)(conn))
             });
     }
 
@@ -231,7 +298,7 @@ export default class Commander {
                     return Req.computeNormalForm(computeMode, goal.getContent(), goal)(conn)
                 }
             })
-            .catch(OutOfGoalError, () => {
+            .catch(Err.OutOfGoalError, () => {
                 return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, 'expression to normalize:')
                     .then(expr => Req.computeNormalFormGlobal(computeMode, expr)(conn))
             })
@@ -253,7 +320,7 @@ export default class Commander {
                 }
             })
             .then(goal => Req.give(goal)(conn))
-            .catch(OutOfGoalError, () => {
+            .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Give` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
@@ -262,7 +329,7 @@ export default class Commander {
     private refine = (conn: Connection): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
             .then(goal => Req.refine(goal)(conn))
-            .catch(OutOfGoalError, () => {
+            .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Refine` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
@@ -271,7 +338,7 @@ export default class Commander {
     private auto = (conn: Connection): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
             .then(goal => Req.auto(goal)(conn))
-            .catch(OutOfGoalError, () => {
+            .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Auto` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
@@ -288,7 +355,7 @@ export default class Commander {
                 }
             })
             .then(goal => Req.makeCase(goal)(conn))
-            .catch(OutOfGoalError, () => {
+            .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Case` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
@@ -297,7 +364,7 @@ export default class Commander {
     private goalType = (normalization: Agda.Normalization) => (conn: Connection): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
             .then(goal => Req.goalType(normalization, goal)(conn))
-            .catch(OutOfGoalError, () => {
+            .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
@@ -306,7 +373,7 @@ export default class Commander {
     private context = (normalization: Agda.Normalization) => (conn: Connection): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
             .then(goal => Req.context(normalization, goal)(conn))
-            .catch(OutOfGoalError, () => {
+            .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
@@ -315,7 +382,7 @@ export default class Commander {
     private goalTypeAndContext = (normalization: Agda.Normalization) => (conn: Connection): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
             .then(goal => Req.goalTypeAndContext(normalization, goal)(conn))
-            .catch(OutOfGoalError, () => {
+            .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
@@ -324,7 +391,7 @@ export default class Commander {
     private goalTypeAndInferredType = (normalization: Agda.Normalization) => (conn: Connection): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
             .then(goal => Req.goalTypeAndInferredType(normalization, goal)(conn))
-            .catch(OutOfGoalError, () => {
+            .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Inferred Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
@@ -347,6 +414,18 @@ export default class Commander {
             this.core.view.editors.getFocusedEditorElement().insertText('\\');
         }
         return Promise.resolve([]);
+    }
+
+    private querySymbol = (conn: Connection): Promise<Agda.Response[]> => {
+        return this.core.view.query(`Query Unicode symbol input sequences`, [], View.Style.PlainText, 'symbol:')
+            .then(symbol => {
+                const sequences = Table[symbol.codePointAt(0)] || [];
+                this.core.view.set(
+                    `Input sequence for ${symbol}`,
+                    sequences,
+                    View.Style.PlainText);
+                    return [];
+            });
     }
 
     private inputSymbolInterceptKey = (kind, key: string) => (conn: Connection): Promise<Agda.Response[]> => {
