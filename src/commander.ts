@@ -8,7 +8,7 @@ import { handleResponses } from './response-handler';
 import Core from './core';
 import * as Req from './request';
 import * as Action from './view/actions';
-import Table from './query';
+import Table from './asset/query';
 
 declare var atom: any;
 

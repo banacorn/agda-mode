@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import Keymap from './keymap';
+import Keymap from './asset/keymap';
 import Core from './core';
 import { INPUT_METHOD } from './view/actions';
 
