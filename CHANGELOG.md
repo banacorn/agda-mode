@@ -1,6 +1,8 @@
-## 0.7.5
+## 0.7.6
 * Undo/Redo
 * Implement #46
+
+## 0.7.5
 * Fix #51 (error on agda-mode:give after Agda-2.5.3)
 
 ## 0.7.4
