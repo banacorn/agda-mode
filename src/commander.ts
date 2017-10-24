@@ -8,6 +8,7 @@ import { handleResponses } from './response-handler';
 import Core from './core';
 import * as Req from './request';
 import * as Action from './view/actions';
+import Table from './query';
 
 declare var atom: any;
 
@@ -95,7 +96,8 @@ export default class Commander {
                 'InputSymbolParenthesis',
                 'InputSymbolDoubleQuote',
                 'InputSymbolSingleQuote',
-                'InputSymbolBackQuote'
+                'InputSymbolBackQuote',
+                'QuerySymbol'
             ], command.kind);
 
         if (needNoConnection) {
@@ -173,6 +175,7 @@ export default class Commander {
                 return this.inputSymbolInterceptKey(command.kind, '\'');
             case 'InputSymbolBackQuote':
                 return this.inputSymbolInterceptKey(command.kind, '`');
+            case 'QuerySymbol':   return this.querySymbol;
             default:    throw `undispatched command type\n${JSON.stringify(command)}`
         }
     }
@@ -406,6 +409,31 @@ export default class Commander {
         } else {
             this.core.view.editors.getFocusedEditorElement().insertText('\\');
         }
+        return Promise.resolve([]);
+    }
+
+    private querySymbol = (conn: Connection): Promise<Agda.Response[]> => {
+        this.core.view.query(`Query Unicode symbol input sequences`, [], View.Style.PlainText, 'symbol:')
+            .then(symbol => {
+                const sequences = Table[symbol.codePointAt(0)] || [];
+                this.core.view.set(
+                    `Input sequence for ${symbol}`,
+                    sequences,
+                    View.Style.PlainText);
+            });
+        //
+        // const shouldNotActivate = this.core.view.editors.focused() === 'connection';
+        // if (atom.config.get('agda-mode.inputMethod') && !shouldNotActivate) {
+        //     if (!this.loaded) {
+        //         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+        //         this.core.view.mountPanel(currentMountingPosition);
+        //         this.core.view.activatePanel();
+        //         this.core.view.set('Not loaded', [], View.Style.PlainText);
+        //     }
+        //     this.core.inputMethod.activate();
+        // } else {
+        //     this.core.view.editors.getFocusedEditorElement().insertText('\\');
+        // }
         return Promise.resolve([]);
     }
 
