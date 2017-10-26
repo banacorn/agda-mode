@@ -1,8 +1,0 @@
--- Library 'haha' not found.
--- Add the path to its .agda-lib file to
---   '/home/banacorn/.agda/libraries'
--- to install.
--- Installed libraries:
---   standard-library
---     (/home/banacorn/agda/agda-stdlib-0.12/standard-library.agda-lib)
---   Numeral (/home/banacorn/agda/numeral/numeral.agda-lib)
