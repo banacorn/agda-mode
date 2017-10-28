@@ -1,30 +1,30 @@
 import * as _ from 'lodash';
 import { parseInputContent } from './../parser';
 
-type TextBuffer = any;
-type Point = any;
-type Range = any;
-type TextEditorMarker = any;
-type TextEditor = any;
-var { Point, Range } = require('atom');
+// type TextBuffer = any;
+// type Point = any;
+// type Range = any;
+// type TextEditorMarker = any;
+// type TextEditor = any;
+import { Point, Range } from 'atom';
 
-function translate(textBuffer: TextBuffer, p: Point, n: number): Point {
+function translate(textBuffer: Atom.TextBuffer, p: [number, number], n: number): Atom.Point {
     return textBuffer.positionForCharacterIndex(textBuffer.characterIndexForPosition(p) + n)
 }
 
-function resizeRange(textBuffer: TextBuffer, range: Range, left: number, right: number): Range {
-    const start = translate(textBuffer, range.start, left );
-    const end   = translate(textBuffer, range.end  , right);
+function resizeRange(textBuffer: Atom.TextBuffer, range: Atom.Range, left: number, right: number): Atom.Range {
+    const start = translate(textBuffer, [range.start.row, range.start.column], left );
+    const end   = translate(textBuffer, [range.end.row  , range.end.column  ], right);
     return new Range(start, end);
 }
 
 export default class Goal {
-    public  range: Range;
-    private marker: TextEditorMarker;
+    public  range: Atom.Range;
+    private marker: Atom.DisplayMarker;
     private content: string;
 
     constructor(
-        private textEditor: TextBuffer,
+        private textEditor: Atom.TextEditor,
         public index: number = -1,         // -1 as Nothing, fuck TypeScript
         public rangeIndex: {
             start: number;
@@ -93,8 +93,8 @@ export default class Goal {
                 const stretchRight = right - contentLength + 2;
                 this.range = resizeRange(textBuffer, newRange, left, stretchRight);
                 this.rangeIndex = {
-                    start: textBuffer.characterIndexForPosition(this.range.start),
-                    end: textBuffer.characterIndexForPosition(this.range.end),
+                    start: textBuffer.characterIndexForPosition(Point.fromObject(this.range.start)),
+                    end: textBuffer.characterIndexForPosition(Point.fromObject(this.range.end)),
                 }
                 // }resizeRange(textBuffer, newRange, left, stretchRight);
                 this.content = textBuffer.getTextInRange(this.range);
@@ -111,7 +111,7 @@ export default class Goal {
         this.marker.destroy();
     }
 
-    restoreBoundary(newRange: Range) {
+    restoreBoundary(newRange: Atom.Range) {
         this.textEditor.setTextInBufferRange(newRange, this.content);
     }
 

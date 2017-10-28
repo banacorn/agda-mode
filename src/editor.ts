@@ -6,28 +6,25 @@ import { parseHole, parseFilepath } from './parser';
 import Core from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
 import Goal from './editor/goal';
-var { Range, Point, CompositeDisposable } = require('atom');
 
-declare var atom: any;
-type TextEditor = any;
-type Point = any;
+import { TextEditor, Point, Range } from 'atom';
 
 export default class Editor {
 
     private core: Core;
-    private textEditor: TextEditor;
+    private textEditor: Atom.TextEditor;
     public highlighting: HighlightManager;
     public goal: GoalManager;
 
 
-    constructor(core: Core, textEditor: TextEditor) {
+    constructor(core: Core, textEditor: Atom.TextEditor) {
         this.core = core;
         this.textEditor = textEditor;
         this.goal = new GoalManager(textEditor);
         this.highlighting = new HighlightManager(this);
     }
 
-    getTextEditor(): TextEditor {
+    getTextEditor(): Atom.TextEditor {
         return this.textEditor;
     }
 
@@ -44,16 +41,12 @@ export default class Editor {
     //  Filesystem  //
     //////////////////
 
-    // issue #48, TextBuffer::save will be async in Atom 1.19
     save(): Promise<void> {
-        let promise = this.textEditor.save();
-        if (promise && promise.then) {
-            return promise.then((e) => {
-                return Promise.resolve();
-            })
-        } else {
-            return Promise.resolve();
-        }
+        return new Promise(resolve => {
+            this.textEditor.save().then((e) => {
+                resolve();
+            });
+        })
     }
 
     getPath(): string {
@@ -64,17 +57,17 @@ export default class Editor {
     //  Index <=> Point  //
     ///////////////////////
 
-    fromIndex(ind: number): Point {
+    fromIndex(ind: number): TextBuffer.Point {
         return this.textEditor.getBuffer().positionForCharacterIndex(ind);
     }
-    toIndex(pos: Point): number {
+    toIndex(pos: TextBuffer.Point): number {
         return this.textEditor.getBuffer().characterIndexForPosition(pos);
     }
-    translate(pos: number, n: number): Point {
+    translate(pos: TextBuffer.Point, n: number): TextBuffer.Point {
         return this.fromIndex((this.toIndex(pos)) + n)
     }
 
-    fromIndexRange(range: { start: number, end: number }): Range {
+    fromIndexRange(range: { start: number, end: number }): TextBuffer.Range {
         const start = this.fromIndex(range.start);
         const end   = this.fromIndex(range.end);
         return new Range(start, end);
@@ -86,14 +79,14 @@ export default class Editor {
 
     // shift cursor if in certain goal
     protectCursor<T>(callback: () => T): Promise<T> {
-        let position = this.textEditor.getCursorBufferPosition();
-        let result = callback();
+        const position = this.textEditor.getCursorBufferPosition();
+        const result = callback();
         return this.goal.pointing(position)
             .then((goal) => {
                 // reposition the cursor in the goal only if it's a fresh hole (coming from '?')
-                let isFreshHole = goal.isEmpty();
+                const isFreshHole = goal.isEmpty();
                 if (isFreshHole) {
-                    let newPosition = this.translate(goal.range.start, 3);
+                    const newPosition = this.translate(Point.fromObject(goal.range.start), 3);
                     setTimeout(() => {
                         this.textEditor.setCursorBufferPosition(newPosition);
                     });
@@ -108,7 +101,7 @@ export default class Editor {
     }
 
     focus() {
-        let textEditorElement = atom.views.getView(this.textEditor);
+        const textEditorElement = atom.views.getView(this.textEditor);
         textEditorElement.focus();
     }
 
@@ -116,8 +109,7 @@ export default class Editor {
         const cursor = this.textEditor.getCursorBufferPosition();
         let nextGoal = null;
         const positions = this.goal.getAll().map((goal) => {
-            const start = goal.range.start;
-            return this.translate(start, 3);
+            return this.translate(Point.fromObject(goal.range.start), 3);
         });
 
         positions.forEach((position) => {
@@ -142,8 +134,7 @@ export default class Editor {
         let previousGoal = null;
 
         const positions = this.goal.getAll().map((goal) => {
-            const start = goal.range.start;
-            return this.translate(start, 3);
+            return this.translate(Point.fromObject(goal.range.start), 3);
         });
 
         positions.forEach((position) => {
@@ -164,10 +155,9 @@ export default class Editor {
     }
 
     jumpToGoal(index: number) {
-        let goal = this.goal.find(index);
+        const goal = this.goal.find(index);
         if (goal) {
-            let start = goal.range.start;
-            let position = this.translate(start, 3);
+            const position = this.translate(Point.fromObject(goal.range.start), 3);
             this.textEditor.setCursorBufferPosition(position);
             this.focus();
         }
@@ -177,8 +167,10 @@ export default class Editor {
         this.focus();
         if (location.path) {
             atom.workspace.open(location.path)
-                .then(editor => {
-                    editor.setSelectedBufferRange(location.range, true);
+                .then((editor: Atom.TextEditor) => {
+                    editor.setSelectedBufferRange(location.range, {
+                        reversed: true
+                    });
                 })
         } else {
             this.goal.pointing()
@@ -192,7 +184,9 @@ export default class Editor {
                         range = location.range
                             .translate([goal.range.start.row, 0]);
                     }
-                    this.textEditor.setSelectedBufferRange(range, true);
+                    this.textEditor.setSelectedBufferRange(range, {
+                        reversed: true
+                    });
                 }).catch(() => this.warnOutOfGoal());
         }
     }
@@ -207,7 +201,7 @@ export default class Editor {
             const textRaw = this.textEditor.getText();
             this.goal.removeAll();
             const goals = parseHole(textRaw, indices).map((hole) => {
-                let range = this.fromIndexRange(hole.originalRange);
+                const range = this.fromIndexRange(hole.originalRange);
                 this.textEditor.setTextInBufferRange(range, hole.content);
                 return new Goal(
                     this.textEditor,
@@ -224,7 +218,7 @@ export default class Editor {
 
     onSolveAll(index: number, content: string): Promise<Goal> {
         return this.protectCursor(() => {
-            let goal = this.goal.find(index);
+            const goal = this.goal.find(index);
             goal.setContent(content);
             return goal;
         });
@@ -236,7 +230,7 @@ export default class Editor {
     // Give_String : ["agda2-give-action", 0, ...]
     onGiveAction(index: number, giveResult: 'Paren' | 'NoParen' | 'String', result: string): Promise<void> {
         return this.protectCursor(() => {
-            let goal = this.goal.find(index);
+            const goal = this.goal.find(index);
 
             switch (giveResult) {
                 case 'Paren':
@@ -273,16 +267,16 @@ export default class Editor {
 
     onJumpToError(filepath: string, charIndex: number): Promise<void> {
         if (this.getPath() === filepath) {
-            let position = this.fromIndex(charIndex - 1);
+            const position = this.fromIndex(charIndex - 1);
             this.textEditor.setCursorBufferPosition(position);
         }
         return Promise.resolve();
     }
 
     // Agda generates files with syntax highlighting notations,
-    // those files are temporary and should be deleted once used.
-    // note: no highlighting yet, we'll just delete them.
-    onHighlightLoadAndDelete(filepath: string): Promise<void> {
+    // those files are temporary and should be deconsted once used.
+    // note: no highlighting yet, we'll just deconste them.
+    onHighlightLoadAndDeconste(filepath: string): Promise<void> {
         fs.unlink(filepath, () => {});
         return Promise.resolve();
     }
@@ -291,7 +285,7 @@ export default class Editor {
 class GoalManager {
     private goals: Goal[];
 
-    constructor(private textEditor: TextEditor) {
+    constructor(private textEditor: Atom.TextEditor) {
         this.goals = [];
     }
 
@@ -319,7 +313,7 @@ class GoalManager {
     }
 
     find(index: number): Goal {
-        let goals = this.goals.filter((goal) => { return goal.index === index; })
+        const goals = this.goals.filter((goal) => { return goal.index === index; })
         return goals[0];
     }
 

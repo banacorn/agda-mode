@@ -1,10 +1,7 @@
 import * as _ from 'lodash';
-type CompositeDisposable = any;
-type TextEditor = any;
-declare var atom: any;
-var { CompositeDisposable } = require('atom');
 import * as Redux from 'redux';
 import * as Promise from 'bluebird';
+import { CompositeDisposable } from 'atom';
 
 import { View as ViewType } from './type';
 
@@ -17,14 +14,14 @@ import View from './view';
 import * as Action from './view/actions';
 
 export default class Core {
-    private disposables: CompositeDisposable;
+    private disposables: Atom.CompositeDisposable;
     public editor: Editor;
     public inputMethod: InputMethod;
     public commander: Commander;
     public view: View;
     public connection: ConnectionManager;
 
-    constructor(textEditor: TextEditor) {
+    constructor(textEditor: Atom.TextEditor) {
 
         // initialize all components
         this.disposables        = new CompositeDisposable();
