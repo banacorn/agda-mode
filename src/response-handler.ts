@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import * as fs from 'fs';
 import { Agda, View } from './type';
 import * as Req from './request';
-import Core from './core';
+import { Core } from './core';
 import * as Action from './view/actions';
 import { parseSExpression, parseAnnotation, parseJudgements, parseError, parseSolutions } from './parser';
 import * as Err from './error';

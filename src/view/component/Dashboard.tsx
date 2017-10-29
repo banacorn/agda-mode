@@ -5,7 +5,7 @@ import * as classNames from 'classnames';
 
 import { View } from '../../type';
 import * as Action from '../actions';
-import Core from '../../core';
+import { Core } from '../../core';
 
 // Atom shits
 type CompositeDisposable = any;

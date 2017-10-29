@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import Keymap from './asset/keymap';
-import Core from './core';
+import { Core } from './core';
 import { INPUT_METHOD } from './view/actions';
 
 type TextEditor = any;

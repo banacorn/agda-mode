@@ -6,7 +6,7 @@ import * as Err from './error';
 import Goal from './editor/goal';
 import { View, Agda, Connection } from './type';
 import { handleResponses } from './response-handler';
-import Core from './core';
+import { Core } from './core';
 import * as Req from './request';
 import * as Action from './view/actions';
 import Table from './asset/query';

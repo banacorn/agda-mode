@@ -10,7 +10,7 @@ import { EventEmitter } from 'events';
 import { basename, extname } from 'path';
 import ReduxThunk from 'redux-thunk'
 
-import Core from './core';
+import { Core } from './core';
 import Panel from './view/component/Panel';
 import Settings from './view/component/Settings';
 import MiniEditor from './view/component/MiniEditor';

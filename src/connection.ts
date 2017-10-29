@@ -12,7 +12,7 @@ import Rectifier from './parser/stream/rectifier';
 import { View, Connection, ProcessInfo, ConnectionInfo, GUID } from './type';
 import * as Err from './error';
 import { guid } from './util';
-import Core from './core';
+import { Core } from './core';
 import { parseFilepath, parseResponses } from './parser';
 import * as Action from "./view/actions";
 import * as InternalState from "./internal-state";

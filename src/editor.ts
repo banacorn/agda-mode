@@ -3,7 +3,7 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { Agda, View, Location } from './type';
 import { parseHole, parseFilepath } from './parser';
-import Core from './core';
+import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
 import Goal from './editor/goal';
 

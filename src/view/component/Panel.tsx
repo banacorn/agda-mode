@@ -5,7 +5,7 @@ import { EventEmitter } from 'events';
 
 declare var atom: any;
 
-import Core from '../../core';
+import { Core } from '../../core';
 import InputMethod from './InputMethod';
 import Header from './Header';
 import Body from './Body';

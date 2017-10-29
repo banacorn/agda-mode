@@ -6,7 +6,7 @@ import { View, ConnectionInfo } from '../../../type';
 import * as Conn from '../../../connection';
 import * as Err from '../../../error';
 import * as Action from '../../actions';
-import Core from '../../../core';
+import { Core } from '../../../core';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;

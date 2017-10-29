@@ -5,7 +5,7 @@ import * as classNames from 'classnames';
 
 import { View } from '../../type';
 import Dashboard from './Dashboard';
-import Core from '../../core';
+import { Core } from '../../core';
 
 function toStyle(type: View.Style): string {
     switch (type) {
