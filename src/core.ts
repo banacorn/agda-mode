@@ -13,7 +13,11 @@ import InputMethod from './input-method';
 import View from './view';
 import * as Action from './view/actions';
 
-export default class Core {
+export interface AgdaEditor extends Atom.TextEditor {
+    core: Core;
+}
+
+export class Core {
     private disposables: Atom.CompositeDisposable;
     public editor: Editor;
     public inputMethod: InputMethod;

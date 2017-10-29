@@ -1,12 +1,9 @@
 import * as _ from 'lodash';
-import Core from './core';
+import { Core, AgdaEditor } from './core';
 import * as Action from './view/actions';
 import { parseCommand } from './parser';
 
-type Editor = any;
-declare var atom: any;
-var { Range, CompositeDisposable } = require('atom');
-
+import { CompositeDisposable } from 'atom';
 
 const commands = [
     'agda-mode:load',
@@ -65,33 +62,41 @@ function deactivate() {
     subscriptions.dispose();
 }
 
+function isAgdaEditor(editor: Atom.TextEditor | AgdaEditor): editor is AgdaEditor {
+    return (<AgdaEditor>editor).core !== undefined;
+}
+
 // the "entry point" of the whole package
 function activate(state: any) {
     subscriptions = new CompositeDisposable; // gets disposed on deactivated
-    subscriptions.add(atom.workspace.observeTextEditors((editor: Editor) => {
-        let editorSubscriptions = new CompositeDisposable
-        // instantiate core if it's .agda
-        if (isAgdaFile(editor))
-            instantiateCore(editor);
 
-        editorSubscriptions.add(editor.onDidChangePath(() => {
+    // triggered everytime when a new text editor is opened
+    subscriptions.add(atom.workspace.observeTextEditors((textEditor: Atom.TextEditor | AgdaEditor) => {
+        let textEditorSubscriptions = new CompositeDisposable;
+
+        // plug Core into the TextEditor and make it a AgdaEditor
+        // when a new '.agda' or '.lagda' file is opened
+        if (isAgdaFile(textEditor))
+            toAgdaEditor(textEditor);
+
+        // subscribe to path change in case that `isAgdaFile(textEditor)` changed
+        textEditorSubscriptions.add(textEditor.onDidChangePath(() => {
             // agda => not agda
-            if (editor.core && !isAgdaFile(editor)) {
-                const editorElement = atom.views.getView(editor);
-                editorElement.classList.remove('agda');
-                editor.core.destroy();
-                delete editor.core;
+            if (isAgdaEditor(textEditor) && !isAgdaFile(textEditor)) {
+                fromAgdaEditor(textEditor);
             }
 
             // not agda => agda
-            if (!editor.core && isAgdaFile(editor)) {
-                instantiateCore(editor);
+            if (!isAgdaEditor(textEditor) && isAgdaFile(textEditor)) {
+                toAgdaEditor(textEditor);
             }
         }));
 
-        editorSubscriptions.add(editor.onDidDestroy(() => {
-            editorSubscriptions.dispose();
-        }))
+        textEditorSubscriptions.add(textEditor.onDidDestroy(() => {
+            if (isAgdaEditor)
+                fromAgdaEditor(<AgdaEditor>textEditor);
+            textEditorSubscriptions.dispose();
+        }));
     }));
 
     registerCommands();
@@ -101,19 +106,10 @@ function activate(state: any) {
 // register keymap bindings and emit commands
 function registerCommands() {
     commands.forEach((command) => {
-        subscriptions.add(atom.commands.add('atom-text-editor', command, event => {
-            const paneItem = atom.workspace.getActivePaneItem()
-            let editor = null;
-            // since the pane item may be a spawned agda view
-            if (_.includes(paneItem.classList, 'agda-view') && paneItem.getEditor) {
-                editor = paneItem.getEditor();
-            } else {
-                editor = paneItem;
-            }
-            // console.log(`[${editor.id}] ${command}`)
-            if (editor.core) {
-                const core: Core = editor.core;
-
+        subscriptions.add(atom.commands.add('atom-text-textEditor', command, event => {
+            const textEditor = atom.workspace.getActiveTextEditor()
+            if (isAgdaEditor(textEditor)) {
+                const core = textEditor.core;
                 // hijack UNDO
                 if (command === 'core:undo') {
                     event.stopImmediatePropagation();
@@ -127,48 +123,40 @@ function registerCommands() {
     })
 }
 
-// editor active/inactive event
+// textEditor active/inactive event
 function registerEditorActivation() {
-    let previousEditor = atom.workspace.getActivePaneItem();
-    // console.log(editor.id, previousEditor)
-    subscriptions.add(atom.workspace.onDidChangeActivePaneItem((nextEditor) => {
+    let previousEditor = atom.workspace.getActiveTextEditor();
+
+    // console.log(textEditor.id, previousEditor)
+    subscriptions.add(atom.workspace.onDidChangeActiveTextEditor((nextEditor) => {
+        // decativate previously activated AgdaEditor
+        if (isAgdaEditor(previousEditor))
+            previousEditor.core.deactivate();
+
+        // nextEditor may be UNDEFINED (when opening some stuffs)
         if (nextEditor) {
-            if (previousEditor.core)
-                previousEditor.core.deactivate();
-            if (nextEditor.core)
+            if (isAgdaEditor(nextEditor))
                 nextEditor.core.activate();
             previousEditor = nextEditor;
-        } else {
-            if (previousEditor.core)
-                previousEditor.core.deactivate();
         }
     }));
 }
 
-function instantiateCore(editor: Editor) {
-    // add 'agda' class to the editor element
-    // so that keymaps and styles know what to select
-    const editorElement = atom.views.getView(editor);
-    editorElement.classList.add('agda');
-    editor.core = new Core(editor);
-    const editorSubscriptions = editor.onDidDestroy(() => {
-        editor.core.destroy();
-        editorElement.classList.remove('agda');
-        editorSubscriptions.dispose();
-    });
+function fromAgdaEditor(agdaEditor: AgdaEditor) {
+    agdaEditor.core.destroy();
+    delete agdaEditor.core;
+    atom.views.getView(agdaEditor).classList.remove('agda');
 }
 
-
+function toAgdaEditor(textEditor: Atom.TextEditor) {
+    // add 'agda' class to TextEditor's element to apply keymaps and styles
+    atom.views.getView(textEditor).classList.add('agda');
+    (<AgdaEditor>textEditor).core = new Core(textEditor);
+}
 
 // if end with '.agda' or '.lagda'
-function isAgdaFile(editor: Editor): boolean {
-    let filepath: string;
-    if (editor && editor.getPath) {
-        filepath = editor.getPath();
-    } else {
-        filepath = atom.workspace.getActivePaneItem().getPath();
-    }
-
+function isAgdaFile(textEditor: Atom.TextEditor): boolean {
+    const filepath = textEditor.getPath();
     // filenames are case insensitive on Windows
     const onWindows = process.platform === 'win32';
     if (onWindows)

@@ -4,8 +4,8 @@ import { ParsedPath } from 'path';
 import { Duplex } from 'stream';
 import { AgdaError } from './parser/error';
 
-type Range = any;
 export type GUID = string;
+import { Range } from 'atom';
 
 export type TextInput = string;
 
@@ -392,7 +392,7 @@ export interface Occurence {
 
 export interface Location {
     path: string,
-    range: Range,
+    range: Atom.Range,
     isSameLine: boolean
 }
 
