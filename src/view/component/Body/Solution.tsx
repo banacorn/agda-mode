@@ -5,14 +5,9 @@ import * as classNames from 'classnames';
 import { EventEmitter } from 'events';
 import { EVENT } from '../../actions';
 
-declare var atom: any;
-
 import { View } from '../../../type';
-// import { updateMaxBodyHeight, EVENT } from '../actions';
 import Expr from './../Expr';
-// import Error from './Error';
-// import Location from './Location';
-//
+
 interface Props {
     solutions: View.Solutions;
     emitter: EventEmitter;

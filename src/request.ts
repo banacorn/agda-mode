@@ -4,8 +4,6 @@ import { Agda, Connection } from './type';
 import * as semver from 'semver';
 import Goal from './editor/goal';
 
-declare var atom: any;
-
 Promise.longStackTraces();  // for debugging
 
 function getLibraryPath(): string {

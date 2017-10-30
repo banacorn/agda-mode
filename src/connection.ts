@@ -6,8 +6,6 @@ import { spawn, exec, ChildProcess } from 'child_process';
 import { Duplex } from 'stream';
 var duplex = require('duplexer');
 
-declare var atom: any;
-
 import Rectifier from './parser/stream/rectifier';
 import { View, Connection, ProcessInfo, ConnectionInfo, GUID } from './type';
 import * as Err from './error';

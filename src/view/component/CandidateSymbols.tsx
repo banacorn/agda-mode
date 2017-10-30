@@ -1,10 +1,7 @@
 import * as _ from 'lodash';
 import * as React from 'react';
 
-var { CompositeDisposable } = require('atom');
-type CompositeDisposable = any;
-declare var atom: any;
-
+import { CompositeDisposable } from 'atom';
 
 type Props = React.HTMLProps<HTMLElement> & {
     candidates: string[]
@@ -19,7 +16,7 @@ interface State {
 
 class CandidateSymbols extends React.Component<Props, State> {
 
-    private subscriptions: CompositeDisposable;
+    private subscriptions: Atom.CompositeDisposable;
 
     constructor() {
         super();

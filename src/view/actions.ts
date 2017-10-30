@@ -4,7 +4,6 @@ import { createAction, handleAction, handleActions, Action } from 'redux-actions
 import { Parsed, Agda, View, Location, Connection, ConnectionInfo, GUID } from '../type';
 import { AgdaError } from '../parser';
 import * as InternalState from '../internal-state';
-declare var atom: any;
 
 // export type EVENT =
 //     EVENT.JUMP_TO_GOAL |

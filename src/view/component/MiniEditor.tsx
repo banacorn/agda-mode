@@ -7,10 +7,8 @@ import { parseInputContent } from '../../parser';
 import { TelePromise } from './../../util';
 import { QueryCancelled } from './../../error';
 
-// Atom shits
-type CompositeDisposable = any;
-var { CompositeDisposable } = require('atom');
-declare var atom: any;
+import { CompositeDisposable } from 'atom';
+
 declare global {
     namespace JSX {
         interface IntrinsicElements {
@@ -31,7 +29,7 @@ type State = {
 }
 
 class MiniEditor extends React.Component<Props, State> {
-    private subscriptions: CompositeDisposable;
+    private subscriptions: Atom.CompositeDisposable;
     private ref: any;
     private observer: MutationObserver;
     private queryTP: TelePromise<string>;
@@ -133,7 +131,7 @@ class MiniEditor extends React.Component<Props, State> {
         return this.state.focused;
     }
 
-    getModel() {
+    getModel(): Atom.TextEditor {
         return this.ref.getModel();
     }
 

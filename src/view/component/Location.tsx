@@ -6,9 +6,7 @@ import { View, Location as Loc } from '../../type';
 import { EVENT } from '../actions';
 
 // Atom shits
-type CompositeDisposable = any;
-var { CompositeDisposable } = require('atom');
-declare var atom: any;
+import { CompositeDisposable } from 'atom';
 
 type Props = React.HTMLProps<HTMLElement> & {
     emitter: EventEmitter;
@@ -16,7 +14,7 @@ type Props = React.HTMLProps<HTMLElement> & {
 }
 
 class Location extends React.Component<Props, {}> {
-    private subscriptions: CompositeDisposable;
+    private subscriptions: Atom.CompositeDisposable;
     private locationLink: HTMLElement;
     private locationPath: string;
     private location: Loc;
@@ -42,7 +40,10 @@ class Location extends React.Component<Props, {}> {
         if (this.props.abbr) {
             this.subscriptions.add(atom.tooltips.add(this.locationLink, {
                 title: this.locationPath,
-                delay: 0
+                delay: {
+                    show: 0,
+                    hide: 1000
+                }
             }));
         }
     }

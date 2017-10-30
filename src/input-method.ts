@@ -3,13 +3,7 @@ import Keymap from './asset/keymap';
 import { Core } from './core';
 import { INPUT_METHOD } from './view/actions';
 
-type TextEditor = any;
-type CompositeDisposable = any;
-type Decoration = any;
-type TextEditorMarker = any;
-type Range = any;
-declare var atom: any;
-var { Range, CompositeDisposable } = require('atom');
+import { Range, CompositeDisposable } from 'atom';
 
 function getKeySuggestions(trie: any): string[] {
     return Object.keys(_.omit(trie, '>>')).sort();
@@ -87,12 +81,12 @@ export function translate(input: string): {
 export default class InputMethod {
     private activated: boolean;
     private mute: boolean;
-    private subscriptions: CompositeDisposable;
-    private editor: TextEditor;
-    private decoration: Decoration;
+    private subscriptions: Atom.CompositeDisposable;
+    private editor: Atom.TextEditor;
+    private decoration: Atom.Decoration;
 
     // visual marker
-    textEditorMarker: TextEditorMarker;
+    textEditorMarker: Atom.DisplayMarker;
 
 
     constructor(private core: Core) {
@@ -145,7 +139,7 @@ export default class InputMethod {
             // initializations
             this.activated = true;
 
-            this.editor = this.core.view.editors.getFocusedEditorElement();
+            this.editor = this.core.view.editors.getFocusedEditor();
 
             // add class 'agda-mode-input-method-activated'
             const editorElement = atom.views.getView(this.editor);
@@ -187,7 +181,7 @@ export default class InputMethod {
     deactivate() {
         if (this.activated) {
             // add class 'agda-mode-input-method-activated'
-            const editorElement = this.core.view.editors.main;
+            const editorElement = atom.views.getView(this.core.view.editors.main);
             editorElement.classList.remove('agda-mode-input-method-activated');
             this.core.view.store.dispatch(INPUT_METHOD.deactivate());
             this.textEditorMarker.destroy();

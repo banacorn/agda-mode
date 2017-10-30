@@ -1,7 +1,5 @@
 import * as path from 'path';
 
-declare var atom: any;
-
 function parseFilepath(s: string): string {
     if (s) {
         // remove newlines

@@ -3,8 +3,6 @@ import { connect } from 'react-redux';
 import * as classNames from 'classnames';
 import { EventEmitter } from 'events';
 
-declare var atom: any;
-
 import { Core } from '../../core';
 import InputMethod from './InputMethod';
 import Header from './Header';

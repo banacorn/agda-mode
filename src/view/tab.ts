@@ -2,10 +2,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import { EventEmitter } from 'events';
 
-// Atom shits
-type CompositeDisposable = any;
-var { CompositeDisposable } = require('atom');
-declare var atom: any;
+import { CompositeDisposable } from 'atom';
 
 // Events
 export const OPEN = 'OPEN';
@@ -21,7 +18,7 @@ interface Item {
 
 export default class Tab {
     private emitter: EventEmitter;
-    private subscriptions: CompositeDisposable;
+    private subscriptions: Atom.CompositeDisposable;
 
     // True if event CLOSE was invoked by close()
     private closedDeliberately: boolean;
@@ -82,8 +79,9 @@ export default class Tab {
 
         const item = this.createPaneItem();
 
-        // return atom.workspace.open(uri, options).then(paneItem => {
-        return atom.workspace.open(item).then(item => {
+        // TODO: type this
+        const open = atom.workspace['open' + ''];
+        return open(item).then(item => {
             this.item = item;
             const pane = this.getPane();
             // on open

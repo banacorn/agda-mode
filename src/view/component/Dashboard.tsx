@@ -8,9 +8,7 @@ import * as Action from '../actions';
 import { Core } from '../../core';
 
 // Atom shits
-type CompositeDisposable = any;
-var { CompositeDisposable } = require('atom');
-declare var atom: any;
+import { CompositeDisposable } from 'atom';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
@@ -51,7 +49,7 @@ function mapDispatchToProps(dispatch): DispatchProps {
 }
 
 class Dashboard extends React.Component<Props, {}> {
-    private subscriptions: CompositeDisposable;
+    private subscriptions: Atom.CompositeDisposable;
     private toggleMountingPositionButton: HTMLElement;
     private toggleSettingsViewButton: HTMLElement;
 
@@ -63,11 +61,17 @@ class Dashboard extends React.Component<Props, {}> {
     componentDidMount() {
         this.subscriptions.add(atom.tooltips.add(this.toggleSettingsViewButton, {
             title: 'settings',
-            delay: 100
+            delay: {
+                show: 100,
+                hide: 1000
+            }
         }));
         this.subscriptions.add(atom.tooltips.add(this.toggleMountingPositionButton, {
             title: 'toggle panel docking position',
-            delay: 300,
+            delay: {
+                show: 300,
+                hide: 1000
+            },
             keyBindingCommand: 'agda-mode:toggle-docking'
 
         }));

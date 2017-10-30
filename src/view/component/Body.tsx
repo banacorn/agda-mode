@@ -4,8 +4,6 @@ import { connect } from 'react-redux';
 import * as classNames from 'classnames';
 import { EventEmitter } from 'events';
 
-declare var atom: any;
-
 import { View, Location as Loc } from '../../type';
 import { updateMaxBodyHeight, EVENT } from '../actions';
 import Expr from './Expr';

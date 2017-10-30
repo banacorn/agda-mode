@@ -106,7 +106,7 @@ function activate(state: any) {
 // register keymap bindings and emit commands
 function registerCommands() {
     commands.forEach((command) => {
-        subscriptions.add(atom.commands.add('atom-text-textEditor', command, event => {
+        subscriptions.add(atom.commands.add('atom-text-editor', command, event => {
             const textEditor = atom.workspace.getActiveTextEditor()
             if (isAgdaEditor(textEditor)) {
                 const core = textEditor.core;

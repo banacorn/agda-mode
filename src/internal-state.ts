@@ -2,8 +2,6 @@ import * as _ from 'lodash';
 
 import { ConnectionInfo, GUID } from './type';
 
-declare var atom: any;
-
 export type InternalState = {
     connections: ConnectionInfo[];
     selected?: GUID;

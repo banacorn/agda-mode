@@ -11,9 +11,6 @@ import * as Req from './request';
 import * as Action from './view/actions';
 import Table from './asset/query';
 
-declare var atom: any;
-
-
 function toDescription(normalization: Agda.Normalization): string {
     switch(normalization) {
         case 'Simplified':      return '';
@@ -411,7 +408,7 @@ export default class Commander {
             }
             this.core.inputMethod.activate();
         } else {
-            this.core.view.editors.getFocusedEditorElement().insertText('\\');
+            this.core.view.editors.getFocusedEditor().insertText('\\');
         }
         return Promise.resolve([]);
     }

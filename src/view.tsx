@@ -23,26 +23,22 @@ import { updateBody, updateError, updatePlainText, updateSolutions } from './vie
 import Tab from './view/tab';
 import { OutOfGoalError } from './error';
 
-// Atom shits
-type Editor = any;
-type CompositeDisposable = any;
-var { CompositeDisposable } = require('atom');
-declare var atom: any;
+import { CompositeDisposable } from 'atom';
 
 class EditorViewManager {
-    main: Editor;
+    main: Atom.TextEditor;
     general: MiniEditor;
     connection: MiniEditor;
 
-    constructor(main: Editor) {
-        this.main = atom.views.getView(main);
+    constructor(main: Atom.TextEditor) {
+        this.main = main;
     }
 
     // focus the specified editor
     focus(editor: 'main' | 'general' | 'connection') {
         switch (editor) {
             case 'main':
-                this.main.focus();
+                atom.views.getView(this.main).focus();
                 break;
             case 'general':
                 this.general && this.general.focus();
@@ -62,9 +58,16 @@ class EditorViewManager {
         return 'main';
     }
 
-    // get the element of the focused editor
-    getFocusedEditorElement() {
-        return this[this.focused()].getModel();
+    // get the focused editor
+    getFocusedEditor(): Atom.TextEditor {
+        const kind = this.focused();
+        switch (kind) {
+            case 'main':
+                return this.main;
+            case 'general':
+            case 'connection':
+                return this[kind].getModel();
+        }
     }
 }
 
@@ -77,7 +80,7 @@ class PanelManager {
 
 export default class View {
     private emitter: EventEmitter;
-    private subscriptions: CompositeDisposable;
+    private subscriptions: Atom.CompositeDisposable;
     public store: Redux.Store<V.State>;
     public editors: EditorViewManager;
     public panel: PanelManager;
@@ -141,7 +144,7 @@ export default class View {
         this.panel = new PanelManager(this.store);
 
         // Tab for <Panel>
-        this.panelTab = new Tab(this.editors.main.getModel(), 'panel');
+        this.panelTab = new Tab(this.editors.main, 'panel');
         this.panelTab.onOpen((item, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
@@ -156,8 +159,8 @@ export default class View {
         });
 
         // Tab for <Settings>
-        this.settingsTab = new Tab(this.editors.main.getModel(), 'settings', () => {
-            const { name } = path.parse(this.editors.main.getModel().getPath());
+        this.settingsTab = new Tab(this.editors.main, 'settings', () => {
+            const { name } = path.parse(this.editors.main.getPath());
             return `[Settings] ${name}`
         });
         this.settingsTab.onOpen((paneItem, panes) => {
@@ -208,10 +211,10 @@ export default class View {
                 case V.MountingPosition.Bottom:
                     // mounting position
                     const element = document.createElement('article');
+                    element.classList.add('agda-mode');
                     this.bottomPanel = atom.workspace.addBottomPanel({
                         item: element,
-                        visible: true,
-                        className: 'agda-mode'
+                        visible: true
                     });
                     // render
                     this.renderPanel(element);
