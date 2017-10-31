@@ -93,7 +93,7 @@ function activate(state: any) {
         }));
 
         textEditorSubscriptions.add(textEditor.onDidDestroy(() => {
-            if (isAgdaEditor)
+            if (isAgdaEditor(textEditor))
                 fromAgdaEditor(<AgdaEditor>textEditor);
             textEditorSubscriptions.dispose();
         }));

@@ -80,8 +80,7 @@ export default class Tab {
         const item = this.createPaneItem();
 
         // TODO: type this
-        const open = atom.workspace['open' + ''];
-        return open(item).then(item => {
+        return atom.workspace['open' + ''](item).then(item => {
             this.item = item;
             const pane = this.getPane();
             // on open
