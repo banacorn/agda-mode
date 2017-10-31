@@ -55,6 +55,12 @@ atom-text-editor.agda {
 
 }
 
+// remove that 1px left and bottom border coming with the panel
+// TODO, be more specific, target only agda-mode
+.panel-bottom {
+    border: 0;
+}
+
 .agda-mode {
 
     @headerHeight: 50px;
@@ -153,10 +159,6 @@ atom-text-editor.agda {
     //////////////////////////////////////////////////////
     // <Header>
     //////////////////////////////////////////////////////
-
-    &.panel-bottom {
-        border: 0;
-    }
 
     .agda-header {
         // flexbox
