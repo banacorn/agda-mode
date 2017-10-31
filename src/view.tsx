@@ -84,7 +84,7 @@ export default class View {
     public store: Redux.Store<V.State>;
     public editors: EditorViewManager;
     public panel: PanelManager;
-    private bottomPanel: any;
+    private bottomPanel: Atom.Panel;
 
     private panelTab: Tab;
     public settingsTab: Tab;
@@ -238,7 +238,8 @@ export default class View {
             switch (mountAt) {
                 case V.MountingPosition.Bottom:
                     this.bottomPanel.destroy();
-                    ReactDOM.unmountComponentAtNode(this.bottomPanel.item);
+                    const itemElement = this.bottomPanel.getItem() as Element;
+                    ReactDOM.unmountComponentAtNode(itemElement);
                     break;
                 case V.MountingPosition.Pane:
                     // saving the element for React to unmount
