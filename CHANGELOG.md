@@ -1,3 +1,7 @@
+## 0.7.7
+* Bring the spinner back for indicating pending commands
+* Fix some stuffs
+
 ## 0.7.6
 * Undo/Redo
 * Implement #46
