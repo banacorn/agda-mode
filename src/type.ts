@@ -74,6 +74,7 @@ namespace View {
 
     export interface Protocol {
         log: ReqRes[];
+        pending: boolean;
         lsp: boolean;
     }
 

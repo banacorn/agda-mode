@@ -57,6 +57,17 @@
             button.activated {
                 color: @text-color-selected;
             }
+
+            // the spinner
+            #spinner {
+                opacity: 0;
+            }
+            // show the spinner 0.3s after the classname ".pending" is added
+            #spinner.pending {
+                opacity: inherit;
+                transition-property: opacity;
+                transition-delay: 0.3s;
+            }
         }
     }
 

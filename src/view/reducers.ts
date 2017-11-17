@@ -34,6 +34,7 @@ const defaultState: View.State = {
     },
     protocol: {
         log: [],
+        pending: false,
         lsp: false
     },
     header: {
@@ -159,6 +160,9 @@ const protocol = handleActions<View.Protocol, PROTOCOL>({
     }),
     [PROTOCOL.TOGGLE_LSP]: (state, action: Action<PROTOCOL.TOGGLE_LSP>) => ({ ...state,
         lsp: !state.lsp
+    }),
+    [PROTOCOL.PENDING]: (state, action: Action<PROTOCOL.PENDING>) => ({ ...state,
+        pending: action.payload
     })
 }, defaultState.protocol);
 

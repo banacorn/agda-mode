@@ -19,6 +19,7 @@ type InjProps = {
         current: View.MountingPosition
     };
     settingsView: boolean;
+    pending: boolean;
 }
 type DispatchProps = {
     handleMountAtPane: () => void
@@ -30,7 +31,8 @@ type Props = OwnProps & InjProps & DispatchProps;
 function mapStateToProps(state: View.State): InjProps {
     return {
         mountAt: state.view.mountAt,
-        settingsView: state.view.settingsView
+        settingsView: state.view.settingsView,
+        pending: state.protocol.pending
     }
 }
 
@@ -82,9 +84,12 @@ class Dashboard extends React.Component<Props, {}> {
     }
 
     render() {
-        const { mountAt, settingsView } = this.props;
+        const { mountAt, settingsView, pending } = this.props;
         const { core } = this.props;
         const { handleMountAtPane, handleMountAtBottom, handleToggleSettingsView } = this.props;
+        const spinnerClassList = classNames({
+            pending
+        }, 'loading loading-spinner-tiny inline-block');
         const settingsViewClassList = classNames({
             activated: settingsView,
         }, 'no-btn');
@@ -93,6 +98,9 @@ class Dashboard extends React.Component<Props, {}> {
         }, 'no-btn');
         return (
             <ul className="agda-dashboard">
+                <li>
+                    <span id="spinner" className={spinnerClassList}></span>
+                </li>
                 <li>
                     <button
                         className={settingsViewClassList}

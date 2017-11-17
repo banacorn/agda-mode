@@ -115,6 +115,7 @@ export default class ConnectionManager {
                 raw: data.toString(),
                 parsed: null
             }));
+            this.core.view.store.dispatch(Action.PROTOCOL.pending(true));
             return write(data);
         };
         // the streams
@@ -129,6 +130,7 @@ export default class ConnectionManager {
                             raw: lines[i],
                             parsed: response
                         }))));
+                        this.core.view.store.dispatch(Action.PROTOCOL.pending(false));
                         promise.resolve(responses);
                     })
                     .catch(Err.ParseError, error => {
