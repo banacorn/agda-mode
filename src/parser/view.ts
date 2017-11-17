@@ -91,7 +91,7 @@ function parseIndexedSolutions(message: string, raw: string[]): View.IndexedSolu
 function parseJudgements(lines: string[]): View.Body {
     const {goalAndHave, body, warnings, errors} = divideJudgements(lines);
 
-    const grouped = _.groupBy(body.map(parseExpression), 'judgementForm');
+    const grouped = _.groupBy(concatItems(body).map(parseExpression), 'judgementForm');
     return {
         goalAndHave: concatItems(goalAndHave).map(parseGoalAndHave),
         goals: (grouped['goal'] || []) as View.Goal[],
@@ -172,6 +172,7 @@ function concatItems(lines: string[]): string[] {
         // console.log(`%c${line}`, 'color: green')
         // console.log(`reallyLongTermIdentifier: ${reallyLongTermIdentifier.test(line)}`)
         // console.log(`restOfTheJudgement: ${(nextLine && restOfTheJudgement.test(nextLine))}`)
+        // console.log(`completeJudgement: ${completeJudgement.test(line)}`)
 
         return goal.test(line)
         || have.test(line)
