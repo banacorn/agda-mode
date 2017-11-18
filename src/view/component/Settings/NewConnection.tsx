@@ -17,8 +17,8 @@ type State = {
     agdaLocation: string;
     agdaMessage: string;
     lspEnable: boolean;
-    lspLocation: string;
-    lspMessage: string;
+    languageServerLocation: string;
+    languageServerMessage: string;
 };
 
 type DispatchProps = {
@@ -41,8 +41,8 @@ class NewConnection extends React.Component<Props, State> {
             agdaLocation: '',
             agdaMessage: '',
             lspEnable: false,
-            lspLocation: '',
-            lspMessage: ''
+            languageServerLocation: '',
+            languageServerMessage: ''
         };
         this.handleAgdaLocationChange = this.handleAgdaLocationChange.bind(this);
         this.handleLanguageServerLocationChange = this.handleLanguageServerLocationChange.bind(this);
@@ -60,52 +60,45 @@ class NewConnection extends React.Component<Props, State> {
 
     handleLanguageServerLocationChange(event) {
         this.setState({
-            lspLocation: event.target.value
+            languageServerLocation: event.target.value
         });
     }
 
     addAgda() {
-        if (this.state.lspEnable) {
-            Conn.validateAgda(this.state.agdaLocation)
-                .then(Conn.mkConnectionInfo)
-                .then(connInfo => {
-                    return Conn.validateLanguageServer(this.state.lspLocation)
-                        .then(lspProcInfo => {
-                            connInfo.languageServer = lspProcInfo;
+        Conn.validateAgda(this.state.agdaLocation)
+            .then(Conn.mkConnectionInfo)
+            .then(connInfo => {
+                // location of Agda is valid, clear any error message
+                this.setState({
+                    agdaMessage: ''
+                });
+
+                if (this.state.lspEnable) {
+                    Conn.validateLanguageServer(this.state.languageServerLocation)
+                        .then(languageServerProcInfo => {
+                            connInfo.languageServer = languageServerProcInfo;
                             this.props.handleAddConnection(connInfo)
                             this.props.onSuccess();
+                            // location of the language server is valid, clear any error message
                             this.setState({
-                                agdaMessage: ''
+                                languageServerMessage: ''
                             });
                         })
                         .catch((error) => {
                             this.setState({
-                                lspMessage: error.message
+                                languageServerMessage: error.message
                             });
                         })
-                })
-                .catch((error) => {
-                    this.setState({
-                        agdaMessage: error.message
-                    });
-                })
-            // Conn.validate(this.state.agdaLocation)
-        } else {
-            Conn.validateAgda(this.state.agdaLocation)
-                .then(Conn.mkConnectionInfo)
-                .then(connInfo => {
+                } else {
                     this.props.handleAddConnection(connInfo)
                     this.props.onSuccess();
-                    this.setState({
-                        agdaMessage: ''
-                    });
-                })
-                .catch((error) => {
-                    this.setState({
-                        agdaMessage: error.message
-                    });
-                })
-        }
+                }
+            })
+            .catch((error) => {
+                this.setState({
+                    agdaMessage: error.message
+                });
+            })
     }
 
     searchAgda() {
@@ -133,17 +126,17 @@ class NewConnection extends React.Component<Props, State> {
         Conn.autoSearch('agda-language-server')
             .then(location => {
                 this.setState({
-                    lspLocation: location
+                    languageServerLocation: location
                 })
             })
             .catch(Err.Conn.AutoSearchError, error => {
                 this.setState({
-                    agdaMessage: 'Failed searching for the location of Agda'
+                    languageServerLocation: 'Failed searching for the location of Agda Language Server'
                 });
             })
             .catch(error => {
                 this.setState({
-                    agdaMessage: error.message
+                    languageServerLocation: error.message
                 });
             })
         // prevent this button from submitting the entire form
@@ -171,6 +164,7 @@ class NewConnection extends React.Component<Props, State> {
                         <button
                             className="btn icon btn-primary icon-plus inline-block-tight"
                             onClick={this.addAgda}
+                            disabled={this.state.lspEnable}
                         >add</button>
                         <button
                             className="btn icon btn-success icon-search inline-block-tight"
@@ -193,10 +187,14 @@ class NewConnection extends React.Component<Props, State> {
                         <input
                             className='input-text native-key-bindings'
                             type='text' placeholder='location of Agda Language Server'
-                            value={this.state.lspLocation}
+                            value={this.state.languageServerLocation}
                             onChange={this.handleLanguageServerLocationChange}
                         />
                         <p>
+                            <button
+                                className="btn icon btn-primary icon-plus inline-block-tight"
+                                onClick={this.addAgda}
+                            >add</button>
                             <button
                                 className="btn icon btn-success icon-search inline-block-tight"
                                 onClick={this.searchLanguageServer}
@@ -204,8 +202,8 @@ class NewConnection extends React.Component<Props, State> {
                         </p>
                     </form>
                 }
-                {this.state.lspMessage &&
-                    <div className="inset-panel padded text-warning">Language Server: {this.state.lspMessage}</div>
+                {this.state.languageServerMessage &&
+                    <div className="inset-panel padded text-warning">Language Server: {this.state.languageServerMessage}</div>
                 }
             </section>
         );
