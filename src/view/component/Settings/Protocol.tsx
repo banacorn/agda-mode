@@ -13,19 +13,37 @@ interface ResProp extends React.HTMLProps<HTMLElement> {
 
 interface ResState {
     showRaw: boolean;
+    fold: boolean;
 }
 class Response extends React.Component<ResProp, ResState> {
     constructor() {
         super()
         this.state = {
-            showRaw: false
+            showRaw: false,
+            fold: false
         };
         this.toggleShowRaw = this.toggleShowRaw.bind(this);
+        this.toggleFold = this.toggleFold.bind(this);
     }
 
     toggleShowRaw() {
         this.setState({
             showRaw: !this.state.showRaw
+        });
+    }
+
+    toggleFold() {
+        this.setState({
+            fold: !this.state.fold
+        });
+    }
+
+    componentWillMount() {
+        // keep 'HighlightingInfo_Direct' folded by default
+        this.setState({
+            fold: this.state.fold || _.includes([
+                'HighlightingInfo_Direct'
+            ], this.props.res.parsed.kind)
         });
     }
 
@@ -37,15 +55,21 @@ class Response extends React.Component<ResProp, ResState> {
                 className='no-btn inline-block highlight'
                 onClick={this.toggleShowRaw}
             >{parsed.kind}</button>
-            { this.state.showRaw ?
-                <dl>{raw}</dl>
-                :
-                pairs.map((pair, i) => (
-                    <dl key={i}>
-                        <dt>{pair[0]}</dt>
-                        <dd>{JSON.stringify(pair[1])}</dd>
-                    </dl>
-                ))
+            <button
+                className={`no-btn icon icon-${this.state.fold ? 'unfold' : 'fold'}`}
+                onClick={this.toggleFold}
+            ></button>
+            { !this.state.fold &&
+                (this.state.showRaw ?
+                    <dl>{raw}</dl>
+                    :
+                    pairs.map((pair, i) => (
+                        <dl key={i}>
+                            <dt>{pair[0]}</dt>
+                            <dd>{JSON.stringify(pair[1])}</dd>
+                        </dl>
+                    ))
+                )
             }
         </li>)
     }
