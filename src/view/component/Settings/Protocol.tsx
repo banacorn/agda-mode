@@ -11,62 +11,43 @@ interface ResProp extends React.HTMLProps<HTMLElement> {
     res: Parsed<Agda.Response>;
 };
 
-    // case 'HighlightingInfo_Direct':
-    //     return (<li>
-    //         <span className='inline-block highlight'>HighlightingInfo Direct</span>
-    //         {JSON.stringify(parsed.annotations)}
-    //     </li>)
-    // case 'HighlightingInfo_Indirect':
-    //     return (<li>
-    //         <span className='inline-block highlight'>HighlightingInfo Indirect</span>
-    //         <dl>
-    //             <dt>filepath</dt>
-    //             <dd>{parsed.filepath}</dd>
-    //         </dl>
-    //     </li>)
-    // case 'Status':
-    //     return (<li>
-    //         <span className='inline-block highlight'>Status</span>
-    //         <dl>
-    //             <dt>typechecked</dt>
-    //             <dd>{JSON.stringify(parsed.checked)}</dd>
-    //         </dl>
-    //         <dl>
-    //             <dt>display implicit arguments</dt>
-    //             <dd>{JSON.stringify(parsed.showImplicit)}</dd>
-    //         </dl>
-    //     </li>)
-    // case 'JumpToError':
-    //     return (<li>
-    //         <span className='inline-block highlight'>Jump to Error</span>
-    //         <dl>
-    //             <dt>filepath</dt>
-    //             <dd>{parsed.filepath}</dd>
-    //         </dl>
-    //         <dl>
-    //             <dt>position</dt>
-    //             <dd>{parsed.position}</dd>
-    //         </dl>
-    //     </li>)
-class Response extends React.Component<ResProp, {}> {
+interface ResState {
+    showRaw: boolean;
+}
+class Response extends React.Component<ResProp, ResState> {
     constructor() {
         super()
+        this.state = {
+            showRaw: false
+        };
+        this.toggleShowRaw = this.toggleShowRaw.bind(this);
     }
+
+    toggleShowRaw() {
+        this.setState({
+            showRaw: !this.state.showRaw
+        });
+    }
+
     render() {
         const { raw, parsed } = this.props.res;
-        switch (parsed.kind) {
-            default:
-                const pairs = _.toPairs(_.omit(parsed, 'kind'));
-                return (<li>
-                    <span className='inline-block highlight'>{parsed.kind}</span>
-                    {pairs.map((pair, i) => (
-                        <dl key={i}>
-                            <dt>{pair[0]}</dt>
-                            <dd>{JSON.stringify(pair[1])}</dd>
-                        </dl>
-                    ))}
-                </li>)
-        }
+        const pairs = _.toPairs(_.omit(parsed, 'kind'));
+        return (<li>
+            <button
+                className='no-btn inline-block highlight'
+                onClick={this.toggleShowRaw}
+            >{parsed.kind}</button>
+            { this.state.showRaw ?
+                <dl>{raw}</dl>
+                :
+                pairs.map((pair, i) => (
+                    <dl key={i}>
+                        <dt>{pair[0]}</dt>
+                        <dd>{JSON.stringify(pair[1])}</dd>
+                    </dl>
+                ))
+            }
+        </li>)
     }
 }
 
@@ -78,24 +59,9 @@ interface ReqResProp extends React.HTMLProps<HTMLElement> {
     reqRes: View.ReqRes
 };
 
-interface ReqResState {
-    showParsed: boolean;
-}
-
-class ReqRes extends React.Component<ReqResProp, ReqResState> {
+class ReqRes extends React.Component<ReqResProp, {}> {
     constructor() {
         super()
-        this.state = {
-            showParsed: false
-        };
-
-        this.toggleShowParsed = this.toggleShowParsed.bind(this);
-    }
-
-    toggleShowParsed() {
-        this.setState({
-            showParsed: !this.state.showParsed
-        });
     }
 
     render() {
