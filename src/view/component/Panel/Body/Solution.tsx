@@ -3,10 +3,10 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
 import { EventEmitter } from 'events';
-import { EVENT } from '../../actions';
+import { EVENT } from '../../../actions';
 
-import { View } from '../../../type';
-import Expr from './../Expr';
+import { View } from '../../../../type';
+import Expr from './Expr';
 
 interface Props {
     solutions: View.Solutions;

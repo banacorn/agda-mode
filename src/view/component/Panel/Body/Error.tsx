@@ -3,8 +3,8 @@ import * as Promise from 'bluebird';
 import { inspect } from 'util';
 import { EventEmitter } from 'events';
 
-import { View, Location as Loc } from '../../type';
-import { AgdaError } from '../../parser';
+import { View, Location as Loc } from '../../../../type';
+import { AgdaError } from '../../../../parser';
 
 import Expr from './Expr';
 import Location from './Location';

@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
-import { View } from '../../type';
+import { View } from '../../../type';
 import CandidateSymbols from './CandidateSymbols';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {

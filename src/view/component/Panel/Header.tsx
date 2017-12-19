@@ -3,9 +3,9 @@ import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
 
-import { View } from '../../type';
+import { View } from '../../../type';
 import Dashboard from './Dashboard';
-import { Core } from '../../core';
+import { Core } from '../../../core';
 
 function toStyle(type: View.Style): string {
     switch (type) {

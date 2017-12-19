@@ -4,10 +4,10 @@ import * as classNames from 'classnames';
 import { EventEmitter } from 'events';
 
 import { Core } from '../../core';
-import InputMethod from './InputMethod';
-import Header from './Header';
-import Body from './Body';
-import SizingHandle from './SizingHandle';
+import InputMethod from './Panel/InputMethod';
+import Header from './Panel/Header';
+import Body from './Panel/Body';
+import SizingHandle from './Panel/SizingHandle';
 import { View } from '../../type';
 import MiniEditor from './MiniEditor';
 import { MODE, updateMaxBodyHeight, QUERY } from './../actions';

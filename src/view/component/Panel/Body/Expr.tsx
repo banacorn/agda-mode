@@ -3,8 +3,8 @@ import * as React from 'react';
 import * as Promise from 'bluebird';
 import { EventEmitter } from 'events';
 
-import { View } from '../../type';
-import { EVENT } from '../actions';
+import { View } from '../../../../type';
+import { EVENT } from '../../../actions';
 
 interface TermProps extends React.HTMLProps<HTMLElement> {
     jumpToGoal: (index: number) => void;

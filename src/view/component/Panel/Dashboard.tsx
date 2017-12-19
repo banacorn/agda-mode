@@ -3,9 +3,9 @@ import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
 
-import { View } from '../../type';
-import * as Action from '../actions';
-import { Core } from '../../core';
+import { View } from '../../../type';
+import * as Action from '../../actions';
+import { Core } from '../../../core';
 
 // Atom shits
 import { CompositeDisposable } from 'atom';

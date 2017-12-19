@@ -4,11 +4,11 @@ import { connect } from 'react-redux';
 import * as classNames from 'classnames';
 import { EventEmitter } from 'events';
 
-import { View, Location as Loc } from '../../type';
-import { updateMaxBodyHeight, EVENT } from '../actions';
-import Expr from './Expr';
-import Error from './Error';
-import Location from './Location';
+import { View, Location as Loc } from '../../../type';
+import { updateMaxBodyHeight, EVENT } from '../../actions';
+import Expr from './Body/Expr';
+import Error from './Body/Error';
+import Location from './Body/Location';
 import Solution from './Body/Solution';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
