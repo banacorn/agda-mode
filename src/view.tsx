@@ -309,21 +309,22 @@ export default class View {
 
     }
 
-    setAgdaError(error: AgdaError) {
+    setAgdaError(error: AgdaError, isWarning: boolean = false) {
 
         this.store.dispatch(Action.MODE.display());
         this.editors.focus('main')
 
-        this.store.dispatch(Action.HEADER.update({
-            text: 'Error',
-            style: V.Style.Error
-        }));
 
         this.store.dispatch(updateError(error));
         if (error) {
             this.store.dispatch(Action.HEADER.update({
-                style: V.Style.Error,
-                text: error.header
+                style: isWarning ? V.Style.Warning : V.Style.Error,
+                text: isWarning ? 'Warning' : error.header,
+            }));
+        } else {
+            this.store.dispatch(Action.HEADER.update({
+                style: isWarning ? V.Style.Warning : V.Style.Error,
+                text: isWarning ? 'Warning' : 'Error'
             }));
         }
     }

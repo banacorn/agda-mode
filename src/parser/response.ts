@@ -172,10 +172,11 @@ function parseDisplayInfoKind(title: String): Agda.DisplayInfoKind {
         case '*Helper function*':       return 'HelperFunction';
         case '*Intro*':                 return 'Intro';
         case '*Agda Version*':          return 'Version';
-        // AllGoalsWarnings
+        case '*All Warnings*':          return 'AllWarnings';
+        // AllGoals
         default:
             // if (title.startsWith('*All'))
-            return 'AllGoalsWarnings';
+            return 'AllGoals';
     }
 }
 

@@ -112,7 +112,7 @@ function handleDisplayInfo(core: Core, response: Agda.DisplayInfo)  {
         case 'Constraints':
             core.view.set('Constraints', response.content, View.Style.Info);
             break;
-        case 'AllGoalsWarnings':
+        case 'AllGoals':
             if (response.content.length === 0) {
                 core.view.set('All Done', [], View.Style.Success);
             } else {
@@ -120,6 +120,9 @@ function handleDisplayInfo(core: Core, response: Agda.DisplayInfo)  {
                 const title = response.title.slice(1, -1);
                 core.view.setJudgements(title, parseJudgements(response.content));
             }
+            break;
+        case 'AllWarnings':
+            core.view.setAgdaError(parseError(response.content.join('\n')), true);
             break;
         case 'Auto':
             let solutions = parseSolutions(response.content);

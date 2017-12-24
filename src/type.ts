@@ -355,10 +355,10 @@ namespace Agda {
 
     // Resp_DisplayInfo DisplayInfo
     export type DisplayInfoKind = 'CompilationOk' | 'Constraints' |
-        'AllGoalsWarnings' | 'Auto' | 'Error' | 'Time' | 'NormalForm' |
+        'AllGoals' | 'Auto' | 'Error' | 'Time' | 'NormalForm' |
         'InferredType' | 'CurrentGoal' | 'GoalType' | 'ModuleContents' |
         'SearchAbout' | 'WhyInScope' | 'Context' | 'HelperFunction' | 'Intro' |
-        'Version';
+        'Version' | 'AllWarnings';
     export interface DisplayInfo {
         kind: 'DisplayInfo';
         displayInfoKind: DisplayInfoKind;
