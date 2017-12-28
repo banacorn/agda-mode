@@ -1,6 +1,10 @@
+## 0.7.8
+* Improve Settings/Protocol
+* Fix some stuff
+
 ## 0.7.7
 * Bring the spinner back for indicating pending commands
-* Fix some stuffs
+* Fix some stuff
 
 ## 0.7.6
 * Undo/Redo
