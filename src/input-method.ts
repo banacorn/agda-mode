@@ -4,6 +4,7 @@ import { Core } from './core';
 import { INPUT_METHOD } from './view/actions';
 
 import { Range, CompositeDisposable } from 'atom';
+import * as Atom from 'atom';
 
 function getKeySuggestions(trie: any): string[] {
     return Object.keys(_.omit(trie, '>>')).sort();

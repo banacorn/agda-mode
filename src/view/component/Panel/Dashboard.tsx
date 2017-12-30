@@ -9,6 +9,7 @@ import { Core } from '../../../core';
 
 // Atom shits
 import { CompositeDisposable } from 'atom';
+import * as Atom from 'atom';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
@@ -55,8 +56,8 @@ class Dashboard extends React.Component<Props, {}> {
     private toggleMountingPositionButton: HTMLElement;
     private toggleSettingsViewButton: HTMLElement;
 
-    constructor() {
-        super();
+    constructor(props: Props) {
+        super(props);
         this.subscriptions = new CompositeDisposable;
     }
 

@@ -4,6 +4,7 @@ import * as Action from './view/actions';
 import { parseCommand } from './parser';
 
 import { CompositeDisposable } from 'atom';
+import * as Atom from 'atom';
 
 const commands = [
     'agda-mode:load',
@@ -155,7 +156,7 @@ function toAgdaEditor(textEditor: Atom.TextEditor) {
 }
 
 // if end with '.agda' or '.lagda'
-function isAgdaFile(textEditor: Atom.TextEditor): boolean {
+function isAgdaFile(textEditor: Atom.TextEditor | AgdaEditor): boolean {
     const filepath = textEditor.getPath();
     // filenames are case insensitive on Windows
     const onWindows = process.platform === 'win32';

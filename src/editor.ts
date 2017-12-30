@@ -8,6 +8,7 @@ import { OutOfGoalError, EmptyGoalError } from './error';
 import Goal from './editor/goal';
 
 import { TextEditor, Point, Range } from 'atom';
+import * as Atom from 'atom';
 
 export default class Editor {
 
@@ -57,17 +58,17 @@ export default class Editor {
     //  Index <=> Point  //
     ///////////////////////
 
-    fromIndex(ind: number): TextBuffer.Point {
+    fromIndex(ind: number): Point {
         return this.textEditor.getBuffer().positionForCharacterIndex(ind);
     }
-    toIndex(pos: TextBuffer.Point): number {
+    toIndex(pos: Point): number {
         return this.textEditor.getBuffer().characterIndexForPosition(pos);
     }
-    translate(pos: TextBuffer.Point, n: number): TextBuffer.Point {
+    translate(pos: Point, n: number): Point {
         return this.fromIndex((this.toIndex(pos)) + n)
     }
 
-    fromIndexRange(range: { start: number, end: number }): TextBuffer.Range {
+    fromIndexRange(range: { start: number, end: number }): Range {
         const start = this.fromIndex(range.start);
         const end   = this.fromIndex(range.end);
         return new Range(start, end);

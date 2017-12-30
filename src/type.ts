@@ -6,6 +6,7 @@ import { AgdaError } from './parser/error';
 
 export type GUID = string;
 import { Range } from 'atom';
+import * as Atom from 'atom';
 
 export type TextInput = string;
 

@@ -16,8 +16,8 @@ interface ResState {
     fold: boolean;
 }
 class Response extends React.Component<ResProp, ResState> {
-    constructor() {
-        super()
+    constructor(props: ResProp) {
+        super(props)
         this.state = {
             showRaw: false,
             fold: false
@@ -84,8 +84,8 @@ interface ReqResProp extends React.HTMLProps<HTMLElement> {
 };
 
 class ReqRes extends React.Component<ReqResProp, {}> {
-    constructor() {
-        super()
+    constructor(props: ReqResProp) {
+        super(props)
     }
 
     render() {

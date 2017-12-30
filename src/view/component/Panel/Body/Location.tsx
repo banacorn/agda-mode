@@ -7,6 +7,7 @@ import { EVENT } from '../../../actions';
 
 // Atom shits
 import { CompositeDisposable } from 'atom';
+import * as Atom from 'atom';
 
 type Props = React.HTMLProps<HTMLElement> & {
     emitter: EventEmitter;
@@ -19,8 +20,8 @@ class Location extends React.Component<Props, {}> {
     private locationPath: string;
     private location: Loc;
 
-    constructor() {
-        super()
+    constructor(props: Props) {
+        super(props)
         this.subscriptions = new CompositeDisposable;
         this.locationPath = '';
     }

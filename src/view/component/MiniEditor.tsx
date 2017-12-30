@@ -8,6 +8,7 @@ import { TelePromise } from './../../util';
 import { QueryCancelled } from './../../error';
 
 import { CompositeDisposable } from 'atom';
+import * as Atom from 'atom';
 
 declare global {
     namespace JSX {
@@ -34,8 +35,8 @@ class MiniEditor extends React.Component<Props, State> {
     private observer: MutationObserver;
     private queryTP: TelePromise<string>;
 
-    constructor() {
-        super();
+    constructor(props: Props) {
+        super(props);
         this.subscriptions = new CompositeDisposable;
         this.state = {
             focused: false

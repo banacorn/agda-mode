@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import * as React from 'react';
 
 import { CompositeDisposable } from 'atom';
+import * as Atom from 'atom';
 
 type Props = React.HTMLProps<HTMLElement> & {
     candidates: string[]
@@ -18,8 +19,8 @@ class CandidateSymbols extends React.Component<Props, State> {
 
     private subscriptions: Atom.CompositeDisposable;
 
-    constructor() {
-        super();
+    constructor(props: Props) {
+        super(props);
         this.state = {
             index: 0
         };

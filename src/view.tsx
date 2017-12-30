@@ -24,6 +24,7 @@ import Tab from './view/tab';
 import { OutOfGoalError } from './error';
 
 import { CompositeDisposable } from 'atom';
+import * as Atom from 'atom';
 
 class EditorViewManager {
     main: Atom.TextEditor;

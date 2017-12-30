@@ -7,6 +7,7 @@ import { parseInputContent } from './../parser';
 // type TextEditorMarker = any;
 // type TextEditor = any;
 import { Point, Range } from 'atom';
+import * as Atom from 'atom';
 
 function translate(textBuffer: Atom.TextBuffer, p: [number, number], n: number): Atom.Point {
     return textBuffer.positionForCharacterIndex(textBuffer.characterIndexForPosition(p) + n)
