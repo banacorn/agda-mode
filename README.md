@@ -104,6 +104,12 @@ npm install -g typescript@2.2
 apm install atom-typescript
 ```
 
+To keep the TypeScript transpiler running while developing:
+
+```
+tsc --watch
+```
+
 
 
 
