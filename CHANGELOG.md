@@ -1,3 +1,6 @@
+## 0.7.9
+* Fix errors not displayed properly
+
 ## 0.7.8
 * Improve Settings/Protocol
 * Fix some stuff
