@@ -359,7 +359,7 @@ namespace Agda {
         'AllGoals' | 'Auto' | 'Error' | 'Time' | 'NormalForm' |
         'InferredType' | 'CurrentGoal' | 'GoalType' | 'ModuleContents' |
         'SearchAbout' | 'WhyInScope' | 'Context' | 'HelperFunction' | 'Intro' |
-        'Version' | 'AllWarnings';
+        'Version' | 'AllWarnings' | 'AllErrors';
     export interface DisplayInfo {
         kind: 'DisplayInfo';
         displayInfoKind: DisplayInfoKind;

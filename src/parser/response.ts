@@ -173,6 +173,7 @@ function parseDisplayInfoKind(title: String): Agda.DisplayInfoKind {
         case '*Intro*':                 return 'Intro';
         case '*Agda Version*':          return 'Version';
         case '*All Warnings*':          return 'AllWarnings';
+        case '*All Errors*':            return 'AllErrors';
         // AllGoals
         default:
             // if (title.startsWith('*All'))

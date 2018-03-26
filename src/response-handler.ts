@@ -124,6 +124,9 @@ function handleDisplayInfo(core: Core, response: Agda.DisplayInfo)  {
         case 'AllWarnings':
             core.view.setAgdaError(parseError(response.content.join('\n')), true);
             break;
+        case 'AllErrors':
+            core.view.setAgdaError(parseError(response.content.join('\n')), true);
+            break;
         case 'Auto':
             let solutions = parseSolutions(response.content);
             core.view.setSolutions(solutions);
