@@ -10,6 +10,7 @@ const commands = [
     'agda-mode:load',
     'agda-mode:quit',
     'agda-mode:restart',
+    'agda-mode:abort',
     'agda-mode:compile',
     'agda-mode:toggle-display-of-implicit-arguments',
     'agda-mode:solve-constraints',

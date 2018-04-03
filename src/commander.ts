@@ -132,6 +132,7 @@ export default class Commander {
             case 'Load':          return this.load;
             case 'Quit':          return this.quit;
             case 'Restart':       return this.restart;
+            case 'Abort':         return this.abort;
             case 'ToggleDocking': return this.toggleDocking;
             case 'Compile':       return this.compile;
             case 'ToggleDisplayOfImplicitArguments':
@@ -215,6 +216,8 @@ export default class Commander {
             .then(this.load);
     }
 
+    private abort = Req.abort;
+    
     private toggleDocking = (conn: Connection): Promise<Agda.Response[]> => {
         return this.core.view.toggleDocking()
             .then(() => Promise.resolve([]));

@@ -142,11 +142,18 @@ function parseResponse(raw: string): Promise<Agda.Response> {
                 kind: 'HighlightClear',
             } as Agda.ClearHighlighting);
 
+        // Resp_DoneAborting
+        case 'agda2-abort-done':
+            return Promise.resolve({
+                kind: 'DoneAborting',
+            } as Agda.DoneAborting);
+
         case 'agda2-parse-error':
             return Promise.reject(new ParseError(
                 raw,
                 'agda2-parse-error'
-            ))
+            ));
+
 
         default:
             return Promise.reject(new ParseError(

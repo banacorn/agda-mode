@@ -100,6 +100,10 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
         case 'HighlightClear':
             return core.editor.highlighting.destroyAll();
 
+        case 'DoneAborting':
+            core.view.set('Status', [`Done aborting`], View.Style.Warning);
+            return Promise.resolve();
+
         default:
             console.error(`Agda.ResponseType: ${JSON.stringify(response)}`);
             return Promise.resolve();

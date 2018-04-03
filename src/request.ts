@@ -61,6 +61,9 @@ export const load = sendRequest('NonInteractive', (conn) => {
         return `Cmd_load \"${conn.filepath}\" [${getLibraryPath()}]`
 });
 
+export const abort =
+    sendRequest('NonInteractive', 'Cmd_abort');
+
 export const compile = sendRequest('NonInteractive', (conn) => {
     const backend = atom.config.get('agda-mode.backend');
     if (semver.gte(conn.agda.version.sem, '2.5.0'))

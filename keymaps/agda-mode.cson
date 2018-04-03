@@ -30,6 +30,7 @@
     'ctrl-c ctrl-x ctrl-q': 'agda-mode:quit'
     'ctrl-c ctrl-x ctrl-r': 'agda-mode:restart'
     'ctrl-c ctrl-x ctrl-c': 'agda-mode:compile'
+    'ctrl-c ctrl-x ctrl-a': 'agda-mode:abort'
     'ctrl-c ctrl-x ctrl-h': 'agda-mode:toggle-display-of-implicit-arguments'
     'ctrl-c        ctrl-=': 'agda-mode:show-constraints'
     'ctrl-c        ctrl-s': 'agda-mode:solve-constraints'
