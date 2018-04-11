@@ -32,6 +32,9 @@ function parseCommand(raw: string): Agda.Command {
         case 'restart': return {
             kind: 'Restart',
         };
+        case 'abort': return {
+            kind: 'Abort',
+        };
         case 'compile': return {
             kind: 'Compile',
         };

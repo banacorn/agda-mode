@@ -8,6 +8,7 @@
           { 'label': 'Load', 'command': 'agda-mode:load' }
           { 'label': 'Quit', 'command': 'agda-mode:quit' }
           { 'label': 'Kill and Restart', 'command': 'agda-mode:restart' }
+          { 'label': 'Abort Command', 'command': 'agda-mode:abort' }
           { 'label': 'Give', 'command': 'agda-mode:give' }
           { 'label': 'Refine', 'command': 'agda-mode:refine' }
           { 'label': 'Auto', 'command': 'agda-mode:auto' }

@@ -236,7 +236,7 @@ namespace Agda {
     //
     //  Commands sent to Agda
     //
-    export type CommandKind = 'Load' | 'Quit' | 'Restart' | 'Compile' |
+    export type CommandKind = 'Load' | 'Quit' | 'Restart' | 'Abort' | 'Compile' |
         'ToggleDisplayOfImplicitArguments' | 'ShowConstraints' |
         'SolveConstraints' | 'ShowGoals' | 'NextGoal' | 'PreviousGoal' |
         'ToggleDocking' |
@@ -285,7 +285,10 @@ namespace Agda {
         ClearRunningInfo |
 
         // Resp_ClearHighlighting
-        ClearHighlighting
+        ClearHighlighting |
+        // Resp_DoneAborting
+        DoneAborting;
+
 
     // Resp_HighlightingInfo HighlightingInfo HighlightingMethod ModuleToSource
     export interface HighlightingInfo_Direct {
@@ -384,6 +387,11 @@ namespace Agda {
     export interface ClearHighlighting {
         kind: 'HighlightClear';
     }
+
+    // Resp_DoneAborting
+    export interface DoneAborting {
+        kind: 'DoneAborting';
+    }
 }
 
 // Occurence & Location
@@ -433,9 +441,5 @@ export {
     Hole,
     Token,
     TokenType,
-    // commands
-    // CommandKind,
-    // Command,
-    // view
     View
 }
