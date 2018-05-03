@@ -7,7 +7,7 @@ import { Duplex } from 'stream';
 var duplex = require('duplexer');
 
 import Rectifier from './parser/stream/rectifier';
-import { View, Connection, ProcessInfo, ConnectionInfo, GUID } from './type';
+import { View, Socket, ProcessInfo, ConnectionInfo, GUID } from './type';
 import * as Err from './error';
 import { guid } from './util';
 import { Core } from './core';
@@ -17,7 +17,7 @@ import * as InternalState from "./internal-state";
 
 export default class ConnectionManager {
     private selected?: ConnectionInfo;
-    private connection?: Connection;
+    private socket?: Socket;
 
     constructor(private core: Core) {
         this.recoverAgda = this.recoverAgda.bind(this);
@@ -33,13 +33,13 @@ export default class ConnectionManager {
         if (this.selected && this.selected.guid === connInfo.guid) {
             this.selected = undefined;
         }
-        if (this.connection && this.connection.guid === connInfo.guid) {
+        if (this.socket && this.socket.guid === connInfo.guid) {
             this.disconnect();
         }
     }
 
     // connect with the selected ConnectionInfo
-    connect(): Promise<Connection> {
+    connect(): Promise<Socket> {
         if (!this.selected) {
             return getExistingConnectionInfo()
                 .then(selected => {
@@ -71,9 +71,9 @@ export default class ConnectionManager {
         }
 
         // only recoonect when the selected is different from the connected
-        if (this.connection && this.connection.guid === this.selected.guid) {
+        if (this.socket && this.socket.guid === this.selected.guid) {
             // there's no need of re-establish a new connection
-            return Promise.resolve(this.connection);
+            return Promise.resolve(this.socket);
         } else {
             // cut the old connection
             this.disconnect();
@@ -85,32 +85,32 @@ export default class ConnectionManager {
 
     // disconnect the current connection
     disconnect() {
-        if (this.connection) {
+        if (this.socket) {
             // the view
-            this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.connection.guid));
+            this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.socket.guid));
             // the streams
-            this.connection.stream.end();
+            this.socket.stream.end();
             // the property
-            this.connection = undefined;
+            this.socket = undefined;
         }
     }
 
-    getConnection(): Promise<Connection> {
-        if (this.connection)
-            return Promise.resolve(this.connection);
+    getConnection(): Promise<Socket> {
+        if (this.socket)
+            return Promise.resolve(this.socket);
         else
             return Promise.reject(new Err.Conn.NotEstablished);
     }
 
     //
-    private wire = (conn: Connection): Promise<Connection> => {
+    private wire = (socket: Socket): Promise<Socket> => {
         // the view
         this.core.view.store.dispatch(Action.CONNECTION.connect(this.selected.guid));
         // the properties
-        this.connection = conn;
+        this.socket = socket;
         // modify the method write so that we can intercept and redirect data to the core;
-        const write = conn.stream.write;
-        conn.stream.write = data => {
+        const write = socket.stream.write;
+        socket.stream.write = data => {
             this.core.view.store.dispatch(Action.PROTOCOL.logRequest({
                 raw: data.toString(),
                 parsed: null
@@ -119,10 +119,10 @@ export default class ConnectionManager {
             return write(data);
         };
         // the streams
-        conn.stream
+        socket.stream
             .pipe(new Rectifier)
             .on('data', (data) => {
-                const promise = this.connection.queue.pop();
+                const promise = this.socket.queue.pop();
                 const lines = data.toString().trim().split('\n');
                 parseResponses(data.toString())
                     .then(responses => {
@@ -142,7 +142,7 @@ export default class ConnectionManager {
                         promise.resolve([]);
                     })
             });
-        return Promise.resolve(conn);
+        return Promise.resolve(socket);
     }
 
 
@@ -280,8 +280,8 @@ export function validateLanguageServer(location: string): Promise<ProcessInfo> {
     });
 }
 
-export function connectAgda(connInfo: ConnectionInfo, filepath: string): Promise<Connection> {
-    return new Promise<Connection>((resolve, reject) => {
+export function connectAgda(connInfo: ConnectionInfo, filepath: string): Promise<Socket> {
+    return new Promise<Socket>((resolve, reject) => {
         const agdaProcess = spawn(connInfo.agda.location, ['--interaction'], { shell: true });
         agdaProcess.on('error', (error) => {
             reject(new Err.Conn.Connection(

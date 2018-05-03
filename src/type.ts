@@ -415,7 +415,7 @@ export interface Location {
 
 export type ProcessInfo = {
     location: string;
-    version?: {
+    version: {
         raw: string;
         sem: string;
     };
@@ -427,7 +427,7 @@ export type ConnectionInfo = {
     languageServer?: ProcessInfo;
 }
 
-export type Connection = ConnectionInfo & {
+export type Socket = ConnectionInfo & {
     stream: Duplex;
     queue: {
         resolve: (actions: Agda.Response[]) => void;

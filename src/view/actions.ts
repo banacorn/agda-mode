@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
-import { Parsed, Agda, View, Location, Connection, ConnectionInfo, GUID } from '../type';
+import { Parsed, Agda, View, Location, Socket, ConnectionInfo, GUID } from '../type';
 import { AgdaError } from '../parser';
 import * as InternalState from '../internal-state';
 

@@ -4,7 +4,7 @@ import { inspect } from 'util';
 import * as Err from './error';
 // import { OutOfGoalError, EmptyGoalError, NotLoadedError, InvalidExecutablePathError } from './error';
 import Goal from './editor/goal';
-import { View, Agda, Connection } from './type';
+import { View, Agda, Socket } from './type';
 import { handleResponses } from './response-handler';
 import { Core } from './core';
 import * as Req from './request';
@@ -47,7 +47,7 @@ export default class Commander {
     // in that case, both the parent and the child command should be
     // regarded as a single action
 
-    private startCheckpoint = (command: Agda.Command) => (conn: Connection): Connection => {
+    private startCheckpoint = (command: Agda.Command) => (socket: Socket): Socket => {
         this.history.checkpoints.push(this.core.editor.getTextEditor().createCheckpoint());
 
         if (this.history.checkpoints.length === 1) {
@@ -61,7 +61,7 @@ export default class Commander {
             ], command.kind);
             this.history.reload = needReload;
         }
-        return conn;
+        return socket;
     }
 
     private endCheckpoint = () => {
@@ -106,19 +106,19 @@ export default class Commander {
                 })
                 .catch(this.core.connection.handleError)
         } else {
-            var connection: Promise<Connection>;
+            var socket: Promise<Socket>;
             if (command.kind === 'Load') {
                 // activate the view first
                 const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
                 this.core.view.mountPanel(currentMountingPosition);
                 this.core.view.activatePanel();
                 // initialize connection
-                connection = this.core.connection.connect();
+                socket = this.core.connection.connect();
             } else {
                 // get existing connection
-                connection = this.core.connection.getConnection()
+                socket = this.core.connection.getConnection()
             }
-            return connection
+            return socket
                 .then(this.startCheckpoint(command))
                 .then(this.dispatchCommand(command))
                 .then(handleResponses(this.core))
@@ -127,7 +127,7 @@ export default class Commander {
         }
     }
 
-    private dispatchCommand = (command: Agda.Command): (conn: Connection) => Promise<Agda.Response[]> => {
+    private dispatchCommand = (command: Agda.Command): (socket: Socket) => Promise<Agda.Response[]> => {
         switch(command.kind) {
             case 'Load':          return this.load;
             case 'Quit':          return this.quit;
@@ -185,10 +185,10 @@ export default class Commander {
     //
     //  Commands
     //
-    private load = (conn: Connection): Promise<Agda.Response[]> => {
+    private load = (socket: Socket): Promise<Agda.Response[]> => {
         // force save before load
         return this.core.editor.save()
-            .then(() => conn)
+            .then(() => socket)
             .then(Req.load)
             .then(result => {
                 this.loaded = true;
@@ -197,7 +197,7 @@ export default class Commander {
 
     }
 
-    private quit = (conn: Connection): Promise<Agda.Response[]> => {
+    private quit = (socket: Socket): Promise<Agda.Response[]> => {
         this.core.view.deactivatePanel();
         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
         this.core.view.unmountPanel(currentMountingPosition);
@@ -210,15 +210,15 @@ export default class Commander {
         return Promise.resolve([]);
     }
 
-    private restart = (conn: Connection): Promise<Agda.Response[]> => {
-        return this.quit(conn)
-            .then(() => conn)
+    private restart = (socket: Socket): Promise<Agda.Response[]> => {
+        return this.quit(socket)
+            .then(() => socket)
             .then(this.load);
     }
 
     private abort = Req.abort;
-    
-    private toggleDocking = (conn: Connection): Promise<Agda.Response[]> => {
+
+    private toggleDocking = (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.view.toggleDocking()
             .then(() => Promise.resolve([]));
     }
@@ -229,12 +229,12 @@ export default class Commander {
     private showConstraints = Req.showConstraints
     private showGoals = Req.showGoals
 
-    private nextGoal = (conn: Connection): Promise<Agda.Response[]> => {
+    private nextGoal = (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.editor.jumpToNextGoal()
             .then(() => Promise.resolve([]));
     }
 
-    private previousGoal = (conn: Connection): Promise<Agda.Response[]> => {
+    private previousGoal = (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.editor.jumpToPreviousGoal()
             .then(() => Promise.resolve([]));
     }
@@ -243,35 +243,35 @@ export default class Commander {
     //  The following commands may have a goal-specific version
     //
 
-    private whyInScope = (conn: Connection): Promise<Agda.Response[]> => {
+    private whyInScope = (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.view.query('Scope info', [], View.Style.PlainText, 'name:')
             .then((expr) => {
                 return this.core.editor.goal.pointing()
-                    .then(goal => Req.whyInScope(expr, goal)(conn))
-                    .catch(Err.OutOfGoalError, () => Req.whyInScopeGlobal(expr)(conn))
+                    .then(goal => Req.whyInScope(expr, goal)(socket))
+                    .catch(Err.OutOfGoalError, () => Req.whyInScopeGlobal(expr)(socket))
             });
     }
 
-    private inferType = (normalization: Agda.Normalization) => (conn: Connection): Promise<Agda.Response[]> => {
+    private inferType = (normalization: Agda.Normalization) => (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
             .then(goal => {
                 // goal-specific
                 if (goal.isEmpty()) {
                     return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
-                        .then(expr => Req.inferType(normalization, expr, goal)(conn))
+                        .then(expr => Req.inferType(normalization, expr, goal)(socket))
                 } else {
-                    return Req.inferType(normalization, goal.getContent(), goal)(conn);
+                    return Req.inferType(normalization, goal.getContent(), goal)(socket);
                 }
             })
             .catch(() => {
                 // global command
                 return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
-                    .then(expr => Req.inferTypeGlobal(normalization, expr)(conn))
+                    .then(expr => Req.inferTypeGlobal(normalization, expr)(socket))
             })
     }
 
 
-    private moduleContents = (normalization: Agda.Normalization) => (conn: Connection): Promise<Agda.Response[]> => {
+    private moduleContents = (normalization: Agda.Normalization) => (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], View.Style.PlainText, 'module name:')
             .then(expr => {
                 return this.core.editor.goal.pointing()
@@ -288,19 +288,19 @@ export default class Commander {
     }
 
 
-    private computeNormalForm = (computeMode: Agda.ComputeMode) => (conn: Connection): Promise<Agda.Response[]> => {
+    private computeNormalForm = (computeMode: Agda.ComputeMode) => (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
             .then((goal) => {
                 if (goal.isEmpty()) {
                     return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, 'expression to normalize:')
-                        .then(expr => Req.computeNormalForm(computeMode, expr, goal)(conn))
+                        .then(expr => Req.computeNormalForm(computeMode, expr, goal)(socket))
                 } else {
-                    return Req.computeNormalForm(computeMode, goal.getContent(), goal)(conn)
+                    return Req.computeNormalForm(computeMode, goal.getContent(), goal)(socket)
                 }
             })
             .catch(Err.OutOfGoalError, () => {
                 return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, 'expression to normalize:')
-                    .then(expr => Req.computeNormalFormGlobal(computeMode, expr)(conn))
+                    .then(expr => Req.computeNormalFormGlobal(computeMode, expr)(socket))
             })
 
     }
@@ -309,7 +309,7 @@ export default class Commander {
     //  The following commands only working in the context of a specific goal
     //
 
-    private give = (conn: Connection): Promise<Agda.Response[]> => {
+    private give = (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
             .then((goal) => {
                 if (goal.isEmpty()) {
@@ -319,32 +319,32 @@ export default class Commander {
                     return goal;
                 }
             })
-            .then(goal => Req.give(goal)(conn))
+            .then(goal => Req.give(goal)(socket))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Give` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
     }
 
-    private refine = (conn: Connection): Promise<Agda.Response[]> => {
+    private refine = (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
-            .then(goal => Req.refine(goal)(conn))
+            .then(goal => Req.refine(goal)(socket))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Refine` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
     }
 
-    private auto = (conn: Connection): Promise<Agda.Response[]> => {
+    private auto = (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
-            .then(goal => Req.auto(goal)(conn))
+            .then(goal => Req.auto(goal)(socket))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Auto` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
     }
 
-    private case = (conn: Connection): Promise<Agda.Response[]> => {
+    private case = (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
             .then((goal) => {
                 if (goal.isEmpty()) {
@@ -354,50 +354,50 @@ export default class Commander {
                     return goal;
                 }
             })
-            .then(goal => Req.makeCase(goal)(conn))
+            .then(goal => Req.makeCase(goal)(socket))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Case` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
     }
 
-    private goalType = (normalization: Agda.Normalization) => (conn: Connection): Promise<Agda.Response[]> => {
+    private goalType = (normalization: Agda.Normalization) => (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
-            .then(goal => Req.goalType(normalization, goal)(conn))
+            .then(goal => Req.goalType(normalization, goal)(socket))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
     }
 
-    private context = (normalization: Agda.Normalization) => (conn: Connection): Promise<Agda.Response[]> => {
+    private context = (normalization: Agda.Normalization) => (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
-            .then(goal => Req.context(normalization, goal)(conn))
+            .then(goal => Req.context(normalization, goal)(socket))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
     }
 
-    private goalTypeAndContext = (normalization: Agda.Normalization) => (conn: Connection): Promise<Agda.Response[]> => {
+    private goalTypeAndContext = (normalization: Agda.Normalization) => (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
-            .then(goal => Req.goalTypeAndContext(normalization, goal)(conn))
+            .then(goal => Req.goalTypeAndContext(normalization, goal)(socket))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
     }
 
-    private goalTypeAndInferredType = (normalization: Agda.Normalization) => (conn: Connection): Promise<Agda.Response[]> => {
+    private goalTypeAndInferredType = (normalization: Agda.Normalization) => (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.editor.goal.pointing()
-            .then(goal => Req.goalTypeAndInferredType(normalization, goal)(conn))
+            .then(goal => Req.goalTypeAndInferredType(normalization, goal)(socket))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Inferred Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
                 return []
             })
     }
 
-    private inputSymbol = (conn: Connection): Promise<Agda.Response[]> => {
+    private inputSymbol = (socket: Socket): Promise<Agda.Response[]> => {
         // const miniEditorFocused = this.core.view.editors.general && this.core.view.editors.general.isFocused();
         // const shouldNotActivate = miniEditorFocused && !enableInMiniEditor;
 
@@ -416,7 +416,7 @@ export default class Commander {
         return Promise.resolve([]);
     }
 
-    private querySymbol = (conn: Connection): Promise<Agda.Response[]> => {
+    private querySymbol = (socket: Socket): Promise<Agda.Response[]> => {
         return this.core.view.query(`Query Unicode symbol input sequences`, [], View.Style.PlainText, 'symbol:')
             .then(symbol => {
                 const sequences = Table[symbol.codePointAt(0)] || [];
@@ -428,7 +428,7 @@ export default class Commander {
             });
     }
 
-    private inputSymbolInterceptKey = (kind, key: string) => (conn: Connection): Promise<Agda.Response[]> => {
+    private inputSymbolInterceptKey = (kind, key: string) => (socket: Socket): Promise<Agda.Response[]> => {
         this.core.inputMethod.interceptAndInsertKey(key);
         return Promise.resolve([]);
     }
