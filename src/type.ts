@@ -422,7 +422,7 @@ export type ValidPath = {
     version: Version
 };
 
-export type Socket = ValidPath & {
+export type Connection = ValidPath & {
     stream: Duplex;
     queue: {
         resolve: (actions: Agda.Response[]) => void;

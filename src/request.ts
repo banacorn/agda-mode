@@ -1,6 +1,6 @@
 import * as Promise from 'bluebird';
 import { parseFilepath } from './parser';
-import { Agda, Socket } from './type';
+import { Agda, Connection } from './type';
 import * as semver from 'semver';
 import Goal from './editor/goal';
 
@@ -12,20 +12,20 @@ function getLibraryPath(): string {
     return path.map((p) => { return `\"${ parseFilepath(p) }\"`; }).join(', ');
 }
 
-const sendRequest = (highlightingLevel: string, interaction: string | ((socket: Socket) => string)) => (socket: Socket): Promise<Agda.Response[]> => {
+const sendRequest = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (conn: Connection): Promise<Agda.Response[]> => {
     const highlightingMethod = atom.config.get('agda-mode.highlightingMethod');
     let request: string;
     if (typeof interaction === 'string') {
-        request = `IOTCM \"${socket.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction} )\n`
+        request = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction} )\n`
     } else {    // interaction is a callback
-        request = `IOTCM \"${socket.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(socket)} )\n`;
+        request = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(conn)} )\n`;
     }
     // pushing the unfullfilled request to the back of the backlog queue of Connection
     const promise = new Promise<Agda.Response[]>((resolve, reject) => {
-        socket.queue.unshift({ resolve, reject });
+        conn.queue.unshift({ resolve, reject });
     });
     // send it out
-    socket.stream.write(request);
+    conn.stream.write(request);
     return promise;
 }
 
@@ -40,36 +40,36 @@ const sendRequest = (highlightingLevel: string, interaction: string | ((socket: 
 // data Interval a = Interval { iStart, iEnd :: !(Position' a) }
 // data Position a = Pn a !Int32 !Int32 !Int32
 
-function buildRange(socket: Socket, goal: Goal): string {
+function buildRange(conn: Connection, goal: Goal): string {
     const start       = goal.range.start;
     const startIndex  = goal.rangeIndex.start;
     const end         = goal.range.end;
     const endIndex    = goal.rangeIndex.end;
-    if (semver.gte(socket.version.sem, '2.5.1')) {
-        return `(intervalsToRange (Just (mkAbsolute \"${socket.filepath}\")) [Interval (Pn () ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn () ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
+    if (semver.gte(conn.version.sem, '2.5.1')) {
+        return `(intervalsToRange (Just (mkAbsolute \"${conn.filepath}\")) [Interval (Pn () ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn () ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
     } else {
-        return `(Range [Interval (Pn (Just (mkAbsolute \"${socket.filepath}\")) ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn (Just (mkAbsolute \"${socket.filepath}\")) ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
+        return `(Range [Interval (Pn (Just (mkAbsolute \"${conn.filepath}\")) ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn (Just (mkAbsolute \"${conn.filepath}\")) ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
     }
 }
 
 
-export const load = sendRequest('NonInteractive', (socket) => {
+export const load = sendRequest('NonInteractive', (conn) => {
     // if version > 2.5, ignore library path configuration
-    if (semver.gte(socket.version.sem, '2.5.0'))
-        return `Cmd_load \"${socket.filepath}\" []`
+    if (semver.gte(conn.version.sem, '2.5.0'))
+        return `Cmd_load \"${conn.filepath}\" []`
     else
-        return `Cmd_load \"${socket.filepath}\" [${getLibraryPath()}]`
+        return `Cmd_load \"${conn.filepath}\" [${getLibraryPath()}]`
 });
 
 export const abort =
     sendRequest('NonInteractive', 'Cmd_abort');
 
-export const compile = sendRequest('NonInteractive', (socket) => {
+export const compile = sendRequest('NonInteractive', (conn) => {
     const backend = atom.config.get('agda-mode.backend');
-    if (semver.gte(socket.version.sem, '2.5.0'))
-        return `Cmd_compile ${backend} \"${socket.filepath}\" []`
+    if (semver.gte(conn.version.sem, '2.5.0'))
+        return `Cmd_compile ${backend} \"${conn.filepath}\" []`
     else
-        return `Cmd_compile ${backend} \"${socket.filepath}\" [${getLibraryPath()}]`
+        return `Cmd_compile ${backend} \"${conn.filepath}\" [${getLibraryPath()}]`
 });
 
 export const toggleDisplayOfImplicitArguments =

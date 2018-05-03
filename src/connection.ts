@@ -7,7 +7,7 @@ import { Duplex } from 'stream';
 var duplex = require('duplexer');
 
 import Rectifier from './parser/stream/rectifier';
-import { View, Path, ValidPath, Version, Socket } from './type';
+import { View, Path, ValidPath, Version, Connection } from './type';
 import * as Err from './error';
 import { guid } from './util';
 import { Core } from './core';
@@ -15,52 +15,53 @@ import { parseFilepath, parseResponses } from './parser';
 import * as Action from "./view/actions";
 
 export default class ConnectionManager {
-    private socket?: Socket;
+    private connection?: Connection;
 
     constructor(private core: Core) {
         this.queryPath = this.queryPath.bind(this);
         this.handleError = this.handleError.bind(this);
     }
     // connect with the selected ConnectionInfo
-    connect(): Promise<Socket> {
+    connect(): Promise<Connection> {
         return getAgdaPath()
             .catch(Err.Conn.NoPathGiven, error => {
                 return autoSearch('agda');
             })
             .then(validateAgda)
             .catch(Err.Conn.Invalid, this.queryPath)
+            .then(setAgdaPath)
             .then(establishConnection(this.core.editor.getPath()))
             .then(this.wire);
     }
 
     // disconnect the current connection
     disconnect() {
-        if (this.socket) {
+        if (this.connection) {
             // // the view
-            // this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.socket.guid));
+            // this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.connection.guid));
             // the streams
-            this.socket.stream.end();
+            this.connection.stream.end();
             // the property
-            this.socket = undefined;
+            this.connection = undefined;
         }
     }
 
-    getConnection(): Promise<Socket> {
-        if (this.socket)
-            return Promise.resolve(this.socket);
+    getConnection(): Promise<Connection> {
+        if (this.connection)
+            return Promise.resolve(this.connection);
         else
             return Promise.reject(new Err.Conn.NotEstablished);
     }
 
     //
-    private wire = (socket: Socket): Promise<Socket> => {
+    private wire = (connection: Connection): Promise<Connection> => {
         // // the view
         // this.core.view.store.dispatch(Action.CONNECTION.connect(this.selected.guid));
         // the properties
-        this.socket = socket;
+        this.connection = connection;
         // modify the method write so that we can intercept and redirect data to the core;
-        const write = socket.stream.write;
-        socket.stream.write = data => {
+        const write = connection.stream.write;
+        connection.stream.write = data => {
             this.core.view.store.dispatch(Action.PROTOCOL.logRequest({
                 raw: data.toString(),
                 parsed: null
@@ -69,10 +70,10 @@ export default class ConnectionManager {
             return write(data);
         };
         // the streams
-        socket.stream
+        connection.stream
             .pipe(new Rectifier)
             .on('data', (data) => {
-                const promise = this.socket.queue.pop();
+                const promise = this.connection.queue.pop();
                 const lines = data.toString().trim().split('\n');
                 parseResponses(data.toString())
                     .then(responses => {
@@ -92,7 +93,7 @@ export default class ConnectionManager {
                         promise.resolve([]);
                     })
             });
-        return Promise.resolve(socket);
+        return Promise.resolve(connection);
     }
 
 
@@ -115,10 +116,15 @@ export default class ConnectionManager {
 export function getAgdaPath(): Promise<Path> {
     const path = atom.config.get('agda-mode.agdaPath');
     if (path.trim() === '') {
-        return Promise.resolve(path);
-    } else {
         return Promise.reject(new Err.Conn.NoPathGiven);
+    } else {
+        return Promise.resolve(path);
     }
+}
+
+export function setAgdaPath(validated: ValidPath): Promise<ValidPath> {
+    atom.config.set('agda-mode.agdaPath', validated.path);
+    return Promise.resolve(validated);
 }
 
 export function autoSearch(location: string): Promise<string> {
@@ -181,6 +187,7 @@ export function validateProcess(path: Path, validator: (msg: string, resolve, re
 }
 
 export function validateAgda(path: Path): Promise<ValidPath> {
+    console.log(`validating ${ path }`)
     return validateProcess(path, (message, resolve, reject) => {
         const result = message.match(/^Agda version (.*)(?:\r\n?|\n)$/);
         if (result) {
@@ -214,8 +221,8 @@ export function validateAgda(path: Path): Promise<ValidPath> {
 //     });
 // }
 
-export const establishConnection = (filepath: string) => ({ path, version }: ValidPath): Promise<Socket> => {
-    return new Promise<Socket>((resolve, reject) => {
+export const establishConnection = (filepath: string) => ({ path, version }: ValidPath): Promise<Connection> => {
+    return new Promise<Connection>((resolve, reject) => {
         const agdaProcess = spawn(path, ['--interaction'], { shell: true });
         agdaProcess.on('error', (error) => {
             reject(new Err.Conn.ConnectionError(
