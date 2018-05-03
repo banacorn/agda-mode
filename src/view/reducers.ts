@@ -5,15 +5,14 @@ import { createAction, handleActions, Action } from 'redux-actions';
 import { EventEmitter } from 'events'
 import * as Conn from '../connection';
 import * as Parser from '../parser';
-import * as InternalState from '../internal-state';
 import { View, Agda, Parsed } from '../type';
-import { EVENT, MODE, VIEW, CONNECTION, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, SETTINGS } from './actions';
+import { EVENT, MODE, VIEW, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, SETTINGS } from './actions';
 import { translate } from '../input-method';
 
 // default state
 const { translation, further, keySuggestions, candidateSymbols } = translate('');
 
-const initialInternalState = InternalState.get();
+// const initialInternalState = InternalState.get();
 const defaultState: View.State = {
     view: {
         activated: false,
@@ -25,13 +24,13 @@ const defaultState: View.State = {
         settingsView: false
     },
     mode: View.Mode.Display,
-    connection: {
-        connectionInfos: initialInternalState.connections,
-        selected: initialInternalState.selected,
-        connected: initialInternalState.connected,
-        erred: [],
-        showNewConnectionView: false
-    },
+    // connection: {
+    //     connectionInfos: initialInternalState.connections,
+    //     selected: initialInternalState.selected,
+    //     connected: initialInternalState.connected,
+    //     erred: [],
+    //     showNewConnectionView: false
+    // },
     protocol: {
         log: [],
         pending: false,
@@ -109,31 +108,31 @@ const mode = handleActions<View.Mode, MODE>({
     [MODE.QUERY_CONNECTION]: (state, action) => View.Mode.QueryConnection
 }, defaultState.mode);
 
-const connection = handleActions<View.ConnectionState, CONNECTION>({
-    [CONNECTION.ADD_CONNECTION]: (state, action: Action<CONNECTION.ADD_CONNECTION>) => ({ ...state,
-        connectionInfos: _.concat([action.payload], state.connectionInfos)
-    }),
-    [CONNECTION.REMOVE_CONNECTION]: (state, action: Action<CONNECTION.REMOVE_CONNECTION>) => ({ ...state,
-        connectionInfos: _.filter(state.connectionInfos, (connInfo) => connInfo.guid !== action.payload),
-        erred: _.filter(state.erred, guid => guid !== action.payload)
-    }),
-    [CONNECTION.SELECT_CONNECTION]: (state, action: Action<CONNECTION.SELECT_CONNECTION>) => ({ ...state,
-        selected: action.payload
-    }),
-    [CONNECTION.CONNECT]: (state, action: Action<CONNECTION.CONNECT>) => ({ ...state,
-        connected: action.payload,
-        erred: _.filter(state.erred, guid => guid !== action.payload)
-    }),
-    [CONNECTION.DISCONNECT]: (state, action: Action<CONNECTION.CONNECT>) => ({ ...state,
-        connected: undefined
-    }),
-    [CONNECTION.ERR]: (state, action: Action<CONNECTION.ERR>) => ({ ...state,
-        erred: _.uniq(_.concat([action.payload], state.erred))
-    }),
-    [CONNECTION.SHOW_NEW_CONNECTION_VIEW]: (state, action: Action<CONNECTION.SHOW_NEW_CONNECTION_VIEW>) => ({ ...state,
-        showNewConnectionView: action.payload
-    })
-}, defaultState.connection);
+// const connection = handleActions<View.ConnectionState, CONNECTION>({
+//     [CONNECTION.ADD_CONNECTION]: (state, action: Action<CONNECTION.ADD_CONNECTION>) => ({ ...state,
+//         connectionInfos: _.concat([action.payload], state.connectionInfos)
+//     }),
+//     [CONNECTION.REMOVE_CONNECTION]: (state, action: Action<CONNECTION.REMOVE_CONNECTION>) => ({ ...state,
+//         connectionInfos: _.filter(state.connectionInfos, (connInfo) => connInfo.guid !== action.payload),
+//         erred: _.filter(state.erred, guid => guid !== action.payload)
+//     }),
+//     [CONNECTION.SELECT_CONNECTION]: (state, action: Action<CONNECTION.SELECT_CONNECTION>) => ({ ...state,
+//         selected: action.payload
+//     }),
+//     [CONNECTION.CONNECT]: (state, action: Action<CONNECTION.CONNECT>) => ({ ...state,
+//         connected: action.payload,
+//         erred: _.filter(state.erred, guid => guid !== action.payload)
+//     }),
+//     [CONNECTION.DISCONNECT]: (state, action: Action<CONNECTION.CONNECT>) => ({ ...state,
+//         connected: undefined
+//     }),
+//     [CONNECTION.ERR]: (state, action: Action<CONNECTION.ERR>) => ({ ...state,
+//         erred: _.uniq(_.concat([action.payload], state.erred))
+//     }),
+//     [CONNECTION.SHOW_NEW_CONNECTION_VIEW]: (state, action: Action<CONNECTION.SHOW_NEW_CONNECTION_VIEW>) => ({ ...state,
+//         showNewConnectionView: action.payload
+//     })
+// }, defaultState.connection);
 
 function logResponse(log: View.ReqRes[], response: Parsed<Agda.Response>[]): View.ReqRes[] {
     // append only to the last ReqRes;
@@ -242,7 +241,7 @@ const settings = handleActions<View.SettingsPath, SETTINGS>({
 export default combineReducers<View.State>({
     view,
     mode,
-    connection,
+    // connection,
     protocol,
     header,
     inputMethod,

@@ -16,7 +16,7 @@ const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<vo
         })
         .catch(Err.Conn.ConnectionError, error => {
                 core.view.set(error.name, error.message.split('\n'), View.Style.Error);
-                core.view.store.dispatch(Action.CONNECTION.err(error.guid));
+                // core.view.store.dispatch(Action.CONNECTION.err(error.guid));
         })
         .catch(Err.QueryCancelled, () => {
             core.view.set('Query cancelled', [], View.Style.Warning);

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
-import { View, Parsed, Agda, ConnectionInfo } from '../../../type';
+import { View, Parsed, Agda, ValidPath } from '../../../type';
 
 //
 // Response
@@ -107,70 +107,35 @@ class ReqRes extends React.Component<ReqResProp, {}> {
 //
 //
 
-type OwnProps = React.HTMLProps<HTMLElement> & {
-    // core: Core;
-}
-type InjProps = {
-    connection?: ConnectionInfo;
-    protocol: View.Protocol;
-}
-
-type DispatchProps = {
-    // navigate: (path: View.SettingsPath) => () => void
-}
-
-type Props = OwnProps & InjProps & DispatchProps;
-
-function mapStateToProps(state: View.State): InjProps {
-    return {
-        connection: _.find(state.connection.connectionInfos, {
-            guid: state.connection.connected
-        }),
-        protocol: state.protocol
-    }
-}
+type Props = React.HTMLProps<HTMLElement> & {};
 
 class Protocol extends React.Component<Props, {}> {
     constructor(props) {
         super(props);
     }
     render() {
-        const connInfo = this.props.connection;
-        if (connInfo) {
-            return (
-                <section className={classNames("agda-settings-protocol", this.props.className)}>
-                    <h2>Protocol</h2>
-                    <p><span className="text-highlight">Agda Version: </span>{connInfo.agda.version.raw}</p>
-                    <p><span className="text-highlight">Agda Location: </span>{connInfo.agda.location}</p>
-                    <p><span className="text-highlight">Current Protocol: </span>{connInfo.languageServer ? 'LSP' : 'Vanilla'}</p>
-                    <h2>Log</h2>
-                    <ol className="agda-settings-protocol-log">{this.props.protocol.log.map((reqRes, i) =>
-                        <ReqRes reqRes={reqRes} key={i} />
-                    )}</ol>
-                </section>
-            )
-        } else {
-            return <section className={classNames("agda-settings-protocol", this.props.className)}>
-                    <p className='background-message'>
-                        No Connections
-                    </p>
-                </section>
-        }
+        // const connInfo = this.props.connection;
+        // if (connInfo) {
+        //     return (
+        //         <section className={classNames("agda-settings-protocol", this.props.className)}>
+        //             <h2>Protocol</h2>
+        //             {/* <p><span className="text-highlight">Agda Version: </span>{connInfo.agda.version.raw}</p>
+        //             <p><span className="text-highlight">Agda Location: </span>{connInfo.agda.location}</p>
+        //             <p><span className="text-highlight">Current Protocol: </span>{connInfo.languageServer ? 'LSP' : 'Vanilla'}</p> */}
+        //             <h2>Log</h2>
+        //             <ol className="agda-settings-protocol-log">{this.props.protocol.log.map((reqRes, i) =>
+        //                 <ReqRes reqRes={reqRes} key={i} />
+        //             )}</ol>
+        //         </section>
+        //     )
+        // } else {
+        return <section className={classNames("agda-settings-protocol", this.props.className)}>
+                <p className='background-message'>
+                    No Connection Established
+                </p>
+            </section>
+        // }
     }
 }
 
-
-// <h2>Messages</h2>
-// <h3>Requests</h3>
-// <ol className="agda-settings-protocol-message-list">{requests.map((msg, i) =>
-//     <Message message={msg} key={i} />
-// )}</ol>
-// <h3>Responses</h3>
-// <ol className="agda-settings-protocol-message-list">{responses.map((msg, i) =>
-//     <Message message={msg} key={i} />
-// )}</ol>
-
-export default connect<InjProps, DispatchProps, OwnProps>(
-    mapStateToProps,
-    null
-)(Protocol);
+export default Protocol;

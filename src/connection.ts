@@ -7,16 +7,14 @@ import { Duplex } from 'stream';
 var duplex = require('duplexer');
 
 import Rectifier from './parser/stream/rectifier';
-import { View, Path, ValidPath, Version, Socket, ProcessInfo, ConnectionInfo, GUID } from './type';
+import { View, Path, ValidPath, Version, Socket } from './type';
 import * as Err from './error';
 import { guid } from './util';
 import { Core } from './core';
 import { parseFilepath, parseResponses } from './parser';
 import * as Action from "./view/actions";
-import * as InternalState from "./internal-state";
 
 export default class ConnectionManager {
-    private selected?: ConnectionInfo;
     private socket?: Socket;
 
     constructor(private core: Core) {
@@ -56,8 +54,8 @@ export default class ConnectionManager {
 
     //
     private wire = (socket: Socket): Promise<Socket> => {
-        // the view
-        this.core.view.store.dispatch(Action.CONNECTION.connect(this.selected.guid));
+        // // the view
+        // this.core.view.store.dispatch(Action.CONNECTION.connect(this.selected.guid));
         // the properties
         this.socket = socket;
         // modify the method write so that we can intercept and redirect data to the core;
@@ -105,12 +103,12 @@ export default class ConnectionManager {
     }
 
     handleError(error: Error) {
-        this.core.view.set('Error', [error.message], View.Style.Error);
-        if (this.selected) {
-            this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
-        } else {
-            this.core.view.store.dispatch(Action.CONNECTION.showNewConnectionView(true));
-        }
+        // this.core.view.set('Error', [error.message], View.Style.Error);
+        // if (this.selected) {
+        //     this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
+        // } else {
+        //     this.core.view.store.dispatch(Action.CONNECTION.showNewConnectionView(true));
+        // }
     }
 }
 

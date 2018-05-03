@@ -4,7 +4,6 @@ import { ParsedPath } from 'path';
 import { Duplex } from 'stream';
 import { AgdaError } from './parser/error';
 
-export type GUID = string;
 import { Range } from 'atom';
 import * as Atom from 'atom';
 
@@ -50,7 +49,7 @@ namespace View {
     export interface State {
         view: ViewState;
         mode: Mode;
-        connection: ConnectionState;
+        // connection: ConnectionState;
         protocol: Protocol;
         header: HeaderState;
         inputMethod: InputMethodState;
@@ -65,13 +64,13 @@ namespace View {
         QueryConnection
     }
 
-    export interface ConnectionState {
-        connectionInfos: ConnectionInfo[];
-        selected?: GUID;
-        connected?: GUID;
-        erred: GUID[];
-        showNewConnectionView: boolean;
-    }
+    // export interface ConnectionState {
+    //     connectionInfos: ConnectionInfo[];
+    //     selected?: GUID;
+    //     connected?: GUID;
+    //     erred: GUID[];
+    //     showNewConnectionView: boolean;
+    // }
 
     export interface Protocol {
         log: ReqRes[];
@@ -422,16 +421,6 @@ export type ValidPath = {
     path: Path;
     version: Version
 };
-export type ProcessInfo = {
-    location: Path;
-    version: Version;
-};
-
-export type ConnectionInfo = {
-    guid: string;
-    agda: ProcessInfo;
-    languageServer?: ProcessInfo;
-}
 
 export type Socket = ValidPath & {
     stream: Duplex;
