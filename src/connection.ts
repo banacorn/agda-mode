@@ -7,7 +7,7 @@ import { Duplex } from 'stream';
 var duplex = require('duplexer');
 
 import Rectifier from './parser/stream/rectifier';
-import { View, Socket, ProcessInfo, ConnectionInfo, GUID } from './type';
+import { View, Path, ValidPath, Version, Socket, ProcessInfo, ConnectionInfo, GUID } from './type';
 import * as Err from './error';
 import { guid } from './util';
 import { Core } from './core';
@@ -20,74 +20,26 @@ export default class ConnectionManager {
     private socket?: Socket;
 
     constructor(private core: Core) {
-        this.recoverAgda = this.recoverAgda.bind(this);
+        this.queryPath = this.queryPath.bind(this);
         this.handleError = this.handleError.bind(this);
     }
-
-    // select a target ConnectionInfo to be connected
-    select(connInfo: ConnectionInfo) {
-        this.selected = connInfo;
-    }
-
-    unselect(connInfo: ConnectionInfo) {
-        if (this.selected && this.selected.guid === connInfo.guid) {
-            this.selected = undefined;
-        }
-        if (this.socket && this.socket.guid === connInfo.guid) {
-            this.disconnect();
-        }
-    }
-
     // connect with the selected ConnectionInfo
     connect(): Promise<Socket> {
-        if (!this.selected) {
-            return getExistingConnectionInfo()
-                .then(selected => {
-                    this.selected = selected;
-                    return connectAgda(this.selected, this.core.editor.getPath())
-                        .then(this.wire);
-                    // if (selected.languageServer) {
-                    //     return connectLanguageServer(this.selected, this.core.getPath())
-                    //         .then(this.wire);
-                    // } else {
-                    //     return connectAgda(this.selected, this.core.getPath())
-                    //         .then(this.wire);
-                    // }
-                })
-                .catch(Err.Conn.NoCandidates, error => {
-                    return autoSearch('agda')
-                        .then(validateAgda)
-                        .catch(Err.Conn.Invalid, this.recoverAgda)
-                        .then(mkConnectionInfo)
-                        .then(connInfo => {
-                            // let it be selected
-                            this.selected = connInfo;
-                            // update the view
-                            this.core.view.store.dispatch(Action.CONNECTION.addConnection(connInfo));
-                            return connectAgda(connInfo, this.core.editor.getPath())
-                                .then(this.wire);
-                        });
-                })
-        }
-
-        // only recoonect when the selected is different from the connected
-        if (this.socket && this.socket.guid === this.selected.guid) {
-            // there's no need of re-establish a new connection
-            return Promise.resolve(this.socket);
-        } else {
-            // cut the old connection
-            this.disconnect();
-            // and establish a new one
-            return connectAgda(this.selected, this.core.editor.getPath())
-                .then(this.wire);
-        }
+        return getAgdaPath()
+            .catch(Err.Conn.NoPathGiven, error => {
+                return autoSearch('agda');
+            })
+            .then(validateAgda)
+            .catch(Err.Conn.Invalid, this.queryPath)
+            .then(establishConnection(this.core.editor.getPath()))
+            .then(this.wire);
     }
 
     // disconnect the current connection
     disconnect() {
         if (this.socket) {
-            // the view
-            this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.socket.guid));
+            // // the view
+            // this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.socket.guid));
             // the streams
             this.socket.stream.end();
             // the property
@@ -146,10 +98,10 @@ export default class ConnectionManager {
     }
 
 
-    recoverAgda(): Promise<ProcessInfo> {
+    queryPath(): Promise<ValidPath> {
         return this.core.view.queryConnection()
             .then(validateAgda)
-            .catch(Err.Conn.Invalid, this.recoverAgda);
+            .catch(Err.Conn.Invalid, this.queryPath);
     }
 
     handleError(error: Error) {
@@ -162,28 +114,12 @@ export default class ConnectionManager {
     }
 }
 
-export function getExistingConnectionInfo(): Promise<ConnectionInfo> {
-    const state = InternalState.get();
-
-    const selected = _.find(state.connections, {
-        guid: state.selected
-    });
-
-    if (selected) {
-        return Promise.resolve(selected);
+export function getAgdaPath(): Promise<Path> {
+    const path = atom.config.get('agda-mode.agdaPath');
+    if (path.trim() === '') {
+        return Promise.resolve(path);
     } else {
-        if (state.connections.length > 0) {
-            return Promise.resolve(state.connections[0]);
-        } else {
-            return Promise.reject(new Err.Conn.NoCandidates);
-        }
-    }
-}
-
-export function mkConnectionInfo(agda: ProcessInfo): ConnectionInfo {
-    return {
-        guid: guid(),
-        agda: agda
+        return Promise.reject(new Err.Conn.NoPathGiven);
     }
 }
 
@@ -205,31 +141,31 @@ export function autoSearch(location: string): Promise<string> {
 
 
 // to make sure that we are connecting with Agda
-export function validateProcess(location: string, validator: (msg: string, resolve, reject) => void): Promise<ProcessInfo> {
-    location = parseFilepath(location);
-    return new Promise<ProcessInfo>((resolve, reject) => {
+export function validateProcess(path: Path, validator: (msg: string, resolve, reject) => void): Promise<ValidPath> {
+    path = parseFilepath(path);
+    return new Promise<ValidPath>((resolve, reject) => {
         var stillHanging = true;
 
-        if (location === '') {
-            reject(new Err.Conn.Invalid(`The location must not be empty`, location));
+        if (path === '') {
+            reject(new Err.Conn.Invalid(`The location must not be empty`, path));
         }
 
         // ask for the version and see if it's really Agda
-        exec(`${location} --version`, (error, stdout, stderr) => {
+        exec(`${path} --version`, (error, stdout, stderr) => {
             stillHanging = false;
 
             if (error) {
                 // command not found
                 if (error.message.toString().match(/command not found/)) {
-                    reject(new Err.Conn.Invalid(`The provided program was not found`, location));
+                    reject(new Err.Conn.Invalid(`The provided program was not found`, path));
                 // command found however the arguments are invalid
                 } else {
-                    reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda:\n\n${error.message}`, location));
+                    reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda:\n\n${error.message}`, path));
                 }
             }
             if (stderr) {
                 const message = `Spawned process returned with the following result (from stderr):\n\n\"${stdout.toString()}\"`;
-                reject(new Err.Conn.Invalid(message, location));
+                reject(new Err.Conn.Invalid(message, path));
             }
 
             validator(stdout.toString(), resolve, reject);
@@ -240,14 +176,14 @@ export function validateProcess(location: string, validator: (msg: string, resol
         setTimeout(() => {
             if (stillHanging) {
                 const message = `The provided program hangs`;
-                return Promise.reject(new Err.Conn.Invalid(message, location));
+                return Promise.reject(new Err.Conn.Invalid(message, path));
             }
         }, 1000)
     });
 }
 
-export function validateAgda(location: string): Promise<ProcessInfo> {
-    return validateProcess(location, (message, resolve, reject) => {
+export function validateAgda(path: Path): Promise<ValidPath> {
+    return validateProcess(path, (message, resolve, reject) => {
         const result = message.match(/^Agda version (.*)(?:\r\n?|\n)$/);
         if (result) {
             // normalize version number to valid semver
@@ -258,46 +194,44 @@ export function validateAgda(location: string): Promise<ProcessInfo> {
                 : tokens.join('.');
             const version = { raw, sem };
             resolve({
-                location,
+                path,
                 version
             });
         } else {
-            reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda`, location));
+            reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda`, path));
         }
     });
 }
+//
+// export function validateLanguageServer(path: Path): Promise<ValidPath> {
+//     return validateProcess(path, (message, resolve, reject) => {
+//         const result = message.match(/^Agda Language Server (.*)(?:\r\n?|\n)$/);
+//         if (result) {
+//             resolve({
+//                 path: path
+//             })
+//         } else {
+//             reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda Language Server`, location));
+//         }
+//     });
+// }
 
-export function validateLanguageServer(location: string): Promise<ProcessInfo> {
-    return validateProcess(location, (message, resolve, reject) => {
-        const result = message.match(/^Agda Language Server (.*)(?:\r\n?|\n)$/);
-        if (result) {
-            resolve({
-                location: location
-            })
-        } else {
-            reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda Language Server`, location));
-        }
-    });
-}
-
-export function connectAgda(connInfo: ConnectionInfo, filepath: string): Promise<Socket> {
+export const establishConnection = (filepath: string) => ({ path, version }: ValidPath): Promise<Socket> => {
     return new Promise<Socket>((resolve, reject) => {
-        const agdaProcess = spawn(connInfo.agda.location, ['--interaction'], { shell: true });
+        const agdaProcess = spawn(path, ['--interaction'], { shell: true });
         agdaProcess.on('error', (error) => {
-            reject(new Err.Conn.Connection(
+            reject(new Err.Conn.ConnectionError(
                 error.message,
-                connInfo.agda.location,
-                connInfo.guid,
+                path
             ));
         });
         agdaProcess.on('close', (signal) => {
             const message = signal === 127 ?
                 `exit with signal ${signal}, Agda is not found`:
                 `exit with signal ${signal}`;
-            reject(new Err.Conn.Connection(
+            reject(new Err.Conn.ConnectionError(
                 message,
-                connInfo.agda.location,
-                connInfo.guid,
+                path
             ));
         });
         // validate the spawned process
@@ -305,16 +239,16 @@ export function connectAgda(connInfo: ConnectionInfo, filepath: string): Promise
             const result = data.toString().match(/^Agda2\>/);
             if (result) {
                 resolve({
-                    ...connInfo,
+                    path,
+                    version,
                     stream: duplex(agdaProcess.stdin, agdaProcess.stdout),
                     queue: [],
                     filepath
                 });
             } else {
-                reject(new Err.Conn.Connection(
+                reject(new Err.Conn.ConnectionError(
                     `The provided program doesn't seem like Agda:\n\n ${data.toString()}`,
-                    connInfo.agda.location,
-                    connInfo.guid,
+                    path
                 ));
             }
         });

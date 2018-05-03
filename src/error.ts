@@ -1,4 +1,5 @@
 import Goal from './editor/goal';
+import { Path } from './type';
 
 // for parsing related errors
 export class ParseError extends Error {
@@ -21,12 +22,12 @@ export namespace Conn {
             Error.captureStackTrace(this, AutoSearchError);
         }
     }
-    export class NoCandidates extends Error {
+    export class NoPathGiven extends Error {
         constructor() {
             super();
-            this.message = 'No candidate connections available';
-            this.name = 'No candidate connections error';
-            Error.captureStackTrace(this, NoCandidates);
+            this.message = 'No path given';
+            this.name = 'No path given error';
+            Error.captureStackTrace(this, NoPathGiven);
         }
     }
     export class NotEstablished extends Error {
@@ -45,29 +46,16 @@ export namespace Conn {
             Error.captureStackTrace(this, Invalid);
         }
     }
-    export class Connection extends Error {
-        constructor(message: string, public location: string, public guid: string) {
+    export class ConnectionError extends Error {
+        constructor(message: string, public path: Path) {
             super(message);
             this.message = message;
             this.name = 'Connection error';
-            Error.captureStackTrace(this, Connection);
+            Error.captureStackTrace(this, ConnectionError);
         }
     }
 }
 
-// for connection related errors
-// export type ConnectionErrorKind = 'Generic' |
-//     'ValidationError';
-// export class ConnectionError extends Error {
-//     public kind: ConnectionErrorKind;
-//     constructor(message: string, kind?: ConnectionErrorKind, public location?: string, public guid?: string) {
-//         super(message);
-//         this.kind = kind || 'Generic';
-//         this.message = message;
-//         this.name = 'Connection Error';
-//         Error.captureStackTrace(this, ConnectionError);
-//     }
-// }
 
 export class OutOfGoalError extends Error {
     constructor(message: string) {

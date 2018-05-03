@@ -45,7 +45,7 @@ function buildRange(socket: Socket, goal: Goal): string {
     const startIndex  = goal.rangeIndex.start;
     const end         = goal.range.end;
     const endIndex    = goal.rangeIndex.end;
-    if (semver.gte(socket.agda.version.sem, '2.5.1')) {
+    if (semver.gte(socket.version.sem, '2.5.1')) {
         return `(intervalsToRange (Just (mkAbsolute \"${socket.filepath}\")) [Interval (Pn () ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn () ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
     } else {
         return `(Range [Interval (Pn (Just (mkAbsolute \"${socket.filepath}\")) ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn (Just (mkAbsolute \"${socket.filepath}\")) ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
@@ -55,7 +55,7 @@ function buildRange(socket: Socket, goal: Goal): string {
 
 export const load = sendRequest('NonInteractive', (socket) => {
     // if version > 2.5, ignore library path configuration
-    if (semver.gte(socket.agda.version.sem, '2.5.0'))
+    if (semver.gte(socket.version.sem, '2.5.0'))
         return `Cmd_load \"${socket.filepath}\" []`
     else
         return `Cmd_load \"${socket.filepath}\" [${getLibraryPath()}]`
@@ -66,7 +66,7 @@ export const abort =
 
 export const compile = sendRequest('NonInteractive', (socket) => {
     const backend = atom.config.get('agda-mode.backend');
-    if (semver.gte(socket.agda.version.sem, '2.5.0'))
+    if (semver.gte(socket.version.sem, '2.5.0'))
         return `Cmd_compile ${backend} \"${socket.filepath}\" []`
     else
         return `Cmd_compile ${backend} \"${socket.filepath}\" [${getLibraryPath()}]`
@@ -103,7 +103,7 @@ export const moduleContentsGlobal = (normalization: Agda.Normalization, expr: st
 
 export const computeNormalForm = (computeMode: Agda.ComputeMode, expr: string, goal: Goal) =>
     sendRequest('NonInteractive', conn => {
-        if (semver.gte(conn.agda.version.sem, '2.5.2')) {
+        if (semver.gte(conn.version.sem, '2.5.2')) {
             return `Cmd_compute ${computeMode} ${goal.index} noRange \"${expr}\"`;
         } else {
             const ignoreAbstract = computeMode === 'DefaultCompute' ? 'False' : 'True';
@@ -113,7 +113,7 @@ export const computeNormalForm = (computeMode: Agda.ComputeMode, expr: string, g
 
 export const computeNormalFormGlobal = (computeMode: Agda.ComputeMode, expr: string) =>
     sendRequest('None', conn => {
-        if (semver.gte(conn.agda.version.sem, '2.5.2')) {
+        if (semver.gte(conn.version.sem, '2.5.2')) {
             return `Cmd_compute_toplevel ${computeMode} \"${expr}\"`;
         } else {
             const ignoreAbstract = computeMode === 'DefaultCompute' ? 'False' : 'True';
@@ -125,7 +125,7 @@ export const computeNormalFormGlobal = (computeMode: Agda.ComputeMode, expr: str
 // https://github.com/agda/agda/issues/2730
 // https://github.com/agda/agda/commit/021e6d24f47bac462d8bc88e2ea685d6156197c4
 export const give = (goal: Goal) => sendRequest('NonInteractive', conn =>{
-    if (semver.gte(conn.agda.version.sem, '2.5.3')) {
+    if (semver.gte(conn.version.sem, '2.5.3')) {
         return `Cmd_give WithoutForce ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`;
     } else {
         return `Cmd_give ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`;

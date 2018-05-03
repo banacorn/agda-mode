@@ -418,6 +418,10 @@ export type Version = {
     raw: string;
     sem: string;
 };
+export type ValidPath = {
+    path: Path;
+    version: Version
+};
 export type ProcessInfo = {
     location: Path;
     version: Version;
@@ -429,7 +433,7 @@ export type ConnectionInfo = {
     languageServer?: ProcessInfo;
 }
 
-export type Socket = ConnectionInfo & {
+export type Socket = ValidPath & {
     stream: Duplex;
     queue: {
         resolve: (actions: Agda.Response[]) => void;

@@ -9,7 +9,6 @@ import * as Action from '../actions';
 
 import Breadcrumb from './Settings/Breadcrumb';
 import Connection from './Settings/Connection';
-import NewConnection from './Settings/NewConnection';
 import Protocol from './Settings/Protocol';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {

@@ -14,7 +14,7 @@ const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<vo
         .catch(Err.Conn.NotEstablished, error => {
             core.view.set('Connection to Agda not established', [], View.Style.Warning);
         })
-        .catch(Err.Conn.Connection, error => {
+        .catch(Err.Conn.ConnectionError, error => {
                 core.view.set(error.name, error.message.split('\n'), View.Style.Error);
                 core.view.store.dispatch(Action.CONNECTION.err(error.guid));
         })
