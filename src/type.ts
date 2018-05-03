@@ -136,7 +136,7 @@ namespace View {
     }
 
     export type SettingsPath = '/'
-        | '/Connections' | '/Connections/New'
+        | '/Connection'
         | '/Protocol';
 
 
@@ -413,12 +413,14 @@ export interface Location {
 // Connection
 //
 
+export type Path = string;
+export type Version = {
+    raw: string;
+    sem: string;
+};
 export type ProcessInfo = {
-    location: string;
-    version: {
-        raw: string;
-        sem: string;
-    };
+    location: Path;
+    version: Version;
 };
 
 export type ConnectionInfo = {

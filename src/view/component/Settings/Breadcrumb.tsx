@@ -17,16 +17,8 @@ class Breadcrumb extends React.Component<Props, {}> {
         let tier1, tier2;
 
         switch (this.props.path) {
-            case '/Connections':
-                tier1 = <li><a href="#"><span className="icon icon-plug">Connections</span></a></li>;
-                break;
-            case '/Connections/New':
-                tier1 = <li><a
-                        href="#"
-                        onClick={this.props.navigate('/Connections')}
-                        ><span className="icon icon-plug">Connections</span></a>
-                    </li>;
-                tier2 = <li><a href="#"><span className="icon icon-plus">New</span></a></li>;
+            case '/Connection':
+                tier1 = <li><a href="#"><span className="icon icon-plug">Connection</span></a></li>;
                 break;
             case '/Protocol':
                 tier1 = <li><a href="#"><span className="icon icon-comment-discussion">Protocol</span></a></li>;

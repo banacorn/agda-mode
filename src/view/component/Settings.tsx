@@ -8,7 +8,7 @@ import { View } from '../../type';
 import * as Action from '../actions';
 
 import Breadcrumb from './Settings/Breadcrumb';
-import Connections from './Settings/Connections';
+import Connection from './Settings/Connection';
 import NewConnection from './Settings/NewConnection';
 import Protocol from './Settings/Protocol';
 
@@ -62,9 +62,9 @@ class Settings extends React.Component<Props, {}> {
                     className={classNames("agda-settings-menu", this.at('/'))}
                 >
                     <li
-                        onClick={this.props.navigate('/Connections')}
+                        onClick={this.props.navigate('/Connection')}
                     >
-                        <span className="icon icon-plug">Connections</span>
+                        <span className="icon icon-plug">Connection</span>
                     </li>
                     <li
                         onClick={this.props.navigate('/Protocol')}
@@ -73,25 +73,8 @@ class Settings extends React.Component<Props, {}> {
                     </li>
                 </ul>
                 <div className="agda-settings-pages">
-                    <Connections
-                        className={this.at('/Connections')}
-                        onNew={this.props.navigate('/Connections/New')}
-                        onSelect={(connInfo) => {
-                            core.connection.select(connInfo);
-                        }}
-                        onSelectAndLoad={(connInfo) => {
-                            core.connection.select(connInfo);
-                            core.view.store.dispatch(Action.PROTOCOL.clearAll());
-                            core.commander.dispatch({ kind: 'Load' });
-                        }}
-                        onRemove={(connInfo) => {
-                            core.connection.unselect(connInfo);
-                        }}
-                    />
-                    <NewConnection
-                        core={this.props.core}
-                        className={this.at('/Connections/New')}
-                        onSuccess={this.props.navigate('/Connections')}
+                    <Connection
+                        className={this.at('/Connection')}
                     />
                     <Protocol
                         // core={this.props.core}
