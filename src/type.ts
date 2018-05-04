@@ -49,7 +49,7 @@ namespace View {
     export interface State {
         view: ViewState;
         mode: Mode;
-        // connection: ConnectionState;
+        connection: ConnectionState;
         protocol: Protocol;
         header: HeaderState;
         inputMethod: InputMethodState;
@@ -64,13 +64,10 @@ namespace View {
         QueryConnection
     }
 
-    // export interface ConnectionState {
-    //     connectionInfos: ConnectionInfo[];
-    //     selected?: GUID;
-    //     connected?: GUID;
-    //     erred: GUID[];
-    //     showNewConnectionView: boolean;
-    // }
+    export interface ConnectionState {
+        agda?: ValidPath;
+        languageServer?: ValidPath;
+    }
 
     export interface Protocol {
         log: ReqRes[];

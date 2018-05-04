@@ -43,7 +43,7 @@ class Settings extends React.Component<Props, {}> {
         super(props);
         // this.tabClassName = this.tabClassName.bind(this);
         // this.panelClassName = this.panelClassName.bind(this);
-        // this.handleClick = this.handleClick.bind(this);
+        this.props.core.connection.disconnect = this.props.core.connection.disconnect.bind(this);
     }
 
     render() {
@@ -74,6 +74,14 @@ class Settings extends React.Component<Props, {}> {
                 <div className="agda-settings-pages">
                     <Connection
                         className={this.at('/Connection')}
+                        onConnect={(validated) => {
+                            this.props.core.connection.connect(validated);
+                        }}
+                        onDisconnect={() => {
+                            this.props.core.commander.dispatch({
+                                kind: 'Quit'
+                            }).then(this.props.core.connection.disconnect);
+                        }}
                     />
                     <Protocol
                         // core={this.props.core}

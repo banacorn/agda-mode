@@ -41,6 +41,11 @@ export class Core {
 
         // dispatch config related data to the store on initialization
         this.view.store.dispatch(Action.updateMaxBodyHeight(atom.config.get('agda-mode.maxBodyHeight')));
+
+        // // catch changes to the setting.
+        // atom.config.observe('agda-mode.agdaPath', (newValue) => {
+        //     console.log(`observed changes in path: ${newValue}`)
+        // })
     }
 
     // Editor Events

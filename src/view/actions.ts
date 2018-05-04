@@ -65,112 +65,19 @@ export namespace MODE {
     export const queryConnection = createAction(MODE.QUERY_CONNECTION);
 }
 
-// export type CONNECTION
-//     = CONNECTION.ADD_CONNECTION
-//     | CONNECTION.REMOVE_CONNECTION
-//     | CONNECTION.SELECT_CONNECTION
-//     | CONNECTION.CONNECT
-//     | CONNECTION.DISCONNECT
-//     | CONNECTION.ERR
-//     | CONNECTION.SHOW_NEW_CONNECTION_VIEW
+export type CONNECTION
+    = CONNECTION.CONNECT
+    | CONNECTION.DISCONNECT
 
-// export namespace CONNECTION {
-//     export const ADD_CONNECTION = 'CONNECTION.ADD_CONNECTION';
-//     export type ADD_CONNECTION = ConnectionInfo;
-//     export const REMOVE_CONNECTION = 'CONNECTION.REMOVE_CONNECTION';
-//     export type REMOVE_CONNECTION = GUID;
-//     export const SELECT_CONNECTION = 'CONNECTION.SELECT_CONNECTION';
-//     export type SELECT_CONNECTION = GUID;
-//     export const CONNECT = 'CONNECTION.CONNECT';
-//     export type CONNECT = GUID;
-//     export const DISCONNECT = 'CONNECTION.DISCONNECT';
-//     export type DISCONNECT = GUID;
-//     export const ERR = 'CONNECTION.ERR';
-//     export type ERR = GUID;
-//     export const SHOW_NEW_CONNECTION_VIEW = 'CONNECTION.SHOW_NEW_CONNECTION_VIEW';
-//     export type SHOW_NEW_CONNECTION_VIEW = boolean;
-//
-//     const addConnectionPure = createAction<CONNECTION.ADD_CONNECTION>(CONNECTION.ADD_CONNECTION);
-//     export const addConnection = (connInfo: ConnectionInfo) => dispatch => {
-//         // update the internal state
-//         InternalState.update(state => {
-//             const exists = _.find(state.connections, {
-//                 guid: connInfo.guid
-//             });
-//             if (!exists) {
-//                 state.connections.push(connInfo);
-//                 // dispatch action
-//                 dispatch(addConnectionPure(connInfo));
-//             }
-//             return state;
-//         });
-//     }
-//
-//     const removeConnectionPure = createAction<CONNECTION.REMOVE_CONNECTION>(CONNECTION.REMOVE_CONNECTION);
-//     export const removeConnection = (guid: GUID) => dispatch => {
-//         // update the internal state
-//         InternalState.update(state => {
-//             _.remove(state.connections, (conn) => conn['guid'] === guid);
-//             if (state.connected && state.connected === guid)
-//                 state.connected = undefined;
-//             if (state.selected && state.selected === guid)
-//                 state.selected = undefined;
-//             _.remove(state.erred, id => id === guid);
-//             return state;
-//         });
-//         // dispatch action
-//         dispatch(removeConnectionPure(guid));
-//     }
-//
-//     const selectConnectionPure = createAction<CONNECTION.SELECT_CONNECTION>(CONNECTION.SELECT_CONNECTION);
-//     export const selectConnection = (guid: GUID) => dispatch => {
-//         // update the internal state
-//         InternalState.update(state => {
-//             state.selected = guid;
-//             return state;
-//         });
-//         // dispatch action
-//         dispatch(selectConnectionPure(guid));
-//     }
-//
-//     const connectPure = createAction<CONNECTION.CONNECT>(CONNECTION.CONNECT);
-//     export const connect = (guid: GUID) => dispatch => {
-//         // update the internal state and erase previously erred attempts
-//         InternalState.update(state => {
-//             state.connected = guid;
-//             _.remove(state.erred, id => id === guid);
-//             return state;
-//         });
-//         // dispatch action
-//         dispatch(connectPure(guid));
-//     }
-//     const disconnectPure = createAction<CONNECTION.DISCONNECT>(CONNECTION.DISCONNECT);
-//     export const disconnect = (guid: GUID) => dispatch => {
-//         InternalState.update(state => {
-//             if (state.connected === guid) {
-//                 state.connected = undefined;
-//                 // dispatch action
-//                 dispatch(disconnectPure(guid));
-//             }
-//             return state;
-//         });
-//     }
-//
-//     const errPure = createAction<CONNECTION.ERR>(CONNECTION.ERR);
-//     export const err = (guid: GUID) => dispatch => {
-//         // update the internal state
-//         InternalState.update(state => {
-//             state.erred = _.uniq(_.concat([guid], state.erred));
-//             // state.erred;
-//             return state;
-//         });
-//         // dispatch action
-//         dispatch(errPure(guid));
-//     }
-//
-//     export const showNewConnectionView = createAction<SHOW_NEW_CONNECTION_VIEW>(SHOW_NEW_CONNECTION_VIEW);
-// }
+export namespace CONNECTION {
+    export const CONNECT = 'CONNECTION.CONNECT';
+    export type CONNECT = View.ConnectionState;
+    export const DISCONNECT = 'CONNECTION.DISCONNECT';
+    export type DISCONNECT = void;
 
+    export const connect = createAction<CONNECTION.CONNECT>(CONNECTION.CONNECT);
+    export const disconnect = createAction(CONNECTION.DISCONNECT);
+}
 
 export type PROTOCOL
     = PROTOCOL.LOG_REQUEST

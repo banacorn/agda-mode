@@ -20,18 +20,28 @@ export default class ConnectionManager {
     constructor(private core: Core) {
         this.queryPath = this.queryPath.bind(this);
         this.handleError = this.handleError.bind(this);
+        this.updateStore = this.updateStore.bind(this);
     }
     // connect with the selected ConnectionInfo
-    connect(): Promise<Connection> {
-        return getAgdaPath()
-            .catch(Err.Conn.NoPathGiven, error => {
-                return autoSearch('agda');
-            })
-            .then(validateAgda)
-            .catch(Err.Conn.Invalid, this.queryPath)
-            .then(setAgdaPath)
-            .then(establishConnection(this.core.editor.getPath()))
-            .then(this.wire);
+    connect(validated? : ValidPath): Promise<Connection> {
+        if (validated) {
+            return Promise.resolve(validated)
+                .then(setAgdaPath)
+                .then(this.updateStore)
+                .then(establishConnection(this.core.editor.getPath()))
+                .then(this.wire);
+        } else {
+            return getAgdaPath()
+                .catch(Err.Conn.NoPathGiven, error => {
+                    return autoSearch('agda');
+                })
+                .then(validateAgda)
+                .catch(Err.Conn.Invalid, this.queryPath)
+                .then(setAgdaPath)
+                .then(this.updateStore)
+                .then(establishConnection(this.core.editor.getPath()))
+                .then(this.wire);
+        }
     }
 
     // disconnect the current connection
@@ -104,12 +114,14 @@ export default class ConnectionManager {
     }
 
     handleError(error: Error) {
-        // this.core.view.set('Error', [error.message], View.Style.Error);
-        // if (this.selected) {
-        //     this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
-        // } else {
-        //     this.core.view.store.dispatch(Action.CONNECTION.showNewConnectionView(true));
-        // }
+        this.core.view.set('Error', [error.message], View.Style.Error);
+    }
+
+    updateStore(validated: ValidPath): Promise<ValidPath> {
+        this.core.view.store.dispatch(Action.CONNECTION.connect({
+            agda: validated
+        }));
+        return Promise.resolve(validated);
     }
 }
 
@@ -187,7 +199,6 @@ export function validateProcess(path: Path, validator: (msg: string, resolve, re
 }
 
 export function validateAgda(path: Path): Promise<ValidPath> {
-    console.log(`validating ${ path }`)
     return validateProcess(path, (message, resolve, reject) => {
         const result = message.match(/^Agda version (.*)(?:\r\n?|\n)$/);
         if (result) {
@@ -207,19 +218,6 @@ export function validateAgda(path: Path): Promise<ValidPath> {
         }
     });
 }
-//
-// export function validateLanguageServer(path: Path): Promise<ValidPath> {
-//     return validateProcess(path, (message, resolve, reject) => {
-//         const result = message.match(/^Agda Language Server (.*)(?:\r\n?|\n)$/);
-//         if (result) {
-//             resolve({
-//                 path: path
-//             })
-//         } else {
-//             reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda Language Server`, location));
-//         }
-//     });
-// }
 
 export const establishConnection = (filepath: string) => ({ path, version }: ValidPath): Promise<Connection> => {
     return new Promise<Connection>((resolve, reject) => {

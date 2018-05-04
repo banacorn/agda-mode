@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
-import { View } from '../../../type';
+import { View, ValidPath } from '../../../type';
 import * as Conn from '../../../connection';
 import * as Err from '../../../error';
 import * as Action from '../../actions';
@@ -10,8 +10,8 @@ import { Core } from '../../../core';
 
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
-    // core: Core;
-    // onSuccess: () => void;
+    onConnect: (path: ValidPath) => void;
+    onDisconnect: () => void;
 };
 
 type State = {
@@ -22,18 +22,21 @@ type State = {
     languageServerMessage: string;
 };
 
+type InjProps = {
+    connection: View.ConnectionState;
+}
 type DispatchProps = {
     // handleAddConnection: (connInfo: ConnectionInfo) => void;
 }
-type Props = OwnProps & DispatchProps
 
-// function mapDispatchToProps(dispatch): DispatchProps {
-//     return {
-//         handleAddConnection: (connInfo) => {
-//             dispatch(Action.CONNECTION.addConnection(connInfo));
-//         }
-//     };
-// }
+
+type Props = OwnProps & InjProps & DispatchProps;
+
+function mapStateToProps(state: View.State): InjProps {
+    return {
+        connection: state.connection
+    }
+}
 
 class Connection extends React.Component<Props, State> {
     constructor(props: Props) {
@@ -47,7 +50,7 @@ class Connection extends React.Component<Props, State> {
         };
         this.handleAgdaLocationChange = this.handleAgdaLocationChange.bind(this);
         this.handleLanguageServerLocationChange = this.handleLanguageServerLocationChange.bind(this);
-        this.addAgda = this.addAgda.bind(this);
+        this.connectAgda = this.connectAgda.bind(this);
         this.searchAgda = this.searchAgda.bind(this);
         this.searchLanguageServer = this.searchLanguageServer.bind(this);
         this.toggleLSPChange = this.toggleLSPChange.bind(this);
@@ -65,34 +68,13 @@ class Connection extends React.Component<Props, State> {
         });
     }
 
-    addAgda() {
+    connectAgda() {
         Conn.validateAgda(this.state.agdaPath)
-            .then(validatedAgda => {
-                // location of Agda is valid, clear any error message
+            .then(validated => {
                 this.setState({
                     agdaMessage: ''
                 });
-
-                // if (this.state.lspEnable) {
-                //     Conn.validateLanguageServer(this.state.languageServerPath)
-                //         .then(languageServerProcInfo => {
-                //             connInfo.languageServer = languageServerProcInfo;
-                //             this.props.handleAddConnection(connInfo)
-                //             // this.props.onSuccess();
-                //             // location of the language server is valid, clear any error message
-                //             this.setState({
-                //                 languageServerMessage: ''
-                //             });
-                //         })
-                //         .catch((error) => {
-                //             this.setState({
-                //                 languageServerMessage: error.message
-                //             });
-                //         })
-                // } else {
-                //     this.props.handleAddConnection(connInfo)
-                //     // this.props.onSuccess();
-                // }
+                this.props.onConnect(validated);
             })
             .catch((error) => {
                 this.setState({
@@ -150,10 +132,32 @@ class Connection extends React.Component<Props, State> {
     }
 
     render() {
+        const agda = this.props.connection.agda;
+        const agdaOK = agda && this.state.agdaMessage === '';
+        const agdaConnectionStatus = agdaOK ?
+            <span className='inline-block highlight-success'>connected</span> :
+            <span className='inline-block highlight-warning'>not connected</span>;
+        const agdaVersion = agdaOK && <span className='inline-block highlight'>{agda.version.raw}</span>;
+
+        const agdaButtonConnect =
+            <button
+                className='btn btn-primary icon icon-zap inline-block-tight'
+                onClick={this.connectAgda}
+                disabled={this.state.lspEnable}
+            >agda-mode:load</button>;
+        const agdaButtonDisconnect =
+            <button
+                className='btn btn-error icon icon-remove-close inline-block-tight'
+                onClick={this.props.onDisconnect}
+                disabled={this.state.lspEnable}
+            >agda-mode:quit</button>;
+
         return (
             <section className={this.props.className}>
-                <h2>Connection</h2>
                 <form>
+                    <h1 className='inline-block'>Agda</h1>
+                    {agdaConnectionStatus}
+                    {agdaVersion}
                     <input
                         className='input-text native-key-bindings'
                         type='text' placeholder='path to Agda'
@@ -162,24 +166,20 @@ class Connection extends React.Component<Props, State> {
                     />
                     <p>
                         <button
-                            className="btn icon btn-primary icon-zap inline-block-tight"
-                            onClick={this.addAgda}
-                            disabled={this.state.lspEnable}
-                        >connect</button>
-                        <button
-                            className="btn icon btn-success icon-search inline-block-tight"
+                            className='btn icon icon-search inline-block-tight'
                             onClick={this.searchAgda}
                         >search</button>
+                        {agdaOK ? agdaButtonDisconnect : agdaButtonConnect}
                     </p>
+                    {this.state.agdaMessage &&
+                        <div className="inset-panel padded text-warning">{this.state.agdaMessage}</div>
+                    }
                 </form>
-                {this.state.agdaMessage &&
-                    <div className="inset-panel padded text-warning">Agda: {this.state.agdaMessage}</div>
-                }
                 <hr/>
-                <h3><span className="icon icon-beaker">Experimental</span></h3>
+                <h3><span className="icon icon-beaker">Experimental: Agda Language Server</span></h3>
                 <p>
                     <label className='input-label'>
-                        <input className='input-toggle' type='checkbox' onChange={this.toggleLSPChange} /> Agda Language Server
+                        <input className='input-toggle' type='checkbox' onChange={this.toggleLSPChange} /> enable Agda Language Server
                     </label>
                 </p>
                 { this.state.lspEnable &&
@@ -193,7 +193,7 @@ class Connection extends React.Component<Props, State> {
                         <p>
                             <button
                                 className="btn icon btn-primary icon-zap inline-block-tight"
-                                onClick={this.addAgda}
+                                onClick={this.connectAgda}
                             >connect</button>
                             <button
                                 className="btn icon btn-success icon-search inline-block-tight"
@@ -210,7 +210,7 @@ class Connection extends React.Component<Props, State> {
     }
 }
 
-export default connect<{}, DispatchProps, OwnProps>(
-    null,
+export default connect<InjProps, DispatchProps, OwnProps>(
+    mapStateToProps,
     null
 )(Connection);
