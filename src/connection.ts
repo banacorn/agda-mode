@@ -18,37 +18,33 @@ export default class ConnectionManager {
     private connection?: Connection;
 
     constructor(private core: Core) {
+        this.connect = this.connect.bind(this);
+        this.disconnect = this.disconnect.bind(this);
+        this.getConnection = this.getConnection.bind(this);
+        this.wire = this.wire.bind(this);
         this.queryPath = this.queryPath.bind(this);
         this.handleError = this.handleError.bind(this);
         this.updateStore = this.updateStore.bind(this);
     }
     // connect with the selected ConnectionInfo
-    connect(validated? : ValidPath): Promise<Connection> {
-        if (validated) {
-            return Promise.resolve(validated)
-                .then(setAgdaPath)
-                .then(this.updateStore)
-                .then(establishConnection(this.core.editor.getPath()))
-                .then(this.wire);
-        } else {
-            return getAgdaPath()
-                .catch(Err.Conn.NoPathGiven, error => {
-                    return autoSearch('agda');
-                })
-                .then(validateAgda)
-                .catch(Err.Conn.Invalid, this.queryPath)
-                .then(setAgdaPath)
-                .then(this.updateStore)
-                .then(establishConnection(this.core.editor.getPath()))
-                .then(this.wire);
-        }
+    connect(): Promise<Connection> {
+        return getAgdaPath()
+            .catch(Err.Conn.NoPathGiven, error => {
+                return autoSearch('agda');
+            })
+            .then(validateAgda)
+            .catch(Err.Conn.Invalid, this.queryPath)
+            .then(setAgdaPath)
+            .then(this.updateStore)
+            .then(establishConnection(this.core.editor.getPath()))
+            .then(this.wire);
     }
 
     // disconnect the current connection
     disconnect() {
         if (this.connection) {
-            // // the view
-            // this.core.view.store.dispatch(Action.CONNECTION.disconnect(this.connection.guid));
+            // the view
+            this.core.view.store.dispatch(Action.CONNECTION.disconnect());
             // the streams
             this.connection.stream.end();
             // the property
@@ -65,8 +61,13 @@ export default class ConnectionManager {
 
     //
     private wire = (connection: Connection): Promise<Connection> => {
-        // // the view
-        // this.core.view.store.dispatch(Action.CONNECTION.connect(this.selected.guid));
+        // the view
+        this.core.view.store.dispatch(Action.CONNECTION.connect({
+            agda: {
+                path: connection.path,
+                version: connection.version
+            }
+        }));
         // the properties
         this.connection = connection;
         // modify the method write so that we can intercept and redirect data to the core;

@@ -10,7 +10,7 @@ import { Core } from '../../../core';
 
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
-    onConnect: (path: ValidPath) => void;
+    onConnect: () => void;
     onDisconnect: () => void;
 };
 
@@ -74,7 +74,7 @@ class Connection extends React.Component<Props, State> {
                 this.setState({
                     agdaMessage: ''
                 });
-                this.props.onConnect(validated);
+                this.props.onConnect();
             })
             .catch((error) => {
                 this.setState({
