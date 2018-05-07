@@ -50,16 +50,18 @@ class Connection extends React.Component<Props, State> {
         };
         this.handleAgdaLocationChange = this.handleAgdaLocationChange.bind(this);
         this.handleLanguageServerLocationChange = this.handleLanguageServerLocationChange.bind(this);
-        this.connectAgda = this.connectAgda.bind(this);
+        // this.connectAgda = this.connectAgda.bind(this);
         this.searchAgda = this.searchAgda.bind(this);
         this.searchLanguageServer = this.searchLanguageServer.bind(this);
         this.toggleLSPChange = this.toggleLSPChange.bind(this);
+        this.toggleAgdaConnection = this.toggleAgdaConnection.bind(this);
     }
 
     handleAgdaLocationChange(event) {
         this.setState({
             agdaPath: event.target.value
         });
+        atom.config.set('agda-mode.agdaPath', this.state.agdaPath);
     }
 
     handleLanguageServerLocationChange(event) {
@@ -68,20 +70,25 @@ class Connection extends React.Component<Props, State> {
         });
     }
 
-    connectAgda() {
-        Conn.validateAgda(this.state.agdaPath)
-            .then(validated => {
-                this.setState({
-                    agdaMessage: ''
-                });
-                this.props.onConnect();
-            })
-            .catch((error) => {
-                this.setState({
-                    agdaMessage: error.message
-                });
-            })
+    // true if Agda is connected
+    agdaConnected(): boolean {
+        return this.props.connection.agda !== null && this.state.agdaMessage === '';
     }
+
+    // connectAgda() {
+    //     Conn.validateAgda(this.state.agdaPath)
+    //         .then(validated => {
+    //             this.setState({
+    //                 agdaMessage: ''
+    //             });
+    //             // this.props.onConnect();
+    //         })
+    //         .catch((error) => {
+    //             this.setState({
+    //                 agdaMessage: error.message
+    //             });
+    //         })
+    // }
 
     searchAgda() {
         Conn.autoSearch('agda')
@@ -131,80 +138,104 @@ class Connection extends React.Component<Props, State> {
         });
     }
 
+    toggleAgdaConnection() {
+        if (this.agdaConnected()) {
+            this.props.onDisconnect();
+        } else {
+            this.props.onConnect();
+        }
+    }
+
     render() {
         const agda = this.props.connection.agda;
-        const agdaOK = agda && this.state.agdaMessage === '';
-        const agdaConnectionStatus = agdaOK ?
+        const agdaConnectionStatus = this.agdaConnected() ?
             <span className='inline-block highlight-success'>connected</span> :
             <span className='inline-block highlight-warning'>not connected</span>;
-        const agdaVersion = agdaOK && <span className='inline-block highlight'>{agda.version.raw}</span>;
-
-        const agdaButtonConnect =
-            <button
-                className='btn btn-primary icon icon-zap inline-block-tight'
-                onClick={this.connectAgda}
-                disabled={this.state.lspEnable}
-            >agda-mode:load</button>;
-        const agdaButtonDisconnect =
-            <button
-                className='btn btn-error icon icon-remove-close inline-block-tight'
-                onClick={this.props.onDisconnect}
-                disabled={this.state.lspEnable}
-            >agda-mode:quit</button>;
+        const agdaVersion = this.agdaConnected() && <span className='inline-block highlight'>{agda.version.raw}</span>;
 
         return (
-            <section className={this.props.className}>
+            <section className={classNames('agda-settings-connection', this.props.className)}>
                 <form>
-                    <h1 className='inline-block'>Agda</h1>
-                    {agdaConnectionStatus}
-                    {agdaVersion}
-                    <input
-                        className='input-text native-key-bindings'
-                        type='text' placeholder='path to Agda'
-                        value={this.state.agdaPath}
-                        onChange={this.handleAgdaLocationChange}
-                    />
-                    <p>
-                        <button
-                            className='btn icon icon-search inline-block-tight'
-                            onClick={this.searchAgda}
-                        >search</button>
-                        {agdaOK ? agdaButtonDisconnect : agdaButtonConnect}
-                    </p>
-                    {this.state.agdaMessage &&
-                        <div className="inset-panel padded text-warning">{this.state.agdaMessage}</div>
-                    }
+                    <ul className='agda-settings-connection-dashboard'>
+                        <li>
+                            <h2>
+                                <label className='input-label'>
+                                    <span>Connection to Agda</span>
+                                    <input
+                                        className='input-toggle'
+                                        checked={this.agdaConnected()}
+                                        type='checkbox'
+                                        onChange={this.toggleAgdaConnection}
+                                    />
+                                </label>
+                            </h2>
+                            <p>
+                                Connection: {this.agdaConnected() ? 'established' : 'not established'}
+                            </p>
+                            <p>
+                                Established path: {this.agdaConnected() ? agda.path : 'unknown'}
+                            </p>
+                            <p>
+                                Version: {this.agdaConnected() ? agda.version.raw : 'unknown'}
+                            </p>
+                            <p>
+                                <input
+                                    className='input-text native-key-bindings'
+                                    type='text' placeholder='path to Agda'
+                                    value={this.state.agdaPath}
+                                    onChange={this.handleAgdaLocationChange}
+                                />
+                            </p>
+                            <p>
+                                <button
+                                    className='btn icon icon-search inline-block-tight'
+                                    onClick={this.searchAgda}
+                                >search</button>
+                                {/* {this.agdaConnected() ? agdaButtonDisconnect : agdaButtonConnect} */}
+                                {this.state.agdaMessage &&
+                                    <div className="inset-panel padded text-warning">{this.state.agdaMessage}</div>
+                                }
+                            </p>
+                        </li>
+                        <li>
+                            <h2>
+                                <label className='input-label'>
+                                    <span>Enable Agda Language Server (experimental)</span>
+                                    <input className='input-toggle' type='checkbox' onChange={this.toggleLSPChange} />
+                                </label>
+                            </h2>
+                        </li>
+                        <li>
+                            <h2>
+                                <label className='input-label'>
+                                    <span>Connection to Agda Language Server</span>
+                                    <input className='input-toggle' type='checkbox' onChange={this.toggleLSPChange} />
+                                </label>
+                            </h2>
+                            <p>
+                                <input
+                                    className='input-text native-key-bindings'
+                                    type='text' placeholder='path to Agda Language Server'
+                                    value={this.state.languageServerPath}
+                                    onChange={this.handleLanguageServerLocationChange}
+                                />
+                            </p>
+                            <p>
+                                {/* <button
+                                    className="btn icon btn-primary icon-zap inline-block-tight"
+                                    onClick={this.connectAgda}
+                                >connect</button> */}
+                                <button
+                                    className="btn icon btn-success icon-search inline-block-tight"
+                                    onClick={this.searchLanguageServer}
+                                >search</button>
+                                {this.state.languageServerMessage &&
+                                    <div className="inset-panel padded text-warning">Language Server: {this.state.languageServerMessage}</div>
+                                }
+                            </p>
+                        </li>
+                    </ul>
                 </form>
-                <hr/>
-                <h3><span className="icon icon-beaker">Experimental: Agda Language Server</span></h3>
-                <p>
-                    <label className='input-label'>
-                        <input className='input-toggle' type='checkbox' onChange={this.toggleLSPChange} /> enable Agda Language Server
-                    </label>
-                </p>
-                { this.state.lspEnable &&
-                    <form>
-                        <input
-                            className='input-text native-key-bindings'
-                            type='text' placeholder='path to the Agda Language Server'
-                            value={this.state.languageServerPath}
-                            onChange={this.handleLanguageServerLocationChange}
-                        />
-                        <p>
-                            <button
-                                className="btn icon btn-primary icon-zap inline-block-tight"
-                                onClick={this.connectAgda}
-                            >connect</button>
-                            <button
-                                className="btn icon btn-success icon-search inline-block-tight"
-                                onClick={this.searchLanguageServer}
-                            >search</button>
-                        </p>
-                    </form>
-                }
-                {this.state.languageServerMessage &&
-                    <div className="inset-panel padded text-warning">Language Server: {this.state.languageServerMessage}</div>
-                }
             </section>
         );
     }

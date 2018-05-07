@@ -86,7 +86,7 @@ export default class ConnectionManager {
             .on('data', (data) => {
                 const promise = this.connection.queue.pop();
                 const lines = data.toString().trim().split('\n');
-                parseResponses(data.toString(), parseFileType(conn.filepath))
+                parseResponses(data.toString(), parseFileType(connection.filepath))
                     .then(responses => {
                         this.core.view.store.dispatch(Action.PROTOCOL.logResponses(responses.map((response, i) => ({
                             raw: lines[i],

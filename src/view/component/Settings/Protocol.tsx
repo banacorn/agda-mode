@@ -93,9 +93,9 @@ class ReqRes extends React.Component<ReqResProp, {}> {
         return (
             <li>
                 <h3>Request</h3>
-                <p className="agda-settings-protocol-request">{request.raw}</p>
+                <p className='agda-settings-protocol-request'>{request.raw}</p>
                 <h3>Responses</h3>
-                <ol className="agda-settings-protocol-responses">{responses.map((res, i) =>
+                <ol className='agda-settings-protocol-responses'>{responses.map((res, i) =>
                     <Response res={res} key={i}/>
                 )}</ol>
             </li>
@@ -114,27 +114,11 @@ class Protocol extends React.Component<Props, {}> {
         super(props);
     }
     render() {
-        // const connInfo = this.props.connection;
-        // if (connInfo) {
-        //     return (
-        //         <section className={classNames("agda-settings-protocol", this.props.className)}>
-        //             <h2>Protocol</h2>
-        //             {/* <p><span className="text-highlight">Agda Version: </span>{connInfo.agda.version.raw}</p>
-        //             <p><span className="text-highlight">Agda Location: </span>{connInfo.agda.location}</p>
-        //             <p><span className="text-highlight">Current Protocol: </span>{connInfo.languageServer ? 'LSP' : 'Vanilla'}</p> */}
-        //             <h2>Log</h2>
-        //             <ol className="agda-settings-protocol-log">{this.props.protocol.log.map((reqRes, i) =>
-        //                 <ReqRes reqRes={reqRes} key={i} />
-        //             )}</ol>
-        //         </section>
-        //     )
-        // } else {
-        return <section className={classNames("agda-settings-protocol", this.props.className)}>
+        return <section className={classNames('agda-settings-protocol', this.props.className)}>
                 <p className='background-message'>
                     No Connection Established
                 </p>
             </section>
-        // }
     }
 }
 

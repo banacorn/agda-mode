@@ -214,6 +214,63 @@
                 background: @background-color-selected;
             }
         }
+        .agda-settings-connection {
+            ul.agda-settings-connection-dashboard {
+                background: @base-background-color;
+                border: 1px solid @tool-panel-border-color;
+                border-radius: @component-border-radius * 2;
+                overflow: hidden;
+
+                h2 {
+                    margin: 0;
+                }
+
+                label {
+                    border-bottom: 1px solid @tool-panel-border-color;
+
+                    user-select: none;
+                    padding: @component-padding * 2;
+                    font-size: @font-size * 1.5;
+                    background: @tool-panel-background-color;
+
+                    cursor: pointer;
+
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                p {
+                    // margin-bottom: @component-padding;
+                    margin: @component-padding * 2;
+                }
+
+            }
+            //
+            //     li:nth-child(2n) {
+            //         background: lighten(@tool-panel-background-color, 5%);
+            //     }
+            //
+            //
+            //
+            //     label:hover {
+            //         background: lighten(@tool-panel-background-color, 10%);
+            //     }
+
+                .input-toggle {
+                    cursor: pointer;
+                    flex-shrink: 0;
+
+                    width: 40px;
+                    height: 20px;
+                    border-radius: 2.5em;
+                }
+
+                .input-toggle:before {
+                    width: 20px;
+                    height: 20px;
+                }
+        }
 
         .agda-settings-protocol {
             // height: 100%;
