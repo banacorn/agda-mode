@@ -23,6 +23,7 @@ export type VIEW
     | VIEW.MOUNT_AT_PANE
     | VIEW.MOUNT_AT_BOTTOM
     | VIEW.TOGGLE_SETTINGS_VIEW
+    | VIEW.NAVIGATE
 export namespace VIEW {
     export const ACTIVATE = 'VIEW.ACTIVATE';
     export type ACTIVATE = void;
@@ -38,6 +39,8 @@ export namespace VIEW {
     export type MOUNT_AT_BOTTOM = void;
     export const TOGGLE_SETTINGS_VIEW = 'VIEW.TOGGLE_SETTINGS_VIEW';
     export type TOGGLE_SETTINGS_VIEW = void;
+    export const NAVIGATE = 'VIEW.NAVIGATE';
+    export type NAVIGATE = View.SettingsURI;
 
     export const activate = createAction(VIEW.ACTIVATE);
     export const deactivate = createAction(VIEW.DEACTIVATE);
@@ -46,6 +49,7 @@ export namespace VIEW {
     export const mountAtPane = createAction(VIEW.MOUNT_AT_PANE);
     export const mountAtBottom = createAction(VIEW.MOUNT_AT_BOTTOM);
     export const toggleSettings = createAction(VIEW.TOGGLE_SETTINGS_VIEW);
+    export const navigate = createAction<VIEW.NAVIGATE>(VIEW.NAVIGATE);
 }
 
 export type MODE =
@@ -178,12 +182,3 @@ export const updateError = createAction<BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
 export const updateSolutions = createAction<BODY.UPDATE_SOLUTIONS>(BODY.UPDATE_SOLUTIONS);
 export const updatePlainText = createAction<BODY.UPDATE_PLAIN_TEXT>(BODY.UPDATE_PLAIN_TEXT);
 export const updateMaxBodyHeight = createAction<BODY.UPDATE_MAX_BODY_HEIGHT>(BODY.UPDATE_MAX_BODY_HEIGHT);
-
-
-export type SETTINGS = SETTINGS.NAVIGATE;
-export namespace SETTINGS {
-    export const NAVIGATE = 'SETTINGS.NAVIGATE';
-    export type NAVIGATE = View.SettingsPath;
-
-    export const navigate = createAction<SETTINGS.NAVIGATE>(SETTINGS.NAVIGATE);
-}

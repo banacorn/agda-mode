@@ -15,24 +15,24 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
 }
 type InjProps = {
-    path: View.SettingsPath
+    uri: View.SettingsURI
 }
 
 type DispatchProps = {
-    navigate: (path: View.SettingsPath) => () => void
+    navigate: (path: View.SettingsURI) => () => void
 }
 type Props = OwnProps & InjProps & DispatchProps;
 
 function mapStateToProps(state: View.State): InjProps {
     return {
-        path: state.settings
+        uri: state.view.settingsURI
     }
 }
 
 function mapDispatchToProps(dispatch): DispatchProps {
     return {
-        navigate: (path: View.SettingsPath) => () => {
-            dispatch(Action.SETTINGS.navigate(path));
+        navigate: (uri: View.SettingsURI) => () => {
+            dispatch(Action.VIEW.navigate(uri));
         }
     };
 }
@@ -55,7 +55,7 @@ class Settings extends React.Component<Props, {}> {
             >
                 <Breadcrumb
                     navigate={this.props.navigate}
-                    path={this.props.path}
+                    uri={this.props.uri}
                 />
                 <ul
                     className={classNames("agda-settings-menu", this.at('/'))}
@@ -90,15 +90,15 @@ class Settings extends React.Component<Props, {}> {
         )
     }
 
-    at(path: View.SettingsPath): string {
+    at(uri: View.SettingsURI): string {
         return classNames({
-            'hidden': path !== this.props.path
+            'hidden': uri !== this.props.uri
         })
     }
 
-    notAt(path: View.SettingsPath): string {
+    notAt(uri: View.SettingsURI): string {
         return classNames({
-            'hidden': path === this.props.path
+            'hidden': uri === this.props.uri
         })
     }
 

@@ -63,7 +63,17 @@ namespace View {
         inputMethod: InputMethodState;
         query: QueryState;
         body: BodyState;
-        settings: SettingsPath;
+    }
+
+    export interface ViewState {
+        activated: boolean;
+        mounted: boolean;
+        mountAt: {
+            previous: MountingPosition,
+            current: MountingPosition
+        };
+        settingsView: boolean;
+        settingsURI: SettingsURI;
     }
 
     export const enum Mode {
@@ -89,15 +99,6 @@ namespace View {
         responses: Parsed<Agda.Response>[];
     }
 
-    export interface ViewState {
-        activated: boolean;
-        mounted: boolean;
-        mountAt: {
-            previous: MountingPosition,
-            current: MountingPosition
-        };
-        settingsView: boolean;
-    }
 
     export const enum MountingPosition {
         Pane,
@@ -139,7 +140,7 @@ namespace View {
         maxBodyHeight: number;
     }
 
-    export type SettingsPath = '/'
+    export type SettingsURI = '/'
         | '/Connection'
         | '/Protocol';
 

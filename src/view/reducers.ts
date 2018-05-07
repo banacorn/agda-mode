@@ -6,7 +6,7 @@ import { EventEmitter } from 'events'
 import * as Conn from '../connection';
 import * as Parser from '../parser';
 import { View, Agda, Parsed } from '../type';
-import { EVENT, MODE, VIEW, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, SETTINGS, CONNECTION } from './actions';
+import { EVENT, MODE, VIEW, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, CONNECTION } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -21,7 +21,8 @@ const defaultState: View.State = {
             previous: null,
             current: View.MountingPosition.Bottom
         },
-        settingsView: false
+        settingsView: false,
+        settingsURI: '/'
     },
     mode: View.Mode.Display,
     connection: {
@@ -66,7 +67,6 @@ const defaultState: View.State = {
         plainText: '',
         maxBodyHeight: 170
     },
-    settings: '/'
 };
 
 const view = handleActions<View.ViewState, VIEW>({
@@ -96,7 +96,10 @@ const view = handleActions<View.ViewState, VIEW>({
     }),
     [VIEW.TOGGLE_SETTINGS_VIEW]: (state, action) => ({ ...state,
         settingsView: !state.settingsView
-    })
+    }),
+    [VIEW.NAVIGATE]: (state, action: Action<VIEW.NAVIGATE>) => ({ ...state,
+        settingsURI: action.payload
+    }),
 }, defaultState.view);
 
 const mode = handleActions<View.Mode, MODE>({
@@ -211,10 +214,6 @@ const body = handleActions<View.BodyState, BODY>({
     })
 }, defaultState.body);
 
-const settings = handleActions<View.SettingsPath, SETTINGS>({
-    [SETTINGS.NAVIGATE]: (state, action: Action<SETTINGS.NAVIGATE>) => action.payload
-}, defaultState.settings);
-
 
 // export default reducer;
 export default combineReducers<View.State>({
@@ -225,6 +224,5 @@ export default combineReducers<View.State>({
     header,
     inputMethod,
     query,
-    body,
-    settings
+    body
 });

@@ -4,8 +4,8 @@ import * as classNames from 'classnames';
 import { View } from '../../../type';
 
 type Props = React.HTMLProps<HTMLElement> & {
-    navigate: (path: View.SettingsPath) => () => void;
-    path: View.SettingsPath;
+    navigate: (path: View.SettingsURI) => () => void;
+    uri: View.SettingsURI;
 };
 
 class Breadcrumb extends React.Component<Props, {}> {
@@ -16,7 +16,7 @@ class Breadcrumb extends React.Component<Props, {}> {
     render() {
         let tier1, tier2;
 
-        switch (this.props.path) {
+        switch (this.props.uri) {
             case '/Connection':
                 tier1 = <li><a href="#"><span className="icon icon-plug">Connection</span></a></li>;
                 break;
