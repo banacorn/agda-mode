@@ -11,7 +11,7 @@ import { View, Connection, ProcessInfo, ConnectionInfo, GUID } from './type';
 import * as Err from './error';
 import { guid } from './util';
 import { Core } from './core';
-import { parseFilepath, parseResponses } from './parser';
+import { parseFilepath, parseResponses, parseFileType } from './parser';
 import * as Action from "./view/actions";
 import * as InternalState from "./internal-state";
 
@@ -124,7 +124,7 @@ export default class ConnectionManager {
             .on('data', (data) => {
                 const promise = this.connection.queue.pop();
                 const lines = data.toString().trim().split('\n');
-                parseResponses(data.toString())
+                parseResponses(data.toString(), parseFileType(conn.filepath))
                     .then(responses => {
                         this.core.view.store.dispatch(Action.PROTOCOL.logResponses(responses.map((response, i) => ({
                             raw: lines[i],

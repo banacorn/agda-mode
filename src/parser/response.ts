@@ -1,11 +1,11 @@
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { ParseError } from '../error';
-import { Agda } from '../type';
+import { Agda, FileType } from '../type';
 
-function parseResponses(raw: string): Promise<Agda.Response[]> {
+function parseResponses(raw: string, fileType: FileType): Promise<Agda.Response[]> {
     const lines = raw.trim().split('\n');
-    return Promise.map(lines, parseResponse)
+    return Promise.map(lines, (line) => parseResponse(line, fileType))
         .then(prioritiseResponses)
 }
 
@@ -32,8 +32,7 @@ function prioritiseResponses(responses: Agda.Response[]): Agda.Response[] {
     });
 }
 
-function parseResponse(raw: string): Promise<Agda.Response> {
-
+function parseResponse(raw: string, fileType: FileType): Promise<Agda.Response> {
     const tokens: any[] = parseSExpression(raw);
 
     switch (tokens[0]) {
@@ -72,6 +71,7 @@ function parseResponse(raw: string): Promise<Agda.Response> {
         case 'agda2-goals-action':
             return Promise.resolve({
                 kind: 'InteractionPoints',
+                fileType: fileType,
                 indices: tokens[1].map((s) => parseInt(s))
             } as Agda.InteractionPoints);
 
@@ -210,6 +210,18 @@ function parseAnnotation(obj: any[]): Agda.Annotation {
     }
 }
 
+function parseFileType(filepath: string): FileType {
+    if (/\.lagda.rst$/i.test(filepath)) {
+        return FileType.LiterateReStructuredText;
+    } else if (/\.lagda.md$/i.test(filepath)) {
+        return FileType.LiterateMarkdown;
+    } else if (/\.lagda.tex$|\.lagda$/i.test(filepath)) {
+        return FileType.LiterateTeX;
+    } else {
+        return FileType.Agda;
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //  Parsing S-Expressions
 ////////////////////////////////////////////////////////////////////////////////
@@ -281,6 +293,7 @@ function preprocess(chunk: string): string {
 }
 
 export {
+    parseFileType,
     parseResponse,
     parseResponses,
     prioritiseResponses,

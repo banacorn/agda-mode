@@ -10,6 +10,13 @@ import * as Atom from 'atom';
 
 export type TextInput = string;
 
+const enum FileType {
+    Agda,
+    LiterateTeX,
+    LiterateReStructuredText,
+    LiterateMarkdown
+}
+
 interface IndexRange {
     start: number,
     end: number
@@ -22,7 +29,8 @@ interface Token {
 }
 
 const enum TokenType {
-    Raw,
+    AgdaRaw,
+    Literate,
     Comment,
     GoalBracket,
     GoalQMRaw, // ? + ?
@@ -330,6 +338,7 @@ namespace Agda {
     // Resp_InteractionPoints [InteractionId]
     export interface InteractionPoints {
         kind: 'InteractionPoints';
+        fileType: FileType; // Issue #56
         indices: number[];
     }
 
@@ -439,6 +448,7 @@ export type Connection = ConnectionInfo & {
 export {
     Agda,
     Hole,
+    FileType,
     Token,
     TokenType,
     View
