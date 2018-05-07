@@ -17,20 +17,84 @@ function isHole(token: Token): boolean {
     return token.type === TokenType.GoalQM || token.type === TokenType.GoalBracket;
 }
 
+function lines(text: string): Token[] {
+    let cursor = 0;
+    return text.match(/(.*(?:\r\n|[\n\v\f\r\x85\u2028\u2029])?)/g)
+        .filter(str => str.length > 0)
+        .map(str => {
+            const cursorOld = cursor;
+            cursor += str.length;
+            return {
+                content: text.substring(cursorOld, cursor),
+                range: {
+                    start: cursorOld,
+                    end: cursor
+                },
+                type: TokenType.Literate
+            };
+        });
+}
+
+function filterOutTex(text: string): Token[] {
+    let insideAgda = false;
+
+    return lines(text).map((line) => {
+        // flip `insideAgda` to `false` after "end{code}"
+        if (texEndRegex.test(line.content)) {
+            insideAgda = false;
+        }
+
+        line.type = insideAgda ? TokenType.AgdaRaw : TokenType.Literate;
+
+        // flip `insideAgda` to `true` after "begin{code}"
+        if (texBeginRegex.test(line.content)) {
+            insideAgda = true;
+        }
+
+        return line;
+    })
+}
+function filterOutMarkdown(text: string): Token[] {
+    let insideAgda = false;
+
+    return lines(text).map((line) => {
+        // leaving Agda code
+        if (insideAgda && markdownRegex.test(line.content)) {
+            insideAgda = false;
+        }
+
+        line.type = insideAgda ? TokenType.AgdaRaw : TokenType.Literate;
+
+        // entering Agda code
+        if (!insideAgda && markdownRegex.test(line.content)) {
+            insideAgda = true;
+        }
+        return line;
+    })
+}
 function parseHole(text: string, indices: number[], fileType: FileType): Hole[] {
     // counter for indices
     let i = 0;
 
-    console.log(fileType === FileType.LiterateTeX);
+    let preprocessed: string | Token[];
+    switch (fileType) {
+        case FileType.LiterateTeX:
+            preprocessed = filterOutTex(text);
+            break;
+        case FileType.LiterateMarkdown:
+            preprocessed = filterOutMarkdown(text);
+            break;
+        default:
+            preprocessed = text;
+    }
 
     // just lexing, doesn't mess around with raw text, preserves positions
-    const original = new Lexer(text)
+    const original = new Lexer(preprocessed)
         .lex(commentRegex, TokenType.AgdaRaw, TokenType.Comment)
         .lex(goalBracketRegex, TokenType.AgdaRaw, TokenType.GoalBracket)
         .lex(goalQuestionMarkRawRegex, TokenType.AgdaRaw, TokenType.GoalQMRaw)
         .lex(goalQuestionMarkRegex, TokenType.GoalQMRaw, TokenType.GoalQM)
         .result;
-
     const modified = new Lexer(_.cloneDeep(original))
         .mapOnly(TokenType.GoalQM, (token) => {
             //  ? => {!  !}
