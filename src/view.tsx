@@ -367,14 +367,17 @@ export default class View {
     }
 
     queryConnection(): Promise<string> {
-        // update the view
-        this.store.dispatch(Action.MODE.queryConnection());
-        this.store.dispatch(Action.HEADER.update({
-            text: 'Connection Error',
-            style: V.Style.Error
-        }));
-        // activate the connection query
-        this.editors.connection.activate();
+        this.settingsTab.open();
+        this.store.dispatch(Action.VIEW.navigate('/Connection'));
+        //
+        // // update the view
+        // this.store.dispatch(Action.MODE.queryConnection());
+        // this.store.dispatch(Action.HEADER.update({
+        //     text: 'Connection Error',
+        //     style: V.Style.Error
+        // }));
+        // // activate the connection query
+        // this.editors.connection.activate();
         return this.editors.connection.query();
     }
 

@@ -98,6 +98,7 @@ const view = handleActions<View.ViewState, VIEW>({
         settingsView: !state.settingsView
     }),
     [VIEW.NAVIGATE]: (state, action: Action<VIEW.NAVIGATE>) => ({ ...state,
+        settingsView: true,
         settingsURI: action.payload
     }),
 }, defaultState.view);
