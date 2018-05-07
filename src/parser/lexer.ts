@@ -14,7 +14,7 @@ export default class Lexer {
                     start: 0,
                     end: raw.length
                 },
-                type: TokenType.Raw
+                type: TokenType.AgdaRaw
             }];
         } else {
             this.result = raw

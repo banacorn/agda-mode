@@ -1,8 +1,12 @@
 import * as _ from 'lodash';
 import Lexer from './lexer';
-import { Token, TokenType, Hole } from '../type';
+import { Token, TokenType, FileType, Hole } from '../type';
 
 // regular expressions
+const texBeginRegex = /\\begin\{code\}.*/;
+const texEndRegex = /\\end\{code\}.*/;
+const markdownRegex = /\`\`\`(agda)?/;
+
 const commentRegex = /(--[^\r\n]*[\r\n])|(\{-(?:[^-]|[\r\n]|(-+(?:[^-\}]|[\r\n])))*-+\})/;
 const goalBracketRegex = /(\{\!(?:(?!\!\})(?:.|\s))*\!\})/
 const goalQuestionMarkRawRegex = /([\s\(\{\_\;\.\"@]\?)/
@@ -13,18 +17,84 @@ function isHole(token: Token): boolean {
     return token.type === TokenType.GoalQM || token.type === TokenType.GoalBracket;
 }
 
-function parseHole(text: string, indices: number[]): Hole[] {
+function lines(text: string): Token[] {
+    let cursor = 0;
+    return text.match(/(.*(?:\r\n|[\n\v\f\r\x85\u2028\u2029])?)/g)
+        .filter(str => str.length > 0)
+        .map(str => {
+            const cursorOld = cursor;
+            cursor += str.length;
+            return {
+                content: text.substring(cursorOld, cursor),
+                range: {
+                    start: cursorOld,
+                    end: cursor
+                },
+                type: TokenType.Literate
+            };
+        });
+}
+
+function filterOutTex(text: string): Token[] {
+    let insideAgda = false;
+
+    return lines(text).map((line) => {
+        // flip `insideAgda` to `false` after "end{code}"
+        if (texEndRegex.test(line.content)) {
+            insideAgda = false;
+        }
+
+        line.type = insideAgda ? TokenType.AgdaRaw : TokenType.Literate;
+
+        // flip `insideAgda` to `true` after "begin{code}"
+        if (texBeginRegex.test(line.content)) {
+            insideAgda = true;
+        }
+
+        return line;
+    })
+}
+function filterOutMarkdown(text: string): Token[] {
+    let insideAgda = false;
+
+    return lines(text).map((line) => {
+        // leaving Agda code
+        if (insideAgda && markdownRegex.test(line.content)) {
+            insideAgda = false;
+        }
+
+        line.type = insideAgda ? TokenType.AgdaRaw : TokenType.Literate;
+
+        // entering Agda code
+        if (!insideAgda && markdownRegex.test(line.content)) {
+            insideAgda = true;
+        }
+        return line;
+    })
+}
+function parseHole(text: string, indices: number[], fileType: FileType): Hole[] {
     // counter for indices
     let i = 0;
 
+    let preprocessed: string | Token[];
+    switch (fileType) {
+        case FileType.LiterateTeX:
+            preprocessed = filterOutTex(text);
+            break;
+        case FileType.LiterateMarkdown:
+            preprocessed = filterOutMarkdown(text);
+            break;
+        default:
+            preprocessed = text;
+    }
+
     // just lexing, doesn't mess around with raw text, preserves positions
-    const original = new Lexer(text)
-        .lex(commentRegex, TokenType.Raw, TokenType.Comment)
-        .lex(goalBracketRegex, TokenType.Raw, TokenType.GoalBracket)
-        .lex(goalQuestionMarkRawRegex, TokenType.Raw, TokenType.GoalQMRaw)
+    const original = new Lexer(preprocessed)
+        .lex(commentRegex, TokenType.AgdaRaw, TokenType.Comment)
+        .lex(goalBracketRegex, TokenType.AgdaRaw, TokenType.GoalBracket)
+        .lex(goalQuestionMarkRawRegex, TokenType.AgdaRaw, TokenType.GoalQMRaw)
         .lex(goalQuestionMarkRegex, TokenType.GoalQMRaw, TokenType.GoalQM)
         .result;
-
     const modified = new Lexer(_.cloneDeep(original))
         .mapOnly(TokenType.GoalQM, (token) => {
             //  ? => {!  !}

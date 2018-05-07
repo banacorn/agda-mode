@@ -72,7 +72,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             return core.editor.onJumpToError(response.filepath, response.position);
 
         case 'InteractionPoints':
-            return core.editor.onInteractionPoints(response.indices);
+            return core.editor.onInteractionPoints(response.indices, response.fileType);
 
         case 'GiveAction':
             return core.editor.onGiveAction(response.index, response.giveResult, response.result);

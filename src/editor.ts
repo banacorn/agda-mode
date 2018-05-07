@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
-import { Agda, View, Location } from './type';
+import { Agda, View, Location, FileType } from './type';
 import { parseHole, parseFilepath } from './parser';
 import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
@@ -197,11 +197,11 @@ export default class Editor {
     //  Command Handlers  //
     ////////////////////////
 
-    onInteractionPoints(indices: number[]): Promise<void> {
+    onInteractionPoints(indices: number[], fileType: FileType): Promise<void> {
         return this.protectCursor(() => {
             const textRaw = this.textEditor.getText();
             this.goal.removeAll();
-            const goals = parseHole(textRaw, indices).map((hole) => {
+            const goals = parseHole(textRaw, indices, fileType).map((hole) => {
                 const range = this.fromIndexRange(hole.originalRange);
                 this.textEditor.setTextInBufferRange(range, hole.content);
                 return new Goal(
