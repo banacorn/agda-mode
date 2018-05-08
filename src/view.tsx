@@ -113,7 +113,16 @@ class TabManager {
         this.settings.onOpen((paneItem, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
-            this.core.view.renderSettingsView();
+            // render the view
+            ReactDOM.render(
+                <Provider store={this.store}>
+                    <Settings
+                        core={this.core}
+                    />
+                </Provider>,
+                this.settings.getElement()
+            );
+
             this.settingsOpened = true;
         });
 
@@ -160,6 +169,10 @@ class TabManager {
                 break;
         }
     }
+    destroyAll() {
+        this.panel.destroy();
+        this.settings.destroy();
+    }
 }
 
 export default class View {
@@ -171,7 +184,6 @@ export default class View {
     public tabs: TabManager;
 
     private panelTab: Tab;
-    public settingsTab: Tab;
 
     constructor(private core: Core) {
         this.store = createStore(
@@ -243,17 +255,6 @@ export default class View {
                 />
             </Provider>,
             mountingPoint
-        )
-    }
-
-    public renderSettingsView() {
-        ReactDOM.render(
-            <Provider store={this.store}>
-                <Settings
-                    core={this.core}
-                />
-            </Provider>,
-            this.settingsTab.getElement()
         )
     }
 
@@ -339,19 +340,8 @@ export default class View {
         this.unmountPanel(this.state().mountAt.current);
         this.subscriptions.dispose();
         this.panelTab.destroy();
-        this.settingsTab.destroy();
+        this.tabs.destroyAll();
     }
-
-    // test(header: string, body: React.Component, type = V.Style.PlainText) {
-    //     this.store.dispatch(Action.MODE.display());
-    //     this.editors.focus('main')
-    //
-    //     this.store.dispatch(Action.HEADER.update({
-    //         text: header,
-    //         style: type
-    //     }));
-    //     // this.store.dispatch(updatePlainText(payload.join('\n')));
-    // }
 
     set(header: string, payload: string[], type = V.Style.PlainText) {
         this.store.dispatch(Action.MODE.display());
@@ -422,7 +412,7 @@ export default class View {
     }
 
     queryConnection(): Promise<string> {
-        this.settingsTab.open();
+        this.tabs.open('settings');
         this.store.dispatch(Action.VIEW.navigate('/Connection'));
         this.editors.focus('connection');
         //
