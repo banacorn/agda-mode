@@ -10,6 +10,7 @@ import { EventEmitter } from 'events';
 import { basename, extname } from 'path';
 import ReduxThunk from 'redux-thunk'
 
+import { Resource } from './util';
 import { Core } from './core';
 import Panel from './view/component/Panel';
 import Settings from './view/component/Settings';
@@ -26,48 +27,51 @@ import { OutOfGoalError } from './error';
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
+type EditorType = 'main' | 'general' | 'connection';
 class EditorViewManager {
     main: Atom.TextEditor;
     general: MiniEditor;
-    connection: MiniEditor;
+    connection: Resource<MiniEditor>;
 
     constructor(main: Atom.TextEditor) {
         this.main = main;
+        this.connection = new Resource;
     }
 
-    // focus the specified editor
-    focus(editor: 'main' | 'general' | 'connection') {
-        switch (editor) {
-            case 'main':
-                atom.views.getView(this.main).focus();
-                break;
-            case 'general':
-                this.general && this.general.focus();
-                break;
-            case 'connection':
-                this.connection && this.connection.focus();
-                break;
-        }
+    focusMain() {
+        atom.views.getView(this.main).focus();
     }
-
-    // tells which editor is focused
-    focused(): 'main' | 'general' | 'connection' {
-        if (this.general && this.general.isFocused())
-            return 'general';
-        if (this.connection && this.connection.isFocused())
-            return 'connection';
-        return 'main';
-    }
+    // // focus the specified editor
+    // focus(editor: 'main' | 'general' | 'connection') {
+    //     switch (editor) {
+    //         case 'main':
+    //             atom.views.getView(this.main).focus();
+    //             break;
+    //         case 'general':
+    //             this.general && this.general.focus();
+    //             break;
+    //         case 'connection':
+    //             this.connection.access()
+    //                 .then(editor => {
+    //                     editor.focus();
+    //                 });
+    //             break;
+    //     }
+    // }
 
     // get the focused editor
     getFocusedEditor(): Atom.TextEditor {
-        const kind = this.focused();
-        switch (kind) {
-            case 'main':
-                return this.main;
-            case 'general':
-            case 'connection':
-                return this[kind].getModel();
+        if (this.general && this.general.isFocused())
+            return this.general.getModel();
+        if (this.connection.isAvailable()) {
+            this.connection.access().then(editor => {
+                if (editor.isFocused())
+                    return editor.getModel();
+                else
+                    return this.main;
+            });
+        } else {
+            return this.main;
         }
     }
 }
@@ -246,7 +250,7 @@ export default class View {
         this.editors = new EditorViewManager(core.editor.getTextEditor());
 
         // the tab manager
-        this.tabs = new TabManager(this.core, this.store, this.editors.main);
+        this.tabs = new TabManager(this.core, this.store, core.editor.getTextEditor());
 
     }
 
@@ -350,7 +354,7 @@ export default class View {
 
     set(header: string, payload: string[], type = V.Style.PlainText) {
         this.store.dispatch(Action.MODE.display());
-        this.editors.focus('main')
+        this.editors.focusMain()
 
         this.store.dispatch(Action.HEADER.update({
             text: header,
@@ -363,7 +367,7 @@ export default class View {
     setAgdaError(error: AgdaError, isWarning: boolean = false) {
 
         this.store.dispatch(Action.MODE.display());
-        this.editors.focus('main')
+        this.editors.focusMain()
 
 
         this.store.dispatch(updateError(error));
@@ -382,7 +386,7 @@ export default class View {
 
     setJudgements(header: string = 'Judgements', body: V.Body) {
         this.store.dispatch(Action.MODE.display());
-        this.editors.focus('main')
+        this.editors.focusMain()
 
         this.store.dispatch(Action.HEADER.update({
             text: header,
@@ -394,7 +398,7 @@ export default class View {
 
     setSolutions(solutions: V.Solutions) {
         this.store.dispatch(Action.MODE.display());
-        this.editors.focus('main')
+        this.editors.focusMain();
 
         this.store.dispatch(Action.HEADER.update({
             text: 'Auto',
@@ -419,7 +423,16 @@ export default class View {
     queryConnection(): Promise<string> {
         this.tabs.open('settings');
         this.store.dispatch(Action.VIEW.navigate('/Connection'));
-        this.editors.focus('connection');
+        // this.editors.connection.query()
+        //     .then(result => {
+        //         console.log(result)
+        //     })
+        // console.log('before')
+        this.editors.connection.access()
+            .then(editor => editor.focus());
+        // this.editors.focus('connection');
+        // console.log('after')
+        // this.focusAgdaConnectionInput
         //
         // // update the view
         // this.store.dispatch(Action.MODE.queryConnection());
@@ -428,8 +441,8 @@ export default class View {
         //     style: V.Style.Error
         // }));
         // // activate the connection query
-        // this.editors.connection.activate();
-        return this.editors.connection.query();
+        // this..activate();
+        return this.editors.connection.access().then(editor => editor.query());
     }
 
     toggleDocking(): Promise<{}> {

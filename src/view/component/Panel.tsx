@@ -71,12 +71,12 @@ class Panel extends React.Component<Props, {}> {
                         updateTranslation={(c) => core.inputMethod.replaceBuffer(c)}
                         insertCharacter={(c) => {
                             core.inputMethod.insertCharToBuffer(c);
-                            core.view.editors.focus('main')
+                            core.view.editors.focusMain()
                         }}
                         chooseSymbol={(c) => {
                             core.inputMethod.replaceBuffer(c);
                             core.inputMethod.deactivate();
-                            core.view.editors.focus('main')
+                            core.view.editors.focusMain()
                         }}
                     />
                     <Header
@@ -99,17 +99,17 @@ class Panel extends React.Component<Props, {}> {
                         }}
                         onConfirm={(result) => {
                             this.props.handelQueryValueChange(result);
-                            core.view.editors.focus('main')
+                            core.view.editors.focusMain()
                             this.props.deactivateMiniEditor();
                             core.inputMethod.confirm();
                         }}
                         onCancel={() => {
-                            core.view.editors.focus('main')
+                            core.view.editors.focusMain()
                             this.props.deactivateMiniEditor();
                             core.inputMethod.cancel();
                         }}
                     />
-                    <div
+                    {/* <div
                         className={show(View.Mode.QueryConnection, mode)}
                     >
                         <p>
@@ -121,15 +121,15 @@ class Panel extends React.Component<Props, {}> {
                                     core.view.editors.connection = ref;
                             }}
                             onConfirm={(path) => {
-                                core.view.editors.focus('main')
+                                core.view.editors.focusMain()
                                 this.props.deactivateMiniEditor();
                             }}
                             onCancel={() => {
-                                core.view.editors.focus('main')
+                                core.view.editors.focusMain()
                                 this.props.deactivateMiniEditor();
                             }}
                         />
-                    </div>
+                    </div> */}
                 </section>
             </section>
         )

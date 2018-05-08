@@ -1,3 +1,6 @@
+import { EventEmitter } from 'events';
+import * as Promise from 'bluebird';
+
 // http://stackoverflow.com/a/2117523
 export function guid(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -16,6 +19,42 @@ export function hash(o: any): string {
         hash = hash & hash; // Convert to 32bit integer
     }
     return hash.toString();
+}
+export class Resource<T> {
+    private handle?: T;
+    private emitter: EventEmitter;
+
+    constructor() {
+        this.handle = null;
+        this.emitter = new EventEmitter;
+    }
+
+    isAvailable(): boolean {
+        return (this.handle !== null);
+    }
+
+    resolve(resource: T) {
+        this.emitter.emit('available', resource);
+    }
+
+    reject(message) {
+        this.emitter.emit('error', message);
+    }
+
+    access(): Promise<T> {
+        if (this.isAvailable()) {
+            return Promise.resolve(this.handle);
+        } else {
+            return new Promise<T>((resolve, reject) => {
+                this.emitter.once('available', (resource) => {
+                    resolve(resource);
+                });
+                this.emitter.once('error', (message) => {
+                    reject(message);
+                });
+            });
+        }
+    }
 }
 
 export class TelePromise<T> {

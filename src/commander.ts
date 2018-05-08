@@ -398,11 +398,7 @@ export default class Commander {
     }
 
     private inputSymbol = (connection: Connection): Promise<Agda.Response[]> => {
-        // const miniEditorFocused = this.core.view.editors.general && this.core.view.editors.general.isFocused();
-        // const shouldNotActivate = miniEditorFocused && !enableInMiniEditor;
-
-        const shouldNotActivate = this.core.view.editors.focused() === 'connection';
-        if (atom.config.get('agda-mode.inputMethod') && !shouldNotActivate) {
+        if (atom.config.get('agda-mode.inputMethod')) {
             if (!this.loaded) {
                 const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
                 this.core.view.mountPanel(currentMountingPosition);

@@ -7,6 +7,7 @@ import * as Conn from '../../../connection';
 import * as Err from '../../../error';
 import * as Action from '../../actions';
 import { Core } from '../../../core';
+import MiniEditor from '../MiniEditor';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
@@ -44,12 +45,12 @@ function mapStateToProps(state: View.State): InjProps {
 }
 
 class Connection extends React.Component<Props, State> {
-    agdaConnectionInput: HTMLElement;
+    // private agdaConnectionInput: HTMLElement;
+    //
+    // focusAgdaConnectionInput(){
+    //     this.agdaConnectionInput.focus();
+    // }
 
-    componentDidMount(){
-        this.agdaConnectionInput.focus();
-    }
-    
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -190,20 +191,20 @@ class Connection extends React.Component<Props, State> {
                                 Version: {this.agdaConnected() ? agda.version.raw : 'unknown'}
                             </p>
                             <p>
-                                {/* <MiniEditor
+                                <MiniEditor
                                     placeholder='path to Agda'
                                     ref={(ref) => {
                                         if (ref)
-                                            this.props.core.view.editors.connection = ref;
+                                            this.props.core.view.editors.connection.resolve(ref);
                                     }}
                                     onConfirm={(path) => {
-                                        this.props.core.view.editors.focus('main');
+                                        this.props.core.view.editors.focusMain();
                                     }}
                                     onCancel={() => {
-                                        this.props.core.view.editors.focus('main');
+                                        this.props.core.view.editors.focusMain();
                                     }}
-                                /> */}
-                                <input
+                                />
+                                {/* <input
                                     className='input-text native-key-bindings'
                                     type='text' placeholder='path to Agda'
                                     value={this.state.agdaPath}
@@ -212,7 +213,7 @@ class Connection extends React.Component<Props, State> {
                                             this.agdaConnectionInput = ref;
                                     }}
                                     onChange={this.handleAgdaLocationChange}
-                                />
+                                /> */}
                             </p>
                             <p>
                                 <button

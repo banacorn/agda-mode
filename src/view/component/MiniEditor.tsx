@@ -45,7 +45,7 @@ class MiniEditor extends React.Component<Props, State> {
 
     }
 
-    observeFocus() {
+    private observeFocus() {
         // create an observer instance
         this.observer = new MutationObserver((mutations) => {
             mutations
