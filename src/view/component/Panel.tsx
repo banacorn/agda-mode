@@ -109,27 +109,6 @@ class Panel extends React.Component<Props, {}> {
                             core.inputMethod.cancel();
                         }}
                     />
-                    {/* <div
-                        className={show(View.Mode.QueryConnection, mode)}
-                    >
-                        <p>
-                            Unable to find Agda on your machine, please enter the path of Agda manually.
-                        </p>
-                        <MiniEditor
-                            ref={(ref) => {
-                                if (ref)
-                                    core.view.editors.connection = ref;
-                            }}
-                            onConfirm={(path) => {
-                                core.view.editors.focusMain()
-                                this.props.deactivateMiniEditor();
-                            }}
-                            onCancel={() => {
-                                core.view.editors.focusMain()
-                                this.props.deactivateMiniEditor();
-                            }}
-                        />
-                    </div> */}
                 </section>
             </section>
         )

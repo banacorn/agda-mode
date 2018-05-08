@@ -406,6 +406,7 @@ export default class View {
     queryConnection(): Promise<string> {
         this.tabs.open('settings');
         this.store.dispatch(Action.VIEW.navigate('/Connection'));
+        // this.store.dispatch(Action.CONNECTION.setAgdaMessage('Unable to find Agda on your machine, please enter the path of Agda manually'));
         return this.editors.connection.access()
             .then(editor => {
                 if (!editor.isFocused()) {

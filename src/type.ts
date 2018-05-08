@@ -84,6 +84,7 @@ namespace View {
 
     export interface ConnectionState {
         agda?: ValidPath;
+        agdaMessage: string;
         languageServer?: ValidPath;
     }
 

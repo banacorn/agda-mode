@@ -14,8 +14,6 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
 };
 
 type State = {
-    agdaPath: string;
-    agdaMessage: string;
     lspEnable: boolean;
     languageServerPath: string;
     languageServerMessage: string;
@@ -25,17 +23,18 @@ type InjProps = {
     connection: View.ConnectionState;
 }
 type DispatchProps = {
-    // handleAddConnection: (connInfo: ConnectionInfo) => void;
+    setAgdaMessage: (message: string) => void;
 }
 
 
-// function mapDispatchToProps(dispatch): DispatchProps {
-//     return {
-//         deactivateMiniEditor: () => {
-//             dispatch(MODE.display());
-//         },
-//     };
-// }
+function mapDispatchToProps(dispatch): DispatchProps {
+    return {
+        setAgdaMessage: (message: string) => {
+            dispatch(Action.CONNECTION.setAgdaMessage(message));
+        },
+    };
+}
+
 type Props = OwnProps & InjProps & DispatchProps;
 
 function mapStateToProps(state: View.State): InjProps {
@@ -54,8 +53,6 @@ class Connection extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
-            agdaPath: atom.config.get('agda-mode.agdaPath'),
-            agdaMessage: '',
             lspEnable: false,
             languageServerPath: atom.config.get('agda-mode.languageServerPath'),
             languageServerMessage: ''
@@ -76,7 +73,7 @@ class Connection extends React.Component<Props, State> {
 
     // true if Agda is connected
     agdaConnected(): boolean {
-        return this.props.connection.agda !== null && this.state.agdaMessage === '';
+        return this.props.connection.agda !== null && this.props.connection.agdaMessage === '';
     }
 
     // connectAgda() {
@@ -96,20 +93,11 @@ class Connection extends React.Component<Props, State> {
 
     searchAgda() {
         Conn.autoSearch('agda')
-            .then(path => {
-                this.setState({
-                    agdaPath: path
-                })
-            })
             .catch(Err.Conn.AutoSearchError, error => {
-                this.setState({
-                    agdaMessage: 'Failed searching for the path of Agda'
-                });
+                this.props.setAgdaMessage('Failed searching for the path of Agda');
             })
             .catch(error => {
-                this.setState({
-                    agdaMessage: error.message
-                });
+                this.props.setAgdaMessage(error.message);
             })
         // prevent this button from submitting the entire form
         return false;
@@ -162,17 +150,15 @@ class Connection extends React.Component<Props, State> {
                             </p>
                             <p>
                                 <MiniEditor
-                                    value={this.state.agdaPath}
+                                    value={atom.config.get('agda-mode.agdaPath')}
                                     placeholder='path to Agda'
                                     ref={(ref) => {
                                         if (ref)
                                             this.props.core.view.editors.connection.resolve(ref);
                                     }}
                                     onConfirm={(path) => {
-                                        this.setState({
-                                            agdaPath: path
-                                        });
-                                        atom.config.set('agda-mode.agdaPath', this.state.agdaPath);
+                                        atom.config.set('agda-mode.agdaPath', path);
+                                        this.props.core.commander.dispatch({ kind: 'Load' });
                                     }}
                                     onCancel={() => {
                                         this.props.core.view.editors.focusMain();
@@ -185,12 +171,10 @@ class Connection extends React.Component<Props, State> {
                                     className='btn icon icon-search inline-block-tight'
                                     onClick={this.searchAgda}
                                 >auto search</button>
-                                {this.state.agdaMessage &&
-                                    <div className="inset-panel padded text-warning">{this.state.agdaMessage}</div>
-                                }
                             </p>
-                            <p>
-                            </p>
+                            {this.props.connection.agdaMessage &&
+                                <p className="inset-panel padded text-warning">{this.props.connection.agdaMessage}</p>
+                            }
                         </li>
                         <li>
                             <h2>
@@ -236,5 +220,5 @@ class Connection extends React.Component<Props, State> {
 
 export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
-    null
+    mapDispatchToProps
 )(Connection);

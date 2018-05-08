@@ -27,6 +27,7 @@ const defaultState: View.State = {
     mode: View.Mode.Display,
     connection: {
         agda: null,
+        agdaMessage: '',
         languageServer: null
     },
     protocol: {
@@ -110,10 +111,16 @@ const mode = handleActions<View.Mode, MODE>({
 }, defaultState.mode);
 
 const connection = handleActions<View.ConnectionState, CONNECTION>({
-    [CONNECTION.CONNECT]: (state, action: Action<CONNECTION.CONNECT>) => action.payload,
+    [CONNECTION.CONNECT]: (state, action: Action<CONNECTION.CONNECT>) => ({ ...state,
+        agda: action.payload
+    }),
     [CONNECTION.DISCONNECT]: (state, action: Action<CONNECTION.DISCONNECT>) => ({
         agda: null,
+        agdaMessage: '',
         languageServer: null
+    }),
+    [CONNECTION.SET_AGDA_MESSAGE]: (state, action: Action<CONNECTION.SET_AGDA_MESSAGE>) => ({ ...state,
+        agdaMessage: action.payload
     }),
 }, defaultState.connection);
 

@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import * as Promise from 'bluebird'
 import { createAction, handleAction, handleActions, Action } from 'redux-actions';
-import { Parsed, Agda, View, Location } from '../type';
+import { Parsed, Agda, View, Location, ValidPath } from '../type';
 import { AgdaError } from '../parser';
 
 // export type EVENT =
@@ -72,15 +72,19 @@ export namespace MODE {
 export type CONNECTION
     = CONNECTION.CONNECT
     | CONNECTION.DISCONNECT
+    | CONNECTION.SET_AGDA_MESSAGE
 
 export namespace CONNECTION {
     export const CONNECT = 'CONNECTION.CONNECT';
-    export type CONNECT = View.ConnectionState;
+    export type CONNECT = ValidPath;
     export const DISCONNECT = 'CONNECTION.DISCONNECT';
     export type DISCONNECT = void;
+    export const SET_AGDA_MESSAGE = 'CONNECTION.SET_AGDA_MESSAGE';
+    export type SET_AGDA_MESSAGE = string;
 
     export const connect = createAction<CONNECTION.CONNECT>(CONNECTION.CONNECT);
     export const disconnect = createAction(CONNECTION.DISCONNECT);
+    export const setAgdaMessage = createAction<CONNECTION.SET_AGDA_MESSAGE>(CONNECTION.SET_AGDA_MESSAGE);
 }
 
 export type PROTOCOL

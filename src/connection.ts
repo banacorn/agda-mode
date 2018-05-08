@@ -63,10 +63,8 @@ export default class ConnectionManager {
     private wire = (connection: Connection): Promise<Connection> => {
         // the view
         this.core.view.store.dispatch(Action.CONNECTION.connect({
-            agda: {
-                path: connection.path,
-                version: connection.version
-            }
+            path: connection.path,
+            version: connection.version
         }));
         // the properties
         this.connection = connection;
@@ -108,7 +106,9 @@ export default class ConnectionManager {
     }
 
 
-    queryPath(): Promise<ValidPath> {
+    queryPath(error: Error): Promise<ValidPath> {
+        this.core.view.set('Connection Error', [], View.Style.Error);
+        this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
         return this.core.view.queryConnection()
             .then(validateAgda)
             .catch(Err.Conn.Invalid, this.queryPath);
@@ -116,12 +116,20 @@ export default class ConnectionManager {
 
     handleError(error: Error) {
         this.core.view.set('Error', [error.message], View.Style.Error);
+        this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
     }
 
+        // handleError(error: Error) {
+        //     this.core.view.set('Error', [error.message], View.Style.Error);
+        //     if (this.selected) {
+        //         this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
+        //     } else {
+        //         this.core.view.store.dispatch(Action.CONNECTION.showNewConnectionView(true));
+        //     }
+        // }
+
     updateStore(validated: ValidPath): Promise<ValidPath> {
-        this.core.view.store.dispatch(Action.CONNECTION.connect({
-            agda: validated
-        }));
+        this.core.view.store.dispatch(Action.CONNECTION.connect(validated));
         return Promise.resolve(validated);
     }
 }
