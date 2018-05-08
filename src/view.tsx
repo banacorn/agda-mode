@@ -97,6 +97,7 @@ class TabManager {
             this.panelOpened = false;
         });
 
+        // open <Panel> at the bottom when this tab got destroyed
         this.panel.onKill(paneItem => {
             this.store.dispatch(Action.VIEW.mountAtBottom());
             this.core.view.unmountPanel(V.MountingPosition.Pane);
@@ -141,13 +142,11 @@ class TabManager {
             case 'panel':
                 if (!this.panelOpened) {
                     this.panel.open();
-                    this.panelOpened = true;
                 }
                 break;
             case 'settings':
                 if (!this.settingsOpened) {
                     this.settings.open();
-                    this.settingsOpened = true;
                 }
                 break;
         }
@@ -157,15 +156,27 @@ class TabManager {
         switch(tab) {
             case 'panel':
                 if (this.panelOpened) {
+                    ReactDOM.unmountComponentAtNode(this.panel.getElement());
                     this.panel.close();
                     this.panelOpened = false;
                 }
                 break;
             case 'settings':
                 if (this.settingsOpened) {
+                    ReactDOM.unmountComponentAtNode(this.settings.getElement());
                     this.settings.close();
                     this.settingsOpened = false;
                 }
+                break;
+        }
+    }
+    activate(tab: 'panel' | 'settings') {
+        switch(tab) {
+            case 'panel':
+                this.panel.activate();
+                break;
+            case 'settings':
+                this.settings.activate();
                 break;
         }
     }
@@ -182,8 +193,6 @@ export default class View {
     public editors: EditorViewManager;
     private bottomPanel: Atom.Panel;
     public tabs: TabManager;
-
-    private panelTab: Tab;
 
     constructor(private core: Core) {
         this.store = createStore(
@@ -277,7 +286,7 @@ export default class View {
                     this.renderPanel(element);
                     break;
                 case V.MountingPosition.Pane:
-                    this.panelTab.open()
+                    this.tabs.open('panel')
                     break;
                 default:
                     console.error('no mounting position to transist to')
@@ -299,10 +308,7 @@ export default class View {
                     ReactDOM.unmountComponentAtNode(itemElement);
                     break;
                 case V.MountingPosition.Pane:
-                    // saving the element for React to unmount
-                    const element = this.panelTab.getElement();
-                    ReactDOM.unmountComponentAtNode(element);
-                    this.panelTab.close()
+                    this.tabs.close('panel');
                     break;
                 default:
                     // do nothing
@@ -321,7 +327,7 @@ export default class View {
                 // do nothing
                 break;
             case V.MountingPosition.Pane:
-                this.panelTab.activate()
+                this.tabs.activate('panel');
                 break;
             default:
                 // do nothing
@@ -339,7 +345,6 @@ export default class View {
         // console.log(`[${this.uri.substr(12)}] %cdestroy`, 'color: red');
         this.unmountPanel(this.state().mountAt.current);
         this.subscriptions.dispose();
-        this.panelTab.destroy();
         this.tabs.destroyAll();
     }
 

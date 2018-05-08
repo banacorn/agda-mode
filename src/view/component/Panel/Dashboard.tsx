@@ -108,9 +108,9 @@ class Dashboard extends React.Component<Props, {}> {
                         onClick={() => {
                             handleToggleSettingsView()
                             if (settingsView) {
-                                core.view.settingsTab.close();
+                                core.view.tabs.close('settings');
                             } else {
-                                core.view.settingsTab.open();
+                                core.view.tabs.open('settings');
                             }
                         }}
                         ref={(ref) => {
