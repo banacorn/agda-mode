@@ -198,10 +198,12 @@ class Connection extends React.Component<Props, State> {
                                             this.props.core.view.editors.connection.resolve(ref);
                                     }}
                                     onConfirm={(path) => {
-                                        this.props.core.view.editors.focusMain();
+                                        {/* this.props.core.view.editors.focusMain(); */}
                                     }}
                                     onCancel={() => {
                                         this.props.core.view.editors.focusMain();
+                                        {/* value={this.state.agdaPath} */}
+                                        {/* onChange={this.handleAgdaLocationChange} */}
                                     }}
                                 />
                                 {/* <input
@@ -220,7 +222,6 @@ class Connection extends React.Component<Props, State> {
                                     className='btn icon icon-search inline-block-tight'
                                     onClick={this.searchAgda}
                                 >search</button>
-                                {/* {this.agdaConnected() ? agdaButtonDisconnect : agdaButtonConnect} */}
                                 {this.state.agdaMessage &&
                                     <div className="inset-panel padded text-warning">{this.state.agdaMessage}</div>
                                 }

@@ -50,7 +50,7 @@ class Settings extends React.Component<Props, {}> {
         const { core } = this.props;
         return (
             <section
-                className="agda-settings native-key-bindings"
+                className='agda-settings'
                 tabIndex={-1}
             >
                 <Breadcrumb
@@ -58,20 +58,20 @@ class Settings extends React.Component<Props, {}> {
                     uri={this.props.uri}
                 />
                 <ul
-                    className={classNames("agda-settings-menu", this.at('/'))}
+                    className={classNames('agda-settings-menu', this.at('/'))}
                 >
                     <li
                         onClick={this.props.navigate('/Connection')}
                     >
-                        <span className="icon icon-plug">Connection</span>
+                        <span className='icon icon-plug'>Connection</span>
                     </li>
                     <li
                         onClick={this.props.navigate('/Protocol')}
                     >
-                        <span className="icon icon-comment-discussion">Protocol</span>
+                        <span className='icon icon-comment-discussion'>Protocol</span>
                     </li>
                 </ul>
-                <div className="agda-settings-pages">
+                <div className='agda-settings-pages'>
                     <Connection
                         className={this.at('/Connection')}
                         core={this.props.core}

@@ -34,6 +34,7 @@ export class Resource<T> {
     }
 
     resolve(resource: T) {
+        this.handle = resource;
         this.emitter.emit('available', resource);
     }
 

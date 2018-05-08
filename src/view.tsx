@@ -41,23 +41,6 @@ class EditorViewManager {
     focusMain() {
         atom.views.getView(this.main).focus();
     }
-    // // focus the specified editor
-    // focus(editor: 'main' | 'general' | 'connection') {
-    //     switch (editor) {
-    //         case 'main':
-    //             atom.views.getView(this.main).focus();
-    //             break;
-    //         case 'general':
-    //             this.general && this.general.focus();
-    //             break;
-    //         case 'connection':
-    //             this.connection.access()
-    //                 .then(editor => {
-    //                     editor.focus();
-    //                 });
-    //             break;
-    //     }
-    // }
 
     // get the focused editor
     getFocusedEditor(): Atom.TextEditor {
@@ -423,16 +406,11 @@ export default class View {
     queryConnection(): Promise<string> {
         this.tabs.open('settings');
         this.store.dispatch(Action.VIEW.navigate('/Connection'));
-        // this.editors.connection.query()
-        //     .then(result => {
-        //         console.log(result)
-        //     })
-        // console.log('before')
-        this.editors.connection.access()
-            .then(editor => editor.focus());
-        // this.editors.focus('connection');
-        // console.log('after')
-        // this.focusAgdaConnectionInput
+        return this.editors.connection.access()
+            .then(editor => {
+                editor.activate()
+                return editor.query();
+            });
         //
         // // update the view
         // this.store.dispatch(Action.MODE.queryConnection());
@@ -442,7 +420,6 @@ export default class View {
         // }));
         // // activate the connection query
         // this..activate();
-        return this.editors.connection.access().then(editor => editor.query());
     }
 
     toggleDocking(): Promise<{}> {
@@ -467,16 +444,4 @@ export default class View {
     navigateSettings(path: V.SettingsURI) {
         this.store.dispatch(Action.VIEW.navigate(path));
     }
-}
-
-function toText(mp: V.MountingPosition): string {
-    switch (mp) {
-        case V.MountingPosition.Bottom:
-            return 'Bottom'
-        case V.MountingPosition.Pane:
-            return 'Pane'
-        default:
-            return ''
-    }
-
 }

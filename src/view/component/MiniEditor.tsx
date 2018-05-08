@@ -18,7 +18,7 @@ declare global {
     }
 }
 
-type Props = React.HTMLProps<HTMLElement> & {
+type Props = React.HTMLProps<HTMLInputElement> & {
     placeholder?: string;
 
     onConfirm?: (payload: string) => void;
@@ -79,7 +79,7 @@ class MiniEditor extends React.Component<Props, State> {
 
     componentDidMount() {
         // pass the grammar down to enable input method
-        if (this.props['data-grammar'] === "agda") {
+        if (this.props['data-grammar'] === 'agda') {
             const agdaGrammar = atom.grammars.grammarForScopeName('source.agda');
             this.ref.getModel().setGrammar(agdaGrammar);
         }
@@ -146,6 +146,7 @@ class MiniEditor extends React.Component<Props, State> {
     }
 
     render() {
+        // const classes = classNames(this.props.className, 'mini-editor', 'native-key-bindings');
         const classes = classNames(this.props.className, 'mini-editor');
         return (
             <atom-text-editor

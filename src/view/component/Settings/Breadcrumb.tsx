@@ -18,10 +18,10 @@ class Breadcrumb extends React.Component<Props, {}> {
 
         switch (this.props.uri) {
             case '/Connection':
-                tier1 = <li><a href="#"><span className="icon icon-plug">Connection</span></a></li>;
+                tier1 = <li><a href='#'><span className='icon icon-plug'>Connection</span></a></li>;
                 break;
             case '/Protocol':
-                tier1 = <li><a href="#"><span className="icon icon-comment-discussion">Protocol</span></a></li>;
+                tier1 = <li><a href='#'><span className='icon icon-comment-discussion'>Protocol</span></a></li>;
                 break;
             default:
                 tier1 = null;
@@ -31,10 +31,10 @@ class Breadcrumb extends React.Component<Props, {}> {
 
         return (
             <nav className={classNames('breadcrumb', this.props.className)}>
-                <ol className="breadcrumb">
+                <ol className='breadcrumb'>
                     <li><a
                         onClick={this.props.navigate('/')}
-                        href="#"><span className="icon icon-settings">Settings</span></a>
+                        href='#'><span className='icon icon-settings'>Settings</span></a>
                     </li>
                     {tier1}
                     {tier2}

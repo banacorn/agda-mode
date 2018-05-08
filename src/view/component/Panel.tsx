@@ -57,7 +57,7 @@ class Panel extends React.Component<Props, {}> {
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
         return (
             <section className={hideEverything}>
-                <section className="panel-heading agda-header-container">
+                <section className='panel-heading agda-header-container'>
                     <SizingHandle
                         onResize={(height) => {
                             onResize(height)
@@ -83,7 +83,7 @@ class Panel extends React.Component<Props, {}> {
                         core={core}
                     />
                 </section>
-                <section className="agda-body-container">
+                <section className='agda-body-container'>
                     <Body
                         className={show(View.Mode.Display, mode)}
                         emitter={emitter}
@@ -92,7 +92,7 @@ class Panel extends React.Component<Props, {}> {
                         className={show(View.Mode.Query, mode)}
                         value={this.props.query.value}
                         placeholder={this.props.query.placeholder}
-                        data-grammar="agda"
+                        data-grammar='agda'
                         ref={(ref) => {
                             if (ref)
                                 core.view.editors.general = ref;

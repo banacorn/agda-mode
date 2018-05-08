@@ -34,9 +34,9 @@ class SizingHandle extends React.Component<Props, State> {
     render() {
         const { onResizeStart, onResize, onResizeEnd, atBottom } = this.props;
         return (
-            <div className="sizing-handle-anchor">
+            <div className='sizing-handle-anchor'>
                 <div
-                    className="sizing-handle native-key-bindings"
+                    className='sizing-handle native-key-bindings'
                     ref={(ref) => {
                         this.ref = ref
                     }}
