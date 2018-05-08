@@ -60,27 +60,19 @@ class Connection extends React.Component<Props, State> {
             languageServerPath: atom.config.get('agda-mode.languageServerPath'),
             languageServerMessage: ''
         };
-        this.handleAgdaLocationChange = this.handleAgdaLocationChange.bind(this);
-        this.handleLanguageServerLocationChange = this.handleLanguageServerLocationChange.bind(this);
+        // this.handleAgdaPathChange = this.handleAgdaPathChange.bind(this);
+        // this.handleLanguageServerPathChange = this.handleLanguageServerPathChange.bind(this);
         // this.connectAgda = this.connectAgda.bind(this);
         this.searchAgda = this.searchAgda.bind(this);
-        this.searchLanguageServer = this.searchLanguageServer.bind(this);
         this.toggleLSPChange = this.toggleLSPChange.bind(this);
         this.toggleAgdaConnection = this.toggleAgdaConnection.bind(this);
     }
 
-    handleAgdaLocationChange(event) {
-        this.setState({
-            agdaPath: event.target.value
-        });
-        atom.config.set('agda-mode.agdaPath', this.state.agdaPath);
-    }
-
-    handleLanguageServerLocationChange(event) {
-        this.setState({
-            languageServerPath: event.target.value
-        });
-    }
+    // handleLanguageServerPathChange(event) {
+    //     this.setState({
+    //         languageServerPath: event.target.value
+    //     });
+    // }
 
     // true if Agda is connected
     agdaConnected(): boolean {
@@ -104,40 +96,19 @@ class Connection extends React.Component<Props, State> {
 
     searchAgda() {
         Conn.autoSearch('agda')
-            .then(location => {
+            .then(path => {
                 this.setState({
-                    agdaPath: location
+                    agdaPath: path
                 })
             })
             .catch(Err.Conn.AutoSearchError, error => {
                 this.setState({
-                    agdaMessage: 'Failed searching for the location of Agda'
+                    agdaMessage: 'Failed searching for the path of Agda'
                 });
             })
             .catch(error => {
                 this.setState({
                     agdaMessage: error.message
-                });
-            })
-        // prevent this button from submitting the entire form
-        return false;
-    }
-
-    searchLanguageServer() {
-        Conn.autoSearch('agda-language-server')
-            .then(location => {
-                this.setState({
-                    languageServerPath: location
-                })
-            })
-            .catch(Err.Conn.AutoSearchError, error => {
-                this.setState({
-                    languageServerPath: 'Failed searching for the location of Agda Language Server'
-                });
-            })
-            .catch(error => {
-                this.setState({
-                    languageServerPath: error.message
                 });
             })
         // prevent this button from submitting the entire form
@@ -164,7 +135,6 @@ class Connection extends React.Component<Props, State> {
             <span className='inline-block highlight-success'>connected</span> :
             <span className='inline-block highlight-warning'>not connected</span>;
         const agdaVersion = this.agdaConnected() && <span className='inline-block highlight'>{agda.version.raw}</span>;
-
         return (
             <section className={classNames('agda-settings-connection', this.props.className)}>
                 <form>
@@ -192,39 +162,34 @@ class Connection extends React.Component<Props, State> {
                             </p>
                             <p>
                                 <MiniEditor
+                                    value={this.state.agdaPath}
                                     placeholder='path to Agda'
                                     ref={(ref) => {
                                         if (ref)
                                             this.props.core.view.editors.connection.resolve(ref);
                                     }}
                                     onConfirm={(path) => {
-                                        {/* this.props.core.view.editors.focusMain(); */}
+                                        this.setState({
+                                            agdaPath: path
+                                        });
+                                        atom.config.set('agda-mode.agdaPath', this.state.agdaPath);
                                     }}
                                     onCancel={() => {
                                         this.props.core.view.editors.focusMain();
-                                        {/* value={this.state.agdaPath} */}
-                                        {/* onChange={this.handleAgdaLocationChange} */}
                                     }}
+
                                 />
-                                {/* <input
-                                    className='input-text native-key-bindings'
-                                    type='text' placeholder='path to Agda'
-                                    value={this.state.agdaPath}
-                                    ref={(ref) => {
-                                        if (ref)
-                                            this.agdaConnectionInput = ref;
-                                    }}
-                                    onChange={this.handleAgdaLocationChange}
-                                /> */}
                             </p>
                             <p>
                                 <button
                                     className='btn icon icon-search inline-block-tight'
                                     onClick={this.searchAgda}
-                                >search</button>
+                                >auto search</button>
                                 {this.state.agdaMessage &&
                                     <div className="inset-panel padded text-warning">{this.state.agdaMessage}</div>
                                 }
+                            </p>
+                            <p>
                             </p>
                         </li>
                         <li>
@@ -247,7 +212,6 @@ class Connection extends React.Component<Props, State> {
                                     className='input-text native-key-bindings'
                                     type='text' placeholder='path to Agda Language Server'
                                     value={this.state.languageServerPath}
-                                    onChange={this.handleLanguageServerLocationChange}
                                 />
                             </p>
                             <p>
@@ -257,7 +221,6 @@ class Connection extends React.Component<Props, State> {
                                 >connect</button> */}
                                 <button
                                     className="btn icon btn-success icon-search inline-block-tight"
-                                    onClick={this.searchLanguageServer}
                                 >search</button>
                                 {this.state.languageServerMessage &&
                                     <div className="inset-panel padded text-warning">Language Server: {this.state.languageServerMessage}</div>

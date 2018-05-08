@@ -408,7 +408,9 @@ export default class View {
         this.store.dispatch(Action.VIEW.navigate('/Connection'));
         return this.editors.connection.access()
             .then(editor => {
-                editor.activate()
+                if (!editor.isFocused()) {
+                    editor.activate()
+                }
                 return editor.query();
             });
         //
