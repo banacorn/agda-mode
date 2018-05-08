@@ -72,10 +72,93 @@ class EditorViewManager {
     }
 }
 
-class PanelManager {
-    private store: Redux.Store<V.State>;
-    constructor(store) {
-        this.store = store;
+class TabManager {
+    private panel: Tab;
+    private panelOpened: boolean;
+    private settings: Tab;
+    private settingsOpened: boolean;
+
+    constructor(
+        private core: Core,
+        private store: Redux.Store<V.State>,
+        mainEditor: Atom.TextEditor
+    ) {
+        // Tab for <Panel>
+        this.panel = new Tab(mainEditor, 'panel');
+        this.panel.onOpen((item, panes) => {
+            // activate the previous pane (which opened this pane item)
+            panes.previous.activate();
+            // render
+            this.core.view.renderPanel(item.element);
+
+            this.panelOpened = true;
+        });
+        this.panel.onClose(paneItem => {
+            this.panelOpened = false;
+        });
+
+        this.panel.onKill(paneItem => {
+            this.store.dispatch(Action.VIEW.mountAtBottom());
+            this.core.view.unmountPanel(V.MountingPosition.Pane);
+            this.core.view.mountPanel(V.MountingPosition.Bottom);
+
+            this.panelOpened = false;
+        });
+
+        // Tab for <Settings>
+        this.settings = new Tab(mainEditor, 'settings', () => {
+            const { name } = path.parse(mainEditor.getPath());
+            return `[Settings] ${name}`
+        });
+        this.settings.onOpen((paneItem, panes) => {
+            // activate the previous pane (which opened this pane item)
+            panes.previous.activate();
+            this.core.view.renderSettingsView();
+            this.settingsOpened = true;
+        });
+
+        this.settings.onClose(paneItem => {
+            this.settingsOpened = false;
+        });
+        this.settings.onKill(paneItem => {
+            this.settingsOpened = false;
+            this.store.dispatch(Action.VIEW.toggleSettings());
+        });
+
+    }
+
+    open(tab: 'panel' | 'settings') {
+        switch(tab) {
+            case 'panel':
+                if (!this.panelOpened) {
+                    this.panel.open();
+                    this.panelOpened = true;
+                }
+                break;
+            case 'settings':
+                if (!this.settingsOpened) {
+                    this.settings.open();
+                    this.settingsOpened = true;
+                }
+                break;
+        }
+    }
+
+    close(tab: 'panel' | 'settings') {
+        switch(tab) {
+            case 'panel':
+                if (this.panelOpened) {
+                    this.panel.close();
+                    this.panelOpened = false;
+                }
+                break;
+            case 'settings':
+                if (this.settingsOpened) {
+                    this.settings.close();
+                    this.settingsOpened = false;
+                }
+                break;
+        }
     }
 }
 
@@ -84,8 +167,8 @@ export default class View {
     private subscriptions: Atom.CompositeDisposable;
     public store: Redux.Store<V.State>;
     public editors: EditorViewManager;
-    public panel: PanelManager;
     private bottomPanel: Atom.Panel;
+    public tabs: TabManager;
 
     private panelTab: Tab;
     public settingsTab: Tab;
@@ -141,37 +224,9 @@ export default class View {
         // views of editors
         this.editors = new EditorViewManager(core.editor.getTextEditor());
 
-        // the main panel
-        this.panel = new PanelManager(this.store);
+        // the tab manager
+        this.tabs = new TabManager(this.core, this.store, this.editors.main);
 
-        // Tab for <Panel>
-        this.panelTab = new Tab(this.editors.main, 'panel');
-        this.panelTab.onOpen((item, panes) => {
-            // activate the previous pane (which opened this pane item)
-            panes.previous.activate();
-            // render
-            this.renderPanel(item.element);
-        });
-
-        this.panelTab.onKill(paneItem => {
-            this.store.dispatch(Action.VIEW.mountAtBottom());
-            this.unmountPanel(V.MountingPosition.Pane);
-            this.mountPanel(V.MountingPosition.Bottom);
-        });
-
-        // Tab for <Settings>
-        this.settingsTab = new Tab(this.editors.main, 'settings', () => {
-            const { name } = path.parse(this.editors.main.getPath());
-            return `[Settings] ${name}`
-        });
-        this.settingsTab.onOpen((paneItem, panes) => {
-            // activate the previous pane (which opened this pane item)
-            panes.previous.activate();
-            this.renderSettingsView();
-        });
-        this.settingsTab.onKill(paneItem => {
-            this.store.dispatch(Action.VIEW.toggleSettings());
-        });
     }
 
     private state() {
@@ -179,7 +234,7 @@ export default class View {
     }
 
 
-    private renderPanel(mountingPoint: HTMLElement) {
+    public renderPanel(mountingPoint: HTMLElement) {
         ReactDOM.render(
             <Provider store={this.store}>
                 <Panel
@@ -191,7 +246,7 @@ export default class View {
         )
     }
 
-    private renderSettingsView() {
+    public renderSettingsView() {
         ReactDOM.render(
             <Provider store={this.store}>
                 <Settings
@@ -369,6 +424,7 @@ export default class View {
     queryConnection(): Promise<string> {
         this.settingsTab.open();
         this.store.dispatch(Action.VIEW.navigate('/Connection'));
+        this.editors.focus('connection');
         //
         // // update the view
         // this.store.dispatch(Action.MODE.queryConnection());

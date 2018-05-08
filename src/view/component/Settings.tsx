@@ -74,12 +74,7 @@ class Settings extends React.Component<Props, {}> {
                 <div className="agda-settings-pages">
                     <Connection
                         className={this.at('/Connection')}
-                        onConnect={() => {
-                            this.props.core.commander.dispatch({ kind: 'Load' });
-                        }}
-                        onDisconnect={() => {
-                            this.props.core.commander.dispatch({ kind: 'Quit' });
-                        }}
+                        core={this.props.core}
                     />
                     <Protocol
                         // core={this.props.core}

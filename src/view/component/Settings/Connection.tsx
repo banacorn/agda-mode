@@ -8,10 +8,8 @@ import * as Err from '../../../error';
 import * as Action from '../../actions';
 import { Core } from '../../../core';
 
-
 type OwnProps = React.HTMLProps<HTMLElement> & {
-    onConnect: () => void;
-    onDisconnect: () => void;
+    core: Core;
 };
 
 type State = {
@@ -30,6 +28,13 @@ type DispatchProps = {
 }
 
 
+// function mapDispatchToProps(dispatch): DispatchProps {
+//     return {
+//         deactivateMiniEditor: () => {
+//             dispatch(MODE.display());
+//         },
+//     };
+// }
 type Props = OwnProps & InjProps & DispatchProps;
 
 function mapStateToProps(state: View.State): InjProps {
@@ -39,6 +44,12 @@ function mapStateToProps(state: View.State): InjProps {
 }
 
 class Connection extends React.Component<Props, State> {
+    agdaConnectionInput: HTMLElement;
+
+    componentDidMount(){
+        this.agdaConnectionInput.focus();
+    }
+    
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -140,9 +151,9 @@ class Connection extends React.Component<Props, State> {
 
     toggleAgdaConnection() {
         if (this.agdaConnected()) {
-            this.props.onDisconnect();
+            this.props.core.commander.dispatch({ kind: 'Quit' });
         } else {
-            this.props.onConnect();
+            this.props.core.commander.dispatch({ kind: 'Load' });
         }
     }
 
@@ -179,10 +190,27 @@ class Connection extends React.Component<Props, State> {
                                 Version: {this.agdaConnected() ? agda.version.raw : 'unknown'}
                             </p>
                             <p>
+                                {/* <MiniEditor
+                                    placeholder='path to Agda'
+                                    ref={(ref) => {
+                                        if (ref)
+                                            this.props.core.view.editors.connection = ref;
+                                    }}
+                                    onConfirm={(path) => {
+                                        this.props.core.view.editors.focus('main');
+                                    }}
+                                    onCancel={() => {
+                                        this.props.core.view.editors.focus('main');
+                                    }}
+                                /> */}
                                 <input
                                     className='input-text native-key-bindings'
                                     type='text' placeholder='path to Agda'
                                     value={this.state.agdaPath}
+                                    ref={(ref) => {
+                                        if (ref)
+                                            this.agdaConnectionInput = ref;
+                                    }}
                                     onChange={this.handleAgdaLocationChange}
                                 />
                             </p>
