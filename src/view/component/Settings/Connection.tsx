@@ -109,6 +109,7 @@ class Connection extends React.Component<Props, State> {
 
     render() {
         const agda = this.props.connection.agda;
+        const querying = this.props.connection.querying;
         const agdaConnectionStatus = this.agdaConnected() ?
             <span className='inline-block highlight-success'>connected</span> :
             <span className='inline-block highlight-warning'>not connected</span>;
@@ -117,7 +118,7 @@ class Connection extends React.Component<Props, State> {
             <section className={classNames('agda-settings-connection', this.props.className)}>
                 <form>
                     <ul className='agda-settings-connection-dashboard'>
-                        <li>
+                        <li id='agda-settings-connection-agda' className={querying ? 'querying' : ''}>
                             <h2>
                                 <label className='input-label'>
                                     <span>Connection to Agda</span>
@@ -147,8 +148,10 @@ class Connection extends React.Component<Props, State> {
                                             this.props.core.view.editors.connection.resolve(ref);
                                     }}
                                     onConfirm={(path) => {
-                                        atom.config.set('agda-mode.agdaPath', path);
-                                        this.connectAgda();
+                                        if (!querying) {
+                                            atom.config.set('agda-mode.agdaPath', path);
+                                            this.connectAgda();
+                                        }
                                     }}
                                     onCancel={() => {
                                         this.props.core.view.editors.focusMain();

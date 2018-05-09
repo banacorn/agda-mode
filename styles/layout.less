@@ -241,8 +241,21 @@
                 }
 
                 p {
-                    // margin-bottom: @component-padding;
                     margin: @component-padding * 2;
+                }
+
+                #agda-settings-connection-agda.querying {
+                    label {
+                        background: @background-color-error;
+                        color: @text-color-selected;
+                    }
+                    atom-text-editor {
+                        border-color: @background-color-error;
+                    }
+                    atom-text-editor.is-focused {
+                        border-color: @background-color-error;
+                        box-shadow: 0 0 0 1px @background-color-error;
+                    }
                 }
 
             }

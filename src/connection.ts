@@ -106,15 +106,20 @@ export default class ConnectionManager {
 
 
     queryPath(error: Error): Promise<ValidPath> {
-        this.core.view.set('Connection Error', [], View.Style.Error);
+        this.core.view.store.dispatch(Action.CONNECTION.startQuerying());
         this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
+        this.core.view.set('Connection Error', [], View.Style.Error);
         return this.core.view.queryConnection()
             .then(validateAgda)
+            .then(result => {
+                this.core.view.store.dispatch(Action.CONNECTION.stopQuerying());
+                return result;
+            })
             .catch(Err.Conn.Invalid, this.queryPath);
     }
 
     handleError(error: Error) {
-        this.core.view.set('Error', [error.message], View.Style.Error);
+        this.core.view.set('Error', [], View.Style.Error);
         this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
     }
 

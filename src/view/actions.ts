@@ -72,6 +72,8 @@ export namespace MODE {
 export type CONNECTION
     = CONNECTION.CONNECT
     | CONNECTION.DISCONNECT
+    | CONNECTION.START_QUERYING
+    | CONNECTION.STOP_QUERYING
     | CONNECTION.SET_AGDA_MESSAGE
 
 export namespace CONNECTION {
@@ -79,11 +81,17 @@ export namespace CONNECTION {
     export type CONNECT = ValidPath;
     export const DISCONNECT = 'CONNECTION.DISCONNECT';
     export type DISCONNECT = void;
+    export const START_QUERYING = 'CONNECTION.START_QUERYING';
+    export type START_QUERYING = void;
+    export const STOP_QUERYING = 'CONNECTION.STOP_QUERYING';
+    export type STOP_QUERYING = void;
     export const SET_AGDA_MESSAGE = 'CONNECTION.SET_AGDA_MESSAGE';
     export type SET_AGDA_MESSAGE = string;
 
     export const connect = createAction<CONNECTION.CONNECT>(CONNECTION.CONNECT);
     export const disconnect = createAction(CONNECTION.DISCONNECT);
+    export const startQuerying = createAction(CONNECTION.START_QUERYING);
+    export const stopQuerying = createAction(CONNECTION.STOP_QUERYING);
     export const setAgdaMessage = createAction<CONNECTION.SET_AGDA_MESSAGE>(CONNECTION.SET_AGDA_MESSAGE);
 }
 

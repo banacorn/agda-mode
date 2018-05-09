@@ -26,6 +26,7 @@ const defaultState: View.State = {
     },
     mode: View.Mode.Display,
     connection: {
+        querying: false,
         agda: null,
         agdaMessage: '',
         languageServer: null
@@ -112,12 +113,21 @@ const mode = handleActions<View.Mode, MODE>({
 
 const connection = handleActions<View.ConnectionState, CONNECTION>({
     [CONNECTION.CONNECT]: (state, action: Action<CONNECTION.CONNECT>) => ({ ...state,
+        querying: false,
+        agdaMessage: '',
         agda: action.payload
     }),
     [CONNECTION.DISCONNECT]: (state, action: Action<CONNECTION.DISCONNECT>) => ({
+        querying: false,
         agda: null,
         agdaMessage: '',
         languageServer: null
+    }),
+    [CONNECTION.START_QUERYING]: (state, action: Action<CONNECTION.START_QUERYING>) => ({ ...state,
+        querying: true
+    }),
+    [CONNECTION.STOP_QUERYING]: (state, action: Action<CONNECTION.STOP_QUERYING>) => ({ ...state,
+        querying: false
     }),
     [CONNECTION.SET_AGDA_MESSAGE]: (state, action: Action<CONNECTION.SET_AGDA_MESSAGE>) => ({ ...state,
         agdaMessage: action.payload

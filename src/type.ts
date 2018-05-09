@@ -83,6 +83,7 @@ namespace View {
     }
 
     export interface ConnectionState {
+        querying: boolean;
         agda?: ValidPath;
         agdaMessage: string;
         languageServer?: ValidPath;
