@@ -110,15 +110,18 @@ class Connection extends React.Component<Props, State> {
     render() {
         const agda = this.props.connection.agda;
         const querying = this.props.connection.querying;
+        const className = classNames('agda-settings-connection', this.props.className, {
+            querying: querying
+        });
         const agdaConnectionStatus = this.agdaConnected() ?
             <span className='inline-block highlight-success'>connected</span> :
             <span className='inline-block highlight-warning'>not connected</span>;
         const agdaVersion = this.agdaConnected() && <span className='inline-block highlight'>{agda.version.raw}</span>;
         return (
-            <section className={classNames('agda-settings-connection', this.props.className)}>
+            <section className={className}>
                 <form>
                     <ul className='agda-settings-connection-dashboard'>
-                        <li id='agda-settings-connection-agda' className={querying ? 'querying' : ''}>
+                        <li id='agda-settings-connection-agda'>
                             <h2>
                                 <label className='input-label'>
                                     <span>Connection to Agda</span>
@@ -130,50 +133,52 @@ class Connection extends React.Component<Props, State> {
                                     />
                                 </label>
                             </h2>
-                            <p>
-                                Connection: {this.agdaConnected() ? 'established' : 'not established'}
-                            </p>
-                            <p>
-                                Established path: {this.agdaConnected() ? agda.path : 'unknown'}
-                            </p>
-                            <p>
-                                Version: {this.agdaConnected() ? agda.version.raw : 'unknown'}
-                            </p>
-                            <p>
-                                <MiniEditor
-                                    value={atom.config.get('agda-mode.agdaPath')}
-                                    placeholder='path to Agda'
-                                    ref={(ref) => {
-                                        if (ref)
-                                            this.props.core.view.editors.connection.resolve(ref);
-                                    }}
-                                    onConfirm={(path) => {
-                                        if (!querying) {
+                            <div>
+                                <p>
+                                    Connection: {this.agdaConnected() ? 'established' : 'not established'}
+                                </p>
+                                <p>
+                                    Established path: {this.agdaConnected() ? agda.path : 'unknown'}
+                                </p>
+                                <p>
+                                    Version: {this.agdaConnected() ? agda.version.raw : 'unknown'}
+                                </p>
+                                <p>
+                                    <MiniEditor
+                                        value={atom.config.get('agda-mode.agdaPath')}
+                                        placeholder='path to Agda'
+                                        ref={(ref) => {
+                                            if (ref)
+                                                this.props.core.view.editors.connection.resolve(ref);
+                                        }}
+                                        onConfirm={(path) => {
                                             atom.config.set('agda-mode.agdaPath', path);
-                                            this.connectAgda();
-                                        }
-                                    }}
-                                    onCancel={() => {
-                                        this.props.core.view.editors.focusMain();
-                                    }}
+                                            if (!querying) {
+                                                this.connectAgda();
+                                            }
+                                        }}
+                                        onCancel={() => {
+                                            this.props.core.view.editors.focusMain();
+                                        }}
 
-                                />
-                            </p>
-                            <p>
-                                <button
-                                    className='btn icon icon-search inline-block-tight'
-                                    onClick={this.searchAgda}
-                                >auto search</button>
-                            </p>
-                            {this.props.connection.agdaMessage &&
-                                <p className="inset-panel padded text-warning">{this.props.connection.agdaMessage}</p>
-                            }
+                                    />
+                                </p>
+                                <p>
+                                    <button
+                                        className='btn icon icon-search inline-block-tight'
+                                        onClick={this.searchAgda}
+                                    >auto search</button>
+                                </p>
+                                {this.props.connection.agdaMessage &&
+                                    <p className="inset-panel padded text-warning">{this.props.connection.agdaMessage}</p>
+                                }
+                            </div>
                         </li>
                         <li>
                             <h2>
                                 <label className='input-label'>
                                     <span>Enable Agda Language Server (experimental)</span>
-                                    <input className='input-toggle' type='checkbox' onChange={this.toggleLSPChange} />
+                                    <input className='input-toggle' type='checkbox' disabled={querying} onChange={this.toggleLSPChange} />
                                 </label>
                             </h2>
                         </li>
@@ -181,28 +186,28 @@ class Connection extends React.Component<Props, State> {
                             <h2>
                                 <label className='input-label'>
                                     <span>Connection to Agda Language Server</span>
-                                    <input className='input-toggle' type='checkbox' onChange={this.toggleLSPChange} />
+                                    <input className='input-toggle' type='checkbox' disabled={querying} onChange={this.toggleLSPChange} />
                                 </label>
                             </h2>
-                            <p>
-                                <input
-                                    className='input-text native-key-bindings'
-                                    type='text' placeholder='path to Agda Language Server'
-                                    value={this.state.languageServerPath}
-                                />
-                            </p>
-                            <p>
-                                {/* <button
-                                    className="btn icon btn-primary icon-zap inline-block-tight"
-                                    onClick={this.connectAgda}
-                                >connect</button> */}
-                                <button
-                                    className="btn icon btn-success icon-search inline-block-tight"
-                                >search</button>
-                                {this.state.languageServerMessage &&
-                                    <div className="inset-panel padded text-warning">Language Server: {this.state.languageServerMessage}</div>
-                                }
-                            </p>
+                            <div>
+                                <p>
+                                    <input
+                                        className='input-text native-key-bindings'
+                                        type='text' placeholder='path to Agda Language Server'
+                                        value={this.state.languageServerPath}
+                                        disabled={querying}
+                                    />
+                                </p>
+                                <p>
+                                    <button
+                                        className='btn icon icon-search inline-block-tight'
+                                        disabled={querying}
+                                    >auto search</button>
+                                    {this.state.languageServerMessage &&
+                                        <div className="inset-panel padded text-warning">Language Server: {this.state.languageServerMessage}</div>
+                                    }
+                                </p>
+                            </div>
                         </li>
                     </ul>
                 </form>
