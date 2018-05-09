@@ -1,3 +1,7 @@
+## 0.7.11
+* Fix #56
+* Fix background colour of buttons on hover in light themes
+
 ## 0.7.10
 * Add a new command "agda-mode:abort"
 * Update the input method keymap to match that of Agda-2.5.4 (I want that banana brackets!!)
