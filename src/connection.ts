@@ -26,7 +26,7 @@ export default class ConnectionManager {
         this.handleError = this.handleError.bind(this);
         this.updateStore = this.updateStore.bind(this);
     }
-    // connect with the selected ConnectionInfo
+
     connect(): Promise<Connection> {
         return getAgdaPath()
             .catch(Err.Conn.NoPathGiven, error => {
@@ -40,7 +40,6 @@ export default class ConnectionManager {
             .then(this.wire);
     }
 
-    // disconnect the current connection
     disconnect() {
         if (this.connection) {
             // the view

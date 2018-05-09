@@ -76,29 +76,15 @@ class Connection extends React.Component<Props, State> {
         return this.props.connection.agda !== null && this.props.connection.agdaMessage === '';
     }
 
-    // connectAgda() {
-    //     Conn.validateAgda(this.state.agdaPath)
-    //         .then(validated => {
-    //             this.setState({
-    //                 agdaMessage: ''
-    //             });
-    //             // this.props.onConnect();
-    //         })
-    //         .catch((error) => {
-    //             this.setState({
-    //                 agdaMessage: error.message
-    //             });
-    //         })
-    // }
 
     searchAgda() {
         Conn.autoSearch('agda')
-            .catch(Err.Conn.AutoSearchError, error => {
-                this.props.setAgdaMessage('Failed searching for the path of Agda');
+            .then(Conn.validateAgda)
+            .then(Conn.setAgdaPath)
+            .then(() => {
+                this.forceUpdate()
             })
-            .catch(error => {
-                this.props.setAgdaMessage(error.message);
-            })
+            .catch(this.props.core.connection.handleError);
         // prevent this button from submitting the entire form
         return false;
     }
@@ -109,11 +95,15 @@ class Connection extends React.Component<Props, State> {
         });
     }
 
+    connectAgda() {
+        this.props.core.commander.dispatch({ kind: 'Load' });
+    }
+
     toggleAgdaConnection() {
         if (this.agdaConnected()) {
             this.props.core.commander.dispatch({ kind: 'Quit' });
         } else {
-            this.props.core.commander.dispatch({ kind: 'Load' });
+            this.connectAgda()
         }
     }
 
@@ -158,7 +148,7 @@ class Connection extends React.Component<Props, State> {
                                     }}
                                     onConfirm={(path) => {
                                         atom.config.set('agda-mode.agdaPath', path);
-                                        this.props.core.commander.dispatch({ kind: 'Load' });
+                                        this.connectAgda();
                                     }}
                                     onCancel={() => {
                                         this.props.core.view.editors.focusMain();
