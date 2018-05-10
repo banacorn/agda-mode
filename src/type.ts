@@ -87,6 +87,7 @@ namespace View {
         agda?: ValidPath;
         agdaMessage: string;
         languageServer?: ValidPath;
+        languageServerMessage: string;
     }
 
     export interface Protocol {

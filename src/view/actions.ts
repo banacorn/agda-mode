@@ -75,6 +75,7 @@ export type CONNECTION
     | CONNECTION.START_QUERYING
     | CONNECTION.STOP_QUERYING
     | CONNECTION.SET_AGDA_MESSAGE
+    | CONNECTION.SET_LANGUAGE_SERVER_MESSAGE
 
 export namespace CONNECTION {
     export const CONNECT = 'CONNECTION.CONNECT';
@@ -87,12 +88,15 @@ export namespace CONNECTION {
     export type STOP_QUERYING = void;
     export const SET_AGDA_MESSAGE = 'CONNECTION.SET_AGDA_MESSAGE';
     export type SET_AGDA_MESSAGE = string;
+    export const SET_LANGUAGE_SERVER_MESSAGE = 'CONNECTION.SET_LANGUAGE_SERVER_MESSAGE';
+    export type SET_LANGUAGE_SERVER_MESSAGE = string;
 
     export const connect = createAction<CONNECTION.CONNECT>(CONNECTION.CONNECT);
     export const disconnect = createAction(CONNECTION.DISCONNECT);
     export const startQuerying = createAction(CONNECTION.START_QUERYING);
     export const stopQuerying = createAction(CONNECTION.STOP_QUERYING);
     export const setAgdaMessage = createAction<CONNECTION.SET_AGDA_MESSAGE>(CONNECTION.SET_AGDA_MESSAGE);
+    export const setLanguageServerMessage = createAction<CONNECTION.SET_LANGUAGE_SERVER_MESSAGE>(CONNECTION.SET_LANGUAGE_SERVER_MESSAGE);
 }
 
 export type PROTOCOL

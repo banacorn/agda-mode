@@ -29,7 +29,8 @@ const defaultState: View.State = {
         querying: false,
         agda: null,
         agdaMessage: '',
-        languageServer: null
+        languageServer: null,
+        languageServerMessage: '',
     },
     protocol: {
         log: [],
@@ -121,7 +122,8 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
         querying: false,
         agda: null,
         agdaMessage: '',
-        languageServer: null
+        languageServer: null,
+        languageServerMessage: ''
     }),
     [CONNECTION.START_QUERYING]: (state, action: Action<CONNECTION.START_QUERYING>) => ({ ...state,
         querying: true
@@ -131,6 +133,9 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
     }),
     [CONNECTION.SET_AGDA_MESSAGE]: (state, action: Action<CONNECTION.SET_AGDA_MESSAGE>) => ({ ...state,
         agdaMessage: action.payload
+    }),
+    [CONNECTION.SET_LANGUAGE_SERVER_MESSAGE]: (state, action: Action<CONNECTION.SET_LANGUAGE_SERVER_MESSAGE>) => ({ ...state,
+        languageServerMessage: action.payload
     }),
 }, defaultState.connection);
 
