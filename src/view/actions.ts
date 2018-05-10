@@ -72,6 +72,7 @@ export namespace MODE {
 export type CONNECTION
     = CONNECTION.CONNECT_AGDA
     | CONNECTION.DISCONNECT_AGDA
+    | CONNECTION.ENABLE_LANGUAGE_SERVER
     | CONNECTION.START_QUERYING
     | CONNECTION.STOP_QUERYING
     | CONNECTION.SET_AGDA_MESSAGE
@@ -82,6 +83,8 @@ export namespace CONNECTION {
     export type CONNECT_AGDA = ValidPath;
     export const DISCONNECT_AGDA = 'CONNECTION.DISCONNECT_AGDA_AGDA';
     export type DISCONNECT_AGDA = void;
+    export const ENABLE_LANGUAGE_SERVER = 'CONNECTION.ENABLE_LANGUAGE_SERVER';
+    export type ENABLE_LANGUAGE_SERVER = boolean;
     export const START_QUERYING = 'CONNECTION.START_QUERYING';
     export type START_QUERYING = void;
     export const STOP_QUERYING = 'CONNECTION.STOP_QUERYING';
@@ -93,6 +96,7 @@ export namespace CONNECTION {
 
     export const connectAgda = createAction<CONNECTION.CONNECT_AGDA>(CONNECTION.CONNECT_AGDA);
     export const disconnectAgda = createAction(CONNECTION.DISCONNECT_AGDA);
+    export const enableLanguageServer = createAction<CONNECTION.ENABLE_LANGUAGE_SERVER>(CONNECTION.ENABLE_LANGUAGE_SERVER);
     export const startQuerying = createAction(CONNECTION.START_QUERYING);
     export const stopQuerying = createAction(CONNECTION.STOP_QUERYING);
     export const setAgdaMessage = createAction<CONNECTION.SET_AGDA_MESSAGE>(CONNECTION.SET_AGDA_MESSAGE);

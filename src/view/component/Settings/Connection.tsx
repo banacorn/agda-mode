@@ -13,22 +13,21 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
 };
 
-type State = {
-    enableLanguageServer: boolean;
-};
-
 type InjProps = {
     connection: View.ConnectionState;
 }
 type DispatchProps = {
     setAgdaMessage: (message: string) => void;
+    toggleEnableLanguageServer: (enable: boolean) => void;
 }
-
 
 function mapDispatchToProps(dispatch): DispatchProps {
     return {
         setAgdaMessage: (message: string) => {
             dispatch(Action.CONNECTION.setAgdaMessage(message));
+        },
+        toggleEnableLanguageServer: (enable: boolean) => {
+            dispatch(Action.CONNECTION.enableLanguageServer(enable));
         },
     };
 }
@@ -41,13 +40,7 @@ function mapStateToProps(state: View.State): InjProps {
     }
 }
 
-class Connection extends React.Component<Props, State> {
-    // private agdaConnectionInput: HTMLElement;
-    //
-    // focusAgdaConnectionInput(){
-    //     this.agdaConnectionInput.focus();
-    // }
-
+class Connection extends React.Component<Props, {}> {
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -57,7 +50,7 @@ class Connection extends React.Component<Props, State> {
         this.agdaConnected = this.agdaConnected.bind(this);
         this.connectAgda = this.connectAgda.bind(this);
         this.searchAgda = this.searchAgda.bind(this);
-        this.toggleEnableLanguageServer = this.toggleEnableLanguageServer.bind(this);
+        this.languageServerConnected = this.languageServerConnected.bind(this);
         this.toggleLanguageServerConnection = this.toggleLanguageServerConnection.bind(this);
     }
 
@@ -98,13 +91,13 @@ class Connection extends React.Component<Props, State> {
     // Languager Server
     ////////////////////////////////////////////////////
 
-    toggleEnableLanguageServer() {
-        this.setState({
-            enableLanguageServer: !this.state.enableLanguageServer
-        });
+    toggleLanguageServerConnection() {
     }
 
-    toggleLanguageServerConnection() {
+    languageServerConnected(): boolean {
+        return this.props.connection.languageServer !== null
+            && this.props.connection.languageServerMessage === ''
+            && this.props.connection.languageServerEnabled;
     }
 
     render() {
@@ -178,11 +171,23 @@ class Connection extends React.Component<Props, State> {
                             <h2>
                                 <label className='input-label'>
                                     <span>Enable Agda Language Server (experimental)</span>
-                                    <input className='input-toggle' type='checkbox' disabled={querying} onChange={this.toggleEnableLanguageServer} />
+                                    <input
+                                        className='input-toggle'
+                                        defaultChecked={this.props.connection.languageServerEnabled}
+                                        type='checkbox'
+                                        disabled={querying}
+                                        onChange={() => {
+                                            atom.config.set('agda-mode.languageServerEnabled', !this.props.connection.languageServerEnabled);
+                                            if (this.props.connection.languageServerEnabled)
+                                                this.props.toggleEnableLanguageServer(false);
+                                            else
+                                                this.props.toggleEnableLanguageServer(true);
+                                        }}
+                                    />
                                 </label>
                             </h2>
                         </li>
-                        <li className={classNames({hidden: this.state.enableLanguageServer})}>
+                        <li className={classNames({hidden: !this.props.connection.languageServerEnabled})}>
                             <h2>
                                 <label className='input-label'>
                                     <span>Connection to Agda Language Server</span>
@@ -193,6 +198,7 @@ class Connection extends React.Component<Props, State> {
                                 <p>
                                     <input
                                         value={atom.config.get('agda-mode.languageServerPath')}
+                                        defaultChecked={this.languageServerConnected()}
                                         className='input-text native-key-bindings'
                                         type='text' placeholder='path to Agda Language Server'
                                         disabled={querying}

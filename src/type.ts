@@ -83,9 +83,10 @@ namespace View {
     }
 
     export interface ConnectionState {
-        querying: boolean;
+        querying: boolean; // is agda-mode querying for the path to Agda?
         agda?: ValidPath;
         agdaMessage: string;
+        languageServerEnabled: boolean;
         languageServer?: ValidPath;
         languageServerMessage: string;
     }

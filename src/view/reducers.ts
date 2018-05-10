@@ -29,6 +29,7 @@ const defaultState: View.State = {
         querying: false,
         agda: null,
         agdaMessage: '',
+        languageServerEnabled: atom.config.get('agda-mode.languageServerEnabled'),
         languageServer: null,
         languageServerMessage: '',
     },
@@ -122,8 +123,12 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
         querying: false,
         agda: null,
         agdaMessage: '',
+        languageServerEnabled: state.languageServerEnabled,
         languageServer: null,
         languageServerMessage: ''
+    }),
+    [CONNECTION.ENABLE_LANGUAGE_SERVER]: (state, action: Action<CONNECTION.ENABLE_LANGUAGE_SERVER>) => ({ ...state,
+        languageServerEnabled: action.payload
     }),
     [CONNECTION.START_QUERYING]: (state, action: Action<CONNECTION.START_QUERYING>) => ({ ...state,
         querying: true
