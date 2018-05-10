@@ -43,7 +43,7 @@ export default class ConnectionManager {
     disconnect() {
         if (this.connection) {
             // the view
-            this.core.view.store.dispatch(Action.CONNECTION.disconnect());
+            this.core.view.store.dispatch(Action.CONNECTION.disconnectAgda());
             // the streams
             this.connection.stream.end();
             // the property
@@ -61,7 +61,7 @@ export default class ConnectionManager {
     //
     private wire = (connection: Connection): Promise<Connection> => {
         // the view
-        this.core.view.store.dispatch(Action.CONNECTION.connect({
+        this.core.view.store.dispatch(Action.CONNECTION.connectAgda({
             path: connection.path,
             version: connection.version
         }));
@@ -133,7 +133,7 @@ export default class ConnectionManager {
         // }
 
     updateStore(validated: ValidPath): Promise<ValidPath> {
-        this.core.view.store.dispatch(Action.CONNECTION.connect(validated));
+        this.core.view.store.dispatch(Action.CONNECTION.connectAgda(validated));
         return Promise.resolve(validated);
     }
 }

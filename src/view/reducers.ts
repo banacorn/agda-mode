@@ -113,12 +113,12 @@ const mode = handleActions<View.Mode, MODE>({
 }, defaultState.mode);
 
 const connection = handleActions<View.ConnectionState, CONNECTION>({
-    [CONNECTION.CONNECT]: (state, action: Action<CONNECTION.CONNECT>) => ({ ...state,
+    [CONNECTION.CONNECT_AGDA]: (state, action: Action<CONNECTION.CONNECT_AGDA>) => ({ ...state,
         querying: false,
         agdaMessage: '',
         agda: action.payload
     }),
-    [CONNECTION.DISCONNECT]: (state, action: Action<CONNECTION.DISCONNECT>) => ({
+    [CONNECTION.DISCONNECT_AGDA]: (state, action: Action<CONNECTION.DISCONNECT_AGDA>) => ({
         querying: false,
         agda: null,
         agdaMessage: '',

@@ -70,18 +70,18 @@ export namespace MODE {
 }
 
 export type CONNECTION
-    = CONNECTION.CONNECT
-    | CONNECTION.DISCONNECT
+    = CONNECTION.CONNECT_AGDA
+    | CONNECTION.DISCONNECT_AGDA
     | CONNECTION.START_QUERYING
     | CONNECTION.STOP_QUERYING
     | CONNECTION.SET_AGDA_MESSAGE
     | CONNECTION.SET_LANGUAGE_SERVER_MESSAGE
 
 export namespace CONNECTION {
-    export const CONNECT = 'CONNECTION.CONNECT';
-    export type CONNECT = ValidPath;
-    export const DISCONNECT = 'CONNECTION.DISCONNECT';
-    export type DISCONNECT = void;
+    export const CONNECT_AGDA = 'CONNECTION.CONNECT_AGDA_AGDA';
+    export type CONNECT_AGDA = ValidPath;
+    export const DISCONNECT_AGDA = 'CONNECTION.DISCONNECT_AGDA_AGDA';
+    export type DISCONNECT_AGDA = void;
     export const START_QUERYING = 'CONNECTION.START_QUERYING';
     export type START_QUERYING = void;
     export const STOP_QUERYING = 'CONNECTION.STOP_QUERYING';
@@ -91,8 +91,8 @@ export namespace CONNECTION {
     export const SET_LANGUAGE_SERVER_MESSAGE = 'CONNECTION.SET_LANGUAGE_SERVER_MESSAGE';
     export type SET_LANGUAGE_SERVER_MESSAGE = string;
 
-    export const connect = createAction<CONNECTION.CONNECT>(CONNECTION.CONNECT);
-    export const disconnect = createAction(CONNECTION.DISCONNECT);
+    export const connectAgda = createAction<CONNECTION.CONNECT_AGDA>(CONNECTION.CONNECT_AGDA);
+    export const disconnectAgda = createAction(CONNECTION.DISCONNECT_AGDA);
     export const startQuerying = createAction(CONNECTION.START_QUERYING);
     export const stopQuerying = createAction(CONNECTION.STOP_QUERYING);
     export const setAgdaMessage = createAction<CONNECTION.SET_AGDA_MESSAGE>(CONNECTION.SET_AGDA_MESSAGE);
