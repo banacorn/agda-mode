@@ -88,6 +88,7 @@ export default class Commander {
         // some commands can be executed without connection to Agda
         const needNoConnection = _.includes([
                 'Quit',
+                'ToggleDocking',
                 'InputSymbol',
                 'InputSymbolCurlyBracket',
                 'InputSymbolBracket',
@@ -104,7 +105,7 @@ export default class Commander {
                 .catch(Err.QueryCancelled, () => {
                     this.core.view.set('Query cancelled', [], View.Style.Warning);
                 })
-                .catch(this.core.connection.handleError)
+                .catch(this.core.connection.handleAgdaError)
         } else {
             var connection: Promise<Connection>;
             if (command.kind === 'Load') {
@@ -123,7 +124,7 @@ export default class Commander {
                 .then(this.dispatchCommand(command))
                 .then(handleResponses(this.core))
                 .finally(this.endCheckpoint)
-                .catch(this.core.connection.handleError);
+                .catch(this.core.connection.handleAgdaError);
         }
     }
 

@@ -73,6 +73,7 @@ export default class Tab {
 
     // open a new tab!
     open(): Promise<Tab> {
+        //  useless for now
         let options = {
             searchAllPanes: true,
             split: 'right'
