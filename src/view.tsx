@@ -415,8 +415,4 @@ export default class View {
         }
         return Promise.resolve({});
     }
-
-    navigateSettings(path: V.SettingsURI) {
-        this.store.dispatch(Action.VIEW.navigate(path));
-    }
 }

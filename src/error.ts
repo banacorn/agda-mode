@@ -39,14 +39,16 @@ export namespace Conn {
             Error.captureStackTrace(this, NotEstablished);
         }
     }
+
     export class Invalid extends Error {
-        constructor(message: string, public location: string) {
+        constructor(message: string, public path: Path) {
             super(message);
             this.message = message;
             this.name = 'Invalid connection error';
             Error.captureStackTrace(this, Invalid);
         }
     }
+
     export class ConnectionError extends Error {
         constructor(message: string, public path: Path) {
             super(message);

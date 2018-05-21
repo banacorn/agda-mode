@@ -59,7 +59,6 @@ export default class ConnectionManager {
             return Promise.reject(new Err.Conn.NotEstablished);
     }
 
-    //
     private wire = (connection: Connection): Promise<Connection> => {
         // the view
         this.core.view.store.dispatch(Action.CONNECTION.connectAgda({
@@ -104,7 +103,6 @@ export default class ConnectionManager {
             });
         return Promise.resolve(connection);
     }
-
 
     queryPath(error: Error): Promise<ValidPath> {
         this.core.view.store.dispatch(Action.CONNECTION.startQuerying());
@@ -171,16 +169,15 @@ export function autoSearch(path: string): Promise<string> {
 }
 
 
-// to make sure that we are connecting with Agda
+// to make sure that we are connecting with the right thing
 export function validateProcess(path: Path, validator: (msg: string, resolve, reject) => void): Promise<ValidPath> {
     path = parseFilepath(path);
     return new Promise<ValidPath>((resolve, reject) => {
         var stillHanging = true;
 
         if (path === '') {
-            reject(new Err.Conn.Invalid(`The location must not be empty`, path));
+            reject(new Err.Conn.Invalid(`The path must not be empty`, path));
         }
-
         // ask for the version and see if it's really Agda
         exec(`${path} --version`, (error, stdout, stderr) => {
             stillHanging = false;
@@ -188,10 +185,10 @@ export function validateProcess(path: Path, validator: (msg: string, resolve, re
             if (error) {
                 // command not found
                 if (error.message.toString().match(/command not found/)) {
-                    reject(new Err.Conn.Invalid(`The provided program was not found`, path));
+                    reject(new Err.Conn.Invalid(`"${path}" was not found`, path));
                 // command found however the arguments are invalid
                 } else {
-                    reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda:\n\n${error.message}`, path));
+                    reject(new Err.Conn.Invalid(`Found something at "${path}" but it doesn't seem quite right:\n\n${error.message}`, path));
                 }
             }
             if (stderr) {
