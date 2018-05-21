@@ -229,7 +229,7 @@ export function validateAgda(path: Path): Promise<ValidPath> {
                 version
             });
         } else {
-            reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda`, path));
+            reject(new Err.Conn.Invalid(`Found a program named "agda" but it doesn't seem like one`, path));
         }
     });
 }
@@ -250,7 +250,7 @@ export function validateLanguageServer(path: Path): Promise<ValidPath> {
                 version
             });
         } else {
-            reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda Language Server`, path));
+            reject(new Err.Conn.Invalid(`Found a program named "agda-language-server" but it doesn't seem like one`, path));
         }
     });
 }

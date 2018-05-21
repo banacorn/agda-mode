@@ -61,9 +61,7 @@ class EditorViewManager {
 
 class TabManager {
     private panel: Tab;
-    private panelOpened: boolean;
     private settings: Tab;
-    private settingsOpened: boolean;
 
     constructor(
         private core: Core,
@@ -72,25 +70,18 @@ class TabManager {
     ) {
         // Tab for <Panel>
         this.panel = new Tab(mainEditor, 'panel');
-        this.panel.onOpen((item, panes) => {
+        this.panel.onOpen((tab, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
             // render
-            this.core.view.renderPanel(item.element);
-
-            this.panelOpened = true;
-        });
-        this.panel.onClose(paneItem => {
-            this.panelOpened = false;
+            this.core.view.renderPanel(tab.getElement());
         });
 
         // open <Panel> at the bottom when this tab got destroyed
-        this.panel.onKill(paneItem => {
+        this.panel.onKill(tab => {
             this.store.dispatch(Action.VIEW.mountAtBottom());
             this.core.view.unmountPanel(V.MountingPosition.Pane);
             this.core.view.mountPanel(V.MountingPosition.Bottom);
-
-            this.panelOpened = false;
         });
 
         // Tab for <Settings>
@@ -98,7 +89,7 @@ class TabManager {
             const { name } = path.parse(mainEditor.getPath());
             return `[Settings] ${name}`
         });
-        this.settings.onOpen((paneItem, panes) => {
+        this.settings.onOpen((tab, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
             // render the view
@@ -110,49 +101,43 @@ class TabManager {
                 </Provider>,
                 this.settings.getElement()
             );
-
-            this.settingsOpened = true;
         });
 
-        this.settings.onClose(paneItem => {
-            this.settingsOpened = false;
-        });
-        this.settings.onKill(paneItem => {
-            this.settingsOpened = false;
+        this.settings.onKill(tab => {
             this.store.dispatch(Action.VIEW.toggleSettings());
         });
 
     }
 
-    open(tab: 'panel' | 'settings') {
+    open(tab: 'panel' | 'settings'): Promise<Tab> {
         switch(tab) {
             case 'panel':
-                if (!this.panelOpened) {
-                    this.panel.open();
+                if (!this.panel.isActive()) {
+                    return this.panel.open();
+                } else {
+                    return Promise.resolve(this.panel);
                 }
-                break;
             case 'settings':
-                if (!this.settingsOpened) {
-                    this.settings.open();
+                if (!this.settings.isActive()) {
+                    return this.settings.open();
+                } else {
+                    return Promise.resolve(this.settings);
                 }
-                break;
         }
     }
 
     close(tab: 'panel' | 'settings') {
         switch(tab) {
             case 'panel':
-                if (this.panelOpened) {
+                if (this.panel.isActive()) {
                     ReactDOM.unmountComponentAtNode(this.panel.getElement());
                     this.panel.close();
-                    this.panelOpened = false;
                 }
                 break;
             case 'settings':
-                if (this.settingsOpened) {
+                if (this.settings.isActive()) {
                     ReactDOM.unmountComponentAtNode(this.settings.getElement());
                     this.settings.close();
-                    this.settingsOpened = false;
                 }
                 break;
         }
@@ -256,7 +241,6 @@ export default class View {
 
     mountPanel(mountAt: V.MountingPosition) {
         if (!this.state().mounted) {
-            // console.log(`[${this.editor.id}] %cmount at ${toText(mountAt)}`, 'color: green')
             // Redux
             this.store.dispatch(Action.VIEW.mount());
 
@@ -283,7 +267,6 @@ export default class View {
 
     unmountPanel(mountAt: V.MountingPosition) {
         if (this.state().mounted) {
-            // console.log(`[${this.editor.id}] %cunmount at ${toText(mountAt)}`, 'color: orange')
             // Redux
             this.store.dispatch(Action.VIEW.unmount());
 
@@ -323,13 +306,11 @@ export default class View {
     }
 
     deactivatePanel() {
-        // console.log(`[${this.uri.substr(12)}] %cdeactivated`, 'color: purple')
         this.store.dispatch(Action.VIEW.deactivate());
     }
 
     // destructor
     destroy() {
-        // console.log(`[${this.uri.substr(12)}] %cdestroy`, 'color: red');
         this.unmountPanel(this.state().mountAt.current);
         this.subscriptions.dispose();
         this.tabs.destroyAll();
@@ -404,25 +385,16 @@ export default class View {
     }
 
     queryConnection(): Promise<string> {
-        this.tabs.open('settings');
-        this.store.dispatch(Action.VIEW.navigate('/Connection'));
-        // this.store.dispatch(Action.CONNECTION.setAgdaMessage('Unable to find Agda on your machine, please enter the path of Agda manually'));
-        return this.editors.connection.access()
-            .then(editor => {
-                if (!editor.isFocused()) {
-                    editor.activate()
-                }
-                return editor.query();
-            });
-        //
-        // // update the view
-        // this.store.dispatch(Action.MODE.queryConnection());
-        // this.store.dispatch(Action.HEADER.update({
-        //     text: 'Connection Error',
-        //     style: V.Style.Error
-        // }));
-        // // activate the connection query
-        // this..activate();
+        return this.tabs.open('settings').then(() => {
+            this.store.dispatch(Action.VIEW.navigate('/Connection'));
+            return this.editors.connection.access()
+                .then(editor => {
+                    if (!editor.isFocused()) {
+                        editor.activate()
+                    }
+                    return editor.query();
+                });
+        });
     }
 
     toggleDocking(): Promise<{}> {

@@ -1,3 +1,4 @@
+import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import { EventEmitter } from 'events';
@@ -70,7 +71,8 @@ export default class Tab {
         return atom.workspace.paneForItem(this.item);
     }
 
-    open(): Promise<any> {
+    // open a new tab!
+    open(): Promise<Tab> {
         let options = {
             searchAllPanes: true,
             split: 'right'
@@ -85,7 +87,7 @@ export default class Tab {
             this.item = item;
             const pane = this.getPane();
             // on open
-            this.emitter.emit(OPEN, item, {
+            this.emitter.emit(OPEN, this, {
                 previous: previousActivePane,
                 current: pane
             });
@@ -94,12 +96,12 @@ export default class Tab {
             if (pane) {
                 this.subscriptions.add(pane.onWillDestroyItem(event => {
                     if (this.item && event.item.getURI() === uri) {
-                        if (this.closedDeliberately) {
-                            this.emitter.emit(CLOSE, item);
-                        } else {
-                            this.emitter.emit(KILL, item);
-                        }
                         this.item = null;
+                        if (this.closedDeliberately) {
+                            this.emitter.emit(CLOSE, this);
+                        } else {
+                            this.emitter.emit(KILL, this);
+                        }
                         // reset flags
                         this.closedDeliberately = false;
                     }
@@ -107,7 +109,7 @@ export default class Tab {
             }
 
             // pass it down the promise
-            return item;
+            return this;
         });
     }
 
@@ -147,18 +149,18 @@ export default class Tab {
     ////////////////////////////////////
 
 
-    onOpen(callback: (any, panes?: {
+    onOpen(callback: (tab: Tab, panes?: {
         previous: any,
         current: any
     }) => void) {
         this.emitter.on(OPEN, callback);
     }
 
-    onClose(callback: (any) => void) {
+    onClose(callback: (tab: Tab) => void) {
         this.emitter.on(CLOSE, callback);
     }
 
-    onKill(callback: (any) => void) {
+    onKill(callback: (tab: Tab) => void) {
         this.emitter.on(KILL, callback);
     }
 }
