@@ -15,9 +15,10 @@ export class ParseError extends Error {
 
 export namespace Conn {
     export class AutoSearchError extends Error {
-        constructor(message: string, public location: string) {
+        constructor(message: string, public path: string) {
             super(message);
             this.message = message;
+            this.path = path;
             this.name = 'Connection automatic searching error';
             Error.captureStackTrace(this, AutoSearchError);
         }

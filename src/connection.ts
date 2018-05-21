@@ -23,7 +23,8 @@ export default class ConnectionManager {
         this.getConnection = this.getConnection.bind(this);
         this.wire = this.wire.bind(this);
         this.queryPath = this.queryPath.bind(this);
-        this.handleError = this.handleError.bind(this);
+        this.handleAgdaError = this.handleAgdaError.bind(this);
+        this.handleLanguageServerError = this.handleLanguageServerError.bind(this);
         this.updateStore = this.updateStore.bind(this);
     }
 
@@ -97,7 +98,7 @@ export default class ConnectionManager {
                         promise.resolve([]);
                     })
                     .catch(error => {
-                        this.handleError(error);
+                        this.handleAgdaError(error);
                         promise.resolve([]);
                     })
             });
@@ -118,19 +119,15 @@ export default class ConnectionManager {
             .catch(Err.Conn.Invalid, this.queryPath);
     }
 
-    handleError(error: Error) {
+    handleAgdaError(error: Error) {
         this.core.view.set('Error', [], View.Style.Error);
         this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
     }
 
-        // handleError(error: Error) {
-        //     this.core.view.set('Error', [error.message], View.Style.Error);
-        //     if (this.selected) {
-        //         this.core.view.store.dispatch(Action.CONNECTION.err(this.selected.guid));
-        //     } else {
-        //         this.core.view.store.dispatch(Action.CONNECTION.showNewConnectionView(true));
-        //     }
-        // }
+    handleLanguageServerError(error: Error) {
+        this.core.view.set('Error', [], View.Style.Error);
+        this.core.view.store.dispatch(Action.CONNECTION.setLanguageServerMessage(error.message));
+    }
 
     updateStore(validated: ValidPath): Promise<ValidPath> {
         this.core.view.store.dispatch(Action.CONNECTION.connectAgda(validated));
@@ -152,15 +149,20 @@ export function setAgdaPath(validated: ValidPath): Promise<ValidPath> {
     return Promise.resolve(validated);
 }
 
-export function autoSearch(location: string): Promise<string> {
+export function setLanguageServerPath(validated: ValidPath): Promise<ValidPath> {
+    atom.config.set('agda-mode.languageServerPath', validated.path);
+    return Promise.resolve(validated);
+}
+
+export function autoSearch(path: string): Promise<string> {
     if (process.platform === 'win32') {
-        return Promise.reject(new Err.Conn.AutoSearchError('Unable to locate Agda on Windows systems', location));
+        return Promise.reject(new Err.Conn.AutoSearchError('Unable to locate Agda on Windows systems', path));
     }
 
     return new Promise<string>((resolve, reject) => {
-        exec(`which ${location}`, (error, stdout, stderr) => {
+        exec(`which ${path}`, (error, stdout, stderr) => {
             if (error) {
-                reject(new Err.Conn.AutoSearchError(`Cannot find "${location}".\nLocating "${location}" in the user's path with 'which' but failed with the following error message: ${error.toString()}`, location));
+                reject(new Err.Conn.AutoSearchError(`Cannot find "${path}".\nLocating "${path}" in the user's path with 'which' but failed with the following error message: ${error.toString()}`, path));
             } else {
                 resolve(parseFilepath(stdout));
             }
@@ -232,6 +234,26 @@ export function validateAgda(path: Path): Promise<ValidPath> {
     });
 }
 
+export function validateLanguageServer(path: Path): Promise<ValidPath> {
+    return validateProcess(path, (message, resolve, reject) => {
+        const result = message.match(/^Agda Languege Server version (.*)(?:\r\n?|\n)$/);
+        if (result) {
+            // normalize version number to valid semver
+            const raw = result[1];
+            const tokens = result[1].replace('-', '.').split('.');
+            const sem = tokens.length > 3
+                ? _.take(tokens, 3).join('.')
+                : tokens.join('.');
+            const version = { raw, sem };
+            resolve({
+                path,
+                version
+            });
+        } else {
+            reject(new Err.Conn.Invalid(`The provided program doesn't seem like Agda Language Server`, path));
+        }
+    });
+}
 export const establishConnection = (filepath: string) => ({ path, version }: ValidPath): Promise<Connection> => {
     return new Promise<Connection>((resolve, reject) => {
         const agdaProcess = spawn(path, ['--interaction'], { shell: true });

@@ -18,6 +18,7 @@ type InjProps = {
 }
 type DispatchProps = {
     setAgdaMessage: (message: string) => void;
+    setLanguageServerMessage: (message: string) => void;
     toggleEnableLanguageServer: (enable: boolean) => void;
 }
 
@@ -25,6 +26,9 @@ function mapDispatchToProps(dispatch): DispatchProps {
     return {
         setAgdaMessage: (message: string) => {
             dispatch(Action.CONNECTION.setAgdaMessage(message));
+        },
+        setLanguageServerMessage: (message: string) => {
+            dispatch(Action.CONNECTION.setLanguageServerMessage(message));
         },
         toggleEnableLanguageServer: (enable: boolean) => {
             dispatch(Action.CONNECTION.enableLanguageServer(enable));
@@ -46,12 +50,17 @@ class Connection extends React.Component<Props, {}> {
         this.state = {
             enableLanguageServer: atom.config.get('agda-mode.languageServerPath') === '',
         };
+        // agda
         this.toggleAgdaConnection = this.toggleAgdaConnection.bind(this);
         this.agdaConnected = this.agdaConnected.bind(this);
-        this.connectAgda = this.connectAgda.bind(this);
         this.searchAgda = this.searchAgda.bind(this);
-        this.languageServerConnected = this.languageServerConnected.bind(this);
+        this.connectAgda = this.connectAgda.bind(this);
+
+        // language server
         this.toggleLanguageServerConnection = this.toggleLanguageServerConnection.bind(this);
+        this.languageServerConnected = this.languageServerConnected.bind(this);
+        this.searchLanguageServer = this.searchLanguageServer.bind(this);
+        this.connectLanguageServer = this.connectLanguageServer.bind(this);
     }
 
     ////////////////////////////////////////////////////
@@ -82,7 +91,7 @@ class Connection extends React.Component<Props, {}> {
             .then(() => {
                 this.forceUpdate()
             })
-            .catch(this.props.core.connection.handleError);
+            .catch(this.props.core.connection.handleAgdaError);
         // prevent this button from submitting the entire form
         return false;
     }
@@ -91,7 +100,8 @@ class Connection extends React.Component<Props, {}> {
     // Languager Server
     ////////////////////////////////////////////////////
 
-    toggleLanguageServerConnection() {
+    toggleLanguageServerConnection(event) {
+
     }
 
     languageServerConnected(): boolean {
@@ -99,6 +109,27 @@ class Connection extends React.Component<Props, {}> {
             && this.props.connection.languageServerMessage === ''
             && this.props.connection.languageServerEnabled;
     }
+
+    searchLanguageServer() {
+        Conn.autoSearch('agda-language-server')
+            .then(Conn.validateLanguageServer)
+            .then(Conn.setLanguageServerPath)
+            .then(() => {
+                this.forceUpdate()
+            })
+            .catch(this.props.core.connection.handleLanguageServerError);
+        // prevent this button from submitting the entire form
+        return false;
+    }
+
+    connectLanguageServer() {
+        // this.props.core.commander.dispatch({ kind: 'Load' });
+    }
+
+    ////////////////////////////////////////////////////
+    // Render
+    ////////////////////////////////////////////////////
+
 
     render() {
         const agda = this.props.connection.agda;
@@ -199,6 +230,7 @@ class Connection extends React.Component<Props, {}> {
                                     <input
                                         value={atom.config.get('agda-mode.languageServerPath')}
                                         defaultChecked={this.languageServerConnected()}
+                                        onSubmit={this.connectLanguageServer}
                                         className='input-text native-key-bindings'
                                         type='text' placeholder='path to Agda Language Server'
                                         disabled={querying}
@@ -207,12 +239,13 @@ class Connection extends React.Component<Props, {}> {
                                 <p>
                                     <button
                                         className='btn icon icon-search inline-block-tight'
+                                        onClick={this.searchLanguageServer}
                                         disabled={querying}
                                     >auto search</button>
-                                    {/* {this.state.languageServerMessage &&
-                                        <div className="inset-panel padded text-warning">Language Server: {this.state.languageServerMessage}</div>
-                                    } */}
                                 </p>
+                                {this.props.connection.languageServerMessage &&
+                                    <p className="inset-panel padded text-warning">{this.props.connection.languageServerMessage}</p>
+                                }
                             </div>
                         </li>
                     </ul>
