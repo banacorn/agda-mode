@@ -118,7 +118,7 @@ export default class ConnectionManager {
     }
 
     handleAgdaError(error: Error) {
-        this.core.view.set('Connection Error', [], View.Style.Error);
+        this.core.view.set(error.name, [], View.Style.Error);
         return this.core.view.tabs.open('settings').then(() => {
             this.core.view.store.dispatch(Action.VIEW.navigate('/Connection'));
             this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
@@ -126,7 +126,7 @@ export default class ConnectionManager {
     }
 
     handleLanguageServerError(error: Error) {
-        this.core.view.set('Connection Error', [], View.Style.Error);
+        this.core.view.set(error.name, [], View.Style.Error);
         return this.core.view.tabs.open('settings').then(() => {
             this.core.view.store.dispatch(Action.VIEW.navigate('/Connection'));
             this.core.view.store.dispatch(Action.CONNECTION.setLanguageServerMessage(error.message));
@@ -275,23 +275,15 @@ export const establishConnection = (filepath: string) => ({ path, version }: Val
                 path
             ));
         });
-        // validate the spawned process
+        // stream the incoming data to the parser 
         agdaProcess.stdout.once('data', (data) => {
-            const okay = data.toString().match(/^Agda2\>/);
-            if (okay) {
-                resolve({
-                    path,
-                    version,
-                    stream: duplex(agdaProcess.stdin, agdaProcess.stdout),
-                    queue: [],
-                    filepath
-                });
-            } else {
-                reject(new Err.Conn.ConnectionError(
-                    data.toString().replace('\\n', '\n'),
-                    path
-                ));
-            }
+            resolve({
+                path,
+                version,
+                stream: duplex(agdaProcess.stdin, agdaProcess.stdout),
+                queue: [],
+                filepath
+            });
         });
     });
 }
