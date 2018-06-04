@@ -77,7 +77,7 @@ class Settings extends React.Component<Props, {}> {
                         core={this.props.core}
                     />
                     <Protocol
-                        // core={this.props.core}
+                        core={this.props.core}
                         className={this.at('/Protocol')}
                     />
                 </div>

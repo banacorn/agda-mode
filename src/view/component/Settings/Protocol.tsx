@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import * as _ from 'lodash';
 import * as classNames from 'classnames';
 import { View, Parsed, Agda, ValidPath } from '../../../type';
+import { Core } from '../../../core';
 
 //
 // Response
@@ -107,19 +108,59 @@ class ReqRes extends React.Component<ReqResProp, {}> {
 //
 //
 
-type Props = React.HTMLProps<HTMLElement> & {};
+
+type OwnProps = React.HTMLProps<HTMLElement> & {
+    core: Core;
+}
+type InjProps = {
+    agda?: ValidPath;
+    languageServer?: ValidPath;
+    protocol: View.Protocol;
+}
+
+type DispatchProps = {
+    // navigate: (path: View.SettingsPath) => () => void
+}
+
+type Props = OwnProps & InjProps & DispatchProps;
+
+function mapStateToProps(state: View.State): InjProps {
+    return {
+        agda: state.connection.agda,
+        languageServer: state.connection.languageServer,
+        protocol: state.protocol
+    }
+}
 
 class Protocol extends React.Component<Props, {}> {
     constructor(props) {
         super(props);
     }
     render() {
-        return <section className={classNames('agda-settings-protocol', this.props.className)}>
+        if (this.props.agda) {
+            return (
+                <section className={classNames("agda-settings-protocol", this.props.className)}>
+                    <h2>Protocol</h2>
+                    <p><span className="text-highlight">Agda Version: </span>{this.props.agda.version.raw}</p>
+                    <p><span className="text-highlight">Agda Location: </span>{this.props.agda.path}</p>
+                    <p><span className="text-highlight">Current Protocol: </span>{this.props.languageServer ? 'LSP' : 'Vanilla'}</p>
+                    <h2>Log</h2>
+                    <ol className="agda-settings-protocol-log">{this.props.protocol.log.map((reqRes, i) =>
+                        <ReqRes reqRes={reqRes} key={i} />
+                    )}</ol>
+                </section>
+            )
+        } else {
+            <section className={classNames('agda-settings-protocol', this.props.className)}>
                 <p className='background-message'>
                     No Connection Established
                 </p>
             </section>
+        }
     }
 }
 
-export default Protocol;
+export default connect<InjProps, DispatchProps, OwnProps>(
+    mapStateToProps,
+    null
+)(Protocol);
