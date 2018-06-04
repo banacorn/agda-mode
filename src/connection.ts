@@ -118,13 +118,19 @@ export default class ConnectionManager {
     }
 
     handleAgdaError(error: Error) {
-        this.core.view.set('Error', [], View.Style.Error);
-        this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
+        this.core.view.set('Connection Error', [], View.Style.Error);
+        return this.core.view.tabs.open('settings').then(() => {
+            this.core.view.store.dispatch(Action.VIEW.navigate('/Connection'));
+            this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
+        });
     }
 
     handleLanguageServerError(error: Error) {
-        this.core.view.set('Error', [], View.Style.Error);
-        this.core.view.store.dispatch(Action.CONNECTION.setLanguageServerMessage(error.message));
+        this.core.view.set('Connection Error', [], View.Style.Error);
+        return this.core.view.tabs.open('settings').then(() => {
+            this.core.view.store.dispatch(Action.VIEW.navigate('/Connection'));
+            this.core.view.store.dispatch(Action.CONNECTION.setLanguageServerMessage(error.message));
+        });
     }
 
     updateStore(validated: ValidPath): Promise<ValidPath> {
@@ -226,7 +232,7 @@ export function validateAgda(path: Path): Promise<ValidPath> {
                 version
             });
         } else {
-            reject(new Err.Conn.Invalid(`Found a program named "agda" but it doesn't seem like one`, path));
+            reject(new Err.Conn.Invalid(`Found a program named "agda" but it doesn't seem like Agda to me`, path));
         }
     });
 }
@@ -247,7 +253,7 @@ export function validateLanguageServer(path: Path): Promise<ValidPath> {
                 version
             });
         } else {
-            reject(new Err.Conn.Invalid(`Found a program named "agda-language-server" but it doesn't seem like one`, path));
+            reject(new Err.Conn.Invalid(`Found a program named "agda-language-server" but it doesn't seem like one to me`, path));
         }
     });
 }
@@ -271,8 +277,8 @@ export const establishConnection = (filepath: string) => ({ path, version }: Val
         });
         // validate the spawned process
         agdaProcess.stdout.once('data', (data) => {
-            const result = data.toString().match(/^Agda2\>/);
-            if (result) {
+            const okay = data.toString().match(/^Agda2\>/);
+            if (okay) {
                 resolve({
                     path,
                     version,
@@ -282,7 +288,7 @@ export const establishConnection = (filepath: string) => ({ path, version }: Val
                 });
             } else {
                 reject(new Err.Conn.ConnectionError(
-                    `The provided program doesn't seem like Agda:\n\n ${data.toString()}`,
+                    data.toString().replace('\\n', '\n'),
                     path
                 ));
             }

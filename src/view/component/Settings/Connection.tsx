@@ -194,7 +194,7 @@ class Connection extends React.Component<Props, {}> {
                                     >auto search</button>
                                 </p>
                                 {this.props.connection.agdaMessage &&
-                                    <p className="inset-panel padded text-warning">{this.props.connection.agdaMessage}</p>
+                                    <p className="inset-panel padded text-warning error">{this.props.connection.agdaMessage}</p>
                                 }
                             </div>
                         </li>
