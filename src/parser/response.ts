@@ -34,7 +34,6 @@ function prioritiseResponses(responses: Agda.Response[]): Agda.Response[] {
 
 function parseResponse(raw: string, fileType: FileType): Promise<Agda.Response> {
     const tokens: any[] = parseSExpression(raw);
-
     switch (tokens[0]) {
         // Resp_HighlightingInfo HighlightingInfo HighlightingMethod ModuleToSource
         case 'agda2-highlight-add-annotations':

@@ -82,24 +82,26 @@ export default class ConnectionManager {
             .pipe(new Rectifier)
             .on('data', (data) => {
                 const promise = this.connection.queue.pop();
-                const lines = data.toString().trim().split('\n');
-                parseResponses(data.toString(), parseFileType(connection.filepath))
-                    .then(responses => {
-                        this.core.view.store.dispatch(Action.PROTOCOL.logResponses(responses.map((response, i) => ({
-                            raw: lines[i],
-                            parsed: response
-                        }))));
-                        this.core.view.store.dispatch(Action.PROTOCOL.pending(false));
-                        promise.resolve(responses);
-                    })
-                    .catch(Err.ParseError, error => {
-                        this.core.view.set('Parse Error', [error.message, error.raw], View.Style.Error);
-                        promise.resolve([]);
-                    })
-                    .catch(error => {
-                        this.handleAgdaError(error);
-                        promise.resolve([]);
-                    })
+                if (promise) {
+                    const lines = data.toString().trim().split('\n');
+                    parseResponses(data.toString(), parseFileType(connection.filepath))
+                        .then(responses => {
+                            this.core.view.store.dispatch(Action.PROTOCOL.logResponses(responses.map((response, i) => ({
+                                raw: lines[i],
+                                parsed: response
+                            }))));
+                            this.core.view.store.dispatch(Action.PROTOCOL.pending(false));
+                            promise.resolve(responses);
+                        })
+                        .catch(Err.ParseError, error => {
+                            this.core.view.set('Parse Error', [error.message, error.raw], View.Style.Error);
+                            promise.resolve([]);
+                        })
+                        .catch(error => {
+                            this.handleAgdaError(error);
+                            promise.resolve([]);
+                        })
+                }
             });
         return Promise.resolve(connection);
     }
@@ -275,7 +277,7 @@ export const establishConnection = (filepath: string) => ({ path, version }: Val
                 path
             ));
         });
-        // stream the incoming data to the parser 
+        // stream the incoming data to the parser
         agdaProcess.stdout.once('data', (data) => {
             resolve({
                 path,
