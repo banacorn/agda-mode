@@ -1,3 +1,7 @@
+## 0.7.12
+* Simplify connection settings
+* Fix #54
+
 ## 0.7.11
 * Fix #56
 * Fix background colour of buttons on hover in light themes
