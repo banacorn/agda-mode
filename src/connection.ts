@@ -81,7 +81,7 @@ export default class ConnectionManager {
         connection.stream
             .pipe(new Rectifier)
             .on('data', (data) => {
-                const promise = this.connection.queue.pop();
+                const promise = this.connection && this.connection.queue.pop();
                 if (promise) {
                     const lines = data.toString().trim().split('\n');
                     parseResponses(data.toString(), parseFileType(connection.filepath))
