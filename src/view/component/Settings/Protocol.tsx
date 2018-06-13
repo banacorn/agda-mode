@@ -151,11 +151,13 @@ class Protocol extends React.Component<Props, {}> {
                 </section>
             )
         } else {
-            <section className={classNames('agda-settings-protocol', this.props.className)}>
-                <p className='background-message'>
-                    No Connection Established
-                </p>
-            </section>
+            return (
+                <section className={classNames('agda-settings-protocol', this.props.className)}>
+                    <p className='background-message'>
+                        No Connection Established
+                    </p>
+                </section>
+            )
         }
     }
 }
