@@ -9,6 +9,7 @@ import * as Action from '../../actions';
 import { Core } from '../../../core';
 import MiniEditor from '../MiniEditor';
 
+
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
 };
@@ -132,6 +133,7 @@ class Connection extends React.Component<Props, {}> {
 
 
     render() {
+        const showLSP = classNames({hidden: !atom.inDevMode()});
         const agda = this.props.connection.agda;
         const querying = this.props.connection.querying;
         const className = classNames('agda-settings-connection', this.props.className, {
@@ -198,7 +200,7 @@ class Connection extends React.Component<Props, {}> {
                                 }
                             </div>
                         </li>
-                        <li>
+                        <li className={showLSP} >
                             <h2>
                                 <label className='input-label'>
                                     <span>Enable Agda Language Server (experimental)</span>
