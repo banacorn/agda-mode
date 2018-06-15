@@ -18,6 +18,12 @@ For people who don't wanna use Emacs for whatever reasons.
   * or from a shell: `apm install agda-mode`
 4. If you have Agda installed properly (i.e. `agda` is in the [PATH](https://en.wikipedia.org/wiki/PATH_(variable)), check it in your console), then it's good to go.
 
+## Recommanded Settings
+
+### Enable Scroll Past End
+
+Go to `Settings > Editor > Scroll Past End` and enable it to allow the editor to be scrolled past the end of the last line. The reason is that the height of the "panel" at the bottom is constantly changing, and it would be annoying if the editor jumps up and down with the panel.
+
 ## Commands
 
 This is an exhaustive list of available commands.
