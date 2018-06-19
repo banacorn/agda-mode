@@ -7,7 +7,7 @@ const texBeginRegex = /\\begin\{code\}.*/;
 const texEndRegex = /\\end\{code\}.*/;
 const markdownRegex = /\`\`\`(agda)?/;
 
-const commentRegex = /(--[^\r\n]*[\r\n])|(\{-(?:[^-]|[\r\n]|(-+(?:[^-\}]|[\r\n])))*-+\})/;
+const commentRegex = /(--[^\r\n]*[\r\n])|(\{-(?:[^-]|[\r\n]|(?:-+(?:[^-\}]|[\r\n])))*-+\})/;
 const goalBracketRegex = /(\{\!(?:(?!\!\})(?:.|\s))*\!\})/
 const goalQuestionMarkRawRegex = /([\s\(\{\_\;\.\"@]\?)/
 const goalQuestionMarkRegex = /(\?)/
