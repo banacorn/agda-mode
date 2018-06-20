@@ -146,13 +146,18 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
 }, defaultState.connection);
 
 function logResponse(log: View.ReqRes[], response: Parsed<Agda.Response>[]): View.ReqRes[] {
-    // append only to the last ReqRes;
-    const init = _.initial(log);
-    let { request, responses } = _.last(log);
-    return _.concat(init, [{
-        request,
-        responses: _.concat(responses, response)
-    }]);
+    if (log.length > 0) {
+        // append only to the last ReqRes;
+        const init = _.initial(log);
+        let { request, responses } = _.last(log);
+        return _.concat(init, [{
+            request,
+            responses: _.concat(responses, response)
+        }]);
+    } else {
+        return log;
+    }
+
 }
 
 const protocol = handleActions<View.Protocol, PROTOCOL>({
