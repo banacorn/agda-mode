@@ -156,6 +156,10 @@ class Protocol extends React.Component<Props, {}> {
                     handleLogLimit={this.props.limitLog}
                 />
                 <ProtocolLog />
+
+                <ol className='agda-settings-protocol-log'>{this.props.protocol.log.map((reqRes, i) =>
+                    <ReqRes reqRes={reqRes} key={i} />
+                )}</ol>
             </section>
         );
 
@@ -167,9 +171,6 @@ class Protocol extends React.Component<Props, {}> {
         //             <p><span className='text-highlight'>Agda Location: </span>{this.props.agda.path}</p>
         //             <p><span className='text-highlight'>Current Protocol: </span>{this.props.languageServer ? 'LSP' : 'Vanilla'}</p>
         //             <h2>Log</h2>
-        //             <ol className='agda-settings-protocol-log'>{this.props.protocol.log.map((reqRes, i) =>
-        //                 <ReqRes reqRes={reqRes} key={i} />
-        //             )}</ol>
         //         </section>
         //     )
         // } else {
