@@ -162,7 +162,7 @@ function logResponse(log: View.ReqRes[], response: Parsed<Agda.Response>[]): Vie
 
 function truncateLog(state: View.Protocol): View.ReqRes[] {
     if (state.limitLog) {
-        if (state.log.length === 3) {
+        if (state.log.length >= 10) {
             // too long, drop the head
             return _.tail(state.log);
         } else {

@@ -131,6 +131,7 @@ type Props = OwnProps & InjProps & DispatchProps;
 function mapDispatchToProps(dispatch): DispatchProps {
     return {
         limitLog: (shouldLimitLog: boolean) => {
+            console.log(shouldLimitLog)
             dispatch(Action.PROTOCOL.limitLog(shouldLimitLog));
         },
     };
@@ -155,11 +156,9 @@ class Protocol extends React.Component<Props, {}> {
                     limitLog={this.props.protocol.limitLog}
                     handleLogLimit={this.props.limitLog}
                 />
-                <ProtocolLog />
-
-                <ol className='agda-settings-protocol-log'>{this.props.protocol.log.map((reqRes, i) =>
-                    <ReqRes reqRes={reqRes} key={i} />
-                )}</ol>
+                <ProtocolLog
+                    log={this.props.protocol.log}
+                />
             </section>
         );
 

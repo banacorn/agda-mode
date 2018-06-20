@@ -14,7 +14,7 @@ export default function ProtocolPanel(props: Props) {
     return (
         <section className='agda-settings-protocol-panel'>
             <label className='input-label'>
-                <input className='input-toggle' type='checkbox' onChange={handleLogLimit} /> Keep only the last 10 requests
+                <input className='input-toggle' type='checkbox' onChange={handleLogLimit} checked={props.limitLog} /> Keep only the last 10 requests
             </label>
         </section>
     );
