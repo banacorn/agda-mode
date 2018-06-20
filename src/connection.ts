@@ -121,10 +121,15 @@ export default class ConnectionManager {
 
     handleAgdaError(error: Error) {
         this.core.view.set(error.name, [], View.Style.Error);
-        return this.core.view.tabs.open('settings').then(() => {
-            this.core.view.store.dispatch(Action.VIEW.navigate('/Connection'));
-            this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
-        });
+        // don't invoke the settings view on QueryCancelled
+        if (error.name === 'QueryCancelled') {
+            return Promise.resolve();
+        } else {
+            return this.core.view.tabs.open('settings').then(() => {
+                this.core.view.store.dispatch(Action.VIEW.navigate('/Connection'));
+                this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
+            });
+        }
     }
 
     handleLanguageServerError(error: Error) {
