@@ -4,6 +4,7 @@ import * as _ from 'lodash';
 import * as classNames from 'classnames';
 import { View, Parsed, Agda, ValidPath } from '../../../type';
 import { Core } from '../../../core';
+import * as Action from '../../actions';
 
 import ProtocolPanel from './Protocol/Panel';
 import ProtocolLog from './Protocol/Log';
@@ -121,10 +122,19 @@ type InjProps = {
 }
 
 type DispatchProps = {
-    // navigate: (path: View.SettingsPath) => () => void
+    limitLog: (shouldLimitLog: boolean) => void;
 }
 
 type Props = OwnProps & InjProps & DispatchProps;
+
+
+function mapDispatchToProps(dispatch): DispatchProps {
+    return {
+        limitLog: (shouldLimitLog: boolean) => {
+            dispatch(Action.PROTOCOL.limitLog(shouldLimitLog));
+        },
+    };
+}
 
 function mapStateToProps(state: View.State): InjProps {
     return {
@@ -141,7 +151,10 @@ class Protocol extends React.Component<Props, {}> {
     render() {
         return (
             <section className={classNames('agda-settings-protocol', this.props.className)}>
-                <ProtocolPanel />
+                <ProtocolPanel
+                    limitLog={this.props.protocol.limitLog}
+                    handleLogLimit={this.props.limitLog}
+                />
                 <ProtocolLog />
             </section>
         );
@@ -165,7 +178,8 @@ class Protocol extends React.Component<Props, {}> {
         //             <p className='background-message'>
         //                 No Connection Established
         //             </p>
-        //         </section>
+        //         </section>svedkacitron
+
         //     )
         // }
     }
@@ -173,5 +187,5 @@ class Protocol extends React.Component<Props, {}> {
 
 export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
-    null
+    mapDispatchToProps
 )(Protocol);
