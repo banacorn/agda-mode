@@ -30,7 +30,7 @@ class Breadcrumb extends React.Component<Props, {}> {
 
 
         return (
-            <nav className={classNames('breadcrumb', this.props.className)}>
+            <nav className={classNames('agda-settings-breadcrumb', this.props.className)}>
                 <ol className='breadcrumb'>
                     <li><a
                         onClick={this.props.navigate('/')}

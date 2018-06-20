@@ -171,32 +171,33 @@
     //////////////////////////////////////////////////////
 
     .agda-settings {
+
         height: 100%;
-        overflow-y: scroll;
-        // display: flex;
+        display: flex;
+        flex-flow: column;
 
         font-size: @font-size;
         background: @base-background-color;
 
-        .breadcrumb {
-            position: fixed;
-            z-index: 1;
+        @breadcrumbHeight: calc(@component-line-height + @component-padding * 2);
+
+        .agda-settings-breadcrumb {
+            flex: 0 1 @breadcrumbHeight;
 
             border-top: 1px solid @tab-border-color;
             border-bottom: 1px solid @tab-border-color;
-            height: @component-line-height + @component-padding * 2;
+            height: @breadcrumbHeight;
             line-height: @component-line-height;
             background: @tab-background-color;
         }
 
+
         .agda-settings-pages {
-            margin-top: @component-line-height + @component-padding * 2;
-            padding: 2em;
+            flex: 1 1 auto;
+            overflow-y: scroll;
         }
 
         .agda-settings-menu {
-            margin-top: @component-line-height + @component-padding * 2;
-            padding: 0;
             li {
                 height: @component-line-height * 2 + @component-padding * 2;
                 line-height: @component-line-height * 2;
@@ -216,6 +217,8 @@
         }
 
         .agda-settings-connection {
+            padding: @component-padding * 2;
+
             ul.agda-settings-connection-dashboard {
                 background: @base-background-color;
                 border: 1px solid @tool-panel-border-color;
@@ -299,6 +302,8 @@
         }
 
         .agda-settings-protocol {
+            padding: @component-padding * 2;
+
             // height: 100%;
             .agda-settings-protocol-request {
                 background: @pane-item-background-color;
