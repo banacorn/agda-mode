@@ -95,6 +95,8 @@ namespace View {
         log: ReqRes[];
         pending: boolean;
         lsp: boolean;
+
+        limitLog: boolean;
     }
 
     // a request-response pair

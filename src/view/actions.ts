@@ -109,6 +109,7 @@ export type PROTOCOL
     | PROTOCOL.CLEAR_ALL
     | PROTOCOL.TOGGLE_LSP
     | PROTOCOL.PENDING
+    | PROTOCOL.LIMIT_LOG
 
 export namespace PROTOCOL {
     export const LOG_REQUEST = 'PROTOCOL.LOG_REQUEST';
@@ -125,11 +126,15 @@ export namespace PROTOCOL {
     export const PENDING = 'PROTOCOL.PENDING';
     export type PENDING = boolean;
 
+    export const LIMIT_LOG = 'PROTOCOL.LIMIT_LOG';
+    export type LIMIT_LOG = boolean;
+
     export const logRequest = createAction<PROTOCOL.LOG_REQUEST>(PROTOCOL.LOG_REQUEST);
     export const logResponses = createAction<PROTOCOL.LOG_RESPONSES>(PROTOCOL.LOG_RESPONSES);
     export const clearAll = createAction(PROTOCOL.CLEAR_ALL);
     export const toggleLSP = createAction(PROTOCOL.TOGGLE_LSP);
     export const pending = createAction<PROTOCOL.PENDING>(PROTOCOL.PENDING);
+    export const limitLog = createAction<PROTOCOL.LIMIT_LOG>(PROTOCOL.LIMIT_LOG);
 }
 
 

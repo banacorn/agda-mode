@@ -36,7 +36,8 @@ const defaultState: View.State = {
     protocol: {
         log: [],
         pending: false,
-        lsp: false
+        lsp: false,
+        limitLog: true
     },
     header: {
         text: '',
@@ -172,6 +173,9 @@ const protocol = handleActions<View.Protocol, PROTOCOL>({
     }),
     [PROTOCOL.PENDING]: (state, action: Action<PROTOCOL.PENDING>) => ({ ...state,
         pending: action.payload
+    }),
+    [PROTOCOL.LIMIT_LOG]: (state, action: Action<PROTOCOL.LIMIT_LOG>) => ({ ...state,
+        limitLog: action.payload
     })
 }, defaultState.protocol);
 

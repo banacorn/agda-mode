@@ -17,6 +17,7 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
 type InjProps = {
     connection: View.ConnectionState;
 }
+
 type DispatchProps = {
     setAgdaMessage: (message: string) => void;
     setLanguageServerMessage: (message: string) => void;

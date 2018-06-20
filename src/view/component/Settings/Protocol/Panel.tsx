@@ -1,12 +1,33 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 import * as classNames from 'classnames';
+import * as Action from '../../../actions';
 
 import { View } from '../../../../type';
 
-type Props = React.HTMLProps<HTMLElement> & {
-    // navigate: (path: View.SettingsURI) => () => void;
-    // uri: View.SettingsURI;
-};
+type OwnProps = React.HTMLProps<HTMLElement> & {};
+type InjProps = {
+    protocol: View.Protocol;
+}
+type DispatchProps = {
+    limitLog: (shouldLimitLog: boolean) => void;
+}
+
+function mapDispatchToProps(dispatch): DispatchProps {
+    return {
+        limitLog: (shouldLimitLog: boolean) => {
+            dispatch(Action.PROTOCOL.limitLog(shouldLimitLog));
+        },
+    };
+}
+
+function mapStateToProps(state: View.State): InjProps {
+    return {
+        protocol: state.protocol
+    }
+}
+
+type Props = OwnProps & InjProps & DispatchProps;
 
 class ProtocolPanel extends React.Component<Props, {}> {
     constructor(props) {
@@ -20,15 +41,19 @@ class ProtocolPanel extends React.Component<Props, {}> {
         );
         return (
             <section className={className}>
-                <div>Normal size</div>
-                <div className='btn-group'>
-                    <button className='btn'>One</button>
-                    <button className='btn'>Two</button>
-                    <button className='btn'>Three</button>
-                </div>
+                <label className='input-label'>
+                    <input className='input-toggle' type='checkbox' onChange={this.handleLogLimit} /> Keep only the last 10 requests
+                </label>
             </section>
         )
     }
+
+    handleLogLimit(event) {
+        this.props.limitLog(event.target.checked);
+    }
 }
 
-export default ProtocolPanel;
+export default connect<InjProps, DispatchProps, OwnProps>(
+    mapStateToProps,
+    mapDispatchToProps
+)(ProtocolPanel);

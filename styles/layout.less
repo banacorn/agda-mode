@@ -194,10 +194,13 @@
 
         .agda-settings-pages {
             flex: 1 1 auto;
-            overflow-y: scroll;
+            height: 100%;
+            overflow: hidden;
         }
 
         .agda-settings-menu {
+            overflow-y: scroll;
+
             li {
                 height: @component-line-height * 2 + @component-padding * 2;
                 line-height: @component-line-height * 2;
@@ -217,6 +220,8 @@
         }
 
         .agda-settings-connection {
+            overflow-y: scroll;
+
             padding: @component-padding * 2;
 
             ul.agda-settings-connection-dashboard {
@@ -302,58 +307,76 @@
         }
 
         .agda-settings-protocol {
-            padding: @component-padding * 2;
 
-            // height: 100%;
-            .agda-settings-protocol-request {
-                background: @pane-item-background-color;
-                padding: 0.5em;
-                margin: 0.5em;
-                border-radius: @component-border-radius;
-                margin-bottom: 3em;
+            display: flex;
+            flex-flow: column;
+            height: 100%;
+
+            .agda-settings-protocol-panel {
+                background: @tool-panel-background-color;
+                flex: 0 1 auto;
+                padding: @component-padding;
             }
 
-            ol.agda-settings-protocol-log {
-                margin: 1em 0;
-                > li {
-                    background: @inset-panel-background-color;
-                    padding: 1em;
-                    margin: 1em 0;
-                    word-wrap: break-word;
-
-                    // cursor: pointer;
-                }
+            .agda-settings-protocol-log {
+                // allow the height to grow (but no more than its parent)
+                flex: 1 1 auto;
+                overflow-y: scroll;
             }
 
-            ol.agda-settings-protocol-responses {
-                > li {
-                    margin: 3em 0;
-                    word-wrap: break-word;
 
-                    // cursor: pointer;
-                }
-
-                dl {
-                    background: @pane-item-background-color;
-                }
-            }
-
-            dl {
-                display: flex;
-                padding: 0.5em;
-                margin: 0.5em;
-                border-radius: @component-border-radius;
-                // align-items: center;
-            }
-
-            dt {
-                width: 50%;
-            }
-
-            dd {
-                width: 50%;
-                // padding: 0 1em;
-            }
+            // padding: @component-padding * 2;
+            //
+            // // height: 100%;
+            // .agda-settings-protocol-request {
+            //     background: @pane-item-background-color;
+            //     padding: 0.5em;
+            //     margin: 0.5em;
+            //     border-radius: @component-border-radius;
+            //     margin-bottom: 3em;
+            // }
+            //
+            // ol.agda-settings-protocol-log {
+            //     margin: 1em 0;
+            //     > li {
+            //         background: @inset-panel-background-color;
+            //         padding: 1em;
+            //         margin: 1em 0;
+            //         word-wrap: break-word;
+            //
+            //         // cursor: pointer;
+            //     }
+            // }
+            //
+            // ol.agda-settings-protocol-responses {
+            //     > li {
+            //         margin: 3em 0;
+            //         word-wrap: break-word;
+            //
+            //         // cursor: pointer;
+            //     }
+            //
+            //     dl {
+            //         background: @pane-item-background-color;
+            //     }
+            // }
+            //
+            // dl {
+            //     display: flex;
+            //     padding: 0.5em;
+            //     margin: 0.5em;
+            //     border-radius: @component-border-radius;
+            //     // align-items: center;
+            // }
+            //
+            // dt {
+            //     width: 50%;
+            // }
+            //
+            // dd {
+            //     width: 50%;
+            //     // padding: 0 1em;
+            // }
         }
 
 
