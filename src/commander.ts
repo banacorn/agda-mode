@@ -128,65 +128,132 @@ export default class Commander {
         }
     }
 
-    private dispatchCommand = (command: Agda.Command): (connection: Connection) => Promise<Agda.Response[]> => {
+    private dispatchCommand = (command: Agda.Command) => (connection: Connection): Promise<Agda.Response[]> => {
+        let request: Promise<string>;
         switch(command.kind) {
-            case 'Load':          return this.load;
-            case 'Quit':          return this.quit;
-            case 'Restart':       return this.restart;
-            case 'Abort':         return this.abort;
-            case 'ToggleDocking': return this.toggleDocking;
-            case 'Compile':       return this.compile;
+            case 'Load':
+                request = this.load(connection);
+                break;
+            case 'Quit':
+                request = this.quit(connection);
+                break;
+            case 'Restart':
+                request = this.restart(connection);
+                break;
+            case 'Abort':
+                request = Promise.resolve(this.abort(connection));
+                break;
+            case 'ToggleDocking':
+                request = this.toggleDocking(connection);
+                break;
+            case 'Compile':
+                request = Promise.resolve(this.compile(connection));
+                break;
             case 'ToggleDisplayOfImplicitArguments':
-                return this.toggleDisplayOfImplicitArguments;
+                request = Promise.resolve(this.toggleDisplayOfImplicitArguments(connection));
+                break;
             case 'SolveConstraints':
-                return this.solveConstraints;
+                request = Promise.resolve(this.solveConstraints(connection));
+                break;
             case 'ShowConstraints':
-                return this.showConstraints;
+                request = Promise.resolve(this.showConstraints(connection));
+                break;
             case 'ShowGoals':
-                return this.showGoals;
-            case 'NextGoal':      return this.nextGoal;
-            case 'PreviousGoal':  return this.previousGoal;
-            case 'WhyInScope':    return this.whyInScope;
+                request = Promise.resolve(this.showGoals(connection));
+                break;
+            case 'NextGoal':
+                request = this.nextGoal(connection);
+                break;
+            case 'PreviousGoal':
+                request = this.previousGoal(connection);
+                break;
+            case 'WhyInScope':
+                request = this.whyInScope(connection);
+                break;
             case 'InferType':
-                return this.inferType(command.normalization);
+                request = this.inferType(command.normalization)(connection);
+                break;
             case 'ModuleContents':
-                return this.moduleContents(command.normalization);
+                request = this.moduleContents(command.normalization)(connection);
+                break;
             case 'ComputeNormalForm':
-                return this.computeNormalForm(command.computeMode);
-            case 'Give':          return this.give;
-            case 'Refine':        return this.refine;
-            case 'Auto':          return this.auto;
-            case 'Case':          return this.case;
+                request = this.computeNormalForm(command.computeMode)(connection);
+                break;
+            case 'Give':
+                request = this.give(connection);
+                break;
+            case 'Refine':
+                request = this.refine(connection);
+                break;
+            case 'Auto':
+                request = this.auto(connection);
+                break;
+            case 'Case':
+                request = this.case(connection);
+                break;
             case 'GoalType':
-                return this.goalType(command.normalization);
+                request = this.goalType(command.normalization)(connection);
+                break;
             case 'Context':
-                return this.context(command.normalization);
+                request = this.context(command.normalization)(connection);
+                break;
             case 'GoalTypeAndContext':
-                return this.goalTypeAndContext(command.normalization);
+                request = this.goalTypeAndContext(command.normalization)(connection);
+                break;
             case 'GoalTypeAndInferredType':
-                return this.goalTypeAndInferredType(command.normalization);
-            case 'InputSymbol':   return this.inputSymbol;
+                request = this.goalTypeAndInferredType(command.normalization)(connection);
+                break;
+            case 'InputSymbol':
+
+                request = this.inputSymbol(connection);
+                break;
             case 'InputSymbolCurlyBracket':
-                return this.inputSymbolInterceptKey(command.kind, '{');
+                request = this.inputSymbolInterceptKey(command.kind, '{')(connection);
+                break;
             case 'InputSymbolBracket':
-                return this.inputSymbolInterceptKey(command.kind, '[');
+                request = this.inputSymbolInterceptKey(command.kind, '[')(connection);
+                break;
             case 'InputSymbolParenthesis':
-                return this.inputSymbolInterceptKey(command.kind, '(');
+                request = this.inputSymbolInterceptKey(command.kind, '(')(connection);
+                break;
             case 'InputSymbolDoubleQuote':
-                return this.inputSymbolInterceptKey(command.kind, '"');
+                request = this.inputSymbolInterceptKey(command.kind, '"')(connection);
+                break;
             case 'InputSymbolSingleQuote':
-                return this.inputSymbolInterceptKey(command.kind, '\'');
+                request = this.inputSymbolInterceptKey(command.kind, '\'')(connection);
+                break;
             case 'InputSymbolBackQuote':
-                return this.inputSymbolInterceptKey(command.kind, '`');
-            case 'QuerySymbol':   return this.querySymbol;
-            default:    throw `undispatched command type\n${JSON.stringify(command)}`
+                request = this.inputSymbolInterceptKey(command.kind, '`')(connection);
+                break;
+            case 'QuerySymbol':
+                request = this.querySymbol(connection);
+                break;
+            default:
+                throw `undispatched command type\n${JSON.stringify(command)}`
         }
+
+        return request.then(req => {
+            // pushing the unfullfilled request to the back of the backlog queue of Connection
+            const promise = new Promise<Agda.Response[]>((resolve, reject) => {
+                connection.queue.unshift({ resolve, reject });
+            });
+
+            this.core.view.store.dispatch(Action.PROTOCOL.logRequest({
+                raw: req,
+                parsed: command
+            }));
+            this.core.view.store.dispatch(Action.PROTOCOL.pending(true));
+
+            // send it out
+            connection.stream.write(request);
+            return promise;
+        });
     }
 
     //
     //  Commands
     //
-    private load = (connection: Connection): Promise<Agda.Response[]> => {
+    private load = (connection: Connection): Promise<string> => {
         // force save before load
         return this.core.editor.save()
             .then(() => connection)
@@ -195,10 +262,9 @@ export default class Commander {
                 this.loaded = true;
                 return result;
             })
-
     }
 
-    private quit = (connection: Connection): Promise<Agda.Response[]> => {
+    private quit = (connection: Connection): Promise<string> => {
         this.core.view.deactivatePanel();
         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
         this.core.view.unmountPanel(currentMountingPosition);
@@ -208,10 +274,10 @@ export default class Commander {
             this.core.editor.highlighting.destroyAll();
             this.core.connection.disconnect();
         }
-        return Promise.resolve([]);
+        return null;
     }
 
-    private restart = (connection: Connection): Promise<Agda.Response[]> => {
+    private restart = (connection: Connection): Promise<string> => {
         return this.quit(connection)
             .then(() => connection)
             .then(this.load);
@@ -219,9 +285,9 @@ export default class Commander {
 
     private abort = Req.abort;
 
-    private toggleDocking = (connection: Connection): Promise<Agda.Response[]> => {
+    private toggleDocking = (connection: Connection): Promise<string> => {
         return this.core.view.toggleDocking()
-            .then(() => Promise.resolve([]));
+            .then(() => null);
     }
 
     private compile = Req.compile;
@@ -230,21 +296,21 @@ export default class Commander {
     private showConstraints = Req.showConstraints
     private showGoals = Req.showGoals
 
-    private nextGoal = (connection: Connection): Promise<Agda.Response[]> => {
+    private nextGoal = (connection: Connection): Promise<string> => {
         return this.core.editor.jumpToNextGoal()
-            .then(() => Promise.resolve([]));
+            .then(() => null);
     }
 
-    private previousGoal = (connection: Connection): Promise<Agda.Response[]> => {
+    private previousGoal = (connection: Connection): Promise<string> => {
         return this.core.editor.jumpToPreviousGoal()
-            .then(() => Promise.resolve([]));
+            .then(() => null);
     }
 
     //
     //  The following commands may have a goal-specific version
     //
 
-    private whyInScope = (connection: Connection): Promise<Agda.Response[]> => {
+    private whyInScope = (connection: Connection): Promise<string> => {
         return this.core.view.query('Scope info', [], View.Style.PlainText, 'name:')
             .then((expr) => {
                 return this.core.editor.goal.pointing()
@@ -253,7 +319,7 @@ export default class Commander {
             });
     }
 
-    private inferType = (normalization: Agda.Normalization) => (connection: Connection): Promise<Agda.Response[]> => {
+    private inferType = (normalization: Agda.Normalization) => (connection: Connection): Promise<string> => {
         return this.core.editor.goal.pointing()
             .then(goal => {
                 // goal-specific
@@ -272,7 +338,7 @@ export default class Commander {
     }
 
 
-    private moduleContents = (normalization: Agda.Normalization) => (connection: Connection): Promise<Agda.Response[]> => {
+    private moduleContents = (normalization: Agda.Normalization) => (connection: Connection): Promise<string> => {
         return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], View.Style.PlainText, 'module name:')
             .then(expr => {
                 return this.core.editor.goal.pointing()
@@ -289,7 +355,7 @@ export default class Commander {
     }
 
 
-    private computeNormalForm = (computeMode: Agda.ComputeMode) => (connection: Connection): Promise<Agda.Response[]> => {
+    private computeNormalForm = (computeMode: Agda.ComputeMode) => (connection: Connection): Promise<string> => {
         return this.core.editor.goal.pointing()
             .then((goal) => {
                 if (goal.isEmpty()) {
@@ -310,7 +376,7 @@ export default class Commander {
     //  The following commands only working in the context of a specific goal
     //
 
-    private give = (connection: Connection): Promise<Agda.Response[]> => {
+    private give = (connection: Connection): Promise<string> => {
         return this.core.editor.goal.pointing()
             .then((goal) => {
                 if (goal.isEmpty()) {
@@ -323,29 +389,29 @@ export default class Commander {
             .then(goal => Req.give(goal)(connection))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Give` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
-                return []
+                return null;
             })
     }
 
-    private refine = (connection: Connection): Promise<Agda.Response[]> => {
+    private refine = (connection: Connection): Promise<string> => {
         return this.core.editor.goal.pointing()
             .then(goal => Req.refine(goal)(connection))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Refine` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
-                return []
+                return null;
             })
     }
 
-    private auto = (connection: Connection): Promise<Agda.Response[]> => {
+    private auto = (connection: Connection): Promise<string> => {
         return this.core.editor.goal.pointing()
             .then(goal => Req.auto(goal)(connection))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Auto` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
-                return []
+                return null;
             })
     }
 
-    private case = (connection: Connection): Promise<Agda.Response[]> => {
+    private case = (connection: Connection): Promise<string> => {
         return this.core.editor.goal.pointing()
             .then((goal) => {
                 if (goal.isEmpty()) {
@@ -358,47 +424,47 @@ export default class Commander {
             .then(goal => Req.makeCase(goal)(connection))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['`Case` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
-                return []
+                return null;
             })
     }
 
-    private goalType = (normalization: Agda.Normalization) => (connection: Connection): Promise<Agda.Response[]> => {
+    private goalType = (normalization: Agda.Normalization) => (connection: Connection): Promise<string> => {
         return this.core.editor.goal.pointing()
             .then(goal => Req.goalType(normalization, goal)(connection))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
-                return []
+                return null;
             })
     }
 
-    private context = (normalization: Agda.Normalization) => (connection: Connection): Promise<Agda.Response[]> => {
+    private context = (normalization: Agda.Normalization) => (connection: Connection): Promise<string> => {
         return this.core.editor.goal.pointing()
             .then(goal => Req.context(normalization, goal)(connection))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
-                return []
+                return null;
             })
     }
 
-    private goalTypeAndContext = (normalization: Agda.Normalization) => (connection: Connection): Promise<Agda.Response[]> => {
+    private goalTypeAndContext = (normalization: Agda.Normalization) => (connection: Connection): Promise<string> => {
         return this.core.editor.goal.pointing()
             .then(goal => Req.goalTypeAndContext(normalization, goal)(connection))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
-                return []
+                return null;
             })
     }
 
-    private goalTypeAndInferredType = (normalization: Agda.Normalization) => (connection: Connection): Promise<Agda.Response[]> => {
+    private goalTypeAndInferredType = (normalization: Agda.Normalization) => (connection: Connection): Promise<string> => {
         return this.core.editor.goal.pointing()
             .then(goal => Req.goalTypeAndInferredType(normalization, goal)(connection))
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.set('Out of goal', ['"Goal Type & Inferred Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
-                return []
-            })
+                return null;
+            });
     }
 
-    private inputSymbol = (connection: Connection): Promise<Agda.Response[]> => {
+    private inputSymbol = (connection: Connection): Promise<string> => {
         if (atom.config.get('agda-mode.inputMethod')) {
             if (!this.loaded) {
                 const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
@@ -410,10 +476,10 @@ export default class Commander {
         } else {
             this.core.view.editors.getFocusedEditor().insertText('\\');
         }
-        return Promise.resolve([]);
+        return null;
     }
 
-    private querySymbol = (connection: Connection): Promise<Agda.Response[]> => {
+    private querySymbol = (connection: Connection): Promise<string> => {
         return this.core.view.query(`Query Unicode symbol input sequences`, [], View.Style.PlainText, 'symbol:')
             .then(symbol => {
                 const sequences = Table[symbol.codePointAt(0)] || [];
@@ -421,12 +487,12 @@ export default class Commander {
                     `Input sequence for ${symbol}`,
                     sequences,
                     View.Style.PlainText);
-                    return [];
+                return null;
             });
     }
 
-    private inputSymbolInterceptKey = (kind, key: string) => (connection: Connection): Promise<Agda.Response[]> => {
+    private inputSymbolInterceptKey = (kind, key: string) => (connection: Connection): Promise<string> => {
         this.core.inputMethod.interceptAndInsertKey(key);
-        return Promise.resolve([]);
+        return null;
     }
 }

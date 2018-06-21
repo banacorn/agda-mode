@@ -70,11 +70,6 @@ export default class ConnectionManager {
         // modify the method write so that we can intercept and redirect data to the core;
         const write = connection.stream.write;
         connection.stream.write = data => {
-            this.core.view.store.dispatch(Action.PROTOCOL.logRequest({
-                raw: data.toString(),
-                parsed: null
-            }));
-            this.core.view.store.dispatch(Action.PROTOCOL.pending(true));
             return write(data);
         };
         // the streams
