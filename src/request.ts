@@ -29,17 +29,16 @@ const sendRequest = (highlightingLevel: string, interaction: string | ((conn: Co
     return promise;
 }
 
-const makeRequest = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (conn: Connection): string => {
+const buildRequest = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (header: Agda.Command, connection: Connection): Agda.Request => {
     const highlightingMethod = atom.config.get('agda-mode.highlightingMethod');
-    let request: string;
+    let body: string;
     if (typeof interaction === 'string') {
-        request = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction} )\n`
+        body = `IOTCM \"${connection.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction} )\n`
     } else {    // interaction is a callback
-        request = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(conn)} )\n`;
+        body = `IOTCM \"${connection.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(connection)} )\n`;
     }
-    return request;
+    return { header, body, connection };
 }
-
 
 // REQUESTS
 
@@ -64,7 +63,7 @@ function buildRange(conn: Connection, goal: Goal): string {
 }
 
 
-export const load = makeRequest('NonInteractive', (conn) => {
+export const load = buildRequest('NonInteractive', (conn) => {
     // if version > 2.5, ignore library path configuration
     if (semver.gte(conn.version.sem, '2.5.0'))
         return `Cmd_load \"${conn.filepath}\" []`
@@ -72,10 +71,9 @@ export const load = makeRequest('NonInteractive', (conn) => {
         return `Cmd_load \"${conn.filepath}\" [${getLibraryPath()}]`
 });
 
-export const abort =
-    makeRequest('NonInteractive', 'Cmd_abort');
+export const abort = buildRequest('NonInteractive', 'Cmd_abort');
 
-export const compile = makeRequest('NonInteractive', (conn) => {
+export const compile = buildRequest('NonInteractive', (conn) => {
     const backend = atom.config.get('agda-mode.backend');
     if (semver.gte(conn.version.sem, '2.5.0'))
         return `Cmd_compile ${backend} \"${conn.filepath}\" []`
@@ -84,36 +82,36 @@ export const compile = makeRequest('NonInteractive', (conn) => {
 });
 
 export const toggleDisplayOfImplicitArguments =
-    makeRequest('NonInteractive', 'ToggleImplicitArgs');
+    buildRequest('NonInteractive', 'ToggleImplicitArgs');
 
 export const solveConstraints = (normalization: Agda.Normalization) =>
-    makeRequest('NonInteractive', `Cmd_solveAll ${normalization}`);
+    buildRequest('NonInteractive', `Cmd_solveAll ${normalization}`);
 
 export const showConstraints =
-    makeRequest('NonInteractive', 'Cmd_constraints');
+    buildRequest('NonInteractive', 'Cmd_constraints');
 
 export const showGoals =
-    makeRequest('NonInteractive', 'Cmd_metas');
+    buildRequest('NonInteractive', 'Cmd_metas');
 
 export const whyInScope = (expr: string, goal: Goal) =>
-    makeRequest('NonInteractive', `Cmd_why_in_scope ${goal.index} noRange \"${expr}\"`);
+    buildRequest('NonInteractive', `Cmd_why_in_scope ${goal.index} noRange \"${expr}\"`);
 
 export const whyInScopeGlobal = (expr: string) =>
-    makeRequest('None', `Cmd_why_in_scope_toplevel \"${expr}\"`)
+    buildRequest('None', `Cmd_why_in_scope_toplevel \"${expr}\"`)
 
 export const inferType = (normalization: Agda.Normalization, expr: string, goal: Goal) =>
-    makeRequest('NonInteractive', `Cmd_infer ${normalization} ${goal.index} noRange \"${expr}\"`);
+    buildRequest('NonInteractive', `Cmd_infer ${normalization} ${goal.index} noRange \"${expr}\"`);
 
 export const inferTypeGlobal = (normalization: Agda.Normalization, expr: string) =>
-    makeRequest('None', `Cmd_infer_toplevel ${normalization} \"${expr}\"`);
+    buildRequest('None', `Cmd_infer_toplevel ${normalization} \"${expr}\"`);
 
 export const moduleContents = (normalization: Agda.Normalization, expr: string, goal: Goal) =>
-    makeRequest('NonInteractive', `Cmd_show_module_contents ${normalization} ${goal.index} noRange \"${expr}\"`);
+    buildRequest('NonInteractive', `Cmd_show_module_contents ${normalization} ${goal.index} noRange \"${expr}\"`);
 export const moduleContentsGlobal = (normalization: Agda.Normalization, expr: string) =>
-    makeRequest('None', `Cmd_show_module_contents_toplevel ${normalization} \"${expr}\"`);
+    buildRequest('None', `Cmd_show_module_contents_toplevel ${normalization} \"${expr}\"`);
 
 export const computeNormalForm = (computeMode: Agda.ComputeMode, expr: string, goal: Goal) =>
-    makeRequest('NonInteractive', conn => {
+    buildRequest('NonInteractive', conn => {
         if (semver.gte(conn.version.sem, '2.5.2')) {
             return `Cmd_compute ${computeMode} ${goal.index} noRange \"${expr}\"`;
         } else {
@@ -123,7 +121,7 @@ export const computeNormalForm = (computeMode: Agda.ComputeMode, expr: string, g
     });
 
 export const computeNormalFormGlobal = (computeMode: Agda.ComputeMode, expr: string) =>
-    makeRequest('None', conn => {
+    buildRequest('None', conn => {
         if (semver.gte(conn.version.sem, '2.5.2')) {
             return `Cmd_compute_toplevel ${computeMode} \"${expr}\"`;
         } else {
@@ -135,7 +133,7 @@ export const computeNormalFormGlobal = (computeMode: Agda.ComputeMode, expr: str
 // Related issue and commit of agda/agda
 // https://github.com/agda/agda/issues/2730
 // https://github.com/agda/agda/commit/021e6d24f47bac462d8bc88e2ea685d6156197c4
-export const give = (goal: Goal) => makeRequest('NonInteractive', conn =>{
+export const give = (goal: Goal) => buildRequest('NonInteractive', conn =>{
     if (semver.gte(conn.version.sem, '2.5.3')) {
         return `Cmd_give WithoutForce ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`;
     } else {
@@ -143,30 +141,30 @@ export const give = (goal: Goal) => makeRequest('NonInteractive', conn =>{
     }
 });
 
-export const refine = (goal: Goal) => makeRequest('NonInteractive', conn =>
+export const refine = (goal: Goal) => buildRequest('NonInteractive', conn =>
     (`Cmd_refine_or_intro False ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
 );
 
-export const auto = (goal: Goal) => makeRequest('NonInteractive', conn =>
+export const auto = (goal: Goal) => buildRequest('NonInteractive', conn =>
     (`Cmd_auto ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
 );
 
-export const makeCase = (goal: Goal) => makeRequest('NonInteractive', conn =>
+export const makeCase = (goal: Goal) => buildRequest('NonInteractive', conn =>
     (`Cmd_make_case ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
 );
 
-export const goalType = (normalization: Agda.Normalization, goal: Goal) => makeRequest('NonInteractive', conn =>
+export const goalType = (normalization: Agda.Normalization, goal: Goal) => buildRequest('NonInteractive', conn =>
     (`Cmd_goal_type ${normalization} ${goal.index} noRange \"\"`)
 );
 
-export const context = (normalization: Agda.Normalization, goal: Goal) => makeRequest('NonInteractive', conn =>
+export const context = (normalization: Agda.Normalization, goal: Goal) => buildRequest('NonInteractive', conn =>
     (`Cmd_context ${normalization} ${goal.index} noRange \"\"`)
 );
 
-export const goalTypeAndContext = (normalization: Agda.Normalization, goal: Goal) => makeRequest('NonInteractive', conn =>
+export const goalTypeAndContext = (normalization: Agda.Normalization, goal: Goal) => buildRequest('NonInteractive', conn =>
     (`Cmd_goal_type_context ${normalization} ${goal.index} noRange \"\"`)
 );
 
-export const goalTypeAndInferredType = (normalization: Agda.Normalization, goal: Goal) => makeRequest('NonInteractive', conn =>
+export const goalTypeAndInferredType = (normalization: Agda.Normalization, goal: Goal) => buildRequest('NonInteractive', conn =>
     (`Cmd_goal_type_context_infer ${normalization} ${goal.index} noRange \"${goal.getContent()}\"`)
 );

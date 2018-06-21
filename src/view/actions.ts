@@ -113,7 +113,7 @@ export type PROTOCOL
 
 export namespace PROTOCOL {
     export const LOG_REQUEST = 'PROTOCOL.LOG_REQUEST';
-    export type LOG_REQUEST = Parsed<Agda.Command>;
+    export type LOG_REQUEST = Parsed<Agda.Request>;
     export const LOG_RESPONSES = 'PROTOCOL.LOG_RESPONSE';
     export type LOG_RESPONSES = Parsed<Agda.Response>[];
 

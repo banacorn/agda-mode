@@ -101,7 +101,7 @@ namespace View {
 
     // a request-response pair
     export interface ReqRes {
-        request: Parsed<Agda.Command>
+        request: Parsed<Agda.Request>
         responses: Parsed<Agda.Response>[];
     }
 
@@ -265,8 +265,16 @@ namespace Agda {
         kind: CommandKind,
         normalization?: Normalization,
         computeMode?: ComputeMode,
-    }
+    };
 
+    //
+    //  Request to Agda
+    //
+    export type Request = {
+        header: Command;
+        body?: string;
+        connection?: Connection;
+    };
     //
     //  Response from Agda
     //

@@ -145,7 +145,7 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
     }),
 }, defaultState.connection);
 
-function logResponse(log: View.ReqRes[], response: Parsed<Agda.Response>[]): View.ReqRes[] {
+function logResponses(log: View.ReqRes[], response: Parsed<Agda.Response>[]): View.ReqRes[] {
     if (log.length > 0) {
         // append only to the last ReqRes;
         const init = _.initial(log);
@@ -158,6 +158,13 @@ function logResponse(log: View.ReqRes[], response: Parsed<Agda.Response>[]): Vie
         return log;
     }
 
+}
+
+function logRequest(log: View.ReqRes[], request: Parsed<Agda.Request>): View.ReqRes[] {
+    return _.concat(log, [{
+        request: request,
+        responses: []
+    }])
 }
 
 function truncateLog(state: View.Protocol): View.ReqRes[] {
@@ -176,13 +183,10 @@ function truncateLog(state: View.Protocol): View.ReqRes[] {
 
 const protocol = handleActions<View.Protocol, PROTOCOL>({
     [PROTOCOL.LOG_REQUEST]: (state, action: Action<PROTOCOL.LOG_REQUEST>) => ({ ...state,
-        log: _.concat(state.log, [{
-            request: action.payload,
-            responses: []
-        }])
+        log: logRequest(state.log, action.payload)
     }),
     [PROTOCOL.LOG_RESPONSES]: (state, action: Action<PROTOCOL.LOG_RESPONSES>) => ({ ...state,
-        log: logResponse(state.log, action.payload)
+        log: logResponses(state.log, action.payload)
     }),
     [PROTOCOL.LIMIT_LOG]: (state, action: Action<PROTOCOL.LIMIT_LOG>) => ({ ...state,
         limitLog: action.payload

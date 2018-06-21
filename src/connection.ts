@@ -67,11 +67,6 @@ export default class ConnectionManager {
         }));
         // the properties
         this.connection = connection;
-        // modify the method write so that we can intercept and redirect data to the core;
-        const write = connection.stream.write;
-        connection.stream.write = data => {
-            return write(data);
-        };
         // the streams
         connection.stream
             .pipe(new Rectifier)
@@ -120,6 +115,7 @@ export default class ConnectionManager {
         if (error.name === 'QueryCancelled') {
             return Promise.resolve();
         } else {
+            console.log(error);
             return this.core.view.tabs.open('settings').then(() => {
                 this.core.view.store.dispatch(Action.VIEW.navigate('/Connection'));
                 this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
