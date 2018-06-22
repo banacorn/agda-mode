@@ -15,13 +15,19 @@ class Breadcrumb extends React.Component<Props, {}> {
 
     render() {
         let tier1, tier2;
+        const { path, param } = this.props.uri;
 
-        switch (this.props.uri.path) {
+        switch (path) {
             case '/Connection':
                 tier1 = <li><a href='#'><span className='icon icon-plug'>Connection</span></a></li>;
                 break;
             case '/Protocol':
-                tier1 = <li><a href='#'><span className='icon icon-comment-discussion'>Protocol</span></a></li>;
+                if (param) {
+                    tier1 = <li><a href='#'><span className='icon icon-comment-discussion'>Protocol</span></a></li>;
+                    tier2 = <li><a href='#'><span className='icon icon-comment-discussion'>{param}</span></a></li>;
+                } else {
+                    tier1 = <li><a href='#'><span className='icon icon-comment-discussion'>Protocol</span></a></li>;
+                }
                 break;
             default:
                 tier1 = null;

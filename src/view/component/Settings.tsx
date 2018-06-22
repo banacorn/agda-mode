@@ -87,15 +87,15 @@ class Settings extends React.Component<Props, {}> {
 
     at(uri: View.SettingsURI): string {
         return classNames({
-            'hidden': uri !== this.props.uri
+            'hidden': !_.isEqual(uri, this.props.uri)
         })
     }
 
-    notAt(uri: View.SettingsURI): string {
-        return classNames({
-            'hidden': uri === this.props.uri
-        })
-    }
+    // notAt(uri: View.SettingsURI): string {
+    //     return classNames({
+    //         'hidden': _.isEqual(uri, this.props.uri)
+    //     })
+    // }
 
 
 }
