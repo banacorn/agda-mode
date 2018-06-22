@@ -149,10 +149,10 @@ namespace View {
         maxBodyHeight: number;
     }
 
-    export type SettingsURI = '/'
-        | '/Connection'
-        | '/Protocol';
-
+    export type SettingsURI = {
+        path: '/' | '/Connection' | '/Protocol';
+        param?: number;
+    };
 
     ////////////////////////////////////////////
     // Solutions

@@ -22,7 +22,9 @@ const defaultState: View.State = {
             current: View.MountingPosition.Bottom
         },
         settingsView: false,
-        settingsURI: '/'
+        settingsURI: {
+            path: '/'
+        }
     },
     mode: View.Mode.Display,
     connection: {

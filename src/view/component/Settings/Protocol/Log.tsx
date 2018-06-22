@@ -30,8 +30,9 @@ import { View } from '../../../../type';
 function ReqRes(props: {reqRes: View.ReqRes}) {
     const {id, request, responses } = props.reqRes;
     return (
-        <li className='agda-settings-protocol-log-item'>
-            {id} : {JSON.stringify(request.parsed.header.kind)}
+        <li>
+            {id} : {JSON.stringify(request.parsed.header.kind)}  <span className='badge'>{responses.length}</span>
+
         </li>
     )
 }

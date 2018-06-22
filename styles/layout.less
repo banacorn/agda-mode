@@ -315,13 +315,26 @@
             .agda-settings-protocol-panel {
                 background: @tool-panel-background-color;
                 flex: 0 1 auto;
-                padding: @component-padding;
+                padding: @component-padding * 2;
             }
 
             .agda-settings-protocol-log {
                 // allow the height to grow (but no more than its parent)
                 flex: 1 1 auto;
                 overflow-y: scroll;
+
+                li {
+                    background: @base-background-color;
+                    line-height: 2em;
+                    padding: @component-padding * 2;
+                    cursor: pointer;
+
+
+                    &:hover {
+                        background: @background-color-highlight;
+
+                    }
+                }
             }
 
 
@@ -382,43 +395,4 @@
 
     }
 
-    //////////////////////////////////////////////////////
-    // <Connections>
-    //////////////////////////////////////////////////////
-
-    #new-connection {
-        // input[type="radio"] {
-        //     display: none;
-        // }
-        //
-        // input[type="radio"]:checked + label {
-        //     color: @text-color-selected;
-        // }
-        //
-        // input[type="radio"]:not(:checked) + label {
-        //     color: @text-color-subtle;
-        // }
-        //
-        // input[type="radio"]:not(:checked):not(:disabled) + label:hover {
-        //     color: @text-color-highlight !important;
-        //     cursor: pointer;
-        // }
-
-        label {
-            width: 100%;
-        }
-
-        #remote-connection-inputs {
-            display: flex;
-
-            #remote-connection-url {
-                flex: 0 1 100%;
-                margin-right: 1ch;
-            }
-
-            #remote-connection-port {
-                flex: 0 0 50px;
-            }
-        }
-    }
 }

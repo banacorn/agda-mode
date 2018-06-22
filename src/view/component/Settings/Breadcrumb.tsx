@@ -16,7 +16,7 @@ class Breadcrumb extends React.Component<Props, {}> {
     render() {
         let tier1, tier2;
 
-        switch (this.props.uri) {
+        switch (this.props.uri.path) {
             case '/Connection':
                 tier1 = <li><a href='#'><span className='icon icon-plug'>Connection</span></a></li>;
                 break;
@@ -33,7 +33,7 @@ class Breadcrumb extends React.Component<Props, {}> {
             <nav className={classNames('agda-settings-breadcrumb', this.props.className)}>
                 <ol className='breadcrumb'>
                     <li><a
-                        onClick={this.props.navigate('/')}
+                        onClick={this.props.navigate({path: '/'})}
                         href='#'><span className='icon icon-settings'>Settings</span></a>
                     </li>
                     {tier1}

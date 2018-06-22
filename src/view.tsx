@@ -386,7 +386,7 @@ export default class View {
 
     queryConnection(): Promise<string> {
         return this.tabs.open('settings').then(() => {
-            this.store.dispatch(Action.VIEW.navigate('/Connection'));
+            this.store.dispatch(Action.VIEW.navigate({path: '/Connection'}));
             return this.editors.connection.access()
                 .then(editor => {
                     if (!editor.isFocused()) {

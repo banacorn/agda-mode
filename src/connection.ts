@@ -117,7 +117,7 @@ export default class ConnectionManager {
                 this.disconnect();
                 console.log(error);
                 return this.core.view.tabs.open('settings').then(() => {
-                    this.core.view.store.dispatch(Action.VIEW.navigate('/Connection'));
+                    this.core.view.store.dispatch(Action.VIEW.navigate({path: '/Connection'}));
                     this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
                 });
         }
@@ -126,7 +126,7 @@ export default class ConnectionManager {
     handleLanguageServerError(error: Error) {
         this.core.view.set(error.name, [], View.Style.Error);
         return this.core.view.tabs.open('settings').then(() => {
-            this.core.view.store.dispatch(Action.VIEW.navigate('/Connection'));
+            this.core.view.store.dispatch(Action.VIEW.navigate({path: '/Connection'}));
             this.core.view.store.dispatch(Action.CONNECTION.setLanguageServerMessage(error.message));
         });
     }
