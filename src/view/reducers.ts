@@ -149,13 +149,13 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
 function logResponses(log: View.ReqRes[], response: Parsed<Agda.Response>[]): View.ReqRes[] {
     if (log.length > 0) {
         // append only to the last ReqRes;
-        const init = _.initial(log);
-        let { id, request, responses } = _.last(log);
-        return _.concat(init, [{
+        const tail = _.tail(log);
+        let { id, request, responses } = _.first(log);
+        return _.concat([{
             id,
             request,
             responses: _.concat(responses, response)
-        }]);
+        }], tail);
     } else {
         return log;
     }
@@ -163,13 +163,13 @@ function logResponses(log: View.ReqRes[], response: Parsed<Agda.Response>[]): Vi
 }
 
 function logRequest(state: View.Protocol, request: Parsed<Agda.Request>): View.ReqRes[] {
-    let log = _.concat(state.log, [{
+    let log = _.concat([{
         id: state.id,
         request,
         responses: []
-    }]);
-    if (state.limitLog && log.length >= 10) {
-        return _.tail(log);
+    }], state.log);
+    if (state.limitLog && log.length > 10) {
+        return _.initial(log);
     } else {
         return log;
     }
