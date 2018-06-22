@@ -162,31 +162,22 @@ function logResponses(log: View.ReqRes[], response: Parsed<Agda.Response>[]): Vi
 
 }
 
-function logRequest(log: View.ReqRes[], id: number, request: Parsed<Agda.Request>): View.ReqRes[] {
-    return _.concat(log, [{
-        id,
+function logRequest(state: View.Protocol, request: Parsed<Agda.Request>): View.ReqRes[] {
+    let log = _.concat(state.log, [{
+        id: state.id,
         request,
         responses: []
-    }])
-}
-
-function truncateLog(state: View.Protocol): View.ReqRes[] {
-    if (state.limitLog) {
-        if (state.log.length >= 10) {
-            // too long, drop the head
-            return _.tail(state.log);
-        } else {
-            return state.log;
-        }
+    }]);
+    if (state.limitLog && log.length >= 10) {
+        return _.tail(log);
     } else {
-        // leave it be
-        return state.log;
+        return log;
     }
 }
 
 const protocol = handleActions<View.Protocol, PROTOCOL>({
     [PROTOCOL.LOG_REQUEST]: (state, action: Action<PROTOCOL.LOG_REQUEST>) => ({ ...state,
-        log: logRequest(state.log, state.id, action.payload),
+        log: logRequest(state, action.payload),
         id: state.id + 1
     }),
     [PROTOCOL.LOG_RESPONSES]: (state, action: Action<PROTOCOL.LOG_RESPONSES>) => ({ ...state,
@@ -194,9 +185,6 @@ const protocol = handleActions<View.Protocol, PROTOCOL>({
     }),
     [PROTOCOL.LIMIT_LOG]: (state, action: Action<PROTOCOL.LIMIT_LOG>) => ({ ...state,
         limitLog: action.payload
-    }),
-    [PROTOCOL.TRUNCATE_LOG]: (state, action: Action<PROTOCOL.TRUNCATE_LOG>) => ({ ...state,
-        log: truncateLog(state)
     }),
     [PROTOCOL.TOGGLE_LSP]: (state, action: Action<PROTOCOL.TOGGLE_LSP>) => ({ ...state,
         lsp: !state.lsp

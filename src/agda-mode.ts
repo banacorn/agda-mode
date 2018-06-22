@@ -117,7 +117,6 @@ function registerCommands() {
                     event.stopImmediatePropagation();
                     core.commander.dispatchUndo();
                 } else {
-                    core.view.store.dispatch(Action.PROTOCOL.truncateLog());
                     core.commander.dispatch(parseCommand(command));
                 }
             }
