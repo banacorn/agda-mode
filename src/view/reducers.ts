@@ -169,7 +169,7 @@ function logRequest(state: View.Protocol, request: Parsed<Agda.Request>): View.R
         responses: []
     }], state.log);
     if (state.limitLog && log.length > 10) {
-        return _.initial(log);
+        return _.take(log, 10);
     } else {
         return log;
     }

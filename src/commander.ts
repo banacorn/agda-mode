@@ -108,19 +108,17 @@ export default class Commander {
                 })
                 .catch(this.core.connection.handleAgdaError)
         } else {
-            var connection: Promise<Connection>;
-            if (command.kind === 'Load') {
-                // activate the view first
-                const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
-                this.core.view.mountPanel(currentMountingPosition);
-                this.core.view.activatePanel();
-                // initialize connection
-                connection = this.core.connection.connect();
-            } else {
-                // get existing connection
-                connection = this.core.connection.getConnection()
-            }
-            return connection
+            return this.core.connection.getConnection()
+                .catch(Err.Conn.NotEstablished, () => {
+                    if (command.kind === 'Load') {
+                        // activate the view first
+                        const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+                        this.core.view.mountPanel(currentMountingPosition);
+                        this.core.view.activatePanel();
+                    }
+                    // initialize connection
+                    return this.core.connection.connect();
+                })
                 .then(this.startCheckpoint(command))
                 .then(this.dispatchCommand(command))
                 .then(this.sendRequests)
@@ -214,7 +212,6 @@ export default class Commander {
             }));
             this.core.view.store.dispatch(Action.PROTOCOL.pending(true));
 
-            console.log(request.body)
             // send it out
             request.connection.stream.write(request.body);
             return promise;

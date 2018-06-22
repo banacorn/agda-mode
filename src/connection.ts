@@ -111,15 +111,15 @@ export default class ConnectionManager {
 
     handleAgdaError(error: Error) {
         this.core.view.set(error.name, [], View.Style.Error);
-        // don't invoke the settings view on QueryCancelled
-        if (error.name === 'QueryCancelled') {
-            return Promise.resolve();
-        } else {
-            console.log(error);
-            return this.core.view.tabs.open('settings').then(() => {
-                this.core.view.store.dispatch(Action.VIEW.navigate('/Connection'));
-                this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
-            });
+        switch (error.name) {
+            case 'QueryCancelled':   return Promise.resolve();
+            default:
+                this.disconnect();
+                console.log(error);
+                return this.core.view.tabs.open('settings').then(() => {
+                    this.core.view.store.dispatch(Action.VIEW.navigate('/Connection'));
+                    this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
+                });
         }
     }
 
