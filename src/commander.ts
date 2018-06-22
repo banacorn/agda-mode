@@ -434,7 +434,7 @@ export default class Commander {
             }
             this.core.inputMethod.activate();
         } else {
-            this.core.view.editors.getFocusedEditor().insertText('\\');
+            this.core.view.editors.getFocusedEditor().then(editor => editor.insertText('\\'));
         }
         return Promise.resolve([]);
     }

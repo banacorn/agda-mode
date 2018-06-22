@@ -139,31 +139,34 @@ export default class InputMethod {
         if (!this.activated) {
             // initializations
             this.activated = true;
+            this.core.view.editors.getFocusedEditor().then(editor => {
+                this.editor = editor;
 
-            this.editor = this.core.view.editors.getFocusedEditor();
+                // add class 'agda-mode-input-method-activated'
+                const editorElement = atom.views.getView(this.editor);
+                editorElement.classList.add('agda-mode-input-method-activated');
 
-            // add class 'agda-mode-input-method-activated'
-            const editorElement = atom.views.getView(this.editor);
-            editorElement.classList.add('agda-mode-input-method-activated');
+                // monitors raw text buffer and figures out what happend
+                const startPosition = this.editor.getCursorBufferPosition();
+                this.textEditorMarker = this.editor.markBufferRange(new Range(startPosition, startPosition), {});
+                this.textEditorMarker.onDidChange(this.dispatchEvent);
 
-            // monitors raw text buffer and figures out what happend
-            const startPosition = this.editor.getCursorBufferPosition();
-            this.textEditorMarker = this.editor.markBufferRange(new Range(startPosition, startPosition), {});
-            this.textEditorMarker.onDidChange(this.dispatchEvent);
+                // decoration
+                this.decoration = this.editor.decorateMarker(this.textEditorMarker, {
+                    type: 'highlight',
+                    class: 'input-method-decoration'
+                });
 
-            // decoration
-            this.decoration = this.editor.decorateMarker(this.textEditorMarker, {
-                type: 'highlight',
-                class: 'input-method-decoration'
+                // insert '\' at the cursor quitely without triggering any shit
+                this.muteEvent(() => {
+                    this.insertCharToBuffer('\\');
+                });
+
+                // initialize input suggestion
+                this.core.view.store.dispatch(INPUT_METHOD.activate());
+
             });
 
-            // insert '\' at the cursor quitely without triggering any shit
-            this.muteEvent(() => {
-                this.insertCharToBuffer('\\');
-            });
-
-            // initialize input suggestion
-            this.core.view.store.dispatch(INPUT_METHOD.activate());
         } else {
             // input method already activated, it happens when we get the 2nd
             // backslash '\' coming in

@@ -43,18 +43,18 @@ class EditorViewManager {
     }
 
     // get the focused editor
-    getFocusedEditor(): Atom.TextEditor {
+    getFocusedEditor(): Promise<Atom.TextEditor> {
         if (this.general && this.general.isFocused())
-            return this.general.getModel();
+            return Promise.resolve(this.general.getModel());
         if (this.connection.isAvailable()) {
-            this.connection.access().then(editor => {
+            return this.connection.access().then(editor => {
                 if (editor.isFocused())
                     return editor.getModel();
                 else
                     return this.main;
             });
         } else {
-            return this.main;
+            return Promise.resolve(this.main);
         }
     }
 }
