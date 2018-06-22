@@ -123,6 +123,7 @@ type InjProps = {
 
 type DispatchProps = {
     limitLog: (shouldLimitLog: boolean) => void;
+    navigate: (path: View.SettingsURI) => () => void;
 }
 
 type Props = OwnProps & InjProps & DispatchProps;
@@ -134,6 +135,9 @@ function mapDispatchToProps(dispatch): DispatchProps {
             console.log(shouldLimitLog)
             dispatch(Action.PROTOCOL.limitLog(shouldLimitLog));
         },
+        navigate: (uri: View.SettingsURI) => () => {
+            dispatch(Action.VIEW.navigate(uri));
+        }
     };
 }
 
@@ -158,6 +162,7 @@ class Protocol extends React.Component<Props, {}> {
                 />
                 <ProtocolLog
                     log={this.props.protocol.log}
+                    navigate={this.props.navigate}
                 />
             </section>
         );

@@ -150,7 +150,7 @@ namespace View {
     }
 
     export type SettingsURI = {
-        path: '/' | '/Connection' | '/Protocol';
+        path: '/' | '/Connection' | '/Protocol' | '/Protocol/*';
         param?: number;
     };
 

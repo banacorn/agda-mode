@@ -10,6 +10,7 @@ import * as Action from '../actions';
 import Breadcrumb from './Settings/Breadcrumb';
 import Connection from './Settings/Connection';
 import Protocol from './Settings/Protocol';
+import ReqRes from './Settings/Protocol/ReqRes';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
@@ -80,6 +81,9 @@ class Settings extends React.Component<Props, {}> {
                         core={this.props.core}
                         className={this.at({path: '/Protocol'})}
                     />
+                    <ReqRes
+                        className={this.at({path: '/Protocol/*'})}
+                    />
                 </div>
             </section>
         )
@@ -87,17 +91,9 @@ class Settings extends React.Component<Props, {}> {
 
     at(uri: View.SettingsURI): string {
         return classNames({
-            'hidden': !_.isEqual(uri, this.props.uri)
+            'hidden': uri.path !== this.props.uri.path
         })
     }
-
-    // notAt(uri: View.SettingsURI): string {
-    //     return classNames({
-    //         'hidden': _.isEqual(uri, this.props.uri)
-    //     })
-    // }
-
-
 }
 
 
