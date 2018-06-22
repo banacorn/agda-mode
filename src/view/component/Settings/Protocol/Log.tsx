@@ -26,6 +26,15 @@ import { View } from '../../../../type';
 //     }
 // }
 
+
+function ReqRes(props: {reqRes: View.ReqRes}) {
+    return (
+        <li className='agda-settings-protocol-log-item'>
+            {JSON.stringify(props.reqRes.request.parsed.header.kind)}
+        </li>
+    )
+}
+
 type LogProps = React.HTMLProps<HTMLElement> & {
     log: View.ReqRes[];
 };
@@ -34,8 +43,7 @@ export default function Log(props: LogProps) {
     return (
         <section className='agda-settings-protocol-log'>
             <ol>{props.log.map((reqRes, i) =>
-                <li className='agda-settings-protocol-log-item'
-                    key={i}>{JSON.stringify(reqRes.request)}</li>
+                <ReqRes key={i} reqRes={reqRes} />
             )}</ol>
         </section>
     );
