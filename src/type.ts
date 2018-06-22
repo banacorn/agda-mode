@@ -93,6 +93,8 @@ namespace View {
 
     export interface Protocol {
         log: ReqRes[];
+        id: number;// for indexing ReqRes
+
         pending: boolean;
         lsp: boolean;
 
@@ -101,7 +103,8 @@ namespace View {
 
     // a request-response pair
     export interface ReqRes {
-        request: Parsed<Agda.Request>
+        id: number;
+        request: Parsed<Agda.Request>;
         responses: Parsed<Agda.Response>[];
     }
 

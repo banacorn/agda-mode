@@ -35,6 +35,7 @@ const defaultState: View.State = {
     },
     protocol: {
         log: [],
+        id: 0,
         pending: false,
         lsp: false,
         limitLog: true
@@ -149,8 +150,9 @@ function logResponses(log: View.ReqRes[], response: Parsed<Agda.Response>[]): Vi
     if (log.length > 0) {
         // append only to the last ReqRes;
         const init = _.initial(log);
-        let { request, responses } = _.last(log);
+        let { id, request, responses } = _.last(log);
         return _.concat(init, [{
+            id,
             request,
             responses: _.concat(responses, response)
         }]);
@@ -160,9 +162,10 @@ function logResponses(log: View.ReqRes[], response: Parsed<Agda.Response>[]): Vi
 
 }
 
-function logRequest(log: View.ReqRes[], request: Parsed<Agda.Request>): View.ReqRes[] {
+function logRequest(log: View.ReqRes[], id: number, request: Parsed<Agda.Request>): View.ReqRes[] {
     return _.concat(log, [{
-        request: request,
+        id,
+        request,
         responses: []
     }])
 }
@@ -183,7 +186,8 @@ function truncateLog(state: View.Protocol): View.ReqRes[] {
 
 const protocol = handleActions<View.Protocol, PROTOCOL>({
     [PROTOCOL.LOG_REQUEST]: (state, action: Action<PROTOCOL.LOG_REQUEST>) => ({ ...state,
-        log: logRequest(state.log, action.payload)
+        log: logRequest(state.log, state.id, action.payload),
+        id: state.id + 1
     }),
     [PROTOCOL.LOG_RESPONSES]: (state, action: Action<PROTOCOL.LOG_RESPONSES>) => ({ ...state,
         log: logResponses(state.log, action.payload)
