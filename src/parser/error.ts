@@ -2,8 +2,8 @@ import { Parser, seq, alt, takeWhile, sepBy1, succeed, all,
      digits, string, regex
     } from 'parsimmon';
 import { trimBeforeAndSkip, spaces, token } from './combinator';
-var { Point, Range } = require('atom');
-import { View, Location } from '../type';
+import { Point, Range } from 'atom';
+import { Location } from '../type';
 import { normalize } from 'path';
 
 
@@ -558,7 +558,7 @@ const libraryNotFoundItem: Parser<{}> =  seq(
     trimBeforeAndSkip('\'\nto install.\nInstalled libraries:'),
     alt(token('(none)'), installedLibrary.atLeast(1))
 ).map((result) => {
-    if (result[2] === '(none)') {
+    if (typeof result[2] === 'string') {
         return <{}>{
             name: result[0],
             agdaLibFilePath: result[1],
@@ -603,7 +603,7 @@ const unparsed: Parser<AgdaError.Unparsed> = all.map((result) => {
     }
 });
 
-const errorParser: Parser<Error> = alt(
+const errorParser: Parser<AgdaError> = alt(
     badConstructor,
     constructorTarget,
     caseSingleHole,
@@ -628,10 +628,10 @@ const errorParser: Parser<Error> = alt(
 function parseError(input: string): AgdaError {
     const parseResult = errorParser.parse(input);
     if (parseResult.status) {
-        if (parseResult.value.kind === 'UnparsedButLocated') {
-            // console.info(parseResult.value.location);
-            // console.warn(parseResult.value.input);
-        }
+        // if (parseResult.value.kind === 'UnparsedButLocated') {
+        //     // console.info(parseResult.value.location);
+        //     // console.warn(parseResult.value.input);
+        // }
         return parseResult.value;
     } else {
         // console.warn(parseResult)
