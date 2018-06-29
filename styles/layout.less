@@ -177,7 +177,7 @@
         flex-flow: column;
 
         font-size: @font-size;
-        background: @base-background-color;
+        // background: @base-background-color;
 
         @breadcrumbHeight: calc(@component-line-height + @component-padding * 2);
 
@@ -196,11 +196,11 @@
             flex: 1 1 auto;
             height: 100%;
             overflow: hidden;
+
+            overflow-y: scroll;
         }
 
         .agda-settings-menu {
-            overflow-y: scroll;
-
             li {
                 height: @component-line-height * 2 + @component-padding * 2;
                 line-height: @component-line-height * 2;
@@ -220,8 +220,6 @@
         }
 
         .agda-settings-connection {
-            overflow-y: scroll;
-
             padding: @component-padding * 2;
 
             ul.agda-settings-connection-dashboard {
@@ -332,66 +330,51 @@
 
                     &:hover {
                         background: @background-color-highlight;
-
                     }
                 }
             }
-
-
-            // padding: @component-padding * 2;
-            //
-            // // height: 100%;
-            // .agda-settings-protocol-request {
-            //     background: @pane-item-background-color;
-            //     padding: 0.5em;
-            //     margin: 0.5em;
-            //     border-radius: @component-border-radius;
-            //     margin-bottom: 3em;
-            // }
-            //
-            // ol.agda-settings-protocol-log {
-            //     margin: 1em 0;
-            //     > li {
-            //         background: @inset-panel-background-color;
-            //         padding: 1em;
-            //         margin: 1em 0;
-            //         word-wrap: break-word;
-            //
-            //         // cursor: pointer;
-            //     }
-            // }
-            //
-            // ol.agda-settings-protocol-responses {
-            //     > li {
-            //         margin: 3em 0;
-            //         word-wrap: break-word;
-            //
-            //         // cursor: pointer;
-            //     }
-            //
-            //     dl {
-            //         background: @pane-item-background-color;
-            //     }
-            // }
-            //
-            // dl {
-            //     display: flex;
-            //     padding: 0.5em;
-            //     margin: 0.5em;
-            //     border-radius: @component-border-radius;
-            //     // align-items: center;
-            // }
-            //
-            // dt {
-            //     width: 50%;
-            // }
-            //
-            // dd {
-            //     width: 50%;
-            //     // padding: 0 1em;
-            // }
         }
 
+        .agda-settings-protocol-reqres {
+            overflow-y: scroll;
+            padding: @component-padding * 2;
+
+            .agda-settings-protocol-request {
+                background: @pane-item-background-color;
+                padding: 0.5em;
+                margin: 0.5em;
+                border-radius: @component-border-radius;
+                margin-bottom: 3em;
+            }
+
+            ol.agda-settings-protocol-responses {
+                > li {
+                    margin: 3em 0;
+                    word-wrap: break-word;
+                    // cursor: pointer;
+                }
+
+                dl {
+                    background: @pane-item-background-color;
+                }
+            }
+
+            dl {
+                display: flex;
+                padding: 0.5em;
+                margin: 0.5em;
+                border-radius: @component-border-radius;
+            }
+
+            dt {
+                width: 50%;
+            }
+
+            dd {
+                width: 50%;
+            }
+
+        }
 
     }
 

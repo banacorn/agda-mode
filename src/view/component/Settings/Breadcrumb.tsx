@@ -26,7 +26,7 @@ class Breadcrumb extends React.Component<Props, {}> {
                 break;
             case '/Protocol/*':
                 tier1 = <li><a href='#' onClick={this.props.navigate({path: '/Protocol'})}><span className='icon icon-comment-discussion'>Protocol</span></a></li>;
-                tier2 = <li><a href='#'><span className='icon icon-comment'>{param}</span></a></li>;
+                tier2 = <li><a href='#'><span className='icon icon-comment'>#{param}</span></a></li>;
                 break;
             default:
                 tier1 = null;

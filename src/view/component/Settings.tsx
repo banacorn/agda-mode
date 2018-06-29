@@ -16,7 +16,8 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
 }
 type InjProps = {
-    uri: View.SettingsURI
+    uri: View.SettingsURI;
+    protocol: View.Protocol,
 }
 
 type DispatchProps = {
@@ -26,7 +27,8 @@ type Props = OwnProps & InjProps & DispatchProps;
 
 function mapStateToProps(state: View.State): InjProps {
     return {
-        uri: state.view.settingsURI
+        uri: state.view.settingsURI,
+        protocol: state.protocol,
     }
 }
 
@@ -83,6 +85,8 @@ class Settings extends React.Component<Props, {}> {
                     />
                     <ReqRes
                         className={this.at({path: '/Protocol/*'})}
+                        log={this.props.protocol.log}
+                        index={this.props.uri.param}
                     />
                 </div>
             </section>
@@ -95,12 +99,6 @@ class Settings extends React.Component<Props, {}> {
         })
     }
 }
-
-
-// <Connections
-//     core={this.props.core}
-//     className={this.at('/Connections')}
-// />
 
 export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
