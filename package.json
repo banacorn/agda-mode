@@ -15,29 +15,32 @@
   "engines": {
     "atom": ">=1.19.0 <2.0.0"
   },
+  "devDependencies": {
+    "typescript": "^2.9.2"
+  },
   "dependencies": {
-    "@types/atom": "^1.23",
+    "@types/atom": "^1.28",
     "@types/bluebird": "^3.5",
     "@types/classnames": "^2.2",
     "@types/lodash": "^4.14",
-    "@types/node": "^8.5",
+    "@types/node": "^10.5.1",
     "@types/react": "^16.4",
     "@types/react-dom": "^16.0",
-    "@types/react-redux": "^5.0",
+    "@types/react-redux": "^6.0.3",
     "@types/redux": "^3.6",
-    "@types/redux-actions": "^2.2",
-    "@types/semver": "^5.3",
+    "@types/redux-actions": "^2.3",
+    "@types/semver": "^5.5",
     "bluebird": "^3.5",
     "classnames": "^2.2",
     "duplexer": "^0.1",
     "lodash": "^4.17",
-    "parsimmon": "^1.6",
+    "parsimmon": "^1.11",
     "react": "^16.4",
     "react-dom": "^16.4",
     "react-redux": "^5.0",
     "redux": "^4",
-    "redux-actions": "^2.2",
+    "redux-actions": "^2.4",
     "redux-thunk": "^2.3.0",
-    "semver": "^5.3"
+    "semver": "^5.5"
   }
 }
