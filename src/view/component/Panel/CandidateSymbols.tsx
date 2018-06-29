@@ -1,7 +1,6 @@
 import * as _ from 'lodash';
 import * as React from 'react';
 
-import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
 type Props = React.HTMLProps<HTMLElement> & {

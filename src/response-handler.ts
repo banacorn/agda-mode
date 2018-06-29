@@ -4,14 +4,13 @@ import * as fs from 'fs';
 import { Agda, View } from './type';
 import * as Req from './request';
 import { Core } from './core';
-import * as Action from './view/actions';
 import { parseSExpression, parseAnnotation, parseJudgements, parseError, parseSolutions } from './parser';
 import * as Err from './error';
 
 const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<void> => {
     return Promise.each(responses, handleResponse(core))
         .then(() => {})
-        .catch(Err.Conn.NotEstablished, error => {
+        .catch(Err.Conn.NotEstablished, () => {
             core.view.set('Connection to Agda not established', [], View.Style.Warning);
         })
         .catch(Err.Conn.ConnectionError, error => {

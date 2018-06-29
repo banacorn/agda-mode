@@ -1,11 +1,6 @@
 import * as _ from 'lodash';
 import { parseInputContent } from './../parser';
 
-// type TextBuffer = any;
-// type Point = any;
-// type Range = any;
-// type TextEditorMarker = any;
-// type TextEditor = any;
 import { Point, Range } from 'atom';
 import * as Atom from 'atom';
 
@@ -56,18 +51,18 @@ export default class Goal {
         // element.style.top = `${- this.textEditor.getLineHeightInPixels()}px`;
 
         // decoration
-        const holeDecoration = this.textEditor.decorateMarker(this.marker, {
+        this.textEditor.decorateMarker(this.marker, {
             type: 'highlight',
             class: 'goal'
         });
-        const indexDecoration = this.textEditor.decorateMarker(this.marker, {
+        this.textEditor.decorateMarker(this.marker, {
             type: 'overlay',
             position: 'head',
             item: element
         });
 
         // events
-        this.marker.onDidChange((event) => {
+        this.marker.onDidChange(() => {
             const newRange = this.marker.getBufferRange();
 
             // boundary positions

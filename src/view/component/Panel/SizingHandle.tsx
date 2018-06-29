@@ -1,8 +1,4 @@
 import * as React from 'react';
-import { connect } from 'react-redux';
-import * as classNames from 'classnames';
-
-import { View } from '../../../type';
 
 type Props = {
     onResizeStart?: (pageY: number) => void;

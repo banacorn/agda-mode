@@ -1,9 +1,7 @@
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
-import { inspect } from 'util';
 import * as Err from './error';
 // import { OutOfGoalError, EmptyGoalError, NotLoadedError, InvalidExecutablePathError } from './error';
-import Goal from './editor/goal';
 import { View, Agda, Connection } from './type';
 import { handleResponses } from './response-handler';
 import { Core } from './core';
@@ -307,7 +305,7 @@ export default class Commander {
             .then(expr => {
                 return this.core.editor.goal.pointing()
                     .then(goal => [Req.moduleContents(normalization, expr, goal)(command, connection)])
-                    .catch((error) => [Req.moduleContentsGlobal(normalization, expr)(command, connection)])
+                    .catch(() => [Req.moduleContentsGlobal(normalization, expr)(command, connection)])
             });
     }
 
@@ -448,7 +446,7 @@ export default class Commander {
             });
     }
 
-    private inputSymbolInterceptKey = (kind, key: string) => (): Promise<Agda.Request[]> => {
+    private inputSymbolInterceptKey = (_, key: string) => (): Promise<Agda.Request[]> => {
         this.core.inputMethod.interceptAndInsertKey(key);
         return Promise.resolve([]);
     }

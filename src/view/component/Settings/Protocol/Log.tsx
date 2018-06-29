@@ -51,7 +51,7 @@ type LogProps = React.HTMLProps<HTMLElement> & {
 export default function Log(props: LogProps) {
     return (
         <section className='agda-settings-protocol-log'>
-            <ol>{props.log.map((reqRes, i) =>
+            <ol>{props.log.map((reqRes) =>
                 <ReqRes key={reqRes.id} reqRes={reqRes} navigate={props.navigate} />
             )}</ol>
         </section>

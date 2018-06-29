@@ -1,10 +1,6 @@
-import * as Promise from 'bluebird';
-import { EventEmitter } from 'events';
-import { ParsedPath } from 'path';
 import { Duplex } from 'stream';
 import { AgdaError } from './parser/error';
 
-import { Range } from 'atom';
 import * as Atom from 'atom';
 
 export type TextInput = string;

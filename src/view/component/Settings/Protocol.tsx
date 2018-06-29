@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import * as _ from 'lodash';
 import * as classNames from 'classnames';
-import { View, Parsed, Agda, ValidPath } from '../../../type';
+import { View, ValidPath } from '../../../type';
 import { Core } from '../../../core';
 import * as Action from '../../actions';
 

@@ -1,9 +1,6 @@
 import * as React from 'react';
-import * as Promise from 'bluebird';
 import { inspect } from 'util';
 import { EventEmitter } from 'events';
-
-import { View, Location as Loc } from '../../../../type';
 import { AgdaError } from '../../../../parser';
 
 import Expr from './Expr';
@@ -19,7 +16,6 @@ class Error extends React.Component<Props, {}> {
         const emitter = this.props.emitter;
         const error = this.props.children as AgdaError;
 
-        let content = '';
         switch (error.kind) {
             case 'BadConstructor': return <p className="error">
                     <Location emitter={emitter}>{error.location}</Location><br/>

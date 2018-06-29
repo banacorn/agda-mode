@@ -1,13 +1,11 @@
-import * as _ from 'lodash';
 import * as Promise from 'bluebird';
 import * as React from 'react';
 import * as Redux from 'redux';
 import * as ReactDOM from 'react-dom';
 import * as path from 'path';
-import { Provider, connect } from 'react-redux';
+import { Provider } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
 import { EventEmitter } from 'events';
-import { basename, extname } from 'path';
 import ReduxThunk from 'redux-thunk'
 
 import { Resource } from './util';
@@ -19,7 +17,7 @@ import reducer from './view/reducers';
 import { View as V, Location } from './type';
 import { EVENT } from './view/actions';
 import * as Action from './view/actions';
-import { parseJudgements, parseError, AgdaError } from './parser';
+import { AgdaError } from './parser';
 import { updateBody, updateError, updatePlainText, updateSolutions } from './view/actions';
 import Tab from './view/tab';
 import { OutOfGoalError } from './error';
@@ -27,7 +25,6 @@ import { OutOfGoalError } from './error';
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
-type EditorType = 'main' | 'general' | 'connection';
 class EditorViewManager {
     main: Atom.TextEditor;
     general: MiniEditor;
@@ -89,7 +86,7 @@ class TabManager {
             const { name } = path.parse(mainEditor.getPath());
             return `[Settings] ${name}`
         });
-        this.settings.onOpen((tab, panes) => {
+        this.settings.onOpen((_, panes) => {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
             // render the view
@@ -103,7 +100,7 @@ class TabManager {
             );
         });
 
-        this.settings.onKill(tab => {
+        this.settings.onKill(() => {
             this.store.dispatch(Action.VIEW.toggleSettings());
         });
 
@@ -372,7 +369,7 @@ export default class View {
         this.store.dispatch(updateSolutions(solutions));
     }
 
-    query(header: string = '', message: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {
+    query(header: string = '', _: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {
         this.store.dispatch(Action.QUERY.setPlaceholder(placeholder));
         this.store.dispatch(Action.MODE.query());
         this.store.dispatch(Action.HEADER.update({

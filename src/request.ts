@@ -12,23 +12,6 @@ function getLibraryPath(): string {
     return path.map((p) => { return `\"${ parseFilepath(p) }\"`; }).join(', ');
 }
 
-const sendRequest = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (conn: Connection): Promise<Agda.Response[]> => {
-    const highlightingMethod = atom.config.get('agda-mode.highlightingMethod');
-    let request: string;
-    if (typeof interaction === 'string') {
-        request = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction} )\n`
-    } else {    // interaction is a callback
-        request = `IOTCM \"${conn.filepath}\" ${highlightingLevel} ${highlightingMethod} ( ${interaction(conn)} )\n`;
-    }
-    // pushing the unfullfilled request to the back of the backlog queue of Connection
-    const promise = new Promise<Agda.Response[]>((resolve, reject) => {
-        conn.queue.unshift({ resolve, reject });
-    });
-    // send it out
-    conn.stream.write(request);
-    return promise;
-}
-
 const buildRequest = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (header: Agda.Command, connection: Connection): Agda.Request => {
     const highlightingMethod = atom.config.get('agda-mode.highlightingMethod');
     let body: string;
@@ -153,18 +136,18 @@ export const makeCase = (goal: Goal) => buildRequest('NonInteractive', conn =>
     (`Cmd_make_case ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
 );
 
-export const goalType = (normalization: Agda.Normalization, goal: Goal) => buildRequest('NonInteractive', conn =>
+export const goalType = (normalization: Agda.Normalization, goal: Goal) => buildRequest('NonInteractive', () =>
     (`Cmd_goal_type ${normalization} ${goal.index} noRange \"\"`)
 );
 
-export const context = (normalization: Agda.Normalization, goal: Goal) => buildRequest('NonInteractive', conn =>
+export const context = (normalization: Agda.Normalization, goal: Goal) => buildRequest('NonInteractive', () =>
     (`Cmd_context ${normalization} ${goal.index} noRange \"\"`)
 );
 
-export const goalTypeAndContext = (normalization: Agda.Normalization, goal: Goal) => buildRequest('NonInteractive', conn =>
+export const goalTypeAndContext = (normalization: Agda.Normalization, goal: Goal) => buildRequest('NonInteractive', () =>
     (`Cmd_goal_type_context ${normalization} ${goal.index} noRange \"\"`)
 );
 
-export const goalTypeAndInferredType = (normalization: Agda.Normalization, goal: Goal) => buildRequest('NonInteractive', conn =>
+export const goalTypeAndInferredType = (normalization: Agda.Normalization, goal: Goal) => buildRequest('NonInteractive', () =>
     (`Cmd_goal_type_context_infer ${normalization} ${goal.index} noRange \"${goal.getContent()}\"`)
 );

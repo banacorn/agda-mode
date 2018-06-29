@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import * as _ from 'lodash';
 import * as classNames from 'classnames';
 
 import { View } from '../../../type';
@@ -87,7 +86,7 @@ class Dashboard extends React.Component<Props, {}> {
     render() {
         const { mountAt, settingsView, pending } = this.props;
         const { core } = this.props;
-        const { handleMountAtPane, handleMountAtBottom, handleToggleSettingsView } = this.props;
+        const { handleToggleSettingsView } = this.props;
         const spinnerClassList = classNames({
             pending
         }, 'loading loading-spinner-tiny inline-block');

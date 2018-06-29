@@ -52,7 +52,7 @@ function show(kind: View.Mode, mode: View.Mode, ...classes): string {
 
 class Panel extends React.Component<Props, {}> {
     render() {
-        const { core, emitter, mode, onResize, handelQueryValueChange } = this.props;
+        const { core, emitter, mode, onResize } = this.props;
         const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
         return (

@@ -1,7 +1,5 @@
-import * as _ from 'lodash';
-import * as Promise from 'bluebird'
-import { createAction, handleAction, handleActions, Action } from 'redux-actions';
-import { Parsed, Agda, View, Location, ValidPath } from '../type';
+import { createAction } from 'redux-actions';
+import { Parsed, Agda, View, ValidPath } from '../type';
 import { AgdaError } from '../parser';
 
 // export type EVENT =

@@ -7,7 +7,7 @@ import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
 import Goal from './editor/goal';
 
-import { TextEditor, Point, Range } from 'atom';
+import { Point, Range } from 'atom';
 import * as Atom from 'atom';
 
 export default class Editor {
@@ -44,7 +44,7 @@ export default class Editor {
 
     save(): Promise<void> {
         return new Promise(resolve => {
-            this.textEditor.save().then((e) => {
+            this.textEditor.save().then(() => {
                 resolve();
             });
         })
@@ -355,7 +355,7 @@ class HighlightManager {
         const range = new Range(start, end);
         const marker = this.editor.getTextEditor().markBufferRange(range);
         this.markers.push(marker);
-        const decorator = this.editor.getTextEditor().decorateMarker(marker, {
+        this.editor.getTextEditor().decorateMarker(marker, {
             type: 'highlight',
             class: `highlight-decoration ${annotation.type}`
         });

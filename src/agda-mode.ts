@@ -1,6 +1,4 @@
-import * as _ from 'lodash';
 import { Core, AgdaEditor } from './core';
-import * as Action from './view/actions';
 import { parseCommand } from './parser';
 
 import { CompositeDisposable } from 'atom';
@@ -69,7 +67,7 @@ function isAgdaEditor(editor: Atom.TextEditor | AgdaEditor): editor is AgdaEdito
 }
 
 // the "entry point" of the whole package
-function activate(state: any) {
+function activate(_: any) {
     subscriptions = new CompositeDisposable; // gets disposed on deactivated
 
     // triggered everytime when a new text editor is opened

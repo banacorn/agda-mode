@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import * as _ from 'lodash';
 import * as classNames from 'classnames';
 // import { View } from '../../type';
 import { Core } from '../../core';
@@ -50,7 +49,6 @@ class Settings extends React.Component<Props, {}> {
     }
 
     render() {
-        const { core } = this.props;
         return (
             <section
                 className='agda-settings'

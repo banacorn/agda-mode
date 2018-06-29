@@ -1,10 +1,5 @@
-import * as _ from 'lodash';
-import * as Redux from 'redux';
-import * as Promise from 'bluebird';
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
-
-import { View as ViewType } from './type';
 
 // # Components
 import Commander from './commander';

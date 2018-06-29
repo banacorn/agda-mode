@@ -1,15 +1,11 @@
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
-import * as path from 'path';
-import { inspect } from 'util';
-import { spawn, exec, ChildProcess } from 'child_process';
-import { Duplex } from 'stream';
+import { spawn, exec } from 'child_process';
 var duplex = require('duplexer');
 
 import Rectifier from './parser/stream/rectifier';
-import { View, Path, ValidPath, Version, Connection } from './type';
+import { View, Path, ValidPath, Connection } from './type';
 import * as Err from './error';
-import { guid } from './util';
 import { Core } from './core';
 import { parseFilepath, parseResponses, parseFileType } from './parser';
 import * as Action from "./view/actions";
@@ -30,7 +26,7 @@ export default class ConnectionManager {
 
     connect(): Promise<Connection> {
         return getAgdaPath()
-            .catch(Err.Conn.NoPathGiven, error => {
+            .catch(Err.Conn.NoPathGiven, () => {
                 return autoSearch('agda');
             })
             .then(validateAgda)
@@ -162,7 +158,7 @@ export function autoSearch(path: string): Promise<string> {
     }
 
     return new Promise<string>((resolve, reject) => {
-        exec(`which ${path}`, (error, stdout, stderr) => {
+        exec(`which ${path}`, (error, stdout) => {
             if (error) {
                 reject(new Err.Conn.AutoSearchError(`Cannot find "${path}".\nLocating "${path}" in the user's path with 'which' but failed with the following error message: ${error.toString()}`, path));
             } else {
@@ -274,7 +270,7 @@ export const establishConnection = (filepath: string) => ({ path, version }: Val
             ));
         });
         // stream the incoming data to the parser
-        agdaProcess.stdout.once('data', (data) => {
+        agdaProcess.stdout.once('data', () => {
             resolve({
                 path,
                 version,

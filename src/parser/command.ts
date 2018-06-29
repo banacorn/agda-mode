@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import { Agda } from '../type';
 
 function parseNormalization(raw: string): Agda.Normalization {

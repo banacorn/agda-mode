@@ -1,5 +1,4 @@
 import * as Promise from 'bluebird';
-import * as _ from 'lodash';
 import * as path from 'path';
 import { EventEmitter } from 'events';
 
@@ -74,10 +73,10 @@ export default class Tab {
     // open a new tab!
     open(): Promise<Tab> {
         //  useless for now
-        let options = {
-            searchAllPanes: true,
-            split: 'right'
-        };
+        // let options = {
+        //     searchAllPanes: true,
+        //     split: 'right'
+        // };
         const uri = this.getURI();
         const previousActivePane = atom.workspace.getActivePane();
 

@@ -1,12 +1,8 @@
 import * as _ from 'lodash';
 import { combineReducers } from 'redux';
-import { inspect } from 'util';
-import { createAction, handleActions, Action } from 'redux-actions';
-import { EventEmitter } from 'events'
-import * as Conn from '../connection';
-import * as Parser from '../parser';
+import { handleActions, Action } from 'redux-actions';
 import { View, Agda, Parsed } from '../type';
-import { EVENT, MODE, VIEW, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, CONNECTION } from './actions';
+import { MODE, VIEW, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, CONNECTION } from './actions';
 import { translate } from '../input-method';
 
 // default state

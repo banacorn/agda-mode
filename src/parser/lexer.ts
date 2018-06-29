@@ -34,7 +34,7 @@ export default class Lexer {
                 return token.content
                     .split(regex)
                     .filter((t) => { return t !== undefined && t !== null; })
-                    .map((t, i) => {
+                    .map((t) => {
                         const type = regex.test(t) ? targetType : sourceType;
                         const cursorOld = cursor;
                         cursor += t.length;

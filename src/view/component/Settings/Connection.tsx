@@ -1,10 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import * as _ from 'lodash';
 import * as classNames from 'classnames';
-import { View, ValidPath } from '../../../type';
+import { View } from '../../../type';
 import * as Conn from '../../../connection';
-import * as Err from '../../../error';
 import * as Action from '../../actions';
 import { Core } from '../../../core';
 import MiniEditor from '../MiniEditor';
@@ -102,7 +100,7 @@ class Connection extends React.Component<Props, {}> {
     // Languager Server
     ////////////////////////////////////////////////////
 
-    toggleLanguageServerConnection(event) {
+    toggleLanguageServerConnection() {
 
     }
 
@@ -140,10 +138,6 @@ class Connection extends React.Component<Props, {}> {
         const className = classNames('agda-settings-connection', this.props.className, {
             querying: querying
         });
-        const agdaConnectionStatus = this.agdaConnected() ?
-            <span className='inline-block highlight-success'>connected</span> :
-            <span className='inline-block highlight-warning'>not connected</span>;
-        const agdaVersion = this.agdaConnected() && <span className='inline-block highlight'>{agda.version.raw}</span>;
         return (
             <section className={className}>
                 <form>
