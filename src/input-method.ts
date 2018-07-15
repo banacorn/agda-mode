@@ -84,10 +84,10 @@ export default class InputMethod {
     private mute: boolean;
     private subscriptions: Atom.CompositeDisposable;
     private editor: Atom.TextEditor;
-    private decoration: Atom.Decoration;
+    private decorations: Atom.Decoration[];
 
     // visual marker
-    textEditorMarker: Atom.DisplayMarker;
+    textEditorMarkers: Atom.DisplayMarker[];
 
 
     constructor(private core: Core) {
@@ -145,17 +145,19 @@ export default class InputMethod {
                 // add class 'agda-mode-input-method-activated'
                 const editorElement = atom.views.getView(this.editor);
                 editorElement.classList.add('agda-mode-input-method-activated');
-
                 // monitors raw text buffer and figures out what happend
-                const startPosition = this.editor.getCursorBufferPosition();
-                this.textEditorMarker = this.editor.markBufferRange(new Range(startPosition, startPosition), {});
-                this.textEditorMarker.onDidChange(this.dispatchEvent);
+                const ranges = this.editor.getSelectedBufferRanges();
 
-                // decoration
-                this.decoration = this.editor.decorateMarker(this.textEditorMarker, {
-                    type: 'highlight',
-                    class: 'input-method-decoration'
-                });
+                this.textEditorMarkers = ranges.map(range => this.editor.markBufferRange(new Range(range.start, range.end), {}));
+                // monitors only the first marker
+                this.textEditorMarkers[0].onDidChange(this.dispatchEvent);
+                // decorations
+                this.decorations = this.textEditorMarkers.map((textEditorMarker) =>
+                    this.editor.decorateMarker(textEditorMarker, {
+                        type: 'highlight',
+                        class: 'input-method-decoration'
+                    })
+                );
 
                 // insert '\' at the cursor quitely without triggering any shit
                 this.muteEvent(() => {
@@ -188,8 +190,8 @@ export default class InputMethod {
             const editorElement = atom.views.getView(this.core.view.editors.main);
             editorElement.classList.remove('agda-mode-input-method-activated');
             this.core.view.store.dispatch(INPUT_METHOD.deactivate());
-            this.textEditorMarker.destroy();
-            this.decoration.destroy();
+            this.textEditorMarkers.forEach(marker => marker.destroy());
+            this.decorations.forEach(deco => deco.destroy());
             this.activated = false;
         }
     }
@@ -214,15 +216,17 @@ export default class InputMethod {
             const rangeNew = new Range(event.newTailBufferPosition, event.newHeadBufferPosition);
             const buffer = this.editor.getBuffer().getTextInRange(rangeNew);
 
-            // const for result of Range::compare()
+            const lengthOld = this.editor.getBuffer().characterIndexForPosition(rangeOld.end) - this.editor.getBuffer().characterIndexForPosition(rangeOld.start);
+            const lengthNew = this.editor.getBuffer().characterIndexForPosition(rangeNew.end) - this.editor.getBuffer().characterIndexForPosition(rangeNew.start);
+
             const INSERT = -1;
             const DELETE = 1;
-            const change = rangeNew.compare(rangeOld);
+
+            const change = lengthNew > lengthOld ? INSERT : (lengthNew < lengthOld ? DELETE : 0);
 
             if (rangeNew.isEmpty()) {
                 this.deactivate();
-            }
-            else if (change === INSERT) {
+            } else if (change === INSERT) {
                 const char = buffer.substr(-1);
                 this.core.view.store.dispatch(INPUT_METHOD.insertChar(char));
                 const {translation, further} = this.core.view.store.getState().inputMethod;
@@ -251,20 +255,31 @@ export default class InputMethod {
 
     // inserts 1 character to the text buffer (may trigger some events)
     insertCharToBuffer(char: string) {
-        // replace previously selected text with '\'
-        const selectedRange = this.editor.getSelectedBufferRange();
-        this.editor.getBuffer().delete(selectedRange);
-        // insert the desired character
-        this.editor.getBuffer().insert(this.textEditorMarker.getBufferRange().end, char);
-        // in case that '\' is being inserted and happens to be selected, unselected it
-        if (this.editor.getSelectedText() === '\\') {
-            const cursor = this.editor.getSelectedBufferRange().end;
-            this.editor.setCursorBufferPosition(cursor);
-        }
+        // get all selections and sort them
+        // the last selection will be placed in the front
+        const selections = _.reverse(_.sortBy(this.editor.getSelections(), (selection) => this.editor.getBuffer().characterIndexForPosition(selection.getBufferRange().start)))
+
+        selections.forEach((selection) => {
+            const range = selection.getBufferRange();
+
+            // remove selected text
+            this.editor.getBuffer().delete(range);
+            // insert the desired character
+            this.editor.getBuffer().insert(range.start, char);
+
+            // in case that '\' is being inserted and happens to be selected,
+            // clear the selection and move the cursor at the end
+            if (this.editor.getBuffer().getTextInRange(range) === '\\') {
+                selection.clear();
+                this.editor.addCursorAtBufferPosition(range.end);
+            }
+        })
     }
 
     // replace content of the marker with supplied string (may trigger some events)
     replaceBuffer(str: string) {
-        this.editor.getBuffer().setTextInRange(this.textEditorMarker.getBufferRange(), str);
+        this.textEditorMarkers.forEach((marker) => {
+            this.editor.getBuffer().setTextInRange(marker.getBufferRange(), str);
+        })
     }
 }
