@@ -1,4 +1,38 @@
 # See https://atom.io/docs/latest/creating-a-package#menus for more details
+'context-menu':
+    'atom-text-editor' : [
+        'label': 'Agda Mode'
+        'submenu': [
+            { 'label': 'Load', 'command': 'agda-mode:load' }
+            { 'label': 'Quit', 'command': 'agda-mode:quit' }
+            { 'label': 'Kill and Restart', 'command': 'agda-mode:restart' }
+            { 'label': 'Abort Command', 'command': 'agda-mode:abort' }
+            { 'label': 'Give', 'command': 'agda-mode:give' }
+            { 'label': 'Refine', 'command': 'agda-mode:refine' }
+            { 'label': 'Auto', 'command': 'agda-mode:auto' }
+            { 'label': 'Case', 'command': 'agda-mode:case' }
+            { 'label': 'Compile', 'command': 'agda-mode:compile' }
+            { 'label': 'Toggle Display of Implicit Arguments', 'command': 'agda-mode:toggle-display-of-implicit-arguments' }
+            { 'label': 'Solve Constraints', 'command': 'agda-mode:solve-constraints' }
+            { 'label': 'Show Constraints', 'command': 'agda-mode:show-constraints' }
+            { 'label': 'Show Goals', 'command': 'agda-mode:show-goals' }
+            { 'label': 'Next Goal', 'command': 'agda-mode:next-goal' }
+            { 'label': 'Previous Goal', 'command': 'agda-mode:previous-goal' }
+            { 'label': 'Infer Type', 'command': 'agda-mode:infer-type[Simplified]' }
+            { 'label': 'Module Contents', 'command': 'agda-mode:module-contents[Simplified]' }
+            { 'label': 'Why In Scope', 'command': 'agda-mode:why-in-scope' }
+            { 'label': 'Compute Normal Form', 'command': 'agda-mode:compute-normal-form[DefaultCompute]' }
+            { 'label': 'Goal Type', 'command': 'agda-mode:goal-type[Simplified]' }
+            { 'label': 'Context', 'command': 'agda-mode:context[Simplified]' }
+            { 'label': 'Goal Type and Context', 'command': 'agda-mode:goal-type-and-context[Simplified]' }
+            { 'label': 'Goal Type and Inferred Type', 'command': 'agda-mode:goal-type-and-inferred-type[Simplified]' }
+            { 'label': 'Query Unicode Symbol Input Sequence', 'command': 'agda-mode:query-symbol' }
+        ]
+    ]
+
+
+
+# See https://atom.io/docs/latest/creating-a-package#menus for more details
 'menu': [
   {
     'label': 'Packages'
