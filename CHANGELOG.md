@@ -1,3 +1,10 @@
+## 0.7.14
+* Fix and implement #59, #60
+
+## 0.7.13
+* Simplify connection settings
+* Fix #54
+
 ## 0.7.12
 * Simplify connection settings
 * Fix #54
