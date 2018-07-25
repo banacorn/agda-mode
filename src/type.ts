@@ -329,6 +329,10 @@ namespace Agda {
         }
     }
 
+    export interface WhyInScope {
+        location: Location
+    }
+
     // Resp_Status Status
     export interface Status {
         kind: 'Status';

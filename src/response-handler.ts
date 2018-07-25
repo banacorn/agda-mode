@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import { Agda, View } from './type';
 import * as Req from './request';
 import { Core } from './core';
-import { parseSExpression, parseAnnotation, parseJudgements, parseError, parseSolutions } from './parser';
+import { parseSExpression, parseAnnotation, parseJudgements, parseError, parseSolutions, parseWhyInScope } from './parser';
 import * as Err from './error';
 
 const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<void> => {
@@ -158,7 +158,12 @@ function handleDisplayInfo(core: Core, response: Agda.DisplayInfo)  {
             break;
         case 'WhyInScope':
             if (core.commander.currentCommand.kind === "GotoDefinition") {
-                console.log(response.content);
+                const result = parseWhyInScope(response.content);
+                if (result) {
+                    core.editor.jumpToLocation(result.location);
+                } else {
+                    core.view.set('Go to Definition', ['not in scope'], View.Style.Info);
+                }
             } else {
                 core.view.set('Scope Info', response.content, View.Style.Info);
             }

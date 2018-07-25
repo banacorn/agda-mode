@@ -1,6 +1,7 @@
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { ParseError } from '../error';
+import { location } from './error';
 import { Agda, FileType } from '../type';
 
 function parseResponses(raw: string, fileType: FileType): Promise<Agda.Response[]> {
@@ -220,6 +221,38 @@ function parseFileType(filepath: string): FileType {
         return FileType.Agda;
     }
 }
+//
+// const whyInScope: Parser<Agda.WhyInScope> = seq(
+//         trimBeforeAndSkip('is in scope as'),
+//         // alt(trimBeforeAndSkip('!=<'), trimBeforeAndSkip('=<'), trimBeforeAndSkip('!=')),
+//         // trimBeforeAndSkip('of type'),
+//         // trimBeforeAndSkip('when checking that the expression'),
+//         // trimBeforeAndSkip('has type'),
+//         all
+//     ).map((result) => {
+//         return <Agda.WhyInScope>{
+//             expr: result[0],
+//         };
+//     });
+
+// TODO: parse it better
+const parseLocation = (input) => location.parse(input);
+function parseWhyInScope(raws: string[]): Agda.WhyInScope {
+    const regex = /its definition at (.*)$/;
+    const occurences = raws
+        .filter(str => regex.test(str))
+        .map(str => str.match(regex)[1])
+        .map(parseLocation)
+        .filter(loc => loc.status)
+
+    if (occurences.length > 0) {
+        return {
+            location: occurences[0]['value']
+        }
+    } else {
+        return null;
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Parsing S-Expressions
@@ -297,5 +330,6 @@ export {
     parseResponses,
     prioritiseResponses,
     parseAnnotation,
-    parseSExpression
+    parseSExpression,
+    parseWhyInScope
 }

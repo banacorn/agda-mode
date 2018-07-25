@@ -645,5 +645,6 @@ function parseError(input: string): AgdaError {
 
 export {
     parseError,
+    location,
     AgdaError
 }
