@@ -255,7 +255,7 @@ namespace Agda {
         'GoalType' | 'Context' | 'GoalTypeAndContext' | 'GoalTypeAndInferredType' |
         'InputSymbol' | 'InputSymbolCurlyBracket' | 'InputSymbolBracket'
         | 'InputSymbolParenthesis' | 'InputSymbolDoubleQuote' | 'InputSymbolSingleQuote'
-        | 'InputSymbolBackQuote' | 'QuerySymbol';
+        | 'InputSymbolBackQuote' | 'QuerySymbol' | 'GotoDefinition';
 
     export type Normalization = 'Simplified' | 'Instantiated' | 'Normalised';
     export type ComputeMode = 'DefaultCompute' | 'IgnoreAbstract' | 'UseShowInstance';

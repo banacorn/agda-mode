@@ -70,6 +70,4 @@
     'ctrl-u ctrl-c        ctrl-.': 'agda-mode:goal-type-and-inferred-type[Instantiated]'
     'ctrl-u ctrl-u ctrl-c ctrl-.': 'agda-mode:goal-type-and-inferred-type[Normalised]'
 
-    # invoke input method
-    # '\\': 'agda-mode:input-symbol'
-    # 'alt-/': 'agda-mode:input-symbol'
+    'alt-cmd-\\': 'agda-mode:go-to-definition'

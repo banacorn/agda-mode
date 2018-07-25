@@ -20,6 +20,7 @@ function toDescription(normalization: Agda.Normalization): string {
 
 export default class Commander {
     private loaded: boolean;
+    public currentCommand: Agda.Command;
 
     private history: {
         checkpoints: number[];  // checkpoint stack
@@ -83,6 +84,8 @@ export default class Commander {
     }
 
     dispatch = (command: Agda.Command): Promise<void> => {
+        // register current command
+        this.currentCommand = command;
         // some commands can be executed without connection to Agda
         const needNoConnection = _.includes([
                 'Quit',
@@ -192,6 +195,8 @@ export default class Commander {
                 return this.inputSymbolInterceptKey(command.kind, '`')();
             case 'QuerySymbol':
                 return this.querySymbol();
+            case 'GotoDefinition':
+                return this.gotoDefinition(command, connection);
             default:
                 throw `undispatched command type\n${JSON.stringify(command)}`
         }
@@ -444,6 +449,23 @@ export default class Commander {
                     View.Style.PlainText);
                 return [];
             });
+    }
+
+    private gotoDefinition = (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
+
+        // select and return the text of larger syntax node unless already selected
+        var name;
+        const selected = this.core.editor.getTextEditor().getSelectedText();
+        if (selected) {
+            name = selected;
+        } else {
+            this.core.editor.getTextEditor().selectLargerSyntaxNode()
+            name = this.core.editor.getTextEditor().getSelectedText();
+        }
+
+        return this.core.editor.goal.pointing()
+            .then(goal => [Req.gotoDefinition(name, goal)(command, connection)])
+            .catch(Err.OutOfGoalError, () => [Req.gotoDefinitionGlobal(name)(command, connection)])
     }
 
     private inputSymbolInterceptKey = (_, key: string) => (): Promise<Agda.Request[]> => {

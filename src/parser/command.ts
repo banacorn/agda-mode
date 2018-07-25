@@ -125,6 +125,9 @@ function parseCommand(raw: string): Agda.Command {
         case 'query-symbol': return {
             kind: 'QuerySymbol',
         };
+        case 'go-to-definition': return {
+            kind: 'GotoDefinition',
+        };
 
         default: throw `unknown command ${raw}`;
     }

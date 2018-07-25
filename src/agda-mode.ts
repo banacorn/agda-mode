@@ -51,6 +51,7 @@ const commands = [
     'agda-mode:input-symbol-single-quote',
     'agda-mode:input-symbol-back-quote',
     'agda-mode:query-symbol',
+    'agda-mode:go-to-definition',
 
     'core:undo'
 ]

@@ -157,7 +157,11 @@ function handleDisplayInfo(core: Core, response: Agda.DisplayInfo)  {
             core.view.set('Module Contents', response.content, View.Style.Info);
             break;
         case 'WhyInScope':
-            core.view.set('Scope Info', response.content, View.Style.Info);
+            if (core.commander.currentCommand.kind === "GotoDefinition") {
+                console.log(response.content);
+            } else {
+                core.view.set('Scope Info', response.content, View.Style.Info);
+            }
             break;
         case 'Context':
             core.view.setJudgements('Context', parseJudgements(response.content));

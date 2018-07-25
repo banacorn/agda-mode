@@ -151,3 +151,9 @@ export const goalTypeAndContext = (normalization: Agda.Normalization, goal: Goal
 export const goalTypeAndInferredType = (normalization: Agda.Normalization, goal: Goal) => buildRequest('NonInteractive', () =>
     (`Cmd_goal_type_context_infer ${normalization} ${goal.index} noRange \"${goal.getContent()}\"`)
 );
+
+export const gotoDefinition = (expr: string, goal: Goal) =>
+    buildRequest('NonInteractive', `Cmd_why_in_scope ${goal.index} noRange \"${expr}\"`);
+
+export const gotoDefinitionGlobal = (expr: string) =>
+    buildRequest('None', `Cmd_why_in_scope_toplevel \"${expr}\"`)
