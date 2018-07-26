@@ -281,12 +281,17 @@ export default class Commander {
     //
 
     private whyInScope = (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.view.query('Scope info', [], View.Style.PlainText, 'name:')
-            .then((expr) => {
-                return this.core.editor.goal.pointing()
-                    .then(goal => [Req.whyInScope(expr, goal)(command, connection)])
-                    .catch(Err.OutOfGoalError, () => [Req.whyInScopeGlobal(expr)(command, connection)])
-            });
+        const selectedText = this.core.editor.getTextEditor().getSelectedText();
+        if (selectedText) {
+            return Promise.resolve([Req.whyInScopeGlobal(selectedText)(command, connection)])
+        } else {
+            return this.core.view.query('Scope info', [], View.Style.PlainText, 'name:')
+                .then((expr) => {
+                    return this.core.editor.goal.pointing()
+                        .then(goal => [Req.whyInScope(expr, goal)(command, connection)])
+                        .catch(Err.OutOfGoalError, () => [Req.whyInScopeGlobal(expr)(command, connection)])
+                });
+        }
     }
 
     private inferType = (normalization: Agda.Normalization) => (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
