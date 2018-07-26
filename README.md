@@ -11,7 +11,7 @@ For people who don't wanna use Emacs for whatever reasons.
 
 ## Installation
 
-1. Ensure you have the Atom package [language-agda](https://atom.io/packages/language-agda) installed and enabled.
+1. **Ensure you have the Atom package [language-agda](https://atom.io/packages/language-agda) installed and enabled**.
 2. Ensure you have [agda](http://wiki.portal.chalmers.se/agda/pmwiki.php?n=Main.Download) properly installed. Try `agda` in your console.
 3. Install the package:
   * from the editor: `Atom > Preferences... > Install`, search for `agda-mode` and install
@@ -26,67 +26,71 @@ Go to `Settings > Editor > Scroll Past End` and enable it to allow the editor to
 
 ## Commands
 
-This is an exhaustive list of available commands.
+* <kbd>C-c</kbd> stands for "press <kbd>Ctrl</kbd> and <kbd>c</kbd> at the same time"
+* When it comes to combos like <kbd>C-c</kbd> <kbd>C-l</kbd>, you can often slur them into "hold <kbd>Ctrl</kbd> while pressing <kbd>c</kbd> and then <kbd>l</kbd>"
+
+This is an exhaustive list of available commands:
 
 | Keymap            | Command                                 | Global | Goal-specific |
 |------------------:|:----------------------------------------|:------:|:-------------:|
-| `    C-c     C-l` | load a file                             |   ✓    |               |
-| `    C-c C-x C-q` | quit                                    |   ✓    |               |
-| `    C-c C-x C-r` | kill and restart Agda                   |   ✓    |               |
-| `    C-c C-x C-c` | compile                                 |   ✓    |               |
-| `    C-c C-x C-h` | toggle display of implicit arguments    |   ✓    |               |
-| `    C-c     C-s` | solve constraints                       |   ✓    |               |
-| `    C-c     C-=` | show constraints                        |   ✓    |               |
-| `    C-c     C-?` | show goals                              |   ✓    |               |
-| `    C-c     C-f` | next goal (forward)                     |   ✓    |               |
-| `    C-c     C-b` | previous goal (back)                    |   ✓    |               |
-| `    C-c C-x C-d` | toggle panel docking                    |   ✓    |               |
-| `    C-c     C-n` | compute normal form                     |   ✓    |       ✓       |
-| `C-u C-c     C-n` | compute normal form (ignoring abstract) |   ✓    |       ✓       |
-| `    C-c     C-w` | why in scope                            |   ✓    |       ✓       |
-| `    C-c     C-SPC` | give                                  |        |       ✓       |
-| `    C-c     C-r` | refine                                  |        |       ✓       |
-| `    C-c     C-a` | auto                                    |        |       ✓       |
-| `    C-c     C-c` | case                                    |        |       ✓       |
+| <kbd>C-c</kbd>                <kbd>C-l</kbd> | load a file                             |   ✓    |               |
+| <kbd>C-c</kbd> <kbd>C-x</kbd> <kbd>C-q</kbd> | quit                                    |   ✓    |               |
+| <kbd>C-c</kbd> <kbd>C-x</kbd> <kbd>C-r</kbd> | kill and restart Agda                   |   ✓    |               |
+| <kbd>C-c</kbd> <kbd>C-x</kbd> <kbd>C-c</kbd> | compile                                 |   ✓    |               |
+| <kbd>C-c</kbd> <kbd>C-x</kbd> <kbd>C-a</kbd> | abort                                   |   ✓    |               |
+| <kbd>C-c</kbd> <kbd>C-x</kbd> <kbd>C-h</kbd> | toggle display of implicit arguments    |   ✓    |               |
+| <kbd>C-c</kbd>                <kbd>C-=</kbd> | show constraints                        |   ✓    |               |
+| <kbd>C-c</kbd>                <kbd>C-s</kbd> | solve constraints                       |   ✓    |               |
+| <kbd>C-c</kbd>                <kbd>C-?</kbd> | show goals                              |   ✓    |               |
+| <kbd>C-c</kbd>                <kbd>C-f</kbd> | next goal (forward)                     |   ✓    |               |
+| <kbd>C-c</kbd>                <kbd>C-b</kbd> | previous goal (back)                    |   ✓    |               |
+| <kbd>C-alt-\\</kbd> or <kbd>alt-cmd-\\</kbd> | go to definition                    |   ✓    |               |
+| <kbd>C-c</kbd> <kbd>C-x</kbd> <kbd>C-d</kbd> | toggle panel docking                    |   ✓    |               |
+|                               <kbd>C-c</kbd> <kbd>C-n</kbd>   | compute normal form                     |   ✓    |       ✓       |
+|                <kbd>C-u</kbd> <kbd>C-c</kbd> <kbd>C-n</kbd>   | compute normal form (ignoring abstract) |   ✓    |       ✓       |
+| <kbd>C-u</kbd> <kbd>C-u</kbd> <kbd>C-c</kbd> <kbd>C-n</kbd>   | compute normal form (use show instance) |   ✓    |       ✓       |
+| <kbd>C-c</kbd>                <kbd>C-w</kbd> | why in scope                            |   ✓    |       ✓       |
+| <kbd>C-c</kbd>                <kbd>C-SPC</kbd> | give                                  |        |       ✓       |
+| <kbd>C-c</kbd>                <kbd>C-r</kbd> | refine                                  |        |       ✓       |
+| <kbd>C-c</kbd>                <kbd>C-a</kbd> | auto                                    |        |       ✓       |
+| <kbd>C-c</kbd>                <kbd>C-c</kbd> | case                                    |        |       ✓       |
 
 Commands listed below support 3 different levels of normalization.
 
-| Keymap            | Command                                 | Global | Goal-specific |
-|------------------:|:----------------------------------------|:------:|:-------------:|
-| `    C-c     C-d` | infer type                              |   ✓    |       ✓       |
-| `    C-c     C-o` | module contents                         |   ✓    |       ✓       |
-| `    C-c     C-t` | goal type                               |        |       ✓       |
-| `    C-c     C-e` | context                                 |        |       ✓       |
-| `    C-c     C-,` | goal type and context                   |        |       ✓       |
-| `    C-c     C-.` | goal type and inferred type             |        |       ✓       |
+| Keymap                        | Command                                 | Global | Goal-specific |
+|------------------------------:|:----------------------------------------|:------:|:-------------:|
+| <kbd>C-c</kbd> <kbd>C-d</kbd> | infer type                              |   ✓    |       ✓       |
+| <kbd>C-c</kbd> <kbd>C-o</kbd> | module contents                         |   ✓    |       ✓       |
+| <kbd>C-c</kbd> <kbd>C-t</kbd> | goal type                               |        |       ✓       |
+| <kbd>C-c</kbd> <kbd>C-e</kbd> | context                                 |        |       ✓       |
+| <kbd>C-c</kbd> <kbd>C-,</kbd> | goal type and context                   |        |       ✓       |
+| <kbd>C-c</kbd> <kbd>C-.</kbd> | goal type and inferred type             |        |       ✓       |
 
 Levels of normalization
 
-| Prefix     | Normalization      |
-|-----------:|:-------------------|
-| `    `     | Simplified         |
-| `C-u`      | No normalization   |
-| `C-u C-u ` | Full normalization |
+| Prefix                        | Normalization      |
+|------------------------------:|:-------------------|
+|                               | Simplified         |
+| <kbd>C-u</kbd>                | No normalization   |
+| <kbd>C-u</kbd> <kbd>C-u</kbd> | Full normalization |
 
 For example, `C-u C-c C-d` if you want to infer a type without normalizing it.
 See [Agda:Issue 850](https://code.google.com/p/agda/issues/detail?id=850) for more discussion.
 
-### Unicode Input method (only invokable under `.agda` or `.lagda`)
+### Unicode input method (only invokable under `.agda` or `.lagda`)
 
 The key mapping of symbols are the same as in Emacs. For example: `\bn` for `ℕ`, `\all` for `∀`, `\r` or `\to` for `→`, etc.
 
-| Keymap            | Command                     |
-|------------------:|:----------------------------|
-| `\\` or `alt-/`   | input symbol                |
+| Keymap                                     | Command                            |
+|-------------------------------------------:|:-----------------------------------|
+| <kbd>\\</kbd> or <kbd>alt-/</kbd>          | input symbol                       |
+| <kbd>C-u</kbd> <kbd>C-x</kbd> <kbd>=</kbd> | lookup the key mapping of a symbol |
 
-### Commands not yet supported
+## How specify options to Agda
 
-| Keymap            | Command               | Reason               |
-|------------------:|:----------------------|:---------------------|
-| `    C-c C-x C-d` | remove goals and highlighting (deactivate) |
-| `    C-c C-x M- ` | comment/uncomment the rest of the buffer | nope |
+Go to `Settings > Packages > agda-mode`, put the options after the path of Agda in the `Settings` (exactly like what you would do in CLI). For example:
 
-
+![image](https://i.imgur.com/SwKSWXZ.png)
 
 ## How to contribute
 
