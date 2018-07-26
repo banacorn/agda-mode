@@ -70,4 +70,12 @@
     'ctrl-u ctrl-c        ctrl-.': 'agda-mode:goal-type-and-inferred-type[Instantiated]'
     'ctrl-u ctrl-u ctrl-c ctrl-.': 'agda-mode:goal-type-and-inferred-type[Normalised]'
 
+'.platform-darwin atom-text-editor.agda':
     'alt-cmd-\\': 'agda-mode:go-to-definition'
+    'ctrl-alt-\\': 'agda-mode:go-to-definition'
+
+'.platform-win32 atom-text-editor.agda':
+    'ctrl-alt-\\': 'agda-mode:go-to-definition'
+
+'.platform-linux atom-text-editor.agda':
+    'ctrl-alt-\\': 'agda-mode:go-to-definition'
