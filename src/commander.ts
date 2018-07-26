@@ -116,6 +116,7 @@ export default class Commander {
                         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
                         this.core.view.mountPanel(currentMountingPosition);
                         this.core.view.activatePanel();
+                        this.core.view.set('Type Checking ...', []);
                     }
                     // initialize connection
                     return this.core.connection.connect();
