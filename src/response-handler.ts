@@ -112,7 +112,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             return null;
 
         case 'RunningInfo':
-            core.editor.addRunningInfo(response.message.replace(/\\n/g, '\n'))
+            core.editor.runningInfo.add(response.message.replace(/\\n/g, '\n'))
             return null;
 
         case 'HighlightClear':

@@ -10,6 +10,48 @@ import Goal from './editor/goal';
 import { Point, Range } from 'atom';
 import * as Atom from 'atom';
 
+class RunningInfoManager {
+    private isOpeningEditor: boolean;
+    private editor: Atom.TextEditor;
+    private buffer: string[];
+
+    constructor() {
+        this.isOpeningEditor = false;
+        this.editor = undefined;
+        this.buffer = [];
+    }
+
+    add(info: string) {
+        if (this.editor) {
+            this.editor.insertText(info);
+        } else {
+            if (this.isOpeningEditor) {
+                this.buffer.push(info);
+            } else {
+                this.isOpeningEditor = true;
+                atom.workspace.open(undefined, {
+                    activateItem: false
+                }).then(editor => {
+                    this.editor = <Atom.TextEditor>editor;
+                    this.editor.insertText(this.buffer.join(''));
+                    this.editor.onDidDestroy(() => {
+                        this.destroy();
+                    })
+                    this.isOpeningEditor = false;
+                    this.buffer = [];
+                });
+            }
+        }
+    }
+
+    destroy() {
+        this.buffer = [];
+        this.editor = undefined;
+        this.isOpeningEditor = false;
+    }
+}
+
+
 export default class Editor {
 
     private core: Core;
@@ -17,9 +59,8 @@ export default class Editor {
     public highlighting: HighlightManager;
     public goal: GoalManager;
 
-    private runningInfoEditorOpening: boolean;
-    private runningInfoEditor: Atom.TextEditor;
-    private tempRunningInfos: string[];
+    public runningInfo: RunningInfoManager;
+
 
     constructor(core: Core, textEditor: Atom.TextEditor) {
         this.core = core;
@@ -27,10 +68,7 @@ export default class Editor {
         this.goal = new GoalManager(textEditor);
         this.highlighting = new HighlightManager(this);
 
-        this.runningInfoEditorOpening = false;
-        this.runningInfoEditor = undefined;
-        this.tempRunningInfos = [];
-
+        this.runningInfo = new RunningInfoManager;
     }
 
     getTextEditor(): Atom.TextEditor {
@@ -290,33 +328,6 @@ export default class Editor {
         return Promise.resolve();
     }
 
-    addRunningInfo(info: string) {
-        if (this.runningInfoEditor) {
-            this.runningInfoEditor.insertText(info);
-        } else {
-            if (this.runningInfoEditorOpening) {
-                this.tempRunningInfos.push(info);
-            } else {
-                this.runningInfoEditorOpening = true;
-                atom.workspace.open(undefined, {
-                    activateItem: false
-                }).then(editor => {
-                    this.runningInfoEditor = <Atom.TextEditor>editor;
-                    this.runningInfoEditor.insertText(this.tempRunningInfos.join(''));
-                    this.runningInfoEditor.onDidDestroy(() => {
-                        this.destroyRunningInfo();
-                    })
-                    this.runningInfoEditorOpening = false;
-                    this.tempRunningInfos = [];
-                });
-            }
-        }
-    }
-    destroyRunningInfo() {
-        this.tempRunningInfos = [];
-        this.runningInfoEditor = undefined;
-        this.runningInfoEditorOpening = false;
-    }
 }
 
 class GoalManager {
