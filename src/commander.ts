@@ -448,15 +448,26 @@ export default class Commander {
     }
 
     private querySymbol = (): Promise<Agda.Request[]> => {
-        return this.core.view.query(`Query Unicode symbol input sequences`, [], View.Style.PlainText, 'symbol:')
-            .then(symbol => {
-                const sequences = Table[symbol.codePointAt(0)] || [];
-                this.core.view.set(
-                    `Input sequence for ${symbol}`,
-                    sequences,
-                    View.Style.PlainText);
-                return [];
-            });
+        const selectedText = this.core.editor.getTextEditor().getSelectedText();
+        if (selectedText.length > 0) {
+            const symbol = selectedText[0];
+            const sequences = Table[symbol.codePointAt(0)] || [];
+            this.core.view.set(
+                `Input sequence for ${symbol}`,
+                sequences,
+                View.Style.PlainText);
+            return Promise.resolve([]);
+        } else {
+            return this.core.view.query(`Query Unicode symbol input sequences`, [], View.Style.PlainText, 'symbol:')
+                .then(symbol => {
+                    const sequences = Table[symbol.codePointAt(0)] || [];
+                    this.core.view.set(
+                        `Input sequence for ${symbol}`,
+                        sequences,
+                        View.Style.PlainText);
+                    return [];
+                });
+        }
     }
 
     private gotoDefinition = (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
