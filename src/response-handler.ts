@@ -103,8 +103,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
                                 .then(connection => [Req.give(goal)({ kind: 'Give' }, connection)])
                                 .then(core.commander.sendRequests)
                                 .then(handleResponses(core))
-                    }
-                    )
+                    })
             }).then(() => {});
 
         case 'DisplayInfo':
@@ -112,7 +111,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             return null;
 
         case 'RunningInfo':
-            core.editor.runningInfo.add(response.message.replace(/\\n/g, '\n'))
+            core.editor.runningInfo.add(response.message)
             return null;
 
         case 'HighlightClear':

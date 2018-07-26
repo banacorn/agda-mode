@@ -133,7 +133,7 @@ function parseResponse(raw: string, fileType: FileType): Promise<Agda.Response> 
             return Promise.resolve({
                 kind: 'RunningInfo',
                 verbosity: 1,
-                message: tokens[1]
+                message: tokens[1].replace(/\\n/g, '\n')
             } as Agda.RunningInfo);
 
         // ClearHighlighting

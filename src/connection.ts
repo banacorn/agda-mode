@@ -72,10 +72,13 @@ export default class ConnectionManager {
                     const lines = data.toString().trim().split('\n');
                     parseResponses(data.toString(), parseFileType(connection.filepath))
                         .then(responses => {
-                            this.core.view.store.dispatch(Action.PROTOCOL.logResponses(responses.map((response, i) => ({
-                                raw: lines[i],
-                                parsed: response
-                            }))));
+                            const resps = responses
+                                .map((response, i) => ({
+                                    raw: lines[i],
+                                    parsed: response
+                                }))
+                                .filter(({ parsed }) => parsed.kind !== "RunningInfo")  // don't log RunningInfo because there's too many of them
+                            this.core.view.store.dispatch(Action.PROTOCOL.logResponses(resps));
                             this.core.view.store.dispatch(Action.PROTOCOL.pending(false));
                             promise.resolve(responses);
                         })
