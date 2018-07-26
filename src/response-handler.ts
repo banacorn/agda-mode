@@ -7,8 +7,21 @@ import { Core } from './core';
 import { parseSExpression, parseAnnotation, parseJudgements, parseError, parseSolutions, parseWhyInScope } from './parser';
 import * as Err from './error';
 
+// classify responses into async and sync ones
+// don't deal everything with promises
+// for the nasty issue of https://github.com/petkaantonov/bluebird/issues/1326
 const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<void> => {
-    return Promise.each(responses, handleResponse(core))
+
+    var promises = []; // async actions
+
+    responses.forEach(response => {
+        var promise = handleResponse(core)(response);
+        if (promise) {
+            promises.push(promise);
+        }
+    });
+
+    return Promise.each(promises, a => a)
         .then(() => {})
         .catch(Err.Conn.NotEstablished, () => {
             core.view.set('Connection to Agda not established', [], View.Style.Warning);
@@ -36,7 +49,7 @@ const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<vo
         });
 }
 
-const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> => {
+const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> | null => {
     // console.log(response.kind)
     switch (response.kind) {
         case 'HighlightingInfo_Direct':
@@ -65,7 +78,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             if (response.checked || response.showImplicit) {
                 core.view.set('Status', [`Typechecked: ${response.checked}`, `Display implicit arguments: ${response.showImplicit}`]);
             }
-            return Promise.resolve();
+            return null;
 
         case 'JumpToError':
             return core.editor.onJumpToError(response.filepath, response.position);
@@ -96,19 +109,22 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
 
         case 'DisplayInfo':
             handleDisplayInfo(core, response);
-            return Promise.resolve();
+            return null;
 
+        case 'RunningInfo':
+            core.editor.addRunningInfo(response.message.replace(/\\n/g, '\n'))
+            return null;
 
         case 'HighlightClear':
             return core.editor.highlighting.destroyAll();
 
         case 'DoneAborting':
             core.view.set('Status', [`Done aborting`], View.Style.Warning);
-            return Promise.resolve();
+            return null;
 
         default:
             console.error(`Agda.ResponseType: ${JSON.stringify(response)}`);
-            return Promise.resolve();
+            return null;
     }
 }
 

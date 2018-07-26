@@ -225,6 +225,8 @@ export default class Commander {
     //  Commands
     //
     private load = (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
+        // destroy running info editor before reloading
+        this.core.editor.destroyRunningInfo();
         // force save before load
         return this.core.editor.save()
             .then(() => {

@@ -322,7 +322,6 @@ export default class View {
             style: type
         }));
         this.store.dispatch(updatePlainText(payload.join('\n')));
-
     }
 
     setAgdaError(error: AgdaError, isWarning: boolean = false) {
