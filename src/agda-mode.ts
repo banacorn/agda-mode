@@ -157,7 +157,6 @@ function toAgdaEditor(textEditor: Atom.TextEditor) {
 // if end with '.agda' or '.lagda'
 function isAgdaFile(textEditor: Atom.TextEditor | AgdaEditor): boolean {
     const filepath = textEditor.getPath();
-    console.log(filepath)
     // filenames are case insensitive on Windows
     const onWindows = process.platform === 'win32';
     if (onWindows)

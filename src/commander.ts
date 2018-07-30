@@ -28,6 +28,8 @@ export default class Commander {
     };
 
     constructor(private core: Core) {
+        this.loaded = false;
+
         this.dispatchCommand = this.dispatchCommand.bind(this);
         this.startCheckpoint = this.startCheckpoint.bind(this);
         this.endCheckpoint = this.endCheckpoint.bind(this);
@@ -86,6 +88,11 @@ export default class Commander {
     dispatch = (command: Agda.Command): Promise<void> => {
         // register current command
         this.currentCommand = command;
+        // activation commands
+        const activationCommands = _.includes([
+                'Load',
+                'GotoDefinition',
+            ], command.kind);
         // some commands can be executed without connection to Agda
         const needNoConnection = _.includes([
                 'Quit',
@@ -111,12 +118,17 @@ export default class Commander {
         } else {
             return this.core.connection.getConnection()
                 .catch(Err.Conn.NotEstablished, () => {
-                    if (command.kind === 'Load') {
+                    if (activationCommands) {
                         // activate the view first
                         const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
                         this.core.view.mountPanel(currentMountingPosition);
                         this.core.view.activatePanel();
-                        this.core.view.set('Type Checking ...', []);
+
+                        if (command.kind === 'Load') {
+                            this.core.view.set('Type Checking ...', []);
+                        } else {
+                            this.core.view.set('Loading ...', []);
+                        }
                     }
                     // initialize connection
                     return this.core.connection.connect();
@@ -221,6 +233,7 @@ export default class Commander {
             return promise;
         }).then(responses => _.flatten(responses));
     }
+
     //
     //  Commands
     //
@@ -471,27 +484,33 @@ export default class Commander {
     }
 
     private gotoDefinition = (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-
-        // select and return the text of larger syntax node unless already selected
-        var name;
-        const selected = this.core.editor.getTextEditor().getSelectedText();
-        if (selected) {
-            name = selected;
-        } else {
-            this.core.editor.getTextEditor().selectLargerSyntaxNode();
-            name = this.core.editor.getTextEditor().getSelectedText();
-
-            // this happens when language-agda is not installed
-            if (name.length === 0) {
-                this.core.editor.getTextEditor().selectWordsContainingCursors()
+        if (this.loaded) {
+            // select and return the text of larger syntax node unless already selected
+            var name;
+            const selected = this.core.editor.getTextEditor().getSelectedText();
+            if (selected) {
+                name = selected;
+            } else {
+                this.core.editor.getTextEditor().selectLargerSyntaxNode();
                 name = this.core.editor.getTextEditor().getSelectedText();
+
+                // this happens when language-agda is not installed
+                if (name.length === 0) {
+                    this.core.editor.getTextEditor().selectWordsContainingCursors()
+                    name = this.core.editor.getTextEditor().getSelectedText();
+                }
+
             }
-
+            return this.core.editor.goal.pointing()
+                .then(goal => [Req.gotoDefinition(name, goal)(command, connection)])
+                .catch(Err.OutOfGoalError, () => [Req.gotoDefinitionGlobal(name)(command, connection)])
+        } else {
+            return this.dispatch({ kind: 'Load' })
+                .then(() => {
+                    this.currentCommand = command;
+                    return this.gotoDefinition(command, connection)
+                })
         }
-
-        return this.core.editor.goal.pointing()
-            .then(goal => [Req.gotoDefinition(name, goal)(command, connection)])
-            .catch(Err.OutOfGoalError, () => [Req.gotoDefinitionGlobal(name)(command, connection)])
     }
 
     private inputSymbolInterceptKey = (_, key: string) => (): Promise<Agda.Request[]> => {

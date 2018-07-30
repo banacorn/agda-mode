@@ -22,7 +22,6 @@ export class Core {
     public connection: ConnectionManager;
 
     constructor(textEditor: Atom.TextEditor) {
-
         // initialize all components
         this.disposables        = new CompositeDisposable();
         this.editor             = new Editor(this, textEditor);
