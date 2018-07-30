@@ -478,8 +478,15 @@ export default class Commander {
         if (selected) {
             name = selected;
         } else {
-            this.core.editor.getTextEditor().selectLargerSyntaxNode()
+            this.core.editor.getTextEditor().selectLargerSyntaxNode();
             name = this.core.editor.getTextEditor().getSelectedText();
+
+            // this happens when language-agda is not installed
+            if (name.length === 0) {
+                this.core.editor.getTextEditor().selectWordsContainingCursors()
+                name = this.core.editor.getTextEditor().getSelectedText();
+            }
+
         }
 
         return this.core.editor.goal.pointing()
