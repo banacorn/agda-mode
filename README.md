@@ -6,17 +6,26 @@ For people who don't wanna use Emacs for whatever reasons.
 
 ## Requirements
 
-* Atom Packages: [language-agda](https://atom.io/packages/language-agda)
-* Binaries: [agda](http://wiki.portal.chalmers.se/agda/pmwiki.php?n=Main.Download)
+* Binaries: [agda](https://agda.readthedocs.io/en/latest/getting-started/installation.html)
 
 ## Installation
 
-1. **Ensure you have the Atom package [language-agda](https://atom.io/packages/language-agda) installed and enabled**.
-2. Ensure you have [agda](http://wiki.portal.chalmers.se/agda/pmwiki.php?n=Main.Download) properly installed. Try `agda` in your console.
-3. Install the package:
+1. Install this package:
   * from the editor: `Atom > Preferences... > Install`, search for `agda-mode` and install
   * or from a shell: `apm install agda-mode`
-4. If you have Agda installed properly (i.e. `agda` is in the [PATH](https://en.wikipedia.org/wiki/PATH_(variable)), check it in your console), then it's good to go.
+2. Ensure you have [agda](https://agda.readthedocs.io/en/latest/getting-started/installation.html) properly installed (check this in your console, type `agda` and see if it's in the [PATH](https://en.wikipedia.org/wiki/PATH_(variable))).
+
+## Syntax Highlighting
+
+Unlike on Emacs, **agda-mode on Atom doesn't come with syntax highlighting bundled**, nor does it highlight your code dynamically on load (yet).
+
+To have your code highlighted and be a decent human being:
+
+1. Install **language-agda**:
+  * from the editor: `Atom > Preferences... > Install`, search for `language-agda` and install
+  * or from a shell: `apm install language-agda`
+
+Extra perk: with *language-agda* installed, commands such as `input-symbol`, `go-to-definition` can be invoked without having to `load` first.
 
 ## Recommanded Settings
 
@@ -110,8 +119,7 @@ git checkout dev
 
 The project is written in TypeScript so you would probably need these:
 ```
-npm install -g typescript@2.2
-apm install atom-typescript
+npm install -g typescript@2.9.2
 ```
 
 To keep the TypeScript transpiler running while developing:
@@ -119,11 +127,6 @@ To keep the TypeScript transpiler running while developing:
 ```
 tsc --watch
 ```
-
-
-
-
-
 
 
 ![This gif looks cute so i'm keeping it](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)
