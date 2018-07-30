@@ -8,10 +8,14 @@
       "agda-mode:load"
     ],
     "atom-text-editor.agda": [
-      "agda-mode:input-symbol"
+      "agda-mode:input-symbol",
+      "agda-mode:query-symbol",
+      "agda-mode:go-to-definition"
     ],
     "atom-text-editor[data-grammar~='agda']": [
-      "agda-mode:input-symbol"
+      "agda-mode:input-symbol",
+      "agda-mode:query-symbol",
+      "agda-mode:go-to-definition"
     ]
   },
   "atomTestRunner": "atom-mocha",

@@ -11,21 +11,6 @@
 'atom-text-editor':
     'ctrl-c        ctrl-l': 'agda-mode:load'
 
-'atom-text-editor.agda':
-    # invoke input method
-    '\\': 'agda-mode:input-symbol'
-    'alt-/': 'agda-mode:input-symbol'
-    # query unicode symbol input sequence
-    'ctrl-u ctrl-x =': 'agda-mode:query-symbol'
-
-# for people who have language-agda installed
-'atom-text-editor[data-grammar~="agda"]':
-    # invoke input method
-    '\\': 'agda-mode:input-symbol'
-    'alt-/': 'agda-mode:input-symbol'
-    # query unicode symbol input sequence
-    'ctrl-u ctrl-x =': 'agda-mode:query-symbol'
-
 # intercepting opening brackets or quotes
 'atom-text-editor.agda-mode-input-method-activated':
     '\{' : 'agda-mode:input-symbol-curly-bracket'
@@ -35,6 +20,7 @@
     '\'' : 'agda-mode:input-symbol-single-quote'
     '\`' : 'agda-mode:input-symbol-back-quote'
 
+# for people who have 'agda-mode:load' executed (regardless of language-agda)
 'atom-text-editor.agda':
     # Global commands
     # 'ctrl-c        ctrl-l': 'agda-mode:load'
@@ -81,12 +67,26 @@
     'ctrl-u ctrl-c        ctrl-.': 'agda-mode:goal-type-and-inferred-type[Instantiated]'
     'ctrl-u ctrl-u ctrl-c ctrl-.': 'agda-mode:goal-type-and-inferred-type[Normalised]'
 
+    # invoke input method
+    '\\': 'agda-mode:input-symbol'
+    'alt-/': 'agda-mode:input-symbol'
+    # query unicode symbol input sequence
+    'ctrl-u ctrl-x =': 'agda-mode:query-symbol'
+    # go to definition
+    'ctrl-alt-\\': 'agda-mode:go-to-definition'
+
 '.platform-darwin atom-text-editor.agda':
     'alt-cmd-\\': 'agda-mode:go-to-definition'
+
+# for people who have language-agda installed (regardless of 'agda-mode:load')
+'atom-text-editor[data-grammar~="agda"]':
+    # invoke input method
+    '\\': 'agda-mode:input-symbol'
+    'alt-/': 'agda-mode:input-symbol'
+    # query unicode symbol input sequence
+    'ctrl-u ctrl-x =': 'agda-mode:query-symbol'
+    # go to definition
     'ctrl-alt-\\': 'agda-mode:go-to-definition'
 
-'.platform-win32 atom-text-editor.agda':
-    'ctrl-alt-\\': 'agda-mode:go-to-definition'
-
-'.platform-linux atom-text-editor.agda':
-    'ctrl-alt-\\': 'agda-mode:go-to-definition'
+'.platform-darwin atom-text-editor[data-grammar~="agda"]':
+    'alt-cmd-\\': 'agda-mode:go-to-definition'
