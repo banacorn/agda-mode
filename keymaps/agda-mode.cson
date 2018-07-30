@@ -7,8 +7,19 @@
 
 # For more detailed documentation see
 # http://flight-manual.atom.io/behind-atom/sections/keymaps-in-depth
-'atom-text-editor[data-grammar~="agda"]':
+
+'atom-text-editor':
     'ctrl-c        ctrl-l': 'agda-mode:load'
+
+'atom-text-editor.agda':
+    # invoke input method
+    '\\': 'agda-mode:input-symbol'
+    'alt-/': 'agda-mode:input-symbol'
+    # query unicode symbol input sequence
+    'ctrl-u ctrl-x =': 'agda-mode:query-symbol'
+
+# for people who have language-agda installed
+'atom-text-editor[data-grammar~="agda"]':
     # invoke input method
     '\\': 'agda-mode:input-symbol'
     'alt-/': 'agda-mode:input-symbol'
