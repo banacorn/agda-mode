@@ -81,7 +81,11 @@ class MiniEditor extends React.Component<Props, State> {
         // pass the grammar down to enable input method
         if (this.props['data-grammar'] === 'agda') {
             const agdaGrammar = atom.grammars.grammarForScopeName('source.agda');
-            this.ref.getModel().setGrammar(agdaGrammar);
+            try {
+                this.ref.getModel().setGrammar(agdaGrammar);
+            } catch (e) {
+                // do nothing when we fail to load the grammar
+            }
         }
 
         // subscribe to Atom's core events
@@ -114,7 +118,8 @@ class MiniEditor extends React.Component<Props, State> {
 
     componentWillUnmount() {
         this.subscriptions.dispose();
-        this.observer.disconnect();
+        if (this.observer)
+            this.observer.disconnect();
     }
 
     // focus on the input box (with setTimeout quirk)
