@@ -54,7 +54,7 @@ class Connection extends React.Component<Props, {}> {
         this.toggleAgdaConnection = this.toggleAgdaConnection.bind(this);
         this.agdaConnected = this.agdaConnected.bind(this);
         this.searchAgda = this.searchAgda.bind(this);
-        this.connectAgda = this.connectAgda.bind(this);
+        this.reconnectAgda = this.reconnectAgda.bind(this);
 
         // language server
         this.toggleLanguageServerConnection = this.toggleLanguageServerConnection.bind(this);
@@ -71,7 +71,7 @@ class Connection extends React.Component<Props, {}> {
         if (this.agdaConnected()) {
             this.props.core.commander.dispatch({ kind: 'Quit' });
         } else {
-            this.connectAgda()
+            this.reconnectAgda()
         }
     }
 
@@ -80,8 +80,8 @@ class Connection extends React.Component<Props, {}> {
         return this.props.connection.agda !== null && this.props.connection.agdaMessage === '';
     }
 
-    connectAgda() {
-        this.props.core.commander.dispatch({ kind: 'Load' });
+    reconnectAgda() {
+        this.props.core.commander.dispatch({ kind: 'Restart' });
     }
 
     searchAgda() {
@@ -175,7 +175,7 @@ class Connection extends React.Component<Props, {}> {
                                         onConfirm={(path) => {
                                             atom.config.set('agda-mode.agdaPath', path);
                                             if (!querying) {
-                                                this.connectAgda();
+                                                this.reconnectAgda();
                                             }
                                         }}
                                         onCancel={() => {
