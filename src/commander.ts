@@ -263,7 +263,8 @@ export default class Commander {
 
     private restart = (connection: Connection): Promise<Agda.Request[]> => {
         return this.quit()
-            .then(() => this.load({ kind: 'Load' }, connection));
+            .then(() => this.dispatch({ kind: 'Load' }))
+            .then(() => []);
     }
 
     private abort = Req.abort;
