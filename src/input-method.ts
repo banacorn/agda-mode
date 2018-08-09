@@ -229,8 +229,8 @@ export default class InputMethod {
                     });
                 }
 
-                // deactivate if we can't go further
-                if (!further && candidateSymbols.length === 0) {
+                // deactivate if we can't go further, or when there's 1 or 0 candidates left
+                if (!further && candidateSymbols.length <= 1) {
                     this.deactivate();
                 }
             } else if (change === DELETE) {
