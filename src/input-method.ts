@@ -50,20 +50,11 @@ export function translate(input: string): {
     const keySuggestions   = getKeySuggestions(trie);
     const candidateSymbols = getCandidateSymbols(trie);
     if (valid) {
-        if (keySuggestions.length === 0) {
-            return {
-                translation: candidateSymbols[0],
-                further: false,
-                keySuggestions: [],
-                candidateSymbols: []
-            }
-        } else {
-            return {
-                translation: candidateSymbols[0],
-                further: true,
-                keySuggestions: keySuggestions,
-                candidateSymbols: candidateSymbols
-            }
+        return {
+            translation: candidateSymbols[0],
+            further: keySuggestions.length !== 0,
+            keySuggestions: keySuggestions,
+            candidateSymbols: candidateSymbols
         }
     } else {
         // key combination out of keymap
@@ -229,7 +220,7 @@ export default class InputMethod {
             } else if (change === INSERT) {
                 const char = buffer.substr(-1);
                 this.core.view.store.dispatch(INPUT_METHOD.insertChar(char));
-                const {translation, further} = this.core.view.store.getState().inputMethod;
+                const {translation, further, candidateSymbols} = this.core.view.store.getState().inputMethod;
 
                 // reflects current translation to the text buffer
                 if (translation) {
@@ -239,7 +230,7 @@ export default class InputMethod {
                 }
 
                 // deactivate if we can't go further
-                if (!further) {
+                if (!further && candidateSymbols.length === 0) {
                     this.deactivate();
                 }
             } else if (change === DELETE) {
