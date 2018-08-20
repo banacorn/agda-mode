@@ -437,9 +437,11 @@ export type Version = {
     raw: string;
     sem: string;
 };
+export type Protocol = 'Emacs' | 'JSON';
 export type ValidPath = {
     path: Path;
-    version: Version
+    version: Version;
+    protocol: Protocol;
 };
 
 export type Connection = ValidPath & {

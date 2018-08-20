@@ -117,6 +117,9 @@ class Connection extends React.Component<Props, {}> {
                                     Version: {this.agdaConnected() ? agda.version.raw : 'unknown'}
                                 </p>
                                 <p>
+                                    Protocol: {this.agdaConnected() ? agda.protocol : 'unknown'}
+                                </p>
+                                <p>
                                     <MiniEditor
                                         value={atom.config.get('agda-mode.agdaPath')}
                                         placeholder='path to Agda'

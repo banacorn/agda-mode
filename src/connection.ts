@@ -56,10 +56,7 @@ export default class ConnectionManager {
 
     private wire = (connection: Connection): Promise<Connection> => {
         // the view
-        this.core.view.store.dispatch(Action.CONNECTION.connectAgda({
-            path: connection.path,
-            version: connection.version
-        }));
+        this.core.view.store.dispatch(Action.CONNECTION.connectAgda(connection));
         // the properties
         this.connection = connection;
         // the streams
@@ -167,8 +164,7 @@ export function validateProcess(path: Path, validator: (msg: string, resolve, re
         if (path === '') {
             reject(new Err.Conn.Invalid(`The path must not be empty`, path));
         }
-        // ask for the version and see if it's really Agda
-        exec(`${path} --version`, (error, stdout, stderr) => {
+        exec(`${path}`, (error, stdout, stderr) => {
             stillHanging = false;
 
             if (error) {
@@ -201,7 +197,7 @@ export function validateProcess(path: Path, validator: (msg: string, resolve, re
 
 export function validateAgda(path: Path): Promise<ValidPath> {
     return validateProcess(path, (message, resolve, reject) => {
-        const result = message.match(/^Agda version (.*)(?:\r\n?|\n)$/);
+        const result = message.match(/Agda version (.*)/);
         if (result) {
             // normalize version number to valid semver
             const raw = result[1];
@@ -212,7 +208,8 @@ export function validateAgda(path: Path): Promise<ValidPath> {
             const version = { raw, sem };
             resolve({
                 path,
-                version
+                version,
+                protocol: message.match(/--interaction-json/) ? 'JSON' : 'Emacs'
             });
         } else {
             reject(new Err.Conn.Invalid(`Found a program named "agda" but it doesn't seem like Agda to me`, path));
@@ -220,7 +217,7 @@ export function validateAgda(path: Path): Promise<ValidPath> {
     });
 }
 
-export const establishConnection = (filepath: string) => ({ path, version }: ValidPath): Promise<Connection> => {
+export const establishConnection = (filepath: string) => ({ path, version, protocol }: ValidPath): Promise<Connection> => {
     return new Promise<Connection>((resolve, reject) => {
         const agdaProcess = spawn(path, ['--interaction'], { shell: true });
         agdaProcess.on('error', (error) => {
@@ -243,6 +240,7 @@ export const establishConnection = (filepath: string) => ({ path, version }: Val
             resolve({
                 path,
                 version,
+                protocol,
                 stream: duplex(agdaProcess.stdin, agdaProcess.stdout),
                 queue: [],
                 filepath
