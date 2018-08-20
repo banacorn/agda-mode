@@ -441,7 +441,7 @@ export type Protocol = 'Emacs' | 'JSON';
 export type ValidPath = {
     path: Path;
     version: Version;
-    protocol: Protocol;
+    supportedProtocol: Protocol[];
 };
 
 export type Connection = ValidPath & {

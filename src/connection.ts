@@ -59,35 +59,52 @@ export default class ConnectionManager {
         this.core.view.store.dispatch(Action.CONNECTION.connectAgda(connection));
         // the properties
         this.connection = connection;
-        // the streams
-        connection.stream
-            .pipe(new Rectifier)
-            .on('data', (data) => {
-                const promise = this.connection && this.connection.queue.pop();
-                if (promise) {
-                    const lines = data.toString().trim().split('\n');
-                    parseResponses(data.toString(), parseFileType(connection.filepath))
-                        .then(responses => {
-                            const resps = responses
-                                .map((response, i) => ({
-                                    raw: lines[i],
-                                    parsed: response
-                                }))
-                                .filter(({ parsed }) => parsed.kind !== "RunningInfo")  // don't log RunningInfo because there's too many of them
-                            this.core.view.store.dispatch(Action.PROTOCOL.logResponses(resps));
-                            this.core.view.store.dispatch(Action.PROTOCOL.pending(false));
-                            promise.resolve(responses);
-                        })
-                        .catch(Err.ParseError, error => {
-                            this.core.view.set('Parse Error', [error.message, error.raw], View.Style.Error);
-                            promise.resolve([]);
-                        })
-                        .catch(error => {
-                            this.handleAgdaError(error);
-                            promise.resolve([]);
-                        })
-                }
-            });
+
+        if (useJSON(connection)) {
+            console.log('JSON!')
+            connection.stream
+                .pipe(new Rectifier)
+                .on('data', (data) => {
+                    const lines = data.toString().split('\n');
+                    // console.log(data.toString());
+                    lines.forEach(line => {
+                        console.log(line)
+                        console.log(JSON.parse(line))
+                    })
+                    // console.log(JSON.parse(data.toString()))
+                });
+        } else {
+
+            // the streams
+            connection.stream
+                .pipe(new Rectifier)
+                .on('data', (data) => {
+                    const promise = this.connection && this.connection.queue.pop();
+                    if (promise) {
+                        const lines = data.toString().trim().split('\n');
+                        parseResponses(data.toString(), parseFileType(connection.filepath))
+                            .then(responses => {
+                                const resps = responses
+                                    .map((response, i) => ({
+                                        raw: lines[i],
+                                        parsed: response
+                                    }))
+                                    .filter(({ parsed }) => parsed.kind !== "RunningInfo")  // don't log RunningInfo because there's too many of them
+                                this.core.view.store.dispatch(Action.PROTOCOL.logResponses(resps));
+                                this.core.view.store.dispatch(Action.PROTOCOL.pending(false));
+                                promise.resolve(responses);
+                            })
+                            .catch(Err.ParseError, error => {
+                                this.core.view.set('Parse Error', [error.message, error.raw], View.Style.Error);
+                                promise.resolve([]);
+                            })
+                            .catch(error => {
+                                this.handleAgdaError(error);
+                                promise.resolve([]);
+                            })
+                    }
+                });
+        }
         return Promise.resolve(connection);
     }
 
@@ -209,7 +226,7 @@ export function validateAgda(path: Path): Promise<ValidPath> {
             resolve({
                 path,
                 version,
-                protocol: message.match(/--interaction-json/) ? 'JSON' : 'Emacs'
+                supportedProtocol: message.match(/--interaction-json/) ? ['JSON', 'Emacs'] : ['Emacs']
             });
         } else {
             reject(new Err.Conn.Invalid(`Found a program named "agda" but it doesn't seem like Agda to me`, path));
@@ -217,9 +234,10 @@ export function validateAgda(path: Path): Promise<ValidPath> {
     });
 }
 
-export const establishConnection = (filepath: string) => ({ path, version, protocol }: ValidPath): Promise<Connection> => {
+export const establishConnection = (filepath: string) => ({ path, version, supportedProtocol }: ValidPath): Promise<Connection> => {
     return new Promise<Connection>((resolve, reject) => {
-        const agdaProcess = spawn(path, ['--interaction'], { shell: true });
+        const option = useJSON({ path, version, supportedProtocol }) ? ['--interaction-json'] : ['--interaction']
+        const agdaProcess = spawn(path, option, { shell: true });
         agdaProcess.on('error', (error) => {
             reject(new Err.Conn.ConnectionError(
                 error.message,
@@ -240,11 +258,15 @@ export const establishConnection = (filepath: string) => ({ path, version, proto
             resolve({
                 path,
                 version,
-                protocol,
+                supportedProtocol,
                 stream: duplex(agdaProcess.stdin, agdaProcess.stdout),
                 queue: [],
                 filepath
             });
         });
     });
+}
+
+export const useJSON = ({ supportedProtocol } : ValidPath) : boolean => {
+    return (atom.config.get('agda-mode.enableJSONProtocol') && _.includes(supportedProtocol, 'JSON')) || false;
 }

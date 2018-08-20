@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
@@ -90,6 +91,13 @@ class Connection extends React.Component<Props, {}> {
         const className = classNames('agda-settings-connection', this.props.className, {
             querying: querying
         });
+
+        const supportedProtocol = this.agdaConnected()
+            ? (_.includes(agda.supportedProtocol, 'JSON')
+                ? 'JSON, Emacs'
+                : 'Emacs')
+            : 'unknown';
+
         return (
             <section className={className}>
                 <form>
@@ -117,7 +125,7 @@ class Connection extends React.Component<Props, {}> {
                                     Version: {this.agdaConnected() ? agda.version.raw : 'unknown'}
                                 </p>
                                 <p>
-                                    Protocol: {this.agdaConnected() ? agda.protocol : 'unknown'}
+                                    Supported protocol: {supportedProtocol}
                                 </p>
                                 <p>
                                     <MiniEditor

@@ -11,7 +11,7 @@ export default class Rectifier extends Transform {
 
         const string = chunk.toString();
         // the prompt "Agda2> " should appear at the end of the response
-        const endOfResponse = string.endsWith('Agda2> ');
+        const endOfResponse = string.endsWith('Agda2> ') || string.endsWith('JSON> ');
         if (endOfResponse) {
             // omit "Agda2> " and append to the buffer
             this.buffer += string.substring(0, string.length - 7);

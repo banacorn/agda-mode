@@ -174,7 +174,7 @@ const config = {
         default: '',
         order: 1
     },
-    jsonProtocolEnabled: {
+    enableJSONProtocol: {
         title: 'Enable the JSON protocol (experimental)',
         description: 'Demand Agda to output in JSON format when possible',
         type: 'boolean',
