@@ -1,4 +1,4 @@
-import { Agda } from '../type';
+import { Agda } from '../../type';
 
 function parseNormalization(raw: string): Agda.Normalization {
     switch (raw) {

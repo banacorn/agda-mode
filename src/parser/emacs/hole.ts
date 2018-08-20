@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import Lexer from './lexer';
-import { Token, TokenType, FileType, Hole } from '../type';
+import { Token, TokenType, FileType, Hole } from '../../type';
 
 // regular expressions
 const texBeginRegex = /\\begin\{code\}.*/;

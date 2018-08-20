@@ -1,5 +1,5 @@
 import { Duplex } from 'stream';
-import { AgdaError } from './parser/error';
+import { AgdaError } from './parser/emacs/error';
 
 import * as Atom from 'atom';
 

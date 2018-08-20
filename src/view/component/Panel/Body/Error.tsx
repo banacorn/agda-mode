@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { inspect } from 'util';
 import { EventEmitter } from 'events';
-import { AgdaError } from '../../../../parser';
+import { AgdaError } from '../../../../parser/emacs';
 
 import Expr from './Expr';
 import Location from './Location';

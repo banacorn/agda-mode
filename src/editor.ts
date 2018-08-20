@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { Agda, View, Location, FileType } from './type';
-import { parseHole, parseFilepath } from './parser';
+import { parseHole, parseFilepath } from './parser/emacs';
 import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
 import Goal from './editor/goal';

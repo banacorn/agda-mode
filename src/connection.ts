@@ -3,11 +3,11 @@ import * as _ from 'lodash';
 import { spawn, exec } from 'child_process';
 var duplex = require('duplexer');
 
-import Rectifier from './parser/stream/rectifier';
+import Rectifier from './parser/emacs/stream/rectifier';
 import { View, Path, ValidPath, Connection } from './type';
 import * as Err from './error';
 import { Core } from './core';
-import { parseFilepath, parseResponses, parseFileType } from './parser';
+import { parseFilepath, parseResponses, parseFileType } from './parser/emacs';
 import * as Action from "./view/actions";
 
 export default class ConnectionManager {

@@ -17,7 +17,7 @@ import reducer from './view/reducers';
 import { View as V, Location } from './type';
 import { EVENT } from './view/actions';
 import * as Action from './view/actions';
-import { AgdaError } from './parser';
+import { AgdaError } from './parser/emacs';
 import { updateBody, updateError, updatePlainText, updateSolutions } from './view/actions';
 import Tab from './view/tab';
 import { OutOfGoalError } from './error';

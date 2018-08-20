@@ -1,5 +1,5 @@
 import { Core, AgdaEditor } from './core';
-import { parseCommand } from './parser';
+import { parseCommand } from './parser/emacs';
 
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';

@@ -3,7 +3,7 @@ import { Parser, seq, alt, takeWhile, sepBy1, succeed, all,
     } from 'parsimmon';
 import { trimBeforeAndSkip, spaces, token } from './combinator';
 import { Point, Range } from 'atom';
-import { Location } from '../type';
+import { Location } from '../../type';
 import { normalize } from 'path';
 
 

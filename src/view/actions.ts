@@ -1,6 +1,6 @@
 import { createAction } from 'redux-actions';
 import { Parsed, Agda, View, ValidPath } from '../type';
-import { AgdaError } from '../parser';
+import { AgdaError } from '../parser/emacs';
 
 // export type EVENT =
 //     EVENT.JUMP_TO_GOAL |

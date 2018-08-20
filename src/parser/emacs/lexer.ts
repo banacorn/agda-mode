@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { Token, TokenType } from '../type';
+import { Token, TokenType } from '../../type';
 
 // Splits big chunks of raw text into tokens
 export default class Lexer {

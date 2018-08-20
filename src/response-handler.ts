@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import { Agda, View } from './type';
 import * as Req from './request';
 import { Core } from './core';
-import { parseSExpression, parseAnnotation, parseJudgements, parseError, parseSolutions, parseWhyInScope } from './parser';
+import { parseSExpression, parseAnnotation, parseJudgements, parseError, parseSolutions, parseWhyInScope } from './parser/emacs';
 import * as Err from './error';
 
 // classify responses into async and sync ones

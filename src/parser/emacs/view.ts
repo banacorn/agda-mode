@@ -1,6 +1,6 @@
 import * as _ from 'lodash';;
 import { parseFilepath } from './util';
-import { View, Location, Occurence } from '../type';
+import { View, Location, Occurence } from '../../type';
 import { Point, Range } from 'atom';
 
 function parseSolutions(raw: string[]): View.Solutions {

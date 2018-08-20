@@ -1,5 +1,5 @@
 import * as Promise from 'bluebird';
-import { parseFilepath } from './parser';
+import { parseFilepath } from './parser/emacs';
 import { Agda, Connection } from './type';
 import * as semver from 'semver';
 import Goal from './editor/goal';
