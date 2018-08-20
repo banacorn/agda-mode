@@ -1,3 +1,8 @@
+## 0.7.16
+* Fix #66
+* Fix `agda-mode:restart`
+* Handle grammar loading error
+
 ## 0.7.15
 * Fix and implement #6, #61, #62
 * Enhance `agda-mode:query-symbol` and `agda-mode:why-in-scope`

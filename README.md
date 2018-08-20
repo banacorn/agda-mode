@@ -19,7 +19,7 @@ For people who don't wanna use Emacs for whatever reasons.
 
 Unlike on Emacs, **agda-mode on Atom doesn't come with syntax highlighting bundled**, nor does it highlight your code dynamically on load (yet).
 
-To have your code highlighted and be a decent human being:
+To have your code highlighted:
 
 1. Install **language-agda**:
   * from the editor: `Atom > Preferences... > Install`, search for `language-agda` and install
@@ -38,7 +38,7 @@ Go to `Settings > Editor > Scroll Past End` and enable it to allow the editor to
 * <kbd>C-c</kbd> stands for "press <kbd>Ctrl</kbd> and <kbd>c</kbd> at the same time"
 * When it comes to combos like <kbd>C-c</kbd> <kbd>C-l</kbd>, you can often slur them into "hold <kbd>Ctrl</kbd> while pressing <kbd>c</kbd> and then <kbd>l</kbd>"
 
-This is an exhaustive list of available commands:
+This is an (not so) exhaustive list of available commands:
 
 | Keymap            | Command                                 | Global | Goal-specific |
 |------------------:|:----------------------------------------|:------:|:-------------:|
