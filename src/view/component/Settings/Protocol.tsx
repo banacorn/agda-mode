@@ -13,7 +13,6 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
 }
 type InjProps = {
     agda?: ValidPath;
-    languageServer?: ValidPath;
     protocol: View.Protocol;
 }
 
@@ -39,7 +38,6 @@ function mapDispatchToProps(dispatch): DispatchProps {
 function mapStateToProps(state: View.State): InjProps {
     return {
         agda: state.connection.agda,
-        languageServer: state.connection.languageServer,
         protocol: state.protocol
     }
 }

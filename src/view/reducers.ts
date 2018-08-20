@@ -27,15 +27,11 @@ const defaultState: View.State = {
         querying: false,
         agda: null,
         agdaMessage: '',
-        languageServerEnabled: atom.config.get('agda-mode.languageServerEnabled'),
-        languageServer: null,
-        languageServerMessage: '',
     },
     protocol: {
         log: [],
         id: 0,
         pending: false,
-        lsp: false,
         limitLog: true
     },
     header: {
@@ -123,12 +119,6 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
         querying: false,
         agda: null,
         agdaMessage: '',
-        languageServerEnabled: state.languageServerEnabled,
-        languageServer: null,
-        languageServerMessage: ''
-    }),
-    [CONNECTION.ENABLE_LANGUAGE_SERVER]: (state, action: Action<CONNECTION.ENABLE_LANGUAGE_SERVER>) => ({ ...state,
-        languageServerEnabled: action.payload
     }),
     [CONNECTION.START_QUERYING]: (state, action: Action<CONNECTION.START_QUERYING>) => ({ ...state,
         querying: true
@@ -138,9 +128,6 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
     }),
     [CONNECTION.SET_AGDA_MESSAGE]: (state, action: Action<CONNECTION.SET_AGDA_MESSAGE>) => ({ ...state,
         agdaMessage: action.payload
-    }),
-    [CONNECTION.SET_LANGUAGE_SERVER_MESSAGE]: (state, action: Action<CONNECTION.SET_LANGUAGE_SERVER_MESSAGE>) => ({ ...state,
-        languageServerMessage: action.payload
     }),
 }, defaultState.connection);
 
@@ -183,9 +170,6 @@ const protocol = handleActions<View.Protocol, PROTOCOL>({
     }),
     [PROTOCOL.LIMIT_LOG]: (state, action: Action<PROTOCOL.LIMIT_LOG>) => ({ ...state,
         limitLog: action.payload
-    }),
-    [PROTOCOL.TOGGLE_LSP]: (state, action: Action<PROTOCOL.TOGGLE_LSP>) => ({ ...state,
-        lsp: !state.lsp
     }),
     [PROTOCOL.PENDING]: (state, action: Action<PROTOCOL.PENDING>) => ({ ...state,
         pending: action.payload

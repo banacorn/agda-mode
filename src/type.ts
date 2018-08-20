@@ -82,9 +82,6 @@ namespace View {
         querying: boolean; // is agda-mode querying for the path to Agda?
         agda?: ValidPath;
         agdaMessage: string;
-        languageServerEnabled: boolean;
-        languageServer?: ValidPath;
-        languageServerMessage: string;
     }
 
     export interface Protocol {
@@ -92,7 +89,6 @@ namespace View {
         id: number;// for indexing ReqRes
 
         pending: boolean;
-        lsp: boolean;
 
         limitLog: boolean;
     }

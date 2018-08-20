@@ -174,20 +174,27 @@ const config = {
         default: '',
         order: 1
     },
-    languageServerEnabled: {
-        title: 'Enable Agda Language Server (experimental)',
-        description: 'Connect to the language server instead of Agda',
+    jsonProtocolEnabled: {
+        title: 'Enable the JSON protocol (experimental)',
+        description: 'Demand Agda to output in JSON format when possible',
         type: 'boolean',
-        default: false,
+        default: true,
         order: 2
     },
-    languageServerPath: {
-        title: 'Agda Language Server (experimental)',
-        description: 'Path to the executable of Agda Language Server, automatically inferred when possible. Overwrite to override.',
-        type: 'string',
-        default: '',
-        order: 3
-    },
+    // languageServerEnabled: {
+    //     title: 'Enable Agda Language Server (experimental)',
+    //     description: 'Connect to the language server instead of Agda',
+    //     type: 'boolean',
+    //     default: false,
+    //     order: 2
+    // },
+    // languageServerPath: {
+    //     title: 'Agda Language Server (experimental)',
+    //     description: 'Path to the executable of Agda Language Server, automatically inferred when possible. Overwrite to override.',
+    //     type: 'string',
+    //     default: '',
+    //     order: 3
+    // },
     libraryPath: {
         title: 'Libraries',
         description: 'Paths to include (such as agda-stdlib), seperate with comma. Useless after Agda 2.5.0',
