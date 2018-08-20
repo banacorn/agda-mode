@@ -118,14 +118,18 @@ function parseResponse(raw: string, fileType: FileType): Promise<Agda.Response> 
         // Resp_DisplayInfo DisplayInfo
         case 'agda2-info-action':
         case 'agda2-info-action-and-copy':
-            let kind = parseDisplayInfoKind(tokens[1]);
-            let content = tokens.length === 3 ? [] : _.compact(tokens[2].split('\\n'));
-            return Promise.resolve({
-                kind: 'DisplayInfo',
-                displayInfoKind: kind,
-                title: tokens[1],
-                content: content,
-            } as Agda.DisplayInfo);
+            return Promise.reject(new ParseError(
+                raw,
+                'Resp_DisplayInfo not implemented yet'
+            ));
+            // let kind = parseDisplayInfoKind(tokens[1]);
+            // let content = tokens.length === 3 ? [] : _.compact(tokens[2].split('\\n'));
+            // return Promise.resolve({
+            //     kind: 'DisplayInfo',
+            //     displayInfoKind: kind,
+            //     title: tokens[1],
+            //     content: content,
+            // } as Agda.DisplayInfo);
 
         // Resp_RunningInfo Int String
         case 'agda2-verbose':
@@ -161,31 +165,31 @@ function parseResponse(raw: string, fileType: FileType): Promise<Agda.Response> 
             ));
     }
 }
-function parseDisplayInfoKind(title: String): Agda.DisplayInfoKind {
-    switch (title) {
-        case '*Compilation result*':    return 'CompilationOk';
-        case '*Constraints*':           return 'Constraints';
-        case '*Auto*':                  return 'Auto';
-        case '*Error*':                 return 'Error';
-        case '*Normal Form*':           return 'NormalForm';
-        case '*Inferred Type*':         return 'InferredType';
-        case '*Current Goal*':          return 'CurrentGoal';
-        case '*Goal type etc.*':        return 'GoalType';
-        case '*Module contents*':       return 'ModuleContents';
-        case '*Search About*':          return 'SearchAbout';
-        case '*Scope Info*':            return 'WhyInScope';
-        case '*Context*':               return 'Context';
-        case '*Helper function*':       return 'HelperFunction';
-        case '*Intro*':                 return 'Intro';
-        case '*Agda Version*':          return 'Version';
-        case '*All Warnings*':          return 'AllWarnings';
-        case '*All Errors*':            return 'AllErrors';
-        // AllGoals
-        default:
-            // if (title.startsWith('*All'))
-            return 'AllGoals';
-    }
-}
+// function parseInfoKind(title: String): Agda.Info {
+//     switch (title) {
+//         case '*Compilation result*':    return 'CompilationOk';
+//         case '*Constraints*':           return 'Constraints';
+//         case '*Auto*':                  return 'Auto';
+//         case '*Error*':                 return 'Error';
+//         case '*Normal Form*':           return 'NormalForm';
+//         case '*Inferred Type*':         return 'InferredType';
+//         case '*Current Goal*':          return 'CurrentGoal';
+//         case '*Goal type etc.*':        return 'GoalType';
+//         case '*Module contents*':       return 'ModuleContents';
+//         case '*Search About*':          return 'SearchAbout';
+//         case '*Scope Info*':            return 'WhyInScope';
+//         case '*Context*':               return 'Context';
+//         case '*Helper function*':       return 'HelperFunction';
+//         case '*Intro*':                 return 'Intro';
+//         case '*Agda Version*':          return 'Version';
+//         case '*All Warnings*':          return 'AllWarnings';
+//         case '*All Errors*':            return 'AllErrors';
+//         // AllGoals
+//         default:
+//             // if (title.startsWith('*All'))
+//             return 'AllGoals';
+//     }
+// }
 
 
 function parseAnnotation(obj: any[]): Agda.Annotation {

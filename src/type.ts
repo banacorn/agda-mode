@@ -376,18 +376,53 @@ namespace Agda {
         }[];
     }
 
-    // Resp_DisplayInfo DisplayInfo
-    export type DisplayInfoKind = 'CompilationOk' | 'Constraints' |
-        'AllGoals' | 'Auto' | 'Error' | 'Time' | 'NormalForm' |
-        'InferredType' | 'CurrentGoal' | 'GoalType' | 'ModuleContents' |
-        'SearchAbout' | 'WhyInScope' | 'Context' | 'HelperFunction' | 'Intro' |
-        'Version' | 'AllWarnings' | 'AllErrors';
     export interface DisplayInfo {
         kind: 'DisplayInfo';
-        displayInfoKind: DisplayInfoKind;
-        title: string;
-        content: string[];
+        info: Info
     }
+    //
+    //  Response from Agda
+    //
+    export type Info =
+        Info_CompilationOk |
+        Info_Constraints |
+        Info_AllGoalsWarnings |
+        Info_Time | Info_Error | Info_Intro | Info_Auto | Info_ModuleContents |
+        Info_SearchAbout | Info_WhyInScope | Info_NormalForm | Info_GoalType |
+        Info_CurrentGoal | Info_InferredType | Info_Context |
+        Info_HelperFunction | Info_Version;
+
+    export interface Info_CompilationOk {
+        kind: "CompilationOk";
+        warnings: string[];
+        errors: string[];
+    }
+
+    export interface Info_Constraints {
+        kind: "Constraints";
+        constraints: string[];
+    }
+
+    export interface Info_AllGoalsWarnings {
+        kind: "AllGoalsWarnings",
+        goals: string[];
+        warnings: string[];
+        errors: string[];
+    }
+    export interface Info_Time { kind: "Time"; payload: string[] }
+    export interface Info_Error { kind: "Error"; payload: string[] }
+    export interface Info_Intro { kind: "Intro"; payload: string[] }
+    export interface Info_Auto { kind: "Auto"; payload: string[] }
+    export interface Info_ModuleContents { kind: "ModuleContents"; payload: string[] }
+    export interface Info_SearchAbout { kind: "SearchAbout"; payload: string[] }
+    export interface Info_WhyInScope { kind: "WhyInScope"; payload: string[] }
+    export interface Info_NormalForm { kind: "NormalForm"; payload: string[] }
+    export interface Info_GoalType { kind: "GoalType"; payload: string[] }
+    export interface Info_CurrentGoal { kind: "CurrentGoal"; payload: string[] }
+    export interface Info_InferredType { kind: "InferredType"; payload: string[] }
+    export interface Info_Context { kind: "Context"; payload: string[] }
+    export interface Info_HelperFunction { kind: "HelperFunction"; payload: string[] }
+    export interface Info_Version { kind: "Version" }
 
     // Resp_RunningInfo Int String
     export interface RunningInfo {
