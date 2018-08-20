@@ -4,7 +4,8 @@ import * as fs from 'fs';
 import { Agda, View } from './type';
 import * as Req from './request';
 import { Core } from './core';
-import { parseSExpression, parseAnnotation, parseJudgements, parseError, parseSolutions, parseWhyInScope } from './parser/emacs';
+import * as J from './parser/json';
+import * as Emacs from './parser/emacs';
 import * as Err from './error';
 
 // classify responses into async and sync ones
@@ -65,7 +66,9 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
         case 'HighlightingInfo_Indirect':
             return Promise.promisify(fs.readFile)(response.filepath)
                 .then(data => {
-                    const annotations = parseSExpression(data.toString()).map(parseAnnotation);
+                    const annotations = core.connection.usesJSON()
+                        ? J.parseIndirectAnnotations(data.toString())
+                        : Emacs.parseSExpression(data.toString()).map(Emacs.parseAnnotation)
                     annotations.forEach((annotation) => {
                         let unsolvedmeta = _.includes(annotation.type, 'unsolvedmeta');
                         let terminationproblem = _.includes(annotation.type, 'terminationproblem')
@@ -114,6 +117,10 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             core.editor.runningInfo.add(response.message)
             return null;
 
+        case 'ClearRunningInfo':
+            core.editor.runningInfo.clear();
+            return null;
+
         case 'HighlightClear':
             return core.editor.highlighting.destroyAll();
 
@@ -139,21 +146,21 @@ function handleDisplayInfo(core: Core, response: Agda.DisplayInfo)  {
             } else {
                 // remove the astericks
                 const title = response.title.slice(1, -1);
-                core.view.setJudgements(title, parseJudgements(response.content));
+                core.view.setJudgements(title, Emacs.parseJudgements(response.content));
             }
             break;
         case 'AllWarnings':
-            core.view.setAgdaError(parseError(response.content.join('\n')), true);
+            core.view.setAgdaError(Emacs.parseError(response.content.join('\n')), true);
             break;
         case 'AllErrors':
-            core.view.setAgdaError(parseError(response.content.join('\n')), true);
+            core.view.setAgdaError(Emacs.parseError(response.content.join('\n')), true);
             break;
         case 'Auto':
-            let solutions = parseSolutions(response.content);
+            let solutions = Emacs.parseSolutions(response.content);
             core.view.setSolutions(solutions);
             break;
         case 'Error':
-            const error = parseError(response.content.join('\n'));
+            const error = Emacs.parseError(response.content.join('\n'));
             core.view.setAgdaError(error);
             break;
         case 'NormalForm':
@@ -166,14 +173,14 @@ function handleDisplayInfo(core: Core, response: Agda.DisplayInfo)  {
             core.view.set('Current Goal', response.content, View.Style.Info);
             break;
         case 'GoalType':
-            core.view.setJudgements('Goal Type and Context', parseJudgements(response.content));
+            core.view.setJudgements('Goal Type and Context', Emacs.parseJudgements(response.content));
             break;
         case 'ModuleContents':
             core.view.set('Module Contents', response.content, View.Style.Info);
             break;
         case 'WhyInScope':
             if (core.commander.currentCommand.kind === "GotoDefinition") {
-                const result = parseWhyInScope(response.content);
+                const result = Emacs.parseWhyInScope(response.content);
                 if (result) {
                     core.editor.jumpToLocation(result.location);
                 } else {
@@ -184,7 +191,7 @@ function handleDisplayInfo(core: Core, response: Agda.DisplayInfo)  {
             }
             break;
         case 'Context':
-            core.view.setJudgements('Context', parseJudgements(response.content));
+            core.view.setJudgements('Context', Emacs.parseJudgements(response.content));
             break;
         case 'HelperFunction':
         case 'SearchAbout':

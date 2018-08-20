@@ -1,5 +1,5 @@
 import * as _ from 'lodash';;
-import { parseFilepath } from './util';
+import { parseFilepath } from './../util';
 import { View, Location, Occurence } from '../../type';
 import { Point, Range } from 'atom';
 

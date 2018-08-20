@@ -125,7 +125,6 @@ function parseResponse(raw: string, fileType: FileType): Promise<Agda.Response> 
                 displayInfoKind: kind,
                 title: tokens[1],
                 content: content,
-                append: tokens[3] === 't'
             } as Agda.DisplayInfo);
 
         // Resp_RunningInfo Int String
@@ -209,31 +208,6 @@ function parseAnnotation(obj: any[]): Agda.Annotation {
         };
     }
 }
-
-function parseFileType(filepath: string): FileType {
-    if (/\.lagda.rst$/i.test(filepath)) {
-        return FileType.LiterateReStructuredText;
-    } else if (/\.lagda.md$/i.test(filepath)) {
-        return FileType.LiterateMarkdown;
-    } else if (/\.lagda.tex$|\.lagda$/i.test(filepath)) {
-        return FileType.LiterateTeX;
-    } else {
-        return FileType.Agda;
-    }
-}
-//
-// const whyInScope: Parser<Agda.WhyInScope> = seq(
-//         trimBeforeAndSkip('is in scope as'),
-//         // alt(trimBeforeAndSkip('!=<'), trimBeforeAndSkip('=<'), trimBeforeAndSkip('!=')),
-//         // trimBeforeAndSkip('of type'),
-//         // trimBeforeAndSkip('when checking that the expression'),
-//         // trimBeforeAndSkip('has type'),
-//         all
-//     ).map((result) => {
-//         return <Agda.WhyInScope>{
-//             expr: result[0],
-//         };
-//     });
 
 // TODO: parse it better
 const parseLocation = (input) => location.parse(input);
@@ -325,7 +299,6 @@ function preprocess(chunk: string): string {
 }
 
 export {
-    parseFileType,
     parseResponse,
     parseResponses,
     prioritiseResponses,

@@ -3,7 +3,7 @@ import * as React from 'react';
 import * as Promise from 'bluebird';
 import * as classNames from 'classnames';
 
-import { parseInputContent } from '../../parser/emacs';
+import { parseInputContent } from '../../parser/util';
 import { TelePromise } from './../../util';
 import { QueryCancelled } from './../../error';
 

@@ -3,11 +3,16 @@ import * as _ from 'lodash';
 import { spawn, exec } from 'child_process';
 var duplex = require('duplexer');
 
-import Rectifier from './parser/emacs/stream/rectifier';
 import { View, Path, ValidPath, Connection } from './type';
 import * as Err from './error';
 import { Core } from './core';
-import { parseFilepath, parseResponses, parseFileType } from './parser/emacs';
+
+import EmacsRectifier from './parser/emacs/stream/rectifier';
+import JSONRectifier from './parser/json/rectifier';
+import * as Emacs from './parser/emacs';
+import * as J from './parser/json';
+import { parseFilepath, parseFileType }  from './parser';
+
 import * as Action from "./view/actions";
 
 export default class ConnectionManager {
@@ -47,6 +52,14 @@ export default class ConnectionManager {
         }
     }
 
+    usesJSON(): boolean {
+        if (this.connection) {
+            return useJSON(this.connection);
+        } else {
+            return false
+        }
+    }
+
     getConnection(): Promise<Connection> {
         if (this.connection)
             return Promise.resolve(this.connection);
@@ -61,28 +74,46 @@ export default class ConnectionManager {
         this.connection = connection;
 
         if (useJSON(connection)) {
-            console.log('JSON!')
             connection.stream
-                .pipe(new Rectifier)
-                .on('data', (data) => {
-                    const lines = data.toString().split('\n');
-                    // console.log(data.toString());
-                    lines.forEach(line => {
-                        console.log(line)
-                        console.log(JSON.parse(line))
-                    })
-                    // console.log(JSON.parse(data.toString()))
+                .pipe(new JSONRectifier)
+                .on('data', (objs: object[]) => {
+                    const promise = this.connection && this.connection.queue.pop();
+                    // console.log(promise);
+                    if (promise) {
+                        objs.map
+
+                        return Promise.map(objs, (obj) => J.parseResponse(obj, parseFileType(connection.filepath)))
+                            .then(responses => {
+                                const resps = responses
+                                    .map((response, i) => ({
+                                        raw: JSON.stringify(objs[i]),
+                                        parsed: response
+                                    }))
+                                    .filter(({ parsed }) => parsed.kind !== "RunningInfo")  // don't log RunningInfo because there's too many of them
+                                this.core.view.store.dispatch(Action.PROTOCOL.logResponses(resps));
+                                this.core.view.store.dispatch(Action.PROTOCOL.pending(false));
+                                promise.resolve(responses);
+                            })
+                            .catch(Err.ParseError, error => {
+                                this.core.view.set('Parse Error', [error.message, error.raw], View.Style.Error);
+                                promise.resolve([]);
+                            })
+                            .catch(error => {
+                                this.handleAgdaError(error);
+                                promise.resolve([]);
+                            })
+                    }
                 });
         } else {
 
             // the streams
             connection.stream
-                .pipe(new Rectifier)
+                .pipe(new EmacsRectifier)
                 .on('data', (data) => {
                     const promise = this.connection && this.connection.queue.pop();
                     if (promise) {
                         const lines = data.toString().trim().split('\n');
-                        parseResponses(data.toString(), parseFileType(connection.filepath))
+                        Emacs.parseResponses(data.toString(), parseFileType(connection.filepath))
                             .then(responses => {
                                 const resps = responses
                                     .map((response, i) => ({
@@ -267,6 +298,6 @@ export const establishConnection = (filepath: string) => ({ path, version, suppo
     });
 }
 
-export const useJSON = ({ supportedProtocol } : ValidPath) : boolean => {
+const useJSON = ({ supportedProtocol } : ValidPath) : boolean => {
     return (atom.config.get('agda-mode.enableJSONProtocol') && _.includes(supportedProtocol, 'JSON')) || false;
 }

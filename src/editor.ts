@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { Agda, View, Location, FileType } from './type';
-import { parseHole, parseFilepath } from './parser/emacs';
+import { parseHole, parseFilepath } from './parser';
 import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
 import Goal from './editor/goal';
@@ -34,6 +34,30 @@ class RunningInfoManager {
                 }).then(editor => {
                     this.editor = <Atom.TextEditor>editor;
                     this.editor.insertText(this.buffer.join(''));
+                    this.editor.onDidDestroy(() => {
+                        this.destroy();
+                    })
+                    this.isOpeningEditor = false;
+                    this.buffer = [];
+                });
+            }
+        }
+    }
+
+    clear() {
+        if (this.editor) {
+            this.editor.insertText('');
+            // TODO: clear the editor (or do nothing)
+        } else {
+            if (this.isOpeningEditor) {
+                this.buffer = [];
+            } else {
+                this.isOpeningEditor = true;
+                atom.workspace.open(undefined, {
+                    activateItem: false
+                }).then(editor => {
+                    this.editor = <Atom.TextEditor>editor;
+                    this.editor.insertText('');
                     this.editor.onDidDestroy(() => {
                         this.destroy();
                     })

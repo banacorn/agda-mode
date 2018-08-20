@@ -387,7 +387,6 @@ namespace Agda {
         displayInfoKind: DisplayInfoKind;
         title: string;
         content: string[];
-        append: boolean;
     }
 
     // Resp_RunningInfo Int String

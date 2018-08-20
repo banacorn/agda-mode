@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { parseInputContent } from './../parser/emacs';
+import { parseInputContent } from './../parser/util';
 
 import { Point, Range } from 'atom';
 import * as Atom from 'atom';

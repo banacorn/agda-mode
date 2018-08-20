@@ -1,22 +1,25 @@
-// import { Transform } from "stream";
 import { Transform } from "stream";
 
 export default class Rectifier extends Transform {
-    private buffer: String;
+    private buffer: string;
     constructor() {
         super({ objectMode: true });
-        this.buffer = "";
+        this.buffer = '';
     }
     _transform(chunk: any, _: string, next: Function): void {
 
         const string = chunk.toString();
-        // the prompt "Agda2> " should appear at the end of the response
-        const endOfResponse = string.endsWith('Agda2> ');
+        // the prompt "JSON> " should appear at the end of the response
+        const endOfResponse = string.endsWith('JSON> ');
         if (endOfResponse) {
-            // omit "Agda2> " and append to the buffer
+            // omit "JSON> " and append to the buffer
             this.buffer += string.substring(0, string.length - 7);
             // push and clear the buffer
-            this.push(this.buffer);
+
+            const parsedResponses = this.buffer.toString().split('\n')
+                .filter(line => line.length > 0)
+                .map(line => JSON.parse(line));
+            this.push(parsedResponses);
             this.buffer = '';
         } else {
             // append to the buffer and wait until the end of the response
