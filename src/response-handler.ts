@@ -110,7 +110,11 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             }).then(() => {});
 
         case 'DisplayInfo':
-            handleDisplayInfo(core, response.info);
+            if (core.connection.usesJSON())
+                handleJSONDisplayInfo(core, response.info);
+            else
+                handleEmacsDisplayInfo(core, response.info);
+
             return null;
 
         case 'RunningInfo':
@@ -134,7 +138,83 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
     }
 }
 
-function handleDisplayInfo(core: Core, response: Agda.Info)  {
+function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
+    switch (response.kind) {
+        case 'CompilationOk':
+            core.view.set('CompilationOk', response.mixed, View.Style.Info);
+            break;
+        case 'Constraints':
+            core.view.set('Constraints', response.constraints, View.Style.Info);
+            break;
+        case 'AllGoalsWarnings':
+            const body = Emacs.parseJudgements(response.mixed);
+            const hasGoals = (body.goalAndHave.length +
+                body.goals.length +
+                body.judgements.length +
+                body.metas.length +
+                body.judgements.length +
+                body.sorts.length) > 0;
+            const hasWarnings = body.warnings.length > 0;
+            const hasErrors = body.errors.length > 0;
+            const allDone = response.mixed.length === 0;
+            var titleList = [];
+            if (hasGoals) titleList = _.concat(titleList, ' Goals')
+            if (hasWarnings) titleList = _.concat(titleList, ' Warnings')
+            if (hasErrors) titleList = _.concat(titleList, ' Errors')
+            const title = allDone ? 'All Done' : 'All ' + titleList.join(',');
+            core.view.setJudgements(title, body);
+            break;
+        case 'Error':
+            const error = Emacs.parseError(response.payload.join('\n'));
+            core.view.setAgdaError(error);
+            break;
+        case 'Auto':
+            let solutions = Emacs.parseSolutions(response.payload);
+            core.view.setSolutions(solutions);
+            break;
+        case 'ModuleContents':
+            core.view.set('Module Contents', response.payload, View.Style.Info);
+            break;
+        case 'WhyInScope':
+            if (core.commander.currentCommand.kind === "GotoDefinition") {
+                const result = Emacs.parseWhyInScope(response.payload);
+                if (result) {
+                    core.editor.jumpToLocation(result.location);
+                } else {
+                    core.view.set('Go to Definition', ['not in scope'], View.Style.Info);
+                }
+            } else {
+                core.view.set('Scope Info', response.payload, View.Style.Info);
+            }
+            break;
+        case 'NormalForm':
+            core.view.set('Normal Form', response.payload, View.Style.Info);
+            break;
+        case 'GoalType':
+            core.view.setJudgements('Goal Type and Context', Emacs.parseJudgements(response.payload));
+            break;
+        case 'CurrentGoal':
+            core.view.set('Current Goal', response.payload, View.Style.Info);
+            break;
+        case 'InferredType':
+            core.view.set('Inferred Type', response.payload, View.Style.Info);
+            break;
+        case 'Context':
+            core.view.setJudgements('Context', Emacs.parseJudgements(response.payload));
+            break;
+        case 'Intro':
+            core.view.set('Intro', ['No introduction forms found']);
+            break;
+        case 'Time':
+        case 'SearchAbout':
+        case 'HelperFunction':
+            core.view.set(response.kind, response.payload);
+        case 'Version':
+            core.view.set(response.kind, []);
+    }
+}
+
+function handleJSONDisplayInfo(core: Core, response: Agda.Info)  {
     switch (response.kind) {
         case 'CompilationOk':
             core.view.set('CompilationOk', ['TBD'], View.Style.Warning);

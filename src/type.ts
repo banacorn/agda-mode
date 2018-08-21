@@ -396,6 +396,7 @@ namespace Agda {
         kind: "CompilationOk";
         warnings: string[];
         errors: string[];
+        mixed: string[];    // for Emacs
     }
 
     export interface Info_Constraints {
@@ -408,6 +409,7 @@ namespace Agda {
         goals: string[];
         warnings: string[];
         errors: string[];
+        mixed: string[];    // for Emacs
     }
     export interface Info_Time { kind: "Time"; payload: string[] }
     export interface Info_Error { kind: "Error"; payload: string[] }

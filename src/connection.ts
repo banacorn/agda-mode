@@ -73,7 +73,7 @@ export default class ConnectionManager {
         // the properties
         this.connection = connection;
 
-        if (useJSON(connection)) {
+        if (this.usesJSON()) {
             connection.stream
                 .pipe(new JSONRectifier)
                 .on('data', (objs: object[]) => {
@@ -105,8 +105,6 @@ export default class ConnectionManager {
                     }
                 });
         } else {
-
-            // the streams
             connection.stream
                 .pipe(new EmacsRectifier)
                 .on('data', (data) => {

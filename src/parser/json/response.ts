@@ -33,6 +33,7 @@ function parseDisplayInfo(raw: object): Agda.Info {
                 kind: 'CompilationOk',
                 warnings: raw['warnings'],
                 errors: raw['errors'],
+                mixed: []
             };
         case 'Constraints':
             return {
@@ -45,6 +46,7 @@ function parseDisplayInfo(raw: object): Agda.Info {
                 goals: raw['goals'],
                 warnings: raw['warnings'],
                 errors: raw['errors'],
+                mixed: []
             };
         case 'Time':
         case 'Error':
