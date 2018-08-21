@@ -118,11 +118,14 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             return null;
 
         case 'RunningInfo':
-            core.editor.runningInfo.add(response.message)
+            if (response.verbosity >= 2)
+                core.editor.runningInfo.add(response.message)
+            else
+                core.view.set('Type-checking', [response.message], View.Style.PlainText);
             return null;
 
         case 'ClearRunningInfo':
-            core.editor.runningInfo.clear();
+            // core.editor.runningInfo.clear();
             return null;
 
         case 'HighlightClear':

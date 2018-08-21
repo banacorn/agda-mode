@@ -124,7 +124,7 @@ function parseResponse(raw: string, fileType: FileType): Promise<Agda.Response> 
                 if (tokens[2] === 't') { // t: append
                     return Promise.resolve({
                         kind: 'RunningInfo',
-                        verbosity: 0,
+                        verbosity: 1,
                         message: tokens[2].replace(/\\n/g, '\n')
                     } as Agda.RunningInfo);
 
@@ -140,11 +140,11 @@ function parseResponse(raw: string, fileType: FileType): Promise<Agda.Response> 
                 } as Agda.DisplayInfo);
             }
 
-        // Resp_RunningInfo Int String
+        // verbosity >= 2
         case 'agda2-verbose':
             return Promise.resolve({
                 kind: 'RunningInfo',
-                verbosity: 1,
+                verbosity: 2,
                 message: tokens[1].replace(/\\n/g, '\n')
             } as Agda.RunningInfo);
 
