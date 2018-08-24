@@ -394,8 +394,8 @@ namespace Agda {
 
     export interface Info_CompilationOk {
         kind: "CompilationOk";
-        warnings: string[];
-        errors: string[];
+        warnings: string;
+        errors: string;
         mixed: string[];    // for Emacs
     }
 
@@ -406,9 +406,9 @@ namespace Agda {
 
     export interface Info_AllGoalsWarnings {
         kind: "AllGoalsWarnings",
-        goals: string[];
-        warnings: string[];
-        errors: string[];
+        goals: string;
+        warnings: string;
+        errors: string;
         mixed: string[];    // for Emacs
     }
     export interface Info_Time { kind: "Time"; payload: string[] }
@@ -424,7 +424,7 @@ namespace Agda {
     export interface Info_InferredType { kind: "InferredType"; payload: string[] }
     export interface Info_Context { kind: "Context"; payload: string[] }
     export interface Info_HelperFunction { kind: "HelperFunction"; payload: string[] }
-    export interface Info_Version { kind: "Version" }
+    export interface Info_Version { kind: "Version"; version: string }
 
     // Resp_RunningInfo Int String
     export interface RunningInfo {

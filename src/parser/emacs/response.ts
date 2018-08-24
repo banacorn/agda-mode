@@ -182,8 +182,8 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
         case '*Compilation result*':
             return {
                 kind: 'CompilationOk',
-                warnings: [],
-                errors: [],
+                warnings: "",
+                errors: "",
                 mixed: []
             };
         case '*Constraints*':
@@ -208,14 +208,14 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
         case '*Scope Info*':            return { kind: 'WhyInScope', payload};
         case '*Context*':               return { kind: 'Context', payload};
         case '*Intro*':                 return { kind: 'Intro', payload};
-        case '*Agda Version*':          return { kind: 'Version'};
+        case '*Agda Version*':          return { kind: 'Version', version: payload[0]};
         // AllGoals
         default:
             return {
                 kind: 'AllGoalsWarnings',
-                goals: [],
-                warnings: [],
-                errors: [],
+                goals: "",
+                warnings: "",
+                errors: "",
                 mixed: payload
             };
     }

@@ -63,11 +63,12 @@ function parseDisplayInfo(raw: object): Agda.Info {
         case 'HelperFunction':
             return {
                 kind: raw['kind'],
-                payload: raw['message']
+                payload: raw['payload'].split('\n')
             };
         case 'Version':
             return {
-                kind: 'Version'
+                kind: 'Version',
+                version: raw['version']
             }
     }
 }
@@ -78,7 +79,7 @@ function parseResponse(raw: object, fileType: FileType): Promise<Agda.Response> 
             if (raw['direct']) {
                 return Promise.resolve({
                     kind: 'HighlightingInfo_Direct',
-                    annotations: raw['info'].map(toAnnotation)
+                    annotations: raw['info']['payload'].map(toAnnotation)
                 } as Agda.HighlightingInfo_Direct);
             } else {
                 return Promise.resolve({
@@ -118,7 +119,7 @@ function parseResponse(raw: object, fileType: FileType): Promise<Agda.Response> 
 
             return Promise.resolve({
                 kind: 'GiveAction',
-                index: raw['InteractionPoint'],
+                index: raw['interactionPoint'],
                 giveResult: giveResult,
                 result: giveResult === 'String' ? raw['giveResult'] : ''
             } as Agda.GiveAction);
@@ -169,12 +170,6 @@ function parseResponse(raw: object, fileType: FileType): Promise<Agda.Response> 
             return Promise.resolve({
                 kind: 'DoneAborting',
             } as Agda.DoneAborting);
-        //
-        // case 'agda2-parse-error':
-        //     return Promise.reject(new ParseError(
-        //         raw,
-        //         'agda2-parse-error'
-        //     ));
 
         default:
             return Promise.reject(new ParseError(

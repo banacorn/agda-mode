@@ -51,7 +51,6 @@ const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<vo
 }
 
 const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> | null => {
-    // console.log(response.kind)
     switch (response.kind) {
         case 'HighlightingInfo_Direct':
             const annotations = response.annotations;
@@ -141,6 +140,23 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
     }
 }
 
+function formatTitle(parsed: View.Body): string {
+    const hasGoals = (parsed.goalAndHave.length +
+        parsed.goals.length +
+        parsed.judgements.length +
+        parsed.metas.length +
+        parsed.judgements.length +
+        parsed.sorts.length) > 0;
+    const hasWarnings = parsed.warnings.length > 0;
+    const hasErrors = parsed.errors.length > 0;
+    const allDone = !hasGoals && !hasWarnings && !hasErrors
+    var titleList = [];
+    if (hasGoals) titleList = _.concat(titleList, ' Goals')
+    if (hasWarnings) titleList = _.concat(titleList, ' Warnings')
+    if (hasErrors) titleList = _.concat(titleList, ' Errors')
+    return allDone ? 'All Done' : 'All ' + titleList.join(',');
+}
+
 function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
     switch (response.kind) {
         case 'CompilationOk':
@@ -151,20 +167,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             break;
         case 'AllGoalsWarnings':
             const body = Emacs.parseJudgements(response.mixed);
-            const hasGoals = (body.goalAndHave.length +
-                body.goals.length +
-                body.judgements.length +
-                body.metas.length +
-                body.judgements.length +
-                body.sorts.length) > 0;
-            const hasWarnings = body.warnings.length > 0;
-            const hasErrors = body.errors.length > 0;
-            const allDone = response.mixed.length === 0;
-            var titleList = [];
-            if (hasGoals) titleList = _.concat(titleList, ' Goals')
-            if (hasWarnings) titleList = _.concat(titleList, ' Warnings')
-            if (hasErrors) titleList = _.concat(titleList, ' Errors')
-            const title = allDone ? 'All Done' : 'All ' + titleList.join(',');
+            const title = formatTitle(body);
             core.view.setJudgements(title, body);
             break;
         case 'Error':
@@ -217,8 +220,8 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
     }
 }
 
-function handleJSONDisplayInfo(core: Core, response: Agda.Info)  {
-    switch (response.kind) {
+function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
+    switch (info.kind) {
         case 'CompilationOk':
             core.view.set('CompilationOk', ['TBD'], View.Style.Warning);
             break;
@@ -226,85 +229,55 @@ function handleJSONDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.set('Constraints', ['TBD'], View.Style.Warning);
             break;
         case 'AllGoalsWarnings':
-            core.view.set('AllGoalsWarnings', ['TBD'], View.Style.Warning);
-
-            //
-            // if (response.content.length === 0) {
-            //     core.view.set('All Done', [], View.Style.Success);
-            // } else {
-            //     // remove the astericks
-            //     const title = response.title.slice(1, -1);
-            //     core.view.setJudgements(title, Emacs.parseJudgements(response.content));
-            // }
-            // core.view.setAgdaError(Emacs.parseError(response.content.join('\n')), true);
-            // core.view.setAgdaError(Emacs.parseError(response.content.join('\n')), true);
+            var parsed = J.parseGWE(info.goals, info.warnings, info.errors)
+            var title = formatTitle(parsed);
+            core.view.setJudgements(title, parsed);
             break;
-        case 'Time':
         case 'Error':
-        case 'Intro':
-        case 'Auto':
-        case 'ModuleContents':
-        case 'SearchAbout':
-        case 'WhyInScope':
-        case 'NormalForm':
-        case 'GoalType':
-        case 'CurrentGoal':
-        case 'InferredType':
-        case 'Context':
-        case 'HelperFunction':
-            core.view.set(response.kind, ['TBD'], View.Style.Warning);
+            const error = Emacs.parseError(info.payload.join('\n'));
+            core.view.setAgdaError(error);
             break;
-        //     break;
-        // case 'AllErrors':
-        //     break;
-        // case 'Time':
-        //     break;
-        // case 'Error':
-        //     const error = Emacs.parseError(response.content.join('\n'));
-        //     core.view.setAgdaError(error);
-        //     break;
-        // case 'Intro':
-        //     core.view.set('Intro', ['No introduction forms found']);
-        //     break;
-        // case 'Auto':
-        //     let solutions = Emacs.parseSolutions(response.content);
-        //     core.view.setSolutions(solutions);
-        //     break;
-        // case 'ModuleContents':
-        //     core.view.set('Module Contents', response.content, View.Style.Info);
-        //     break;
-        // case 'SearchAbout':
-        //     break;
-        // case 'WhyInScope':
-        //     if (core.commander.currentCommand.kind === "GotoDefinition") {
-        //         const result = Emacs.parseWhyInScope(response.content);
-        //         if (result) {
-        //             core.editor.jumpToLocation(result.location);
-        //         } else {
-        //             core.view.set('Go to Definition', ['not in scope'], View.Style.Info);
-        //         }
-        //     } else {
-        //         core.view.set('Scope Info', response.content, View.Style.Info);
-        //     }
-        //     break;
-        // case 'NormalForm':
-        //     core.view.set('Normal Form', response.content, View.Style.Info);
-        //     break;
-        // case 'GoalType':
-        //     core.view.setJudgements('Goal Type and Context', Emacs.parseJudgements(response.content));
-        //     break;
-        // case 'CurrentGoal':
-        //     core.view.set('Current Goal', response.content, View.Style.Info);
-        //     break;
-        // case 'InferredType':
-        //     core.view.set('Inferred Type', response.content, View.Style.Info);
-        //     break;
-        // case 'Context':
-        //     core.view.setJudgements('Context', Emacs.parseJudgements(response.content));
-        //     break;
-        // case 'HelperFunction':
-        //     break;
+        case 'Auto':
+            let solutions = Emacs.parseSolutions(info.payload);
+            core.view.setSolutions(solutions);
+            break;
+        case 'WhyInScope':
+            if (core.commander.currentCommand.kind === "GotoDefinition") {
+                const result = Emacs.parseWhyInScope(info.payload);
+                if (result) {
+                    core.editor.jumpToLocation(result.location);
+                } else {
+                    core.view.set('Go to Definition', ['not in scope'], View.Style.Info);
+                }
+            } else {
+                core.view.set('Scope Info', info.payload, View.Style.Info);
+            }
+            break;
+        case 'NormalForm':
+            core.view.set('Normal Form', info.payload, View.Style.Info);
+            break;
+        case 'GoalType':
+            core.view.setJudgements('Goal Type and Context', J.parseJudgements(info.payload));
+            break;
+        case 'CurrentGoal':
+            core.view.set('Current Goal', info.payload, View.Style.Info);
+            break;
+        case 'InferredType':
+            core.view.set('Inferred Type', info.payload, View.Style.Info);
+            break;
+        case 'Context':
+            core.view.setJudgements('Context', J.parseJudgements(info.payload));
+            break;
+        case 'ModuleContents':
+            core.view.set('Module Contents', info.payload, View.Style.Info);
+        case 'HelperFunction':
+        case 'Time':
+        case 'Intro':
+        case 'SearchAbout':
+            core.view.set(info.kind, info.payload, View.Style.PlainText);
+            break;
         case 'Version':
+            core.view.set(info.kind, [], View.Style.PlainText);
             break;
     }
 }
