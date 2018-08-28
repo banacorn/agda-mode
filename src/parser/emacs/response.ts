@@ -55,7 +55,7 @@ function parseResponse(raw: string, fileType: FileType): Promise<Agda.Response> 
         case 'agda2-status-action':
             return Promise.resolve({
                 kind: 'Status',
-                showImplicit: _.includes(tokens, 'ShowImplicit'),
+                showImplicitArguments: _.includes(tokens, 'ShowImplicit'),
                 checked: _.includes(tokens, 'Checked')
             } as Agda.Status);
 
@@ -177,19 +177,19 @@ function parseResponse(raw: string, fileType: FileType): Promise<Agda.Response> 
 
 
 function parseDisplayInfo(tokens: any[]): Agda.Info {
-    const payload = _.compact(tokens[2].split('\\n')) as string[];
+    const payload = _.compact(tokens[2].split('\\n')).join('\n') as string;
     switch (tokens[1]) {
         case '*Compilation result*':
             return {
                 kind: 'CompilationOk',
                 warnings: "",
                 errors: "",
-                mixed: []
+                emacs: ""
             };
         case '*Constraints*':
             return {
                 kind: 'Constraints',
-                constraints: []
+                constraints: ""
             };
         case '*Helper function*':
             return {
@@ -200,7 +200,7 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
             return {
                 kind: 'Error',
                 error: null,
-                emacs: payload.join('\n')
+                emacs: payload
             };
         case '*Auto*':                  return { kind: 'Auto', payload};
         case '*Time*':                  return { kind: 'Time', payload};
@@ -213,7 +213,7 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
         case '*Scope Info*':            return { kind: 'WhyInScope', payload};
         case '*Context*':               return { kind: 'Context', payload};
         case '*Intro*':                 return { kind: 'Intro', payload};
-        case '*Agda Version*':          return { kind: 'Version', version: payload[0]};
+        case '*Agda Version*':          return { kind: 'Version', version: payload};
         // AllGoals
         default:
             return {
@@ -221,7 +221,7 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
                 goals: "",
                 warnings: "",
                 errors: "",
-                mixed: payload
+                emacs: payload
             };
     }
 }
@@ -250,9 +250,10 @@ function parseAnnotation(obj: any[]): Agda.Annotation {
 
 // TODO: parse it better
 const parseLocation = (input) => location.parse(input);
-function parseWhyInScope(raws: string[]): Agda.WhyInScope {
+function parseWhyInScope(raws: string): Agda.WhyInScope {
     const regex = /its definition at (.*)$/;
     const occurences = raws
+        .split('\n')
         .filter(str => regex.test(str))
         .map(str => str.match(regex)[1])
         .map(parseLocation)

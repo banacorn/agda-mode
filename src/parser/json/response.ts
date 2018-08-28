@@ -26,57 +26,57 @@ function parseIndirectAnnotations(raw: string): Agda.Annotation[] {
     return payload.map(toAnnotation);
 }
 
-function parseDisplayInfo(raw: object): Agda.Info {
-    switch (raw['kind']) {
-        case 'CompilationOk':
-            return {
-                kind: 'CompilationOk',
-                warnings: raw['warnings'],
-                errors: raw['errors'],
-                mixed: []
-            };
-        case 'Constraints':
-            return {
-                kind: 'Constraints',
-                constraints: raw['constraints'],
-            };
-        case 'AllGoalsWarnings':
-            return {
-                kind: 'AllGoalsWarnings',
-                goals: raw['goals'],
-                warnings: raw['warnings'],
-                errors: raw['errors'],
-                mixed: []
-            };
-        case 'Error':
-            return {
-                kind: raw['kind'],
-                error: raw['error'] as Agda.Error,
-                emacs: raw['emacs'].split('\n'),
-            };
-        case 'Time':
-        case 'Intro':
-        case 'Auto':
-        case 'ModuleContents':
-        case 'SearchAbout':
-        case 'WhyInScope':
-        case 'NormalForm':
-        case 'GoalType':
-        case 'CurrentGoal':
-        case 'InferredType':
-        case 'Context':
-        case 'HelperFunction':
-            return {
-                kind: raw['kind'],
-                payload: raw['payload'].split('\n')
-            };
-        case 'Version':
-            return {
-                kind: 'Version',
-                version: raw['version']
-            }
-    }
-}
+// function parseDisplayInfo(raw: object): Agda.Info {
+//     switch (raw['kind']) {
+//         case 'CompilationOk':
+//             return {
+//                 kind: 'CompilationOk',
+//                 warnings: raw['warnings'],
+//                 errors: raw['errors'],
+//                 mixed: []
+//             };
+//         case 'Constraints':
+//             return {
+//                 kind: 'Constraints',
+//                 constraints: raw['constraints'],
+//             };
+//         case 'AllGoalsWarnings':
+//             return {
+//                 kind: 'AllGoalsWarnings',
+//                 goals: raw['goals'],
+//                 warnings: raw['warnings'],
+//                 errors: raw['errors'],
+//                 mixed: []
+//             };
+//         case 'Error':
+//             return {
+//                 kind: raw['kind'],
+//                 error: raw['error'] as Agda.Error,
+//                 emacs: raw['emacs'],
+//             };
+//         case 'Time':
+//         case 'Intro':
+//         case 'Auto':
+//         case 'ModuleContents':
+//         case 'SearchAbout':
+//         case 'WhyInScope':
+//         case 'NormalForm':
+//         case 'GoalType':
+//         case 'CurrentGoal':
+//         case 'InferredType':
+//         case 'Context':
+//         case 'HelperFunction':
+//             return {
+//                 kind: raw['kind'],
+//                 payload: raw['payload'].split('\n')
+//             };
+//         case 'Version':
+//             return {
+//                 kind: 'Version',
+//                 version: raw['version']
+//             }
+//     }
+// }
 
 function parseResponse(raw: object, fileType: FileType): Promise<Agda.Response> {
     switch (raw['kind']) {
@@ -96,8 +96,8 @@ function parseResponse(raw: object, fileType: FileType): Promise<Agda.Response> 
         case 'Status':
             return Promise.resolve({
                 kind: 'Status',
-                showImplicit: raw['status']['showImplicitArguments'],
-                checked: raw['status']['checked'],
+                showImplicitArguments: raw['showImplicitArguments'],
+                checked: raw['checked'],
             } as Agda.Status);
 
         case 'JumpToError':
@@ -146,9 +146,10 @@ function parseResponse(raw: object, fileType: FileType): Promise<Agda.Response> 
             } as Agda.SolveAll);
 
         case 'DisplayInfo':
+            console.log(raw['info'] as Agda.Info);
             return Promise.resolve({
                 kind: 'DisplayInfo',
-                info: parseDisplayInfo(raw['info'])
+                info: raw['info'] as Agda.Info
             } as Agda.DisplayInfo);
 
         case 'RunningInfo':

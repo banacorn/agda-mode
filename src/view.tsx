@@ -183,7 +183,7 @@ export default class View {
                     this.core.commander.dispatch({ kind: 'Give' });
                 })
                 .catch(OutOfGoalError, () => {
-                    this.core.view.set('Out of goal', ['Please place the cursor in the goal before filling in the solution'], V.Style.Error);
+                    this.core.view.set('Out of goal', 'Please place the cursor in the goal before filling in the solution', V.Style.Error);
                     return []
                 })
         });
@@ -312,7 +312,7 @@ export default class View {
         this.tabs.destroyAll();
     }
 
-    set(header: string, payload: string[], type = V.Style.PlainText) {
+    set(header: string, payload: string, type = V.Style.PlainText) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
@@ -320,7 +320,7 @@ export default class View {
             text: header,
             style: type
         }));
-        this.store.dispatch(Action.updatePlainText(payload.join('\n')));
+        this.store.dispatch(Action.updatePlainText(payload));
     }
 
     // for JSON

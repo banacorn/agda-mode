@@ -112,7 +112,7 @@ export default class Commander {
                 .then(this.sendRequests)
                 .then(handleResponses(this.core))
                 .catch(Err.QueryCancelled, () => {
-                    this.core.view.set('Query cancelled', [], View.Style.Warning);
+                    this.core.view.set('Query cancelled', '', View.Style.Warning);
                 })
                 .catch(this.core.connection.handleAgdaError)
         } else {
@@ -125,9 +125,9 @@ export default class Commander {
                         this.core.view.activatePanel();
 
                         if (command.kind === 'Load') {
-                            this.core.view.set('Type Checking ...', []);
+                            this.core.view.set('Type Checking ...', '');
                         } else {
-                            this.core.view.set('Loading ...', []);
+                            this.core.view.set('Loading ...', '');
                         }
                     }
                     // initialize connection
@@ -370,7 +370,7 @@ export default class Commander {
             })
             .then(goal => [Req.give(goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.set('Out of goal', ['`Give` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                this.core.view.set('Out of goal', '`Give` is a goal-specific command, please place the cursor in a goal', View.Style.Error);
                 return [];
             })
     }
@@ -379,7 +379,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then(goal => [Req.refine(goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.set('Out of goal', ['`Refine` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                this.core.view.set('Out of goal', '`Refine` is a goal-specific command, please place the cursor in a goal', View.Style.Error);
                 return [];
             })
     }
@@ -388,7 +388,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then(goal => [Req.auto(goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.set('Out of goal', ['`Auto` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                this.core.view.set('Out of goal', '`Auto` is a goal-specific command, please place the cursor in a goal', View.Style.Error);
                 return [];
             })
     }
@@ -405,7 +405,7 @@ export default class Commander {
             })
             .then(goal => [Req.makeCase(goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.set('Out of goal', ['`Case` is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                this.core.view.set('Out of goal', '`Case` is a goal-specific command, please place the cursor in a goal', View.Style.Error);
                 return [];
             })
     }
@@ -414,7 +414,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then(goal => [Req.goalType(normalization, goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.set('Out of goal', ['"Goal Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                this.core.view.set('Out of goal', '"Goal Type" is a goal-specific command, please place the cursor in a goal', View.Style.Error);
                 return [];
             })
     }
@@ -423,7 +423,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then(goal => [Req.context(normalization, goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.set('Out of goal', ['"Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                this.core.view.set('Out of goal', '"Context" is a goal-specific command, please place the cursor in a goal', View.Style.Error);
                 return [];
             })
     }
@@ -432,7 +432,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then(goal => [Req.goalTypeAndContext(normalization, goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.set('Out of goal', ['"Goal Type & Context" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                this.core.view.set('Out of goal', '"Goal Type & Context" is a goal-specific command, please place the cursor in a goal', View.Style.Error);
                 return [];
             })
     }
@@ -441,7 +441,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then(goal => [Req.goalTypeAndInferredType(normalization, goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.set('Out of goal', ['"Goal Type & Inferred Type" is a goal-specific command, please place the cursor in a goal'], View.Style.Error);
+                this.core.view.set('Out of goal', '"Goal Type & Inferred Type" is a goal-specific command, please place the cursor in a goal', View.Style.Error);
                 return [];
             });
     }
@@ -452,7 +452,7 @@ export default class Commander {
                 const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
                 this.core.view.mountPanel(currentMountingPosition);
                 this.core.view.activatePanel();
-                this.core.view.set('Not loaded', [], View.Style.PlainText);
+                this.core.view.set('Not loaded', '', View.Style.PlainText);
             }
             this.core.inputMethod.activate();
         } else {

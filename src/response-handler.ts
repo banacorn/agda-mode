@@ -25,27 +25,27 @@ const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<vo
     return Promise.each(promises, a => a)
         .then(() => {})
         .catch(Err.Conn.NotEstablished, () => {
-            core.view.set('Connection to Agda not established', [], View.Style.Warning);
+            core.view.set('Connection to Agda not established', '', View.Style.Warning);
         })
         .catch(Err.Conn.ConnectionError, error => {
-                core.view.set(error.name, error.message.split('\n'), View.Style.Error);
+                core.view.set(error.name, error.message, View.Style.Error);
                 // core.view.store.dispatch(Action.CONNECTION.err(error.guid));
         })
         .catch(Err.QueryCancelled, () => {
-            core.view.set('Query cancelled', [], View.Style.Warning);
+            core.view.set('Query cancelled', '', View.Style.Warning);
         })
         .catch((error) => { // catch all the rest
             if (error) {
                 console.log(error)
                 switch (error.name) {
                     case 'Err.InvalidExecutablePathError':
-                    core.view.set(error.message, [error.path], View.Style.Error);
+                    core.view.set(error.message, error.path, View.Style.Error);
                     break;
                 default:
-                    core.view.set(error.name, error.message.split('\n'), View.Style.Error);
+                    core.view.set(error.name, error.message, View.Style.Error);
                 }
             } else {
-                core.view.set('Panic!', ['unknown error'], View.Style.Error);
+                core.view.set('Panic!', 'unknown error', View.Style.Error);
             }
         });
 }
@@ -77,8 +77,8 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
                     });
                 })
         case 'Status':
-            if (response.checked || response.showImplicit) {
-                core.view.set('Status', [`Typechecked: ${response.checked}`, `Display implicit arguments: ${response.showImplicit}`]);
+            if (response.checked || response.showImplicitArguments) {
+                core.view.set('Status', `Typechecked: ${response.checked}\nDisplay implicit arguments: ${response.showImplicitArguments}`);
             }
             return null;
 
@@ -120,7 +120,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             if (response.verbosity >= 2)
                 core.editor.runningInfo.add(response.message)
             else
-                core.view.set('Type-checking', [response.message], View.Style.PlainText);
+                core.view.set('Type-checking', response.message, View.Style.PlainText);
             return null;
 
         case 'ClearRunningInfo':
@@ -131,7 +131,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             return core.editor.highlighting.destroyAll();
 
         case 'DoneAborting':
-            core.view.set('Status', [`Done aborting`], View.Style.Warning);
+            core.view.set('Status', `Done aborting`, View.Style.Warning);
             return null;
 
         default:
@@ -160,13 +160,13 @@ function formatTitle(parsed: View.Body): string {
 function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
     switch (response.kind) {
         case 'CompilationOk':
-            core.view.set('CompilationOk', response.mixed, View.Style.Info);
+            core.view.set('CompilationOk', response.emacs, View.Style.Info);
             break;
         case 'Constraints':
             core.view.set('Constraints', response.constraints, View.Style.Info);
             break;
         case 'AllGoalsWarnings':
-            const body = Emacs.parseJudgements(response.mixed);
+            const body = Emacs.parseJudgements(response.emacs);
             const title = formatTitle(body);
             core.view.setJudgements(title, body);
             break;
@@ -175,7 +175,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.setEmacsAgdaError(error);
             break;
         case 'Auto':
-            let solutions = Emacs.parseSolutions(response.payload);
+            let solutions = Emacs.parseSolutions(response.payload.split('\n'));
             core.view.setSolutions(solutions);
             break;
         case 'ModuleContents':
@@ -187,7 +187,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
                 if (result) {
                     core.editor.jumpToLocation(result.location);
                 } else {
-                    core.view.set('Go to Definition', ['not in scope'], View.Style.Info);
+                    core.view.set('Go to Definition', 'not in scope', View.Style.Info);
                 }
             } else {
                 core.view.set('Scope Info', response.payload, View.Style.Info);
@@ -209,24 +209,24 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.setJudgements('Context', Emacs.parseJudgements(response.payload));
             break;
         case 'Intro':
-            core.view.set('Intro', ['No introduction forms found']);
+            core.view.set('Intro', 'No introduction forms found');
             break;
         case 'Time':
         case 'SearchAbout':
         case 'HelperFunction':
             core.view.set(response.kind, response.payload);
         case 'Version':
-            core.view.set(response.kind, []);
+            core.view.set(response.kind, '');
     }
 }
 
 function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
     switch (info.kind) {
         case 'CompilationOk':
-            core.view.set('CompilationOk', ['TBD'], View.Style.Warning);
+            core.view.set('CompilationOk', 'TBD', View.Style.Warning);
             break;
         case 'Constraints':
-            core.view.set('Constraints', ['TBD'], View.Style.Warning);
+            core.view.set('Constraints', 'TBD', View.Style.Warning);
             break;
         case 'AllGoalsWarnings':
             var parsed = J.parseGWE(info.goals, info.warnings, info.errors)
@@ -237,7 +237,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.setAgdaError(info.error);
             break;
         case 'Auto':
-            let solutions = Emacs.parseSolutions(info.payload);
+            let solutions = Emacs.parseSolutions(info.payload.split('\n'));
             core.view.setSolutions(solutions);
             break;
         case 'WhyInScope':
@@ -246,7 +246,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
                 if (result) {
                     core.editor.jumpToLocation(result.location);
                 } else {
-                    core.view.set('Go to Definition', ['not in scope'], View.Style.Info);
+                    core.view.set('Go to Definition', 'not in scope', View.Style.Info);
                 }
             } else {
                 core.view.set('Scope Info', info.payload, View.Style.Info);
@@ -276,7 +276,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.set(info.kind, info.payload, View.Style.PlainText);
             break;
         case 'Version':
-            core.view.set(info.kind, [], View.Style.PlainText);
+            core.view.set(info.kind, '', View.Style.PlainText);
             break;
     }
 }

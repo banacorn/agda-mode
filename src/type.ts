@@ -278,32 +278,18 @@ namespace Agda {
         // Resp_HighlightingInfo
         HighlightingInfo_Direct |
         HighlightingInfo_Indirect |
-        // Resp_Status
-        Status |
-        // Resp_JumpToError
-        JumpToError |
-        // Resp_InteractionPoints
-        InteractionPoints |
-        // Resp_GiveAction
-        GiveAction |
-        // Resp_MakeCase
-        MakeCase |
-        // Resp_SolveAll
-        SolveAll |
-        // Resp_DisplayInfo
-        DisplayInfo |
 
-        // Never tested
-        // Resp_RunningInfo Int String
-        RunningInfo |
-        // Resp_ClearRunningInfo
-        ClearRunningInfo |
-
-        // Resp_ClearHighlighting
-        ClearHighlighting |
-        // Resp_DoneAborting
-        DoneAborting;
-
+        DisplayInfo                 |
+        ClearHighlighting           |
+        DoneAborting                |
+        ClearRunningInfo            |
+        RunningInfo                 |
+        Status                      |
+        JumpToError                 |
+        InteractionPoints           |
+        GiveAction                  |
+        MakeCase                    |
+        SolveAll                    ;
 
     // Resp_HighlightingInfo HighlightingInfo HighlightingMethod ModuleToSource
     export interface HighlightingInfo_Direct {
@@ -334,7 +320,7 @@ namespace Agda {
     export interface Status {
         kind: 'Status';
         // Are implicit arguments displayed?
-        showImplicit: boolean;
+        showImplicitArguments: boolean;
         // Has the module been successfully type checked?
         checked: boolean;
     }
@@ -397,12 +383,12 @@ namespace Agda {
         kind: "CompilationOk";
         warnings: string;
         errors: string;
-        mixed: string[];    // for Emacs
+        emacs: string;    // for Emacs
     }
 
     export interface Info_Constraints {
         kind: "Constraints";
-        constraints: string[];
+        constraints: string;
     }
 
     export interface Info_AllGoalsWarnings {
@@ -410,25 +396,25 @@ namespace Agda {
         goals: string;
         warnings: string;
         errors: string;
-        mixed: string[];    // for Emacs
+        emacs: string;    // for Emacs
     }
     export interface Info_Error {
         kind: "Error";
         error: Agda.Error;
         emacs: string;
     }
-    export interface Info_Time { kind: "Time"; payload: string[] }
-    export interface Info_Intro { kind: "Intro"; payload: string[] }
-    export interface Info_Auto { kind: "Auto"; payload: string[] }
-    export interface Info_ModuleContents { kind: "ModuleContents"; payload: string[] }
-    export interface Info_SearchAbout { kind: "SearchAbout"; payload: string[] }
-    export interface Info_WhyInScope { kind: "WhyInScope"; payload: string[] }
-    export interface Info_NormalForm { kind: "NormalForm"; payload: string[] }
-    export interface Info_GoalType { kind: "GoalType"; payload: string[] }
-    export interface Info_CurrentGoal { kind: "CurrentGoal"; payload: string[] }
-    export interface Info_InferredType { kind: "InferredType"; payload: string[] }
-    export interface Info_Context { kind: "Context"; payload: string[] }
-    export interface Info_HelperFunction { kind: "HelperFunction"; payload: string[] }
+    export interface Info_Time { kind: "Time"; payload: string }
+    export interface Info_Intro { kind: "Intro"; payload: string }
+    export interface Info_Auto { kind: "Auto"; payload: string }
+    export interface Info_ModuleContents { kind: "ModuleContents"; payload: string }
+    export interface Info_SearchAbout { kind: "SearchAbout"; payload: string }
+    export interface Info_WhyInScope { kind: "WhyInScope"; payload: string }
+    export interface Info_NormalForm { kind: "NormalForm"; payload: string }
+    export interface Info_GoalType { kind: "GoalType"; payload: string }
+    export interface Info_CurrentGoal { kind: "CurrentGoal"; payload: string }
+    export interface Info_InferredType { kind: "InferredType"; payload: string }
+    export interface Info_Context { kind: "Context"; payload: string }
+    export interface Info_HelperFunction { kind: "HelperFunction"; payload: string }
     export interface Info_Version { kind: "Version"; version: string }
 
     // Resp_RunningInfo Int String

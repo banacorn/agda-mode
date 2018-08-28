@@ -98,8 +98,8 @@ function parseIndexedSolutions(message: string, raw: string[]): View.IndexedSolu
     };
 }
 
-function parseJudgements(lines: string[]): View.Body {
-    const {goalAndHave, body, warnings, errors} = divideJudgements(lines);
+function parseJudgements(lines: string): View.Body {
+    const {goalAndHave, body, warnings, errors} = divideJudgements(lines.split('\n'));
 
     const grouped = _.groupBy(concatItems(body).map(parseExpression), 'judgementForm');
     return {
