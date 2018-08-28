@@ -441,6 +441,49 @@ namespace Agda {
 
 
     //
+    //  QName
+    //
+
+    export namespace Syntax {
+
+        export type NameId = {
+            name: String;
+            module: String;
+        };
+
+        export type NamePart = null | String;
+
+        export type Name = {
+            kind: 'Name';
+            range: Range;
+            parts: NamePart[];
+        } | {
+            kind: 'NoName';
+            range: Range;
+            name: NameId;
+        };
+
+        export type QName = Name[];
+
+        //
+        //  Range
+        //
+
+        export type Position = [number, number, number];
+        export type Interval = {
+            start: Position;
+            end  : Position;
+        };
+
+        export type Range = {
+            intervals: Interval[];
+            source?: string;
+        }
+    }
+
+
+
+    //
     //  Error
     //
 
@@ -452,22 +495,40 @@ namespace Agda {
 
     export interface Error_TypeError {
         kind: 'TypeError';
-        // range: Range;
-        // typeError: TypeError;
+        range: Syntax.Range;
+        typeError: TypeError;
     }
     export interface Error_Exception {
-        kind: 'Error_Exception';
-        // range: Range;
+        kind: 'Exception';
+        range: Syntax.Range;
         message: String;
     }
     export interface Error_IOException {
         kind: 'IOException';
-        // range: Range;
+        range: Syntax.Range;
         message: String;
     }
     export interface Error_PatternError {
         kind: 'PatternError';
-        // range: Range;
+        range: Syntax.Range;
+    }
+
+    //
+    //  TypeError
+    //
+
+    export type TypeError =
+        // ...
+        TypeError_NotInScope;
+        // ..
+
+    export interface TypeError_NotInScope {
+        kind: 'NotInScope';
+        payloads: {
+            name: Syntax.QName;
+            range: Syntax.Range;
+            suggestions: String[];
+        }[];
     }
 }
 

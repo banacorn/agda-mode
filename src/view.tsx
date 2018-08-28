@@ -173,6 +173,9 @@ export default class View {
         this.emitter.on(EVENT.JUMP_TO_GOAL, (index: number) => {
             this.core.editor.jumpToGoal(index);
         });
+        this.emitter.on(EVENT.JUMP_TO_RANGE, (range: Agda.Syntax.Range) => {
+            this.core.editor.jumpToRange(range);
+        });
         this.emitter.on(EVENT.JUMP_TO_LOCATION, (loc: Location) => {
             this.core.editor.jumpToLocation(loc);
         });
@@ -328,12 +331,11 @@ export default class View {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
+        this.store.dispatch(Action.updateError(error));
         this.store.dispatch(Action.HEADER.update({
             style: V.Style.Error,
             text: error.kind,
         }));
-
-        this.store.dispatch(Action.updatePlainText(JSON.stringify(error)));
     }
 
     // for Emacs

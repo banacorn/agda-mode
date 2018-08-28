@@ -146,7 +146,6 @@ function parseResponse(raw: object, fileType: FileType): Promise<Agda.Response> 
             } as Agda.SolveAll);
 
         case 'DisplayInfo':
-            console.log(raw['info'] as Agda.Info);
             return Promise.resolve({
                 kind: 'DisplayInfo',
                 info: raw['info'] as Agda.Info

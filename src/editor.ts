@@ -234,6 +234,45 @@ export default class Editor {
         }
     }
 
+    jumpToRange(range: Agda.Syntax.Range) {
+        this.focus();
+
+        const bufferRange: Atom.Range = range.intervals[0] ? new Atom.Range(
+            new Point(range.intervals[0].start[0], range.intervals[0].start[1]),
+            new Point(range.intervals[0].end[0]  , range.intervals[0].end[1]  ),
+        ) : null;
+
+        if (range.source) {
+            // global
+            atom.workspace.open(range.source)
+                .then((editor: Atom.TextEditor) => {
+                    // jump to a specific place iff it's specified
+                    if (bufferRange) {
+                        editor.setSelectedBufferRange(bufferRange, {
+                            reversed: true
+                        });
+                    }
+                })
+        } else {
+            // goal-specific
+            this.goal.pointing()
+                .then((goal) => {
+                    let range;
+                    if (bufferRange.start.row === 0) {
+                        range = bufferRange
+                            .translate(goal.range.start)
+                            .translate([0, 3]);  // hole boundary
+                    } else {
+                        range = bufferRange
+                            .translate([goal.range.start.row, 0]);
+                    }
+                    this.textEditor.setSelectedBufferRange(range, {
+                        reversed: true
+                    });
+                }).catch(() => this.warnOutOfGoal());
+        }
+    }
+
     jumpToLocation(location: Location) {
         this.focus();
         if (location.path) {

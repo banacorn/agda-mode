@@ -234,6 +234,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.setJudgements(title, parsed);
             break;
         case 'Error':
+            console.log(info.emacs)
             core.view.setAgdaError(info.error);
             break;
         case 'Auto':
