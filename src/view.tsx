@@ -342,7 +342,6 @@ export default class View {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
-
         this.store.dispatch(Action.updateEmacsError(error));
         if (error) {
             this.store.dispatch(Action.HEADER.update({

@@ -219,6 +219,7 @@ const body = handleActions<View.BodyState, BODY>({
         body: action.payload,
         solutions: defaultState.body.solutions,
         error: null,
+        emacsError: null,
         plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_ERROR]: (state, action: Action<BODY.UPDATE_ERROR>) => ({ ...state,
@@ -227,16 +228,24 @@ const body = handleActions<View.BodyState, BODY>({
         error: action.payload,
         plainText: defaultState.body.plainText
     }),
+    [BODY.UPDATE_EMACS_ERROR]: (state, action: Action<BODY.UPDATE_EMACS_ERROR>) => ({ ...state,
+        body: defaultState.body.body,
+        solutions: defaultState.body.solutions,
+        emacsError: action.payload,
+        plainText: defaultState.body.plainText
+    }),
     [BODY.UPDATE_SOLUTIONS]: (state, action: Action<BODY.UPDATE_SOLUTIONS>) => ({ ...state,
         body: defaultState.body.body,
         solutions: action.payload,
         error: null,
+        emacsError: null,
         plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_PLAIN_TEXT]: (state, action: Action<BODY.UPDATE_PLAIN_TEXT>) => ({ ...state,
         body: defaultState.body.body,
         solutions: defaultState.body.solutions,
         error: null,
+        emacsError: null,
         plainText: action.payload
     }),
     [BODY.UPDATE_MAX_BODY_HEIGHT]: (state, action: Action<BODY.UPDATE_MAX_BODY_HEIGHT>) => ({ ...state,

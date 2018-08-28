@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 import { View } from '../../../type';
 import { updateMaxBodyHeight, EVENT } from '../../actions';
 import Expr from './Body/Expr';
-import Error from './Body/Error';
+import EmacsError from './Body/EmacsError';
 import Location from './Body/Location';
 import Solution from './Body/Solution';
 
@@ -43,7 +43,7 @@ class Body extends React.Component<Props, {}> {
     }
 
     render() {
-        const { emitter, body, solutions, error, plainText, maxBodyHeight, mountAtBottom } = this.props;
+        const { emitter, body, solutions, emacsError, plainText, maxBodyHeight, mountAtBottom } = this.props;
         const classes = classNames(this.props.className, `native-key-bindings`, 'agda-body');
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
@@ -82,7 +82,7 @@ class Body extends React.Component<Props, {}> {
                         solutions={solutions}
                     />
                 }
-                {error && <Error emitter={emitter}>{error}</Error>}
+                {emacsError && <EmacsError emitter={emitter}>{emacsError}</EmacsError>}
                 {plainText && <p>{plainText}</p>}
             </section>
         )

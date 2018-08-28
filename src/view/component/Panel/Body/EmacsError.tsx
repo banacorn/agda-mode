@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { inspect } from 'util';
 import { EventEmitter } from 'events';
-import { AgdaError } from '../../../../parser/emacs';
+import { EmacsAgdaError } from '../../../../parser/emacs';
 
 import Expr from './Expr';
 import Location from './Location';
@@ -11,10 +11,10 @@ interface Props {
     emitter: EventEmitter;
 }
 
-class Error extends React.Component<Props, {}> {
+class EmacsError extends React.Component<Props, {}> {
     render() {
         const emitter = this.props.emitter;
-        const error = this.props.children as AgdaError;
+        const error = this.props.children as EmacsAgdaError;
 
         switch (error.kind) {
             case 'BadConstructor': return <p className="error">
@@ -136,4 +136,4 @@ class Error extends React.Component<Props, {}> {
     }
 }
 
-export default Error;
+export default EmacsError;
