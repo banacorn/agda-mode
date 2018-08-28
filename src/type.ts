@@ -1,5 +1,5 @@
 import { Duplex } from 'stream';
-import { AgdaError } from './parser/emacs/error';
+import { EmacsAgdaError } from './parser/emacs/error';
 
 import * as Atom from 'atom';
 
@@ -135,7 +135,8 @@ namespace View {
 
     export interface BodyState {
         body: Body;
-        error: AgdaError;
+        emacsError: EmacsAgdaError;
+        error: Agda.Error;
         plainText: string;
         solutions: Solutions;
         maxBodyHeight: number;
@@ -411,8 +412,12 @@ namespace Agda {
         errors: string;
         mixed: string[];    // for Emacs
     }
+    export interface Info_Error {
+        kind: "Error";
+        error: Agda.Error;
+        emacs: string;
+    }
     export interface Info_Time { kind: "Time"; payload: string[] }
-    export interface Info_Error { kind: "Error"; payload: string[] }
     export interface Info_Intro { kind: "Intro"; payload: string[] }
     export interface Info_Auto { kind: "Auto"; payload: string[] }
     export interface Info_ModuleContents { kind: "ModuleContents"; payload: string[] }
@@ -446,6 +451,37 @@ namespace Agda {
     // Resp_DoneAborting
     export interface DoneAborting {
         kind: 'DoneAborting';
+    }
+
+
+    //
+    //  Error
+    //
+
+    export type Error =
+        Error_TypeError |
+        Error_Exception |
+        Error_IOException |
+        Error_PatternError ;
+
+    export interface Error_TypeError {
+        kind: 'TypeError';
+        // range: Range;
+        // typeError: TypeError;
+    }
+    export interface Error_Exception {
+        kind: 'Error_Exception';
+        // range: Range;
+        message: String;
+    }
+    export interface Error_IOException {
+        kind: 'IOException';
+        // range: Range;
+        message: String;
+    }
+    export interface Error_PatternError {
+        kind: 'PatternError';
+        // range: Range;
     }
 }
 

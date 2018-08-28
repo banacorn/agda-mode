@@ -14,11 +14,10 @@ import Panel from './view/component/Panel';
 import Settings from './view/component/Settings';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
-import { View as V, Location } from './type';
+import { Agda, View as V, Location } from './type';
 import { EVENT } from './view/actions';
 import * as Action from './view/actions';
-import { AgdaError } from './parser/emacs';
-import { updateBody, updateError, updatePlainText, updateSolutions } from './view/actions';
+import { EmacsAgdaError } from './parser/emacs';
 import Tab from './view/tab';
 import { OutOfGoalError } from './error';
 
@@ -321,16 +320,30 @@ export default class View {
             text: header,
             style: type
         }));
-        this.store.dispatch(updatePlainText(payload.join('\n')));
+        this.store.dispatch(Action.updatePlainText(payload.join('\n')));
     }
 
-    setAgdaError(error: AgdaError, isWarning: boolean = false) {
+    // for JSON
+    setAgdaError(error: Agda.Error) {
+        this.store.dispatch(Action.MODE.display());
+        this.editors.focusMain()
+
+        this.store.dispatch(Action.HEADER.update({
+            style: V.Style.Error,
+            text: error.kind,
+        }));
+
+        this.store.dispatch(Action.updatePlainText(JSON.stringify(error)));
+    }
+
+    // for Emacs
+    setEmacsAgdaError(error: EmacsAgdaError, isWarning: boolean = false) {
 
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
 
-        this.store.dispatch(updateError(error));
+        this.store.dispatch(Action.updateEmacsError(error));
         if (error) {
             this.store.dispatch(Action.HEADER.update({
                 style: isWarning ? V.Style.Warning : V.Style.Error,
@@ -353,7 +366,7 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(updateBody(body));
+        this.store.dispatch(Action.updateBody(body));
     }
 
     setSolutions(solutions: V.Solutions) {
@@ -365,7 +378,7 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(updateSolutions(solutions));
+        this.store.dispatch(Action.updateSolutions(solutions));
     }
 
     query(header: string = '', _: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {

@@ -156,7 +156,7 @@ export default class ConnectionManager {
             case 'QueryCancelled':   return Promise.resolve();
             default:
                 this.disconnect();
-                console.log(error);
+                console.warn(error);
                 return this.core.view.tabs.open('settings').then(() => {
                     this.core.view.store.dispatch(Action.VIEW.navigate({path: '/Connection'}));
                     this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));

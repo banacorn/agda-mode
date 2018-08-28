@@ -63,6 +63,7 @@ const defaultState: View.State = {
             message: '',
             solutions: []
         },
+        emacsError: null,
         error: null,
         plainText: '',
         maxBodyHeight: 170

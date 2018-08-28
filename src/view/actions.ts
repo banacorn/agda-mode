@@ -1,6 +1,6 @@
 import { createAction } from 'redux-actions';
 import { Parsed, Agda, View, ValidPath } from '../type';
-import { AgdaError } from '../parser/emacs';
+import { EmacsAgdaError } from '../parser/emacs';
 
 // export type EVENT =
 //     EVENT.JUMP_TO_GOAL |
@@ -166,6 +166,7 @@ export namespace QUERY {
 
 export type BODY = BODY.UPDATE_BODY
     | BODY.UPDATE_ERROR
+    | BODY.UPDATE_EMACS_ERROR
     | BODY.UPDATE_SOLUTIONS
     | BODY.UPDATE_PLAIN_TEXT
     | BODY.UPDATE_MAX_BODY_HEIGHT;
@@ -173,7 +174,9 @@ export namespace BODY {
     export const UPDATE_BODY = 'BODY.UPDATE_BODY';
     export type UPDATE_BODY = View.Body;
     export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
-    export type UPDATE_ERROR = AgdaError;
+    export type UPDATE_ERROR = Agda.Error;
+    export const UPDATE_EMACS_ERROR = 'BODY.UPDATE_EMACS_ERROR';
+    export type UPDATE_EMACS_ERROR = EmacsAgdaError;
     export const UPDATE_SOLUTIONS = 'BODY.UPDATE_SOLUTIONS';
     export type UPDATE_SOLUTIONS = View.Solutions;
     export const UPDATE_PLAIN_TEXT = 'BODY.UPDATE_PLAIN_TEXT';
@@ -184,6 +187,7 @@ export namespace BODY {
 
 export const updateBody = createAction<BODY.UPDATE_BODY>(BODY.UPDATE_BODY);
 export const updateError = createAction<BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
+export const updateEmacsError = createAction<BODY.UPDATE_EMACS_ERROR>(BODY.UPDATE_EMACS_ERROR);
 export const updateSolutions = createAction<BODY.UPDATE_SOLUTIONS>(BODY.UPDATE_SOLUTIONS);
 export const updatePlainText = createAction<BODY.UPDATE_PLAIN_TEXT>(BODY.UPDATE_PLAIN_TEXT);
 export const updateMaxBodyHeight = createAction<BODY.UPDATE_MAX_BODY_HEIGHT>(BODY.UPDATE_MAX_BODY_HEIGHT);

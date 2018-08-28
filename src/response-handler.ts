@@ -171,8 +171,8 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.setJudgements(title, body);
             break;
         case 'Error':
-            const error = Emacs.parseError(response.payload.join('\n'));
-            core.view.setAgdaError(error);
+            const error = Emacs.parseError(response.emacs);
+            core.view.setEmacsAgdaError(error);
             break;
         case 'Auto':
             let solutions = Emacs.parseSolutions(response.payload);
@@ -234,8 +234,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.setJudgements(title, parsed);
             break;
         case 'Error':
-            const error = Emacs.parseError(info.payload.join('\n'));
-            core.view.setAgdaError(error);
+            core.view.setAgdaError(info.error);
             break;
         case 'Auto':
             let solutions = Emacs.parseSolutions(info.payload);

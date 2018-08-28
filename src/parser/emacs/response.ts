@@ -196,8 +196,13 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
                 kind: 'HelperFunction',
                 payload: payload
             };
+        case '*Error*':
+            return {
+                kind: 'Error',
+                error: null,
+                emacs: payload.join('\n')
+            };
         case '*Auto*':                  return { kind: 'Auto', payload};
-        case '*Error*':                 return { kind: 'Error', payload};
         case '*Time*':                  return { kind: 'Time', payload};
         case '*Normal Form*':           return { kind: 'NormalForm', payload};
         case '*Inferred Type*':         return { kind: 'InferredType', payload};

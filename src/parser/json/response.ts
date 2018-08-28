@@ -48,8 +48,13 @@ function parseDisplayInfo(raw: object): Agda.Info {
                 errors: raw['errors'],
                 mixed: []
             };
-        case 'Time':
         case 'Error':
+            return {
+                kind: raw['kind'],
+                error: raw['error'] as Agda.Error,
+                emacs: raw['emacs'].split('\n'),
+            };
+        case 'Time':
         case 'Intro':
         case 'Auto':
         case 'ModuleContents':
