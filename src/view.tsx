@@ -155,6 +155,7 @@ class TabManager {
 }
 
 export default class View {
+    public static EventContext = React.createContext(new EventEmitter);
     private emitter: EventEmitter;
     private subscriptions: Atom.CompositeDisposable;
     public store: Redux.Store<V.State>;
@@ -224,12 +225,14 @@ export default class View {
 
 
     public renderPanel(mountingPoint: HTMLElement) {
+
         ReactDOM.render(
             <Provider store={this.store}>
-                <Panel
-                    core={this.core}
-                    emitter={this.emitter}
-                />
+                <View.EventContext.Provider value={this.emitter}>
+                    <Panel
+                        core={this.core}
+                    />
+                </View.EventContext.Provider>
             </Provider>,
             mountingPoint
         )

@@ -6,10 +6,12 @@ import { EVENT } from '../../../actions';
 
 // Atom shits
 import { CompositeDisposable } from 'atom';
+import View from '../../../../view';
 import * as Atom from 'atom';
 
+
+
 type Props = React.HTMLProps<HTMLElement> & {
-    emitter: EventEmitter;
     range: Agda.Syntax.Range;
     abbr?: boolean;
 }
@@ -62,30 +64,33 @@ export default class Range extends React.Component<Props, {}> {
         this.subscriptions.dispose();
     }
 
-
     render() {
-        const { emitter, range, abbr } = this.props;
-        if (abbr) {
-            return (
-                <span
-                    className="text-subtle range icon icon-link"
-                    onClick={() => {
-                        emitter.emit(EVENT.JUMP_TO_RANGE, range);
-                    }}
-                    ref={(ref) => {
-                        this.link = ref;
-                    }}
-                ></span>
-            )
-        } else {
-            return (
-                <span
-                    className="text-subtle range icon icon-link"
-                    onClick={() => {
-                        emitter.emit(EVENT.JUMP_TO_RANGE, range);
-                    }}
-                > {Range.toString(range)}</span>
-            )
-        }
+        const { range, abbr } = this.props;
+        return <View.EventContext.Consumer>
+            {emitter => {
+                if (abbr) {
+                    return (
+                        <span
+                            className="text-subtle range icon icon-link"
+                            onClick={() => {
+                                emitter.emit(EVENT.JUMP_TO_RANGE, range);
+                            }}
+                            ref={(ref) => {
+                                this.link = ref;
+                            }}
+                        ></span>
+                    )
+                } else {
+                    return (
+                        <span
+                            className="text-subtle range icon icon-link"
+                            onClick={() => {
+                                emitter.emit(EVENT.JUMP_TO_RANGE, range);
+                            }}
+                        > {Range.toString(range)}</span>
+                    )
+                }
+            }}
+        </View.EventContext.Consumer>
     }
 }

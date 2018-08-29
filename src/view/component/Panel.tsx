@@ -15,7 +15,6 @@ import { MODE, updateMaxBodyHeight, QUERY } from './../actions';
 //
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
-    emitter: EventEmitter;
 }
 type InjProps = View.State;
 type DispatchProps = {
@@ -52,7 +51,7 @@ function show(kind: View.Mode, mode: View.Mode, ...classes): string {
 
 class Panel extends React.Component<Props, {}> {
     render() {
-        const { core, emitter, mode, onResize } = this.props;
+        const { core, mode, onResize } = this.props;
         const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
         return (
@@ -86,7 +85,6 @@ class Panel extends React.Component<Props, {}> {
                 <section className='agda-body-container'>
                     <Body
                         className={show(View.Mode.Display, mode)}
-                        emitter={emitter}
                     />
                     <MiniEditor
                         className={show(View.Mode.Query, mode)}

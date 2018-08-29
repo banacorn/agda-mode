@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
 import * as React from 'react';
-import { EventEmitter } from 'events';
 
 import { EVENT } from '../../../actions';
+import View from '../../../../view';
 
 interface TermProps extends React.HTMLProps<HTMLElement> {
     jumpToGoal: (index: number) => void;
@@ -25,13 +25,9 @@ class Term extends React.Component<TermProps, {}> {
 }
 
 
-interface ExprProps extends React.HTMLProps<HTMLElement> {
-    emitter: EventEmitter
-}
 
-class Expr extends React.Component<ExprProps, {}> {
+class Expr extends React.Component<{}, {}> {
     render() {
-        const { emitter } = this.props;
         const otherProps = _.omit(this.props, 'jumpToGoal', 'emitter');
         let expressions;
         if (typeof this.props.children === 'string') {
@@ -61,13 +57,15 @@ class Expr extends React.Component<ExprProps, {}> {
         } else {
             expressions = []
         }
-        return (
-            <span className="expr" {...otherProps} >{expressions.map((expr, i) =>
-                <Term kind={expr.kind} key={i} jumpToGoal={(index) => {
-                    emitter.emit(EVENT.JUMP_TO_GOAL, index);
-                }}>{expr.payload}</Term>
-            )}</span>
-        )
+        return (<View.EventContext.Consumer>
+            {emitter => (
+                <span className="expr" {...otherProps} >{expressions.map((expr, i) =>
+                    <Term kind={expr.kind} key={i} jumpToGoal={(index) => {
+                        emitter.emit(EVENT.JUMP_TO_GOAL, index);
+                    }}>{expr.payload}</Term>
+                )}</span>
+            )}
+        </View.EventContext.Consumer>)
     }
 }
 

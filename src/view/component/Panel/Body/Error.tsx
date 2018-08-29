@@ -1,6 +1,4 @@
 import * as React from 'react';
-import { inspect } from 'util';
-import { EventEmitter } from 'events';
 import { Agda } from './../../../../type';
 
 import TypeError from './TypeError';
@@ -8,15 +6,13 @@ import TypeError from './TypeError';
 interface Props {
     error: Agda.Error;
     emacsMessage: string;
-    emitter: EventEmitter;
 }
 
 export default class Error extends React.Component<Props, {}> {
     render() {
-        const { emitter , error, emacsMessage } = this.props;
+        const { error, emacsMessage } = this.props;
         switch (error.kind) {
             case 'TypeError': return <TypeError
-                    emitter={emitter}
                     error={error.typeError}
                     range={error.range}
                     emacsMessage={emacsMessage}

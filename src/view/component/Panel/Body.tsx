@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
-import { EventEmitter } from 'events';
 
 import { View } from '../../../type';
+import V from '../../../view';
 import { updateMaxBodyHeight, EVENT } from '../../actions';
 import Expr from './Body/Expr';
 import EmacsError from './Body/EmacsError';
@@ -11,9 +11,7 @@ import Error from './Body/Error';
 import Range from './Body/Range';
 import Solution from './Body/Solution';
 
-type OwnProps = React.HTMLProps<HTMLElement> & {
-    emitter: EventEmitter;
-}
+type OwnProps = React.HTMLProps<HTMLElement>
 
 type InjProps = View.BodyState & {
     mountAtBottom: boolean
@@ -44,7 +42,7 @@ class Body extends React.Component<Props, {}> {
     }
 
     render() {
-        const { emitter, body, solutions, error, emacsMessage, emacsError, plainText, maxBodyHeight, mountAtBottom } = this.props;
+        const { body, solutions, error, emacsMessage, emacsError, plainText, maxBodyHeight, mountAtBottom } = this.props;
         const classes = classNames(this.props.className, `native-key-bindings`, 'agda-body');
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
@@ -56,14 +54,14 @@ class Body extends React.Component<Props, {}> {
                 style={style}
             >
                 <ul className="list-group">
-                    {body.goalAndHave.map(goalAndHave(emitter))}
+                    {body.goalAndHave.map(goalAndHave)}
                 </ul>
                 <ul className="list-group">
-                    {body.goals.map(goal(emitter))}
-                    {body.judgements.map(judgement(emitter))}
-                    {body.terms.map(term(emitter))}
-                    {body.metas.map(meta(emitter))}
-                    {body.sorts.map(sort(emitter))}
+                    {body.goals.map(goal)}
+                    {body.judgements.map(judgement)}
+                    {body.terms.map(term)}
+                    {body.metas.map(meta)}
+                    {body.sorts.map(sort)}
                 </ul>
                 <ul className="list-group">
                     {body.warnings.length > 0 &&
@@ -78,78 +76,77 @@ class Body extends React.Component<Props, {}> {
                     }
                 </ul>
                 {solutions.message &&
-                    <Solution
-                        emitter={emitter}
-                        solutions={solutions}
-                    />
+                    <Solution solutions={solutions} />
                 }
-                {error && <Error emitter={emitter} error={error} emacsMessage={emacsMessage}/>}
-                {emacsError && <EmacsError emitter={emitter}>{emacsError}</EmacsError>}
+                {error && <Error error={error} emacsMessage={emacsMessage}/>}
+                {emacsError && <EmacsError>{emacsError}</EmacsError>}
                 {plainText && <p>{plainText}</p>}
             </section>
         )
     }
 }
 
-const goalAndHave = (emitter: EventEmitter) => (item: View.GoalAndHave, i: number): JSX.Element =>
+const goalAndHave = (item: View.GoalAndHave, i: number): JSX.Element =>
     <li className="list-item special-item" key={i}>
         <div className="item-heading text-info">{item.label}</div>
         <div className="item-colon"><span> : </span></div>
         <div className="item-body">
-            <Expr emitter={emitter}>{item.type}</Expr>
+            <Expr>{item.type}</Expr>
         </div>
     </li>
 
-const goal = (emitter: EventEmitter) => (item: View.Goal, i: number): JSX.Element =>
+const goal = (item: View.Goal, i: number): JSX.Element =>
     <li className="list-item body-item" key={i}>
         <div className="item-heading">
-            <button className="no-btn text-info" onClick={() => {
-                const index = parseInt(item.index.substr(1));
-                emitter.emit(EVENT.JUMP_TO_GOAL, index);
-            }}>{item.index}</button>
+            <V.EventContext.Consumer>{emitter => (
+                <button className="no-btn text-info" onClick={() => {
+                    const index = parseInt(item.index.substr(1));
+                    emitter.emit(EVENT.JUMP_TO_GOAL, index);
+                }}>{item.index}</button>
+            )}</V.EventContext.Consumer>
         </div>
         <div className="item-colon"><span> : </span></div>
         <div className="item-body">
-            <Expr emitter={emitter}>{item.type}</Expr>
+            <Expr>{item.type}</Expr>
         </div>
     </li>
 
-const judgement = (emitter: EventEmitter) => (item: View.Judgement, i: number): JSX.Element =>
+const judgement = (item: View.Judgement, i: number): JSX.Element =>
     <li className="list-item body-item" key={i}>
         <div className="item-heading">
             <span className="text-success">{item.expr}</span>
         </div>
         <div className="item-colon"><span> : </span></div>
         <div className="item-body">
-            <Expr emitter={emitter}>{item.type}</Expr>
+            <Expr>{item.type}</Expr>
         </div>
     </li>
 
-const term = (emitter: EventEmitter) => (item: View.Term, i: number): JSX.Element =>
+const term = (item: View.Term, i: number): JSX.Element =>
     <li className="list-item body-item" key={i}>
         <div className="item-body">
-            <Expr emitter={emitter}>{item.expr}</Expr>
+            <Expr>{item.expr}</Expr>
         </div>
     </li>
-const meta = (emitter: EventEmitter) => (item: View.Meta, i: number): JSX.Element =>
+const meta = (item: View.Meta, i: number): JSX.Element =>
     <li className="list-item body-item" key={i}>
         <div className="item-heading">
             <span className="text-success">{item.index}</span>
         </div>
         <div className="item-colon"><span> : </span></div>
         <div className="item-body">
-            <Expr emitter={emitter}>{item.type}</Expr>
-            <Range abbr emitter={emitter} range={item.range} />
+            <Expr>{item.type}</Expr>
+            <Range abbr range={item.range} />
         </div>
     </li>
-const sort = (emitter: EventEmitter) => (item: View.Sort, i: number): JSX.Element =>
+const sort = (item: View.Sort, i: number): JSX.Element =>
     <li className="list-item body-item" key={i}>
         <div className="item-heading">
             <span className="text-highlight">Sort </span>
             <span className="text-warning">{item.index}</span>
         </div>
         <div className="item-body">
-            <Range abbr emitter={emitter} range={item.range} />
+            <Range abbr range={item.range} />
         </div>
     </li>
 
