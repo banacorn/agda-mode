@@ -160,18 +160,18 @@ function formatTitle(parsed: View.Body): string {
 function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
     switch (response.kind) {
         case 'CompilationOk':
-            core.view.set('CompilationOk', response.emacs, View.Style.Info);
+            core.view.set('CompilationOk', response.emacsMessage, View.Style.Info);
             break;
         case 'Constraints':
             core.view.set('Constraints', response.constraints, View.Style.Info);
             break;
         case 'AllGoalsWarnings':
-            const body = Emacs.parseJudgements(response.emacs);
+            const body = Emacs.parseJudgements(response.emacsMessage);
             const title = formatTitle(body);
             core.view.setJudgements(title, body);
             break;
         case 'Error':
-            const error = Emacs.parseError(response.emacs);
+            const error = Emacs.parseError(response.emacsMessage);
             core.view.setEmacsAgdaError(error);
             break;
         case 'Auto':
@@ -234,8 +234,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.setJudgements(title, parsed);
             break;
         case 'Error':
-            console.log(info.emacs)
-            core.view.setAgdaError(info.error);
+            core.view.setAgdaError(info.error, info.emacsMessage);
             break;
         case 'Auto':
             let solutions = Emacs.parseSolutions(info.payload.split('\n'));

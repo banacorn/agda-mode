@@ -324,11 +324,11 @@ export default class View {
     }
 
     // for JSON
-    setAgdaError(error: Agda.Error) {
+    setAgdaError(error: Agda.Error, emacsMsg: string) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
-        this.store.dispatch(Action.updateError(error));
+        this.store.dispatch(Action.updateError([error, emacsMsg]));
         this.store.dispatch(Action.HEADER.update({
             style: V.Style.Error,
             text: error.kind,

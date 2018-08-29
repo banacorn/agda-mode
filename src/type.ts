@@ -136,6 +136,7 @@ namespace View {
     export interface BodyState {
         body: Body;
         emacsError: EmacsAgdaError;
+        emacsMessage: string;
         error: Agda.Error;
         plainText: string;
         solutions: Solutions;
@@ -383,7 +384,7 @@ namespace Agda {
         kind: "CompilationOk";
         warnings: string;
         errors: string;
-        emacs: string;    // for Emacs
+        emacsMessage: string;    // for Emacs
     }
 
     export interface Info_Constraints {
@@ -396,12 +397,12 @@ namespace Agda {
         goals: string;
         warnings: string;
         errors: string;
-        emacs: string;    // for Emacs
+        emacsMessage: string;    // for Emacs
     }
     export interface Info_Error {
         kind: "Error";
         error: Agda.Error;
-        emacs: string;
+        emacsMessage: string;
     }
     export interface Info_Time { kind: "Time"; payload: string }
     export interface Info_Intro { kind: "Intro"; payload: string }

@@ -44,7 +44,7 @@ class Body extends React.Component<Props, {}> {
     }
 
     render() {
-        const { emitter, body, solutions, error, emacsError, plainText, maxBodyHeight, mountAtBottom } = this.props;
+        const { emitter, body, solutions, error, emacsMessage, emacsError, plainText, maxBodyHeight, mountAtBottom } = this.props;
         const classes = classNames(this.props.className, `native-key-bindings`, 'agda-body');
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
@@ -83,7 +83,7 @@ class Body extends React.Component<Props, {}> {
                         solutions={solutions}
                     />
                 }
-                {error && <Error emitter={emitter} error={error}/>}
+                {error && <Error emitter={emitter} error={error} emacsMessage={emacsMessage}/>}
                 {emacsError && <EmacsError emitter={emitter}>{emacsError}</EmacsError>}
                 {plainText && <p>{plainText}</p>}
             </section>

@@ -64,6 +64,7 @@ const defaultState: View.State = {
             solutions: []
         },
         emacsError: null,
+        emacsMessage: '',
         error: null,
         plainText: '',
         maxBodyHeight: 170
@@ -219,13 +220,16 @@ const body = handleActions<View.BodyState, BODY>({
         body: action.payload,
         solutions: defaultState.body.solutions,
         error: null,
+        emacsMessage: '',
         emacsError: null,
         plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_ERROR]: (state, action: Action<BODY.UPDATE_ERROR>) => ({ ...state,
         body: defaultState.body.body,
         solutions: defaultState.body.solutions,
-        error: action.payload,
+        error: action.payload[0],
+        emacsMessage: action.payload[1],
+        emacsError: null,
         plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_EMACS_ERROR]: (state, action: Action<BODY.UPDATE_EMACS_ERROR>) => ({ ...state,
@@ -238,6 +242,7 @@ const body = handleActions<View.BodyState, BODY>({
         body: defaultState.body.body,
         solutions: action.payload,
         error: null,
+        emacsMessage: '',
         emacsError: null,
         plainText: defaultState.body.plainText
     }),
@@ -245,6 +250,7 @@ const body = handleActions<View.BodyState, BODY>({
         body: defaultState.body.body,
         solutions: defaultState.body.solutions,
         error: null,
+        emacsMessage: '',
         emacsError: null,
         plainText: action.payload
     }),

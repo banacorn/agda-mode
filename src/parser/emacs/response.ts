@@ -184,7 +184,7 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
                 kind: 'CompilationOk',
                 warnings: "",
                 errors: "",
-                emacs: ""
+                emacsMessage: ""
             };
         case '*Constraints*':
             return {
@@ -200,7 +200,7 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
             return {
                 kind: 'Error',
                 error: null,
-                emacs: payload
+                emacsMessage: payload
             };
         case '*Auto*':                  return { kind: 'Auto', payload};
         case '*Time*':                  return { kind: 'Time', payload};
@@ -221,7 +221,7 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
                 goals: "",
                 warnings: "",
                 errors: "",
-                emacs: payload
+                emacsMessage: payload
             };
     }
 }
