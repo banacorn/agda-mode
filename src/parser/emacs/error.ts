@@ -3,7 +3,7 @@ import { Parser, seq, alt, takeWhile, sepBy1, succeed, all,
     } from 'parsimmon';
 import { trimBeforeAndSkip, spaces, token } from './combinator';
 import { Point, Range } from 'atom';
-import { Location } from '../../type';
+import { Agda } from '../../type';
 import { normalize } from 'path';
 
 
@@ -36,7 +36,7 @@ namespace EmacsAgdaError {
     export interface NotInScope {
         kind: 'NotInScope',
         header: string,
-        location: Location,
+        range: Agda.Syntax.Range,
         suggestion: string[],
         expr: string
     }
@@ -44,7 +44,7 @@ namespace EmacsAgdaError {
     export interface TypeMismatch {
         kind: 'TypeMismatch',
         header: string,
-        location: Location
+        range: Agda.Syntax.Range,
         expected: string,
         expectedType: string,
         actual: string,
@@ -56,7 +56,7 @@ namespace EmacsAgdaError {
     export interface BadConstructor {
         kind: 'BadConstructor',
         header: string,
-        location: Location,
+        range: Agda.Syntax.Range,
         constructor: string,
         constructorType: string,
         expr: string,
@@ -66,7 +66,7 @@ namespace EmacsAgdaError {
     export interface DefinitionTypeMismatch {
         kind: 'DefinitionTypeMismatch',
         header: string,
-        location: Location
+        range: Agda.Syntax.Range,
         expected: string,
         expectedType: string,
         actual: string,
@@ -78,7 +78,7 @@ namespace EmacsAgdaError {
     export interface IlltypedPattern {
         kind: 'IlltypedPattern';
         header: string;
-        location: Location;
+        range: Agda.Syntax.Range,
         pattern: string;
         type: string;
     }
@@ -86,7 +86,7 @@ namespace EmacsAgdaError {
     export interface MissingType {
         kind: 'MissingType';
         header: string,
-        location: Location;
+        range: Agda.Syntax.Range,
         expr: string;
         decl: string;
     }
@@ -94,8 +94,8 @@ namespace EmacsAgdaError {
     export interface MultipleDefinition {
         kind: 'MultipleDefinition',
         header: string,
-        location: Location,
-        locationPrev: Location,
+        range: Agda.Syntax.Range,
+        rangePrev: Agda.Syntax.Range,
         expr: string,
         decl: string,
         declType: string
@@ -104,13 +104,13 @@ namespace EmacsAgdaError {
     export interface MissingDefinition {
         kind: 'MissingDefinition',
         header: string,
-        location: Location,
+        range: Agda.Syntax.Range,
         expr: string
     }
     export interface RHSOmitted {
         kind: 'RHSOmitted',
         header: string,
-        location: Location,
+        range: Agda.Syntax.Range,
         expr: string,
         exprType: string
     }
@@ -119,18 +119,18 @@ namespace EmacsAgdaError {
     export interface Termination {
         kind: 'Termination',
         header: string,
-        location: Location,
+        range: Agda.Syntax.Range,
         expr: string,
         calls: {
             expr: string,
-            location: Location
+            range: Agda.Syntax.Range,
         }[]
     }
 
     export interface ConstructorTarget {
         kind: 'ConstructorTarget',
         header: string,
-        location: Location,
+        range: Agda.Syntax.Range,
         expr: string,
         ctor: string,
         decl: string
@@ -139,7 +139,7 @@ namespace EmacsAgdaError {
     export interface FunctionType {
         kind: 'FunctionType',
         header: string,
-        location: Location,
+        range: Agda.Syntax.Range,
         expr: string,
         exprType: string
     }
@@ -155,7 +155,7 @@ namespace EmacsAgdaError {
     export interface Parse {
         kind: 'Parse',
         header: string,
-        location: Location
+        range: Agda.Syntax.Range,
         message: string,
         expr: string,
     }
@@ -163,7 +163,7 @@ namespace EmacsAgdaError {
     export interface CaseSingleHole {
         kind: 'CaseSingleHole',
         header: string,
-        location: Location,
+        range: Agda.Syntax.Range,
         expr: string,
         exprType: string
     }
@@ -171,7 +171,7 @@ namespace EmacsAgdaError {
     export interface PatternMatchOnNonDatatype {
         kind: 'PatternMatchOnNonDatatype',
         header: string,
-        location: Location,
+        range: Agda.Syntax.Range,
         nonDatatype: string,
         expr: string,
         exprType: string
@@ -192,7 +192,7 @@ namespace EmacsAgdaError {
 
     export interface UnparsedButLocated {
         kind: 'UnparsedButLocated',
-        location: Location,
+        range: Agda.Syntax.Range,
         header: string,
         input: string,
     }
@@ -207,20 +207,20 @@ namespace EmacsAgdaError {
 //  Error
 ////////////////////////////////////////////////////////////////////////////////
 
-const singleLineRange: Parser<[Range, boolean]> = seq(
+const singleLineInterval: Parser<Agda.Syntax.Interval> = seq(
         digits,
         string(','),
         digits,
         string('-'),
         digits
     ).map((result) => {
-        const row = parseInt(result[0]) - 1;
-        const start = new Point(row, parseInt(result[2]) - 1);
-        const end   = new Point(row, parseInt(result[4]) - 1);
-        return <[Range, boolean]>[new Range(start, end), true];
+        const row = parseInt(result[0]);
+        const start = [row, parseInt(result[2])];
+        const end   = [row, parseInt(result[4])];
+        return <Agda.Syntax.Interval>{ start, end };
     });
 
-const multiLineRange: Parser<[Range, boolean]> = seq(
+const multiLineInterval: Parser<Agda.Syntax.Interval> = seq(
         digits,
         string(','),
         digits,
@@ -229,38 +229,36 @@ const multiLineRange: Parser<[Range, boolean]> = seq(
         string(','),
         digits
     ).map((result) => {
-        const start = new Point(parseInt(result[0]) - 1, parseInt(result[2]) - 1);
-        const end   = new Point(parseInt(result[4]) - 1, parseInt(result[6]) - 1);
-        return <[Range, boolean]>[new Range(start, end), false];
+        const start = [parseInt(result[0]), parseInt(result[2])];
+        const end   = [parseInt(result[4]), parseInt(result[6])];
+        return <Agda.Syntax.Interval>{ start, end };
     });
 
-const range = alt(multiLineRange, singleLineRange).skip(spaces);
+const interval = alt(multiLineInterval, singleLineInterval).skip(spaces);
 
-const locationAbsolute: Parser<Location> = seq(
+const rangeAbsolute: Parser<Agda.Syntax.Range> = seq(
         takeWhile((c) => c !== ':'),
         string(':'),
-        range
+        interval
     ).map((result) => {
-        return {
-            path: normalize(result[0]),
-            range: result[2][0],
-            isSameLine: result[2][1]
+        return <Agda.Syntax.Range>{
+            source: normalize(result[0]),
+            intervals: [result[2]]
+        }
+    }).skip(spaces);
+
+const rangeRelative: Parser<Agda.Syntax.Range> = seq(
+        interval
+    ).map((result) => {
+        return <Agda.Syntax.Range>{
+            source: null,
+            intervals: [result[0]]
         };
     }).skip(spaces);
 
-const locationRelative: Parser<Location> = seq(
-        range
-    ).map((result) => {
-        return <Location>{
-            path: '',
-            range: result[0][0],
-            isSameLine: result[0][1]
-        };
-    }).skip(spaces);
-
-const location: Parser<Location> = alt(
-        locationAbsolute,
-        locationRelative
+const range: Parser<Agda.Syntax.Range> = alt(
+        rangeAbsolute,
+        rangeRelative
     )
 
 const didYouMean: Parser<string[]> = alt(seq(
@@ -272,8 +270,8 @@ const didYouMean: Parser<string[]> = alt(seq(
     }).skip(spaces);
 
 const notInScope: Parser<EmacsAgdaError.NotInScope> = seq(
-        location,
-        token('Not in scope:').then(trimBeforeAndSkip('at ')).skip(location),
+        range,
+        token('Not in scope:').then(trimBeforeAndSkip('at ')).skip(range),
         didYouMean,
         all
     ).map((result) => {
@@ -281,13 +279,13 @@ const notInScope: Parser<EmacsAgdaError.NotInScope> = seq(
             kind: 'NotInScope',
             header: 'Not in scope',
             expr: result[1],
-            location: result[0],
+            range: result[0],
             suggestion: result[2]
         }
     });
 
 const typeMismatch: Parser<EmacsAgdaError.TypeMismatch> = seq(
-        location,
+        range,
         alt(trimBeforeAndSkip('!=<'), trimBeforeAndSkip('=<'), trimBeforeAndSkip('!=')),
         trimBeforeAndSkip('of type'),
         trimBeforeAndSkip('when checking that the expression'),
@@ -302,12 +300,12 @@ const typeMismatch: Parser<EmacsAgdaError.TypeMismatch> = seq(
             expectedType: result[3],
             expr: result[4],
             exprType: result[5],
-            location: result[0]
+            range: result[0]
         };
     });
 
 const badConstructor: Parser<EmacsAgdaError.BadConstructor> = seq(
-        location,
+        range,
         token('The constructor').then(trimBeforeAndSkip('does not construct an element of')),
         trimBeforeAndSkip('when checking that the expression'),
         trimBeforeAndSkip('has type'),
@@ -316,7 +314,7 @@ const badConstructor: Parser<EmacsAgdaError.BadConstructor> = seq(
         return <EmacsAgdaError.BadConstructor>{
             kind: 'BadConstructor',
             header: 'Bad constructor',
-            location: result[0],
+            range: result[0],
             constructor: result[1],
             constructorType: result[2],
             expr: result[3],
@@ -325,7 +323,7 @@ const badConstructor: Parser<EmacsAgdaError.BadConstructor> = seq(
     });
 
 const definitionTypeMismatch: Parser<EmacsAgdaError.DefinitionTypeMismatch> = seq(
-        location,
+        range,
         alt(trimBeforeAndSkip('!=<'), trimBeforeAndSkip('=<'), trimBeforeAndSkip('!=')),
         trimBeforeAndSkip('of type'),
         trimBeforeAndSkip('when checking the definition of'),
@@ -338,12 +336,12 @@ const definitionTypeMismatch: Parser<EmacsAgdaError.DefinitionTypeMismatch> = se
             expected: result[2],
             expectedType: result[3],
             expr: result[4],
-            location: result[0]
+            range: result[0]
         };
     });
 
 const illtypedPattern: Parser<EmacsAgdaError.IlltypedPattern> = seq(
-        location,
+        range,
         token('Type mismatch'),
         token('when checking that the pattern'),
         trimBeforeAndSkip('has type'),
@@ -352,14 +350,14 @@ const illtypedPattern: Parser<EmacsAgdaError.IlltypedPattern> = seq(
         return <EmacsAgdaError.IlltypedPattern>{
             kind: 'IlltypedPattern',
             header: 'Ill-typed Pattern',
-            location: result[0],
+            range: result[0],
             pattern: result[3],
             type: result[4]
         };
     });
 
 const rhsOmitted: Parser<EmacsAgdaError.RHSOmitted> =  seq(
-        location,
+        range,
         token('The right-hand side can only be omitted if there is an absurd'),
         token('pattern, () or {}, in the left-hand side.'),
         token('when checking that the clause'),
@@ -369,14 +367,14 @@ const rhsOmitted: Parser<EmacsAgdaError.RHSOmitted> =  seq(
         return <EmacsAgdaError.RHSOmitted>{
             kind: 'RHSOmitted',
             header: 'Right-hand side omitted',
-            location: result[0],
+            range: result[0],
             expr: result[4],
             exprType: result[5]
         }
     });
 
 const missingType: Parser<EmacsAgdaError.MissingType> =  seq(
-        location,
+        range,
         token('Missing type signature for left hand side'),
         trimBeforeAndSkip('when scope checking the declaration'),
         all
@@ -384,17 +382,17 @@ const missingType: Parser<EmacsAgdaError.MissingType> =  seq(
         return <EmacsAgdaError.MissingType>{
             kind: 'MissingType',
             header: 'Missing type signature',
-            location: result[0],
+            range: result[0],
             expr: result[2],
             decl: result[3]
         }
     });
 
 const multipleDefinition: Parser<EmacsAgdaError.MultipleDefinition> =  seq(
-        location,
+        range,
         token('Multiple definitions of'),
         trimBeforeAndSkip('. Previous definition at'),
-        location,
+        range,
         token('when scope checking the declaration'),
         trimBeforeAndSkip(':'),
         all
@@ -402,8 +400,8 @@ const multipleDefinition: Parser<EmacsAgdaError.MultipleDefinition> =  seq(
         return <EmacsAgdaError.MultipleDefinition>{
             kind: 'MultipleDefinition',
             header: 'Multiple definition',
-            location: result[0],
-            locationPrev: result[3],
+            range: result[0],
+            rangePrev: result[3],
             expr: result[2],
             decl: result[5],
             declType: result[6]
@@ -412,42 +410,42 @@ const multipleDefinition: Parser<EmacsAgdaError.MultipleDefinition> =  seq(
 
 
 const missingDefinition: Parser<EmacsAgdaError.MissingDefinition> =  seq(
-        location,
+        range,
         token('Missing definition for').then(all)
     ).map((result) => {
         return <EmacsAgdaError.MissingDefinition>{
             kind: 'MissingDefinition',
             header: 'Missing definition',
-            location: result[0],
+            range: result[0],
             expr: result[1]
         }
     });
 
 const termination: Parser<EmacsAgdaError.Termination> =  seq(
-        location,
+        range,
         token('Termination checking failed for the following functions:'),
         trimBeforeAndSkip('Problematic calls:'),
         seq(
             trimBeforeAndSkip('(at'),
-            location.skip(token(')'))
+            range.skip(token(')'))
         ).map((result) => {
             return {
                 expr: result[0],
-                location: result[1]
+                range: result[1]
             }
         }).atLeast(1)
     ).map((result) => {
         return <EmacsAgdaError.Termination>{
             kind: 'Termination',
             header: 'Termination error',
-            location: result[0],
+            range: result[0],
             expr: result[2],
             calls: result[3]
         }
     });
 
 const constructorTarget: Parser<EmacsAgdaError.ConstructorTarget> =  seq(
-        location,
+        range,
         token('The target of a constructor must be the datatype applied to its'),
         token('parameters,').then(trimBeforeAndSkip('isn\'t')),
         token('when checking the constructor').then(trimBeforeAndSkip('in the declaration of')),
@@ -456,7 +454,7 @@ const constructorTarget: Parser<EmacsAgdaError.ConstructorTarget> =  seq(
         return <EmacsAgdaError.ConstructorTarget>{
             kind: 'ConstructorTarget',
             header: 'Constructor target error',
-            location: result[0],
+            range: result[0],
             expr: result[2],
             ctor: result[3],
             decl: result[4]
@@ -465,7 +463,7 @@ const constructorTarget: Parser<EmacsAgdaError.ConstructorTarget> =  seq(
 
 
 const functionType: Parser<EmacsAgdaError.FunctionType> =  seq(
-        location,
+        range,
         trimBeforeAndSkip('should be a function type, but it isn\'t'),
         token('when checking that').then(trimBeforeAndSkip('is a valid argument to a function of type')),
         all
@@ -473,7 +471,7 @@ const functionType: Parser<EmacsAgdaError.FunctionType> =  seq(
         return <EmacsAgdaError.FunctionType>{
             kind: 'FunctionType',
             header: 'Not a function type',
-            location: result[0],
+            range: result[0],
             expr: result[2],
             exprType: result[1]
         }
@@ -494,14 +492,14 @@ const moduleMismatch: Parser<EmacsAgdaError.ModuleMismatch> =  seq(
     });
 
 const parse: Parser<EmacsAgdaError.Parse> =  seq(
-        location,
+        range,
         trimBeforeAndSkip(': ').then(trimBeforeAndSkip('...'))
     ).map((result) => {
         const i = (<string>result[1]).indexOf('\n');
         return <EmacsAgdaError.Parse>{
             kind: 'Parse',
             header: 'Parse error',
-            location: result[0],
+            range: result[0],
             message: (<string>result[1]).substring(0, i),
             expr: (<string>result[1]).substring(i + 1)
         }
@@ -509,7 +507,7 @@ const parse: Parser<EmacsAgdaError.Parse> =  seq(
 
 
 const caseSingleHole: Parser<EmacsAgdaError.CaseSingleHole> =  seq(
-    location,
+    range,
     token('Right hand side must be a single hole when making a case').then(token('distinction')),
     token('when checking that the expression'),
     trimBeforeAndSkip('has type'),
@@ -518,14 +516,14 @@ const caseSingleHole: Parser<EmacsAgdaError.CaseSingleHole> =  seq(
     return <EmacsAgdaError.CaseSingleHole>{
         kind: 'CaseSingleHole',
         header: 'Not a single hole',
-        location: result[0],
+        range: result[0],
         expr: result[3],
         exprType: result[4]
     }
 });
 
 const patternMatchOnNonDatatype: Parser<EmacsAgdaError.PatternMatchOnNonDatatype> =  seq(
-    location,
+    range,
     token('Cannot pattern match on non-datatype').then(trimBeforeAndSkip('when checking that the expression')),
     trimBeforeAndSkip('has type'),
     all
@@ -533,7 +531,7 @@ const patternMatchOnNonDatatype: Parser<EmacsAgdaError.PatternMatchOnNonDatatype
     return <EmacsAgdaError.PatternMatchOnNonDatatype>{
         kind: 'PatternMatchOnNonDatatype',
         header: 'Pattern match on non-datatype',
-        location: result[0],
+        range: result[0],
         nonDatatype: result[1],
         expr: result[2],
         exprType: result[3]
@@ -584,12 +582,12 @@ const libraryNotFound: Parser<EmacsAgdaError.LibraryNotFound> =  seq(
 });
 
 const unparsedButLocated: Parser<EmacsAgdaError.UnparsedButLocated> = seq(
-    location,
+    range,
     all
 ).map((result) => {
     return <EmacsAgdaError.UnparsedButLocated>{
         kind: 'UnparsedButLocated',
-        location: result[0],
+        range: result[0],
         header: 'Error',
         input: result[1]
     }
@@ -645,6 +643,6 @@ function parseError(input: string): EmacsAgdaError {
 
 export {
     parseError,
-    location,
+    range,
     EmacsAgdaError
 }

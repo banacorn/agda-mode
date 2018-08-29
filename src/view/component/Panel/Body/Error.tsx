@@ -28,12 +28,5 @@ export default class Error extends React.Component<Props, {}> {
                     Pattern violation (you shouldn't see this)
                 </p>
         }
-        //     case 'BadConstructor': return <p className="error">
-        //             <Location emitter={emitter}>{error.location}</Location><br/>
-        //             The constructor <Expr emitter={emitter}>{error.constructor}</Expr><br/>
-        //             does not construct an element of <Expr emitter={emitter}>{error.constructorType}</Expr><br/>
-        //             when checking that the expression <Expr emitter={emitter}>{error.expr}</Expr><br/>
-        //             has type <Expr emitter={emitter}>{error.exprType}</Expr>
-        //     </p>
     }
 }

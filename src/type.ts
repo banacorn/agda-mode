@@ -204,13 +204,13 @@ namespace View {
     export interface Meta {
         judgementForm: ExprKind;
         type: string;
-        location: Location;
+        range: Agda.Syntax.Range;
         index: string;
     }
 
     export interface Sort {
         judgementForm: ExprKind;
-        location: Location;
+        range: Agda.Syntax.Range;
         index: string;
     }
 
@@ -313,7 +313,7 @@ namespace Agda {
     }
 
     export interface WhyInScope {
-        location: Location
+        range: Agda.Syntax.Range
     }
 
     // Resp_Status Status
@@ -469,7 +469,7 @@ namespace Agda {
         //  Range
         //
 
-        export type Position = [number, number, number];
+        export type Position = [number, number, number] | [number, number];
         export type Interval = {
             start: Position;
             end  : Position;
@@ -532,18 +532,11 @@ namespace Agda {
     }
 }
 
-// Occurence & Location
+// Occurence
 export interface Occurence {
-    location: Location,
+    range: Agda.Syntax.Range,
     body: string
 }
-
-export interface Location {
-    path: string,
-    range: Atom.Range,
-    isSameLine: boolean
-}
-
 
 // type Suggestion = string[];
 

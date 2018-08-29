@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
-import { Agda, View, Location, FileType } from './type';
+import { Agda, View, FileType } from './type';
 import { parseHole, parseFilepath } from './parser';
 import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
@@ -238,8 +238,8 @@ export default class Editor {
         this.focus();
 
         const bufferRange: Atom.Range = range.intervals[0] ? new Atom.Range(
-            new Point(range.intervals[0].start[0], range.intervals[0].start[1]),
-            new Point(range.intervals[0].end[0]  , range.intervals[0].end[1]  ),
+            new Point(range.intervals[0].start[0] - 1, range.intervals[0].start[1] - 1),
+            new Point(range.intervals[0].end[0]   - 1, range.intervals[0].end[1]   - 1),
         ) : null;
 
         if (range.source) {
@@ -272,35 +272,6 @@ export default class Editor {
                 }).catch(() => this.warnOutOfGoal());
         }
     }
-
-    jumpToLocation(location: Location) {
-        this.focus();
-        if (location.path) {
-            atom.workspace.open(location.path)
-                .then((editor: Atom.TextEditor) => {
-                    editor.setSelectedBufferRange(location.range, {
-                        reversed: true
-                    });
-                })
-        } else {
-            this.goal.pointing()
-                .then((goal) => {
-                    let range;
-                    if (location.range.start.row === 0) {
-                        range = location.range
-                            .translate(goal.range.start)
-                            .translate([0, 3]);  // hole boundary
-                    } else {
-                        range = location.range
-                            .translate([goal.range.start.row, 0]);
-                    }
-                    this.textEditor.setSelectedBufferRange(range, {
-                        reversed: true
-                    });
-                }).catch(() => this.warnOutOfGoal());
-        }
-    }
-
 
     ////////////////////////
     //  Command Handlers  //

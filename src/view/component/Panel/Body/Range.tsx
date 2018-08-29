@@ -67,7 +67,7 @@ export default class Range extends React.Component<Props, {}> {
         if (abbr) {
             return (
                 <span
-                    className="text-subtle location icon icon-link"
+                    className="text-subtle range icon icon-link"
                     onClick={() => {
                         emitter.emit(EVENT.JUMP_TO_RANGE, range);
                     }}
@@ -79,7 +79,7 @@ export default class Range extends React.Component<Props, {}> {
         } else {
             return (
                 <span
-                    className="text-subtle location icon icon-link"
+                    className="text-subtle range icon icon-link"
                     onClick={() => {
                         emitter.emit(EVENT.JUMP_TO_RANGE, range);
                     }}

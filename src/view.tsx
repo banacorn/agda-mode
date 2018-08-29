@@ -14,7 +14,7 @@ import Panel from './view/component/Panel';
 import Settings from './view/component/Settings';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
-import { Agda, View as V, Location } from './type';
+import { Agda, View as V } from './type';
 import { EVENT } from './view/actions';
 import * as Action from './view/actions';
 import { EmacsAgdaError } from './parser/emacs';
@@ -175,9 +175,6 @@ export default class View {
         });
         this.emitter.on(EVENT.JUMP_TO_RANGE, (range: Agda.Syntax.Range) => {
             this.core.editor.jumpToRange(range);
-        });
-        this.emitter.on(EVENT.JUMP_TO_LOCATION, (loc: Location) => {
-            this.core.editor.jumpToLocation(loc);
         });
         this.emitter.on(EVENT.FILL_IN_SIMPLE_SOLUTION, (solution: string) => {
             this.core.editor.goal.pointing()

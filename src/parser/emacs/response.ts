@@ -1,7 +1,7 @@
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { ParseError } from '../../error';
-import { location } from './error';
+import { range } from './error';
 import { Agda, FileType } from '../../type';
 
 function parseResponses(raw: string, fileType: FileType): Promise<Agda.Response[]> {
@@ -249,19 +249,19 @@ function parseAnnotation(obj: any[]): Agda.Annotation {
 }
 
 // TODO: parse it better
-const parseLocation = (input) => location.parse(input);
+const parseRange = (input) => range.parse(input);
 function parseWhyInScope(raws: string): Agda.WhyInScope {
     const regex = /its definition at (.*)$/;
     const occurences = raws
         .split('\n')
         .filter(str => regex.test(str))
         .map(str => str.match(regex)[1])
-        .map(parseLocation)
+        .map(parseRange)
         .filter(loc => loc.status)
 
     if (occurences.length > 0) {
-        return {
-            location: occurences[0]['value']
+        return <Agda.WhyInScope>{
+            range: occurences[0]['value']
         }
     } else {
         return null;

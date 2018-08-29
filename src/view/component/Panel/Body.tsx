@@ -8,7 +8,7 @@ import { updateMaxBodyHeight, EVENT } from '../../actions';
 import Expr from './Body/Expr';
 import EmacsError from './Body/EmacsError';
 import Error from './Body/Error';
-import Location from './Body/Location';
+import Range from './Body/Range';
 import Solution from './Body/Solution';
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
@@ -139,7 +139,7 @@ const meta = (emitter: EventEmitter) => (item: View.Meta, i: number): JSX.Elemen
         <div className="item-colon"><span> : </span></div>
         <div className="item-body">
             <Expr emitter={emitter}>{item.type}</Expr>
-            <Location abbr emitter={emitter}>{item.location}</Location>
+            <Range abbr emitter={emitter} range={item.range} />
         </div>
     </li>
 const sort = (emitter: EventEmitter) => (item: View.Sort, i: number): JSX.Element =>
@@ -149,7 +149,7 @@ const sort = (emitter: EventEmitter) => (item: View.Sort, i: number): JSX.Elemen
             <span className="text-warning">{item.index}</span>
         </div>
         <div className="item-body">
-            <Location abbr emitter={emitter}>{item.location}</Location>
+            <Range abbr emitter={emitter} range={item.range} />
         </div>
     </li>
 

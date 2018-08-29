@@ -185,7 +185,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             if (core.commander.currentCommand.kind === "GotoDefinition") {
                 const result = Emacs.parseWhyInScope(response.payload);
                 if (result) {
-                    core.editor.jumpToLocation(result.location);
+                    core.editor.jumpToRange(result.range);
                 } else {
                     core.view.set('Go to Definition', 'not in scope', View.Style.Info);
                 }
@@ -245,7 +245,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             if (core.commander.currentCommand.kind === "GotoDefinition") {
                 const result = Emacs.parseWhyInScope(info.payload);
                 if (result) {
-                    core.editor.jumpToLocation(result.location);
+                    core.editor.jumpToRange(result.range);
                 } else {
                     core.view.set('Go to Definition', 'not in scope', View.Style.Info);
                 }
@@ -257,7 +257,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.set('Normal Form', info.payload, View.Style.Info);
             break;
         case 'GoalType':
-            core.view.setJudgements('Goal Type and Context', J.parseJudgements(info.payload));
+            core.view.setJudgements('Goal Type and Context', Emacs.parseJudgements(info.payload));
             break;
         case 'CurrentGoal':
             core.view.set('Current Goal', info.payload, View.Style.Info);
@@ -266,7 +266,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.set('Inferred Type', info.payload, View.Style.Info);
             break;
         case 'Context':
-            core.view.setJudgements('Context', J.parseJudgements(info.payload));
+            core.view.setJudgements('Context', Emacs.parseJudgements(info.payload));
             break;
         case 'ModuleContents':
             core.view.set('Module Contents', info.payload, View.Style.Info);

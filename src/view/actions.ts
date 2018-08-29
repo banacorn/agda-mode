@@ -2,14 +2,9 @@ import { createAction } from 'redux-actions';
 import { Parsed, Agda, View, ValidPath } from '../type';
 import { EmacsAgdaError } from '../parser/emacs';
 
-// export type EVENT =
-//     EVENT.JUMP_TO_GOAL |
-//     EVENT.JUMP_TO_LOCATION |
-//     EVENT.FILL_IN_SOLUTION;
 export namespace EVENT {
     export const JUMP_TO_GOAL = 'EVENT.JUMP_TO_GOAL';
     export const JUMP_TO_RANGE = 'EVENT.JUMP_TO_RANGE';
-    export const JUMP_TO_LOCATION = 'EVENT.JUMP_TO_LOCATION';
     export const FILL_IN_SIMPLE_SOLUTION = 'EVENT.FILL_IN_SIMPLE_SOLUTION';
     export const FILL_IN_INDEXED_SOLUTIONS = 'EVENT.FILL_IN_INDEXED_SOLUTIONS';
 }

@@ -1,9 +1,8 @@
 import * as _ from 'lodash';;
 import { parseFilepath } from './../util';
-import { View, Location, Occurence } from '../../type';
-import { Point, Range } from 'atom';
+import { View, Occurence } from '../../type';
 
-function parseSolutions(raw: string[]): View.Solutions {
+export function parseSolutions(raw: string[]): View.Solutions {
     // examine the first line and see if it's simple or indexed
         // SimpleSolutions:   0  s
         // IndexedSolutions:  1  ?0 := ℕ ?1 := y
@@ -82,7 +81,7 @@ function parseIndexedSolutions(message: string, raw: string[]): View.IndexedSolu
     };
 }
 
-function parseJudgements(lines: string): View.Body {
+export function parseJudgements(lines: string): View.Body {
     const {goalAndHave, body, warnings, errors} = divideJudgements(lines.split('\n'));
 
     const grouped = _.groupBy(concatItems(body).map(parseExpression), 'judgementForm');
@@ -140,7 +139,7 @@ function divideJudgements(lines: string[]): {
 }
 
 // concatenate multiline judgements
-function concatItems(lines: string[]): string[] {
+export function concatItems(lines: string[]): string[] {
 
 
     function isNewLine({ line, nextLine }): boolean {
@@ -224,16 +223,15 @@ function parseOccurence(str: string): Occurence {
         const rowEnd   = parseInt(result[5]) ? parseInt(result[5]) : parseInt(result[7]);
         const colStart = parseInt(result[4]) ? parseInt(result[4]) : parseInt(result[8]);
         const colEnd   = parseInt(result[6]) ? parseInt(result[6]) : parseInt(result[9]);
-        const range = new Range(
-            new Point(rowStart - 1, colStart - 1),
-            new Point(rowEnd - 1, colEnd - 1)
-        );
-        return {
+        const interval = {
+            start: [rowStart, colStart],
+            end  : [rowEnd, colEnd],
+        }
+        return <Occurence>{
             body: result[1],
-            location: {
-                path: parseFilepath(result[2]),
-                range: range,
-                isSameLine: result[3] === undefined
+            range: {
+                source: parseFilepath(result[2]),
+                intervals: [interval]
             }
         };
     }
@@ -274,7 +272,7 @@ function parseMeta(str: string): View.Meta {
                 judgementForm: 'meta',
                 index: result[1],
                 type: result[2],
-                location: occurence.location
+                range: occurence.range
             };
         }
     }
@@ -300,38 +298,12 @@ function parseSort(str: string): View.Sort {
             return {
                 judgementForm: 'sort',
                 index: result[1],
-                location: occurence.location
+                range: occurence.range
             };
         }
     }
 }
 
-function parseExpression(str: string): View.Expr {
+export function parseExpression(str: string): View.Expr {
     return parseGoal(str) || parseJudgement(str) || parseMeta(str) || parseSort(str) || parseTerm(str);
-}
-//
-//
-// function parseLocation(str: string): Location {
-//     const regex = /(?:(.+):)?(?:(\d+)\,(\d+)\-(\d+)\,(\d+)|(\d+)\,(\d+)\-(\d+))/;
-//     const result = str.match(regex);
-//     if (result) {
-//         const rowStart = parseInt(result[2]) ? parseInt(result[2]) : parseInt(result[6]);
-//         const rowEnd   = parseInt(result[4]) ? parseInt(result[4]) : parseInt(result[6]);
-//         const colStart = parseInt(result[3]) ? parseInt(result[3]) : parseInt(result[7]);
-//         const colEnd   = parseInt(result[5]) ? parseInt(result[5]) : parseInt(result[8]);
-//         const range = new Range(
-//             new Point(rowStart - 1, colStart - 1),
-//             new Point(rowEnd - 1, colEnd - 1)
-//         );
-//         return {
-//             path: parseFilepath(result[1]),
-//             range: range,
-//             isSameLine: result[2] === undefined
-//         };
-//     }
-// }
-
-export {
-    parseJudgements,
-    parseSolutions
 }
