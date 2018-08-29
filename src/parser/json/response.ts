@@ -26,6 +26,31 @@ function parseIndirectAnnotations(raw: string): Agda.Annotation[] {
     return payload.map(toAnnotation);
 }
 
+// Converts JSON to Agda.Info
+//
+// object fields are phonemic: if a field has name "range" then it will be
+// instantiated as a instance of class Range
+function parseDisplayInfo(obj: object): Agda.Info {
+    return convertFields(obj) as Agda.Info;
+}
+
+function convertFields(obj: object): object {
+
+    if (typeof obj === 'object') {
+        Object.keys(obj).forEach(key => {
+            switch (key) {
+                case 'range':
+                    obj[key] = new Agda.Syntax.Range(convertFields(obj[key]));
+                    break;
+                default:
+                    obj[key] = convertFields(obj[key]);
+                    break;
+            }
+        });
+    }
+    return obj;
+}
+
 // function parseDisplayInfo(raw: object): Agda.Info {
 //     switch (raw['kind']) {
 //         case 'CompilationOk':
@@ -33,7 +58,7 @@ function parseIndirectAnnotations(raw: string): Agda.Annotation[] {
 //                 kind: 'CompilationOk',
 //                 warnings: raw['warnings'],
 //                 errors: raw['errors'],
-//                 mixed: []
+//                 emacsMessage: raw['emacsMessage']
 //             };
 //         case 'Constraints':
 //             return {
@@ -46,13 +71,13 @@ function parseIndirectAnnotations(raw: string): Agda.Annotation[] {
 //                 goals: raw['goals'],
 //                 warnings: raw['warnings'],
 //                 errors: raw['errors'],
-//                 mixed: []
+//                 emacsMessage: raw['emacsMessage']
 //             };
 //         case 'Error':
 //             return {
 //                 kind: raw['kind'],
 //                 error: raw['error'] as Agda.Error,
-//                 emacs: raw['emacs'],
+//                 emacsMessage: raw['emacsMessage']
 //             };
 //         case 'Time':
 //         case 'Intro':
@@ -148,7 +173,7 @@ function parseResponse(raw: object, fileType: FileType): Promise<Agda.Response> 
         case 'DisplayInfo':
             return Promise.resolve({
                 kind: 'DisplayInfo',
-                info: raw['info'] as Agda.Info
+                info: parseDisplayInfo(raw['info'])
             } as Agda.DisplayInfo);
 
         case 'RunningInfo':

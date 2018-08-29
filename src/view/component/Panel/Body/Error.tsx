@@ -18,6 +18,7 @@ export default class Error extends React.Component<Props, {}> {
             case 'TypeError': return <TypeError
                     emitter={emitter}
                     error={error.typeError}
+                    range={error.range}
                     emacsMessage={emacsMessage}
                 />
             case 'Exception': return <p className="error">

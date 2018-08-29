@@ -327,7 +327,7 @@ export default class View {
     setAgdaError(error: Agda.Error, emacsMsg: string) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
-
+        console.log(error)
         this.store.dispatch(Action.updateError([error, emacsMsg]));
         this.store.dispatch(Action.HEADER.update({
             style: V.Style.Error,

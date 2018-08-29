@@ -6,15 +6,13 @@ import Range from './Range';
 
 interface Props {
     error: Agda.TypeError;
+    range: Agda.Syntax.Range;
     emacsMessage: string;
     emitter: EventEmitter;
 }
 
 function notInScope(emitter: EventEmitter, error: Agda.TypeError_NotInScope): JSX.Element {
-
-
-    return <section className="error">
-        <Range emitter={emitter} range={error.payloads[0].range} /><br/>
+    return <section>
         The following identifiers are not in scope: <br/>
         <ul>
             {error.payloads.map(({ name, range, suggestions }, i) => <li key={i}>
@@ -26,10 +24,12 @@ function notInScope(emitter: EventEmitter, error: Agda.TypeError_NotInScope): JS
 
 export default class TypeError extends React.Component<Props, {}> {
     render() {
-        console.log(this.props.error)
-        const { emitter , error, emacsMessage } = this.props;
+        const { emitter, error, range, emacsMessage } = this.props;
         switch (error.kind) {
-            case 'NotInScope': return notInScope(emitter, error);
+            case 'NotInScope': return <div className="error">
+                <Range emitter={emitter} range={range} /><br/>
+                {notInScope(emitter, error)}
+            </div>
             default: return <p className="error">
                 {emacsMessage}
             </p>

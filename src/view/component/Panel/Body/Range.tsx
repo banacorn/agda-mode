@@ -14,26 +14,6 @@ type Props = React.HTMLProps<HTMLElement> & {
     abbr?: boolean;
 }
 
-function toString(range: Agda.Syntax.Range): string {
-    const lineNums = range.intervals.map((interval) => {
-        if (interval.start[0] === interval.end[0])
-            return `${interval.start[0]},${interval.start[1]}-${interval.end[1]}`
-        else
-            return `${interval.start[0]},${interval.start[1]}-${interval.end[0]},${interval.end[1]}`
-    }).join(' ');
-
-    if (range.source && lineNums) {
-        return `${range.source}:${lineNums}`;
-    }
-
-    if (range.source && lineNums === '') {
-        return `${range.source}`;
-    }
-
-    if (range.source === null) {
-        return `${lineNums}`;
-    }
-}
 
 export default class Range extends React.Component<Props, {}> {
     private subscriptions: Atom.CompositeDisposable;
@@ -63,7 +43,6 @@ export default class Range extends React.Component<Props, {}> {
 
     render() {
         const { emitter, range, abbr } = this.props;
-
         if (abbr) {
             return (
                 <span
@@ -83,7 +62,7 @@ export default class Range extends React.Component<Props, {}> {
                     onClick={() => {
                         emitter.emit(EVENT.JUMP_TO_RANGE, range);
                     }}
-                > {toString(range)}</span>
+                > {range.toString()}</span>
             )
         }
     }

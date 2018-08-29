@@ -476,10 +476,37 @@ namespace Agda {
             end  : Position;
         };
 
-        export type Range = {
+        export class Range implements ToString {
             intervals: Interval[];
             source?: string;
+            constructor(obj) {
+                this.intervals = obj.intervals;
+                this.source = obj.source;
+            }
+
+            toString(): string {
+                const lineNums = this.intervals.map((interval) => {
+                    if (interval.start[0] === interval.end[0])
+                        return `${interval.start[0]},${interval.start[1]}-${interval.end[1]}`
+                    else
+                        return `${interval.start[0]},${interval.start[1]}-${interval.end[0]},${interval.end[1]}`
+                }).join(' ');
+
+                if (this.source && lineNums) {
+                    return `${this.source}:${lineNums}`;
+                }
+
+                if (this.source && lineNums === '') {
+                    return `${this.source}`;
+                }
+
+                if (this.source === null) {
+                    return `${lineNums}`;
+                }
+            }
         }
+        // export type Range = {
+        // }
     }
 
 
@@ -533,11 +560,21 @@ namespace Agda {
     }
 }
 
+export interface HasRange {
+    range: Agda.Syntax.Range;
+}
+
+export interface ToString {
+    toString(): string;
+}
+
 // Occurence
 export interface Occurence {
     range: Agda.Syntax.Range,
     body: string
 }
+
+
 
 // type Suggestion = string[];
 

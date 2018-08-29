@@ -40,6 +40,9 @@ export class Core {
         // atom.config.observe('agda-mode.agdaPath', (newValue) => {
         //     console.log(`observed changes in path: ${newValue}`)
         // })
+
+
+
     }
 
     // Editor Events

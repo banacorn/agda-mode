@@ -241,19 +241,18 @@ const rangeAbsolute: Parser<Agda.Syntax.Range> = seq(
         string(':'),
         interval
     ).map((result) => {
-        return <Agda.Syntax.Range>{
+        return new Agda.Syntax.Range({
             source: normalize(result[0]),
             intervals: [result[2]]
-        }
+        })
     }).skip(spaces);
 
 const rangeRelative: Parser<Agda.Syntax.Range> = seq(
         interval
     ).map((result) => {
-        return <Agda.Syntax.Range>{
-            source: null,
+        return new Agda.Syntax.Range({
             intervals: [result[0]]
-        };
+        });
     }).skip(spaces);
 
 const range: Parser<Agda.Syntax.Range> = alt(
