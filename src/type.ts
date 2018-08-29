@@ -556,7 +556,7 @@ namespace Agda {
         payloads: {
             name: Syntax.QName;
             range: Syntax.Range;
-            suggestions: String[];
+            suggestions: Syntax.QName[];
         }[];
     }
 }

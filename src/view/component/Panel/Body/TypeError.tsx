@@ -15,9 +15,11 @@ function notInScope(error: Agda.TypeError_NotInScope): JSX.Element {
     return <section>
         The following identifiers are not in scope: <br/>
         <ul>
-            {error.payloads.map(({ name, range, suggestions }, i) => <li key={i}>
+            {error.payloads.map(({ name, suggestions }, i) => <li key={i}>
                 <QName names={name} />
-                {JSON.stringify(name)} {JSON.stringify(range)} {JSON.stringify(suggestions)}
+                <ul>
+                    {suggestions.map((name, i) => <QName key={i} names={name} />)}
+                </ul>
             </li>)}
         </ul>
     </section>

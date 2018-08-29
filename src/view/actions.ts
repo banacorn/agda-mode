@@ -4,6 +4,8 @@ import { EmacsAgdaError } from '../parser/emacs';
 
 export namespace EVENT {
     export const JUMP_TO_GOAL = 'EVENT.JUMP_TO_GOAL';
+    export const MOUSE_OVER = 'EVENT.MOUSE_OVER';
+    export const MOUSE_OUT = 'EVENT.MOUSE_OUT';
     export const JUMP_TO_RANGE = 'EVENT.JUMP_TO_RANGE';
     export const FILL_IN_SIMPLE_SOLUTION = 'EVENT.FILL_IN_SIMPLE_SOLUTION';
     export const FILL_IN_INDEXED_SOLUTIONS = 'EVENT.FILL_IN_INDEXED_SOLUTIONS';

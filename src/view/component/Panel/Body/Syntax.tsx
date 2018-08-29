@@ -3,6 +3,7 @@ import * as React from 'react';
 import { EventEmitter } from 'events';
 import { Agda } from './../../../../type';
 
+import Link from './Link'
 
 interface NameProps  {
     name: Agda.Syntax.Name;
@@ -25,11 +26,10 @@ export class Name extends React.Component<NameProps, {}> {
         const { name } = this.props;
         if (name.kind === "Name") {
             const parts = name.parts.map(x => x || '_').join('');
-            return <span>{parts}</span>
+            return <Link range={name.range}>{parts}</Link>
         } else {
-            return <span>_</span>
+            return <Link range={name.range}>_</Link>
         }
-        return <span>:D</span>
     }
 }
 

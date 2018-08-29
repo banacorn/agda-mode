@@ -227,7 +227,7 @@ export default class Commander {
                 raw: request.body
             }));
             this.core.view.store.dispatch(Action.PROTOCOL.pending(true));
-
+            console.log(request.body)
             // send it out
             request.connection.stream.write(request.body);
             return promise;

@@ -177,6 +177,12 @@ export default class View {
         this.emitter.on(EVENT.JUMP_TO_RANGE, (range: Agda.Syntax.Range) => {
             this.core.editor.jumpToRange(range);
         });
+        this.emitter.on(EVENT.MOUSE_OVER, (range: Agda.Syntax.Range) => {
+            this.core.editor.mouseOver(range);
+        });
+        this.emitter.on(EVENT.MOUSE_OUT, (range: Agda.Syntax.Range) => {
+            this.core.editor.mouseOut();
+        });
         this.emitter.on(EVENT.FILL_IN_SIMPLE_SOLUTION, (solution: string) => {
             this.core.editor.goal.pointing()
                 .then(goal => {

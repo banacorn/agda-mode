@@ -6,6 +6,7 @@ import { parseHole, parseFilepath } from './parser';
 import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
 import Goal from './editor/goal';
+import R from './view/component/Panel/Body/Range';
 
 import { Point, Range } from 'atom';
 import * as Atom from 'atom';
@@ -80,6 +81,7 @@ export default class Editor {
 
     private core: Core;
     private textEditor: Atom.TextEditor;
+    private mouseHighlighting: MouseHighlightManager;
     public highlighting: HighlightManager;
     public goal: GoalManager;
 
@@ -91,6 +93,8 @@ export default class Editor {
         this.textEditor = textEditor;
         this.goal = new GoalManager(textEditor);
         this.highlighting = new HighlightManager(this);
+        this.mouseHighlighting = new MouseHighlightManager(this);
+
 
         this.runningInfo = new RunningInfoManager;
     }
@@ -234,21 +238,19 @@ export default class Editor {
         }
     }
 
+
     jumpToRange(range: Agda.Syntax.Range) {
         this.focus();
 
-        const bufferRange: Atom.Range = range.intervals[0] ? new Atom.Range(
-            new Point(range.intervals[0].start[0] - 1, range.intervals[0].start[1] - 1),
-            new Point(range.intervals[0].end[0]   - 1, range.intervals[0].end[1]   - 1),
-        ) : null;
+        const atomRange = R.toAtomRanges(range)[0];
 
         if (range.source) {
             // global
             atom.workspace.open(range.source)
                 .then((editor: Atom.TextEditor) => {
                     // jump to a specific place iff it's specified
-                    if (bufferRange) {
-                        editor.setSelectedBufferRange(bufferRange, {
+                    if (atomRange) {
+                        editor.setSelectedBufferRange(atomRange, {
                             reversed: true
                         });
                     }
@@ -258,12 +260,12 @@ export default class Editor {
             this.goal.pointing()
                 .then((goal) => {
                     let range;
-                    if (bufferRange.start.row === 0) {
-                        range = bufferRange
+                    if (atomRange.start.row === 0) {
+                        range = atomRange
                             .translate(goal.range.start)
                             .translate([0, 3]);  // hole boundary
                     } else {
-                        range = bufferRange
+                        range = atomRange
                             .translate([goal.range.start.row, 0]);
                     }
                     this.textEditor.setSelectedBufferRange(range, {
@@ -271,6 +273,14 @@ export default class Editor {
                     });
                 }).catch(() => this.warnOutOfGoal());
         }
+    }
+
+    mouseOver(range: Agda.Syntax.Range) {
+        this.mouseHighlighting.mark(range);
+    }
+
+    mouseOut() {
+        this.mouseHighlighting.unmark();
     }
 
     ////////////////////////
@@ -446,5 +456,29 @@ class HighlightManager {
         this.markers.forEach((marker) => { marker.destroy(); });
         this.markers = [];
         return Promise.resolve();
+    }
+}
+
+
+class MouseHighlightManager {
+    private marker: any;
+
+    constructor(private editor: Editor) {
+    }
+
+    mark(agdaRange: Agda.Syntax.Range) {
+        const range = R.toAtomRanges(agdaRange)[0];
+        if (range) {
+            this.marker = this.editor.getTextEditor().markBufferRange(range);
+            this.editor.getTextEditor().decorateMarker(this.marker, {
+                type: 'highlight',
+                class: `highlight-decoration hover`
+            });
+        }
+    }
+
+    unmark() {
+        this.marker.destroy();
+        this.marker = null;
     }
 }

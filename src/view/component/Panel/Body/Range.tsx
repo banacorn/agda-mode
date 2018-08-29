@@ -48,6 +48,13 @@ export default class Range extends React.Component<Props, {}> {
         }
     }
 
+    static toAtomRanges(range: Agda.Syntax.Range): Atom.Range[] {
+        return range.intervals.map(({ start, end }) => new Atom.Range(
+            new Atom.Point(start[0] - 1, start[1] - 1),
+            new Atom.Point(end[0] - 1, end[1] - 1),
+        ));
+    }
+
     componentDidMount() {
         if (this.props.abbr) {
             this.subscriptions.add(atom.tooltips.add(this.link, {
