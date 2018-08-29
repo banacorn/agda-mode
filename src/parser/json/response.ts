@@ -26,31 +26,8 @@ function parseIndirectAnnotations(raw: string): Agda.Annotation[] {
     return payload.map(toAnnotation);
 }
 
-// Converts JSON to Agda.Info
 //
-// object fields are phonemic: if a field has name "range" then it will be
-// instantiated as a instance of class Range
-function parseDisplayInfo(obj: object): Agda.Info {
-    return convertFields(obj) as Agda.Info;
-}
-
-function convertFields(obj: object): object {
-
-    if (typeof obj === 'object') {
-        Object.keys(obj).forEach(key => {
-            switch (key) {
-                case 'range':
-                    obj[key] = new Agda.Syntax.Range(convertFields(obj[key]));
-                    break;
-                default:
-                    obj[key] = convertFields(obj[key]);
-                    break;
-            }
-        });
-    }
-    return obj;
-}
-
+// // Converts JSON to Agda.Info
 // function parseDisplayInfo(raw: object): Agda.Info {
 //     switch (raw['kind']) {
 //         case 'CompilationOk':
@@ -173,7 +150,7 @@ function parseResponse(raw: object, fileType: FileType): Promise<Agda.Response> 
         case 'DisplayInfo':
             return Promise.resolve({
                 kind: 'DisplayInfo',
-                info: parseDisplayInfo(raw['info'])
+                info: raw['info'] as Agda.Info,
             } as Agda.DisplayInfo);
 
         case 'RunningInfo':

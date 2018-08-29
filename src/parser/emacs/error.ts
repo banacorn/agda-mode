@@ -2,7 +2,6 @@ import { Parser, seq, alt, takeWhile, sepBy1, succeed, all,
      digits, string, regex
     } from 'parsimmon';
 import { trimBeforeAndSkip, spaces, token } from './combinator';
-import { Point, Range } from 'atom';
 import { Agda } from '../../type';
 import { normalize } from 'path';
 
@@ -241,18 +240,18 @@ const rangeAbsolute: Parser<Agda.Syntax.Range> = seq(
         string(':'),
         interval
     ).map((result) => {
-        return new Agda.Syntax.Range({
+        return <Agda.Syntax.Range>{
             source: normalize(result[0]),
             intervals: [result[2]]
-        })
+        }
     }).skip(spaces);
 
 const rangeRelative: Parser<Agda.Syntax.Range> = seq(
         interval
     ).map((result) => {
-        return new Agda.Syntax.Range({
+        return <Agda.Syntax.Range>{
             intervals: [result[0]]
-        });
+        };
     }).skip(spaces);
 
 const range: Parser<Agda.Syntax.Range> = alt(

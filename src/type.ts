@@ -463,9 +463,37 @@ namespace Agda {
             range: Range;
             name: NameId;
         };
+//         export namespace Name {
+//             export function toString(name: Name): string {
+//                 if (name.kind === 'Name') {
+//                     return name.parts.
+//                 } else {
+//                     return 'NoName'
+//                 }
+//             }
+//             export function isUnderscore(name: Name): boolean {
+//                 if (name.kind === 'Name') {
+//                     return name.parts.
+//                 } else {
+//                     return 'NoName'
+//                 }
+// //
+// // instance Underscore Name where
+// //   underscore = NoName noRange __IMPOSSIBLE__
+// //   isUnderscore NoName{}        = True
+// //   isUnderscore (Name _ [Id x]) = isUnderscore x
+// //   isUnderscore _               = False
+//             }
+//         }
 
         export type QName = Name[];
-
+        // export namespace QName {
+        //     export function toString(name: QName): string {
+        //         return name
+        //             .filter(x => !Name.isUnderscore(x))
+        //             .map(x => Name.toString(x)).join('.');
+        //     }
+        // }
         //
         //  Range
         //
@@ -476,37 +504,10 @@ namespace Agda {
             end  : Position;
         };
 
-        export class Range implements ToString {
+        export type Range = {
             intervals: Interval[];
             source?: string;
-            constructor(obj) {
-                this.intervals = obj.intervals;
-                this.source = obj.source;
-            }
-
-            toString(): string {
-                const lineNums = this.intervals.map((interval) => {
-                    if (interval.start[0] === interval.end[0])
-                        return `${interval.start[0]},${interval.start[1]}-${interval.end[1]}`
-                    else
-                        return `${interval.start[0]},${interval.start[1]}-${interval.end[0]},${interval.end[1]}`
-                }).join(' ');
-
-                if (this.source && lineNums) {
-                    return `${this.source}:${lineNums}`;
-                }
-
-                if (this.source && lineNums === '') {
-                    return `${this.source}`;
-                }
-
-                if (this.source === null) {
-                    return `${lineNums}`;
-                }
-            }
-        }
-        // export type Range = {
-        // }
+        };
     }
 
 
@@ -558,14 +559,6 @@ namespace Agda {
             suggestions: String[];
         }[];
     }
-}
-
-export interface HasRange {
-    range: Agda.Syntax.Range;
-}
-
-export interface ToString {
-    toString(): string;
 }
 
 // Occurence

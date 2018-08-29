@@ -15,6 +15,7 @@ type Props = React.HTMLProps<HTMLElement> & {
 }
 
 
+
 export default class Range extends React.Component<Props, {}> {
     private subscriptions: Atom.CompositeDisposable;
     private link: HTMLElement;
@@ -22,6 +23,27 @@ export default class Range extends React.Component<Props, {}> {
     constructor(props: Props) {
         super(props)
         this.subscriptions = new CompositeDisposable;
+    }
+
+    static toString(range: Agda.Syntax.Range): string {
+        const lineNums = range.intervals.map((interval) => {
+            if (interval.start[0] === interval.end[0])
+                return `${interval.start[0]},${interval.start[1]}-${interval.end[1]}`
+            else
+                return `${interval.start[0]},${interval.start[1]}-${interval.end[0]},${interval.end[1]}`
+        }).join(' ');
+
+        if (range.source && lineNums) {
+            return `${range.source}:${lineNums}`;
+        }
+
+        if (range.source && lineNums === '') {
+            return `${range.source}`;
+        }
+
+        if (range.source === null) {
+            return `${lineNums}`;
+        }
     }
 
     componentDidMount() {
@@ -62,7 +84,7 @@ export default class Range extends React.Component<Props, {}> {
                     onClick={() => {
                         emitter.emit(EVENT.JUMP_TO_RANGE, range);
                     }}
-                > {range.toString()}</span>
+                > {Range.toString(range)}</span>
             )
         }
     }
