@@ -1,6 +1,18 @@
 import { EventEmitter } from 'events';
 import * as Promise from 'bluebird';
 
+// WTF
+export function intersperse(array, sep) {
+    if (array.length === 0) {
+        return [];
+    }
+
+    return array.slice(1).reduce(function(xs, x) {
+        return xs.concat([sep, x]);
+    }, [array[0]]);
+}
+
+
 // http://stackoverflow.com/a/2117523
 export function guid(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {

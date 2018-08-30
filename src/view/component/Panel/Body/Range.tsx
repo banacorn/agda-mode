@@ -1,15 +1,11 @@
 import * as React from 'react';
-import { EventEmitter } from 'events';
-
 import { Agda } from '../../../../type';
-import { EVENT } from '../../../actions';
 
 // Atom shits
 import { CompositeDisposable } from 'atom';
-import View from '../../../../view';
 import * as Atom from 'atom';
 
-
+import Link from './Link'
 
 type Props = React.HTMLProps<HTMLElement> & {
     range: Agda.Syntax.Range;
@@ -73,31 +69,25 @@ export default class Range extends React.Component<Props, {}> {
 
     render() {
         const { range, abbr } = this.props;
-        return <View.EventContext.Consumer>
-            {emitter => {
-                if (abbr) {
-                    return (
-                        <span
-                            className="text-subtle range icon icon-link"
-                            onClick={() => {
-                                emitter.emit(EVENT.JUMP_TO_RANGE, range);
-                            }}
-                            ref={(ref) => {
-                                this.link = ref;
-                            }}
-                        ></span>
-                    )
-                } else {
-                    return (
-                        <span
-                            className="text-subtle range icon icon-link"
-                            onClick={() => {
-                                emitter.emit(EVENT.JUMP_TO_RANGE, range);
-                            }}
-                        > {Range.toString(range)}</span>
-                    )
-                }
-            }}
-        </View.EventContext.Consumer>
+        if (abbr) {
+            return (
+                <Link jump range={range}>
+                    <span
+                        className="text-subtle range icon icon-link"
+                        ref={(ref) => {
+                            this.link = ref;
+                        }}
+                    ></span>
+                </Link>
+            )
+        } else {
+            return (
+                <Link jump range={range}>
+                    <span
+                        className="text-subtle range icon icon-link"
+                    >{Range.toString(range)}</span>
+                </Link>
+            )
+        }
     }
 }

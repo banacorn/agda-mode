@@ -8,6 +8,8 @@ import View from '../../../../view';
 
 type Props = React.HTMLProps<HTMLElement> & {
     range: Agda.Syntax.Range;
+    jump?: boolean;
+    hover?: boolean;
 }
 
 export default class Link extends React.Component<Props, {}> {
@@ -16,12 +18,12 @@ export default class Link extends React.Component<Props, {}> {
     }
 
     render() {
-        const { range } = this.props;
+        const { range, jump, hover } = this.props;
         return <View.EventContext.Consumer>{emitter => (
-            <span
-                onClick={() => { emitter.emit(EVENT.JUMP_TO_RANGE, range); }}
-                onMouseOver={() => { emitter.emit(EVENT.MOUSE_OVER, range); }}
-                onMouseOut={() => { emitter.emit(EVENT.MOUSE_OUT, range); }}
+            <span className='link'
+                onClick={() => { if (jump) emitter.emit(EVENT.JUMP_TO_RANGE, range); }}
+                onMouseOver={() => { if (hover) emitter.emit(EVENT.MOUSE_OVER, range); }}
+                onMouseOut={() => { if (hover) emitter.emit(EVENT.MOUSE_OUT, range); }}
             >{this.props.children}</span>
         )}</View.EventContext.Consumer>
     }

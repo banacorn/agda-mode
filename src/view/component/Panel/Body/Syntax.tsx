@@ -2,6 +2,8 @@ import * as _ from 'lodash';
 import * as React from 'react';
 import { EventEmitter } from 'events';
 import { Agda } from './../../../../type';
+import { intersperse } from './../../../../util';
+
 
 import Link from './Link'
 
@@ -26,9 +28,9 @@ export class Name extends React.Component<NameProps, {}> {
         const { name } = this.props;
         if (name.kind === "Name") {
             const parts = name.parts.map(x => x || '_').join('');
-            return <Link range={name.range}>{parts}</Link>
+            return <Link jump hover range={name.range}>{parts}</Link>
         } else {
-            return <Link range={name.range}>_</Link>
+            return <Link jump hover range={name.range}>_</Link>
         }
     }
 }
@@ -39,17 +41,6 @@ interface QNameProps {
 };
 
 
-// WTF
-function intersperse(array, sep) {
-    if (array.length === 0) {
-        return [];
-    }
-
-    return array.slice(1).reduce(function(xs, x) {
-        return xs.concat([sep, x]);
-    }, [array[0]]);
-}
-
 export class QName extends React.Component<QNameProps, {}> {
 
     render() {
@@ -57,7 +48,7 @@ export class QName extends React.Component<QNameProps, {}> {
         const filtered = names
             .filter(x => !Name.isUnderscore(x));
 
-        return <span>{intersperse(filtered.map((name, i) => <Name
+        return <span className='syntax qname'>{intersperse(filtered.map((name, i) => <Name
             name={name}
             key={i}
         />), '.')}</span>
