@@ -10,33 +10,6 @@ const enum FileType {
     LiterateMarkdown
 }
 
-interface IndexRange {
-    start: number,
-    end: number
-}
-
-interface Token {
-    content: string,
-    range: IndexRange,
-    type: TokenType
-}
-
-const enum TokenType {
-    AgdaRaw,
-    Literate,
-    Comment,
-    GoalBracket,
-    GoalQMRaw, // ? + ?
-    GoalQM // ?
-}
-
-interface Hole {
-    index: number,
-    modifiedRange: IndexRange,
-    originalRange: IndexRange,
-    content: string
-}
-
 export interface Parsed<T> {
     raw: string;
     parsed: T
@@ -573,9 +546,6 @@ export type Connection = ValidPath & {
 
 export {
     Agda,
-    Hole,
     FileType,
-    Token,
-    TokenType,
     View
 }
