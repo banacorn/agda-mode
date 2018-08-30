@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Agda } from '../../../../type';
+import * as Syntax from '../../../../type/agda/syntax';
 
 // Atom shits
 import { CompositeDisposable } from 'atom';
@@ -8,7 +8,7 @@ import * as Atom from 'atom';
 import Link from './Link'
 
 type Props = React.HTMLProps<HTMLElement> & {
-    range: Agda.Syntax.Range;
+    range: Syntax.Position.Range;
     abbr?: boolean;
 }
 
@@ -23,7 +23,7 @@ export default class Range extends React.Component<Props, {}> {
         this.subscriptions = new CompositeDisposable;
     }
 
-    static toString(range: Agda.Syntax.Range): string {
+    static toString(range: Syntax.Position.Range): string {
         const lineNums = range.intervals.map((interval) => {
             if (interval.start[0] === interval.end[0])
                 return `${interval.start[0]},${interval.start[1]}-${interval.end[1]}`
@@ -44,7 +44,7 @@ export default class Range extends React.Component<Props, {}> {
         }
     }
 
-    static toAtomRanges(range: Agda.Syntax.Range): Atom.Range[] {
+    static toAtomRanges(range: Syntax.Position.Range): Atom.Range[] {
         return range.intervals.map(({ start, end }) => new Atom.Range(
             new Atom.Point(start[0] - 1, start[1] - 1),
             new Atom.Point(end[0] - 1, end[1] - 1),

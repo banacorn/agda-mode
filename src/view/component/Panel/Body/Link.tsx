@@ -7,7 +7,7 @@ import View from '../../../../view';
 
 
 type Props = React.HTMLProps<HTMLElement> & {
-    range: Agda.Syntax.Range;
+    range: Agda.Syntax.Position.Range;
     jump?: boolean;
     hover?: boolean;
 }

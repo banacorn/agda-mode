@@ -8,7 +8,7 @@ import { QName } from './Syntax';
 
 interface Props {
     error: Agda.TypeError;
-    range: Agda.Syntax.Range;
+    range: Agda.Syntax.Position.Range;
     emacsMessage: string;
 }
 

@@ -1,5 +1,8 @@
 import { Conn } from '../type';
 
+import * as Syntax from './agda/syntax';
+export { Syntax as Syntax };
+
 
 //
 //  Commands sent to Agda
@@ -77,7 +80,7 @@ export interface Annotation {
 }
 
 export interface WhyInScope {
-    range: Syntax.Range
+    range: Syntax.Position.Range
 }
 
 // Resp_Status Status
@@ -211,43 +214,6 @@ export interface DoneAborting {
 }
 
 
-//
-//  QName
-//
-
-export namespace Syntax {
-
-    export type NameId = {
-        name: String;
-        module: String;
-    };
-
-    export type NamePart = null | String;
-
-    export type Name = {
-        kind: 'Name';
-        range: Range;
-        parts: NamePart[];
-    } | {
-        kind: 'NoName';
-        range: Range;
-        name: NameId;
-    };
-
-    export type QName = Name[];
-    export type Position = [number, number, number] | [number, number];
-    export type Interval = {
-        start: Position;
-        end  : Position;
-    };
-
-    export type Range = {
-        intervals: Interval[];
-        source?: string;
-    };
-}
-
-
 
 //
 //  Error
@@ -261,22 +227,22 @@ export type Error =
 
 export interface Error_TypeError {
     kind: 'TypeError';
-    range: Syntax.Range;
+    range: Syntax.Position.Range;
     typeError: TypeError;
 }
 export interface Error_Exception {
     kind: 'Exception';
-    range: Syntax.Range;
+    range: Syntax.Position.Range;
     message: String;
 }
 export interface Error_IOException {
     kind: 'IOException';
-    range: Syntax.Range;
+    range: Syntax.Position.Range;
     message: String;
 }
 export interface Error_PatternError {
     kind: 'PatternError';
-    range: Syntax.Range;
+    range: Syntax.Position.Range;
 }
 
 //
@@ -292,9 +258,9 @@ export type TypeError =
 export interface TypeError_NotInScope {
     kind: 'NotInScope';
     payloads: {
-        name: Syntax.QName;
-        range: Syntax.Range;
-        suggestions: Syntax.QName[];
+        name: Syntax.Concrete.QName;
+        range: Syntax.Position.Range;
+        suggestions: Syntax.Concrete.QName[];
     }[];
 }
 

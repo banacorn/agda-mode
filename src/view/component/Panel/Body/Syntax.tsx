@@ -40,11 +40,11 @@ export const Comparison = (props) => props.value === 'CmpEq'
 // Concrete
 
 interface NameProps  {
-    name: Agda.Syntax.Name;
+    name: Agda.Syntax.Concrete.Name;
 };
 
 export class Name extends React.Component<NameProps, {}> {
-    static isUnderscore(name: Agda.Syntax.Name): boolean {
+    static isUnderscore(name: Agda.Syntax.Concrete.Name): boolean {
         if (name.kind === 'Name') {
             if (name.parts.length === 1 && name.parts[0]) {
                 return name.parts[0] === '_';
@@ -69,7 +69,7 @@ export class Name extends React.Component<NameProps, {}> {
 
 
 interface QNameProps {
-    names: Agda.Syntax.QName;
+    names: Agda.Syntax.Concrete.QName;
 };
 
 export class QName extends React.Component<QNameProps, {}> {

@@ -216,7 +216,7 @@ function parseGoalAndHave(str: string): View.GoalAndHave {
 
 // Occurence
 export interface Occurence {
-    range: Agda.Syntax.Range,
+    range: Agda.Syntax.Position.Range,
     body: string
 }
 

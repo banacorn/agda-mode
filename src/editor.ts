@@ -2,6 +2,8 @@ import * as fs from 'fs';
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { Agda, View } from './type';
+import { Range as AgdaRange } from './type/agda/syntax/position';
+
 import { parseHole, parseFilepath } from './parser';
 import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
@@ -238,8 +240,7 @@ export default class Editor {
         }
     }
 
-
-    jumpToRange(range: Agda.Syntax.Range) {
+    jumpToRange(range: AgdaRange) {
         this.focus();
 
         const atomRange = R.toAtomRanges(range)[0];
@@ -275,7 +276,7 @@ export default class Editor {
         }
     }
 
-    mouseOver(range: Agda.Syntax.Range) {
+    mouseOver(range: AgdaRange) {
         this.mouseHighlighting.mark(range);
     }
 
@@ -466,7 +467,7 @@ class MouseHighlightManager {
     constructor(private editor: Editor) {
     }
 
-    mark(agdaRange: Agda.Syntax.Range) {
+    mark(agdaRange: AgdaRange) {
         const range = R.toAtomRanges(agdaRange)[0];
         if (range) {
             this.marker = this.editor.getTextEditor().markBufferRange(range);
