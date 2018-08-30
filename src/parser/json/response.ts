@@ -2,7 +2,8 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { ParseError } from '../../error';
 // import { location } from './../emacs/error';
-import { Agda, FileType } from '../../type';
+import { Agda } from '../../type';
+import { FileType } from '../../type/agda';
 
 function toAnnotation(raw: object): Agda.Annotation {
 

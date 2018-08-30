@@ -1,6 +1,6 @@
 import * as _ from 'lodash';;
 import { parseFilepath } from './../util';
-import { View, Occurence } from '../../type';
+import { Agda, View } from '../../type';
 
 export function parseSolutions(raw: string[]): View.Solutions {
     // examine the first line and see if it's simple or indexed
@@ -212,6 +212,12 @@ function parseGoalAndHave(str: string): View.GoalAndHave {
         label: result[1],
         type: result[2]
     };
+}
+
+// Occurence
+export interface Occurence {
+    range: Agda.Syntax.Range,
+    body: string
 }
 
 function parseOccurence(str: string): Occurence {

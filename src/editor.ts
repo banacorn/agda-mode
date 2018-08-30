@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
-import { Agda, View, FileType } from './type';
+import { Agda, View } from './type';
 import { parseHole, parseFilepath } from './parser';
 import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
@@ -287,7 +287,7 @@ export default class Editor {
     //  Command Handlers  //
     ////////////////////////
 
-    onInteractionPoints(indices: number[], fileType: FileType): Promise<void> {
+    onInteractionPoints(indices: number[], fileType: Agda.FileType): Promise<void> {
         return this.protectCursor(() => {
             const textRaw = this.textEditor.getText();
             this.goal.removeAll();

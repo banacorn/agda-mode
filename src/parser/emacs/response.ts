@@ -2,7 +2,8 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { ParseError } from '../../error';
 import { range } from './error';
-import { Agda, FileType } from '../../type';
+import { Agda } from '../../type';
+import { FileType } from '../../type/agda';
 
 function parseResponses(raw: string, fileType: FileType): Promise<Agda.Response[]> {
     const lines = raw.trim().split('\n');

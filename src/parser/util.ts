@@ -1,4 +1,4 @@
-import { FileType } from '../type';
+import { FileType } from '../type/agda';
 import * as path from 'path';
 
 function parseFilepath(s: string): string {

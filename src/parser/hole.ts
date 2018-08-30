@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { FileType } from '../type';
+import { FileType } from '../type/agda';
 
 interface IndexRange {
     start: number,

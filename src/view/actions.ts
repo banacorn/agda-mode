@@ -1,5 +1,5 @@
 import { createAction } from 'redux-actions';
-import { Parsed, Agda, View, ValidPath } from '../type';
+import { Parsed, Agda, View } from '../type';
 import { EmacsAgdaError } from '../parser/emacs';
 
 export namespace EVENT {
@@ -74,7 +74,7 @@ export type CONNECTION
 
 export namespace CONNECTION {
     export const CONNECT_AGDA = 'CONNECTION.CONNECT_AGDA_AGDA';
-    export type CONNECT_AGDA = ValidPath;
+    export type CONNECT_AGDA = Agda.ValidPath;
     export const DISCONNECT_AGDA = 'CONNECTION.DISCONNECT_AGDA_AGDA';
     export type DISCONNECT_AGDA = void;
     export const START_QUERYING = 'CONNECTION.START_QUERYING';

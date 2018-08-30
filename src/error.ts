@@ -1,5 +1,5 @@
 import Goal from './editor/goal';
-import { Path } from './type';
+import { FileType, Path } from './type/agda';
 
 // for parsing related errors
 export class ParseError extends Error {

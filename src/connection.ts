@@ -3,7 +3,9 @@ import * as _ from 'lodash';
 import { spawn, exec } from 'child_process';
 var duplex = require('duplexer');
 
-import { View, Path, ValidPath, Connection } from './type';
+import { View } from './type';
+import { Path, ValidPath, Connection } from './type/agda';
+
 import * as Err from './error';
 import { Core } from './core';
 

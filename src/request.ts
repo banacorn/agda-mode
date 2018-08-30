@@ -1,6 +1,6 @@
 import * as Promise from 'bluebird';
 import { parseFilepath } from './parser/util';
-import { Agda, Connection } from './type';
+import { Agda } from './type';
 import * as semver from 'semver';
 import Goal from './editor/goal';
 
@@ -12,7 +12,7 @@ function getLibraryPath(): string {
     return path.map((p) => { return `\"${ parseFilepath(p) }\"`; }).join(', ');
 }
 
-const buildRequest = (highlightingLevel: string, interaction: string | ((conn: Connection) => string)) => (header: Agda.Command, connection: Connection): Agda.Request => {
+const buildRequest = (highlightingLevel: string, interaction: string | ((conn: Agda.Connection) => string)) => (header: Agda.Command, connection: Agda.Connection): Agda.Request => {
     const highlightingMethod = atom.config.get('agda-mode.highlightingMethod');
     let body: string;
     if (typeof interaction === 'string') {
@@ -33,7 +33,7 @@ const buildRequest = (highlightingLevel: string, interaction: string | ((conn: C
 // data Interval a = Interval { iStart, iEnd :: !(Position' a) }
 // data Position a = Pn a !Int32 !Int32 !Int32
 
-function buildRange(conn: Connection, goal: Goal): string {
+function buildRange(conn: Agda.Connection, goal: Goal): string {
     const start       = goal.range.start;
     const startIndex  = goal.rangeIndex.start;
     const end         = goal.range.end;
