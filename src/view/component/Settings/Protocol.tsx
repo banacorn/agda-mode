@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
-import { View, Agda } from '../../../type';
+import { View, Agda, Conn } from '../../../type';
 import { Core } from '../../../core';
 import * as Action from '../../actions';
 
@@ -12,7 +12,7 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
 }
 type InjProps = {
-    agda?: Agda.ValidPath;
+    agda?: Conn.ValidPath;
     protocol: View.Protocol;
 }
 

@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { combineReducers } from 'redux';
 import { handleActions, Action } from 'redux-actions';
-import { View, Agda, Parsed } from '../type';
+import { View, Agda } from '../type';
 import { MODE, VIEW, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, CONNECTION } from './actions';
 import { translate } from '../input-method';
 
@@ -133,7 +133,7 @@ const connection = handleActions<View.ConnectionState, CONNECTION>({
     }),
 }, defaultState.connection);
 
-function logResponses(log: View.ReqRes[], response: Parsed<Agda.Response>[]): View.ReqRes[] {
+function logResponses(log: View.ReqRes[], response: View.Parsed<Agda.Response>[]): View.ReqRes[] {
     if (log.length > 0) {
         // append only to the last ReqRes;
         const tail = _.tail(log);
@@ -149,7 +149,7 @@ function logResponses(log: View.ReqRes[], response: Parsed<Agda.Response>[]): Vi
 
 }
 
-function logRequest(state: View.Protocol, request: Parsed<Agda.Request>): View.ReqRes[] {
+function logRequest(state: View.Protocol, request: View.Parsed<Agda.Request>): View.ReqRes[] {
     let log = _.concat([{
         id: state.id,
         request,

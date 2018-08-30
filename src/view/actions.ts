@@ -1,5 +1,5 @@
 import { createAction } from 'redux-actions';
-import { Parsed, Agda, View } from '../type';
+import { Agda, View, Conn } from '../type';
 import { EmacsAgdaError } from '../parser/emacs';
 
 export namespace EVENT {
@@ -74,7 +74,7 @@ export type CONNECTION
 
 export namespace CONNECTION {
     export const CONNECT_AGDA = 'CONNECTION.CONNECT_AGDA_AGDA';
-    export type CONNECT_AGDA = Agda.ValidPath;
+    export type CONNECT_AGDA = Conn.ValidPath;
     export const DISCONNECT_AGDA = 'CONNECTION.DISCONNECT_AGDA_AGDA';
     export type DISCONNECT_AGDA = void;
     export const START_QUERYING = 'CONNECTION.START_QUERYING';
@@ -99,9 +99,9 @@ export type PROTOCOL
 
 export namespace PROTOCOL {
     export const LOG_REQUEST = 'PROTOCOL.LOG_REQUEST';
-    export type LOG_REQUEST = Parsed<Agda.Request>;
+    export type LOG_REQUEST = View.Parsed<Agda.Request>;
     export const LOG_RESPONSES = 'PROTOCOL.LOG_RESPONSE';
-    export type LOG_RESPONSES = Parsed<Agda.Response>[];
+    export type LOG_RESPONSES = View.Parsed<Agda.Response>[];
 
     export const LIMIT_LOG = 'PROTOCOL.LIMIT_LOG';
     export type LIMIT_LOG = boolean;

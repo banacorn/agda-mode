@@ -3,8 +3,8 @@ import * as _ from 'lodash';
 import { spawn, exec } from 'child_process';
 var duplex = require('duplexer');
 
-import { View } from './type';
-import { Path, ValidPath, Connection } from './type/agda';
+import { View, Agda } from './type';
+import { Path, ValidPath, Connection } from './type/connection';
 
 import * as Err from './error';
 import { Core } from './core';
@@ -115,7 +115,7 @@ export default class ConnectionManager {
                         const lines = data.toString().trim().split('\n');
                         Emacs.parseResponses(data.toString(), parseFileType(connection.filepath))
                             .then(responses => {
-                                const resps = responses
+                                const resps: View.Parsed<Agda.Response>[] = responses
                                     .map((response, i) => ({
                                         raw: lines[i],
                                         parsed: response

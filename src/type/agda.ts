@@ -1,4 +1,5 @@
-import { Duplex } from 'stream';
+import { Conn } from '../type';
+
 
 //
 //  Commands sent to Agda
@@ -24,31 +25,6 @@ export type Command = {
 };
 
 //
-// Connection
-//
-
-export type Path = string;
-export type Version = {
-    raw: string;
-    sem: string;
-};
-export type Protocol = 'Emacs' | 'JSON';
-export type ValidPath = {
-    path: Path;
-    version: Version;
-    supportedProtocol: Protocol[];
-};
-
-export type Connection = ValidPath & {
-    stream: Duplex;
-    queue: {
-        resolve: (actions: Response[]) => void;
-        reject: (error?: any) => void;
-    }[];
-    filepath: string;   // path of the Agda file
-}
-
-//
 //  Request to Agda
 //
 
@@ -57,7 +33,7 @@ export type Connection = ValidPath & {
 export type Request = {
     header: Command;
     body?: string;
-    connection?: Connection;
+    connection?: Conn.Connection;
 };
 //
 //  Response from Agda

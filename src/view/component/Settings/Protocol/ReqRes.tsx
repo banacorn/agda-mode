@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Parsed, Agda } from '../../../../type';
+import { View, Agda } from '../../../../type';
 import * as classNames from 'classnames';
 import * as _ from 'lodash';
 
@@ -8,7 +8,7 @@ import * as _ from 'lodash';
 // Response
 //
 type ResProp = React.HTMLProps<HTMLElement> & {
-    res: Parsed<Agda.Response>;
+    res: View.Parsed<Agda.Response>;
 };
 
 interface ResState {
