@@ -7,6 +7,38 @@ import { intersperse } from './../../../../util';
 
 import Link from './Link'
 
+////////////////////////////////////////////////////////////////////////////////
+// Misc
+
+export const Comparison = (props) => props.value === 'CmpEq'
+    ? <span>=</span>
+    : <span>≤</span>;
+
+////////////////////////////////////////////////////////////////////////////////
+// Internal
+
+
+// interface TermProp {
+//     names: Agda.Syntax.QName;
+// };
+//
+// export class QName extends React.Component<QNameProps, {}> {
+//
+//     render() {
+//         const { names } = this.props;
+//         const filtered = names
+//             .filter(x => !Name.isUnderscore(x));
+//
+//         return <span className='syntax qname'>{intersperse(filtered.map((name, i) => <Name
+//             name={name}
+//             key={i}
+//         />), '.')}</span>
+//     }
+// }
+
+////////////////////////////////////////////////////////////////////////////////
+// Concrete
+
 interface NameProps  {
     name: Agda.Syntax.Name;
 };
@@ -39,7 +71,6 @@ export class Name extends React.Component<NameProps, {}> {
 interface QNameProps {
     names: Agda.Syntax.QName;
 };
-
 
 export class QName extends React.Component<QNameProps, {}> {
 

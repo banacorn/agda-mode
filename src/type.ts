@@ -3,8 +3,6 @@ import { EmacsAgdaError } from './parser/emacs/error';
 
 import * as Atom from 'atom';
 
-export type TextInput = string;
-
 const enum FileType {
     Agda,
     LiterateTeX,
@@ -463,41 +461,8 @@ namespace Agda {
             range: Range;
             name: NameId;
         };
-//         export namespace Name {
-//             export function toString(name: Name): string {
-//                 if (name.kind === 'Name') {
-//                     return name.parts.
-//                 } else {
-//                     return 'NoName'
-//                 }
-//             }
-//             export function isUnderscore(name: Name): boolean {
-//                 if (name.kind === 'Name') {
-//                     return name.parts.
-//                 } else {
-//                     return 'NoName'
-//                 }
-// //
-// // instance Underscore Name where
-// //   underscore = NoName noRange __IMPOSSIBLE__
-// //   isUnderscore NoName{}        = True
-// //   isUnderscore (Name _ [Id x]) = isUnderscore x
-// //   isUnderscore _               = False
-//             }
-//         }
 
         export type QName = Name[];
-        // export namespace QName {
-        //     export function toString(name: QName): string {
-        //         return name
-        //             .filter(x => !Name.isUnderscore(x))
-        //             .map(x => Name.toString(x)).join('.');
-        //     }
-        // }
-        //
-        //  Range
-        //
-
         export type Position = [number, number, number] | [number, number];
         export type Interval = {
             start: Position;
@@ -548,7 +513,8 @@ namespace Agda {
 
     export type TypeError =
         // ...
-        TypeError_NotInScope;
+        TypeError_NotInScope        |
+        TypeError_UnequalTerms      ;
         // ..
 
     export interface TypeError_NotInScope {
@@ -558,6 +524,15 @@ namespace Agda {
             range: Syntax.Range;
             suggestions: Syntax.QName[];
         }[];
+    }
+
+    export interface TypeError_UnequalTerms {
+        kind: 'UnequalTerms';
+        comparison: string;
+        term1: string;
+        term2: string;
+        type: string;
+        reason: string;
     }
 }
 

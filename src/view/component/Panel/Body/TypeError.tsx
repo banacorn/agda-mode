@@ -30,6 +30,12 @@ function notInScope(error: Agda.TypeError_NotInScope): JSX.Element {
     </section>
 }
 
+
+function unequalTerms(error: Agda.TypeError_NotInScope): JSX.Element {
+
+    return <section>
+    </section>
+}
 export default class TypeError extends React.Component<Props, {}> {
     render() {
         const { error, range, emacsMessage } = this.props;
@@ -41,6 +47,10 @@ export default class TypeError extends React.Component<Props, {}> {
                 <Range range={range} /><br/>
                 {notInScope(error)}
             </div>
+            // case 'UnequalTerms': return <div className="error">
+            //     <Range range={range} /><br/>
+            //     {notInScope(error)}
+            // </div>
             default: return <p className="error">
                 {emacsMessage}
             </p>
