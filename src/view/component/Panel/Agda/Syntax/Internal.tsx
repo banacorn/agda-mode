@@ -1,9 +1,7 @@
 import * as React from 'react';
-import { Agda } from './../../../../type';
-import { intersperse } from './../../../../util';
+import { Agda } from './../../../../../type';
+import { Name } from './Concrete';
 
-import Link from '../Body/Link'
-import { Name } from './Concrete'
 
 ////////////////////////////////////////////////////////////////////////////////
 // Term

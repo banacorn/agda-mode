@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Agda } from './../../../../type';
-import * as TC from './../../../../type/agda/typeChecking';
+import { Agda } from './../../../../../type';
+import * as TC from './../../../../../type/agda/typeChecking';
 
 import TypeError from './TypeError';
 

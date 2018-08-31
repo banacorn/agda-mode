@@ -8,7 +8,7 @@ import { parseHole, parseFilepath } from './parser';
 import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
 import Goal from './editor/goal';
-import R from './view/component/Panel/Body/Range';
+import { Range as R } from './view/component/Panel/Agda/Syntax/Position';
 
 import { Point, Range } from 'atom';
 import * as Atom from 'atom';

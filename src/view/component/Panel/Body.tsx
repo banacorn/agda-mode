@@ -7,8 +7,8 @@ import V from '../../../view';
 import { updateMaxBodyHeight, EVENT } from '../../actions';
 import Expr from './Body/Expr';
 import EmacsError from './Body/EmacsError';
-import Error from './Body/Error';
-import Range from './Body/Range';
+import Error from './Agda/TypeChecking/Error';
+import { Range } from './Agda/Syntax/Position';
 import Solution from './Body/Solution';
 
 type OwnProps = React.HTMLProps<HTMLElement>

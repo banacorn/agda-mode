@@ -1,9 +1,4 @@
 import * as React from 'react';
-import { Agda } from './../../../../type';
-import { intersperse } from './../../../../util';
-
-
-import Link from './Link'
 
 ////////////////////////////////////////////////////////////////////////////////
 // Misc

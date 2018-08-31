@@ -1,20 +1,18 @@
 import * as React from 'react';
-import * as Syntax from '../../../../type/agda/syntax';
+import * as Syntax from '../../../../../type/agda/syntax';
 
 // Atom shits
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
-import Link from './Link'
+import Link from './../../Body/Link'
 
 type Props = React.HTMLProps<HTMLElement> & {
     range: Syntax.Position.Range;
     abbr?: boolean;
 }
 
-
-
-export default class Range extends React.Component<Props, {}> {
+export class Range extends React.Component<Props, {}> {
     private subscriptions: Atom.CompositeDisposable;
     private link: HTMLElement;
 

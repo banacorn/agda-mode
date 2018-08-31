@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { Agda } from './../../../../type';
-import { intersperse } from './../../../../util';
+import { intersperse } from './../../../../../util';
 
-import Link from '../Body/Link'
+import { Agda } from './../../../../../type';
+
+import Link from './../../Body/Link'
 
 interface NameProps  {
     value: Agda.Syntax.Concrete.Name;
