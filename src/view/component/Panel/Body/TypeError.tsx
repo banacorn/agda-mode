@@ -1,25 +1,29 @@
 import * as React from 'react';
 import { Agda } from './../../../../type';
+import * as TC from './../../../../type/agda/typeChecking';
 import { intersperse } from './../../../../util';
 
 import Range from './Range';
-import { QName } from './Syntax';
+import { Comparison } from './Syntax';
+import { QName } from '../Syntax/Concrete';
+import { Term, Type } from '../Syntax/Internal';
 
 
 interface Props {
-    error: Agda.TypeError;
+    error: TC.TypeError;
     range: Agda.Syntax.Position.Range;
+    call: TC.Closure<TC.Call>;
     emacsMessage: string;
 }
 
-function notInScope(error: Agda.TypeError_NotInScope): JSX.Element {
+function notInScope(error: TC.TypeError_NotInScope): JSX.Element {
 
     const suggest = (suggestions) => suggestions.length ? (<span> (did you mean {
-        intersperse(suggestions.map((name, i) =><QName key={i} names={name} />), ', ')
+        intersperse(suggestions.map((name, i) =><QName key={i} value={name} />), ', ')
     } ?)</span>) : null;
 
     const item = ({ name, suggestions }, i) => <li key={i}>
-        <QName names={name} />{suggest(suggestions)}
+        <QName value={name} />{suggest(suggestions)}
     </li>
 
     return <section>
@@ -30,10 +34,12 @@ function notInScope(error: Agda.TypeError_NotInScope): JSX.Element {
     </section>
 }
 
-
-function unequalTerms(error: Agda.TypeError_NotInScope): JSX.Element {
-
+function unequalTerms(error: TC.TypeError_UnequalTerms): JSX.Element {
     return <section>
+        {'expected : '}<Term value={error.term2} /><br />
+        {'  actual : '}<Term value={error.term1} /><br />
+        {' of type : '}<Type value={error.type} /><br />
+        when checking that the expression
     </section>
 }
 export default class TypeError extends React.Component<Props, {}> {
@@ -47,10 +53,10 @@ export default class TypeError extends React.Component<Props, {}> {
                 <Range range={range} /><br/>
                 {notInScope(error)}
             </div>
-            // case 'UnequalTerms': return <div className="error">
-            //     <Range range={range} /><br/>
-            //     {notInScope(error)}
-            // </div>
+            case 'UnequalTerms': return <div className="error">
+                <Range range={range} /><br/>
+                {unequalTerms(error)}
+            </div>
             default: return <p className="error">
                 {emacsMessage}
             </p>

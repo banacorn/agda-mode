@@ -2,6 +2,8 @@ import { Conn } from '../type';
 
 import * as Syntax from './agda/syntax';
 export { Syntax as Syntax };
+import * as TypeChecking from './agda/typeChecking';
+export { TypeChecking as TypeChecking };
 
 
 //
@@ -211,64 +213,4 @@ export interface ClearHighlighting {
 // Resp_DoneAborting
 export interface DoneAborting {
     kind: 'DoneAborting';
-}
-
-
-
-//
-//  Error
-//
-
-export type Error =
-    Error_TypeError |
-    Error_Exception |
-    Error_IOException |
-    Error_PatternError ;
-
-export interface Error_TypeError {
-    kind: 'TypeError';
-    range: Syntax.Position.Range;
-    typeError: TypeError;
-}
-export interface Error_Exception {
-    kind: 'Exception';
-    range: Syntax.Position.Range;
-    message: String;
-}
-export interface Error_IOException {
-    kind: 'IOException';
-    range: Syntax.Position.Range;
-    message: String;
-}
-export interface Error_PatternError {
-    kind: 'PatternError';
-    range: Syntax.Position.Range;
-}
-
-//
-//  TypeError
-//
-
-export type TypeError =
-    // ...
-    TypeError_NotInScope        |
-    TypeError_UnequalTerms      ;
-    // ..
-
-export interface TypeError_NotInScope {
-    kind: 'NotInScope';
-    payloads: {
-        name: Syntax.Concrete.QName;
-        range: Syntax.Position.Range;
-        suggestions: Syntax.Concrete.QName[];
-    }[];
-}
-
-export interface TypeError_UnequalTerms {
-    kind: 'UnequalTerms';
-    comparison: string;
-    term1: string;
-    term2: string;
-    type: string;
-    reason: string;
 }

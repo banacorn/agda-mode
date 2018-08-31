@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { Agda } from './../../../../type';
+import * as TC from './../../../../type/agda/typeChecking';
 
 import TypeError from './TypeError';
 
 interface Props {
-    error: Agda.Error;
+    error: TC.Error;
     emacsMessage: string;
 }
 
@@ -15,6 +16,7 @@ export default class Error extends React.Component<Props, {}> {
             case 'TypeError': return <TypeError
                     error={error.typeError}
                     range={error.range}
+                    call={error.call}
                     emacsMessage={emacsMessage}
                 />
             case 'Exception': return <p className="error">
