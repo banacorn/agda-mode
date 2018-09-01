@@ -176,7 +176,7 @@ export interface Info_AllGoalsWarnings {
 }
 export interface Info_Error {
     kind: "Error";
-    error: Error;
+    error: TypeChecking.Error;
     emacsMessage: string;
 }
 export interface Info_Time { kind: "Time"; payload: string }

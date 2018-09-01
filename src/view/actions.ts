@@ -172,7 +172,7 @@ export namespace BODY {
     export const UPDATE_BODY = 'BODY.UPDATE_BODY';
     export type UPDATE_BODY = View.Body;
     export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
-    export type UPDATE_ERROR = [Agda.Error, string];
+    export type UPDATE_ERROR = [Agda.TypeChecking.Error, string];
     export const UPDATE_EMACS_ERROR = 'BODY.UPDATE_EMACS_ERROR';
     export type UPDATE_EMACS_ERROR = EmacsAgdaError;
     export const UPDATE_SOLUTIONS = 'BODY.UPDATE_SOLUTIONS';

@@ -3,6 +3,9 @@
   "main": "./lib/agda-mode",
   "version": "0.7.17",
   "description": "agda-mode on Atom",
+  "scripts": {
+    "start": "bsb -make-world -w"
+  },
   "activationCommands": {
     "atom-text-editor": [
       "agda-mode:load"
@@ -25,6 +28,7 @@
     "atom": ">=1.19.0 <2.0.0"
   },
   "devDependencies": {
+    "bs-platform": "^4.0.5",
     "typescript": "^2.9.2"
   },
   "dependencies": {
@@ -51,6 +55,7 @@
     "redux": "^4",
     "redux-actions": "^2.4",
     "redux-thunk": "^2.3.0",
+    "reason-react": ">=0.4.0",
     "semver": "^5.5"
   }
 }

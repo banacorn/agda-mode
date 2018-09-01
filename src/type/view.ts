@@ -93,7 +93,7 @@ export interface BodyState {
     body: Body;
     emacsError: EmacsAgdaError;
     emacsMessage: string;
-    error: Agda.Error;
+    error: Agda.TypeChecking.Error;
     plainText: string;
     solutions: Solutions;
     maxBodyHeight: number;
