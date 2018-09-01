@@ -8,8 +8,10 @@ import { updateMaxBodyHeight, EVENT } from '../../actions';
 import Expr from './Body/Expr';
 import EmacsError from './Body/EmacsError';
 import Error from './Agda/TypeChecking/Error';
-import { Range } from './Agda/Syntax/Position';
 import Solution from './Body/Solution';
+
+var Range = require('./Agda/Syntax/Position.bs').jsComponent;
+
 
 type OwnProps = React.HTMLProps<HTMLElement>
 

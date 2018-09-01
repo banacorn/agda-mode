@@ -1,0 +1,1 @@
+src/view/component/Panel/Agda/Syntax/Range-AgdaMode.cmj :

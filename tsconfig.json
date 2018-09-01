@@ -5,7 +5,7 @@
         "target": "es6",
         "noImplicitAny": false,
         "sourceMap": true,
-        "outDir": "lib/js",
+        "outDir": "lib/js/src",
         "experimentalDecorators": true,
         "jsx": "react"
     },

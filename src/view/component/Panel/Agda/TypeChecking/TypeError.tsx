@@ -3,10 +3,11 @@ import { Agda } from './../../../../../type';
 import * as TC from './../../../../../type/agda/typeChecking';
 import { intersperse } from './../../../../../util';
 
-import { Range } from './../Syntax/Position';
 import { Comparison } from '../TypeChecking';
 import { QName } from '../Syntax/Concrete';
 import { Term, Type } from '../Syntax/Internal';
+
+var Range = require('./../Syntax/Position.bs').jsComponent;
 
 
 interface Props {

@@ -1,0 +1,1 @@
+src/view/component/Panel/Agda/Syntax/Position-AgdaMode.cmj : src/view/component/Panel/Body/Link-AgdaMode.cmj src/view/component/Panel/Body/Type-AgdaMode.cmj

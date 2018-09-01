@@ -4,7 +4,8 @@ import { EventEmitter } from 'events';
 import { EmacsAgdaError } from '../../../../parser/emacs';
 
 import Expr from './Expr';
-import { Range } from './../Agda/Syntax/Position';
+var Range = require('./../Agda/Syntax/Position.bs').jsComponent;
+
 import Suggestion from './Suggestion';
 
 class EmacsError extends React.Component<{}, {}> {

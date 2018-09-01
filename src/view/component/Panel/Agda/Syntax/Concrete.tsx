@@ -2,8 +2,9 @@ import * as React from 'react';
 import { intersperse } from './../../../../../util';
 
 import { Agda } from './../../../../../type';
+import View from '../../../../../view';
 
-import Link from './../../Body/Link'
+var Link = require('./../../Body/Link.bs').jsComponent;
 
 interface NameProps  {
     value: Agda.Syntax.Concrete.Name;
@@ -24,11 +25,16 @@ export class Name extends React.Component<NameProps, {}> {
 
     render() {
         const { value } = this.props;
+
         if (value.kind === "Name") {
             const parts = value.parts.map(x => x || '_').join('');
-            return <Link jump hover range={value.range}>{parts}</Link>
+            return (<View.EventContext.Consumer>{emitter =>
+                <Link jump hover emit={() => {}}>{parts}</Link>
+            }</View.EventContext.Consumer>)
         } else {
-            return <Link jump hover range={value.range}>_</Link>
+            return (<View.EventContext.Consumer>{emitter =>
+                <Link jump hover emit={() => {}}>_</Link>
+            }</View.EventContext.Consumer>)
         }
     }
 }
