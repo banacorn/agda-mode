@@ -8,6 +8,10 @@ import * as J from './parser/json';
 import * as Emacs from './parser/emacs';
 import * as Err from './error';
 
+// import { parseError } from './view/component/Panel/Agda/Syntax/TypeChecking/Error.bs';
+var { parseError } = require('./view/component/Panel/Agda/TypeChecking/Error.bs');
+
+
 // classify responses into async and sync ones
 // don't deal everything with promises
 // for the nasty issue of https://github.com/petkaantonov/bluebird/issues/1326
@@ -234,7 +238,8 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.setJudgements(title, parsed);
             break;
         case 'Error':
-            core.view.setAgdaError(info.error, info.emacsMessage);
+            parseError(info.error)
+            // core.view.setAgdaError(info.error, info.emacsMessage);
             break;
         case 'Auto':
             let solutions = Emacs.parseSolutions(info.payload.split('\n'));

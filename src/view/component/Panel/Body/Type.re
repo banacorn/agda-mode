@@ -3,7 +3,6 @@ module Agda = {
     module Position = {
       type srcFile = option(string);
       type position = {
-        scrFile: srcFile,
         pos: int,
         line: int,
         col: int,
@@ -14,6 +13,7 @@ module Agda = {
       };
       type range =
         | NoRange
+        | Test
         | Range(srcFile, list(interval));
     };
     module Concrete = {
@@ -29,6 +29,13 @@ module Agda = {
         | NoName(Position.range, nameId);
       type qName = list(name);
     };
+  };
+  module TypeChecking = {
+    type error =
+      | TypeError(Syntax.Position.range)
+      | Exception(Syntax.Position.range, string)
+      | IOException(Syntax.Position.range, string)
+      | PatternError(Syntax.Position.range);
   };
 };
 

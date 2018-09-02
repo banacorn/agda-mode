@@ -18,7 +18,9 @@
   "suffix": ".bs.js",
   "namespace": true,
   "bs-dependencies": [
-    "reason-react"
+    "reason-react",
+    "@glennsl/bs-json"
   ],
+  "bsc-flags": ["-bs-g"]  ,
   "refmt": 3
 }

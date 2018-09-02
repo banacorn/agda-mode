@@ -9,8 +9,12 @@ FLG -nostdlib -color always
 FLG -w -30-40+6+7+27+32..39+44+45+101
 S /Users/banacorn/github/agda-mode/node_modules/reason-react/lib/ocaml
 B /Users/banacorn/github/agda-mode/node_modules/reason-react/lib/ocaml
+S /Users/banacorn/github/agda-mode/node_modules/@glennsl/bs-json/lib/ocaml
+B /Users/banacorn/github/agda-mode/node_modules/@glennsl/bs-json/lib/ocaml
 S src/view/component/Panel/Agda/Syntax
 B lib/bs/src/view/component/Panel/Agda/Syntax
+S src/view/component/Panel/Agda/TypeChecking
+B lib/bs/src/view/component/Panel/Agda/TypeChecking
 S src/view/component/Panel/Body
 B lib/bs/src/view/component/Panel/Body
 ####BSB GENERATED: NO EDIT}

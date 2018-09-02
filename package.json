@@ -32,6 +32,7 @@
     "typescript": "^2.9.2"
   },
   "dependencies": {
+    "@glennsl/bs-json": "^3.0.0",
     "@types/atom": "^1.28",
     "@types/bluebird": "^3.5",
     "@types/classnames": "^2.2",
@@ -52,10 +53,10 @@
     "react": "^16.4",
     "react-dom": "^16.4",
     "react-redux": "^5.0",
+    "reason-react": ">=0.4.0",
     "redux": "^4",
     "redux-actions": "^2.4",
     "redux-thunk": "^2.3.0",
-    "reason-react": ">=0.4.0",
     "semver": "^5.5"
   }
 }
