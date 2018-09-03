@@ -1,0 +1,63 @@
+let typeErrorToHeader = error =>
+  Type.Agda.TypeChecking.(
+    switch (error) {
+    | UnequalTerms(_, _, _, _, _) => "Unequal Terms"
+    | UnregisteredTypeError(_) => "UnregisteredTypeError"
+    }
+  );
+
+let errorToHeader = error =>
+  Type.Agda.TypeChecking.(
+    switch (error) {
+    | TypeError(_, typeError) =>
+      "Type Error: " ++ typeErrorToHeader(typeError)
+    | Exception(_) => "Exception"
+    | IOException(_) => "IOException"
+    | PatternError(_) => "PatternError"
+    }
+  );
+
+let component = ReasonReact.statelessComponent("Error");
+
+let make = (~error: Js.Json.t, ~emacsMessage: string, ~emit, _children) => {
+  ...component,
+  render: _self => {
+    let decodedError = Decoder.parseError(error);
+    switch (decodedError) {
+    | TypeError(range, typeError) =>
+      <section className="error">
+        <Range range emit />
+        <TypeError typeError emacsMessage />
+      </section>
+    | Exception(_) =>
+      <section className="error">
+        (ReasonReact.string(emacsMessage))
+      </section>
+    | IOException(_) =>
+      <section className="error">
+        (ReasonReact.string(emacsMessage))
+      </section>
+    | PatternError(_) =>
+      <section className="error">
+        (ReasonReact.string("Pattern violation (you shouldn't see this)"))
+      </section>
+    };
+  },
+};
+
+[@bs.deriving abstract]
+type jsProps = {
+  error: Js.Json.t,
+  emacsMessage: string,
+  emit: (Type.event, Type.Agda.Syntax.Position.range) => unit,
+};
+
+let jsComponent =
+  ReasonReact.wrapReasonForJs(~component, jsProps =>
+    make(
+      ~error=errorGet(jsProps),
+      ~emacsMessage=emacsMessageGet(jsProps),
+      ~emit=emitGet(jsProps),
+      [||],
+    )
+  );

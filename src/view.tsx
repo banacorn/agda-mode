@@ -25,8 +25,8 @@ import * as TC from './type/agda/typeChecking';
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
-var { errorToHeader } = require('./view/component/Panel/Agda/TypeChecking/Error.bs');
-var { parseError } = require('./view/component/Panel/Agda/TypeChecking/Decoder.bs');
+var { errorToHeader } = require('./view/component/Reason/Error.bs');
+var { parseError } = require('./view/component/Reason/Decoder.bs');
 
 
 class EditorViewManager {

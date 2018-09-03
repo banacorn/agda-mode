@@ -4,7 +4,7 @@ import { EventEmitter } from 'events';
 import { EmacsAgdaError } from '../../../../parser/emacs';
 
 import Expr from './Expr';
-var Range = require('./../Agda/Syntax/Position.bs').jsComponent;
+var Range = require('./../../Reason/Range.bs').jsComponent;
 
 import Suggestion from './Suggestion';
 

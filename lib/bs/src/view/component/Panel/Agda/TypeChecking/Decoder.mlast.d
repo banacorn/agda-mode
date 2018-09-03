@@ -1,1 +1,0 @@
-src/view/component/Panel/Agda/TypeChecking/Decoder-AgdaMode.cmj : src/view/component/Panel/Body/Type-AgdaMode.cmj

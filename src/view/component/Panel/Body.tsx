@@ -7,11 +7,9 @@ import V from '../../../view';
 import { updateMaxBodyHeight, EVENT } from '../../actions';
 import Expr from './Body/Expr';
 import EmacsError from './Body/EmacsError';
-// import Error from './Agda/TypeChecking/Error';
 import Solution from './Body/Solution';
 
-var Range = require('./Agda/Syntax/Position.bs').jsComponent;
-var Error = require('./Agda/TypeChecking/Error.bs').jsComponent;
+var Error = require('./../Reason/Error.bs').jsComponent;
 
 
 type OwnProps = React.HTMLProps<HTMLElement>
@@ -81,7 +79,10 @@ class Body extends React.Component<Props, {}> {
                 {solutions.message &&
                     <Solution solutions={solutions} />
                 }
-                {error && <Error error={error} emacsMessage={emacsMessage} />}
+                {error &&
+                    <V.EventContext.Consumer>{emitter => (
+                        <Error error={error} emacsMessage={emacsMessage} emit={emitter.emit} />
+                    )}</V.EventContext.Consumer>}
                 {emacsError && <EmacsError>{emacsError}</EmacsError>}
                 {plainText && <p>{plainText}</p>}
             </section>
@@ -139,9 +140,9 @@ const meta = (item: View.Meta, i: number): JSX.Element =>
         <div className="item-colon"><span> : </span></div>
         <div className="item-body">
             <Expr>{item.type}</Expr>
-            <Range abbr range={item.range} />
         </div>
     </li>
+    // <Range abbr range={item.range} />
 const sort = (item: View.Sort, i: number): JSX.Element =>
     <li className="list-item body-item" key={i}>
         <div className="item-heading">
@@ -149,10 +150,10 @@ const sort = (item: View.Sort, i: number): JSX.Element =>
             <span className="text-warning">{item.index}</span>
         </div>
         <div className="item-body">
-            <Range abbr range={item.range} />
         </div>
     </li>
 
+    // <Range abbr range={item.range} />
 export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
     mapDispatchToProps

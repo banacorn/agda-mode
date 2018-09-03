@@ -11,10 +11,6 @@ S /Users/banacorn/github/agda-mode/node_modules/reason-react/lib/ocaml
 B /Users/banacorn/github/agda-mode/node_modules/reason-react/lib/ocaml
 S /Users/banacorn/github/agda-mode/node_modules/@glennsl/bs-json/lib/ocaml
 B /Users/banacorn/github/agda-mode/node_modules/@glennsl/bs-json/lib/ocaml
-S src/view/component/Panel/Agda/Syntax
-B lib/bs/src/view/component/Panel/Agda/Syntax
-S src/view/component/Panel/Agda/TypeChecking
-B lib/bs/src/view/component/Panel/Agda/TypeChecking
-S src/view/component/Panel/Body
-B lib/bs/src/view/component/Panel/Body
+S src/view/component/Reason
+B lib/bs/src/view/component/Reason
 ####BSB GENERATED: NO EDIT}
