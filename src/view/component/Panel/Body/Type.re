@@ -220,7 +220,13 @@ module Agda = {
       | CmpLeq
       | CmpEq;
     type typeError =
-      | UnequalTerms(comparison, string)
+      | UnequalTerms(
+          comparison,
+          Syntax.Internal.term,
+          Syntax.Internal.term,
+          Syntax.Internal.type_,
+          string,
+        )
       | UnregisteredTypeError(Js.Json.t);
     type error =
       | TypeError(Syntax.Position.range, typeError)

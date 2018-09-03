@@ -72,7 +72,7 @@ module Decode = {
         |> andThen((kind, _json) =>
              switch (kind) {
              | "Quantity0" => Quantity0
-             | "Quantity�\137" => QuantityOmega
+             | "QuantityOmega" => QuantityOmega
              | _ => failwith("unknown kind of Quantity")
              }
            );
@@ -98,7 +98,8 @@ module Decode = {
              switch (kind) {
              | "Hidden" => Hidden
              | "NotHidden" => NotHidden
-             | "Instance" => Instance(json |> overlappable)
+             | "Instance" =>
+               Instance(json |> field("overlappable", overlappable))
              | _ => failwith("unknown kind of Hiding")
              }
            );
@@ -277,8 +278,16 @@ module Decode = {
         field("kind", string)
         |> andThen((kind, json) =>
              switch (kind) {
-             | "Abs" => Abs(json |> string, json |> decoder)
-             | "NoAbs" => NoAbs(json |> string, json |> decoder)
+             | "Abs" =>
+               Abs(
+                 json |> field("name", string),
+                 json |> field("value", decoder),
+               )
+             | "NoAbs" =>
+               NoAbs(
+                 json |> field("name", string),
+                 json |> field("value", decoder),
+               )
              | _ => failwith("unknown kind of Abs")
              }
            );
@@ -286,11 +295,19 @@ module Decode = {
         field("kind", string)
         |> andThen((kind, json) =>
              switch (kind) {
-             | "Apply" => Apply(json |> CommonPrim.arg(decoder))
+             | "Apply" =>
+               Apply(json |> field("arg", CommonPrim.arg(decoder)))
              | "Proj" =>
-               Proj(json |> Common.projOrigin, json |> Abstract.qName)
+               Proj(
+                 json |> field("projOrigin", Common.projOrigin),
+                 json |> field("name", Abstract.qName),
+               )
              | "IApply" =>
-               IApply(json |> decoder, json |> decoder, json |> decoder)
+               IApply(
+                 json |> field("endpoint1", decoder),
+                 json |> field("endpoint2", decoder),
+                 json |> field("endpoint3", decoder),
+               )
              | _ => failwith("unknown kind of Elim")
              }
            );
@@ -434,6 +451,9 @@ module Decode = {
            | "UnequalTerms" =>
              UnequalTerms(
                json |> field("comparison", comparison),
+               json |> field("term1", Syntax.Internal.term()),
+               json |> field("term2", Syntax.Internal.term()),
+               json |> field("type", Syntax.Internal.type_),
                json |> field("reason", string),
              )
            | _ => UnregisteredTypeError(json)
@@ -472,8 +492,8 @@ module Decode = {
 
 /* Type.Agda.TypeChecking.error */
 let parseError = (json: Js.Json.t) => {
-  let error = json |> Decode.TypeChecking.error;
   Js.log(json);
+  let error = json |> Decode.TypeChecking.error;
   Js.log(error);
   ();
 };
