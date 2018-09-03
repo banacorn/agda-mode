@@ -7,10 +7,11 @@ import V from '../../../view';
 import { updateMaxBodyHeight, EVENT } from '../../actions';
 import Expr from './Body/Expr';
 import EmacsError from './Body/EmacsError';
-import Error from './Agda/TypeChecking/Error';
+// import Error from './Agda/TypeChecking/Error';
 import Solution from './Body/Solution';
 
 var Range = require('./Agda/Syntax/Position.bs').jsComponent;
+var Error = require('./Agda/TypeChecking/Error.bs').jsComponent;
 
 
 type OwnProps = React.HTMLProps<HTMLElement>
@@ -80,7 +81,7 @@ class Body extends React.Component<Props, {}> {
                 {solutions.message &&
                     <Solution solutions={solutions} />
                 }
-                {error && <Error error={error} emacsMessage={emacsMessage}/>}
+                {error && <Error error={error} emacsMessage={emacsMessage} />}
                 {emacsError && <EmacsError>{emacsError}</EmacsError>}
                 {plainText && <p>{plainText}</p>}
             </section>

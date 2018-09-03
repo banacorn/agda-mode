@@ -1,1 +1,1 @@
-src/view/component/Panel/Agda/TypeChecking/Error-AgdaMode.cmj : src/view/component/Panel/Body/Type-AgdaMode.cmj
+src/view/component/Panel/Agda/TypeChecking/Error-AgdaMode.cmj : src/view/component/Panel/Agda/TypeChecking/Decoder-AgdaMode.cmj src/view/component/Panel/Body/Type-AgdaMode.cmj

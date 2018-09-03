@@ -25,6 +25,10 @@ import * as TC from './type/agda/typeChecking';
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
+var { errorToHeader } = require('./view/component/Panel/Agda/TypeChecking/Error.bs');
+var { parseError } = require('./view/component/Panel/Agda/TypeChecking/Decoder.bs');
+
+
 class EditorViewManager {
     main: Atom.TextEditor;
     general: MiniEditor;
@@ -334,14 +338,13 @@ export default class View {
     }
 
     // for JSON
-    setAgdaError(error: TC.Error, emacsMsg: string) {
-
+    setAgdaError(tsError: TC.Error, emacsMsg: string) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
-        this.store.dispatch(Action.updateError([error, emacsMsg]));
+        this.store.dispatch(Action.updateError([tsError, emacsMsg]));
         this.store.dispatch(Action.HEADER.update({
             style: V.Style.Error,
-            text: errorToHeader(error),
+            text: errorToHeader(parseError(tsError)),
         }));
     }
 
@@ -431,25 +434,5 @@ export default class View {
                 break;
         }
         return Promise.resolve({});
-    }
-}
-
-
-function errorToHeader(error: TC.Error): string {
-    switch (error.kind) {
-        case 'TypeError' :      return  `Type Error: ${typeErrorToHeader(error.typeError)}`;
-        case 'Exception' :      return  'Exception';
-        case 'IOException' :    return  'IO Exception';
-        case 'PatternError' :   return 'Pattern Error';
-    }
-
-}
-
-function typeErrorToHeader(error: TC.TypeError): string {
-    switch (error.kind) {
-        default:
-	       return error.kind
-            .replace(/([a-z\d])([A-Z])/g, '$1 $2')
-            .replace(/([A-Z]+)([A-Z][a-z\d]+)/g, '$1 $2');
     }
 }

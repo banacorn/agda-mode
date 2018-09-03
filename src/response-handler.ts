@@ -9,7 +9,6 @@ import * as Emacs from './parser/emacs';
 import * as Err from './error';
 
 // import { parseError } from './view/component/Panel/Agda/Syntax/TypeChecking/Error.bs';
-var { parseError } = require('./view/component/Panel/Agda/TypeChecking/Error.bs');
 
 
 // classify responses into async and sync ones
@@ -238,8 +237,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.setJudgements(title, parsed);
             break;
         case 'Error':
-            parseError(info.error)
-            // core.view.setAgdaError(info.error, info.emacsMessage);
+            core.view.setAgdaError(info.error, info.emacsMessage);
             break;
         case 'Auto':
             let solutions = Emacs.parseSolutions(info.payload.split('\n'));
