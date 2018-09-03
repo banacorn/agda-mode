@@ -8,8 +8,8 @@ import * as J from './parser/json';
 import * as Emacs from './parser/emacs';
 import * as Err from './error';
 
+import { Range } from 'atom';
 // import { parseError } from './view/component/Panel/Agda/Syntax/TypeChecking/Error.bs';
-
 
 // classify responses into async and sync ones
 // don't deal everything with promises
@@ -188,7 +188,11 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             if (core.commander.currentCommand.kind === "GotoDefinition") {
                 const result = Emacs.parseWhyInScope(response.payload);
                 if (result) {
-                    core.editor.jumpToRange(result.range);
+                    const range = new Range(
+                        [result.range.intervals[0].start[0], result.range.intervals[0].start[1]],
+                        [result.range.intervals[0].end[0], result.range.intervals[0].end[1]]
+                    );
+                    core.editor.jumpToRange(range, result.range.source);
                 } else {
                     core.view.set('Go to Definition', 'not in scope', View.Style.Info);
                 }
@@ -247,7 +251,11 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             if (core.commander.currentCommand.kind === "GotoDefinition") {
                 const result = Emacs.parseWhyInScope(info.payload);
                 if (result) {
-                    core.editor.jumpToRange(result.range);
+                    const range = new Range(
+                        [result.range.intervals[0].start[0], result.range.intervals[0].start[1]],
+                        [result.range.intervals[0].end[0], result.range.intervals[0].end[1]]
+                    );
+                    core.editor.jumpToRange(range, result.range.source);
                 } else {
                     core.view.set('Go to Definition', 'not in scope', View.Style.Info);
                 }

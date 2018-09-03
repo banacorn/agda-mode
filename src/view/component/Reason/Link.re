@@ -4,6 +4,13 @@ let component = ReasonReact.statelessComponent("Link");
 
 let noRange: Type.Agda.Syntax.Position.range = NoRange;
 
+let tempEventToString = (event: Type.event) : string =>
+  switch (event) {
+  | Type.JumpToRange => "EVENT.JUMP_TO_RANGE"
+  | Type.MouseOver => "EVENT.MOUSE_OVER"
+  | Type.MouseOut => "EVENT.MOUSE_OUT"
+  };
+
 let make = (~range=noRange, ~jump=false, ~hover=false, ~emit, children) => {
   ...component,
   render: _self =>
@@ -12,19 +19,19 @@ let make = (~range=noRange, ~jump=false, ~hover=false, ~emit, children) => {
       onClick=(
         (_) =>
           if (jump) {
-            emit(Type.JumpToRange, range);
+            emit(tempEventToString(Type.JumpToRange), range);
           }
       )
       onMouseOver=(
         (_) =>
           if (hover) {
-            emit(Type.MouseOver, range);
+            emit(tempEventToString(Type.MouseOver), range);
           }
       )
       onMouseOut=(
         (_) =>
           if (hover) {
-            emit(Type.MouseOut, range);
+            emit(tempEventToString(Type.MouseOut), range);
           }
       )>
       ...children

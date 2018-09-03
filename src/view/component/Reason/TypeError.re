@@ -6,9 +6,16 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
   ...component,
   render: _self =>
     switch (typeError) {
-    | UnequalTerms(_, _, _, _, _) =>
-      <p> (ReasonReact.string("UnequalTerms!")) </p>
+    | UnequalTerms(_, term1, term2, _, _) =>
+      <div>
+        (ReasonReact.string("expected : "))
+        <Term value=term2 />
+        <br />
+        (ReasonReact.string("  actual : "))
+        <Term value=term1 />
+        <br />
+      </div>
     | UnregisteredTypeError(json) =>
-      <p> (ReasonReact.string(Js.Json.stringify(json))) </p>
+      <div> (ReasonReact.string(Js.Json.stringify(json))) </div>
     },
 };

@@ -54,17 +54,42 @@ let make = (~range, ~emit, ~abbr=false, _children) => {
     },
 };
 
-/* let rangeToAtomRanges = range => map((),range)
-   static toAtomRanges(range: Syntax.Position.Range): Atom.Range[] {
-       return range.intervals.map(({ start, end }) => new Atom.Range(
-           new Atom.Point(start[0] - 1, start[1] - 1),
-           new Atom.Point(end[0] - 1, end[1] - 1),
-       ));
-   } */
+type point;
+
+type range;
+
+[@bs.module "atom"] [@bs.new]
+external createPoint : (int, int) => point = "Point";
+
+[@bs.module "atom"] [@bs.new]
+external createRange : (point, point) => point = "Range";
+
+let toAtomRange = range =>
+  switch (range) {
+  | Range(_, []) => %bs.raw
+                     {| null |}
+  | Range(_, xs) =>
+    let start = List.hd(xs).start;
+    let end_ = List.nth(xs, List.length(xs) - 1).end_;
+    createRange(
+      createPoint(start.line, start.col),
+      createPoint(end_.line, end_.col),
+    );
+  | _ => %bs.raw
+         {| null |}
+  };
+
+let toAtomFilepath = range =>
+  switch (range) {
+  | Range(Some(filepath), _) => filepath
+  | _ => %bs.raw
+         {| null |}
+  };
+
 [@bs.deriving abstract]
 type jsProps = {
   range: Type.Agda.Syntax.Position.range,
-  emit: (Type.event, Type.Agda.Syntax.Position.range) => unit,
+  emit: (string, Type.Agda.Syntax.Position.range) => unit,
 };
 
 let jsComponent =

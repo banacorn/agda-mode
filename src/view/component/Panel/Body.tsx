@@ -10,6 +10,7 @@ import EmacsError from './Body/EmacsError';
 import Solution from './Body/Solution';
 
 var Error = require('./../Reason/Error.bs').jsComponent;
+var { toAtomRange, toAtomFilepath } = require('./../Reason/Range.bs');
 
 
 type OwnProps = React.HTMLProps<HTMLElement>
@@ -81,7 +82,19 @@ class Body extends React.Component<Props, {}> {
                 }
                 {error &&
                     <V.EventContext.Consumer>{emitter => (
-                        <Error error={error} emacsMessage={emacsMessage} emit={emitter.emit} />
+                        <Error error={error} emacsMessage={emacsMessage} emit={(ev, range) => {
+                            switch (ev) {
+                                case EVENT.JUMP_TO_RANGE:
+                                    emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                                case EVENT.MOUSE_OUT:
+                                    emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                                case EVENT.MOUSE_OVER:
+                                    emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                            }
+                        }} />
                     )}</V.EventContext.Consumer>}
                 {emacsError && <EmacsError>{emacsError}</EmacsError>}
                 {plainText && <p>{plainText}</p>}

@@ -49,7 +49,7 @@ let make = (~error: Js.Json.t, ~emacsMessage: string, ~emit, _children) => {
 type jsProps = {
   error: Js.Json.t,
   emacsMessage: string,
-  emit: (Type.event, Type.Agda.Syntax.Position.range) => unit,
+  emit: (string, Type.Agda.Syntax.Position.range) => unit,
 };
 
 let jsComponent =
