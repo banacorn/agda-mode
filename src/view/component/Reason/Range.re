@@ -1,6 +1,6 @@
 let component = ReasonReact.statelessComponent("Range");
 
-open Type.Agda.Syntax.Position;
+open Type.Syntax.Position;
 
 let intervalToString = interval : string =>
   if (interval.start.line === interval.end_.line) {
@@ -72,8 +72,8 @@ let toAtomRange = range =>
     let start = List.hd(xs).start;
     let end_ = List.nth(xs, List.length(xs) - 1).end_;
     createRange(
-      createPoint(start.line, start.col),
-      createPoint(end_.line, end_.col),
+      createPoint(start.line - 1, start.col - 1),
+      createPoint(end_.line - 1, end_.col - 1),
     );
   | _ => %bs.raw
          {| null |}
@@ -88,8 +88,8 @@ let toAtomFilepath = range =>
 
 [@bs.deriving abstract]
 type jsProps = {
-  range: Type.Agda.Syntax.Position.range,
-  emit: (string, Type.Agda.Syntax.Position.range) => unit,
+  range: Type.Syntax.Position.range,
+  emit: (string, Type.Syntax.Position.range) => unit,
 };
 
 let jsComponent =

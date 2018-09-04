@@ -1,0 +1,1 @@
+src/view/component/Reason/Syntax-AgdaMode.cmj :

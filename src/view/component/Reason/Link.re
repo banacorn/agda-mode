@@ -2,13 +2,15 @@ let answer: int = 43;
 
 let component = ReasonReact.statelessComponent("Link");
 
-let noRange: Type.Agda.Syntax.Position.range = NoRange;
+let noRange: Type.Syntax.Position.range = NoRange;
 
-let tempEventToString = (event: Type.event) : string =>
+open Type.AgdaMode;
+
+let tempEventToString = (event: event) : string =>
   switch (event) {
-  | Type.JumpToRange => "EVENT.JUMP_TO_RANGE"
-  | Type.MouseOver => "EVENT.MOUSE_OVER"
-  | Type.MouseOut => "EVENT.MOUSE_OUT"
+  | JumpToRange => "EVENT.JUMP_TO_RANGE"
+  | MouseOver => "EVENT.MOUSE_OVER"
+  | MouseOut => "EVENT.MOUSE_OUT"
   };
 
 let make = (~range=noRange, ~jump=false, ~hover=false, ~emit, children) => {
@@ -19,19 +21,19 @@ let make = (~range=noRange, ~jump=false, ~hover=false, ~emit, children) => {
       onClick=(
         (_) =>
           if (jump) {
-            emit(tempEventToString(Type.JumpToRange), range);
+            emit(tempEventToString(JumpToRange), range);
           }
       )
       onMouseOver=(
         (_) =>
           if (hover) {
-            emit(tempEventToString(Type.MouseOver), range);
+            emit(tempEventToString(MouseOver), range);
           }
       )
       onMouseOut=(
         (_) =>
           if (hover) {
-            emit(tempEventToString(Type.MouseOut), range);
+            emit(tempEventToString(MouseOut), range);
           }
       )>
       ...children

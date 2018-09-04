@@ -4,7 +4,7 @@ module Decode = {
   open Json.Decode;
   module Syntax = {
     module Position = {
-      open Type.Agda.Syntax.Position;
+      open Type.Syntax.Position;
       let position =
         array(int)
         |> andThen((tup, _) => {pos: tup[2], line: tup[0], col: tup[1]});
@@ -23,7 +23,7 @@ module Decode = {
         |> withDefault(NoRange);
     };
     module Concrete = {
-      open Type.Agda.Syntax.Concrete;
+      open Type.Syntax.C;
       let nameId = json =>
         NameId(json |> field("name", int), json |> field("module", int));
       let namePart = withDefault(Hole, json => Id(json |> string));
@@ -47,7 +47,7 @@ module Decode = {
       let qName = json => json |> list(name);
     };
     module CommonPrim = {
-      open Type.Agda.Syntax.CommonPrim;
+      open Type.Syntax.CommonPrim;
       let overlappable =
         string
         |> andThen((kind, _json) =>
@@ -126,7 +126,7 @@ module Decode = {
       let namedArg = decoder => arg(named(ranged(string), decoder));
     };
     module Notation = {
-      open Type.Agda.Syntax.Notation;
+      open Type.Syntax.Notation;
       let genPart =
         field("kind", string)
         |> andThen((kind, json) =>
@@ -144,7 +144,7 @@ module Decode = {
       let notation = list(genPart);
     };
     module Fixity = {
-      open Type.Agda.Syntax.Fixity;
+      open Type.Syntax.Fixity;
       let precedenceLevel =
         withDefault(Unrelated, json => Related(json |> int));
       let associativity =
@@ -169,7 +169,7 @@ module Decode = {
       };
     };
     module Abstract = {
-      open Type.Agda.Syntax.Abstract;
+      open Type.Syntax.A;
       let rec moduleName = json => MName(json |> list(name))
       and name = json => {
         nameId: json |> field("id", Concrete.nameId),
@@ -183,7 +183,7 @@ module Decode = {
       };
     };
     module Literal = {
-      open Type.Agda.Syntax.Literal;
+      open Type.Syntax.Literal;
       let literal =
         field("kind", string)
         |> andThen((kind, json) =>
@@ -229,7 +229,8 @@ module Decode = {
            );
     };
     module Common = {
-      open Type.Agda.Syntax.Common;
+      open Type.Syntax.CommonPrim;
+      open Type.Syntax.Common;
       let conOrigin =
         string
         |> andThen((kind, _json) =>
@@ -267,7 +268,7 @@ module Decode = {
       };
     };
     module Internal = {
-      open Type.Agda.Syntax.Internal;
+      open Type.Syntax.Internal;
       let conHead = json => {
         name: json |> Abstract.qName,
         inductive: json |> Common.induction,
@@ -435,7 +436,7 @@ module Decode = {
     };
   };
   module TypeChecking = {
-    open Type.Agda.TypeChecking;
+    open Type.TypeChecking;
     let comparison =
       string
       |> andThen((kind, _json) =>

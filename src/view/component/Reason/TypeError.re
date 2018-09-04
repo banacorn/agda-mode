@@ -1,10 +1,11 @@
 let component = ReasonReact.statelessComponent("TypeError");
 
-open! Type.Agda.TypeChecking;
+open! Type.TypeChecking;
 
 let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
   ...component,
-  render: _self =>
+  render: _self => {
+    Js.log(typeError);
     switch (typeError) {
     | UnequalTerms(_, term1, term2, _, _) =>
       <div>
@@ -17,5 +18,6 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
       </div>
     | UnregisteredTypeError(json) =>
       <div> (ReasonReact.string(Js.Json.stringify(json))) </div>
-    },
+    };
+  },
 };

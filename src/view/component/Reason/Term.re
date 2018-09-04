@@ -1,6 +1,6 @@
 let component = ReasonReact.statelessComponent("Term");
 
-open! Type.Agda.Syntax;
+open! Type.Syntax;
 
 let make = (~value: Internal.term, _children) => {
   ...component,

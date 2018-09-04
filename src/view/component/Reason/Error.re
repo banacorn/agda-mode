@@ -1,5 +1,5 @@
 let typeErrorToHeader = error =>
-  Type.Agda.TypeChecking.(
+  Type.TypeChecking.(
     switch (error) {
     | UnequalTerms(_, _, _, _, _) => "Unequal Terms"
     | UnregisteredTypeError(_) => "UnregisteredTypeError"
@@ -7,7 +7,7 @@ let typeErrorToHeader = error =>
   );
 
 let errorToHeader = error =>
-  Type.Agda.TypeChecking.(
+  Type.TypeChecking.(
     switch (error) {
     | TypeError(_, typeError) =>
       "Type Error: " ++ typeErrorToHeader(typeError)
@@ -49,7 +49,7 @@ let make = (~error: Js.Json.t, ~emacsMessage: string, ~emit, _children) => {
 type jsProps = {
   error: Js.Json.t,
   emacsMessage: string,
-  emit: (string, Type.Agda.Syntax.Position.range) => unit,
+  emit: (string, Type.Syntax.Position.range) => unit,
 };
 
 let jsComponent =
