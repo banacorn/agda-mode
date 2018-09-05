@@ -215,17 +215,18 @@ module Syntax = {
     type openShortHand =
       | DoOpen
       | DontOpen;
-    type typedBinding_('a) =
-      | TBind(Position.range, list(CommonPrim.withHiding(C.boundName)), 'a)
+    type typedBinding =
+      | TBind(
+          Position.range,
+          list(CommonPrim.withHiding(C.boundName)),
+          expr,
+        )
       | TLet(Position.range, list(declaration))
-    and typedBinding = typedBinding_(expr)
-    and typedBindings_('a) =
-      | TypedBindings(Position.range, CommonPrim.arg('a))
-    and typedBindings = typedBindings_(typedBinding)
-    and lamBinding_('a) =
+    and typedBindings =
+      | TypedBindings(Position.range, CommonPrim.arg(typedBinding))
+    and lamBinding =
       | DomainFree(CommonPrim.argInfo, C.boundName)
-      | DomainFull('a)
-    and lamBinding = lamBinding_(typedBindings)
+      | DomainFull(typedBindings)
     and expr =
       | Ident(C.qName)
       | Lit(Literal.literal)
@@ -244,7 +245,7 @@ module Syntax = {
       | WithApp(Position.range, expr, list(expr))
       | HiddenArg(Position.range, CommonPrim.named_(expr))
       | InstanceArg(Position.range, CommonPrim.named_(expr))
-      | LamRange(Position.range, list(lamBinding), expr)
+      | Lam(Position.range, list(lamBinding), expr)
       | AbsurdLam(Position.range, CommonPrim.hiding)
       | ExtendedLam(Position.range, list(lamBinding))
       | Fun(Position.range, CommonPrim.arg(expr), expr)
@@ -254,7 +255,7 @@ module Syntax = {
       | SetN(Position.range, int)
       | PropN(Position.range, int)
       | Rec(Position.range, list(recordAssignment))
-      | RecUpdate(Position.range, expr, list(fieldAssignment))
+      | RecUpdate(Position.range, expr, list(fieldAssignmentExpr))
       | Let(Position.range, list(declaration), option(expr))
       | Paren(Position.range, expr)
       | IdiomBrackets(Position.range, expr)
@@ -278,17 +279,17 @@ module Syntax = {
       rewriteEqn: list(expr),
       withExpr: list(expr),
     }
-    and fieldAssignment_('a) = {
+    and fieldAssignment('a) = {
       name: C.name,
       value: 'a,
     }
-    and fieldAssignment = fieldAssignment_(expr)
+    and fieldAssignmentExpr = fieldAssignment(expr)
     and moduleAssignment = {
       name: C.qName,
       exprs: list(expr),
       importDirective,
     }
-    and recordAssignment = either(fieldAssignment, moduleAssignment)
+    and recordAssignment = either(fieldAssignmentExpr, moduleAssignment)
     and whereClause_('a) =
       | NoWhere
       | AnyWhere('a)
@@ -313,7 +314,7 @@ module Syntax = {
       | AsP(Position.range, C.name, pattern)
       | DotP(Position.range, expr)
       | LitP(Literal.literal)
-      | RecP(Position.range, list(fieldAssignment_(pattern)))
+      | RecP(Position.range, list(fieldAssignment(pattern)))
       | EqualP(Position.range, list((expr, expr)))
       | EllipsisP(Position.range)
       | WithP(Position.range, pattern)
@@ -518,18 +519,17 @@ module Syntax = {
   };
 };
 
+type reify = {
+  concrete: Syntax.Concrete.expr,
+  original: Syntax.Internal.term,
+};
+
 module TypeChecking = {
   type comparison =
     | CmpLeq
     | CmpEq;
   type typeError =
-    | UnequalTerms(
-        comparison,
-        Syntax.Internal.term,
-        Syntax.Internal.term,
-        Syntax.Internal.type_,
-        string,
-      )
+    | UnequalTerms(comparison, reify, reify, Syntax.Internal.type_, string)
     | UnregisteredTypeError(Js.Json.t);
   type error =
     | TypeError(Syntax.Position.range, typeError)

@@ -1,1 +1,0 @@
-src/view/component/Reason/Type/TypeChecking-AgdaMode.cmj :
