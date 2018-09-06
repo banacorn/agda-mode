@@ -4,17 +4,6 @@ open Type;
 
 open Syntax.CommonPrim;
 
-module type Pretty = {type t; let make: (t, int) => reactElement;};
-
-/* module type PrettyType = {type t; let make: t => reactElement;};
-
-   module PrettyClass = (Instance: PrettyType) => {
-     let component = statelessComponent("Test");
-     let make = (~value, children) => {
-       ...component,
-       render: _self => Instance.make(value),
-     };
-   }; */
 let id = children => array(children);
 
 /* let braces = children => <span>  ...children  </span>; */
@@ -53,25 +42,13 @@ module Named = {
   let map = (f, named) => {...named, value: f(named.value)};
   let unnamed = value => Named(None, value);
   let named = (name, value) => Named(Some(name), value);
-  let make = (Named(name, value), prec, children) =>
-    switch (name) {
-    | None => children(value, prec)
-    | Some(Ranged(_, s)) =>
-      parensIf(prec > 0, [|string(s ++ "="), children(value, 0)|])
-    };
-  /* let component = statelessComponent("Named");
-     let make = (~value, ~prec=0, children) => {
-       ...component,
-       render: _self =>
-         switch (value.name) {
-         | None => children(value.value, ~prec)
-         | Some(s) =>
-           parensIf(
-             prec > 0,
-             [|string(s.value ++ "="), children(value.value, ~prec=0)|],
-           )
-         },
-     }; */
+  let render: render(named('a), 'a) =
+    (children, Prec(prec, Named(name, value))) =>
+      switch (name) {
+      | None => children(Prec(prec, value))
+      | Some(Ranged(_, s)) =>
+        parensIf(prec > 0, [|string(s ++ "="), children(Prec(0, value))|])
+      };
 };
 
 module ArgInfo = {
@@ -93,39 +70,12 @@ module Arg = {
   let map = (f, arged) => {...arged, value: f(arged.value)};
   let setArgInfoHiding = (hiding: hiding, Arg(argInfo, value): arg('a)) =>
     Arg({...argInfo, hiding}, value);
-  let make = (Arg(argInfo, value), prec, children) => {
-    let p = ArgInfo.isVisible(argInfo) ? prec : 0;
-    let localParens = argInfo.origin == Substitution ? parens : id;
-    <Hiding value=argInfo.hiding parens=localParens>
-      (children(value, p))
-    </Hiding>;
-  };
+  let render: render(arg('b), 'b) =
+    (children, Prec(prec, Arg(argInfo, value))) => {
+      let p = ArgInfo.isVisible(argInfo) ? prec : 0;
+      let localParens = argInfo.origin == Substitution ? parens : id;
+      <Hiding value=argInfo.hiding parens=localParens>
+        (children(Prec(p, value)))
+      </Hiding>;
+    };
 };
-/*
- module type PrettyType = {type t; let print: t => string;};
-
- module Make = (Fst: PrettyType, Snd: PrettyType) => {
-   type t = (Fst.t, Snd.t);
-   let make = (f: Fst.t, s: Snd.t) => (f, s);
-   let print = ((f, s): t) =>
-     "(" ++ Fst.print(f) ++ ", " ++ Snd.print(s) ++ ")";
- };
-
- module PrettyString = {
-   type t = string;
-   let print = (s: t) => s;
- };
-
- module PrettyInt = {
-   type t = int;
-   let print = (i: t) => string_of_int(i);
- };
-
- module PrettySI = Make(PrettyString, PrettyInt);
-
- let () = {
-   open PrettySI;
-   let pair = make("Jane", 53);
-   let str = print(pair);
-   print_string(str);
- }; */

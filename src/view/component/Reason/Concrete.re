@@ -90,10 +90,11 @@ module Expr = {
           element(make(~value=e1, [||])),
           ...List.map(
                arg =>
-                 Arg.make(arg, 0, (named, prec) =>
-                   Named.make(named, prec, (expr, prec) =>
+                 Arg.render(
+                   Named.render((Prec(prec, expr)) =>
                      element(make(~value=expr, ~prec, [||]))
-                   )
+                   ),
+                   Prec(0, arg),
                  ),
                args,
              ),

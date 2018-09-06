@@ -542,3 +542,10 @@ module TypeChecking = {
 type underscore('t) = 't => bool;
 
 type pretty('t) = 't => string;
+
+type prec('a) =
+  | Prec(int, 'a);
+
+type render('a, 'b) =
+  (prec('b) => ReasonReact.reactElement, prec('a)) =>
+  ReasonReact.reactElement;
