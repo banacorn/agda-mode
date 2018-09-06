@@ -255,18 +255,21 @@ module Decode = {
         origin: json |> field("origin", origin),
         freeVariables: json |> field("freeVars", freeVariables),
       };
-      let arg = (decoder, json) => {
-        argInfo: json |> field("argInfo", argInfo),
-        value: json |> field("value", decoder),
-      };
-      let ranged = (decoder, json) => {
-        range: json |> field("range", Position.range),
-        value: json |> field("value", decoder),
-      };
-      let named = (nameDecoder, valueDecoder, json) => {
-        name: json |> field("name", optional(nameDecoder)),
-        value: json |> field("value", valueDecoder),
-      };
+      let arg = (decoder, json) =>
+        Arg(
+          json |> field("argInfo", argInfo),
+          json |> field("value", decoder),
+        );
+      let ranged = (decoder, json) =>
+        Ranged(
+          json |> field("range", Position.range),
+          json |> field("value", decoder),
+        );
+      let named = (nameDecoder, valueDecoder, json) =>
+        Named(
+          json |> field("name", optional(nameDecoder)),
+          json |> field("value", valueDecoder),
+        );
       let named_ = decoder => named(ranged(string), decoder);
       let namedArg = decoder => arg(named_(decoder));
     };
@@ -501,7 +504,7 @@ module Decode = {
                RecUpdate(
                  json |> field("range", Position.range),
                  json |> field("expr", expr()),
-                 json |> field("assignments", list(fieldAssignmentExpr())),
+                 json |> field("assignments", list(fieldAssignmentExpr)),
                )
              | "Let" =>
                Let(
@@ -678,7 +681,7 @@ module Decode = {
                Module(
                  json |> field("range", Position.range),
                  json |> field("name", C.qName),
-                 json |> field("bindings", list(typedBindings())),
+                 json |> field("bindings", list(typedBindings)),
                  json |> field("declarations", list(declaration())),
                )
              | "UnquoteDecl" =>
@@ -858,7 +861,7 @@ module Decode = {
              | "SectionApp" =>
                SectionApp(
                  json |> field("range", Position.range),
-                 json |> field("bindings", list(typedBindings())),
+                 json |> field("bindings", list(typedBindings)),
                  json |> field("expr", expr()),
                )
              | "RecordModuleIFS" =>
@@ -869,16 +872,17 @@ module Decode = {
              | _ => failwith("unknown kind of ModuleApplication")
              }
            )
-      and fieldAssignment = (decoder, json) => {
-        name: json |> field("name", C.name),
-        value: json |> field("value", decoder),
-      }
-      and fieldAssignmentExpr = () => fieldAssignment(expr())
+      and fieldAssignmentExpr: decoder(fieldAssignmentExpr) =
+        json => {
+          name: json |> field("name", C.name),
+          value: json |> field("value", expr()),
+        }
       /* Ocaml/Reason bug */
-      and fieldAssignmentPattern = ((), json) => {
-        name: json |> field("name", C.name),
-        value: json |> field("value", pattern()),
-      }
+      and fieldAssignmentPattern: decoder(fieldAssignmentPattern) =
+        json => {
+          name: json |> field("name", C.name),
+          value: json |> field("value", pattern()),
+        }
       and moduleAssignment = json => {
         name: json |> field("name", C.qName),
         exprs: json |> field("exprs", list(expr())),
@@ -886,7 +890,7 @@ module Decode = {
       }
       and recordAssignment = () =>
         either(
-          json => Type.Left(json |> field("Left", fieldAssignmentExpr())),
+          json => Type.Left(json |> field("Left", fieldAssignmentExpr)),
           json => Type.Right(json |> field("Right", moduleAssignment)),
         )
       and whereClause_ = decoder =>
@@ -941,7 +945,7 @@ module Decode = {
              | _ => failwith("unknown kind of TypedBinding_")
              }
            )
-      and typedBindings = (decoder, json) =>
+      and typedBindings = json =>
         TypedBindings(
           json |> field("range", Position.range),
           json |> field("arg", CommonPrim.arg(typedBinding())),
@@ -956,11 +960,11 @@ module Decode = {
                  json |> field("name", boundName),
                )
              | "DomainFull" =>
-               DomainFull(json |> field("value", typedBindings()))
+               DomainFull(json |> field("value", typedBindings))
              | _ => failwith("unknown kind of LamBinding_")
              }
            )
-      and telescope = () => list(typedBindings())
+      and telescope = () => list(typedBindings)
       and pattern: unit => decoder(pattern) =
         () =>
           field("kind", string)
@@ -1018,8 +1022,7 @@ module Decode = {
                | "RecP" =>
                  RecP(
                    json |> field("range", Position.range),
-                   json
-                   |> field("assignments", list(fieldAssignmentPattern())),
+                   json |> field("assignments", list(fieldAssignmentPattern)),
                  )
                | "EqualP" =>
                  EqualP(
@@ -1295,6 +1298,10 @@ module Decode = {
            | _ => CmpEq
            }
          );
+    let termRep = json => {
+      concrete: json |> field("concrete", Syntax.Concrete.expr()),
+      internal: json |> field("internal", Syntax.Internal.term()),
+    };
     let typeError =
       field("kind", string)
       |> andThen((kind, json) =>
@@ -1302,18 +1309,8 @@ module Decode = {
            | "UnequalTerms" =>
              UnequalTerms(
                json |> field("comparison", comparison),
-               {
-                 concrete:
-                   json |> at(["term1", "concrete"], Syntax.Concrete.expr()),
-                 original:
-                   json |> at(["term1", "original"], Syntax.Internal.term()),
-               },
-               {
-                 concrete:
-                   json |> at(["term2", "concrete"], Syntax.Concrete.expr()),
-                 original:
-                   json |> at(["term2", "original"], Syntax.Internal.term()),
-               },
+               json |> field("term1", termRep),
+               json |> field("term1", termRep),
                json |> field("type", Syntax.Internal.type_),
                json |> field("reason", string),
              )

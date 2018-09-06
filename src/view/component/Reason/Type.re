@@ -124,20 +124,13 @@ module Syntax = {
       origin,
       freeVariables,
     };
-    type arg('a) = {
-      argInfo,
-      value: 'a,
-    };
-    type ranged('a) = {
-      range: Position.range,
-      value: 'a,
-    };
-    type named('name, 'a) = {
-      name: option('name),
-      value: 'a,
-    };
-    type named_('a) = named(ranged(string), 'a);
-    type namedArg('a) = arg(named_('a));
+    type arg('a) =
+      | Arg(argInfo, 'a);
+    type ranged('a) =
+      | Ranged(Position.range, 'a);
+    type named('a) =
+      | Named(option(ranged(string)), 'a);
+    type namedArg('a) = arg(named('a));
   };
   module Notation = {
     type genPart =
@@ -243,8 +236,8 @@ module Syntax = {
           ),
         )
       | WithApp(Position.range, expr, list(expr))
-      | HiddenArg(Position.range, CommonPrim.named_(expr))
-      | InstanceArg(Position.range, CommonPrim.named_(expr))
+      | HiddenArg(Position.range, CommonPrim.named(expr))
+      | InstanceArg(Position.range, CommonPrim.named(expr))
       | Lam(Position.range, list(lamBinding), expr)
       | AbsurdLam(Position.range, CommonPrim.hiding)
       | ExtendedLam(Position.range, list(lamBinding))
@@ -279,11 +272,14 @@ module Syntax = {
       rewriteEqn: list(expr),
       withExpr: list(expr),
     }
-    and fieldAssignment('a) = {
+    and fieldAssignmentExpr = {
       name: C.name,
-      value: 'a,
+      value: expr,
     }
-    and fieldAssignmentExpr = fieldAssignment(expr)
+    and fieldAssignmentPattern = {
+      name: C.name,
+      value: pattern,
+    }
     and moduleAssignment = {
       name: C.qName,
       exprs: list(expr),
@@ -306,15 +302,15 @@ module Syntax = {
           array(A.name),
           list(CommonPrim.namedArg(pattern)),
         )
-      | HiddenP(Position.range, CommonPrim.named_(pattern))
-      | InstanceP(Position.range, CommonPrim.named_(pattern))
+      | HiddenP(Position.range, CommonPrim.named(pattern))
+      | InstanceP(Position.range, CommonPrim.named(pattern))
       | ParenP(Position.range, pattern)
       | WildP(Position.range)
       | AbsurdP(Position.range)
       | AsP(Position.range, C.name, pattern)
       | DotP(Position.range, expr)
       | LitP(Literal.literal)
-      | RecP(Position.range, list(fieldAssignment(pattern)))
+      | RecP(Position.range, list(fieldAssignmentPattern))
       | EqualP(Position.range, list((expr, expr)))
       | EllipsisP(Position.range)
       | WithP(Position.range, pattern)
@@ -519,17 +515,22 @@ module Syntax = {
   };
 };
 
-type reify = {
-  concrete: Syntax.Concrete.expr,
-  original: Syntax.Internal.term,
-};
-
 module TypeChecking = {
+  type termRep = {
+    concrete: Syntax.Concrete.expr,
+    internal: Syntax.Internal.term,
+  };
   type comparison =
     | CmpLeq
     | CmpEq;
   type typeError =
-    | UnequalTerms(comparison, reify, reify, Syntax.Internal.type_, string)
+    | UnequalTerms(
+        comparison,
+        termRep,
+        termRep,
+        Syntax.Internal.type_,
+        string,
+      )
     | UnregisteredTypeError(Js.Json.t);
   type error =
     | TypeError(Syntax.Position.range, typeError)
@@ -537,3 +538,7 @@ module TypeChecking = {
     | IOException(Syntax.Position.range, string)
     | PatternError(Syntax.Position.range);
 };
+
+type underscore('t) = 't => bool;
+
+type pretty('t) = 't => string;

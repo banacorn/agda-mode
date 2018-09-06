@@ -16,20 +16,15 @@ bsc_lib_includes = -I . -I src/view/component/Reason
 rule build_ast_and_module_sets_from_re
   command = ${bsc} -pp "${refmt} ${refmt_flags}" ${reason_react_jsx}  ${ppx_flags} ${warnings} ${bsc_flags} -c -o ${out} -bs-syntax-only -bs-binary-ast -impl ${in}
   description = [34mBuilding[39m [2m${out}[22m
-build src/view/component/Reason/Expr.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/view/component/Reason/Expr.re
+build src/view/component/Reason/Link.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/view/component/Reason/Link.re
 rule build_deps
   command = ${bsdep} ${namespace} -g ${bsb_dir_group} -MD ${in}
   description = [34mBuilding[39m [2m${out}[22m
-build src/view/component/Reason/Expr.mlast.d : build_deps src/view/component/Reason/Expr.mlast
+build src/view/component/Reason/Link.mlast.d : build_deps src/view/component/Reason/Link.mlast
 rule build_cmj_cmi
   command = ${bsc} ${bs_package_flags} -bs-assume-no-mli -bs-no-builtin-ppx-ml -bs-no-implicit-include ${bs_package_includes} ${bsc_lib_includes} ${bsc_extra_includes} ${warnings} ${bsc_flags} -o ${out} -c  ${in} $postbuild
   depfile = ${in}.d
   description = [34mBuilding[39m [2m${out}[22m
-build src/view/component/Reason/Expr-AgdaMode.cmj |  $src_root_dir/lib/js/src/view/component/Reason/Expr.bs.js src/view/component/Reason/Expr-AgdaMode.cmi : build_cmj_cmi src/view/component/Reason/Expr.mlast
-  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
-  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/view/component/Reason
-build src/view/component/Reason/Link.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/view/component/Reason/Link.re
-build src/view/component/Reason/Link.mlast.d : build_deps src/view/component/Reason/Link.mlast
 build src/view/component/Reason/Link-AgdaMode.cmj |  $src_root_dir/lib/js/src/view/component/Reason/Link.bs.js src/view/component/Reason/Link-AgdaMode.cmi : build_cmj_cmi src/view/component/Reason/Link.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
   bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/view/component/Reason
@@ -58,13 +53,23 @@ build src/view/component/Reason/Decoder.mlast.d : build_deps src/view/component/
 build src/view/component/Reason/Decoder-AgdaMode.cmj |  $src_root_dir/lib/js/src/view/component/Reason/Decoder.bs.js src/view/component/Reason/Decoder-AgdaMode.cmi : build_cmj_cmi src/view/component/Reason/Decoder.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
   bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/view/component/Reason
+build src/view/component/Reason/Concrete.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/view/component/Reason/Concrete.re
+build src/view/component/Reason/Concrete.mlast.d : build_deps src/view/component/Reason/Concrete.mlast
+build src/view/component/Reason/Concrete-AgdaMode.cmj |  $src_root_dir/lib/js/src/view/component/Reason/Concrete.bs.js src/view/component/Reason/Concrete-AgdaMode.cmi : build_cmj_cmi src/view/component/Reason/Concrete.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/view/component/Reason
 build src/view/component/Reason/TypeError.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/view/component/Reason/TypeError.re
 build src/view/component/Reason/TypeError.mlast.d : build_deps src/view/component/Reason/TypeError.mlast
 build src/view/component/Reason/TypeError-AgdaMode.cmj |  $src_root_dir/lib/js/src/view/component/Reason/TypeError.bs.js src/view/component/Reason/TypeError-AgdaMode.cmi : build_cmj_cmi src/view/component/Reason/TypeError.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/view/component/Reason
+build src/view/component/Reason/CommonPrim.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/view/component/Reason/CommonPrim.re
+build src/view/component/Reason/CommonPrim.mlast.d : build_deps src/view/component/Reason/CommonPrim.mlast
+build src/view/component/Reason/CommonPrim-AgdaMode.cmj |  $src_root_dir/lib/js/src/view/component/Reason/CommonPrim.bs.js src/view/component/Reason/CommonPrim-AgdaMode.cmi : build_cmj_cmi src/view/component/Reason/CommonPrim.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
   bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/view/component/Reason
 rule build_package
   command = ${bsc} -w -49 -no-alias-deps -c ${in}
   description = [34mBuilding[39m [2m${out}[22m
 build AgdaMode.cmi : build_package AgdaMode.mlmap
-build build.ninja : phony  ||  AgdaMode.cmi src/view/component/Reason/TypeError.mlast.d src/view/component/Reason/Decoder.mlast.d src/view/component/Reason/Range.mlast.d src/view/component/Reason/Error.mlast.d src/view/component/Reason/Type.mlast.d src/view/component/Reason/Term.mlast.d src/view/component/Reason/Link.mlast.d src/view/component/Reason/Expr.mlast.d
+build build.ninja : phony  ||  AgdaMode.cmi src/view/component/Reason/CommonPrim.mlast.d src/view/component/Reason/TypeError.mlast.d src/view/component/Reason/Concrete.mlast.d src/view/component/Reason/Decoder.mlast.d src/view/component/Reason/Range.mlast.d src/view/component/Reason/Error.mlast.d src/view/component/Reason/Type.mlast.d src/view/component/Reason/Term.mlast.d src/view/component/Reason/Link.mlast.d

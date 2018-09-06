@@ -1,0 +1,1 @@
+src/view/component/Reason/Concrete-AgdaMode.cmj : src/view/component/Reason/CommonPrim-AgdaMode.cmj src/view/component/Reason/Type-AgdaMode.cmj

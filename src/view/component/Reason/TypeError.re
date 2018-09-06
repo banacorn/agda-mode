@@ -10,10 +10,10 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
     | UnequalTerms(_, term1, term2, _, _) =>
       <div>
         (ReasonReact.string("expected : "))
-        <Expr value=term2.concrete />
+        <Concrete.Expr value=term2.concrete />
         <br />
         (ReasonReact.string("  actual : "))
-        <Expr value=term1.concrete />
+        <Concrete.Expr value=term1.concrete />
         <br />
       </div>
     | UnregisteredTypeError(json) =>
