@@ -42,13 +42,18 @@ module Named = {
   let map = (f, named) => {...named, value: f(named.value)};
   let unnamed = value => Named(None, value);
   let named = (name, value) => Named(Some(name), value);
-  let render: render(named('a), 'a) =
-    (children, Prec(prec, Named(name, value))) =>
+  let component = statelessComponent("Named");
+  let make = (~prec=0, ~value, ~child, _) => {
+    ...component,
+    render: _self => {
+      let Named(name, value) = value;
       switch (name) {
-      | None => children(Prec(prec, value))
+      | None => child(prec, value)
       | Some(Ranged(_, s)) =>
-        parensIf(prec > 0, [|string(s ++ "="), children(Prec(0, value))|])
+        parensIf(prec > 0, [|string(s ++ "="), child(0, value)|])
       };
+    },
+  };
 };
 
 module ArgInfo = {
@@ -70,12 +75,16 @@ module Arg = {
   let map = (f, arged) => {...arged, value: f(arged.value)};
   let setArgInfoHiding = (hiding: hiding, Arg(argInfo, value): arg('a)) =>
     Arg({...argInfo, hiding}, value);
-  let render: render(arg('b), 'b) =
-    (children, Prec(prec, Arg(argInfo, value))) => {
+  let component = statelessComponent("Arg");
+  let make = (~prec=0, ~value, ~child, _) => {
+    ...component,
+    render: _self => {
+      let Arg(argInfo, value) = value;
       let p = ArgInfo.isVisible(argInfo) ? prec : 0;
       let localParens = argInfo.origin == Substitution ? parens : id;
       <Hiding value=argInfo.hiding parens=localParens>
-        (children(Prec(p, value)))
+        (child(p, value))
       </Hiding>;
-    };
+    },
+  };
 };

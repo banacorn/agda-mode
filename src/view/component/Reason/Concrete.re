@@ -96,13 +96,21 @@ module Expr = {
         let items: list(reactElement) = [
           element(make(~value=e1, [||])),
           ...List.map(
-               arg =>
-                 Arg.render(
-                   Named.render((Prec(prec, expr)) =>
-                     element(make(~value=expr, ~prec, [||]))
-                   ),
-                   Prec(0, arg),
-                 ),
+               value =>
+                 <Arg
+                   value
+                   child=(
+                     (prec, value) =>
+                       <Named
+                         prec
+                         value
+                         child=(
+                           (prec, value) =>
+                             element(make(~value, ~prec, [||]))
+                         )
+                       />
+                   )
+                 />,
                args,
              ),
         ];
