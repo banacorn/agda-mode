@@ -38,15 +38,15 @@ let rangeToString = (range: range) : string =>
        })
   };
 
-let make = (~range, ~emit, ~abbr=false, _children) => {
+let make = (~range, ~abbr=false, _children) => {
   ...component,
   render: _self =>
     if (abbr) {
-      <Link jump=true emit range>
+      <Link jump=true range>
         <span className="text-subtle range icon icon-link" />
       </Link>;
     } else {
-      <Link jump=true emit range>
+      <Link jump=true range>
         <span className="text-subtle range icon icon-link">
           (ReasonReact.string(rangeToString(range)))
         </span>
@@ -87,12 +87,9 @@ let toAtomFilepath = range =>
   };
 
 [@bs.deriving abstract]
-type jsProps = {
-  range: Type.Syntax.Position.range,
-  emit: (string, Type.Syntax.Position.range) => unit,
-};
+type jsProps = {range: Type.Syntax.Position.range};
 
 let jsComponent =
   ReasonReact.wrapReasonForJs(~component, jsProps =>
-    make(~range=rangeGet(jsProps), ~emit=emitGet(jsProps), [||])
+    make(~range=rangeGet(jsProps), [||])
   );

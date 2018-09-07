@@ -3,6 +3,7 @@ Term
 Type
 Error
 Range
+Context
 Decoder
 Concrete
 TypeError

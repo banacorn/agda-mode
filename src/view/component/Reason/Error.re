@@ -25,10 +25,12 @@ let make = (~error: Js.Json.t, ~emacsMessage: string, ~emit, _children) => {
     let decodedError = Decoder.parseError(error);
     switch (decodedError) {
     | TypeError(range, typeError) =>
-      <section className="error">
-        <Range range emit />
-        <TypeError typeError emacsMessage />
-      </section>
+      <Context.Emitter.Provider value=emit>
+        <section className="error">
+          <Range range />
+          <TypeError typeError emacsMessage />
+        </section>
+      </Context.Emitter.Provider>
     | Exception(_) =>
       <section className="error">
         (ReasonReact.string(emacsMessage))

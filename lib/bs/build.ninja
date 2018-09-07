@@ -48,6 +48,11 @@ build src/view/component/Reason/Range.mlast.d : build_deps src/view/component/Re
 build src/view/component/Reason/Range-AgdaMode.cmj |  $src_root_dir/lib/js/src/view/component/Reason/Range.bs.js src/view/component/Reason/Range-AgdaMode.cmi : build_cmj_cmi src/view/component/Reason/Range.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
   bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/view/component/Reason
+build src/view/component/Reason/Context.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/view/component/Reason/Context.re
+build src/view/component/Reason/Context.mlast.d : build_deps src/view/component/Reason/Context.mlast
+build src/view/component/Reason/Context-AgdaMode.cmj |  $src_root_dir/lib/js/src/view/component/Reason/Context.bs.js src/view/component/Reason/Context-AgdaMode.cmi : build_cmj_cmi src/view/component/Reason/Context.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/view/component/Reason
 build src/view/component/Reason/Decoder.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/view/component/Reason/Decoder.re
 build src/view/component/Reason/Decoder.mlast.d : build_deps src/view/component/Reason/Decoder.mlast
 build src/view/component/Reason/Decoder-AgdaMode.cmj |  $src_root_dir/lib/js/src/view/component/Reason/Decoder.bs.js src/view/component/Reason/Decoder-AgdaMode.cmi : build_cmj_cmi src/view/component/Reason/Decoder.mlast
@@ -72,4 +77,4 @@ rule build_package
   command = ${bsc} -w -49 -no-alias-deps -c ${in}
   description = [34mBuilding[39m [2m${out}[22m
 build AgdaMode.cmi : build_package AgdaMode.mlmap
-build build.ninja : phony  ||  AgdaMode.cmi src/view/component/Reason/CommonPrim.mlast.d src/view/component/Reason/TypeError.mlast.d src/view/component/Reason/Concrete.mlast.d src/view/component/Reason/Decoder.mlast.d src/view/component/Reason/Range.mlast.d src/view/component/Reason/Error.mlast.d src/view/component/Reason/Type.mlast.d src/view/component/Reason/Term.mlast.d src/view/component/Reason/Link.mlast.d
+build build.ninja : phony  ||  AgdaMode.cmi src/view/component/Reason/CommonPrim.mlast.d src/view/component/Reason/TypeError.mlast.d src/view/component/Reason/Concrete.mlast.d src/view/component/Reason/Decoder.mlast.d src/view/component/Reason/Context.mlast.d src/view/component/Reason/Range.mlast.d src/view/component/Reason/Error.mlast.d src/view/component/Reason/Type.mlast.d src/view/component/Reason/Term.mlast.d src/view/component/Reason/Link.mlast.d

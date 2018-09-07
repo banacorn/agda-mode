@@ -13,29 +13,34 @@ let tempEventToString = (event: event) : string =>
   | MouseOut => "EVENT.MOUSE_OUT"
   };
 
-let make = (~range=noRange, ~jump=false, ~hover=false, ~emit, children) => {
+let make = (~range=noRange, ~jump=false, ~hover=false, children) => {
   ...component,
   render: _self =>
-    <span
-      className="link"
-      onClick=(
-        (_) =>
-          if (jump) {
-            emit(tempEventToString(JumpToRange), range);
-          }
-      )
-      onMouseOver=(
-        (_) =>
-          if (hover) {
-            emit(tempEventToString(MouseOver), range);
-          }
-      )
-      onMouseOut=(
-        (_) =>
-          if (hover) {
-            emit(tempEventToString(MouseOut), range);
-          }
-      )>
-      ...children
-    </span>,
+    <Context.Emitter.Consumer>
+      ...(
+           emit =>
+             <span
+               className="link"
+               onClick=(
+                 (_) =>
+                   if (jump) {
+                     emit(tempEventToString(JumpToRange), range);
+                   }
+               )
+               onMouseOver=(
+                 (_) =>
+                   if (hover) {
+                     emit(tempEventToString(MouseOver), range);
+                   }
+               )
+               onMouseOut=(
+                 (_) =>
+                   if (hover) {
+                     emit(tempEventToString(MouseOut), range);
+                   }
+               )>
+               ...children
+             </span>
+         )
+    </Context.Emitter.Consumer>,
 };
