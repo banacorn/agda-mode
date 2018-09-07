@@ -168,7 +168,8 @@ module Syntax = {
     type name =
       | Name(Position.range, list(namePart))
       | NoName(Position.range, nameId);
-    type qName = list(name);
+    type qName =
+      | QName(list(name), name);
     type boundName = {
       name,
       label: name,

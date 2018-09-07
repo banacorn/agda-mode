@@ -60,7 +60,9 @@ module Decode = {
              | _ => failwith("unknown kind of Name")
              }
            );
-      let qName = json => json |> list(name);
+      let qName =
+        list(name)
+        |> andThen((names, _) => QName(List.tl(names), List.hd(names)));
     };
     module CommonPrim = {
       open Type.Syntax.CommonPrim;
@@ -1310,7 +1312,7 @@ module Decode = {
              UnequalTerms(
                json |> field("comparison", comparison),
                json |> field("term1", termRep),
-               json |> field("term1", termRep),
+               json |> field("term2", termRep),
                json |> field("type", Syntax.Internal.type_),
                json |> field("reason", string),
              )

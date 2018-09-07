@@ -5,6 +5,7 @@ open! Type.TypeChecking;
 let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
   ...component,
   render: _self => {
+    Js.log(emacsMessage);
     Js.log(typeError);
     switch (typeError) {
     | UnequalTerms(_, term1, term2, _, _) =>

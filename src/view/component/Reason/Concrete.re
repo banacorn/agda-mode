@@ -16,18 +16,18 @@ module NamePart = {
 };
 
 module Name = {
+  let pretty: pretty(name) =
+    name =>
+      switch (name) {
+      | Name(_, xs) => String.concat("", List.map(NamePart.pretty, xs))
+      | NoName(_, _) => "_"
+      };
   let isUnderscore: underscore(name) =
     name =>
       switch (name) {
       | NoName(_, _) => true
       | Name(_, [Id(x)]) => x === "_"
       | _ => false
-      };
-  let pretty: pretty(name) =
-    name =>
-      switch (name) {
-      | Name(_, xs) => String.concat("", List.map(NamePart.pretty, xs))
-      | NoName(_, _) => "_"
       };
   let component = statelessComponent("Name");
   let make = (~value, children) => {
@@ -49,7 +49,14 @@ module QName = {
   let make = (~value, children) => {
     ...component,
     render: _self =>
-      sepBy(string("."), List.map(n => <Name value=n />, value)),
+      switch (value) {
+      | QName([], x) => <Name value=x />
+      | QName(xs, x) =>
+        List.append(xs, [x])
+        |> List.filter(x => ! Name.isUnderscore(x))
+        |> List.map(n => <Name value=n />)
+        |> sepBy(string("."))
+      },
   };
 };
 
@@ -73,17 +80,17 @@ module Expr = {
         | e => e |> CommonPrim.Named.unnamed |> CommonPrim.Arg.default
         };
       switch (expr) {
-      | App(r, e1, e2) => vApp(appView(e1), e2)
-      | RawApp(_, [e, ...es]) => (expr, List.map(arg, es))
+      | App(_, e1, e2) => vApp(appView(e1), e2)
+      | RawApp(_, [e, ...es]) => (e, List.map(arg, es))
       | _ => (expr, [])
       };
     };
   let component = statelessComponent("Expr");
-  let rec make = (~value, ~prec=0, children) => {
+  let rec make = (~value, ~prec=0, _children) => {
     ...component,
     render: _self =>
       switch (value) {
-      | Ident(x) => <QName value=x />
+      | Ident(qname) => <QName value=qname />
       | App(_, _, _) =>
         let (e1, args) = appView(value);
         let items: list(reactElement) = [
