@@ -43,14 +43,14 @@ module Named = {
   let unnamed = value => Named(None, value);
   let named = (name, value) => Named(Some(name), value);
   let component = statelessComponent("Named");
-  let make = (~prec=0, ~value, ~child, _) => {
+  let make = (~prec=0, ~value, children: (int, 'a) => reactElement) => {
     ...component,
     render: _self => {
       let Named(name, value) = value;
       switch (name) {
-      | None => child(prec, value)
+      | None => children(prec, value)
       | Some(Ranged(_, s)) =>
-        parensIf(prec > 0, [|string(s ++ "="), child(0, value)|])
+        parensIf(prec > 0, [|string(s ++ "="), children(0, value)|])
       };
     },
   };
@@ -76,14 +76,14 @@ module Arg = {
   let setArgInfoHiding = (hiding: hiding, Arg(argInfo, value): arg('a)) =>
     Arg({...argInfo, hiding}, value);
   let component = statelessComponent("Arg");
-  let make = (~prec=0, ~value, ~child, _) => {
+  let make = (~prec=0, ~value, children) => {
     ...component,
     render: _self => {
       let Arg(argInfo, value) = value;
       let p = ArgInfo.isVisible(argInfo) ? prec : 0;
       let localParens = argInfo.origin == Substitution ? parens : id;
       <Hiding value=argInfo.hiding parens=localParens>
-        (child(p, value))
+        (children(p, value))
       </Hiding>;
     },
   };

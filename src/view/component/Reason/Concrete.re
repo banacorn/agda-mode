@@ -97,20 +97,17 @@ module Expr = {
           element(make(~value=e1, [||])),
           ...List.map(
                value =>
-                 <Arg
-                   value
-                   child=(
-                     (prec, value) =>
-                       <Named
-                         prec
-                         value
-                         child=(
-                           (prec, value) =>
-                             element(make(~value, ~prec, [||]))
-                         )
-                       />
-                   )
-                 />,
+                 <Arg value>
+                   ...(
+                        (prec, value) =>
+                          <Named prec value>
+                            ...(
+                                 (prec, value) =>
+                                   element(make(~value, ~prec, [||]))
+                               )
+                          </Named>
+                      )
+                 </Arg>,
                args,
              ),
         ];
