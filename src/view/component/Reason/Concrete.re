@@ -8,6 +8,10 @@ open C;
 
 open Util;
 
+let jump = true;
+
+let hover = true;
+
 module Expr = {
   open CommonPrim;
   let rec appView: expr => (expr, list(Syntax.CommonPrim.namedArg(expr))) =
@@ -43,6 +47,14 @@ module Expr = {
       switch (value) {
       | Ident(value) => <QName value />
       | Lit(value) => <Literal value />
+      | QuestionMark(range, None) =>
+        <Link jump hover range> (string("?")) </Link>
+      | QuestionMark(range, Some(n)) =>
+        <Link jump hover range> (string("?" ++ string_of_int(n))) </Link>
+      | Underscore(range, None) =>
+        <Link jump hover range> (string("_")) </Link>
+      | Underscore(range, Some(s)) =>
+        <Link jump hover range> (string(s)) </Link>
       | App(_, _, _) =>
         let (e1, args) = appView(value);
         let items: list(reactElement) = [
@@ -64,18 +76,17 @@ module Expr = {
              ),
         ];
         sepBy(string(" "), items);
-      | Set(range) =>
-        <Link jump=true hover=true range> (string("Set")) </Link>
-      | Prop(range) =>
-        <Link jump=true hover=true range> (string("Prop")) </Link>
+      | RawApp(_, exprs) =>
+        exprs
+        |> List.map(value => element(make(~value, [||])))
+        |> sepBy(string(" "))
+      | OpApp(_, qname, _, exprs) => <span> (string("unimplemented")) </span>
+      | Set(range) => <Link jump hover range> (string("Set")) </Link>
+      | Prop(range) => <Link jump hover range> (string("Prop")) </Link>
       | SetN(range, n) =>
-        <Link jump=true hover=true range>
-          (string("Set" ++ levelToString(n)))
-        </Link>
+        <Link jump hover range> (string("Set" ++ levelToString(n))) </Link>
       | PropN(range, n) =>
-        <Link jump=true hover=true range>
-          (string("Prop" ++ levelToString(n)))
-        </Link>
+        <Link jump hover range> (string("Prop" ++ levelToString(n))) </Link>
       | _ => <span> (string("unimplemented")) </span>
       },
   };

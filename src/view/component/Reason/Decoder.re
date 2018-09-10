@@ -76,20 +76,6 @@ module Decode = {
              | _ => failwith("unknown kind of PositionInName")
              }
            );
-      let maybePlaceholder = decoder =>
-        field("kind", string)
-        |> andThen((kind, json) =>
-             switch (kind) {
-             | "Placeholder" =>
-               Placeholder(json |> field("position", positionInName))
-             | "NoPlaceholder" =>
-               NoPlaceholder(
-                 json |> field("position", optional(positionInName)),
-                 json |> field("value", decoder),
-               )
-             | _ => failwith("unknown kind of MaybePlaceholder")
-             }
-           );
       let importedName_ = (decoderA, decoderB) =>
         field("kind", string)
         |> andThen((kind, json) =>
@@ -435,11 +421,7 @@ module Decode = {
                  json
                  |> field(
                       "args",
-                      list(
-                        CommonPrim.namedArg(
-                          CommonPrim.maybePlaceholder(opApp(expr())),
-                        ),
-                      ),
+                      list(CommonPrim.namedArg(maybePlaceholder())),
                     ),
                )
              | "WithApp" =>
@@ -911,7 +893,7 @@ module Decode = {
              }
            )
       and whereClause = () => whereClause_(list(declaration()))
-      and opApp = decoder =>
+      and opApp = () =>
         field("kind", string)
         |> andThen((kind, json) =>
              switch (kind) {
@@ -919,10 +901,27 @@ module Decode = {
                SyntaxBindingLambda(
                  json |> field("range", Position.range),
                  json |> field("bindings", list(lamBinding())),
-                 json |> field("value", decoder),
+                 json |> field("value", expr()),
                )
-             | "Ordinary" => Ordinary(json |> field("value", decoder))
+             | "Ordinary" => Ordinary(json |> field("value", expr()))
              | _ => failwith("unknown kind of OpApp")
+             }
+           )
+      and maybePlaceholder = () =>
+        field("kind", string)
+        |> andThen((kind, json) =>
+             switch (kind) {
+             | "Placeholder" =>
+               Placeholder(
+                 json |> field("position", CommonPrim.positionInName),
+               )
+             | "NoPlaceholder" =>
+               NoPlaceholder(
+                 json
+                 |> field("position", optional(CommonPrim.positionInName)),
+                 json |> field("value", opApp()),
+               )
+             | _ => failwith("unknown kind of MaybePlaceholder")
              }
            )
       and typedBinding = () =>

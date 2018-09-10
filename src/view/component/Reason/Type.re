@@ -40,9 +40,6 @@ module Syntax = {
       | Beginning
       | Middle
       | End;
-    type maybePlaceholder('e) =
-      | Placeholder(positionInName)
-      | NoPlaceholder(option(positionInName), 'e);
     type importedName_('a, 'b) =
       | ImportedModule('b)
       | ImportedName('a);
@@ -228,9 +225,7 @@ module Syntax = {
           Position.range,
           C.qName,
           array(Abstract.name),
-          list(
-            CommonPrim.namedArg(CommonPrim.maybePlaceholder(opApp(expr))),
-          ),
+          list(CommonPrim.namedArg(maybePlaceholder)),
         )
       | WithApp(Position.range, expr, list(expr))
       | HiddenArg(Position.range, CommonPrim.named(expr))
@@ -433,9 +428,12 @@ module Syntax = {
     and moduleApplication =
       | SectionApp(Position.range, list(typedBindings), expr)
       | RecordModuleIFS(Position.range, C.qName)
-    and opApp('a) =
-      | SyntaxBindingLambda(Position.range, list(lamBinding), 'a)
-      | Ordinary('a)
+    and opApp =
+      | SyntaxBindingLambda(Position.range, list(lamBinding), expr)
+      | Ordinary(expr)
+    and maybePlaceholder =
+      | Placeholder(CommonPrim.positionInName)
+      | NoPlaceholder(option(CommonPrim.positionInName), opApp)
     and telescope = list(typedBindings);
   };
   module Common = {
