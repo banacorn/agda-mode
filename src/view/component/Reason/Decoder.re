@@ -318,19 +318,19 @@ module Decode = {
         range: json |> field("range", Position.range),
       };
     };
-    module A = {
-      open Type.Syntax.A;
-      let rec moduleName = json => MName(json |> list(name))
-      and name = json => {
+    module Abstract = {
+      open Type.Syntax.Abstract;
+      let rec name = json => {
         nameId: json |> field("id", C.nameId),
         concrete: json |> field("concrete", C.name),
         bindingSite: json |> field("bindingSite", Position.range),
         fixity: json |> field("fixity", Fixity.fixity2),
       };
-      let qName = json => {
-        module_: json |> field("module", moduleName),
-        name: json |> field("name", name),
-      };
+      let qName = json =>
+        QName(
+          json |> field("module", list(name)),
+          json |> field("name", name),
+        );
     };
     module Literal = {
       open Type.Syntax.Literal;
@@ -366,7 +366,7 @@ module Decode = {
              | "LitQName" =>
                LitQName(
                  json |> field("range", Position.range),
-                 json |> field("value", A.qName),
+                 json |> field("value", Abstract.qName),
                )
              | "LitMeta" =>
                LitMeta(
@@ -431,7 +431,7 @@ module Decode = {
                OpApp(
                  json |> field("range", Position.range),
                  json |> field("name", C.qName),
-                 json |> field("names", array(A.name)),
+                 json |> field("names", array(Abstract.name)),
                  json
                  |> field(
                       "args",
@@ -988,7 +988,7 @@ module Decode = {
                  OpAppP(
                    json |> field("range", Position.range),
                    json |> field("name", C.qName),
-                   json |> field("names", array(A.name)),
+                   json |> field("names", array(Abstract.name)),
                    json
                    |> field("args", list(CommonPrim.namedArg(pattern()))),
                  )
@@ -1125,9 +1125,9 @@ module Decode = {
     module Internal = {
       open Type.Syntax.Internal;
       let conHead = json => {
-        name: json |> A.qName,
+        name: json |> Abstract.qName,
         inductive: json |> Common.induction,
-        fields: json |> list(CommonPrim.arg(A.qName)),
+        fields: json |> list(CommonPrim.arg(Abstract.qName)),
       };
       let conInfo = Common.conOrigin;
       let abs = decoder =>
@@ -1156,7 +1156,7 @@ module Decode = {
              | "Proj" =>
                Proj(
                  json |> field("projOrigin", Common.projOrigin),
-                 json |> field("name", A.qName),
+                 json |> field("name", Abstract.qName),
                )
              | "IApply" =>
                IApply(
@@ -1240,9 +1240,9 @@ module Decode = {
              | _ => failwith("unknown kind of Sort")
              }
            )
-      and typeG = (decoder, json) => {
+      and type_ = json => {
         sort: json |> field("sort", sort()),
-        value: json |> field("value", decoder),
+        value: json |> field("value", term()),
       }
       and term = () =>
         field("kind", string)
@@ -1261,7 +1261,7 @@ module Decode = {
              | "Lit" => Lit(json |> field("literal", Literal.literal))
              | "Def" =>
                Def(
-                 json |> field("name", A.qName),
+                 json |> field("name", Abstract.qName),
                  json |> field("elims", list(elim())),
                )
              | "Con" =>
@@ -1286,8 +1286,7 @@ module Decode = {
              | "Dummy" => Dummy(json |> field("description", string))
              | _ => failwith("unknown kind of Term")
              }
-           )
-      and type_ = json => json |> typeG(term());
+           );
     };
   };
   module TypeChecking = {
@@ -1300,10 +1299,12 @@ module Decode = {
            | _ => CmpEq
            }
          );
-    let termRep = json => {
-      concrete: json |> field("concrete", Syntax.Concrete.expr()),
-      internal: json |> field("internal", Syntax.Internal.term()),
+    let rep = (decodeFrom, decodeTo, json) => {
+      internal: json |> field("internal", decodeFrom),
+      concrete: json |> field("concrete", decodeTo),
     };
+    let repTerm = rep(Syntax.Internal.term(), Syntax.Concrete.expr());
+    let repType = rep(Syntax.Internal.type_, Syntax.Concrete.expr());
     let typeError =
       field("kind", string)
       |> andThen((kind, json) =>
@@ -1311,9 +1312,9 @@ module Decode = {
            | "UnequalTerms" =>
              UnequalTerms(
                json |> field("comparison", comparison),
-               json |> field("term1", termRep),
-               json |> field("term2", termRep),
-               json |> field("type", Syntax.Internal.type_),
+               json |> field("term1", repTerm),
+               json |> field("term2", repTerm),
+               json |> field("type", repType),
                json |> field("reason", string),
              )
            | _ => UnregisteredTypeError(json)

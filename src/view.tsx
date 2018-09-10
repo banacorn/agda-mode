@@ -339,6 +339,7 @@ export default class View {
 
     // for JSON
     setAgdaError(tsError: TC.Error, emacsMsg: string) {
+        console.log(tsError)
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
         this.store.dispatch(Action.updateError([tsError, emacsMsg]));

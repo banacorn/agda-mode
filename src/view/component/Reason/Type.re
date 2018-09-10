@@ -176,19 +176,15 @@ module Syntax = {
       fixity: Fixity.fixity2,
     };
   };
-  module A = {
-    type moduleName =
-      | MName(list(name))
-    and name = {
+  module Abstract = {
+    type name = {
       nameId: C.nameId,
       concrete: C.name,
       bindingSite: Position.range,
       fixity: Fixity.fixity2,
     };
-    type qName = {
-      module_: moduleName,
-      name,
-    };
+    type qName =
+      | QName(list(name), name);
   };
   module Literal = {
     type literal =
@@ -197,7 +193,7 @@ module Syntax = {
       | LitFloat(Position.range, float)
       | LitString(Position.range, string)
       | LitChar(Position.range, char)
-      | LitQName(Position.range, A.qName)
+      | LitQName(Position.range, Abstract.qName)
       | LitMeta(Position.range, string, int);
   };
   module Concrete = {
@@ -231,7 +227,7 @@ module Syntax = {
       | OpApp(
           Position.range,
           C.qName,
-          array(A.name),
+          array(Abstract.name),
           list(
             CommonPrim.namedArg(CommonPrim.maybePlaceholder(opApp(expr))),
           ),
@@ -300,7 +296,7 @@ module Syntax = {
       | OpAppP(
           Position.range,
           C.qName,
-          array(A.name),
+          array(Abstract.name),
           list(CommonPrim.namedArg(pattern)),
         )
       | HiddenP(Position.range, CommonPrim.named(pattern))
@@ -460,9 +456,9 @@ module Syntax = {
   };
   module Internal = {
     type conHead = {
-      name: A.qName,
+      name: Abstract.qName,
       inductive: CommonPrim.induction,
-      fields: list(CommonPrim.arg(A.qName)),
+      fields: list(CommonPrim.arg(Abstract.qName)),
     };
     type conInfo = Common.conOrigin;
     type abs('a) =
@@ -470,7 +466,7 @@ module Syntax = {
       | NoAbs(string, 'a);
     type elim_('a) =
       | Apply(CommonPrim.arg('a))
-      | Proj(Common.projOrigin, A.qName)
+      | Proj(Common.projOrigin, Abstract.qName)
       | IApply('a, 'a, 'a);
     type elim = elim_(term)
     and notBlocked =
@@ -496,42 +492,37 @@ module Syntax = {
       | PiSort(sort, abs(sort))
       | UnivSort(sort)
       | MetaS(int, list(elim))
-    and typeG('a) = {
+    and type_ = {
       sort,
-      value: 'a,
+      value: term,
     }
     and term =
       | Var(int, list(elim))
       | Lam(CommonPrim.argInfo, abs(term))
       | Lit(Literal.literal)
-      | Def(A.qName, list(elim))
+      | Def(Abstract.qName, list(elim))
       | Con(conHead, conInfo, list(elim))
       | Pi(Common.dom(type_), abs(type_))
       | Sort(sort)
       | Level(level)
       | MetaV(int, list(elim))
       | DontCare(term)
-      | Dummy(string)
-    and type_ = typeG(term);
+      | Dummy(string);
   };
 };
 
 module TypeChecking = {
-  type termRep = {
-    concrete: Syntax.Concrete.expr,
-    internal: Syntax.Internal.term,
+  type rep('a, 'b) = {
+    internal: 'a,
+    concrete: 'b,
   };
+  type repTerm = rep(Syntax.Internal.term, Syntax.Concrete.expr);
+  type repType = rep(Syntax.Internal.type_, Syntax.Concrete.expr);
   type comparison =
     | CmpLeq
     | CmpEq;
   type typeError =
-    | UnequalTerms(
-        comparison,
-        termRep,
-        termRep,
-        Syntax.Internal.type_,
-        string,
-      )
+    | UnequalTerms(comparison, repTerm, repTerm, repType, string)
     | UnregisteredTypeError(Js.Json.t);
   type error =
     | TypeError(Syntax.Position.range, typeError)
