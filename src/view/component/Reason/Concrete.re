@@ -65,6 +65,9 @@ module Element = {
       module Expr = {
         let make = makeExpr;
       };
+      module LamBinding = {
+        let make = makeLamBinding;
+      };
       switch (value) {
       | Ident(value) => <QName value />
       | Lit(value) => <Literal value />
@@ -111,11 +114,24 @@ module Element = {
         |])
       | Lam(_, bindings, AbsurdLam(_, hiding)) =>
         <span>
-          (string({js|λ|js}))
-          /* (bindings |> List.map(value => <LamBinding value />)) */
+          (string({js|λ |js}))
+          (
+            bindings
+            |> List.map(value => <LamBinding value />)
+            |> sepBy(string(" "))
+          )
           <Hiding hiding />
         </span>
-      | Lam(_, bindings, expr) => <span> (string("unimplemented")) </span>
+      | Lam(_, bindings, expr) =>
+        <span>
+          (string({js|λ |js}))
+          (
+            bindings
+            |> List.map(value => <LamBinding value />)
+            |> sepBy(string(" "))
+          )
+          <Expr value=expr />
+        </span>
       | Set(range) => <Link jump hover range> (string("Set")) </Link>
       | Prop(range) => <Link jump hover range> (string("Prop")) </Link>
       | SetN(range, n) =>
@@ -184,12 +200,12 @@ module Element = {
       if (TypedBinding_.isUnderscore(binding)) {
         <TypedBinding value=binding />;
       } else {
-        <>
+        <span>
           <Relevance relevance=argInfo.modality.relevance />
           <Hiding hiding=argInfo.hiding>
             <TypedBinding value=binding />
           </Hiding>
-        </>;
+        </span>;
       };
     },
   }
@@ -204,12 +220,12 @@ module Element = {
         if (argInfo.hiding === NotHidden && BoundName.isUnderscore(boundName)) {
           <BoundName value=boundName />;
         } else {
-          <>
+          <span>
             <Relevance relevance=argInfo.modality.relevance />
             <Hiding hiding=argInfo.hiding>
               <BoundName value=boundName />
             </Hiding>
-          </>;
+          </span>;
         }
       | DomainFull(value) => <TypedBindings value />
       };
