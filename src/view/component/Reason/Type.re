@@ -246,49 +246,49 @@ module Syntax = {
       nameSuggestion: string,
     };
   };
-  module Abstract = {
-    open A;
-    type expr =
-      | Var(name)
-      | Def(qName)
-      | Proj(CommonPrim.projOrigin, list(qName))
-      | Con(list(qName))
-      | PatternSyn(list(qName))
-      | Macro(qName)
-      | Lit(literal)
-      | QuestionMark(Info.metaInfo, int)
-      | Underscore(Info.metaInfo)
-      /*
-       | Dot(ExprInfo, Expr)
-        | App(AppInfo ,Expr, (NamedArg (Expr)))
-        | WithApp( ExprInfo, Expr , list(expr) )
-        | Lam( ExprInfo, LamBinding, Expr)
-        | AbsurdLam( ExprInfo, Hiding      )
-        | ExtendedLam (ExprInfo, DefInfo, QName ,[Clause])
-        | Pi   ExprInfo Telescope Expr
-        | Generalized (Set.Set QName) Expr
-        | Fun  ExprInfo (Arg Expr) Expr
-        | Set  ExprInfo Integer
-        | Prop ExprInfo Integer
-        | Let  ExprInfo [LetBinding] Expr
-        | ETel Telescope
-        | Rec  ExprInfo RecordAssigns
-        | RecUpdate ExprInfo Expr Assigns
-        | ScopedExpr ScopeInfo Expr
-        | QuoteGoal ExprInfo Name Expr
-        | QuoteContext ExprInfo
-        | Quote ExprInfo
-        | QuoteTerm ExprInfo
-        | Unquote ExprInfo
-        | Tactic ExprInfo Expr [NamedArg Expr] [NamedArg Expr] */
-      | DontCare(expr)
-    and literal =
+  /* open A;
+     type expr =
+       | Var(name)
+       | Def(qName)
+       | Proj(CommonPrim.projOrigin, list(qName))
+       | Con(list(qName))
+       | PatternSyn(list(qName))
+       | Macro(qName)
+       | Lit(literal)
+       | QuestionMark(Info.metaInfo, int)
+       | Underscore(Info.metaInfo)
+       /*
+        | Dot(ExprInfo, Expr)
+         | App(AppInfo ,Expr, (NamedArg (Expr)))
+         | WithApp( ExprInfo, Expr , list(expr) )
+         | Lam( ExprInfo, LamBinding, Expr)
+         | AbsurdLam( ExprInfo, Hiding      )
+         | ExtendedLam (ExprInfo, DefInfo, QName ,[Clause])
+         | Pi   ExprInfo Telescope Expr
+         | Generalized (Set.Set QName) Expr
+         | Fun  ExprInfo (Arg Expr) Expr
+         | Set  ExprInfo Integer
+         | Prop ExprInfo Integer
+         | Let  ExprInfo [LetBinding] Expr
+         | ETel Telescope
+         | Rec  ExprInfo RecordAssigns
+         | RecUpdate ExprInfo Expr Assigns
+         | ScopedExpr ScopeInfo Expr
+         | QuoteGoal ExprInfo Name Expr
+         | QuoteContext ExprInfo
+         | Quote ExprInfo
+         | QuoteTerm ExprInfo
+         | Unquote ExprInfo
+         | Tactic ExprInfo Expr [NamedArg Expr] [NamedArg Expr] */
+       | DontCare(expr) */
+  module Literal = {
+    type literal =
       | LitNat(Position.range, int)
       | LitWord64(Position.range, int)
       | LitFloat(Position.range, float)
       | LitString(Position.range, string)
       | LitChar(Position.range, char)
-      | LitQName(Position.range, qName)
+      | LitQName(Position.range, A.qName)
       | LitMeta(Position.range, string, int);
   };
   module Concrete = {
@@ -314,7 +314,7 @@ module Syntax = {
       | DomainFull(typedBindings)
     and expr =
       | Ident(C.qName)
-      | Lit(Abstract.literal)
+      | Lit(Literal.literal)
       | QuestionMark(Position.range, option(int))
       | Underscore(Position.range, option(string))
       | RawApp(Position.range, list(expr))
@@ -399,7 +399,7 @@ module Syntax = {
       | AbsurdP(Position.range)
       | AsP(Position.range, C.name, pattern)
       | DotP(Position.range, expr)
-      | LitP(Abstract.literal)
+      | LitP(Literal.literal)
       | RecP(Position.range, list(fieldAssignmentPattern))
       | EqualP(Position.range, list((expr, expr)))
       | EllipsisP(Position.range)
@@ -594,7 +594,7 @@ module Syntax = {
     and term =
       | Var(int, list(elim))
       | Lam(CommonPrim.argInfo, abs(term))
-      | Lit(Abstract.literal)
+      | Lit(Literal.literal)
       | Def(A.qName, list(elim))
       | Con(conHead, conInfo, list(elim))
       | Pi(Common.dom(type_), abs(type_))
@@ -616,11 +616,54 @@ module TypeChecking = {
   type comparison =
     | CmpLeq
     | CmpEq;
+  type call =
+    | CheckClause(repType, Syntax.Concrete.lhs)
+    | CheckPattern(Syntax.Concrete.pattern, repType)
+    | CheckLetBinding(list(Syntax.Concrete.declaration))
+    | InferExpr(Syntax.Concrete.expr)
+    | CheckExprCall(comparison, Syntax.Concrete.expr, repType)
+    | CheckDotPattern(Syntax.Concrete.expr, repType)
+    | CheckPatternShadowing(Syntax.Concrete.lhs)
+    | CheckProjection(Syntax.Position.range, Syntax.C.qName, repType)
+    | IsTypeCall(Syntax.Concrete.expr, Syntax.Internal.sort)
+    | IsType_(Syntax.Concrete.expr)
+    | InferVar(Syntax.C.name)
+    | InferDef(Syntax.C.qName)
+    | CheckArguments(
+        Syntax.Position.range,
+        list(Syntax.CommonPrim.namedArg(Syntax.Concrete.expr)),
+        repType,
+      )
+    | CheckTargetType(Syntax.Position.range, repType, repType)
+    | CheckDataDef(Syntax.Position.range, Syntax.C.name)
+    | CheckRecDef(Syntax.Position.range, Syntax.C.name)
+    | CheckConstructor(Syntax.C.qName, Syntax.C.qName)
+    | CheckFunDefCall(Syntax.Position.range, Syntax.C.name)
+    | CheckPragma(Syntax.Position.range, Syntax.Concrete.pragma)
+    | CheckPrimitive(
+        Syntax.Position.range,
+        Syntax.C.name,
+        Syntax.Concrete.expr,
+      )
+    | CheckIsEmpty(Syntax.Position.range, repType)
+    | CheckWithFunctionType(Syntax.Concrete.expr)
+    | CheckSectionApplication(
+        Syntax.Position.range,
+        Syntax.C.qName,
+        Syntax.Concrete.moduleApplication,
+      )
+    | CheckNamedWhere(Syntax.C.qName)
+    | ScopeCheckExpr(Syntax.Concrete.expr)
+    | ScopeCheckDeclaration(list(Syntax.Concrete.declaration))
+    | ScopeCheckLHS(Syntax.C.qName, Syntax.Concrete.pattern)
+    | NoHighlighting
+    | ModuleContents
+    | SetRange(Syntax.Position.range);
   type typeError =
     | UnequalTerms(comparison, repTerm, repTerm, repType, string)
     | UnregisteredTypeError(Js.Json.t);
   type error =
-    | TypeError(Syntax.Position.range, typeError)
+    | TypeError(Syntax.Position.range, call, typeError)
     | Exception(Syntax.Position.range, string)
     | IOException(Syntax.Position.range, string)
     | PatternError(Syntax.Position.range);

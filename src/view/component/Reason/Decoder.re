@@ -319,9 +319,8 @@ module Decode = {
           json |> field("name", name),
         );
     };
-    module Abstract = {
-      open A;
-      open Type.Syntax.Abstract;
+    module Literal = {
+      open Type.Syntax.Literal;
       let literal =
         field("kind", string)
         |> andThen((kind, json) =>
@@ -354,7 +353,7 @@ module Decode = {
              | "LitQName" =>
                LitQName(
                  json |> field("range", Position.range),
-                 json |> field("value", qName),
+                 json |> field("value", A.qName),
                )
              | "LitMeta" =>
                LitMeta(
@@ -393,7 +392,7 @@ module Decode = {
         |> andThen((kind, json) =>
              switch (kind) {
              | "Ident" => Ident(json |> field("name", C.qName))
-             | "Lit" => Lit(json |> field("literal", Abstract.literal))
+             | "Lit" => Lit(json |> field("literal", Literal.literal))
              | "QuestionMark" =>
                QuestionMark(
                  json |> field("range", Position.range),
@@ -1014,7 +1013,7 @@ module Decode = {
                    json |> field("range", Position.range),
                    json |> field("expr", expr()),
                  )
-               | "LitP" => LitP(json |> field("literal", Abstract.literal))
+               | "LitP" => LitP(json |> field("literal", Literal.literal))
                | "RecP" =>
                  RecP(
                    json |> field("range", Position.range),
@@ -1252,7 +1251,7 @@ module Decode = {
                  json |> field("argInfo", CommonPrim.argInfo),
                  json |> field("binder", abs(term())),
                )
-             | "Lit" => Lit(json |> field("literal", Abstract.literal))
+             | "Lit" => Lit(json |> field("literal", Literal.literal))
              | "Def" =>
                Def(
                  json |> field("name", A.qName),
@@ -1299,6 +1298,139 @@ module Decode = {
     };
     let repTerm = rep(Syntax.Internal.term(), Syntax.Concrete.expr());
     let repType = rep(Syntax.Internal.type_, Syntax.Concrete.expr());
+    let call =
+      field("kind", string)
+      |> andThen((kind, json) =>
+           switch (kind) {
+           | "CheckClause" =>
+             CheckClause(
+               json |> field("type", repType),
+               json |> field("clause", Syntax.Concrete.lhs),
+             )
+           | "CheckPattern" =>
+             CheckPattern(
+               json |> field("pattern", Syntax.Concrete.pattern()),
+               json |> field("type", repType),
+             )
+           | "CheckLetBinding" =>
+             CheckLetBinding(
+               json |> field("binding", list(Syntax.Concrete.declaration())),
+             )
+           | "InferExpr" =>
+             InferExpr(json |> field("expr", Syntax.Concrete.expr()))
+           | "CheckExprCall" =>
+             CheckExprCall(
+               json |> field("comparison", comparison),
+               json |> field("expr", Syntax.Concrete.expr()),
+               json |> field("type", repType),
+             )
+           | "CheckDotPattern" =>
+             CheckDotPattern(
+               json |> field("expr", Syntax.Concrete.expr()),
+               json |> field("type", repType),
+             )
+           | "CheckPatternShadowing" =>
+             CheckPatternShadowing(
+               json |> field("clause", Syntax.Concrete.lhs),
+             )
+           | "CheckProjection" =>
+             CheckProjection(
+               json |> field("range", Syntax.Position.range),
+               json |> field("name", Syntax.C.qName),
+               json |> field("type", repType),
+             )
+           | "IsTypeCall" =>
+             IsTypeCall(
+               json |> field("expr", Syntax.Concrete.expr()),
+               json |> field("sort", Syntax.Internal.sort()),
+             )
+           | "IsType_" =>
+             IsType_(json |> field("expr", Syntax.Concrete.expr()))
+           | "InferVar" => InferVar(json |> field("name", Syntax.C.name))
+           | "InferDef" => InferDef(json |> field("name", Syntax.C.qName))
+           | "CheckArguments" =>
+             CheckArguments(
+               json |> field("range", Syntax.Position.range),
+               json
+               |> field(
+                    "arguments",
+                    list(Syntax.CommonPrim.namedArg(Syntax.Concrete.expr())),
+                  ),
+               json |> field("type", repType),
+             )
+           | "CheckTargetType" =>
+             CheckTargetType(
+               json |> field("range", Syntax.Position.range),
+               json |> field("infType", repType),
+               json |> field("expType", repType),
+             )
+           | "CheckDataDef" =>
+             CheckDataDef(
+               json |> field("range", Syntax.Position.range),
+               json |> field("name", Syntax.C.name),
+             )
+           | "CheckRecDef" =>
+             CheckRecDef(
+               json |> field("range", Syntax.Position.range),
+               json |> field("name", Syntax.C.name),
+             )
+           | "CheckConstructor" =>
+             CheckConstructor(
+               json |> field("declarationName", Syntax.C.qName),
+               json |> field("constructorName", Syntax.C.qName),
+             )
+           | "CheckFunDefCall" =>
+             CheckFunDefCall(
+               json |> field("range", Syntax.Position.range),
+               json |> field("name", Syntax.C.name),
+             )
+           | "CheckPragma" =>
+             CheckPragma(
+               json |> field("range", Syntax.Position.range),
+               json |> field("pragma", Syntax.Concrete.pragma()),
+             )
+           | "CheckPrimitive" =>
+             CheckPrimitive(
+               json |> field("range", Syntax.Position.range),
+               json |> field("name", Syntax.C.name),
+               json |> field("expr", Syntax.Concrete.expr()),
+             )
+           | "CheckIsEmpty" =>
+             CheckIsEmpty(
+               json |> field("range", Syntax.Position.range),
+               json |> field("type", repType),
+             )
+           | "CheckWithFunctionType" =>
+             CheckWithFunctionType(
+               json |> field("expr", Syntax.Concrete.expr()),
+             )
+           | "CheckSectionApplication" =>
+             CheckSectionApplication(
+               json |> field("range", Syntax.Position.range),
+               json |> field("module", Syntax.C.qName),
+               json |> field("modApp", Syntax.Concrete.moduleApplication()),
+             )
+           | "CheckNamedWhere" =>
+             CheckNamedWhere(json |> field("module", Syntax.C.qName))
+           | "ScopeCheckExpr" =>
+             ScopeCheckExpr(json |> field("expr", Syntax.Concrete.expr()))
+           | "ScopeCheckDeclaration" =>
+             ScopeCheckDeclaration(
+               json
+               |> field("declarations", list(Syntax.Concrete.declaration())),
+             )
+           | "ScopeCheckLHS" =>
+             ScopeCheckLHS(
+               json |> field("name", Syntax.C.qName),
+               json |> field("pattern", Syntax.Concrete.pattern()),
+             )
+           | "NoHighlighting" => NoHighlighting
+           | "ModuleContents" => ModuleContents
+           | "SetRange" =>
+             SetRange(json |> field("range", Syntax.Position.range))
+           | _ => failwith("unknown kind of Call")
+           }
+         );
     let typeError =
       field("kind", string)
       |> andThen((kind, json) =>
@@ -1321,6 +1453,7 @@ module Decode = {
            | "TypeError" =>
              TypeError(
                json |> field("range", Syntax.Position.range),
+               json |> field("call", call),
                json |> field("typeError", typeError),
              )
            | "Exception" =>

@@ -9,7 +9,7 @@ let typeErrorToHeader = error =>
 let errorToHeader = error =>
   Type.TypeChecking.(
     switch (error) {
-    | TypeError(_, typeError) =>
+    | TypeError(_, _, typeError) =>
       "Type Error: " ++ typeErrorToHeader(typeError)
     | Exception(_) => "Exception"
     | IOException(_) => "IOException"
@@ -23,8 +23,9 @@ let make = (~error: Js.Json.t, ~emacsMessage: string, ~emit, _children) => {
   ...component,
   render: _self => {
     let decodedError = Decoder.parseError(error);
+    Js.log(decodedError);
     switch (decodedError) {
-    | TypeError(range, typeError) =>
+    | TypeError(range, _call, typeError) =>
       <Context.Emitter.Provider value=emit>
         <section className="error">
           <Range range />
