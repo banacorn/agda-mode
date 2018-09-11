@@ -19,6 +19,9 @@ module TypeCheckingPositivity = {
     | Unused;
 };
 
+/* TODO: use hashmap */
+type map('k, 'v) = list(('k, 'v));
+
 module Syntax = {
   module Position = {
     type srcFile = option(string);
@@ -130,6 +133,9 @@ module Syntax = {
       | ProjPrefix
       | ProjPostfix
       | ProjSystem;
+    type dataOrRecord =
+      | IsData
+      | IsRecord;
   };
   module Notation = {
     type genPart =
@@ -175,17 +181,6 @@ module Syntax = {
       fixity: Fixity.fixity2,
     };
   };
-  /* module Info = {
-       type scopeInfo = {
-         current:
-       };
-       type metaInfo = {
-         range: Position.range,
-         scope: scopeInfo,
-         number: option(int),
-         nameSuggestion: string,
-       };
-     }; */
   module A = {
     type name = {
       nameId: C.nameId,
@@ -195,6 +190,61 @@ module Syntax = {
     };
     type qName =
       | QName(list(name), name);
+  };
+  module Scope = {
+    type nameSpaceId =
+      | PrivatedNS
+      | PublicNS
+      | ImportedNS
+      | OnlyQualifiedNS;
+    type kindOfName =
+      | ConName
+      | FldName
+      | DefName
+      | PatternSynName
+      | GeneralizeName
+      | MacroName
+      | QuotableName;
+    type whyInScope =
+      | Defined
+      | Opened(C.qName, whyInScope)
+      | Applied(C.qName, whyInScope);
+    type abstractName = {
+      name: A.qName,
+      kind: kindOfName,
+      lineage: whyInScope,
+    };
+    type abstractModule = {
+      name: list(A.name),
+      lineage: whyInScope,
+    };
+    type namesInScope = map(C.name, list(abstractName));
+    type modulesInScope = map(C.name, list(abstractModule));
+    type nameSpace = {
+      names: namesInScope,
+      modules: modulesInScope,
+      namesInScope: array(A.qName),
+    };
+    type scopeNameSpaces = list((nameSpaceId, nameSpace));
+    type scope = {
+      name: list(A.name),
+      parents: list(list(A.name)),
+      nameSpaces: scopeNameSpaces,
+      imports: map(C.qName, list(A.name)),
+      datatypeModule: option(CommonPrim.dataOrRecord),
+    };
+  };
+  module Info = {
+    type scopeInfo = {
+      current: list(A.name),
+      modules: map(list(A.name), Scope.scope),
+    };
+    type metaInfo = {
+      range: Position.range,
+      scope: scopeInfo,
+      number: option(int),
+      nameSuggestion: string,
+    };
   };
   module Abstract = {
     open A;
@@ -206,31 +256,31 @@ module Syntax = {
       | PatternSyn(list(qName))
       | Macro(qName)
       | Lit(literal)
-      /* | QuestionMark(Info.metaInfo, int) */
+      | QuestionMark(Info.metaInfo, int)
+      | Underscore(Info.metaInfo)
       /*
-       | Underscore(MetaInfo)
        | Dot(ExprInfo, Expr)
-       | App(AppInfo ,Expr, (NamedArg (Expr)))
-       | WithApp( ExprInfo, Expr , list(expr) )
-       | Lam( ExprInfo, LamBinding, Expr)
-       | AbsurdLam( ExprInfo, Hiding      )
-       | ExtendedLam (ExprInfo, DefInfo, QName ,[Clause])
-       | Pi   ExprInfo Telescope Expr
-       | Generalized (Set.Set QName) Expr
-       | Fun  ExprInfo (Arg Expr) Expr
-       | Set  ExprInfo Integer
-       | Prop ExprInfo Integer
-       | Let  ExprInfo [LetBinding] Expr
-       | ETel Telescope
-       | Rec  ExprInfo RecordAssigns
-       | RecUpdate ExprInfo Expr Assigns
-       | ScopedExpr ScopeInfo Expr
-       | QuoteGoal ExprInfo Name Expr
-       | QuoteContext ExprInfo
-       | Quote ExprInfo
-       | QuoteTerm ExprInfo
-       | Unquote ExprInfo
-       | Tactic ExprInfo Expr [NamedArg Expr] [NamedArg Expr] */
+        | App(AppInfo ,Expr, (NamedArg (Expr)))
+        | WithApp( ExprInfo, Expr , list(expr) )
+        | Lam( ExprInfo, LamBinding, Expr)
+        | AbsurdLam( ExprInfo, Hiding      )
+        | ExtendedLam (ExprInfo, DefInfo, QName ,[Clause])
+        | Pi   ExprInfo Telescope Expr
+        | Generalized (Set.Set QName) Expr
+        | Fun  ExprInfo (Arg Expr) Expr
+        | Set  ExprInfo Integer
+        | Prop ExprInfo Integer
+        | Let  ExprInfo [LetBinding] Expr
+        | ETel Telescope
+        | Rec  ExprInfo RecordAssigns
+        | RecUpdate ExprInfo Expr Assigns
+        | ScopedExpr ScopeInfo Expr
+        | QuoteGoal ExprInfo Name Expr
+        | QuoteContext ExprInfo
+        | Quote ExprInfo
+        | QuoteTerm ExprInfo
+        | Unquote ExprInfo
+        | Tactic ExprInfo Expr [NamedArg Expr] [NamedArg Expr] */
       | DontCare(expr)
     and literal =
       | LitNat(Position.range, int)
