@@ -25,11 +25,12 @@ let make = (~error: Js.Json.t, ~emacsMessage: string, ~emit, _children) => {
     let decodedError = Decoder.parseError(error);
     Js.log(decodedError);
     switch (decodedError) {
-    | TypeError(range, _call, typeError) =>
+    | TypeError(range, call, typeError) =>
       <Context.Emitter.Provider value=emit>
         <section className="error">
           <Range range />
           <TypeError typeError emacsMessage />
+          <Call call />
         </section>
       </Context.Emitter.Provider>
     | Exception(_) =>

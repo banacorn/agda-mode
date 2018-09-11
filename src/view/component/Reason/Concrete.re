@@ -17,6 +17,8 @@ module Component = {
   let typedBindings = statelessComponent("TypedBindings");
   let typedBinding = statelessComponent("TypedBinding");
   let declaration = statelessComponent("Declaration");
+  let lhs = statelessComponent("LHS");
+  let pattern = statelessComponent("Pattern");
 };
 
 module TypedBinding_ = {
@@ -150,6 +152,10 @@ module Element = {
     ...Component.declaration,
     render: _self => <span> (string("<Declaration> unimplemented")) </span>,
   }
+  and makePattern = (~pattern, _children) => {
+    ...Component.pattern,
+    render: _self => <span> (string("<Pattern> unimplemented")) </span>,
+  }
   and makeTypedBinding = (~value, _children) => {
     ...Component.typedBindings,
     render: _self => {
@@ -230,28 +236,47 @@ module Element = {
       | DomainFull(value) => <TypedBindings value />
       };
     },
+  }
+  and makeLHS = (~lhs, _children) => {
+    ...Component.lhs,
+    render: _self => {
+      module Expr = {
+        let make = makeExpr;
+      };
+      module Pattern = {
+        let make = makePattern;
+      };
+      <span>
+        <Pattern pattern=lhs.originalPattern />
+        (string("rewrite"))
+        (
+          lhs.rewriteEqn
+          |> List.map(value => <Expr value />)
+          |> sepBy(string(" | "))
+        )
+        (string("with"))
+        (
+          lhs.rewriteEqn
+          |> List.map(value => <Expr value />)
+          |> sepBy(string(" | "))
+        )
+      </span>;
+    },
   };
-  /* and makeOpApp = (~qname, ~exprs, _children) => {
-       ...OpApp_.component,
-       render: _self => {
-         open Type.Syntax.C;
-         let prOp = (ms, xs, es) =>
-           switch (xs, es) {
-           | ([Hole, ...xs], [e, ...es]) => result
-           | ([Hole, ...xs], []) => result
-           | ([Id(x), ...xs], es) => result
-           | ([], es) => result
-           };
-         let QName(moduleNames, name) = qname;
-         switch (name) {
-         | NoName(_, _) => failwith("Panic! NoName in <OpApp>")
-         | Name(range, names) => failwith("Panic! NoName in <OpApp>")
-         };
-         <span> (string("OpApp_")) </span>;
-       },
-     }; */
 };
 
 module Expr = {
   let make = Element.makeExpr;
+};
+
+module LHS = {
+  let make = Element.makeLHS;
+};
+
+module Pattern = {
+  let make = Element.makePattern;
+};
+
+module Declaration = {
+  let make = Element.makeDeclaration;
 };
