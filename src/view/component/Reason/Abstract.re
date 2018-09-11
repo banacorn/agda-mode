@@ -2,7 +2,7 @@ open ReasonReact;
 
 open Util;
 
-open Type.Syntax.Abstract;
+open Type.Syntax.A;
 
 module Name = {
   let component = statelessComponent("Name");

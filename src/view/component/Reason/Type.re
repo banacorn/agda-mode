@@ -126,6 +126,10 @@ module Syntax = {
     type named('a) =
       | Named(option(ranged(string)), 'a);
     type namedArg('a) = arg(named('a));
+    type projOrigin =
+      | ProjPrefix
+      | ProjPostfix
+      | ProjSystem;
   };
   module Notation = {
     type genPart =
@@ -171,7 +175,18 @@ module Syntax = {
       fixity: Fixity.fixity2,
     };
   };
-  module Abstract = {
+  /* module Info = {
+       type scopeInfo = {
+         current:
+       };
+       type metaInfo = {
+         range: Position.range,
+         scope: scopeInfo,
+         number: option(int),
+         nameSuggestion: string,
+       };
+     }; */
+  module A = {
     type name = {
       nameId: C.nameId,
       concrete: C.name,
@@ -181,14 +196,49 @@ module Syntax = {
     type qName =
       | QName(list(name), name);
   };
-  module Literal = {
-    type literal =
+  module Abstract = {
+    open A;
+    type expr =
+      | Var(name)
+      | Def(qName)
+      | Proj(CommonPrim.projOrigin, list(qName))
+      | Con(list(qName))
+      | PatternSyn(list(qName))
+      | Macro(qName)
+      | Lit(literal)
+      /* | QuestionMark(Info.metaInfo, int) */
+      /*
+       | Underscore(MetaInfo)
+       | Dot(ExprInfo, Expr)
+       | App(AppInfo ,Expr, (NamedArg (Expr)))
+       | WithApp( ExprInfo, Expr , list(expr) )
+       | Lam( ExprInfo, LamBinding, Expr)
+       | AbsurdLam( ExprInfo, Hiding      )
+       | ExtendedLam (ExprInfo, DefInfo, QName ,[Clause])
+       | Pi   ExprInfo Telescope Expr
+       | Generalized (Set.Set QName) Expr
+       | Fun  ExprInfo (Arg Expr) Expr
+       | Set  ExprInfo Integer
+       | Prop ExprInfo Integer
+       | Let  ExprInfo [LetBinding] Expr
+       | ETel Telescope
+       | Rec  ExprInfo RecordAssigns
+       | RecUpdate ExprInfo Expr Assigns
+       | ScopedExpr ScopeInfo Expr
+       | QuoteGoal ExprInfo Name Expr
+       | QuoteContext ExprInfo
+       | Quote ExprInfo
+       | QuoteTerm ExprInfo
+       | Unquote ExprInfo
+       | Tactic ExprInfo Expr [NamedArg Expr] [NamedArg Expr] */
+      | DontCare(expr)
+    and literal =
       | LitNat(Position.range, int)
       | LitWord64(Position.range, int)
       | LitFloat(Position.range, float)
       | LitString(Position.range, string)
       | LitChar(Position.range, char)
-      | LitQName(Position.range, Abstract.qName)
+      | LitQName(Position.range, qName)
       | LitMeta(Position.range, string, int);
   };
   module Concrete = {
@@ -214,7 +264,7 @@ module Syntax = {
       | DomainFull(typedBindings)
     and expr =
       | Ident(C.qName)
-      | Lit(Literal.literal)
+      | Lit(Abstract.literal)
       | QuestionMark(Position.range, option(int))
       | Underscore(Position.range, option(string))
       | RawApp(Position.range, list(expr))
@@ -222,7 +272,7 @@ module Syntax = {
       | OpApp(
           Position.range,
           C.qName,
-          array(Abstract.name),
+          array(A.name),
           list(CommonPrim.namedArg(opApp)),
         )
       | WithApp(Position.range, expr, list(expr))
@@ -289,7 +339,7 @@ module Syntax = {
       | OpAppP(
           Position.range,
           C.qName,
-          array(Abstract.name),
+          array(A.name),
           list(CommonPrim.namedArg(pattern)),
         )
       | HiddenP(Position.range, CommonPrim.named(pattern))
@@ -299,7 +349,7 @@ module Syntax = {
       | AbsurdP(Position.range)
       | AsP(Position.range, C.name, pattern)
       | DotP(Position.range, expr)
-      | LitP(Literal.literal)
+      | LitP(Abstract.literal)
       | RecP(Position.range, list(fieldAssignmentPattern))
       | EqualP(Position.range, list((expr, expr)))
       | EllipsisP(Position.range)
@@ -443,10 +493,6 @@ module Syntax = {
       | ConOCon
       | ConORec
       | ConOSplit;
-    type projOrigin =
-      | ProjPrefix
-      | ProjPostfix
-      | ProjSystem;
     type dom('a) = {
       argInfo: CommonPrim.argInfo,
       finite: bool,
@@ -455,9 +501,9 @@ module Syntax = {
   };
   module Internal = {
     type conHead = {
-      name: Abstract.qName,
+      name: A.qName,
       inductive: CommonPrim.induction,
-      fields: list(CommonPrim.arg(Abstract.qName)),
+      fields: list(CommonPrim.arg(A.qName)),
     };
     type conInfo = Common.conOrigin;
     type abs('a) =
@@ -465,7 +511,7 @@ module Syntax = {
       | NoAbs(string, 'a);
     type elim_('a) =
       | Apply(CommonPrim.arg('a))
-      | Proj(Common.projOrigin, Abstract.qName)
+      | Proj(CommonPrim.projOrigin, A.qName)
       | IApply('a, 'a, 'a);
     type elim = elim_(term)
     and notBlocked =
@@ -498,8 +544,8 @@ module Syntax = {
     and term =
       | Var(int, list(elim))
       | Lam(CommonPrim.argInfo, abs(term))
-      | Lit(Literal.literal)
-      | Def(Abstract.qName, list(elim))
+      | Lit(Abstract.literal)
+      | Def(A.qName, list(elim))
       | Con(conHead, conInfo, list(elim))
       | Pi(Common.dom(type_), abs(type_))
       | Sort(sort)

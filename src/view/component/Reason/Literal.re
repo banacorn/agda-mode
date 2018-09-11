@@ -2,7 +2,7 @@ open ReasonReact;
 
 open Type;
 
-open Syntax.Literal;
+open Syntax.Abstract;
 
 let component = statelessComponent("Literal");
 

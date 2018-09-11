@@ -305,8 +305,8 @@ module Decode = {
         range: json |> field("range", Position.range),
       };
     };
-    module Abstract = {
-      open Type.Syntax.Abstract;
+    module A = {
+      open Type.Syntax.A;
       let rec name = json => {
         nameId: json |> field("id", C.nameId),
         concrete: json |> field("concrete", C.name),
@@ -319,8 +319,9 @@ module Decode = {
           json |> field("name", name),
         );
     };
-    module Literal = {
-      open Type.Syntax.Literal;
+    module Abstract = {
+      open A;
+      open Type.Syntax.Abstract;
       let literal =
         field("kind", string)
         |> andThen((kind, json) =>
@@ -353,7 +354,7 @@ module Decode = {
              | "LitQName" =>
                LitQName(
                  json |> field("range", Position.range),
-                 json |> field("value", Abstract.qName),
+                 json |> field("value", qName),
                )
              | "LitMeta" =>
                LitMeta(
@@ -392,7 +393,7 @@ module Decode = {
         |> andThen((kind, json) =>
              switch (kind) {
              | "Ident" => Ident(json |> field("name", C.qName))
-             | "Lit" => Lit(json |> field("literal", Literal.literal))
+             | "Lit" => Lit(json |> field("literal", Abstract.literal))
              | "QuestionMark" =>
                QuestionMark(
                  json |> field("range", Position.range),
@@ -418,7 +419,7 @@ module Decode = {
                OpApp(
                  json |> field("range", Position.range),
                  json |> field("name", C.qName),
-                 json |> field("names", array(Abstract.name)),
+                 json |> field("names", array(A.name)),
                  json |> field("args", list(CommonPrim.namedArg(opApp()))),
                )
              | "WithApp" =>
@@ -981,7 +982,7 @@ module Decode = {
                  OpAppP(
                    json |> field("range", Position.range),
                    json |> field("name", C.qName),
-                   json |> field("names", array(Abstract.name)),
+                   json |> field("names", array(A.name)),
                    json
                    |> field("args", list(CommonPrim.namedArg(pattern()))),
                  )
@@ -1013,7 +1014,7 @@ module Decode = {
                    json |> field("range", Position.range),
                    json |> field("expr", expr()),
                  )
-               | "LitP" => LitP(json |> field("literal", Literal.literal))
+               | "LitP" => LitP(json |> field("literal", Abstract.literal))
                | "RecP" =>
                  RecP(
                    json |> field("range", Position.range),
@@ -1118,9 +1119,9 @@ module Decode = {
     module Internal = {
       open Type.Syntax.Internal;
       let conHead = json => {
-        name: json |> Abstract.qName,
+        name: json |> A.qName,
         inductive: json |> Common.induction,
-        fields: json |> list(CommonPrim.arg(Abstract.qName)),
+        fields: json |> list(CommonPrim.arg(A.qName)),
       };
       let conInfo = Common.conOrigin;
       let abs = decoder =>
@@ -1149,7 +1150,7 @@ module Decode = {
              | "Proj" =>
                Proj(
                  json |> field("projOrigin", Common.projOrigin),
-                 json |> field("name", Abstract.qName),
+                 json |> field("name", A.qName),
                )
              | "IApply" =>
                IApply(
@@ -1251,10 +1252,10 @@ module Decode = {
                  json |> field("argInfo", CommonPrim.argInfo),
                  json |> field("binder", abs(term())),
                )
-             | "Lit" => Lit(json |> field("literal", Literal.literal))
+             | "Lit" => Lit(json |> field("literal", Abstract.literal))
              | "Def" =>
                Def(
-                 json |> field("name", Abstract.qName),
+                 json |> field("name", A.qName),
                  json |> field("elims", list(elim())),
                )
              | "Con" =>
@@ -1334,11 +1335,7 @@ module Decode = {
              )
            | "PatternError" =>
              PatternError(json |> field("range", Syntax.Position.range))
-           | _ =>
-             IOException(
-               json |> field("range", Syntax.Position.range),
-               "JSON Parse Error",
-             )
+           | _ => failwith("unknown kind of TCError")
            }
          );
   };
