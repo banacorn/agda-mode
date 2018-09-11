@@ -1,8 +1,8 @@
 open ReasonReact;
 
-open Type;
+open Type.Syntax.Concrete;
 
-open Syntax.Concrete;
+open Type;
 
 open C;
 
@@ -12,24 +12,34 @@ let jump = true;
 
 let hover = true;
 
-module Expr = {
+module Component = {
+  let lamBinding = statelessComponent("LamBinding");
+  let typedBindings = statelessComponent("TypedBindings");
+  let typedBinding = statelessComponent("TypedBinding");
+  let declaration = statelessComponent("Declaration");
+};
+
+module TypedBinding_ = {
+  let isUnderscore: underscore(typedBinding) =
+    binding =>
+      switch (binding) {
+      | TBind(_, _, Underscore(_, None)) => true
+      | _ => false
+      };
+};
+
+module Expr_ = {
+  open Type.Syntax.CommonPrim;
   open CommonPrim;
-  let rec appView: expr => (expr, list(Syntax.CommonPrim.namedArg(expr))) =
+  let rec appView: expr => (expr, list(namedArg(expr))) =
     expr => {
       let vApp = ((e, es), arg) => (e, List.append(es, [arg]));
       let arg = expr =>
         switch (expr) {
-        | HiddenArg(_, e) =>
-          e
-          |> CommonPrim.Arg.default
-          |> CommonPrim.Arg.setArgInfoHiding(Syntax.CommonPrim.Hidden)
+        | HiddenArg(_, e) => e |> Arg.default |> Arg.setArgInfoHiding(Hidden)
         | InstanceArg(_, e) =>
-          e
-          |> CommonPrim.Arg.default
-          |> CommonPrim.Arg.setArgInfoHiding(
-               Syntax.CommonPrim.Instance(Syntax.CommonPrim.NoOverlap),
-             )
-        | e => e |> CommonPrim.Named.unnamed |> CommonPrim.Arg.default
+          e |> Arg.default |> Arg.setArgInfoHiding(Instance(NoOverlap))
+        | e => e |> Named.unnamed |> Arg.default
         };
       switch (expr) {
       | App(_, e1, e2) => vApp(appView(e1), e2)
@@ -37,13 +47,24 @@ module Expr = {
       | _ => (expr, [])
       };
     };
-  let levelToString = [%raw
-    "n => n.toString().split('').map(x => String.fromCharCode(0x2080 + parseInt(x))).join(\n      '')"
+  let levelToString = _n => [%raw
+    "n.toString().split('').map(x => String.fromCharCode(0x2080 + parseInt(x))).join(\n      '')"
   ];
   let component = statelessComponent("Expr");
-  let rec make = (~value, ~prec=0, _children) => {
-    ...component,
-    render: _self =>
+};
+
+/* Collection of reactElements for mutual recursive reference */
+module Element = {
+  /* namespaces */
+  /* open Type.Syntax.CommonPrim; */
+  open CommonPrim;
+  /* elements */
+  let rec makeExpr = (~value, _children) => {
+    ...Expr_.component,
+    render: _self => {
+      module Expr = {
+        let make = makeExpr;
+      };
       switch (value) {
       | Ident(value) => <QName value />
       | Lit(value) => <Literal value />
@@ -56,19 +77,16 @@ module Expr = {
       | Underscore(range, Some(s)) =>
         <Link jump hover range> (string(s)) </Link>
       | App(_, _, _) =>
-        let (e1, args) = appView(value);
+        let (e1, args) = Expr_.appView(value);
         let items: list(reactElement) = [
-          element(make(~value=e1, [||])),
+          <Expr value=e1 />,
           ...List.map(
                value =>
                  <Arg value>
                    ...(
                         (prec, value) =>
                           <Named prec value>
-                            ...(
-                                 (prec, value) =>
-                                   element(make(~value, ~prec, [||]))
-                               )
+                            ...((_, value) => <Expr value />)
                           </Named>
                       )
                  </Arg>,
@@ -77,17 +95,147 @@ module Expr = {
         ];
         sepBy(string(" "), items);
       | RawApp(_, exprs) =>
-        exprs
-        |> List.map(value => element(make(~value, [||])))
-        |> sepBy(string(" "))
-      | OpApp(_, qname, _, exprs) => <span> (string("unimplemented")) </span>
+        exprs |> List.map(value => <Expr value />) |> sepBy(string(" "))
+      | OpApp(_, _, _, _) => <span> (string("unimplemented")) </span>
+      | WithApp(_, expr, exprs) =>
+        [expr, ...exprs]
+        |> List.map(value => <Expr value />)
+        |> sepBy(string(" | "))
+      | HiddenArg(_, expr) =>
+        CommonPrim.braces([|
+          <Named value=expr> ...((_, value) => <Expr value />) </Named>,
+        |])
+      | InstanceArg(_, expr) =>
+        CommonPrim.dbraces([|
+          <Named value=expr> ...((_, value) => <Expr value />) </Named>,
+        |])
+      | Lam(_, bindings, AbsurdLam(_, hiding)) =>
+        <span>
+          (string({js|λ|js}))
+          /* (bindings |> List.map(value => <LamBinding value />)) */
+          <Hiding hiding />
+        </span>
+      | Lam(_, bindings, expr) => <span> (string("unimplemented")) </span>
       | Set(range) => <Link jump hover range> (string("Set")) </Link>
       | Prop(range) => <Link jump hover range> (string("Prop")) </Link>
       | SetN(range, n) =>
-        <Link jump hover range> (string("Set" ++ levelToString(n))) </Link>
+        <Link jump hover range>
+          (string("Set" ++ Expr_.levelToString(n)))
+        </Link>
       | PropN(range, n) =>
-        <Link jump hover range> (string("Prop" ++ levelToString(n))) </Link>
+        <Link jump hover range>
+          (string("Prop" ++ Expr_.levelToString(n)))
+        </Link>
       | _ => <span> (string("unimplemented")) </span>
-      },
+      };
+    },
+  }
+  and makeDeclaration = (~value, _children) => {
+    ...Component.declaration,
+    render: _self => <span> (string("<Declaration> unimplemented")) </span>,
+  }
+  and makeTypedBinding = (~value, _children) => {
+    ...Component.typedBindings,
+    render: _self => {
+      module Declaration = {
+        let make = makeDeclaration;
+      };
+      Type.Syntax.CommonPrim.(
+        switch (value) {
+        | TBind(_, xs, Underscore(_, None)) =>
+          xs
+          |> List.map((WithHiding(hiding, value)) =>
+               <Hiding hiding> <BoundName value /> </Hiding>
+             )
+          |> sepBy(string(" "))
+        | TBind(_, xs, expr) =>
+          module Expr = {
+            let make = makeExpr;
+          };
+          let names =
+            xs
+            |> List.map((WithHiding(hiding, value)) =>
+                 <Hiding hiding> <BoundName value /> </Hiding>
+               )
+            |> sepBy(string(" "));
+          <span> names (string(" : ")) <Expr value=expr /> </span>;
+        | TLet(_, ds) =>
+          <>
+            <span> (string("let")) </span>
+            <ul>
+              ...(
+                   ds
+                   |> List.map(value => <li> <Declaration value /> </li>)
+                   |> Array.of_list
+                 )
+            </ul>
+          </>
+        }
+      );
+    },
+  }
+  and makeTypedBindings = (~value, _children) => {
+    ...Component.typedBindings,
+    render: _self => {
+      module TypedBinding = {
+        let make = makeTypedBinding;
+      };
+      let TypedBindings(_, Arg(argInfo, binding)) = value;
+      if (TypedBinding_.isUnderscore(binding)) {
+        <TypedBinding value=binding />;
+      } else {
+        <>
+          <Relevance relevance=argInfo.modality.relevance />
+          <Hiding hiding=argInfo.hiding>
+            <TypedBinding value=binding />
+          </Hiding>
+        </>;
+      };
+    },
+  }
+  and makeLamBinding = (~value, _children) => {
+    ...Component.lamBinding,
+    render: _self => {
+      module TypedBindings = {
+        let make = makeTypedBindings;
+      };
+      switch (value) {
+      | DomainFree(argInfo, boundName) =>
+        if (argInfo.hiding === NotHidden && BoundName.isUnderscore(boundName)) {
+          <BoundName value=boundName />;
+        } else {
+          <>
+            <Relevance relevance=argInfo.modality.relevance />
+            <Hiding hiding=argInfo.hiding>
+              <BoundName value=boundName />
+            </Hiding>
+          </>;
+        }
+      | DomainFull(value) => <TypedBindings value />
+      };
+    },
   };
+  /* and makeOpApp = (~qname, ~exprs, _children) => {
+       ...OpApp_.component,
+       render: _self => {
+         open Type.Syntax.C;
+         let prOp = (ms, xs, es) =>
+           switch (xs, es) {
+           | ([Hole, ...xs], [e, ...es]) => result
+           | ([Hole, ...xs], []) => result
+           | ([Id(x), ...xs], es) => result
+           | ([], es) => result
+           };
+         let QName(moduleNames, name) = qname;
+         switch (name) {
+         | NoName(_, _) => failwith("Panic! NoName in <OpApp>")
+         | Name(range, names) => failwith("Panic! NoName in <OpApp>")
+         };
+         <span> (string("OpApp_")) </span>;
+       },
+     }; */
+};
+
+module Expr = {
+  let make = Element.makeExpr;
 };

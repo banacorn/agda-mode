@@ -83,10 +83,8 @@ module Syntax = {
       | Hidden
       | Instance(overlappable)
       | NotHidden;
-    type withHiding('a) = {
-      hiding,
-      value: 'a,
-    };
+    type withHiding('a) =
+      | WithHiding(hiding, 'a);
     type relevance =
       | Relevant
       | NonStrict
@@ -225,7 +223,7 @@ module Syntax = {
           Position.range,
           C.qName,
           array(Abstract.name),
-          list(CommonPrim.namedArg(maybePlaceholder)),
+          list(CommonPrim.namedArg(opApp)),
         )
       | WithApp(Position.range, expr, list(expr))
       | HiddenArg(Position.range, CommonPrim.named(expr))
@@ -429,11 +427,14 @@ module Syntax = {
       | SectionApp(Position.range, list(typedBindings), expr)
       | RecordModuleIFS(Position.range, C.qName)
     and opApp =
-      | SyntaxBindingLambda(Position.range, list(lamBinding), expr)
-      | Ordinary(expr)
-    and maybePlaceholder =
       | Placeholder(CommonPrim.positionInName)
-      | NoPlaceholder(option(CommonPrim.positionInName), opApp)
+      | SyntaxBindingLambda(
+          option(CommonPrim.positionInName),
+          Position.range,
+          list(lamBinding),
+          expr,
+        )
+      | Ordinary(option(CommonPrim.positionInName), expr)
     and telescope = list(typedBindings);
   };
   module Common = {

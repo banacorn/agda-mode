@@ -59,3 +59,27 @@ module QName = {
       },
   };
 };
+
+module BoundName = {
+  let component = statelessComponent("BoundName");
+  let isUnderscore: underscore(boundName) =
+    value =>
+      if (value.name === value.label) {
+        Name.isUnderscore(value.name);
+      } else {
+        false;
+      };
+  let make = (~value, children) => {
+    ...component,
+    render: _self =>
+      if (value.name === value.label) {
+        <Name value=value.name />;
+      } else {
+        <span>
+          <Name value=value.label />
+          (string("="))
+          <Name value=value.name />
+        </span>;
+      },
+  };
+};

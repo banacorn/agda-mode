@@ -24,13 +24,25 @@ let parens = children =>
 
 let parensIf = (p, children) => p ? parens(children) : array(children);
 
-module Hiding = {
-  let component = statelessComponent("Hiding");
-  let make =
-      (~value=NotHidden, ~prec=0, ~parens, children: array(reactElement)) => {
+module Relevance = {
+  let component = statelessComponent("Relevance");
+  let make = (~relevance, children) => {
     ...component,
     render: _self =>
-      switch (value) {
+      switch (relevance) {
+      | Relevant => <> </>
+      | Irrelevant => <span> (string(".")) </span>
+      | NonStrict => <span> (string("..")) </span>
+      },
+  };
+};
+
+module Hiding = {
+  let component = statelessComponent("Hiding");
+  let make = (~hiding=NotHidden, ~prec=0, ~parens=id, children) => {
+    ...component,
+    render: _self =>
+      switch (hiding) {
       | Hidden => <> (braces(children)) </>
       | Instance(_) => <> (dbraces(children)) </>
       | NotHidden => <> (parens(children)) </>
@@ -82,7 +94,7 @@ module Arg = {
       let Arg(argInfo, value) = value;
       let p = ArgInfo.isVisible(argInfo) ? prec : 0;
       let localParens = argInfo.origin == Substitution ? parens : id;
-      <Hiding value=argInfo.hiding parens=localParens>
+      <Hiding hiding=argInfo.hiding parens=localParens>
         (children(p, value))
       </Hiding>;
     },

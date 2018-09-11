@@ -174,10 +174,11 @@ module Decode = {
              | _ => failwith("unknown kind of Hidden")
              }
            );
-      let withHiding = (decoder, json) => {
-        hiding: json |> field("hiding", hiding),
-        value: json |> field("value", decoder),
-      };
+      let withHiding = (decoder, json) =>
+        WithHiding(
+          json |> field("hiding", hiding),
+          json |> field("value", decoder),
+        );
       let relevance =
         string
         |> andThen((kind, _json) =>
@@ -418,11 +419,7 @@ module Decode = {
                  json |> field("range", Position.range),
                  json |> field("name", C.qName),
                  json |> field("names", array(Abstract.name)),
-                 json
-                 |> field(
-                      "args",
-                      list(CommonPrim.namedArg(maybePlaceholder())),
-                    ),
+                 json |> field("args", list(CommonPrim.namedArg(opApp()))),
                )
              | "WithApp" =>
                WithApp(
@@ -897,31 +894,28 @@ module Decode = {
         field("kind", string)
         |> andThen((kind, json) =>
              switch (kind) {
-             | "SyntaxBindingLambda" =>
-               SyntaxBindingLambda(
-                 json |> field("range", Position.range),
-                 json |> field("bindings", list(lamBinding())),
-                 json |> field("value", expr()),
-               )
-             | "Ordinary" => Ordinary(json |> field("value", expr()))
-             | _ => failwith("unknown kind of OpApp")
-             }
-           )
-      and maybePlaceholder = () =>
-        field("kind", string)
-        |> andThen((kind, json) =>
-             switch (kind) {
              | "Placeholder" =>
                Placeholder(
                  json |> field("position", CommonPrim.positionInName),
                )
              | "NoPlaceholder" =>
-               NoPlaceholder(
+               let position =
                  json
-                 |> field("position", optional(CommonPrim.positionInName)),
-                 json |> field("value", opApp()),
-               )
-             | _ => failwith("unknown kind of MaybePlaceholder")
+                 |> field("position", optional(CommonPrim.positionInName));
+               let kind = json |> at(["value", "kind"], string);
+               switch (kind) {
+               | "SyntaxBindingLambda" =>
+                 SyntaxBindingLambda(
+                   position,
+                   json |> at(["value", "range"], Position.range),
+                   json |> at(["value", "binding"], list(lamBinding())),
+                   json |> at(["value", "value"], expr()),
+                 )
+               | "Ordinary" =>
+                 Ordinary(position, json |> at(["value", "value"], expr()))
+               | _ => failwith("unknown kind of OpApp")
+               };
+             | _ => failwith("unknown kind of OpApp")
              }
            )
       and typedBinding = () =>
