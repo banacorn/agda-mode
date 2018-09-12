@@ -7,7 +7,7 @@ open Syntax.C;
 open Util;
 
 module NamePart = {
-  let pretty: pretty(namePart) =
+  let toString: toString(namePart) =
     part =>
       switch (part) {
       | Hole => "_"
@@ -16,10 +16,10 @@ module NamePart = {
 };
 
 module Name = {
-  let pretty: pretty(name) =
+  let toString: toString(name) =
     name =>
       switch (name) {
-      | Name(_, xs) => String.concat("", List.map(NamePart.pretty, xs))
+      | Name(_, xs) => String.concat("", List.map(NamePart.toString, xs))
       | NoName(_, _) => "_"
       };
   let isUnderscore: underscore(name) =
@@ -35,18 +35,26 @@ module Name = {
     | NoName(range, _) => range
     };
   let component = statelessComponent("Name");
-  let make = (~value, children) => {
+  let make = (~value, _children) => {
     ...component,
     render: _self =>
       <Link jump=true hover=true range=(getRange(value))>
-        (string(pretty(value)))
+        (string(toString(value)))
       </Link>,
   };
 };
 
 module QName = {
+  let toString: toString(qName) =
+    name => {
+      let QName(xs, x) = name;
+      List.append(xs, [x])
+      |> List.filter(x => ! Name.isUnderscore(x))
+      |> List.map(Name.toString)
+      |> String.concat(".");
+    };
   let component = statelessComponent("QName");
-  let make = (~value, children) => {
+  let make = (~value, _children) => {
     ...component,
     render: _self =>
       switch (value) {
@@ -69,7 +77,7 @@ module BoundName = {
       } else {
         false;
       };
-  let make = (~value, children) => {
+  let make = (~value, _children) => {
     ...component,
     render: _self =>
       if (value.name === value.label) {

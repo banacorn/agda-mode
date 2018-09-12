@@ -661,6 +661,7 @@ module TypeChecking = {
     | SetRange(Syntax.Position.range);
   type typeError =
     | UnequalTerms(comparison, repTerm, repTerm, repType, string)
+    | NotInScope(map(Syntax.C.qName, list(Syntax.C.qName)))
     | UnregisteredTypeError(Js.Json.t);
   type error =
     | TypeError(Syntax.Position.range, call, typeError)
@@ -671,4 +672,4 @@ module TypeChecking = {
 
 type underscore('t) = 't => bool;
 
-type pretty('t) = 't => string;
+type toString('t) = 't => string;

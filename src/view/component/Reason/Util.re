@@ -1,5 +1,11 @@
 open ReasonReact;
 
+let sepBy_ = (sep: 'a, item: list('a)) =>
+  switch (item) {
+  | [] => []
+  | [x, ...xs] => [x, ...xs |> List.map(i => [sep, i]) |> List.concat]
+  };
+
 let sepBy = (sep: reactElement, item: list(reactElement)) =>
   switch (item) {
   | [] => <> </>
@@ -7,3 +13,6 @@ let sepBy = (sep: reactElement, item: list(reactElement)) =>
   | [x, ...xs] =>
     <> x (array(Array.of_list(List.map(i => <> sep i </>, xs)))) </>
   };
+
+let contains =
+  fun%raw (haystack, needle) => "haystack.indexOf(needle) !== -1";

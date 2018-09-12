@@ -50,7 +50,7 @@ module Expr_ = {
       };
     };
   let levelToString = _n => [%raw
-    "n.toString().split('').map(x => String.fromCharCode(0x2080 + parseInt(x))).join(\n      '')"
+    "n.toString().split('').map(x => String.fromCharCode(0x2080 + parseInt(x))).join('')"
   ];
   let component = statelessComponent("Expr");
 };

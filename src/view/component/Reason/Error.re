@@ -2,6 +2,7 @@ let typeErrorToHeader = error =>
   Type.TypeChecking.(
     switch (error) {
     | UnequalTerms(_, _, _, _, _) => "Unequal Terms"
+    | NotInScope(_) => "Not In Scope"
     | UnregisteredTypeError(_) => "UnregisteredTypeError"
     }
   );

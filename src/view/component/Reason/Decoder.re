@@ -1443,6 +1443,19 @@ module Decode = {
                json |> field("type", repType),
                json |> field("reason", string),
              )
+           | "NotInScope" =>
+             NotInScope(
+               json
+               |> field(
+                    "names",
+                    list(json =>
+                      (
+                        json |> field("name", Syntax.C.qName),
+                        json |> field("suggestions", list(Syntax.C.qName)),
+                      )
+                    ),
+                  ),
+             )
            | _ => UnregisteredTypeError(json)
            }
          );

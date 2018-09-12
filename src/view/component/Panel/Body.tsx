@@ -55,17 +55,17 @@ class Body extends React.Component<Props, {}> {
                 tabIndex={-1}
                 style={style}
             >
-                <ul className="list-group">
+                <ul className="list-group body-legacy">
                     {body.goalAndHave.map(goalAndHave)}
                 </ul>
-                <ul className="list-group">
+                <ul className="list-group body-legacy">
                     {body.goals.map(goal)}
                     {body.judgements.map(judgement)}
                     {body.terms.map(term)}
                     {body.metas.map(meta)}
                     {body.sorts.map(sort)}
                 </ul>
-                <ul className="list-group">
+                <ul className="list-group body-legacy">
                     {body.warnings.length > 0 &&
                         <li className="list-item special-item">
                             {body.warnings.join('\n')}
