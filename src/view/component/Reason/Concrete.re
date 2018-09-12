@@ -19,6 +19,7 @@ module Component = {
   let declaration = statelessComponent("Declaration");
   let lhs = statelessComponent("LHS");
   let pattern = statelessComponent("Pattern");
+  let telescope = statelessComponent("Telescope");
 };
 
 module TypedBinding_ = {
@@ -49,8 +50,8 @@ module Expr_ = {
       | _ => (expr, [])
       };
     };
-  let levelToString = _n => [%raw
-    "n.toString().split('').map(x => String.fromCharCode(0x2080 + parseInt(x))).join('')"
+  let levelToString: int => string = [%raw
+    "function (n) { return n.toString().split('').map(x => String.fromCharCode(0x2080 + parseInt(x))).join('')}"
   ];
   let component = statelessComponent("Expr");
 };
@@ -69,6 +70,15 @@ module Element = {
       };
       module LamBinding = {
         let make = makeLamBinding;
+      };
+      module TypedBindings = {
+        let make = makeTypedBindings;
+      };
+      module Declaration = {
+        let make = makeDeclaration;
+      };
+      module Telescope = {
+        let make = makeTelescope;
       };
       switch (value) {
       | Ident(value) => <QName value />
@@ -107,13 +117,13 @@ module Element = {
         |> List.map(value => <Expr value />)
         |> sepBy(string(" | "))
       | HiddenArg(_, expr) =>
-        CommonPrim.braces([|
+        CommonPrim.braces(
           <Named value=expr> ...((_, value) => <Expr value />) </Named>,
-        |])
+        )
       | InstanceArg(_, expr) =>
-        CommonPrim.dbraces([|
+        CommonPrim.dbraces(
           <Named value=expr> ...((_, value) => <Expr value />) </Named>,
-        |])
+        )
       | Lam(_, bindings, AbsurdLam(_, hiding)) =>
         <span>
           (string({js|λ |js}))
@@ -152,6 +162,12 @@ module Element = {
           (string({js| → |js}))
           <Expr value=expr />
         </span>
+      | Pi(telescope, expr) =>
+        <span>
+          <Telescope telescope />
+          (string({js| → |js}))
+          <Expr value=expr />
+        </span>
       | Set(range) => <Link jump hover range> (string("Set")) </Link>
       | Prop(range) => <Link jump hover range> (string("Prop")) </Link>
       | SetN(range, n) =>
@@ -162,6 +178,24 @@ module Element = {
         <Link jump hover range>
           (string("Prop" ++ Expr_.levelToString(n)))
         </Link>
+      | Let(_, declarations, expr) =>
+        <span>
+          (string("let "))
+          <ul>
+            ...(
+                 declarations
+                 |> List.map(value => <li> <Declaration value /> </li>)
+                 |> Array.of_list
+               )
+          </ul>
+          (
+            switch (expr) {
+            | Some(value) => <span> (string("in ")) <Expr value /> </span>
+            | None => null
+            }
+          )
+        </span>
+      | Paren(_, value) => CommonPrim.parens(<Expr value />)
       | _ => <span> (string("unimplemented")) </span>
       };
     },
@@ -280,6 +314,30 @@ module Element = {
         )
       </span>;
     },
+  }
+  and makeTelescope = (~telescope, _children) => {
+    ...Component.telescope,
+    render: _self => {
+      module TypedBindings = {
+        let make = makeTypedBindings;
+      };
+      let Telescope(typedBindings) = telescope;
+      let isMeta = typedBindings =>
+        switch (typedBindings) {
+        | TypedBindings(_, Arg(_, TBind(_, _, Underscore(_, None)))) =>
+          true
+        | _ => false
+        };
+      <span>
+        (List.exists(isMeta, typedBindings) ? string({js|∀ |js}) : null)
+        (
+          typedBindings
+          |> List.map(value => <TypedBindings value />)
+          |> sepBy(string(" "))
+        )
+      </span>;
+    },
+    /* | TypedBindings(Position.range, CommonPrim.arg(typedBinding)) */
   };
 };
 

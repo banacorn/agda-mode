@@ -535,7 +535,8 @@ module Syntax = {
           expr,
         )
       | Ordinary(option(CommonPrim.positionInName), expr)
-    and telescope = list(typedBindings);
+    and telescope =
+      | Telescope(list(typedBindings));
   };
   module Common = {
     type conOrigin =

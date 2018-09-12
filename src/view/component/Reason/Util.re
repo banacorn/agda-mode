@@ -14,8 +14,9 @@ let sepBy = (sep: reactElement, item: list(reactElement)) =>
     <> x (array(Array.of_list(List.map(i => <> sep i </>, xs)))) </>
   };
 
-let contains =
-  fun%raw (haystack, needle) => "haystack.indexOf(needle) !== -1";
+let contains: (string, string) => bool = [%raw
+  "function (haystack, needle) { return (haystack.indexOf(needle) !== -1)}"
+];
 
 let enclosedBy = (front: reactElement, back: reactElement, item: reactElement) =>
   <> front (string(" ")) item (string(" ")) back </>;

@@ -4,18 +4,17 @@ open Type;
 
 open Syntax.CommonPrim;
 
-let id = children => <span> ...children </span>;
+let id = children => <span> children </span>;
 
-let braces = children =>
-  <span> (string("{")) (array(children)) (string("}")) </span>;
+let braces = children => <span> (string("{")) children (string("}")) </span>;
 
 let dbraces = children =>
-  <span> (string("{{")) (array(children)) (string("}}")) </span>;
+  <span> (string("{{")) children (string("}}")) </span>;
 
-let parens = children =>
-  <span> (string("(")) (array(children)) (string(")")) </span>;
+let parens = children => <span> (string("(")) children (string(")")) </span>;
 
-let parensIf = (p, children) => p ? parens(children) : array(children);
+let parensIf = (p, children) =>
+  p ? parens(children) : <span> children </span>;
 
 module Relevance = {
   let component = statelessComponent("Relevance");
@@ -35,10 +34,14 @@ module Hiding = {
   let make = (~hiding=NotHidden, ~prec=0, ~parens=id, children) => {
     ...component,
     render: _self =>
-      switch (hiding) {
-      | Hidden => braces(children)
-      | Instance(_) => dbraces(children)
-      | NotHidden => parens(children)
+      switch (Array.length(children)) {
+      | 0 => null
+      | _ =>
+        switch (hiding) {
+        | Hidden => braces(array(children))
+        | Instance(_) => dbraces(array(children))
+        | NotHidden => parens(array(children))
+        }
       },
   };
 };
@@ -55,7 +58,7 @@ module Named = {
       switch (name) {
       | None => children(prec, value)
       | Some(Ranged(_, s)) =>
-        parensIf(prec > 0, [|string(s ++ "="), children(0, value)|])
+        parensIf(prec > 0, <> (string(s ++ "=")) (children(0, value)) </>)
       };
     },
   };

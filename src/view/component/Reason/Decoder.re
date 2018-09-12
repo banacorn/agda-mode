@@ -461,7 +461,7 @@ module Decode = {
                )
              | "Pi" =>
                Pi(
-                 json |> field("telescope", telescope()),
+                 json |> field("telescope", telescope),
                  json |> field("expr", expr()),
                )
              | "Set" => Set(json |> field("range", Position.range))
@@ -959,7 +959,7 @@ module Decode = {
              | _ => failwith("unknown kind of LamBinding_")
              }
            )
-      and telescope = () => list(typedBindings)
+      and telescope = json => Telescope(json |> list(typedBindings))
       and pattern: unit => decoder(pattern) =
         () =>
           field("kind", string)
