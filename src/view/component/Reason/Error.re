@@ -6,6 +6,7 @@ let typeErrorToHeader = error =>
     | ShouldBePi(_) => "Should be Pi"
     | ShouldBeASort(_) => "Should be a Sort"
     | UnequalTerms(_, _, _, _, _) => "Unequal Terms"
+    | ClashingDefinition(_, _) => "Clashing Definition"
     | NotInScope(_) => "Not In Scope"
     | UnregisteredTypeError(_) => "UnregisteredTypeError"
     }

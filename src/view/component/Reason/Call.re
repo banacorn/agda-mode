@@ -88,6 +88,20 @@ let make = (~call, _children) => {
         (string("when scope checking "))
         <Concrete.Expr value=expr />
       </span>
+    | ScopeCheckDeclaration(declarations) =>
+      <span>
+        (
+          string(
+            "when scope checking the declaration "
+            ++ (List.length(declarations) > 1 ? "s" : ""),
+          )
+        )
+        (
+          declarations
+          |> List.map(value => <Concrete.Declaration value />)
+          |> sepBy(<br />)
+        )
+      </span>
     | _ => <span> (string("<Call> unimplemented")) </span>
     },
 };

@@ -44,6 +44,14 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
         <Concrete.Expr value=type_.concrete />
         <br />
       </div>
+    | ClashingDefinition(definition, previouslyAt) =>
+      <div>
+        (string("Multiple definitions of "))
+        <C.QName value=definition />
+        <br />
+        (string("Previous definition at "))
+        <Range range=previouslyAt />
+      </div>
     | NotInScope(pairs) =>
       let forgetSpaceColon = name =>
         name |> C.QName.toString |> String.contains(_, ':');

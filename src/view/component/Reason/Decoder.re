@@ -1450,6 +1450,11 @@ module Decode = {
                json |> field("type", repType),
                json |> field("reason", string),
              )
+           | "ClashingDefinition" =>
+             ClashingDefinition(
+               json |> field("definition", Syntax.C.qName),
+               json |> field("previouslyAt", Syntax.Position.range),
+             )
            | "NotInScope" =>
              NotInScope(
                json

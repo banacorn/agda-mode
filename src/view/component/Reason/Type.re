@@ -666,6 +666,7 @@ module TypeChecking = {
     | ShouldBePi(repType)
     | ShouldBeASort(repType)
     | UnequalTerms(comparison, repTerm, repTerm, repType, string)
+    | ClashingDefinition(Syntax.C.qName, Syntax.Position.range)
     | NotInScope(map(Syntax.C.qName, list(Syntax.C.qName)))
     | UnregisteredTypeError(Js.Json.t);
   type error =
