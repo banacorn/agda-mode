@@ -7,8 +7,9 @@ let typeErrorToHeader = error =>
     | ShouldBeASort(_) => "Should be a Sort"
     | UnequalTerms(_, _, _, _, _) => "Unequal Terms"
     | ClashingDefinition(_, _) => "Clashing Definition"
-    | NotInScope(_) => "Not In Scope"
-    | UnregisteredTypeError(_) => "UnregisteredTypeError"
+    | NoRHSRequiresAbsurdPattern(_) => "No RHS Requires Absurd Pattern"
+    | NotInScope(_) => "Not in Scope"
+    | UnregisteredTypeError(_) => "Unregistered Type Error"
     }
   );
 

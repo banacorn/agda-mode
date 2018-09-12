@@ -52,6 +52,14 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
         (string("Previous definition at "))
         <Range range=previouslyAt />
       </div>
+    | NoRHSRequiresAbsurdPattern(_patterns) =>
+      <div>
+        (
+          string(
+            "The right-hand side can only be omitted if there is an absurd pattern, () or {}, in the left-hand side.",
+          )
+        )
+      </div>
     | NotInScope(pairs) =>
       let forgetSpaceColon = name =>
         name |> C.QName.toString |> String.contains(_, ':');

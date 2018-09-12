@@ -1455,6 +1455,10 @@ module Decode = {
                json |> field("definition", Syntax.C.qName),
                json |> field("previouslyAt", Syntax.Position.range),
              )
+           | "NoRHSRequiresAbsurdPattern" =>
+             NoRHSRequiresAbsurdPattern(
+               json |> field("patterns", list(Syntax.Concrete.pattern())),
+             )
            | "NotInScope" =>
              NotInScope(
                json

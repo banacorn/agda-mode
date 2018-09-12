@@ -12,25 +12,25 @@ let make = (~call, _children) => {
     switch (call) {
     | CheckClause(type_, declarations) =>
       <span>
-        (string("when checking that the clause"))
+        (string("when checking that the clause "))
         (
           declarations
           |> List.map(value => <Concrete.Declaration value />)
           |> sepBy(<br />)
         )
-        (string("has type"))
+        (string(" has type "))
         <Concrete.Expr value=type_.concrete />
       </span>
     | CheckPattern(pattern, type_) =>
       <span>
-        (string("when checking that the pattern"))
+        (string("when checking that the pattern "))
         <Concrete.Pattern pattern />
-        (string("has type"))
+        (string(" has type "))
         <Concrete.Expr value=type_.concrete />
       </span>
     | CheckLetBinding(declarations) =>
       <span>
-        (string("when checking that the let biding"))
+        (string("when checking that the let biding "))
         (
           declarations
           |> List.map(decl => <Concrete.Declaration value=decl />)
@@ -39,7 +39,7 @@ let make = (~call, _children) => {
       </span>
     | InferExpr(expr) =>
       <span>
-        (string("when inferring the type of"))
+        (string("when inferring the type of "))
         <Concrete.Expr value=expr />
       </span>
     | CheckExprCall(_, expr, type_) =>
