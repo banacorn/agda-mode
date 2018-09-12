@@ -10,10 +10,14 @@ let make = (~call, _children) => {
   ...component,
   render: _self =>
     switch (call) {
-    | CheckClause(type_, lhs) =>
+    | CheckClause(type_, declarations) =>
       <span>
         (string("when checking that the clause"))
-        <Concrete.LHS lhs />
+        (
+          declarations
+          |> List.map(value => <Concrete.Declaration value />)
+          |> sepBy(<br />)
+        )
         (string("has type"))
         <Concrete.Expr value=type_.concrete />
       </span>

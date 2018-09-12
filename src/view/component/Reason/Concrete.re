@@ -134,6 +134,24 @@ module Element = {
           )
           <Expr value=expr />
         </span>
+      | AbsurdLam(_range, hiding) =>
+        <span> (string({js|λ |js})) <Hiding hiding /> </span>
+      | ExtendedLam(_range, bindings) =>
+        <span>
+          (string({js|λ |js}))
+          (
+            bindings
+            |> List.map(value => <LamBinding value />)
+            |> sepBy(string(" "))
+            |> enclosedBy(string("{"), string("}"))
+          )
+        </span>
+      | Fun(_range, arg, expr) =>
+        <span>
+          <Arg value=arg> ...((_, value) => <Expr value />) </Arg>
+          (string({js| → |js}))
+          <Expr value=expr />
+        </span>
       | Set(range) => <Link jump hover range> (string("Set")) </Link>
       | Prop(range) => <Link jump hover range> (string("Prop")) </Link>
       | SetN(range, n) =>

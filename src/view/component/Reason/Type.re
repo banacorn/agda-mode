@@ -617,13 +617,13 @@ module TypeChecking = {
     | CmpLeq
     | CmpEq;
   type call =
-    | CheckClause(repType, Syntax.Concrete.lhs)
+    | CheckClause(repType, list(Syntax.Concrete.declaration))
     | CheckPattern(Syntax.Concrete.pattern, repType)
     | CheckLetBinding(list(Syntax.Concrete.declaration))
     | InferExpr(Syntax.Concrete.expr)
     | CheckExprCall(comparison, Syntax.Concrete.expr, repType)
     | CheckDotPattern(Syntax.Concrete.expr, repType)
-    | CheckPatternShadowing(Syntax.Concrete.lhs)
+    | CheckPatternShadowing(list(Syntax.Concrete.declaration))
     | CheckProjection(Syntax.Position.range, Syntax.C.qName, repType)
     | IsTypeCall(Syntax.Concrete.expr, Syntax.Internal.sort)
     | IsType_(Syntax.Concrete.expr)

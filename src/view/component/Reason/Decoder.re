@@ -1305,7 +1305,7 @@ module Decode = {
            | "CheckClause" =>
              CheckClause(
                json |> field("type", repType),
-               json |> field("clause", Syntax.Concrete.lhs),
+               json |> field("clause", list(Syntax.Concrete.declaration())),
              )
            | "CheckPattern" =>
              CheckPattern(
@@ -1331,7 +1331,7 @@ module Decode = {
              )
            | "CheckPatternShadowing" =>
              CheckPatternShadowing(
-               json |> field("clause", Syntax.Concrete.lhs),
+               json |> field("clause", list(Syntax.Concrete.declaration())),
              )
            | "CheckProjection" =>
              CheckProjection(
