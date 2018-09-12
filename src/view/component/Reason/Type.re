@@ -663,6 +663,7 @@ module TypeChecking = {
     | GenericError(string)
     | ShouldEndInApplicationOfTheDatatype(repType)
     | ShouldBePi(repType)
+    | ShouldBeASort(repType)
     | UnequalTerms(comparison, repTerm, repTerm, repType, string)
     | NotInScope(map(Syntax.C.qName, list(Syntax.C.qName)))
     | UnregisteredTypeError(Js.Json.t);

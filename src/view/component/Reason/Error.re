@@ -3,7 +3,8 @@ let typeErrorToHeader = error =>
     switch (error) {
     | GenericError(_) => "Generic Error"
     | ShouldEndInApplicationOfTheDatatype(_) => "Should end in Application of the Datatype"
-    | ShouldBePi(_) => "Should Be Pi"
+    | ShouldBePi(_) => "Should be Pi"
+    | ShouldBeASort(_) => "Should be a Sort"
     | UnequalTerms(_, _, _, _, _) => "Unequal Terms"
     | NotInScope(_) => "Not In Scope"
     | UnregisteredTypeError(_) => "UnregisteredTypeError"

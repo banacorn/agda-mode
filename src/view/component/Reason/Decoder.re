@@ -1441,6 +1441,7 @@ module Decode = {
                json |> field("type", repType),
              )
            | "ShouldBePi" => ShouldBePi(json |> field("type", repType))
+           | "ShouldBeASort" => ShouldBeASort(json |> field("type", repType))
            | "UnequalTerms" =>
              UnequalTerms(
                json |> field("comparison", comparison),
