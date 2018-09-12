@@ -12,6 +12,16 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
     Js.log(emacsMessage);
     switch (typeError) {
     | GenericError(message) => <div> (string(message)) </div>
+    | ShouldEndInApplicationOfTheDatatype(type_) =>
+      <div>
+        (
+          string(
+            "The target of a constructor must be the datatype applied to its parameters, ",
+          )
+        )
+        <Concrete.Expr value=type_.concrete />
+        (string(" isn't"))
+      </div>
     | ShouldBePi(type_) =>
       <div>
         <Concrete.Expr value=type_.concrete />

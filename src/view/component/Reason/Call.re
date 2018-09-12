@@ -72,6 +72,13 @@ let make = (~call, _children) => {
           <Concrete.Expr value=type_.concrete />
         </span>
       )
+    | CheckConstructor(declaration, constructor) =>
+      <span>
+        (string("when checking the constructor "))
+        <C.QName value=constructor />
+        (string(" in the declaration of "))
+        <C.QName value=declaration />
+      </span>
     | ScopeCheckExpr(expr) =>
       <span>
         (string("when scope checking "))

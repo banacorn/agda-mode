@@ -661,6 +661,7 @@ module TypeChecking = {
     | SetRange(Syntax.Position.range);
   type typeError =
     | GenericError(string)
+    | ShouldEndInApplicationOfTheDatatype(repType)
     | ShouldBePi(repType)
     | UnequalTerms(comparison, repTerm, repTerm, repType, string)
     | NotInScope(map(Syntax.C.qName, list(Syntax.C.qName)))

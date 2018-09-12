@@ -1436,6 +1436,10 @@ module Decode = {
       |> andThen((kind, json) =>
            switch (kind) {
            | "GenericError" => GenericError(json |> field("message", string))
+           | "ShouldEndInApplicationOfTheDatatype" =>
+             ShouldEndInApplicationOfTheDatatype(
+               json |> field("type", repType),
+             )
            | "ShouldBePi" => ShouldBePi(json |> field("type", repType))
            | "UnequalTerms" =>
              UnequalTerms(
