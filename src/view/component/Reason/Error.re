@@ -1,6 +1,8 @@
 let typeErrorToHeader = error =>
   Type.TypeChecking.(
     switch (error) {
+    | GenericError(_) => "Generic Error"
+    | ShouldBePi(_) => "Should Be Pi"
     | UnequalTerms(_, _, _, _, _) => "Unequal Terms"
     | NotInScope(_) => "Not In Scope"
     | UnregisteredTypeError(_) => "UnregisteredTypeError"

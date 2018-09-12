@@ -11,6 +11,12 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
   render: _self => {
     Js.log(emacsMessage);
     switch (typeError) {
+    | GenericError(message) => <div> (string(message)) </div>
+    | ShouldBePi(type_) =>
+      <div>
+        <Concrete.Expr value=type_.concrete />
+        (string(" should be a function type, but it isn't"))
+      </div>
     | UnequalTerms(_, term1, term2, type_, _) =>
       <div>
         (string("expected : "))
@@ -31,28 +37,20 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
       let pair = ((name, suggestions)) =>
         <li>
           <C.QName value=name />
-          <p className="padded">
-            (string(" is not in scope"))
+          (string(" is not in scope"))
+          <p>
             (
               forgetSpaceColon(name) ?
-                <>
-                  <br />
-                  (string("did you forget space around the ':'?"))
-                </> :
-                null
+                <> (string("did you forget space around the ':'?")) </> : null
             )
             (
               forgetSpaceArrow(name) ?
-                <>
-                  <br />
-                  (string("did you forget space around the '->'?"))
-                </> :
+                <> (string("did you forget space around the '->'?")) </> :
                 null
             )
             (
               List.length(suggestions) !== 0 ?
                 <>
-                  <br />
                   (string("did you mean "))
                   (
                     suggestions

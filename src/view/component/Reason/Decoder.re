@@ -1356,7 +1356,7 @@ module Decode = {
                     "arguments",
                     list(Syntax.CommonPrim.namedArg(Syntax.Concrete.expr())),
                   ),
-               json |> field("type", repType),
+               json |> field("type1", repType),
              )
            | "CheckTargetType" =>
              CheckTargetType(
@@ -1435,6 +1435,8 @@ module Decode = {
       field("kind", string)
       |> andThen((kind, json) =>
            switch (kind) {
+           | "GenericError" => GenericError(json |> field("message", string))
+           | "ShouldBePi" => ShouldBePi(json |> field("type", repType))
            | "UnequalTerms" =>
              UnequalTerms(
                json |> field("comparison", comparison),

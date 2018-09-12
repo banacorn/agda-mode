@@ -4,23 +4,16 @@ open Type;
 
 open Syntax.CommonPrim;
 
-let id = children => array(children);
+let id = children => <span> ...children </span>;
 
-/* let braces = children => <span>  ...children  </span>; */
 let braces = children =>
-  <span>
-    ...(Array.concat([[|string("{")|], children, [|string("}")|]]))
-  </span>;
+  <span> (string("{")) (array(children)) (string("}")) </span>;
 
 let dbraces = children =>
-  <span>
-    ...(Array.concat([[|string("{{")|], children, [|string("}}")|]]))
-  </span>;
+  <span> (string("{{")) (array(children)) (string("}}")) </span>;
 
 let parens = children =>
-  <span>
-    ...(Array.concat([[|string("(")|], children, [|string(")")|]]))
-  </span>;
+  <span> (string("(")) (array(children)) (string(")")) </span>;
 
 let parensIf = (p, children) => p ? parens(children) : array(children);
 
@@ -43,9 +36,9 @@ module Hiding = {
     ...component,
     render: _self =>
       switch (hiding) {
-      | Hidden => <> (braces(children)) </>
-      | Instance(_) => <> (dbraces(children)) </>
-      | NotHidden => <> (parens(children)) </>
+      | Hidden => braces(children)
+      | Instance(_) => dbraces(children)
+      | NotHidden => parens(children)
       },
   };
 };

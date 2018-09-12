@@ -660,6 +660,8 @@ module TypeChecking = {
     | ModuleContents
     | SetRange(Syntax.Position.range);
   type typeError =
+    | GenericError(string)
+    | ShouldBePi(repType)
     | UnequalTerms(comparison, repTerm, repTerm, repType, string)
     | NotInScope(map(Syntax.C.qName, list(Syntax.C.qName)))
     | UnregisteredTypeError(Js.Json.t);

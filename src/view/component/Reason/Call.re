@@ -45,6 +45,38 @@ let make = (~call, _children) => {
         (string(" has type "))
         <Concrete.Expr value=type_.concrete />
       </span>
+    | CheckArguments(_, exprs, type_) =>
+      CommonPrim.(
+        <span>
+          (string("when checking that "))
+          (
+            exprs
+            |> List.map(value =>
+                 <Arg value>
+                   ...(
+                        (prec, value) =>
+                          <Named prec value>
+                            ...((_, value) => <Concrete.Expr value />)
+                          </Named>
+                      )
+                 </Arg>
+               )
+            |> sepBy(string(" "))
+          )
+          (
+            List.length(exprs) > 1 ?
+              string(" are valid arguments ") :
+              string(" is a valid argument ")
+          )
+          (string("to a function of type "))
+          <Concrete.Expr value=type_.concrete />
+        </span>
+      )
+    | ScopeCheckExpr(expr) =>
+      <span>
+        (string("when scope checking "))
+        <Concrete.Expr value=expr />
+      </span>
     | _ => <span> (string("<Call> unimplemented")) </span>
     },
 };
