@@ -663,6 +663,11 @@ module TypeChecking = {
   type typeError =
     | GenericError(string)
     | ShouldEndInApplicationOfTheDatatype(repType)
+    | ShadowedModule(
+        Syntax.C.qName,
+        Syntax.C.name,
+        option(Syntax.CommonPrim.dataOrRecord),
+      )
     | ShouldBePi(repType)
     | ShouldBeASort(repType)
     | UnequalTerms(comparison, repTerm, repTerm, repType, string)

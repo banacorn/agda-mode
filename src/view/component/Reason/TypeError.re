@@ -22,6 +22,24 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
         <Concrete.Expr value=type_.concrete />
         (string(" isn't"))
       </div>
+    | ShadowedModule(previous, duplicated, dataOrRecord) =>
+      let type_ =
+        Type.Syntax.CommonPrim.(
+          switch (dataOrRecord) {
+          | Some(IsData) => "(datatype) "
+          | Some(IsRecord) => "(record) "
+          | None => ""
+          }
+        );
+      <div>
+        (string("Duplicate definition of module "))
+        <C.Name value=duplicated />
+        <br />
+        (string("Previous definition of " ++ type_ ++ "module "))
+        <C.QName value=previous />
+      </div>;
+    /* (string(" at "))
+       1<Range range=previous /> */
     | ShouldBePi(type_) =>
       <div>
         <Concrete.Expr value=type_.concrete />

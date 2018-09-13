@@ -261,6 +261,15 @@ module Decode = {
         );
       let named_ = decoder => named(ranged(string), decoder);
       let namedArg = decoder => arg(named_(decoder));
+      let dataOrRecord =
+        string
+        |> andThen((kind, _json) =>
+             switch (kind) {
+             | "IsData" => IsData
+             | "IsRecord" => IsRecord
+             | _ => failwith("unknown kind of DataOrRecord")
+             }
+           );
     };
     module Notation = {
       open Type.Syntax.Notation;
@@ -1439,6 +1448,16 @@ module Decode = {
            | "ShouldEndInApplicationOfTheDatatype" =>
              ShouldEndInApplicationOfTheDatatype(
                json |> field("type", repType),
+             )
+           | "ShadowedModule" =>
+             ShadowedModule(
+               json |> field("previous", Syntax.C.qName),
+               json |> field("duplicated", Syntax.C.name),
+               json
+               |> field(
+                    "dataOrRecord",
+                    optional(Syntax.CommonPrim.dataOrRecord),
+                  ),
              )
            | "ShouldBePi" => ShouldBePi(json |> field("type", repType))
            | "ShouldBeASort" => ShouldBeASort(json |> field("type", repType))
