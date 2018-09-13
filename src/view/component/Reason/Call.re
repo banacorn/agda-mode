@@ -76,6 +76,16 @@ let make = (~call, _children) => {
           <Concrete.Expr value=type_.concrete />
         </span>
       )
+    | CheckTargetType(_range, inf, exp) =>
+      <span>
+        (string("when checking that the inferred type of an application "))
+        <br />
+        <Concrete.Expr value=inf.concrete />
+        <br />
+        (string("matches the expected type "))
+        <br />
+        <Concrete.Expr value=exp.concrete />
+      </span>
     | CheckConstructor(declaration, constructor) =>
       <span>
         (string("when checking the constructor "))
