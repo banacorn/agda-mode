@@ -369,6 +369,7 @@ export default class View {
     }
 
     setAgdaMetas(object: object) {
+        console.log(object);
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
@@ -377,7 +378,7 @@ export default class View {
             style: V.Style.Info
         }));
 
-        // this.store.dispatch(Action.updateMetas(object));
+        this.store.dispatch(Action.updateMetas(object));
     }
 
     setJudgements(header: string = 'Judgements', body: V.Body) {

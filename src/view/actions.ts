@@ -187,6 +187,7 @@ export namespace BODY {
 }
 
 export const updateBody = createAction<BODY.UPDATE_BODY>(BODY.UPDATE_BODY);
+export const updateMetas = createAction<BODY.UPDATE_METAS>(BODY.UPDATE_METAS);
 export const updateError = createAction<BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
 export const updateEmacsError = createAction<BODY.UPDATE_EMACS_ERROR>(BODY.UPDATE_EMACS_ERROR);
 export const updateSolutions = createAction<BODY.UPDATE_SOLUTIONS>(BODY.UPDATE_SOLUTIONS);

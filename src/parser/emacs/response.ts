@@ -219,10 +219,12 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
         default:
             return {
                 kind: 'AllGoalsWarnings',
-                allGoalsWarnings: null,
-                goals: "",
-                warnings: "",
-                errors: "",
+                metas: null,
+                emacsMetas: {
+                    goals: "",
+                    warnings: "",
+                    errors: "",
+                },
                 emacsMessage: payload
             };
     }

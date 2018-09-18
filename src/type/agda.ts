@@ -168,10 +168,12 @@ export interface Info_Constraints {
 
 export interface Info_AllGoalsWarnings {
     kind: "AllGoalsWarnings",
-    allGoalsWarnings: object;
-    goals: string;
-    warnings: string;
-    errors: string;
+    metas: object;
+    emacsMetas: {
+        goals: string;
+        warnings: string;
+        errors: string;
+    };
     emacsMessage: string;    // for Emacs
 }
 export interface Info_Error {

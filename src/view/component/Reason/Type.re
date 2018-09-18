@@ -38,6 +38,10 @@ module Syntax = {
       | NoRange
       | Range(srcFile, list(interval));
   };
+  module Parser = {
+    type parseWarning =
+      | OverlappingTokensWarning(Position.range);
+  };
   module CommonPrim = {
     type positionInName =
       | Beginning
@@ -292,6 +296,27 @@ module Syntax = {
       | LitMeta(Position.range, string, int);
   };
   module Concrete = {
+    type declarationWarning =
+      | EmptyAbstract(Position.range)
+      | EmptyInstance(Position.range)
+      | EmptyMacro(Position.range)
+      | EmptyMutual(Position.range)
+      | EmptyPostulate(Position.range)
+      | EmptyPrivate(Position.range)
+      | InvalidCatchallPragma(Position.range)
+      | InvalidNoPositivityCheckPragma(Position.range)
+      | InvalidNoUniverseCheckPragma(Position.range)
+      | InvalidTerminationCheckPragma(Position.range)
+      | MissingDefinitions(list(C.name))
+      | NotAllowedInMutual(Position.range, string)
+      | PolarityPragmasButNotPostulates(list(C.name))
+      | PragmaNoTerminationCheck(Position.range)
+      | UnknownFixityInMixfixDecl(list(C.name))
+      | UnknownNamesInFixityDecl(list(C.name))
+      | UnknownNamesInPolarityPragmas(list(C.name))
+      | UselessAbstract(Position.range)
+      | UselessInstance(Position.range)
+      | UselessPrivate(Position.range);
     type importDirective = CommonPrim.importDirective_(C.name, C.name);
     type asName = {
       name: C.name,
@@ -560,11 +585,10 @@ module Syntax = {
     type abs('a) =
       | Abs(string, 'a)
       | NoAbs(string, 'a);
-    type elim_('a) =
-      | Apply(CommonPrim.arg('a))
+    type elim =
+      | Apply(CommonPrim.arg(term))
       | Proj(CommonPrim.projOrigin, A.qName)
-      | IApply('a, 'a, 'a);
-    type elim = elim_(term)
+      | IApply(term, term, term)
     and notBlocked =
       | StuckOn(elim)
       | Underapplied
@@ -680,6 +704,147 @@ module TypeChecking = {
     | Exception(Syntax.Position.range, string)
     | IOException(Syntax.Position.range, string)
     | PatternError(Syntax.Position.range);
+  type polarity =
+    | Covariant
+    | Contravariant
+    | Invariant
+    | Nonvariant;
+  type terminationError = {
+    functions: list(Syntax.C.qName),
+    calls: list(Syntax.C.qName),
+  };
+  type where =
+    | LeftOfArrow
+    | DefArg(Syntax.C.qName, int)
+    | UnderInf
+    | VarArg
+    | MetaArg
+    | ConArgType(Syntax.C.qName)
+    | IndArgType(Syntax.C.qName)
+    | InClause(int)
+    | Matched
+    | InDefOf(Syntax.C.qName);
+  type occursWhere =
+    | Unknown
+    | Known(Syntax.Position.range, list(where));
+  type isForced =
+    | Forced
+    | NotForced;
+  type explicitToInstance =
+    | ExplicitToInstance
+    | ExplicitStayExplicit;
+  type candidate = {
+    term: repTerm,
+    type_: repType,
+    eti: explicitToInstance,
+    overlappable: Syntax.CommonPrim.overlappable,
+  };
+  type constraint_ =
+    | ValueCmp(comparison, repType, repTerm, repTerm)
+    | ValueCmpOnFace(comparison, repTerm, repType, repTerm, repTerm)
+    | ElimCmp(
+        list(polarity),
+        list(isForced),
+        repType,
+        repTerm,
+        list(Syntax.Internal.elim),
+        list(Syntax.Internal.elim),
+      )
+    | TypeCmp(comparison, repType, repType)
+    | TelCmp(
+        repType,
+        repType,
+        comparison,
+        list(Syntax.Concrete.typedBindings),
+        list(Syntax.Concrete.typedBindings),
+      )
+    | SortCmp(comparison, Syntax.Internal.sort, Syntax.Internal.sort)
+    | LevelCmp(comparison, Syntax.Internal.level, Syntax.Internal.level)
+    | HasBiggerSort(Syntax.Internal.sort)
+    | HasPTSRule(
+        Syntax.Internal.sort,
+        Syntax.Internal.abs(Syntax.Internal.sort),
+      )
+    | UnBlock(int)
+    | Guarded(constraint_, int)
+    | IsEmpty(Syntax.Position.range, repType)
+    | CheckSizeLtSat(repTerm)
+    | FindInScope(int, option(int), option(list(candidate)))
+    | CheckFunDef(Syntax.C.qName, list(list(Syntax.Concrete.declaration)));
+  type problemConstraint = {
+    problems: array(int),
+    constraint_,
+  };
+  type warning =
+    | NicifierIssue(Syntax.Concrete.declarationWarning)
+    | TerminationIssue(list(terminationError))
+    | UnreachableClauses(Syntax.C.qName)
+    | CoverageIssue(Syntax.C.qName, list(list(Syntax.Concrete.declaration)))
+    | CoverageNoExactSplit(
+        Syntax.C.qName,
+        list(list(Syntax.Concrete.declaration)),
+      )
+    | NotStrictlyPositive(Syntax.C.qName, occursWhere)
+    | UnsolvedMetaVariables(list(Syntax.Position.range))
+    | UnsolvedInteractionMetas(list(Syntax.Position.range))
+    | UnsolvedConstraints(list(problemConstraint))
+    | AbsurdPatternRequiresNoRHS
+    | OldBuiltin(string, string)
+    | EmptyRewritePragma
+    | UselessPublic
+    | UselessInline(Syntax.C.qName)
+    | InversionDepthReached(Syntax.C.qName)
+    | GenericWarning(string)
+    | GenericNonFatalError(string)
+    | SafeFlagPostulate(Syntax.C.name)
+    | SafeFlagPragma(list(string))
+    | SafeFlagNonTerminating
+    | SafeFlagTerminating
+    | SafeFlagPrimTrustMe
+    | SafeFlagNoPositivityCheck
+    | SafeFlagPolarity
+    | SafeFlagNoUniverseCheck
+    | ParseWarning(Syntax.Parser.parseWarning)
+    | DeprecationWarning(string, string, string)
+    | UserWarning(string)
+    | ModuleDoesntExport(
+        Syntax.C.qName,
+        list(
+          Syntax.CommonPrim.importedName_(
+            Syntax.A.qName,
+            list(Syntax.A.name),
+          ),
+        ),
+      );
+};
+
+module Interaction = {
+  type outputConstraint('a, 'b) =
+    | OfType('b, 'a)
+    | CmpInType(TypeChecking.comparison, 'a, 'b, 'b)
+    | CmpElim(list(TypeChecking.polarity), 'a, list('b), list('b))
+    | JustType('b)
+    | CmpTypes(TypeChecking.comparison, 'b, 'b)
+    | CmpLevels(TypeChecking.comparison, 'b, 'b)
+    | CmpTeles(TypeChecking.comparison, 'b, 'b)
+    | JustSort('b)
+    | CmpSorts(TypeChecking.comparison, 'b, 'b)
+    | Guard(outputConstraint('a, 'b), int)
+    | Assign('b, 'a)
+    | TypedAssign('b, 'a, 'a)
+    | PostponedCheckArgs('b, list('a), 'a, 'a)
+    | IsEmptyType('a)
+    | SizeLtSat('a)
+    | FindInScopeOF('b, 'a, list(('a, 'a)))
+    | PTSInstance('b, 'b);
+  type metas = {
+    interactionMetas:
+      list(outputConstraint(Syntax.Concrete.expr, Syntax.Concrete.expr)),
+    hiddenMetas:
+      list(outputConstraint(Syntax.Concrete.expr, Syntax.Concrete.expr)),
+    warnings: list(TypeChecking.warning),
+    errors: list(TypeChecking.warning),
+  };
 };
 
 type underscore('t) = 't => bool;
