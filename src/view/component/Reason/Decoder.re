@@ -38,6 +38,11 @@ module Decode = {
         )
         |> withDefault(NoRange);
     };
+    module Parser = {
+      open Type.Syntax.Parser;
+      let parseWarning = json =>
+        OverlappingTokensWarning(json |> field("range", Position.range));
+    };
     module C = {
       open Type.Syntax.C;
       let nameId = json =>
@@ -377,6 +382,72 @@ module Decode = {
     module Concrete = {
       open Type.Syntax.C;
       open Type.Syntax.Concrete;
+      let declarationWarning =
+        field("kind", string)
+        |> andThen((kind, json) =>
+             switch (kind) {
+             | "EmptyAbstract" =>
+               EmptyAbstract(json |> field("range", Position.range))
+             | "EmptyInstance" =>
+               EmptyInstance(json |> field("range", Position.range))
+             | "EmptyMacro" =>
+               EmptyMacro(json |> field("range", Position.range))
+             | "EmptyMutual" =>
+               EmptyMutual(json |> field("range", Position.range))
+             | "EmptyPostulate" =>
+               EmptyPostulate(json |> field("range", Position.range))
+             | "EmptyPrivate" =>
+               EmptyPrivate(json |> field("range", Position.range))
+             | "InvalidCatchallPragma" =>
+               InvalidCatchallPragma(json |> field("range", Position.range))
+             | "InvalidNoPositivityCheckPragma" =>
+               InvalidNoPositivityCheckPragma(
+                 json |> field("range", Position.range),
+               )
+             | "InvalidNoUniverseCheckPragma" =>
+               InvalidNoUniverseCheckPragma(
+                 json |> field("range", Position.range),
+               )
+             | "InvalidTerminationCheckPragma" =>
+               InvalidTerminationCheckPragma(
+                 json |> field("range", Position.range),
+               )
+             | "MissingDefinitions" =>
+               MissingDefinitions(json |> field("names", list(C.name)))
+             | "NotAllowedInMutual" =>
+               NotAllowedInMutual(
+                 json |> field("range", Position.range),
+                 json |> field("name", string),
+               )
+             | "PolarityPragmasButNotPostulates" =>
+               PolarityPragmasButNotPostulates(
+                 json |> field("names", list(C.name)),
+               )
+             | "PragmaNoTerminationCheck" =>
+               PragmaNoTerminationCheck(
+                 json |> field("range", Position.range),
+               )
+             | "UnknownFixityInMixfixDecl" =>
+               UnknownFixityInMixfixDecl(
+                 json |> field("names", list(C.name)),
+               )
+             | "UnknownNamesInFixityDecl" =>
+               UnknownNamesInFixityDecl(
+                 json |> field("names", list(C.name)),
+               )
+             | "UnknownNamesInPolarityPragmas" =>
+               UnknownNamesInPolarityPragmas(
+                 json |> field("names", list(C.name)),
+               )
+             | "UselessAbstract" =>
+               UselessAbstract(json |> field("range", Position.range))
+             | "UselessInstance" =>
+               UselessInstance(json |> field("range", Position.range))
+             | "UselessPrivate" =>
+               UselessPrivate(json |> field("range", Position.range))
+             | _ => failwith("unknown kind of DeclarationWarning")
+             }
+           );
       let importDirective = CommonPrim.importDirective_(C.name, C.name);
       let asName = json => {
         name: json |> field("name", C.name),
@@ -1149,12 +1220,12 @@ module Decode = {
              | _ => failwith("unknown kind of Abs")
              }
            );
-      let elim_ = decoder =>
+      let rec elim = () =>
         field("kind", string)
         |> andThen((kind, json) =>
              switch (kind) {
              | "Apply" =>
-               Apply(json |> field("arg", CommonPrim.arg(decoder)))
+               Apply(json |> field("arg", CommonPrim.arg(term())))
              | "Proj" =>
                Proj(
                  json |> field("projOrigin", Common.projOrigin),
@@ -1162,14 +1233,13 @@ module Decode = {
                )
              | "IApply" =>
                IApply(
-                 json |> field("endpoint1", decoder),
-                 json |> field("endpoint2", decoder),
-                 json |> field("endpoint3", decoder),
+                 json |> field("endpoint1", term()),
+                 json |> field("endpoint2", term()),
+                 json |> field("endpoint3", term()),
                )
              | _ => failwith("unknown kind of Elim")
              }
-           );
-      let rec elim = () => elim_(term())
+           )
       and notBlocked = () =>
         field("kind", string)
         |> andThen((kind, json) =>
@@ -1298,7 +1368,8 @@ module Decode = {
       |> andThen((kind, _json) =>
            switch (kind) {
            | "CmpLeq" => CmpLeq
-           | _ => CmpEq
+           | "CmpEq" => CmpEq
+           | _ => failwith("unknown kind of Comparison")
            }
          );
     let rep = (decodeFrom, decodeTo, json) => {
@@ -1519,7 +1590,409 @@ module Decode = {
            | _ => failwith("unknown kind of TCError")
            }
          );
+    let terminationError = json => {
+      functions: json |> field("functions", list(Syntax.C.qName)),
+      calls: json |> field("calls", list(Syntax.C.qName)),
+    };
+    let polarity =
+      string
+      |> andThen((kind, _json) =>
+           switch (kind) {
+           | "Covariant" => Covariant
+           | "Contravariant" => Contravariant
+           | "Invariant" => Invariant
+           | "Nonvariant" => Nonvariant
+           | _ => failwith("unknown kind of Polarity")
+           }
+         );
+    let isForced =
+      string
+      |> andThen((kind, _json) =>
+           switch (kind) {
+           | "Forced" => Forced
+           | "NotForced" => NotForced
+           | _ => failwith("unknown kind of IsForced")
+           }
+         );
+    let where =
+      field("kind", string)
+      |> andThen((kind, json) =>
+           switch (kind) {
+           | "LeftOfArrow" => LeftOfArrow
+           | "DefArg" =>
+             DefArg(
+               json |> field("name", Syntax.C.qName),
+               json |> field("index", int),
+             )
+           | "UnderInf" => UnderInf
+           | "VarArg" => VarArg
+           | "MetaArg" => MetaArg
+           | "ConArgType" =>
+             ConArgType(json |> field("name", Syntax.C.qName))
+           | "IndArgType" =>
+             IndArgType(json |> field("name", Syntax.C.qName))
+           | "InClause" => InClause(json |> field("index", int))
+           | "Matched" => Matched
+           | "InDefOf" => InDefOf(json |> field("name", Syntax.C.qName))
+           | _ => failwith("unknown kind of Where")
+           }
+         );
+    let occursWhere =
+      field("kind", string)
+      |> andThen((kind, json) =>
+           switch (kind) {
+           | "Unknown" => Unknown
+           | "Known" =>
+             Known(
+               json |> field("range", Syntax.Position.range),
+               json |> field("wheres", list(where)),
+             )
+           | _ => failwith("unknown kind of OccursWhere")
+           }
+         );
+    let explicitToInstance =
+      string
+      |> andThen((kind, _json) =>
+           switch (kind) {
+           | "ExplicitToInstance" => ExplicitToInstance
+           | "ExplicitStayExplicit" => ExplicitStayExplicit
+           | _ => failwith("unknown kind of ExplicitToInstance")
+           }
+         );
+    let candidate = json => {
+      term: json |> field("term", repTerm),
+      type_: json |> field("type", repType),
+      eti: json |> field("eti", explicitToInstance),
+      overlappable:
+        json |> field("overlappable", Syntax.CommonPrim.overlappable),
+    };
+    let rec constraint_ = () =>
+      field("kind", string)
+      |> andThen((kind, json) =>
+           switch (kind) {
+           | "ValueCmp" =>
+             ValueCmp(
+               json |> field("comparison", comparison),
+               json |> field("type", repType),
+               json |> field("term1", repTerm),
+               json |> field("term2", repTerm),
+             )
+           | "ValueCmpOnFace" =>
+             ValueCmpOnFace(
+               json |> field("comparison", comparison),
+               json |> field("face", repTerm),
+               json |> field("type", repType),
+               json |> field("term1", repTerm),
+               json |> field("term2", repTerm),
+             )
+           | "ElimCmp" =>
+             ElimCmp(
+               json |> field("polarities", list(polarity)),
+               json |> field("isForced", list(isForced)),
+               json |> field("type", repType),
+               json |> field("term", repTerm),
+               json |> field("elims1", list(Syntax.Internal.elim())),
+               json |> field("elims2", list(Syntax.Internal.elim())),
+             )
+           | "TypeCmp" =>
+             TypeCmp(
+               json |> field("comparison", comparison),
+               json |> field("type1", repType),
+               json |> field("type2", repType),
+             )
+           | "TelCmp" =>
+             TelCmp(
+               json |> field("comparison", comparison),
+               json |> field("type1", repType),
+               json |> field("type2", repType),
+               json
+               |> field("telescope1", list(Syntax.Concrete.typedBindings)),
+               json
+               |> field("telescope2", list(Syntax.Concrete.typedBindings)),
+             )
+           | "SortCmp" =>
+             SortCmp(
+               json |> field("comparison", comparison),
+               json |> field("sort1", Syntax.Internal.sort()),
+               json |> field("sort2", Syntax.Internal.sort()),
+             )
+           | "LevelCmp" =>
+             LevelCmp(
+               json |> field("comparison", comparison),
+               json |> field("level1", Syntax.Internal.level),
+               json |> field("level2", Syntax.Internal.level),
+             )
+           | "HasBiggerSort" =>
+             HasBiggerSort(json |> field("sort", Syntax.Internal.sort()))
+           | "HasPTSRule" =>
+             HasPTSRule(
+               json |> field("sort", Syntax.Internal.sort()),
+               json
+               |> field(
+                    "binding",
+                    Syntax.Internal.abs(Syntax.Internal.sort()),
+                  ),
+             )
+           | "UnBlock" => UnBlock(json |> field("metaId", int))
+           | "Guarded" =>
+             Guarded(
+               json |> field("constraint", constraint_()),
+               json |> field("problemId", int),
+             )
+           | "IsEmpty" =>
+             IsEmpty(
+               json |> field("range", Syntax.Position.range),
+               json |> field("type", repType),
+             )
+           | "CheckSizeLtSat" =>
+             CheckSizeLtSat(json |> field("term", repTerm))
+           | "FindInScope" =>
+             FindInScope(
+               json |> field("instanceArg", int),
+               json |> field("metaId", optional(int)),
+               json |> field("candidates", optional(list(candidate))),
+             )
+           | "CheckFunDef" =>
+             CheckFunDef(
+               json |> field("name", Syntax.C.qName),
+               json
+               |> field(
+                    "declarations",
+                    list(list(Syntax.Concrete.declaration())),
+                  ),
+             )
+           | _ => failwith("unknown kind of Constraint")
+           }
+         );
+    let problemConstraint = json => {
+      problems: json |> field("problems", array(int)),
+      constraint_: json |> field("constraint", constraint_()),
+    };
+    let warning =
+      field("kind", string)
+      |> andThen((kind, json) =>
+           switch (kind) {
+           | "NicifierIssue" =>
+             NicifierIssue(
+               json
+               |> field(
+                    "declarationWarning",
+                    Syntax.Concrete.declarationWarning,
+                  ),
+             )
+           | "TerminationIssue" =>
+             TerminationIssue(
+               json |> field("terminationErrors", list(terminationError)),
+             )
+           | "UnreachableClauses" =>
+             UnreachableClauses(json |> field("name", Syntax.C.qName))
+           | "CoverageIssue" =>
+             CoverageIssue(
+               json |> field("name", Syntax.C.qName),
+               json
+               |> field(
+                    "declarations",
+                    list(list(Syntax.Concrete.declaration())),
+                  ),
+             )
+           | "CoverageNoExactSplit" =>
+             CoverageNoExactSplit(
+               json |> field("name", Syntax.C.qName),
+               json
+               |> field(
+                    "declarations",
+                    list(list(Syntax.Concrete.declaration())),
+                  ),
+             )
+           | "UnsolvedMetaVariables" =>
+             UnsolvedMetaVariables(
+               json |> field("ranges", list(Syntax.Position.range)),
+             )
+           | "UnsolvedInteractionMetas" =>
+             UnsolvedInteractionMetas(
+               json |> field("ranges", list(Syntax.Position.range)),
+             )
+           | "UnsolvedConstraints" =>
+             UnsolvedConstraints(
+               json |> field("constraints", list(problemConstraint)),
+             )
+           | "AbsurdPatternRequiresNoRHS" => AbsurdPatternRequiresNoRHS
+           | "OldBuiltin" =>
+             OldBuiltin(
+               json |> field("old", string),
+               json |> field("new", string),
+             )
+           | "EmptyRewritePragma" => EmptyRewritePragma
+           | "UselessPublic" => UselessPublic
+           | "UselessInline" =>
+             UselessInline(json |> field("name", Syntax.C.qName))
+           | "InversionDepthReached" =>
+             InversionDepthReached(json |> field("name", Syntax.C.qName))
+           | "GenericWarning" =>
+             GenericWarning(json |> field("warning", string))
+           | "GenericNonFatalError" =>
+             GenericNonFatalError(json |> field("message", string))
+           | "SafeFlagPostulate" =>
+             SafeFlagPostulate(json |> field("name", Syntax.C.name))
+           | "SafeFlagPragma" =>
+             SafeFlagPragma(json |> field("pragmas", list(string)))
+           | "SafeFlagNonTerminating" => SafeFlagNonTerminating
+           | "SafeFlagTerminating" => SafeFlagTerminating
+           | "SafeFlagPrimTrustMe" => SafeFlagPrimTrustMe
+           | "SafeFlagNoPositivityCheck" => SafeFlagNoPositivityCheck
+           | "SafeFlagPolarity" => SafeFlagPolarity
+           | "SafeFlagNoUniverseCheck" => SafeFlagNoUniverseCheck
+           | "ParseWarning" =>
+             ParseWarning(
+               json |> field("warning", Syntax.Parser.parseWarning),
+             )
+           | "DeprecationWarning" =>
+             DeprecationWarning(
+               json |> field("old", string),
+               json |> field("new", string),
+               json |> field("version", string),
+             )
+           | "UserWarning" => UserWarning(json |> field("warning", string))
+           | "ModuleDoesntExport" =>
+             ModuleDoesntExport(
+               json |> field("sourceModule", Syntax.C.qName),
+               json
+               |> field(
+                    "warning",
+                    list(
+                      Syntax.CommonPrim.importedName_(
+                        Syntax.A.qName,
+                        list(Syntax.A.name),
+                      ),
+                    ),
+                  ),
+             )
+           | _ => failwith("unknown kind of Warning")
+           }
+         );
+  };
+  module Interaction = {
+    open Type.Interaction;
+    let rec outputConstraint = (decoderA, decoderB) =>
+      field("kind", string)
+      |> andThen((kind, json) =>
+           switch (kind) {
+           | "OfType" =>
+             OfType(
+               json |> field("term", decoderB),
+               json |> field("type", decoderA),
+             )
+           | "CmpInType" =>
+             CmpInType(
+               json |> field("comparison", TypeChecking.comparison),
+               json |> field("term1", decoderB),
+               json |> field("term2", decoderB),
+               json |> field("type", decoderA),
+             )
+           | "CmpElim" =>
+             CmpElim(
+               json |> field("type", decoderA),
+               json |> field("terms1", list(decoderB)),
+               json |> field("terms2", list(decoderB)),
+             )
+           | "JustType" => JustType(json |> field("type", decoderB))
+           | "CmpTypes" =>
+             CmpTypes(
+               json |> field("comparison", TypeChecking.comparison),
+               json |> field("type1", decoderB),
+               json |> field("type2", decoderB),
+             )
+           | "CmpLevels" =>
+             CmpLevels(
+               json |> field("comparison", TypeChecking.comparison),
+               json |> field("level1", decoderB),
+               json |> field("level2", decoderB),
+             )
+           | "CmpTeles" =>
+             CmpTeles(
+               json |> field("comparison", TypeChecking.comparison),
+               json |> field("level1", decoderB),
+               json |> field("level2", decoderB),
+             )
+           | "JustSort" => JustSort(json |> field("sort", decoderB))
+           | "CmpSorts" =>
+             CmpSorts(
+               json |> field("comparison", TypeChecking.comparison),
+               json |> field("sort1", decoderB),
+               json |> field("sort2", decoderB),
+             )
+           | "Guard" =>
+             Guard(
+               json
+               |> field(
+                    "outputConstraint",
+                    outputConstraint(decoderA, decoderB),
+                  ),
+               json |> field("problemId", int),
+             )
+           | "Assign" =>
+             Assign(
+               json |> field("LHS", decoderB),
+               json |> field("RHS", decoderA),
+             )
+           | "TypedAssign" =>
+             TypedAssign(
+               json |> field("LHS", decoderB),
+               json |> field("RHS", decoderA),
+               json |> field("type", decoderA),
+             )
+           | "PostponedCheckArgs" =>
+             PostponedCheckArgs(
+               json |> field("LHS", decoderB),
+               json |> field("exprs", list(decoderA)),
+               json |> field("type1", decoderA),
+               json |> field("type2", decoderA),
+             )
+           | "IsEmptyType" => IsEmptyType(json |> field("type", decoderA))
+           | "SizeLtSat" => SizeLtSat(json |> field("size", decoderA))
+           | "FindInScopeOF" =>
+             FindInScopeOF(
+               json |> field("term", decoderB),
+               json |> field("type", decoderA),
+               json |> field("candidates", list(pair(decoderA, decoderA))),
+             )
+           | "PTSInstance" =>
+             PTSInstance(
+               json |> field("a", decoderB),
+               json |> field("b", decoderB),
+             )
+           | _ => failwith("unknown kind of OutputConstraint")
+           }
+         );
+    let metas = json => {
+      interactionMetas:
+        json
+        |> field(
+             "interactionMetas",
+             list(
+               outputConstraint(
+                 Syntax.Concrete.expr(),
+                 Syntax.Concrete.expr(),
+               ),
+             ),
+           ),
+      hiddenMetas:
+        json
+        |> field(
+             "hiddenMetas",
+             list(
+               outputConstraint(
+                 Syntax.Concrete.expr(),
+                 Syntax.Concrete.expr(),
+               ),
+             ),
+           ),
+      warnings: json |> field("warnings", list(TypeChecking.warning)),
+      errors: json |> field("warnings", list(TypeChecking.warning)),
+    };
   };
 };
 
 let parseError = (json: Js.Json.t) => json |> Decode.TypeChecking.error;
+
+let parseMetas = (json: Js.Json.t) => json |> Decode.Interaction.metas;

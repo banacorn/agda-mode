@@ -25,7 +25,7 @@ import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
 var { errorToHeader } = require('./view/component/Reason/Error.bs');
-var { parseError } = require('./view/component/Reason/Decoder.bs');
+var { parseError, parseMetas } = require('./view/component/Reason/Decoder.bs');
 
 
 class EditorViewManager {
@@ -370,6 +370,7 @@ export default class View {
 
     setAgdaMetas(object: object) {
         console.log(object);
+        console.log(parseMetas(object));
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 

@@ -752,9 +752,9 @@ module TypeChecking = {
       )
     | TypeCmp(comparison, repType, repType)
     | TelCmp(
-        repType,
-        repType,
         comparison,
+        repType,
+        repType,
         list(Syntax.Concrete.typedBindings),
         list(Syntax.Concrete.typedBindings),
       )
@@ -822,7 +822,7 @@ module Interaction = {
   type outputConstraint('a, 'b) =
     | OfType('b, 'a)
     | CmpInType(TypeChecking.comparison, 'a, 'b, 'b)
-    | CmpElim(list(TypeChecking.polarity), 'a, list('b), list('b))
+    | CmpElim('a, list('b), list('b))
     | JustType('b)
     | CmpTypes(TypeChecking.comparison, 'b, 'b)
     | CmpLevels(TypeChecking.comparison, 'b, 'b)
