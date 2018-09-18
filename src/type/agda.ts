@@ -2,8 +2,7 @@ import { Conn } from '../type';
 
 import * as Syntax from './agda/syntax';
 export { Syntax as Syntax };
-import * as TypeChecking from './agda/typeChecking';
-export { TypeChecking as TypeChecking };
+// import * as TypeChecking from './agda/typeChecking';
 
 
 //
@@ -169,6 +168,7 @@ export interface Info_Constraints {
 
 export interface Info_AllGoalsWarnings {
     kind: "AllGoalsWarnings",
+    allGoalsWarnings: object;
     goals: string;
     warnings: string;
     errors: string;
@@ -176,7 +176,7 @@ export interface Info_AllGoalsWarnings {
 }
 export interface Info_Error {
     kind: "Error";
-    error: TypeChecking.Error;
+    error: object;
     emacsMessage: string;
 }
 export interface Info_Time { kind: "Time"; payload: string }

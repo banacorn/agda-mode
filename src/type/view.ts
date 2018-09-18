@@ -90,10 +90,11 @@ export interface QueryState {
 }
 
 export interface BodyState {
+    metas: object;
     body: Body;
     emacsError: EmacsAgdaError;
     emacsMessage: string;
-    error: Agda.TypeChecking.Error;
+    error: object;
     plainText: string;
     solutions: Solutions;
     maxBodyHeight: number;

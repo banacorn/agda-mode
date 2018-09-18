@@ -219,6 +219,7 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
         default:
             return {
                 kind: 'AllGoalsWarnings',
+                allGoalsWarnings: null,
                 goals: "",
                 warnings: "",
                 errors: "",

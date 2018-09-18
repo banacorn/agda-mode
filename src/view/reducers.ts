@@ -48,6 +48,7 @@ const defaultState: View.State = {
         value: ''
     },
     body: {
+        metas: null,
         body: {
             goalAndHave: [],
             goals: [],
@@ -216,7 +217,17 @@ const query = handleActions<View.QueryState, QUERY>({
 }, defaultState.query);
 
 const body = handleActions<View.BodyState, BODY>({
+    [BODY.UPDATE_METAS]: (state, action: Action<BODY.UPDATE_METAS>) => ({ ...state,
+        metas: action.payload,
+        body: null,
+        solutions: defaultState.body.solutions,
+        error: null,
+        emacsMessage: '',
+        emacsError: null,
+        plainText: defaultState.body.plainText
+    }),
     [BODY.UPDATE_BODY]: (state, action: Action<BODY.UPDATE_BODY>) => ({ ...state,
+        metas: null,
         body: action.payload,
         solutions: defaultState.body.solutions,
         error: null,
@@ -225,6 +236,7 @@ const body = handleActions<View.BodyState, BODY>({
         plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_ERROR]: (state, action: Action<BODY.UPDATE_ERROR>) => ({ ...state,
+        metas: null,
         body: defaultState.body.body,
         solutions: defaultState.body.solutions,
         error: action.payload[0],
@@ -233,12 +245,14 @@ const body = handleActions<View.BodyState, BODY>({
         plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_EMACS_ERROR]: (state, action: Action<BODY.UPDATE_EMACS_ERROR>) => ({ ...state,
+        metas: null,
         body: defaultState.body.body,
         solutions: defaultState.body.solutions,
         emacsError: action.payload,
         plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_SOLUTIONS]: (state, action: Action<BODY.UPDATE_SOLUTIONS>) => ({ ...state,
+        metas: null,
         body: defaultState.body.body,
         solutions: action.payload,
         error: null,
@@ -247,6 +261,7 @@ const body = handleActions<View.BodyState, BODY>({
         plainText: defaultState.body.plainText
     }),
     [BODY.UPDATE_PLAIN_TEXT]: (state, action: Action<BODY.UPDATE_PLAIN_TEXT>) => ({ ...state,
+        metas: null,
         body: defaultState.body.body,
         solutions: defaultState.body.solutions,
         error: null,

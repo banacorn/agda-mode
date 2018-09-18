@@ -163,6 +163,7 @@ export namespace QUERY {
 
 
 export type BODY = BODY.UPDATE_BODY
+    | BODY.UPDATE_METAS
     | BODY.UPDATE_ERROR
     | BODY.UPDATE_EMACS_ERROR
     | BODY.UPDATE_SOLUTIONS
@@ -171,8 +172,10 @@ export type BODY = BODY.UPDATE_BODY
 export namespace BODY {
     export const UPDATE_BODY = 'BODY.UPDATE_BODY';
     export type UPDATE_BODY = View.Body;
+    export const UPDATE_METAS = 'BODY.UPDATE_METAS';
+    export type UPDATE_METAS = object;
     export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
-    export type UPDATE_ERROR = [Agda.TypeChecking.Error, string];
+    export type UPDATE_ERROR = [object, string];
     export const UPDATE_EMACS_ERROR = 'BODY.UPDATE_EMACS_ERROR';
     export type UPDATE_EMACS_ERROR = EmacsAgdaError;
     export const UPDATE_SOLUTIONS = 'BODY.UPDATE_SOLUTIONS';

@@ -20,7 +20,6 @@ import * as Action from './view/actions';
 import { EmacsAgdaError } from './parser/emacs';
 import Tab from './view/tab';
 import { OutOfGoalError } from './error';
-import * as TC from './type/agda/typeChecking';
 
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
@@ -338,7 +337,7 @@ export default class View {
     }
 
     // for JSON
-    setAgdaError(tsError: TC.Error, emacsMsg: string) {
+    setAgdaError(tsError: object, emacsMsg: string) {
         console.log(tsError)
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
@@ -367,6 +366,18 @@ export default class View {
                 text: isWarning ? 'Warning' : 'Error'
             }));
         }
+    }
+
+    setAgdaMetas(object: object) {
+        this.store.dispatch(Action.MODE.display());
+        this.editors.focusMain()
+
+        this.store.dispatch(Action.HEADER.update({
+            text: 'All Goals, Warnings, and Errors',
+            style: V.Style.Info
+        }));
+
+        // this.store.dispatch(Action.updateMetas(object));
     }
 
     setJudgements(header: string = 'Judgements', body: V.Body) {
