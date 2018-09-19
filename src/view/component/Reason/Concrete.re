@@ -2,6 +2,8 @@ open ReasonReact;
 
 open Type.Syntax.Concrete;
 
+open Type.Syntax.C;
+
 open Type;
 
 open C;
@@ -111,7 +113,25 @@ module Element = {
         sepBy(string(" "), items);
       | RawApp(_, exprs) =>
         exprs |> List.map(value => <Expr value />) |> sepBy(string(" "))
-      | OpApp(_, _, _, _) =>
+      | OpApp(_, func, _, args) =>
+        /* the module part of the name */
+        /* let ms = QName.moduleParts(func);
+           let xs =
+             switch (QName.unqualify(func)) {
+             | Name(_, xs) => xs
+             | NoName(_, _) => failwith("OpApp func has no name")
+             };
+           let prOp = (ms, xs, es) =>
+             switch (xs, es) {
+             | ([Hole, ...xs], [e, ...es]) =>
+               switch (NamedArg.namedArg(e)) {
+               | Placeholder(p) => []
+               | _ => []
+               }
+             | ([Hole, ...xs], []) => failwith("OpApp::prOp")
+             | ([Id(x), ...xs], es) => []
+             | ([], es) => es |> List.map(value => (<Expr value />, None))
+             }; */
         <span> (string("unimplemented: Expr::OpApp")) </span>
       | WithApp(_, expr, exprs) =>
         [expr, ...exprs]

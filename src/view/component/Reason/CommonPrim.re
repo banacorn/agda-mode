@@ -95,3 +95,7 @@ module Arg = {
     },
   };
 };
+
+module NamedArg = {
+  let namedArg = (Arg(_, Named(_, x))) => x;
+};

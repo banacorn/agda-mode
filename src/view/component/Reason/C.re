@@ -53,7 +53,23 @@ module QName = {
       |> List.map(Name.toString)
       |> String.concat(".");
     };
+  let rec getRange = name =>
+    switch (name) {
+    | QName([], x) => Name.getRange(x)
+    | QName([x', ...xs], x) =>
+      Range.fuse(getRange(QName(xs, x')), Name.getRange(x))
+    };
+  let unqualify = (QName(xs, x)) => {
+    let range = getRange(QName(xs, x));
+    switch (x) {
+    | Name(_, xs) => Name(range, xs)
+    | NoName(_, x) => NoName(range, x)
+    };
+  };
+  /* Name(getRange(QName(xs, x)), ); */
+  let moduleParts = (QName(xs, _)) => xs;
   let component = statelessComponent("QName");
+  /* let modulePart =  */
   let make = (~value, _children) => {
     ...component,
     render: _self =>
