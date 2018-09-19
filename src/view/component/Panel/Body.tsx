@@ -10,6 +10,7 @@ import EmacsError from './EmacsMetas/EmacsError';
 import Solution from './EmacsMetas/Solution';
 
 var Error = require('./../Reason/Error.bs').jsComponent;
+var Metas = require('./../Reason/Metas.bs').jsComponent;
 var { toAtomRange, toAtomFilepath } = require('./../Reason/Range.bs');
 
 
@@ -44,7 +45,7 @@ class Body extends React.Component<Props, {}> {
     }
 
     render() {
-        const { emacsMetas, solutions, error, emacsMessage, emacsError, plainText, maxBodyHeight, mountAtBottom } = this.props;
+        const { metas, emacsMetas, solutions, error, emacsMessage, emacsError, plainText, maxBodyHeight, mountAtBottom } = this.props;
         const classes = classNames(this.props.className, `native-key-bindings`, 'agda-body');
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
@@ -55,6 +56,22 @@ class Body extends React.Component<Props, {}> {
                 tabIndex={-1}
                 style={style}
             >
+                {metas &&
+                    <V.EventContext.Consumer>{emitter => (
+                        <Metas metas={metas} emit={(ev, range) => {
+                            switch (ev) {
+                                case EVENT.JUMP_TO_RANGE:
+                                    emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                                case EVENT.MOUSE_OUT:
+                                    emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                                case EVENT.MOUSE_OVER:
+                                    emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                            }
+                        }} />
+                    )}</V.EventContext.Consumer>}
                 {emacsMetas &&
                     <div>
                         <ul className="list-group body-legacy">

@@ -111,7 +111,8 @@ module Element = {
         sepBy(string(" "), items);
       | RawApp(_, exprs) =>
         exprs |> List.map(value => <Expr value />) |> sepBy(string(" "))
-      | OpApp(_, _, _, _) => <span> (string("unimplemented")) </span>
+      | OpApp(_, _, _, _) =>
+        <span> (string("unimplemented: Expr::OpApp")) </span>
       | WithApp(_, expr, exprs) =>
         [expr, ...exprs]
         |> List.map(value => <Expr value />)
@@ -196,7 +197,7 @@ module Element = {
           )
         </span>
       | Paren(_, value) => CommonPrim.parens(<Expr value />)
-      | _ => <span> (string("unimplemented")) </span>
+      | _ => <span> (string("unimplemented:  Expr::Paren")) </span>
       };
     },
   }

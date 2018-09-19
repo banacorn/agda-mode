@@ -1,5 +1,3 @@
-let answer: int = 43;
-
 let noRange: Type.Syntax.Position.range = NoRange;
 
 open Type.AgdaMode;

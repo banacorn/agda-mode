@@ -91,12 +91,12 @@ export interface QueryState {
 
 export interface BodyState {
     metas: object;
-    emacsMetas: EmacsMetas;
-    emacsError: EmacsAgdaError;
-    emacsMessage: string;
     error: object;
     plainText: string;
     solutions: Solutions;
+    emacsMetas: EmacsMetas;
+    emacsError: EmacsAgdaError;
+    emacsMessage: string;
     maxBodyHeight: number;
 }
 
