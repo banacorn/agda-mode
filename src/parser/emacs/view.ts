@@ -81,7 +81,7 @@ function parseIndexedSolutions(message: string, raw: string[]): View.IndexedSolu
     };
 }
 
-export function parseJudgements(lines: string): View.Body {
+export function parseJudgements(lines: string): View.EmacsMetas {
     const {goalAndHave, body, warnings, errors} = divideJudgements(lines.split('\n'));
 
     const grouped = _.groupBy(concatItems(body).map(parseExpression), 'judgementForm');

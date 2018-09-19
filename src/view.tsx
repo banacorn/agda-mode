@@ -368,9 +368,8 @@ export default class View {
         }
     }
 
-    setAgdaMetas(object: object) {
-        console.log(object);
-        console.log(parseMetas(object));
+    setAgdaMetas(raw: object) {
+        console.log(raw);
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
@@ -379,10 +378,10 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(Action.updateMetas(object));
+        this.store.dispatch(Action.updateMetas(parseMetas(raw)));
     }
 
-    setJudgements(header: string = 'Judgements', body: V.Body) {
+    setJudgements(header: string = 'Judgements', emacsMetas: V.EmacsMetas) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
@@ -391,7 +390,7 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(Action.updateBody(body));
+        this.store.dispatch(Action.updateEmacsMetas(emacsMetas));
     }
 
     setSolutions(solutions: V.Solutions) {

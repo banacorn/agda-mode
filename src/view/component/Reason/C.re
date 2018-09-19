@@ -45,7 +45,7 @@ module Name = {
 };
 
 module QName = {
-  let toString: toString(qName) =
+  let toString: toString(qname) =
     name => {
       let QName(xs, x) = name;
       List.append(xs, [x])

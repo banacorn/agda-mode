@@ -91,7 +91,7 @@ export interface QueryState {
 
 export interface BodyState {
     metas: object;
-    body: Body;
+    emacsMetas: EmacsMetas;
     emacsError: EmacsAgdaError;
     emacsMessage: string;
     error: object;
@@ -177,7 +177,7 @@ export interface Sort {
 // Body components
 ////////////////////////////////////////////
 
-export interface Body {
+export interface EmacsMetas {
     goalAndHave: GoalAndHave[];
     // ------
     goals: Goal[];

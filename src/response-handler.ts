@@ -143,7 +143,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
     }
 }
 
-function formatTitle(parsed: View.Body): string {
+function formatTitle(parsed: View.EmacsMetas): string {
     const hasGoals = (parsed.goalAndHave.length +
         parsed.goals.length +
         parsed.judgements.length +

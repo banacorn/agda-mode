@@ -65,7 +65,7 @@ module Decode = {
              | _ => failwith("unknown kind of Name")
              }
            );
-      let qName =
+      let qname =
         list(name)
         |> andThen((names, _) => QName(List.tl(names), List.hd(names)));
     };
@@ -327,7 +327,7 @@ module Decode = {
         bindingSite: json |> field("bindingSite", Position.range),
         fixity: json |> field("fixity", Fixity.fixity2),
       };
-      let qName = json =>
+      let qname = json =>
         QName(
           json |> field("module", list(name)),
           json |> field("name", name),
@@ -367,7 +367,7 @@ module Decode = {
              | "LitQName" =>
                LitQName(
                  json |> field("range", Position.range),
-                 json |> field("value", A.qName),
+                 json |> field("value", A.qname),
                )
              | "LitMeta" =>
                LitMeta(
@@ -471,7 +471,7 @@ module Decode = {
         field("kind", string)
         |> andThen((kind, json) =>
              switch (kind) {
-             | "Ident" => Ident(json |> field("name", C.qName))
+             | "Ident" => Ident(json |> field("name", C.qname))
              | "Lit" => Lit(json |> field("literal", Literal.literal))
              | "QuestionMark" =>
                QuestionMark(
@@ -497,7 +497,7 @@ module Decode = {
              | "OpApp" =>
                OpApp(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("names", array(A.name)),
                  json |> field("args", list(CommonPrim.namedArg(opApp()))),
                )
@@ -719,13 +719,13 @@ module Decode = {
              | "Open" =>
                Open(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("importDirective", importDirective),
                )
              | "Import" =>
                Import(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("asName", optional(asName)),
                  json |> field("openShortHand", openShortHand),
                  json |> field("importDirective", importDirective),
@@ -741,7 +741,7 @@ module Decode = {
              | "Module" =>
                Module(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("bindings", list(typedBindings)),
                  json |> field("declarations", list(declaration())),
                )
@@ -774,55 +774,55 @@ module Decode = {
                BuiltinPragma(
                  json |> field("range", Position.range),
                  json |> field("entity", string),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("fixity", Fixity.fixity2),
                )
              | "RewritePragma" =>
                RewritePragma(
                  json |> field("range", Position.range),
-                 json |> field("names", list(C.qName)),
+                 json |> field("names", list(C.qname)),
                )
              | "CompiledDataPragma" =>
                CompiledDataPragma(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("data", string),
                  json |> field("constructors", list(string)),
                )
              | "CompiledTypePragma" =>
                CompiledTypePragma(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("type", string),
                )
              | "CompiledPragma" =>
                CompiledPragma(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("haskell", string),
                )
              | "CompiledExportPragma" =>
                CompiledExportPragma(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("export", string),
                )
              | "CompiledJSPragma" =>
                CompiledJSPragma(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("js", string),
                )
              | "CompiledUHCPragma" =>
                CompiledUHCPragma(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("uhc", string),
                )
              | "CompiledDataUHCPragma" =>
                CompiledDataUHCPragma(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("data", string),
                  json |> field("constructors", list(string)),
                )
@@ -841,24 +841,24 @@ module Decode = {
                CompilePragma(
                  json |> field("range", Position.range),
                  json |> field("backend", string),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("code", string),
                )
              | "StaticPragma" =>
                StaticPragma(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                )
              | "InjectivePragma" =>
                InjectivePragma(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                )
              | "InlinePragma" =>
                InlinePragma(
                  json |> field("range", Position.range),
                  json |> field("inline", bool),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                )
              | "ImportPragma" =>
                ImportPragma(
@@ -875,7 +875,7 @@ module Decode = {
              | "EtaPragma" =>
                EtaPragma(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                )
              | "TerminationCheckPragma" =>
                TerminationCheckPragma(
@@ -885,7 +885,7 @@ module Decode = {
              | "WarningOnUsage" =>
                WarningOnUsage(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                  json |> field("warning", string),
                )
              | "CatchallPragma" =>
@@ -928,7 +928,7 @@ module Decode = {
              | "RecordModuleIFS" =>
                RecordModuleIFS(
                  json |> field("range", Position.range),
-                 json |> field("name", C.qName),
+                 json |> field("name", C.qname),
                )
              | _ => failwith("unknown kind of ModuleApplication")
              }
@@ -945,7 +945,7 @@ module Decode = {
           value: json |> field("value", pattern()),
         }
       and moduleAssignment = json => {
-        name: json |> field("name", C.qName),
+        name: json |> field("name", C.qname),
         exprs: json |> field("exprs", list(expr())),
         importDirective: json |> field("importDirective", importDirective),
       }
@@ -1045,7 +1045,7 @@ module Decode = {
           field("kind", string)
           |> andThen((kind, json) =>
                switch (kind) {
-               | "IdentP" => IdentP(json |> field("name", C.qName))
+               | "IdentP" => IdentP(json |> field("name", C.qname))
                | "QuoteP" => QuoteP(json |> field("range", Position.range))
                | "AppP" =>
                  AppP(
@@ -1060,7 +1060,7 @@ module Decode = {
                | "OpAppP" =>
                  OpAppP(
                    json |> field("range", Position.range),
-                   json |> field("name", C.qName),
+                   json |> field("name", C.qname),
                    json |> field("names", array(A.name)),
                    json
                    |> field("args", list(CommonPrim.namedArg(pattern()))),
@@ -1198,9 +1198,9 @@ module Decode = {
     module Internal = {
       open Type.Syntax.Internal;
       let conHead = json => {
-        name: json |> A.qName,
+        name: json |> A.qname,
         inductive: json |> Common.induction,
-        fields: json |> list(CommonPrim.arg(A.qName)),
+        fields: json |> list(CommonPrim.arg(A.qname)),
       };
       let conInfo = Common.conOrigin;
       let abs = decoder =>
@@ -1229,7 +1229,7 @@ module Decode = {
              | "Proj" =>
                Proj(
                  json |> field("projOrigin", Common.projOrigin),
-                 json |> field("name", A.qName),
+                 json |> field("name", A.qname),
                )
              | "IApply" =>
                IApply(
@@ -1333,7 +1333,7 @@ module Decode = {
              | "Lit" => Lit(json |> field("literal", Literal.literal))
              | "Def" =>
                Def(
-                 json |> field("name", A.qName),
+                 json |> field("name", A.qname),
                  json |> field("elims", list(elim())),
                )
              | "Con" =>
@@ -1363,6 +1363,8 @@ module Decode = {
   };
   module TypeChecking = {
     open Type.TypeChecking;
+    open Syntax.Position;
+    open Syntax.Concrete;
     let comparison =
       string
       |> andThen((kind, _json) =>
@@ -1378,130 +1380,122 @@ module Decode = {
            switch (kind) {
            | "CheckClause" =>
              CheckClause(
-               json |> field("type", Syntax.Concrete.expr()),
-               json |> field("clause", list(Syntax.Concrete.declaration())),
+               json |> field("type", expr()),
+               json |> field("clause", list(declaration())),
              )
            | "CheckPattern" =>
              CheckPattern(
-               json |> field("pattern", Syntax.Concrete.pattern()),
-               json |> field("type", Syntax.Concrete.expr()),
+               json |> field("pattern", pattern()),
+               json |> field("type", expr()),
              )
            | "CheckLetBinding" =>
-             CheckLetBinding(
-               json |> field("binding", list(Syntax.Concrete.declaration())),
-             )
-           | "InferExpr" =>
-             InferExpr(json |> field("expr", Syntax.Concrete.expr()))
+             CheckLetBinding(json |> field("binding", list(declaration())))
+           | "InferExpr" => InferExpr(json |> field("expr", expr()))
            | "CheckExprCall" =>
              CheckExprCall(
                json |> field("comparison", comparison),
-               json |> field("expr", Syntax.Concrete.expr()),
-               json |> field("type", Syntax.Concrete.expr()),
+               json |> field("expr", expr()),
+               json |> field("type", expr()),
              )
            | "CheckDotPattern" =>
              CheckDotPattern(
-               json |> field("expr", Syntax.Concrete.expr()),
-               json |> field("type", Syntax.Concrete.expr()),
+               json |> field("expr", expr()),
+               json |> field("type", expr()),
              )
            | "CheckPatternShadowing" =>
              CheckPatternShadowing(
-               json |> field("clause", list(Syntax.Concrete.declaration())),
+               json |> field("clause", list(declaration())),
              )
            | "CheckProjection" =>
              CheckProjection(
-               json |> field("range", Syntax.Position.range),
-               json |> field("name", Syntax.C.qName),
-               json |> field("type", Syntax.Concrete.expr()),
+               json |> field("range", range),
+               json |> field("name", Syntax.C.qname),
+               json |> field("type", expr()),
              )
            | "IsTypeCall" =>
              IsTypeCall(
-               json |> field("expr", Syntax.Concrete.expr()),
-               json |> field("sort", Syntax.Internal.sort()),
+               json |> field("expr", expr()),
+               json |> field("sort", expr()),
              )
-           | "IsType_" =>
-             IsType_(json |> field("expr", Syntax.Concrete.expr()))
+           | "IsType_" => IsType_(json |> field("expr", expr()))
            | "InferVar" => InferVar(json |> field("name", Syntax.C.name))
-           | "InferDef" => InferDef(json |> field("name", Syntax.C.qName))
+           | "InferDef" => InferDef(json |> field("name", Syntax.C.qname))
            | "CheckArguments" =>
              CheckArguments(
-               json |> field("range", Syntax.Position.range),
+               json |> field("range", range),
                json
                |> field(
                     "arguments",
-                    list(Syntax.CommonPrim.namedArg(Syntax.Concrete.expr())),
+                    list(Syntax.CommonPrim.namedArg(expr())),
                   ),
-               json |> field("type1", Syntax.Concrete.expr()),
+               json |> field("type1", expr()),
              )
            | "CheckTargetType" =>
              CheckTargetType(
-               json |> field("range", Syntax.Position.range),
-               json |> field("infType", Syntax.Concrete.expr()),
-               json |> field("expType", Syntax.Concrete.expr()),
+               json |> field("range", range),
+               json |> field("infType", expr()),
+               json |> field("expType", expr()),
              )
            | "CheckDataDef" =>
              CheckDataDef(
-               json |> field("range", Syntax.Position.range),
+               json |> field("range", range),
                json |> field("name", Syntax.C.name),
              )
            | "CheckRecDef" =>
              CheckRecDef(
-               json |> field("range", Syntax.Position.range),
+               json |> field("range", range),
                json |> field("name", Syntax.C.name),
              )
            | "CheckConstructor" =>
              CheckConstructor(
-               json |> field("declarationName", Syntax.C.qName),
-               json |> field("constructorName", Syntax.C.qName),
+               json |> field("declarationName", Syntax.C.qname),
+               json |> field("constructorName", Syntax.C.qname),
              )
            | "CheckFunDefCall" =>
              CheckFunDefCall(
-               json |> field("range", Syntax.Position.range),
+               json |> field("range", range),
                json |> field("name", Syntax.C.name),
              )
            | "CheckPragma" =>
              CheckPragma(
-               json |> field("range", Syntax.Position.range),
-               json |> field("pragma", Syntax.Concrete.pragma()),
+               json |> field("range", range),
+               json |> field("pragma", pragma()),
              )
            | "CheckPrimitive" =>
              CheckPrimitive(
-               json |> field("range", Syntax.Position.range),
+               json |> field("range", range),
                json |> field("name", Syntax.C.name),
-               json |> field("expr", Syntax.Concrete.expr()),
+               json |> field("expr", expr()),
              )
            | "CheckIsEmpty" =>
              CheckIsEmpty(
-               json |> field("range", Syntax.Position.range),
-               json |> field("type", Syntax.Concrete.expr()),
+               json |> field("range", range),
+               json |> field("type", expr()),
              )
            | "CheckWithFunctionType" =>
-             CheckWithFunctionType(
-               json |> field("expr", Syntax.Concrete.expr()),
-             )
+             CheckWithFunctionType(json |> field("expr", expr()))
            | "CheckSectionApplication" =>
              CheckSectionApplication(
-               json |> field("range", Syntax.Position.range),
-               json |> field("module", Syntax.C.qName),
-               json |> field("modApp", Syntax.Concrete.moduleApplication()),
+               json |> field("range", range),
+               json |> field("module", Syntax.C.qname),
+               json |> field("modApp", moduleApplication()),
              )
            | "CheckNamedWhere" =>
-             CheckNamedWhere(json |> field("module", Syntax.C.qName))
+             CheckNamedWhere(json |> field("module", Syntax.C.qname))
            | "ScopeCheckExpr" =>
-             ScopeCheckExpr(json |> field("expr", Syntax.Concrete.expr()))
+             ScopeCheckExpr(json |> field("expr", expr()))
            | "ScopeCheckDeclaration" =>
              ScopeCheckDeclaration(
-               json
-               |> field("declarations", list(Syntax.Concrete.declaration())),
+               json |> field("declarations", list(declaration())),
              )
            | "ScopeCheckLHS" =>
              ScopeCheckLHS(
-               json |> field("name", Syntax.C.qName),
-               json |> field("pattern", Syntax.Concrete.pattern()),
+               json |> field("name", Syntax.C.qname),
+               json |> field("pattern", pattern()),
              )
            | "NoHighlighting" => NoHighlighting
            | "ModuleContents" => ModuleContents
-           | "SetRange" =>
-             SetRange(json |> field("range", Syntax.Position.range))
+           | "SetRange" => SetRange(json |> field("range", range))
            | _ => failwith("unknown kind of Call")
            }
          );
@@ -1512,11 +1506,11 @@ module Decode = {
            | "GenericError" => GenericError(json |> field("message", string))
            | "ShouldEndInApplicationOfTheDatatype" =>
              ShouldEndInApplicationOfTheDatatype(
-               json |> field("type", Syntax.Concrete.expr()),
+               json |> field("type", expr()),
              )
            | "ShadowedModule" =>
              ShadowedModule(
-               json |> field("previous", Syntax.C.qName),
+               json |> field("previous", Syntax.C.qname),
                json |> field("duplicated", Syntax.C.name),
                json
                |> field(
@@ -1524,26 +1518,24 @@ module Decode = {
                     optional(Syntax.CommonPrim.dataOrRecord),
                   ),
              )
-           | "ShouldBePi" =>
-             ShouldBePi(json |> field("type", Syntax.Concrete.expr()))
-           | "ShouldBeASort" =>
-             ShouldBeASort(json |> field("type", Syntax.Concrete.expr()))
+           | "ShouldBePi" => ShouldBePi(json |> field("type", expr()))
+           | "ShouldBeASort" => ShouldBeASort(json |> field("type", expr()))
            | "UnequalTerms" =>
              UnequalTerms(
                json |> field("comparison", comparison),
-               json |> field("term1", Syntax.Concrete.expr()),
-               json |> field("term2", Syntax.Concrete.expr()),
-               json |> field("type", Syntax.Concrete.expr()),
+               json |> field("term1", expr()),
+               json |> field("term2", expr()),
+               json |> field("type", expr()),
                json |> field("reason", string),
              )
            | "ClashingDefinition" =>
              ClashingDefinition(
-               json |> field("definition", Syntax.C.qName),
-               json |> field("previouslyAt", Syntax.Position.range),
+               json |> field("definition", Syntax.C.qname),
+               json |> field("previouslyAt", range),
              )
            | "NoRHSRequiresAbsurdPattern" =>
              NoRHSRequiresAbsurdPattern(
-               json |> field("patterns", list(Syntax.Concrete.pattern())),
+               json |> field("patterns", list(pattern())),
              )
            | "NotInScope" =>
              NotInScope(
@@ -1552,8 +1544,8 @@ module Decode = {
                     "names",
                     list(json =>
                       (
-                        json |> field("name", Syntax.C.qName),
-                        json |> field("suggestions", list(Syntax.C.qName)),
+                        json |> field("name", Syntax.C.qname),
+                        json |> field("suggestions", list(Syntax.C.qname)),
                       )
                     ),
                   ),
@@ -1567,28 +1559,27 @@ module Decode = {
            switch (kind) {
            | "TypeError" =>
              TypeError(
-               json |> field("range", Syntax.Position.range),
+               json |> field("range", range),
                json |> field("call", call),
                json |> field("typeError", typeError),
              )
            | "Exception" =>
              Exception(
-               json |> field("range", Syntax.Position.range),
+               json |> field("range", range),
                json |> field("message", string),
              )
            | "IOException" =>
              IOException(
-               json |> field("range", Syntax.Position.range),
+               json |> field("range", range),
                json |> field("message", string),
              )
-           | "PatternError" =>
-             PatternError(json |> field("range", Syntax.Position.range))
+           | "PatternError" => PatternError(json |> field("range", range))
            | _ => failwith("unknown kind of TCError")
            }
          );
     let terminationError = json => {
-      functions: json |> field("functions", list(Syntax.C.qName)),
-      calls: json |> field("calls", list(Syntax.C.qName)),
+      functions: json |> field("functions", list(Syntax.C.qname)),
+      calls: json |> field("calls", list(Syntax.C.qname)),
     };
     let polarity =
       string
@@ -1617,19 +1608,19 @@ module Decode = {
            | "LeftOfArrow" => LeftOfArrow
            | "DefArg" =>
              DefArg(
-               json |> field("name", Syntax.C.qName),
+               json |> field("name", Syntax.C.qname),
                json |> field("index", int),
              )
            | "UnderInf" => UnderInf
            | "VarArg" => VarArg
            | "MetaArg" => MetaArg
            | "ConArgType" =>
-             ConArgType(json |> field("name", Syntax.C.qName))
+             ConArgType(json |> field("name", Syntax.C.qname))
            | "IndArgType" =>
-             IndArgType(json |> field("name", Syntax.C.qName))
+             IndArgType(json |> field("name", Syntax.C.qname))
            | "InClause" => InClause(json |> field("index", int))
            | "Matched" => Matched
-           | "InDefOf" => InDefOf(json |> field("name", Syntax.C.qName))
+           | "InDefOf" => InDefOf(json |> field("name", Syntax.C.qname))
            | _ => failwith("unknown kind of Where")
            }
          );
@@ -1640,7 +1631,7 @@ module Decode = {
            | "Unknown" => Unknown
            | "Known" =>
              Known(
-               json |> field("range", Syntax.Position.range),
+               json |> field("range", range),
                json |> field("wheres", list(where)),
              )
            | _ => failwith("unknown kind of OccursWhere")
@@ -1656,8 +1647,8 @@ module Decode = {
            }
          );
     let candidate = json => {
-      term: json |> field("term", Syntax.Concrete.expr()),
-      type_: json |> field("type", Syntax.Concrete.expr()),
+      term: json |> field("term", expr()),
+      type_: json |> field("type", expr()),
       eti: json |> field("eti", explicitToInstance),
       overlappable:
         json |> field("overlappable", Syntax.CommonPrim.overlappable),
@@ -1669,65 +1660,58 @@ module Decode = {
            | "ValueCmp" =>
              ValueCmp(
                json |> field("comparison", comparison),
-               json |> field("type", Syntax.Concrete.expr()),
-               json |> field("term1", Syntax.Concrete.expr()),
-               json |> field("term2", Syntax.Concrete.expr()),
+               json |> field("type", expr()),
+               json |> field("term1", expr()),
+               json |> field("term2", expr()),
              )
            | "ValueCmpOnFace" =>
              ValueCmpOnFace(
                json |> field("comparison", comparison),
-               json |> field("face", Syntax.Concrete.expr()),
-               json |> field("type", Syntax.Concrete.expr()),
-               json |> field("term1", Syntax.Concrete.expr()),
-               json |> field("term2", Syntax.Concrete.expr()),
+               json |> field("face", expr()),
+               json |> field("type", expr()),
+               json |> field("term1", expr()),
+               json |> field("term2", expr()),
              )
            | "ElimCmp" =>
              ElimCmp(
                json |> field("polarities", list(polarity)),
                json |> field("isForced", list(isForced)),
-               json |> field("type", Syntax.Concrete.expr()),
-               json |> field("term", Syntax.Concrete.expr()),
+               json |> field("type", expr()),
+               json |> field("term", expr()),
                json |> field("elims1", list(Syntax.Internal.elim())),
                json |> field("elims2", list(Syntax.Internal.elim())),
              )
            | "TypeCmp" =>
              TypeCmp(
                json |> field("comparison", comparison),
-               json |> field("type1", Syntax.Concrete.expr()),
-               json |> field("type2", Syntax.Concrete.expr()),
+               json |> field("type1", expr()),
+               json |> field("type2", expr()),
              )
            | "TelCmp" =>
              TelCmp(
                json |> field("comparison", comparison),
-               json |> field("type1", Syntax.Concrete.expr()),
-               json |> field("type2", Syntax.Concrete.expr()),
-               json
-               |> field("telescope1", list(Syntax.Concrete.typedBindings)),
-               json
-               |> field("telescope2", list(Syntax.Concrete.typedBindings)),
+               json |> field("type1", expr()),
+               json |> field("type2", expr()),
+               json |> field("telescope1", list(typedBindings)),
+               json |> field("telescope2", list(typedBindings)),
              )
            | "SortCmp" =>
              SortCmp(
                json |> field("comparison", comparison),
-               json |> field("sort1", Syntax.Internal.sort()),
-               json |> field("sort2", Syntax.Internal.sort()),
+               json |> field("sort1", expr()),
+               json |> field("sort2", expr()),
              )
            | "LevelCmp" =>
              LevelCmp(
                json |> field("comparison", comparison),
-               json |> field("level1", Syntax.Internal.level),
-               json |> field("level2", Syntax.Internal.level),
+               json |> field("level1", expr()),
+               json |> field("level2", expr()),
              )
-           | "HasBiggerSort" =>
-             HasBiggerSort(json |> field("sort", Syntax.Internal.sort()))
+           | "HasBiggerSort" => HasBiggerSort(json |> field("sort", expr()))
            | "HasPTSRule" =>
              HasPTSRule(
-               json |> field("sort", Syntax.Internal.sort()),
-               json
-               |> field(
-                    "binding",
-                    Syntax.Internal.abs(Syntax.Internal.sort()),
-                  ),
+               json |> field("sort", expr()),
+               json |> field("binding", Syntax.Internal.abs(expr())),
              )
            | "UnBlock" => UnBlock(json |> field("metaId", int))
            | "Guarded" =>
@@ -1737,11 +1721,11 @@ module Decode = {
              )
            | "IsEmpty" =>
              IsEmpty(
-               json |> field("range", Syntax.Position.range),
-               json |> field("type", Syntax.Concrete.expr()),
+               json |> field("range", range),
+               json |> field("type", expr()),
              )
            | "CheckSizeLtSat" =>
-             CheckSizeLtSat(json |> field("term", Syntax.Concrete.expr()))
+             CheckSizeLtSat(json |> field("term", expr()))
            | "FindInScope" =>
              FindInScope(
                json |> field("instanceArg", int),
@@ -1750,12 +1734,8 @@ module Decode = {
              )
            | "CheckFunDef" =>
              CheckFunDef(
-               json |> field("name", Syntax.C.qName),
-               json
-               |> field(
-                    "declarations",
-                    list(list(Syntax.Concrete.declaration())),
-                  ),
+               json |> field("name", Syntax.C.qname),
+               json |> field("declarations", list(list(declaration()))),
              )
            | _ => failwith("unknown kind of Constraint")
            }
@@ -1770,44 +1750,28 @@ module Decode = {
            switch (kind) {
            | "NicifierIssue" =>
              NicifierIssue(
-               json
-               |> field(
-                    "declarationWarning",
-                    Syntax.Concrete.declarationWarning,
-                  ),
+               json |> field("declarationWarning", declarationWarning),
              )
            | "TerminationIssue" =>
              TerminationIssue(
                json |> field("terminationErrors", list(terminationError)),
              )
            | "UnreachableClauses" =>
-             UnreachableClauses(json |> field("name", Syntax.C.qName))
+             UnreachableClauses(json |> field("name", Syntax.C.qname))
            | "CoverageIssue" =>
              CoverageIssue(
-               json |> field("name", Syntax.C.qName),
-               json
-               |> field(
-                    "declarations",
-                    list(list(Syntax.Concrete.declaration())),
-                  ),
+               json |> field("name", Syntax.C.qname),
+               json |> field("declarations", list(list(declaration()))),
              )
            | "CoverageNoExactSplit" =>
              CoverageNoExactSplit(
-               json |> field("name", Syntax.C.qName),
-               json
-               |> field(
-                    "declarations",
-                    list(list(Syntax.Concrete.declaration())),
-                  ),
+               json |> field("name", Syntax.C.qname),
+               json |> field("declarations", list(list(declaration()))),
              )
            | "UnsolvedMetaVariables" =>
-             UnsolvedMetaVariables(
-               json |> field("ranges", list(Syntax.Position.range)),
-             )
+             UnsolvedMetaVariables(json |> field("ranges", list(range)))
            | "UnsolvedInteractionMetas" =>
-             UnsolvedInteractionMetas(
-               json |> field("ranges", list(Syntax.Position.range)),
-             )
+             UnsolvedInteractionMetas(json |> field("ranges", list(range)))
            | "UnsolvedConstraints" =>
              UnsolvedConstraints(
                json |> field("constraints", list(problemConstraint)),
@@ -1821,9 +1785,9 @@ module Decode = {
            | "EmptyRewritePragma" => EmptyRewritePragma
            | "UselessPublic" => UselessPublic
            | "UselessInline" =>
-             UselessInline(json |> field("name", Syntax.C.qName))
+             UselessInline(json |> field("name", Syntax.C.qname))
            | "InversionDepthReached" =>
-             InversionDepthReached(json |> field("name", Syntax.C.qName))
+             InversionDepthReached(json |> field("name", Syntax.C.qname))
            | "GenericWarning" =>
              GenericWarning(json |> field("warning", string))
            | "GenericNonFatalError" =>
@@ -1851,13 +1815,13 @@ module Decode = {
            | "UserWarning" => UserWarning(json |> field("warning", string))
            | "ModuleDoesntExport" =>
              ModuleDoesntExport(
-               json |> field("sourceModule", Syntax.C.qName),
+               json |> field("sourceModule", Syntax.C.qname),
                json
                |> field(
                     "warning",
                     list(
                       Syntax.CommonPrim.importedName_(
-                        Syntax.A.qName,
+                        Syntax.A.qname,
                         list(Syntax.A.name),
                       ),
                     ),

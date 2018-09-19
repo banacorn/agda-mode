@@ -3,7 +3,7 @@ import { concatItems, parseExpression } from './../emacs/view';
 import { View } from '../../type';
 
 // Goals, warnings, and errors
-export function parseGWE(goals: string, warnings: string, errors: string): View.Body {
+export function parseGWE(goals: string, warnings: string, errors: string): View.EmacsMetas {
     const grouped = _.groupBy(concatItems(goals.split('\n')).map(parseExpression), 'judgementForm');
     return {
         goalAndHave: [],

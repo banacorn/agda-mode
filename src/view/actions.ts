@@ -162,7 +162,7 @@ export namespace QUERY {
 }
 
 
-export type BODY = BODY.UPDATE_BODY
+export type BODY = BODY.UPDATE_EMACS_METAS
     | BODY.UPDATE_METAS
     | BODY.UPDATE_ERROR
     | BODY.UPDATE_EMACS_ERROR
@@ -170,8 +170,8 @@ export type BODY = BODY.UPDATE_BODY
     | BODY.UPDATE_PLAIN_TEXT
     | BODY.UPDATE_MAX_BODY_HEIGHT;
 export namespace BODY {
-    export const UPDATE_BODY = 'BODY.UPDATE_BODY';
-    export type UPDATE_BODY = View.Body;
+    export const UPDATE_EMACS_METAS = 'BODY.UPDATE_EMACS_METAS';
+    export type UPDATE_EMACS_METAS = View.EmacsMetas;
     export const UPDATE_METAS = 'BODY.UPDATE_METAS';
     export type UPDATE_METAS = object;
     export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
@@ -186,7 +186,7 @@ export namespace BODY {
     export type UPDATE_MAX_BODY_HEIGHT = number;
 }
 
-export const updateBody = createAction<BODY.UPDATE_BODY>(BODY.UPDATE_BODY);
+export const updateEmacsMetas = createAction<BODY.UPDATE_EMACS_METAS>(BODY.UPDATE_EMACS_METAS);
 export const updateMetas = createAction<BODY.UPDATE_METAS>(BODY.UPDATE_METAS);
 export const updateError = createAction<BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
 export const updateEmacsError = createAction<BODY.UPDATE_EMACS_ERROR>(BODY.UPDATE_EMACS_ERROR);

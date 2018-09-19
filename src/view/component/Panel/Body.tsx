@@ -5,9 +5,9 @@ import * as classNames from 'classnames';
 import { View } from '../../../type';
 import V from '../../../view';
 import { updateMaxBodyHeight, EVENT } from '../../actions';
-import Expr from './Body/Expr';
-import EmacsError from './Body/EmacsError';
-import Solution from './Body/Solution';
+import Expr from './EmacsMetas/Expr';
+import EmacsError from './EmacsMetas/EmacsError';
+import Solution from './EmacsMetas/Solution';
 
 var Error = require('./../Reason/Error.bs').jsComponent;
 var { toAtomRange, toAtomFilepath } = require('./../Reason/Range.bs');
@@ -44,7 +44,7 @@ class Body extends React.Component<Props, {}> {
     }
 
     render() {
-        const { body, solutions, error, emacsMessage, emacsError, plainText, maxBodyHeight, mountAtBottom } = this.props;
+        const { emacsMetas, solutions, error, emacsMessage, emacsError, plainText, maxBodyHeight, mountAtBottom } = this.props;
         const classes = classNames(this.props.className, `native-key-bindings`, 'agda-body');
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
@@ -55,27 +55,27 @@ class Body extends React.Component<Props, {}> {
                 tabIndex={-1}
                 style={style}
             >
-                {body &&
+                {emacsMetas &&
                     <div>
                         <ul className="list-group body-legacy">
-                            {body.goalAndHave.map(goalAndHave)}
+                            {emacsMetas.goalAndHave.map(goalAndHave)}
                         </ul>
                         <ul className="list-group body-legacy">
-                            {body.goals.map(goal)}
-                            {body.judgements.map(judgement)}
-                            {body.terms.map(term)}
-                            {body.metas.map(meta)}
-                            {body.sorts.map(sort)}
+                            {emacsMetas.goals.map(goal)}
+                            {emacsMetas.judgements.map(judgement)}
+                            {emacsMetas.terms.map(term)}
+                            {emacsMetas.metas.map(meta)}
+                            {emacsMetas.sorts.map(sort)}
                         </ul>
                         <ul className="list-group body-legacy">
-                            {body.warnings.length > 0 &&
+                            {emacsMetas.warnings.length > 0 &&
                                 <li className="list-item special-item">
-                                    {body.warnings.join('\n')}
+                                    {emacsMetas.warnings.join('\n')}
                                 </li>
                             }
-                            {body.errors.length > 0 &&
+                            {emacsMetas.errors.length > 0 &&
                                 <li className="list-item special-item">
-                                    {body.errors.join('\n')}
+                                    {emacsMetas.errors.join('\n')}
                                 </li>
                             }
                         </ul>
