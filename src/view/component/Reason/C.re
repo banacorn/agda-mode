@@ -80,7 +80,7 @@ module BoundName = {
   let make = (~value, _children) => {
     ...component,
     render: _self =>
-      if (value.name === value.label) {
+      if (Name.toString(value.name) === Name.toString(value.label)) {
         <Name value=value.name />;
       } else {
         <span>

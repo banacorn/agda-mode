@@ -261,7 +261,7 @@ module Element = {
       } else {
         <span>
           <Relevance relevance=argInfo.modality.relevance />
-          <Hiding hiding=argInfo.hiding>
+          <Hiding hiding=argInfo.hiding parens>
             <TypedBinding value=binding />
           </Hiding>
         </span>;

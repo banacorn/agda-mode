@@ -9,15 +9,17 @@ let component = ReasonReact.statelessComponent("Metas");
 let make = (~metas: metas, ~emit, _children) => {
   ...component,
   render: _self =>
-    <section className="metas">
-      <ul>
-        ...(
-             metas.interactionMetas
-             |> List.map(meta => <Meta meta />)
-             |> Array.of_list
-           )
-      </ul>
-    </section>,
+    <Context.Emitter.Provider value=emit>
+      <section className="metas">
+        <ul>
+          ...(
+               metas.interactionMetas
+               |> List.map(meta => <Meta meta />)
+               |> Array.of_list
+             )
+        </ul>
+      </section>
+    </Context.Emitter.Provider>,
   /* <button />
      (string(string_of_int(List.length(metas.interactionMetas)))) */
 };
