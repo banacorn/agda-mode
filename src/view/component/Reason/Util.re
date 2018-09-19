@@ -1,6 +1,6 @@
 open ReasonReact;
 
-let sepBy_ = (sep: 'a, item: list('a)) =>
+let sepBy_ = (sep: 'a, item: list('a)) : list('a) =>
   switch (item) {
   | [] => []
   | [x, ...xs] => [x, ...xs |> List.map(i => [sep, i]) |> List.concat]
@@ -11,7 +11,9 @@ let sepBy = (sep: reactElement, item: list(reactElement)) =>
   | [] => <> </>
   | [x] => x
   | [x, ...xs] =>
-    <> x (array(Array.of_list(List.map(i => <> sep i </>, xs)))) </>
+    <span>
+      ...(Array.of_list([x, ...List.map(i => <> sep i </>, xs)]))
+    </span>
   };
 
 let contains: (string, string) => bool = [%raw

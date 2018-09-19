@@ -4,7 +4,7 @@ open Type;
 
 open Syntax.CommonPrim;
 
-let id = children => <span> children </span>;
+let id = children => children;
 
 let braces = children => <span> (string("{")) children (string("}")) </span>;
 
@@ -13,8 +13,7 @@ let dbraces = children =>
 
 let parens = children => <span> (string("(")) children (string(")")) </span>;
 
-let parensIf = (p, children) =>
-  p ? parens(children) : <span> children </span>;
+let parensIf = (p, children) => p ? parens(children) : children;
 
 module Relevance = {
   let component = statelessComponent("Relevance");
@@ -38,9 +37,9 @@ module Hiding = {
       | 0 => null
       | _ =>
         switch (hiding) {
-        | Hidden => braces(array(children))
-        | Instance(_) => dbraces(array(children))
-        | NotHidden => parens(array(children))
+        | Hidden => braces(<span> ...children </span>)
+        | Instance(_) => dbraces(<span> ...children </span>)
+        | NotHidden => parens(<span> ...children </span>)
         }
       },
   };
