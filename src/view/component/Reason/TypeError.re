@@ -19,7 +19,7 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
             "The target of a constructor must be the datatype applied to its parameters, ",
           )
         )
-        <Concrete.Expr value=type_.concrete />
+        <Concrete.Expr value=type_ />
         (string(" isn't"))
       </div>
     | ShadowedModule(previous, duplicated, dataOrRecord) =>
@@ -42,24 +42,24 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
        1<Range range=previous /> */
     | ShouldBePi(type_) =>
       <div>
-        <Concrete.Expr value=type_.concrete />
+        <Concrete.Expr value=type_ />
         (string(" should be a function type, but it isn't"))
       </div>
     | ShouldBeASort(type_) =>
       <div>
-        <Concrete.Expr value=type_.concrete />
+        <Concrete.Expr value=type_ />
         (string(" should be a sort, but it isn't"))
       </div>
     | UnequalTerms(_, term1, term2, type_, _) =>
       <div>
         (string("expected : "))
-        <Concrete.Expr value=term2.concrete />
+        <Concrete.Expr value=term2 />
         <br />
         (string("  actual : "))
-        <Concrete.Expr value=term1.concrete />
+        <Concrete.Expr value=term1 />
         <br />
         (string(" of type : "))
-        <Concrete.Expr value=type_.concrete />
+        <Concrete.Expr value=type_ />
         <br />
       </div>
     | ClashingDefinition(definition, previouslyAt) =>

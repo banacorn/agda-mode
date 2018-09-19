@@ -19,14 +19,14 @@ let make = (~call, _children) => {
           |> sepBy(<br />)
         )
         (string(" has type "))
-        <Concrete.Expr value=type_.concrete />
+        <Concrete.Expr value=type_ />
       </span>
     | CheckPattern(pattern, type_) =>
       <span>
         (string("when checking that the pattern "))
         <Concrete.Pattern pattern />
         (string(" has type "))
-        <Concrete.Expr value=type_.concrete />
+        <Concrete.Expr value=type_ />
       </span>
     | CheckLetBinding(declarations) =>
       <span>
@@ -47,7 +47,7 @@ let make = (~call, _children) => {
         (string("when checking that the expression "))
         <Concrete.Expr value=expr />
         (string(" has type "))
-        <Concrete.Expr value=type_.concrete />
+        <Concrete.Expr value=type_ />
       </span>
     | CheckArguments(_, exprs, type_) =>
       CommonPrim.(
@@ -73,18 +73,18 @@ let make = (~call, _children) => {
               string(" is a valid argument ")
           )
           (string("to a function of type "))
-          <Concrete.Expr value=type_.concrete />
+          <Concrete.Expr value=type_ />
         </span>
       )
     | CheckTargetType(_range, inf, exp) =>
       <span>
         (string("when checking that the inferred type of an application "))
         <br />
-        <Concrete.Expr value=inf.concrete />
+        <Concrete.Expr value=inf />
         <br />
         (string("matches the expected type "))
         <br />
-        <Concrete.Expr value=exp.concrete />
+        <Concrete.Expr value=exp />
       </span>
     | CheckConstructor(declaration, constructor) =>
       <span>

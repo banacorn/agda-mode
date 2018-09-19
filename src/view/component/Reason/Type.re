@@ -632,24 +632,22 @@ module Syntax = {
 };
 
 module TypeChecking = {
-  type rep('a, 'b) = {
-    internal: 'a,
-    concrete: 'b,
-  };
-  type repTerm = rep(Syntax.Internal.term, Syntax.Concrete.expr);
-  type repType = rep(Syntax.Internal.type_, Syntax.Concrete.expr);
   type comparison =
     | CmpLeq
     | CmpEq;
   type call =
-    | CheckClause(repType, list(Syntax.Concrete.declaration))
-    | CheckPattern(Syntax.Concrete.pattern, repType)
+    | CheckClause(Syntax.Concrete.expr, list(Syntax.Concrete.declaration))
+    | CheckPattern(Syntax.Concrete.pattern, Syntax.Concrete.expr)
     | CheckLetBinding(list(Syntax.Concrete.declaration))
     | InferExpr(Syntax.Concrete.expr)
-    | CheckExprCall(comparison, Syntax.Concrete.expr, repType)
-    | CheckDotPattern(Syntax.Concrete.expr, repType)
+    | CheckExprCall(comparison, Syntax.Concrete.expr, Syntax.Concrete.expr)
+    | CheckDotPattern(Syntax.Concrete.expr, Syntax.Concrete.expr)
     | CheckPatternShadowing(list(Syntax.Concrete.declaration))
-    | CheckProjection(Syntax.Position.range, Syntax.C.qName, repType)
+    | CheckProjection(
+        Syntax.Position.range,
+        Syntax.C.qName,
+        Syntax.Concrete.expr,
+      )
     | IsTypeCall(Syntax.Concrete.expr, Syntax.Internal.sort)
     | IsType_(Syntax.Concrete.expr)
     | InferVar(Syntax.C.name)
@@ -657,9 +655,13 @@ module TypeChecking = {
     | CheckArguments(
         Syntax.Position.range,
         list(Syntax.CommonPrim.namedArg(Syntax.Concrete.expr)),
-        repType,
+        Syntax.Concrete.expr,
       )
-    | CheckTargetType(Syntax.Position.range, repType, repType)
+    | CheckTargetType(
+        Syntax.Position.range,
+        Syntax.Concrete.expr,
+        Syntax.Concrete.expr,
+      )
     | CheckDataDef(Syntax.Position.range, Syntax.C.name)
     | CheckRecDef(Syntax.Position.range, Syntax.C.name)
     | CheckConstructor(Syntax.C.qName, Syntax.C.qName)
@@ -670,7 +672,7 @@ module TypeChecking = {
         Syntax.C.name,
         Syntax.Concrete.expr,
       )
-    | CheckIsEmpty(Syntax.Position.range, repType)
+    | CheckIsEmpty(Syntax.Position.range, Syntax.Concrete.expr)
     | CheckWithFunctionType(Syntax.Concrete.expr)
     | CheckSectionApplication(
         Syntax.Position.range,
@@ -686,15 +688,21 @@ module TypeChecking = {
     | SetRange(Syntax.Position.range);
   type typeError =
     | GenericError(string)
-    | ShouldEndInApplicationOfTheDatatype(repType)
+    | ShouldEndInApplicationOfTheDatatype(Syntax.Concrete.expr)
     | ShadowedModule(
         Syntax.C.qName,
         Syntax.C.name,
         option(Syntax.CommonPrim.dataOrRecord),
       )
-    | ShouldBePi(repType)
-    | ShouldBeASort(repType)
-    | UnequalTerms(comparison, repTerm, repTerm, repType, string)
+    | ShouldBePi(Syntax.Concrete.expr)
+    | ShouldBeASort(Syntax.Concrete.expr)
+    | UnequalTerms(
+        comparison,
+        Syntax.Concrete.expr,
+        Syntax.Concrete.expr,
+        Syntax.Concrete.expr,
+        string,
+      )
     | ClashingDefinition(Syntax.C.qName, Syntax.Position.range)
     | NoRHSRequiresAbsurdPattern(list(Syntax.Concrete.pattern))
     | NotInScope(map(Syntax.C.qName, list(Syntax.C.qName)))
@@ -734,27 +742,38 @@ module TypeChecking = {
     | ExplicitToInstance
     | ExplicitStayExplicit;
   type candidate = {
-    term: repTerm,
-    type_: repType,
+    term: Syntax.Concrete.expr,
+    type_: Syntax.Concrete.expr,
     eti: explicitToInstance,
     overlappable: Syntax.CommonPrim.overlappable,
   };
   type constraint_ =
-    | ValueCmp(comparison, repType, repTerm, repTerm)
-    | ValueCmpOnFace(comparison, repTerm, repType, repTerm, repTerm)
+    | ValueCmp(
+        comparison,
+        Syntax.Concrete.expr,
+        Syntax.Concrete.expr,
+        Syntax.Concrete.expr,
+      )
+    | ValueCmpOnFace(
+        comparison,
+        Syntax.Concrete.expr,
+        Syntax.Concrete.expr,
+        Syntax.Concrete.expr,
+        Syntax.Concrete.expr,
+      )
     | ElimCmp(
         list(polarity),
         list(isForced),
-        repType,
-        repTerm,
+        Syntax.Concrete.expr,
+        Syntax.Concrete.expr,
         list(Syntax.Internal.elim),
         list(Syntax.Internal.elim),
       )
-    | TypeCmp(comparison, repType, repType)
+    | TypeCmp(comparison, Syntax.Concrete.expr, Syntax.Concrete.expr)
     | TelCmp(
         comparison,
-        repType,
-        repType,
+        Syntax.Concrete.expr,
+        Syntax.Concrete.expr,
         list(Syntax.Concrete.typedBindings),
         list(Syntax.Concrete.typedBindings),
       )
@@ -767,8 +786,8 @@ module TypeChecking = {
       )
     | UnBlock(int)
     | Guarded(constraint_, int)
-    | IsEmpty(Syntax.Position.range, repType)
-    | CheckSizeLtSat(repTerm)
+    | IsEmpty(Syntax.Position.range, Syntax.Concrete.expr)
+    | CheckSizeLtSat(Syntax.Concrete.expr)
     | FindInScope(int, option(int), option(list(candidate)))
     | CheckFunDef(Syntax.C.qName, list(list(Syntax.Concrete.declaration)));
   type problemConstraint = {

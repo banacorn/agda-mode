@@ -1372,25 +1372,19 @@ module Decode = {
            | _ => failwith("unknown kind of Comparison")
            }
          );
-    let rep = (decodeFrom, decodeTo, json) => {
-      internal: json |> field("internal", decodeFrom),
-      concrete: json |> field("concrete", decodeTo),
-    };
-    let repTerm = rep(Syntax.Internal.term(), Syntax.Concrete.expr());
-    let repType = rep(Syntax.Internal.type_, Syntax.Concrete.expr());
     let call =
       field("kind", string)
       |> andThen((kind, json) =>
            switch (kind) {
            | "CheckClause" =>
              CheckClause(
-               json |> field("type", repType),
+               json |> field("type", Syntax.Concrete.expr()),
                json |> field("clause", list(Syntax.Concrete.declaration())),
              )
            | "CheckPattern" =>
              CheckPattern(
                json |> field("pattern", Syntax.Concrete.pattern()),
-               json |> field("type", repType),
+               json |> field("type", Syntax.Concrete.expr()),
              )
            | "CheckLetBinding" =>
              CheckLetBinding(
@@ -1402,12 +1396,12 @@ module Decode = {
              CheckExprCall(
                json |> field("comparison", comparison),
                json |> field("expr", Syntax.Concrete.expr()),
-               json |> field("type", repType),
+               json |> field("type", Syntax.Concrete.expr()),
              )
            | "CheckDotPattern" =>
              CheckDotPattern(
                json |> field("expr", Syntax.Concrete.expr()),
-               json |> field("type", repType),
+               json |> field("type", Syntax.Concrete.expr()),
              )
            | "CheckPatternShadowing" =>
              CheckPatternShadowing(
@@ -1417,7 +1411,7 @@ module Decode = {
              CheckProjection(
                json |> field("range", Syntax.Position.range),
                json |> field("name", Syntax.C.qName),
-               json |> field("type", repType),
+               json |> field("type", Syntax.Concrete.expr()),
              )
            | "IsTypeCall" =>
              IsTypeCall(
@@ -1436,13 +1430,13 @@ module Decode = {
                     "arguments",
                     list(Syntax.CommonPrim.namedArg(Syntax.Concrete.expr())),
                   ),
-               json |> field("type1", repType),
+               json |> field("type1", Syntax.Concrete.expr()),
              )
            | "CheckTargetType" =>
              CheckTargetType(
                json |> field("range", Syntax.Position.range),
-               json |> field("infType", repType),
-               json |> field("expType", repType),
+               json |> field("infType", Syntax.Concrete.expr()),
+               json |> field("expType", Syntax.Concrete.expr()),
              )
            | "CheckDataDef" =>
              CheckDataDef(
@@ -1478,7 +1472,7 @@ module Decode = {
            | "CheckIsEmpty" =>
              CheckIsEmpty(
                json |> field("range", Syntax.Position.range),
-               json |> field("type", repType),
+               json |> field("type", Syntax.Concrete.expr()),
              )
            | "CheckWithFunctionType" =>
              CheckWithFunctionType(
@@ -1518,7 +1512,7 @@ module Decode = {
            | "GenericError" => GenericError(json |> field("message", string))
            | "ShouldEndInApplicationOfTheDatatype" =>
              ShouldEndInApplicationOfTheDatatype(
-               json |> field("type", repType),
+               json |> field("type", Syntax.Concrete.expr()),
              )
            | "ShadowedModule" =>
              ShadowedModule(
@@ -1530,14 +1524,16 @@ module Decode = {
                     optional(Syntax.CommonPrim.dataOrRecord),
                   ),
              )
-           | "ShouldBePi" => ShouldBePi(json |> field("type", repType))
-           | "ShouldBeASort" => ShouldBeASort(json |> field("type", repType))
+           | "ShouldBePi" =>
+             ShouldBePi(json |> field("type", Syntax.Concrete.expr()))
+           | "ShouldBeASort" =>
+             ShouldBeASort(json |> field("type", Syntax.Concrete.expr()))
            | "UnequalTerms" =>
              UnequalTerms(
                json |> field("comparison", comparison),
-               json |> field("term1", repTerm),
-               json |> field("term2", repTerm),
-               json |> field("type", repType),
+               json |> field("term1", Syntax.Concrete.expr()),
+               json |> field("term2", Syntax.Concrete.expr()),
+               json |> field("type", Syntax.Concrete.expr()),
                json |> field("reason", string),
              )
            | "ClashingDefinition" =>
@@ -1660,8 +1656,8 @@ module Decode = {
            }
          );
     let candidate = json => {
-      term: json |> field("term", repTerm),
-      type_: json |> field("type", repType),
+      term: json |> field("term", Syntax.Concrete.expr()),
+      type_: json |> field("type", Syntax.Concrete.expr()),
       eti: json |> field("eti", explicitToInstance),
       overlappable:
         json |> field("overlappable", Syntax.CommonPrim.overlappable),
@@ -1673,38 +1669,38 @@ module Decode = {
            | "ValueCmp" =>
              ValueCmp(
                json |> field("comparison", comparison),
-               json |> field("type", repType),
-               json |> field("term1", repTerm),
-               json |> field("term2", repTerm),
+               json |> field("type", Syntax.Concrete.expr()),
+               json |> field("term1", Syntax.Concrete.expr()),
+               json |> field("term2", Syntax.Concrete.expr()),
              )
            | "ValueCmpOnFace" =>
              ValueCmpOnFace(
                json |> field("comparison", comparison),
-               json |> field("face", repTerm),
-               json |> field("type", repType),
-               json |> field("term1", repTerm),
-               json |> field("term2", repTerm),
+               json |> field("face", Syntax.Concrete.expr()),
+               json |> field("type", Syntax.Concrete.expr()),
+               json |> field("term1", Syntax.Concrete.expr()),
+               json |> field("term2", Syntax.Concrete.expr()),
              )
            | "ElimCmp" =>
              ElimCmp(
                json |> field("polarities", list(polarity)),
                json |> field("isForced", list(isForced)),
-               json |> field("type", repType),
-               json |> field("term", repTerm),
+               json |> field("type", Syntax.Concrete.expr()),
+               json |> field("term", Syntax.Concrete.expr()),
                json |> field("elims1", list(Syntax.Internal.elim())),
                json |> field("elims2", list(Syntax.Internal.elim())),
              )
            | "TypeCmp" =>
              TypeCmp(
                json |> field("comparison", comparison),
-               json |> field("type1", repType),
-               json |> field("type2", repType),
+               json |> field("type1", Syntax.Concrete.expr()),
+               json |> field("type2", Syntax.Concrete.expr()),
              )
            | "TelCmp" =>
              TelCmp(
                json |> field("comparison", comparison),
-               json |> field("type1", repType),
-               json |> field("type2", repType),
+               json |> field("type1", Syntax.Concrete.expr()),
+               json |> field("type2", Syntax.Concrete.expr()),
                json
                |> field("telescope1", list(Syntax.Concrete.typedBindings)),
                json
@@ -1742,10 +1738,10 @@ module Decode = {
            | "IsEmpty" =>
              IsEmpty(
                json |> field("range", Syntax.Position.range),
-               json |> field("type", repType),
+               json |> field("type", Syntax.Concrete.expr()),
              )
            | "CheckSizeLtSat" =>
-             CheckSizeLtSat(json |> field("term", repTerm))
+             CheckSizeLtSat(json |> field("term", Syntax.Concrete.expr()))
            | "FindInScope" =>
              FindInScope(
                json |> field("instanceArg", int),
