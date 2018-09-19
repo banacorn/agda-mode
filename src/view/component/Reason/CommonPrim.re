@@ -98,4 +98,12 @@ module Arg = {
 
 module NamedArg = {
   let namedArg = (Arg(_, Named(_, x))) => x;
+  let component = statelessComponent("NamedArg");
+  let make = (~value, children) => {
+    ...component,
+    render: _self =>
+      <Arg value>
+        ...((prec, value) => <Named prec value> ...children </Named>)
+      </Arg>,
+  };
 };

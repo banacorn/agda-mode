@@ -97,18 +97,12 @@ module Element = {
         let (e1, args) = Expr_.appView(value);
         let items: list(reactElement) = [
           <Expr value=e1 />,
-          ...List.map(
-               value =>
-                 <Arg value>
-                   ...(
-                        (prec, value) =>
-                          <Named prec value>
-                            ...((_, value) => <Expr value />)
-                          </Named>
-                      )
-                 </Arg>,
-               args,
-             ),
+          ...args
+             |> List.map(value =>
+                  <NamedArg value>
+                    ...((_, value) => <Expr value />)
+                  </NamedArg>
+                ),
         ];
         sepBy(string(" "), items);
       | RawApp(_, exprs) =>
