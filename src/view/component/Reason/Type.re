@@ -682,6 +682,7 @@ module TypeChecking = {
     | ClashingDefinition(Syntax.C.qname, range)
     | NoRHSRequiresAbsurdPattern(list(pattern))
     | NotInScope(map(Syntax.C.qname, list(Syntax.C.qname)))
+    | AmbiguousName(Syntax.C.qname, list(Syntax.C.qname))
     | UnregisteredTypeError(Js.Json.t);
   type error =
     | TypeError(range, call, typeError)
@@ -794,6 +795,12 @@ module TypeChecking = {
           ),
         ),
       );
+  type tcWarning = {
+    cached: bool,
+    range,
+    warning,
+    warning': string,
+  };
 };
 
 module Interaction = {
@@ -820,8 +827,8 @@ module Interaction = {
       list(outputConstraint(Syntax.Concrete.expr, Syntax.Concrete.expr)),
     hiddenMetas:
       list(outputConstraint(Syntax.Concrete.expr, Syntax.Concrete.expr)),
-    warnings: list(TypeChecking.warning),
-    errors: list(TypeChecking.warning),
+    warnings: list(TypeChecking.tcWarning),
+    errors: list(TypeChecking.tcWarning),
   };
 };
 

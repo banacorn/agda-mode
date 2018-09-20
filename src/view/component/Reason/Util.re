@@ -29,6 +29,12 @@ module List_ = {
     | [_] => []
     | [x, ...xs] => [x, ...init(xs)]
     };
+  let rec last = xs =>
+    switch (xs) {
+    | [] => failwith("last on empty list")
+    | [x] => x
+    | [x, ...xs] => last(xs)
+    };
   let rec span = (p, xs) =>
     switch (xs) {
     | [] => ([], [])

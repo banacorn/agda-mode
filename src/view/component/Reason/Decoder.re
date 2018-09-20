@@ -1,5 +1,7 @@
 [%%debugger.chrome];
 
+open Util;
+
 module Decode = {
   open Json.Decode;
   module TypeCheckingPositivity = {
@@ -29,14 +31,18 @@ module Decode = {
         end_: json |> field("end", position),
       };
       let range =
-        (
-          json =>
-            Range(
-              json |> field("source", optional(string)),
-              json |> field("intervals", list(interval)),
-            )
-        )
-        |> withDefault(NoRange);
+        field("kind", string)
+        |> andThen((kind, json) =>
+             switch (kind) {
+             | "Range" =>
+               Range(
+                 json |> field("source", optional(string)),
+                 json |> field("intervals", list(interval)),
+               )
+             | "NoRange" => NoRange
+             | _ => failwith("unknown kind of Range")
+             }
+           );
     };
     module Parser = {
       open Type.Syntax.Parser;
@@ -67,7 +73,9 @@ module Decode = {
            );
       let qname =
         list(name)
-        |> andThen((names, _) => QName(List.tl(names), List.hd(names)));
+        |> andThen((names, _) =>
+             QName(List_.init(names), List_.last(names))
+           );
     };
     module CommonPrim = {
       open Type.Syntax.CommonPrim;
@@ -259,13 +267,12 @@ module Decode = {
           json |> field("range", Position.range),
           json |> field("value", decoder),
         );
-      let named = (nameDecoder, valueDecoder, json) =>
+      let named = (decoder, json) =>
         Named(
-          json |> field("name", optional(nameDecoder)),
-          json |> field("value", valueDecoder),
+          json |> field("name", optional(ranged(string))),
+          json |> field("value", decoder),
         );
-      let named_ = decoder => named(ranged(string), decoder);
-      let namedArg = decoder => arg(named_(decoder));
+      let namedArg = decoder => arg(named(decoder));
       let dataOrRecord =
         string
         |> andThen((kind, _json) =>
@@ -510,12 +517,12 @@ module Decode = {
              | "HiddenArg" =>
                HiddenArg(
                  json |> field("range", Position.range),
-                 json |> field("expr", CommonPrim.named_(expr())),
+                 json |> field("expr", CommonPrim.named(expr())),
                )
              | "InstanceArg" =>
                InstanceArg(
                  json |> field("range", Position.range),
-                 json |> field("expr", CommonPrim.named_(expr())),
+                 json |> field("expr", CommonPrim.named(expr())),
                )
              | "Lam" =>
                Lam(
@@ -1068,12 +1075,12 @@ module Decode = {
                | "HiddenP" =>
                  HiddenP(
                    json |> field("range", Position.range),
-                   json |> field("pattern", CommonPrim.named_(pattern())),
+                   json |> field("pattern", CommonPrim.named(pattern())),
                  )
                | "InstanceP" =>
                  InstanceP(
                    json |> field("range", Position.range),
-                   json |> field("pattern", CommonPrim.named_(pattern())),
+                   json |> field("pattern", CommonPrim.named(pattern())),
                  )
                | "ParenP" =>
                  ParenP(
@@ -1550,6 +1557,11 @@ module Decode = {
                     ),
                   ),
              )
+           | "AmbiguousName" =>
+             AmbiguousName(
+               json |> field("ambiguousName", Syntax.C.qname),
+               json |> field("couldReferTo", list(Syntax.C.qname)),
+             )
            | _ => UnregisteredTypeError(json)
            }
          );
@@ -1830,6 +1842,12 @@ module Decode = {
            | _ => failwith("unknown kind of Warning")
            }
          );
+    let tcWarning = json => {
+      cached: json |> field("cached", bool),
+      range: json |> field("range", range),
+      warning: json |> field("warning", warning),
+      warning': json |> field("warning'", string),
+    };
   };
   module Interaction = {
     open Type.Interaction;
@@ -1947,8 +1965,8 @@ module Decode = {
                ),
              ),
            ),
-      warnings: json |> field("warnings", list(TypeChecking.warning)),
-      errors: json |> field("warnings", list(TypeChecking.warning)),
+      warnings: json |> field("warnings", list(TypeChecking.tcWarning)),
+      errors: json |> field("warnings", list(TypeChecking.tcWarning)),
     };
   };
 };

@@ -123,6 +123,24 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
         </li>;
       };
       <ul> ...(pairs |> List.map(pair) |> Array.of_list) </ul>;
+    | AmbiguousName(ambiguousName, couldReferTo) =>
+      <div>
+        (string("Ambiguous name "))
+        <C.QName value=ambiguousName />
+        (string("."))
+        <br />
+        (string("It could refer to any one of "))
+        <br />
+        <ul>
+          ...(
+               couldReferTo
+               |> List.map(value =>
+                    <li> (string("    ")) <C.QName value /> </li>
+                  )
+               |> Array.of_list
+             )
+        </ul>
+      </div>
     | UnregisteredTypeError(json) =>
       <div> (string(Js.Json.stringify(json))) </div>
     };

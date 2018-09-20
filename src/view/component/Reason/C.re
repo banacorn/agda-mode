@@ -88,7 +88,7 @@ module BoundName = {
   let component = statelessComponent("BoundName");
   let isUnderscore: underscore(boundName) =
     value =>
-      if (value.name === value.label) {
+      if (Name.toString(value.name) === Name.toString(value.label)) {
         Name.isUnderscore(value.name);
       } else {
         false;

@@ -10,6 +10,7 @@ let typeErrorToHeader = error =>
     | ClashingDefinition(_, _) => "Clashing Definition"
     | NoRHSRequiresAbsurdPattern(_) => "No RHS Requires Absurd Pattern"
     | NotInScope(_) => "Not in Scope"
+    | AmbiguousName(_, _) => "Ambiguous Name"
     | UnregisteredTypeError(_) => "Unregistered Type Error"
     }
   );

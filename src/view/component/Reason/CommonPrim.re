@@ -2,6 +2,8 @@ open ReasonReact;
 
 open Type;
 
+open Util;
+
 open Syntax.CommonPrim;
 
 let id = children => children;
@@ -12,8 +14,6 @@ let dbraces = children =>
   <span> (string("{{")) children (string("}}")) </span>;
 
 let parens = children => <span> (string("(")) children (string(")")) </span>;
-
-let parensIf = (p, children) => p ? parens(children) : children;
 
 module Relevance = {
   let component = statelessComponent("Relevance");
@@ -57,7 +57,14 @@ module Named = {
       switch (name) {
       | None => children(prec, value)
       | Some(Ranged(_, s)) =>
-        parensIf(prec > 0, <> (string(s ++ "=")) (children(0, value)) </>)
+        let elem =
+          [string(s), string("="), children(0, value)]
+          |> sepBy(string(" "));
+        if (prec > 0) {
+          parens(elem);
+        } else {
+          elem;
+        };
       };
     },
   };

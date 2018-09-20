@@ -97,17 +97,17 @@ module Element = {
       | Underscore(range, Some(s)) =>
         <Link jump hover range> (string(s)) </Link>
       | App(_, _, _) =>
-        let (e1, args) = Expr_.appView(value);
-        let items: list(reactElement) = [
-          <Expr value=e1 />,
+        let (e, args) = Expr_.appView(value);
+        [
+          <Expr value=e />,
           ...args
              |> List.map(value =>
                   <NamedArg value>
                     ...((_, value) => <Expr value />)
                   </NamedArg>
                 ),
-        ];
-        sepBy(string(" "), items);
+        ]
+        |> sepBy(string(" "));
       | RawApp(_, exprs) =>
         exprs |> List.map(value => <Expr value />) |> sepBy(string(" "))
       | OpApp(_, func, _, args) =>
@@ -285,7 +285,7 @@ module Element = {
           )
         </span>
       | Paren(_, value) => CommonPrim.parens(<Expr value />)
-      | _ => <span> (string("unimplemented:  Expr::Paren")) </span>
+      | _ => <span> (string("unimplemented: <Expr>")) </span>
       };
     },
   }
