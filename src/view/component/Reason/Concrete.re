@@ -22,7 +22,10 @@ module Component = {
   let lhs = statelessComponent("LHS");
   let pattern = statelessComponent("Pattern");
   let telescope = statelessComponent("Telescope");
+  let opApp = statelessComponent("OpApp");
 };
+
+module OpApp_ = {};
 
 module TypedBinding_ = {
   let isUnderscore: underscore(typedBinding) =
@@ -108,25 +111,104 @@ module Element = {
       | RawApp(_, exprs) =>
         exprs |> List.map(value => <Expr value />) |> sepBy(string(" "))
       | OpApp(_, func, _, args) =>
+        module OpApp = {
+          let make = makeOpApp;
+        };
+        open Type.Syntax.CommonPrim;
         /* the module part of the name */
-        /* let ms = QName.moduleParts(func);
-           let xs =
-             switch (QName.unqualify(func)) {
-             | Name(_, xs) => xs
-             | NoName(_, _) => failwith("OpApp func has no name")
-             };
-           let prOp = (ms, xs, es) =>
-             switch (xs, es) {
-             | ([Hole, ...xs], [e, ...es]) =>
-               switch (NamedArg.namedArg(e)) {
-               | Placeholder(p) => []
-               | _ => []
-               }
-             | ([Hole, ...xs], []) => failwith("OpApp::prOp")
-             | ([Id(x), ...xs], es) => []
-             | ([], es) => es |> List.map(value => (<Expr value />, None))
-             }; */
-        <span> (string("unimplemented: Expr::OpApp")) </span>
+        let ms = QName.moduleParts(func);
+        let xs =
+          switch (QName.unqualify(func)) {
+          | Name(_, xs) => xs
+          | NoName(_, _) => failwith("OpApp func has no name")
+          };
+        let qualify = (ms, rest) =>
+          ms
+          |> List.map(value => <Name value />)
+          |> List.append(_, [rest])
+          |> sepBy(string("."));
+        let rec prOp =
+                (
+                  ms: list(name),
+                  xs: list(namePart),
+                  es: list(namedArg(opApp)),
+                ) =>
+          switch (xs, es) {
+          | ([Hole, ...xs], [e, ...es]) =>
+            switch (NamedArg.namedArg(e)) {
+            | Placeholder(p) => [
+                (
+                  qualify(
+                    ms,
+                    <NamedArg value=e>
+                      ...((_, value) => <OpApp value />)
+                    </NamedArg>,
+                  ),
+                  Some(p),
+                ),
+                ...prOp([], xs, es),
+              ]
+            | _ => [
+                (
+                  <NamedArg value=e>
+                    ...((_, value) => <OpApp value />)
+                  </NamedArg>,
+                  None,
+                ),
+                ...prOp(ms, xs, es),
+              ]
+            }
+          | ([Hole, ...xs], []) => failwith("OpApp::prOp")
+          | ([Id(x), ...xs], es) => [
+              (
+                qualify(ms, <Name value=(Name(NoRange, [Id(x)])) />),
+                None,
+              ),
+              ...prOp([], xs, es),
+            ]
+          | ([], es) =>
+            es
+            |> List.map(value =>
+                 (
+                   <NamedArg value>
+                     ...((_, value) => <OpApp value />)
+                   </NamedArg>,
+                   None,
+                 )
+               )
+          };
+        let rec merge =
+                (
+                  before: list(reactElement),
+                  pairs: list((reactElement, option(positionInName))),
+                )
+                : list(reactElement) =>
+          switch (pairs) {
+          | [] => List.rev(before)
+          | [(d, None), ...after] => merge([d, ...before], after)
+          | [(d, Some(Beginning)), ...after] =>
+            mergeRight(before, d, after)
+          | [(d, Some(End)), ...after] =>
+            let (d, bs) = mergeLeft(d, before);
+            merge([d, ...bs], after);
+          | [(d, Some(Middle)), ...after] =>
+            let (d, bs) = mergeLeft(d, before);
+            mergeRight(bs, d, after);
+          }
+        and mergeRight = (before, d, after) =>
+          List.append(
+            List.rev(before),
+            switch (merge([], after)) {
+            | [] => [d]
+            | [a, ...as_] => [<> d a </>, ...as_]
+            },
+          )
+        and mergeLeft = (d, before) =>
+          switch (before) {
+          | [] => (d, [])
+          | [b, ...bs] => (<> b d </>, bs)
+          };
+        merge([], prOp(ms, xs, args)) |> sepBy(string(" "));
       | WithApp(_, expr, exprs) =>
         [expr, ...exprs]
         |> List.map(value => <Expr value />)
@@ -140,25 +222,17 @@ module Element = {
           <Named value=expr> ...((_, value) => <Expr value />) </Named>,
         )
       | Lam(_, bindings, AbsurdLam(_, hiding)) =>
-        <span>
-          (string({js|λ |js}))
-          (
-            bindings
-            |> List.map(value => <LamBinding value />)
-            |> sepBy(string(" "))
-          )
-          <Hiding hiding />
-        </span>
+        bindings
+        |> List.map(value => <LamBinding value />)
+        |> List.append([string({js|λ|js})], _)
+        |> List.append(_, [<Hiding hiding />])
+        |> sepBy(string(" "))
       | Lam(_, bindings, expr) =>
-        <span>
-          (string({js|λ |js}))
-          (
-            bindings
-            |> List.map(value => <LamBinding value />)
-            |> sepBy(string(" "))
-          )
-          <Expr value=expr />
-        </span>
+        bindings
+        |> List.map(value => <LamBinding value />)
+        |> List.append([string({js|λ|js})], _)
+        |> List.append(_, [string({js|→|js}), <Expr value=expr />])
+        |> sepBy(string(" "))
       | AbsurdLam(_range, hiding) =>
         <span> (string({js|λ |js})) <Hiding hiding /> </span>
       | ExtendedLam(_range, bindings) =>
@@ -352,7 +426,20 @@ module Element = {
         )
       </span>;
     },
-    /* | TypedBindings(Position.range, CommonPrim.arg(typedBinding)) */
+  }
+  and makeOpApp = (~value, _children) => {
+    ...Component.opApp,
+    render: _self => {
+      module Expr = {
+        let make = makeExpr;
+      };
+      switch (value) {
+      | Placeholder(_) => string("_")
+      | SyntaxBindingLambda(_, range, lamBindings, expr) =>
+        <Expr value=(Lam(range, lamBindings, expr)) />
+      | Ordinary(_, value) => <Expr value />
+      };
+    },
   };
 };
 
