@@ -244,6 +244,13 @@ const config = {
         default: true,
         order: 50
     },
+    reasonDevMode: {
+        title: 'Reason React dev mode',
+        description: 'Enabled this for better Reason React debugging',
+        type: 'boolean',
+        default: false,
+        order: 60
+    }
 }
 
 

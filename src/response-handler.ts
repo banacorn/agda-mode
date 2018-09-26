@@ -103,7 +103,6 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             return Promise.each(response.solutions, (solution) => {
                 return core.editor.onSolveAll(solution.index, solution.expression)
                     .then(goal => {
-                        console.log(goal.index)
                         return  core.connection.getConnection()
                                 .then(connection => [Req.give(goal)({ kind: 'Give' }, connection)])
                                 .then(core.commander.sendRequests)
@@ -228,6 +227,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
 }
 
 function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
+    console.log(info)
     switch (info.kind) {
         case 'CompilationOk':
             core.view.set('CompilationOk', 'TBD', View.Style.Warning);

@@ -798,7 +798,7 @@ module TypeChecking = {
   type tcWarning = {
     cached: bool,
     range,
-    warning,
+    /* warning, */
     warning': string,
   };
 };

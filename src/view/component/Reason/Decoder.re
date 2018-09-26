@@ -1845,7 +1845,7 @@ module Decode = {
     let tcWarning = json => {
       cached: json |> field("cached", bool),
       range: json |> field("range", range),
-      warning: json |> field("warning", warning),
+      /* warning: json |> field("warning", warning), */
       warning': json |> field("warning'", string),
     };
   };

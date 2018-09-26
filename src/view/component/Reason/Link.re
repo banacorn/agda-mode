@@ -11,18 +11,22 @@ let tempEventToString = (event: event) : string =>
 
 let component = ReasonReact.statelessComponent("Link");
 
-let make = (~range=noRange, ~jump=false, ~hover=false, children) => {
+let make =
+    (~range=noRange, ~jump=false, ~hover=false, ~className=[], children) => {
   ...component,
   render: _self =>
     switch (range) {
     | NoRange
-    | Range(_, []) => <span className="link"> ...children </span>
+    | Range(_, []) =>
+      <span className=(String.concat(" ", ["link", ...className]))>
+        ...children
+      </span>
     | _ =>
       <Context.Emitter.Consumer>
         ...(
              emit =>
                <span
-                 className="link"
+                 className=(String.concat(" ", ["link", ...className]))
                  onClick=(
                    (_) =>
                      if (jump) {

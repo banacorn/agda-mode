@@ -89,13 +89,21 @@ module Element = {
       | Ident(value) => <QName value />
       | Lit(value) => <Literal value />
       | QuestionMark(range, None) =>
-        <Link jump hover range> (string("?")) </Link>
+        <Link className=["expr", "question-mark"] jump hover range>
+          (string("?"))
+        </Link>
       | QuestionMark(range, Some(n)) =>
-        <Link jump hover range> (string("?" ++ string_of_int(n))) </Link>
+        <Link className=["expr", "question-mark"] jump hover range>
+          (string("?" ++ string_of_int(n)))
+        </Link>
       | Underscore(range, None) =>
-        <Link jump hover range> (string("_")) </Link>
+        <Link className=["expr", "underscore"] jump hover range>
+          (string("_"))
+        </Link>
       | Underscore(range, Some(s)) =>
-        <Link jump hover range> (string(s)) </Link>
+        <Link className=["expr", "underscore"] jump hover range>
+          (string(s))
+        </Link>
       | App(_, _, _) =>
         let (e, args) = Expr_.appView(value);
         [

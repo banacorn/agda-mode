@@ -369,7 +369,6 @@ export default class View {
     }
 
     setAgdaMetas(raw: object) {
-        console.log(raw);
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
