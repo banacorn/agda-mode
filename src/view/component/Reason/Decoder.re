@@ -79,6 +79,16 @@ module Decode = {
     };
     module CommonPrim = {
       open Type.Syntax.CommonPrim;
+      let projOrigin =
+        string
+        |> andThen((kind, _json) =>
+             switch (kind) {
+             | "ProjPrefix" => ProjPrefix
+             | "ProjPostfix" => ProjPostfix
+             | "ProjSystem" => ProjSystem
+             | _ => failwith("unknown kind of ProjOrigin")
+             }
+           );
       let positionInName =
         string
         |> andThen((kind, _json) =>
@@ -1162,6 +1172,26 @@ module Decode = {
         whereClause: json |> field("whereClause", whereClause()),
         catchAll: json |> field("catchAll", bool),
       };
+      let elimTerm = () =>
+        field("kind", string)
+        |> andThen((kind, json) =>
+             switch (kind) {
+             | "Apply" =>
+               Apply(json |> field("arg", CommonPrim.arg(expr())))
+             | "Proj" =>
+               Proj(
+                 json |> field("projOrigin", CommonPrim.projOrigin),
+                 json |> field("name", A.qname),
+               )
+             | "IApply" =>
+               IApply(
+                 json |> field("endpoint1", expr()),
+                 json |> field("endpoint2", expr()),
+                 json |> field("endpoint3", expr()),
+               )
+             | _ => failwith("unknown kind of Elim(Term)")
+             }
+           );
     };
     module Common = {
       open Type.Syntax.CommonPrim;
@@ -1175,16 +1205,6 @@ module Decode = {
              | "ConORec" => ConORec
              | "ConOSplit" => ConOSplit
              | _ => failwith("unknown kind of ConOrigin")
-             }
-           );
-      let projOrigin =
-        string
-        |> andThen((kind, _json) =>
-             switch (kind) {
-             | "ProjPrefix" => ProjPrefix
-             | "ProjPostfix" => ProjPostfix
-             | "ProjSystem" => ProjSystem
-             | _ => failwith("unknown kind of ProjOrigin")
              }
            );
       let induction =
@@ -1201,171 +1221,6 @@ module Decode = {
         finite: json |> field("finite", bool),
         value: json |> field("value", decoder),
       };
-    };
-    module Internal = {
-      open Type.Syntax.Internal;
-      let conHead = json => {
-        name: json |> A.qname,
-        inductive: json |> Common.induction,
-        fields: json |> list(CommonPrim.arg(A.qname)),
-      };
-      let conInfo = Common.conOrigin;
-      let abs = decoder =>
-        field("kind", string)
-        |> andThen((kind, json) =>
-             switch (kind) {
-             | "Abs" =>
-               Abs(
-                 json |> field("name", string),
-                 json |> field("value", decoder),
-               )
-             | "NoAbs" =>
-               NoAbs(
-                 json |> field("name", string),
-                 json |> field("value", decoder),
-               )
-             | _ => failwith("unknown kind of Abs")
-             }
-           );
-      let rec elim = () =>
-        field("kind", string)
-        |> andThen((kind, json) =>
-             switch (kind) {
-             | "Apply" =>
-               Apply(json |> field("arg", CommonPrim.arg(term())))
-             | "Proj" =>
-               Proj(
-                 json |> field("projOrigin", Common.projOrigin),
-                 json |> field("name", A.qname),
-               )
-             | "IApply" =>
-               IApply(
-                 json |> field("endpoint1", term()),
-                 json |> field("endpoint2", term()),
-                 json |> field("endpoint3", term()),
-               )
-             | _ => failwith("unknown kind of Elim")
-             }
-           )
-      and notBlocked = () =>
-        field("kind", string)
-        |> andThen((kind, json) =>
-             switch (kind) {
-             | "StuckOn" => StuckOn(json |> field("elim", elim()))
-             | "Underapplied" => Underapplied
-             | "AbsurdMatch" => AbsurdMatch
-             | "MissingClauses" => MissingClauses
-             | "ReallyNotBlocked" => ReallyNotBlocked
-             | _ => failwith("unknown kind of NotBlocked")
-             }
-           )
-      and levelAtom = () =>
-        field("kind", string)
-        |> andThen((kind, json) =>
-             switch (kind) {
-             | "MetalLevel" =>
-               MetalLevel(
-                 json |> field("metaId", int),
-                 json |> field("elims", list(elim())),
-               )
-             | "BlockedLevel" =>
-               BlockedLevel(
-                 json |> field("metaId", int),
-                 json |> field("term", term()),
-               )
-             | "NeutralLevel" =>
-               NeutralLevel(
-                 json |> field("notBlocked", notBlocked()),
-                 json |> field("term", term()),
-               )
-             | "UnreducedLevel" =>
-               UnreducedLevel(json |> field("term", term()))
-             | _ => failwith("unknown kind of LevelAtom")
-             }
-           )
-      and plusLevel = () =>
-        field("kind", string)
-        |> andThen((kind, json) =>
-             switch (kind) {
-             | "ClosedLevel" => ClosedLevel(json |> field("level", int))
-             | "Plus" =>
-               Plus(
-                 json |> field("level", int),
-                 json |> field("levelAtom", levelAtom()),
-               )
-             | _ => failwith("unknown kind of PlusLevel")
-             }
-           )
-      and level = json => json |> list(plusLevel())
-      and sort = () =>
-        field("kind", string)
-        |> andThen((kind, json) =>
-             switch (kind) {
-             | "Type" => Type(json |> field("level", level))
-             | "Prop" => Prop(json |> field("level", level))
-             | "Inf" => Inf
-             | "SizeUniv" => SizeUniv
-             | "PiSort" =>
-               PiSort(
-                 json |> field("sort", sort()),
-                 json |> field("binder", abs(sort())),
-               )
-             | "UnivSort" => UnivSort(json |> field("sort", sort()))
-             | "MetaS" =>
-               MetaS(
-                 json |> field("metaId", int),
-                 json |> field("elims", list(elim())),
-               )
-             | _ => failwith("unknown kind of Sort")
-             }
-           )
-      and type_ = json => {
-        sort: json |> field("sort", sort()),
-        value: json |> field("value", term()),
-      }
-      and term = () =>
-        field("kind", string)
-        |> andThen((kind, json) =>
-             switch (kind) {
-             | "Var" =>
-               Var(
-                 json |> field("index", int),
-                 json |> field("elims", list(elim())),
-               )
-             | "Lam" =>
-               Lam(
-                 json |> field("argInfo", CommonPrim.argInfo),
-                 json |> field("binder", abs(term())),
-               )
-             | "Lit" => Lit(json |> field("literal", Literal.literal))
-             | "Def" =>
-               Def(
-                 json |> field("name", A.qname),
-                 json |> field("elims", list(elim())),
-               )
-             | "Con" =>
-               Con(
-                 json |> field("conHead", conHead),
-                 json |> field("conInfo", conInfo),
-                 json |> field("elims", list(elim())),
-               )
-             | "Pi" =>
-               Pi(
-                 json |> field("domain", Common.dom(type_)),
-                 json |> field("binder", abs(type_)),
-               )
-             | "Sort" => Sort(json |> field("sort", sort()))
-             | "Level" => Level(json |> field("level", level))
-             | "MetaV" =>
-               MetaV(
-                 json |> field("metaId", int),
-                 json |> field("elims", list(elim())),
-               )
-             | "DontCare" => DontCare(json |> field("term", term()))
-             | "Dummy" => Dummy(json |> field("description", string))
-             | _ => failwith("unknown kind of Term")
-             }
-           );
     };
   };
   module TypeChecking = {
@@ -1690,8 +1545,8 @@ module Decode = {
                json |> field("isForced", list(isForced)),
                json |> field("type", expr()),
                json |> field("term", expr()),
-               json |> field("elims1", list(Syntax.Internal.elim())),
-               json |> field("elims2", list(Syntax.Internal.elim())),
+               json |> field("elims1", list(elimTerm())),
+               json |> field("elims2", list(elimTerm())),
              )
            | "TypeCmp" =>
              TypeCmp(
@@ -1720,10 +1575,15 @@ module Decode = {
                json |> field("level2", expr()),
              )
            | "HasBiggerSort" => HasBiggerSort(json |> field("sort", expr()))
-           | "HasPTSRule" =>
-             HasPTSRule(
+           | "HasPTSRuleNoAbs" =>
+             HasPTSRuleNoAbs(
                json |> field("sort", expr()),
-               json |> field("binding", Syntax.Internal.abs(expr())),
+               json |> field("binding", expr()),
+             )
+           | "HasPTSRuleAbs" =>
+             HasPTSRuleAbs(
+               json |> field("sort", expr()),
+               json |> field("binding", expr()),
              )
            | "UnBlock" => UnBlock(json |> field("metaId", int))
            | "Guarded" =>

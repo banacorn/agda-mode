@@ -250,41 +250,6 @@ module Syntax = {
       nameSuggestion: string,
     };
   };
-  /* open A;
-     type expr =
-       | Var(name)
-       | Def(qname)
-       | Proj(CommonPrim.projOrigin, list(qname))
-       | Con(list(qname))
-       | PatternSyn(list(qname))
-       | Macro(qname)
-       | Lit(literal)
-       | QuestionMark(Info.metaInfo, int)
-       | Underscore(Info.metaInfo)
-       /*
-        | Dot(ExprInfo, Expr)
-         | App(AppInfo ,Expr, (NamedArg (Expr)))
-         | WithApp( ExprInfo, Expr , list(expr) )
-         | Lam( ExprInfo, LamBinding, Expr)
-         | AbsurdLam( ExprInfo, Hiding      )
-         | ExtendedLam (ExprInfo, DefInfo, QName ,[Clause])
-         | Pi   ExprInfo Telescope Expr
-         | Generalized (Set.Set QName) Expr
-         | Fun  ExprInfo (Arg Expr) Expr
-         | Set  ExprInfo Integer
-         | Prop ExprInfo Integer
-         | Let  ExprInfo [LetBinding] Expr
-         | ETel Telescope
-         | Rec  ExprInfo RecordAssigns
-         | RecUpdate ExprInfo Expr Assigns
-         | ScopedExpr ScopeInfo Expr
-         | QuoteGoal ExprInfo Name Expr
-         | QuoteContext ExprInfo
-         | Quote ExprInfo
-         | QuoteTerm ExprInfo
-         | Unquote ExprInfo
-         | Tactic ExprInfo Expr [NamedArg Expr] [NamedArg Expr] */
-       | DontCare(expr) */
   module Literal = {
     type literal =
       | LitNat(Position.range, int)
@@ -562,6 +527,10 @@ module Syntax = {
       | Ordinary(option(CommonPrim.positionInName), expr)
     and telescope =
       | Telescope(list(typedBindings));
+    type elimTerm =
+      | Apply(CommonPrim.arg(expr))
+      | Proj(CommonPrim.projOrigin, A.qname)
+      | IApply(expr, expr, expr);
   };
   module Common = {
     type conOrigin =
@@ -574,60 +543,6 @@ module Syntax = {
       finite: bool,
       value: 'a,
     };
-  };
-  module Internal = {
-    type conHead = {
-      name: A.qname,
-      inductive: CommonPrim.induction,
-      fields: list(CommonPrim.arg(A.qname)),
-    };
-    type conInfo = Common.conOrigin;
-    type abs('a) =
-      | Abs(string, 'a)
-      | NoAbs(string, 'a);
-    type elim =
-      | Apply(CommonPrim.arg(term))
-      | Proj(CommonPrim.projOrigin, A.qname)
-      | IApply(term, term, term)
-    and notBlocked =
-      | StuckOn(elim)
-      | Underapplied
-      | AbsurdMatch
-      | MissingClauses
-      | ReallyNotBlocked
-    and levelAtom =
-      | MetalLevel(int, list(elim))
-      | BlockedLevel(int, term)
-      | NeutralLevel(notBlocked, term)
-      | UnreducedLevel(term)
-    and plusLevel =
-      | ClosedLevel(int)
-      | Plus(int, levelAtom)
-    and level = list(plusLevel)
-    and sort =
-      | Type(level)
-      | Prop(level)
-      | Inf
-      | SizeUniv
-      | PiSort(sort, abs(sort))
-      | UnivSort(sort)
-      | MetaS(int, list(elim))
-    and type_ = {
-      sort,
-      value: term,
-    }
-    and term =
-      | Var(int, list(elim))
-      | Lam(CommonPrim.argInfo, abs(term))
-      | Lit(Literal.literal)
-      | Def(A.qname, list(elim))
-      | Con(conHead, conInfo, list(elim))
-      | Pi(Common.dom(type_), abs(type_))
-      | Sort(sort)
-      | Level(level)
-      | MetaV(int, list(elim))
-      | DontCare(term)
-      | Dummy(string);
   };
 };
 
@@ -732,8 +647,8 @@ module TypeChecking = {
         list(isForced),
         expr,
         expr,
-        list(Syntax.Internal.elim),
-        list(Syntax.Internal.elim),
+        list(elimTerm),
+        list(elimTerm),
       )
     | TypeCmp(comparison, expr, expr)
     | TelCmp(
@@ -746,7 +661,8 @@ module TypeChecking = {
     | SortCmp(comparison, expr, expr)
     | LevelCmp(comparison, expr, expr)
     | HasBiggerSort(expr)
-    | HasPTSRule(expr, Syntax.Internal.abs(expr))
+    | HasPTSRuleNoAbs(expr, expr)
+    | HasPTSRuleAbs(expr, expr)
     | UnBlock(int)
     | Guarded(constraint_, int)
     | IsEmpty(range, expr)
