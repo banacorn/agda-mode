@@ -2,6 +2,9 @@ import * as _ from 'lodash';;
 import { parseFilepath } from './../util';
 import { Agda, View } from '../../type';
 
+
+var reParseAllGoalsWarnings = require('../../view/component/Reason/Emacs.bs').jsParseAllGoalsWarnings;
+
 export function parseSolutions(raw: string[]): View.Solutions {
     // examine the first line and see if it's simple or indexed
         // SimpleSolutions:   0  s
@@ -81,10 +84,25 @@ function parseIndexedSolutions(message: string, raw: string[]): View.IndexedSolu
     };
 }
 
-export function parseJudgements(lines: string): View.EmacsMetas {
-    const {goalAndHave, body, warnings, errors} = divideJudgements(lines.split('\n'));
+export function parseAllGoalsWarnings(title: string, lines: string): View.EmacsMetas {
+    // const {goalAndHave, metas, warnings, errors} = parseAllGoalsWarnings(title, lines);
+    const [metas, warnings, errors] = reParseAllGoalsWarnings(title, lines);
+    const grouped = _.groupBy(concatItems(metas).map(parseExpression), 'judgementForm');
+    return {
+        goalAndHave: [],
+        goals: (grouped['goal'] || []) as View.Goal[],
+        judgements: (grouped['type judgement'] || []) as View.Judgement[],
+        terms: (grouped['term'] || []) as View.Term[],
+        metas: (grouped['meta'] || []) as View.Meta[],
+        sorts: (grouped['sort'] || []) as View.Sort[],
+        warnings, errors
+    }
+}
 
-    const grouped = _.groupBy(concatItems(body).map(parseExpression), 'judgementForm');
+export function parseJudgements(lines: string): View.EmacsMetas {
+    // const {goalAndHave, metas, warnings, errors} = parseAllGoalsWarnings(title, lines);
+    const {goalAndHave, metas, warnings, errors} = divideJudgements(lines.split('\n'));
+    const grouped = _.groupBy(concatItems(metas).map(parseExpression), 'judgementForm');
     return {
         goalAndHave: concatItems(goalAndHave).map(parseGoalAndHave),
         goals: (grouped['goal'] || []) as View.Goal[],
@@ -100,7 +118,7 @@ export function parseJudgements(lines: string): View.EmacsMetas {
 // divide lines into sections
 function divideJudgements(lines: string[]): {
     goalAndHave: string[],
-    body: string[],
+    metas: string[],
     warnings: string[],
     errors: string[],
 } {
@@ -110,7 +128,7 @@ function divideJudgements(lines: string[]): {
     let lastLineIndex = lines.length;
 
     let goalAndHave = [];
-    let body = [];
+    let metas = [];
     let warnings = [];
     let errors = [];
 
@@ -128,14 +146,14 @@ function divideJudgements(lines: string[]): {
     }
     // there is the body & the Goal & Have brothers
     if (bodyDelimeterIndex !== -1) {
-        body = lines.slice(bodyDelimeterIndex + 1, lastLineIndex);
+        metas = lines.slice(bodyDelimeterIndex + 1, lastLineIndex);
         goalAndHave = lines.slice(0, bodyDelimeterIndex);
     // there is only the body
     } else {
-        body = lines.slice(0, lastLineIndex);
+        metas = lines.slice(0, lastLineIndex);
     }
 
-    return { goalAndHave, body, warnings, errors };
+    return { goalAndHave, metas, warnings, errors };
 }
 
 // concatenate multiline judgements

@@ -220,7 +220,8 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
             return {
                 kind: 'AllGoalsWarnings',
                 metas: null,
-                emacsMessage: payload
+                emacsMessage: payload,
+                emacsTitle: tokens[1]
             };
     }
 }

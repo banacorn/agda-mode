@@ -53,6 +53,11 @@ build src/view/component/Reason/Util.mlast.d : build_deps src/view/component/Rea
 build src/view/component/Reason/Util-AgdaMode.cmj |  $src_root_dir/lib/js/src/view/component/Reason/Util.bs.js src/view/component/Reason/Util-AgdaMode.cmi : build_cmj_cmi src/view/component/Reason/Util.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
   bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/view/component/Reason
+build src/view/component/Reason/Emacs.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/view/component/Reason/Emacs.re
+build src/view/component/Reason/Emacs.mlast.d : build_deps src/view/component/Reason/Emacs.mlast
+build src/view/component/Reason/Emacs-AgdaMode.cmj |  $src_root_dir/lib/js/src/view/component/Reason/Emacs.bs.js src/view/component/Reason/Emacs-AgdaMode.cmi : build_cmj_cmi src/view/component/Reason/Emacs.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/view/component/Reason
 build src/view/component/Reason/Error.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/view/component/Reason/Error.re
 build src/view/component/Reason/Error.mlast.d : build_deps src/view/component/Reason/Error.mlast
 build src/view/component/Reason/Error-AgdaMode.cmj |  $src_root_dir/lib/js/src/view/component/Reason/Error.bs.js src/view/component/Reason/Error-AgdaMode.cmi : build_cmj_cmi src/view/component/Reason/Error.mlast
@@ -112,4 +117,4 @@ rule build_package
   command = ${bsc} -w -49 -no-alias-deps -c ${in}
   description = [34mBuilding[39m [2m${out}[22m
 build AgdaMode.cmi : build_package AgdaMode.mlmap
-build build.ninja : phony  ||  AgdaMode.cmi src/view/component/Reason/Comparison.mlast.d src/view/component/Reason/CommonPrim.mlast.d src/view/component/Reason/TypeError.mlast.d src/view/component/Reason/Concrete.mlast.d src/view/component/Reason/Abstract.mlast.d src/view/component/Reason/Literal.mlast.d src/view/component/Reason/Decoder.mlast.d src/view/component/Reason/Context.mlast.d src/view/component/Reason/Range.mlast.d src/view/component/Reason/Metas.mlast.d src/view/component/Reason/Error.mlast.d src/view/component/Reason/Util.mlast.d src/view/component/Reason/Type.mlast.d src/view/component/Reason/Meta.mlast.d src/view/component/Reason/Link.mlast.d src/view/component/Reason/Call.mlast.d src/view/component/Reason/C.mlast.d
+build build.ninja : phony  ||  AgdaMode.cmi src/view/component/Reason/Comparison.mlast.d src/view/component/Reason/CommonPrim.mlast.d src/view/component/Reason/TypeError.mlast.d src/view/component/Reason/Concrete.mlast.d src/view/component/Reason/Abstract.mlast.d src/view/component/Reason/Literal.mlast.d src/view/component/Reason/Decoder.mlast.d src/view/component/Reason/Context.mlast.d src/view/component/Reason/Range.mlast.d src/view/component/Reason/Metas.mlast.d src/view/component/Reason/Error.mlast.d src/view/component/Reason/Emacs.mlast.d src/view/component/Reason/Util.mlast.d src/view/component/Reason/Type.mlast.d src/view/component/Reason/Meta.mlast.d src/view/component/Reason/Link.mlast.d src/view/component/Reason/Call.mlast.d src/view/component/Reason/C.mlast.d

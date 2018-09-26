@@ -111,6 +111,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             }).then(() => {});
 
         case 'DisplayInfo':
+            console.log(response.info)
             if (core.connection.usesJSON())
                 handleJSONDisplayInfo(core, response.info);
             else
@@ -168,7 +169,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.set('Constraints', response.constraints, View.Style.Info);
             break;
         case 'AllGoalsWarnings':
-            const body = Emacs.parseJudgements(response.emacsMessage);
+            const body = Emacs.parseAllGoalsWarnings(response.emacsTitle, response.emacsMessage);
             const title = formatTitle(body);
             core.view.setJudgements(title, body);
             break;
@@ -227,7 +228,6 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
 }
 
 function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
-    console.log(info)
     switch (info.kind) {
         case 'CompilationOk':
             core.view.set('CompilationOk', 'TBD', View.Style.Warning);

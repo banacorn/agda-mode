@@ -178,6 +178,7 @@ export interface Info_AllGoalsWarnings {
     kind: "AllGoalsWarnings",
     metas: object;
     emacsMessage: string;    // for Emacs
+    emacsTitle: string;
 }
 export interface Info_Error {
     kind: "Error";
