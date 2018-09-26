@@ -1,10 +1,5 @@
 import { Conn } from '../type';
 
-import * as Syntax from './agda/syntax';
-export { Syntax as Syntax };
-// import * as TypeChecking from './agda/typeChecking';
-
-
 //
 //  Commands sent to Agda
 //
@@ -80,8 +75,21 @@ export interface Annotation {
     }
 }
 
+
+export type Position = [number, number, number] | [number, number];
+export type Interval = {
+    start: Position;
+    end  : Position;
+};
+
+export type Range = {
+    intervals: Interval[];
+    source?: string;
+};
+
+
 export interface WhyInScope {
-    range: Syntax.Position.Range
+    range: Range
 }
 
 // Resp_Status Status

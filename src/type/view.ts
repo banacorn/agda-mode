@@ -162,13 +162,13 @@ export interface Term {
 export interface Meta {
     judgementForm: ExprKind;
     type: string;
-    range: Agda.Syntax.Position.Range;
+    range: Agda.Range;
     index: string;
 }
 
 export interface Sort {
     judgementForm: ExprKind;
-    range: Agda.Syntax.Position.Range;
+    range: Agda.Range;
     index: string;
 }
 

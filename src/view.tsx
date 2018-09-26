@@ -14,7 +14,7 @@ import Panel from './view/component/Panel';
 import Settings from './view/component/Settings';
 import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
-import { Agda, View as V } from './type';
+import { View as V } from './type';
 import { EVENT } from './view/actions';
 import * as Action from './view/actions';
 import { EmacsAgdaError } from './parser/emacs';

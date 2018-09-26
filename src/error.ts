@@ -1,5 +1,4 @@
 import Goal from './editor/goal';
-import { FileType } from './type/agda';
 import { Path } from './type/connection';
 
 // for parsing related errors

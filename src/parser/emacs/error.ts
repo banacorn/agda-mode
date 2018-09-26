@@ -35,7 +35,7 @@ namespace EmacsAgdaError {
     export interface NotInScope {
         kind: 'NotInScope',
         header: string,
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         suggestion: string[],
         expr: string
     }
@@ -43,7 +43,7 @@ namespace EmacsAgdaError {
     export interface TypeMismatch {
         kind: 'TypeMismatch',
         header: string,
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         expected: string,
         expectedType: string,
         actual: string,
@@ -55,7 +55,7 @@ namespace EmacsAgdaError {
     export interface BadConstructor {
         kind: 'BadConstructor',
         header: string,
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         constructor: string,
         constructorType: string,
         expr: string,
@@ -65,7 +65,7 @@ namespace EmacsAgdaError {
     export interface DefinitionTypeMismatch {
         kind: 'DefinitionTypeMismatch',
         header: string,
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         expected: string,
         expectedType: string,
         actual: string,
@@ -77,7 +77,7 @@ namespace EmacsAgdaError {
     export interface IlltypedPattern {
         kind: 'IlltypedPattern';
         header: string;
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         pattern: string;
         type: string;
     }
@@ -85,7 +85,7 @@ namespace EmacsAgdaError {
     export interface MissingType {
         kind: 'MissingType';
         header: string,
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         expr: string;
         decl: string;
     }
@@ -93,8 +93,8 @@ namespace EmacsAgdaError {
     export interface MultipleDefinition {
         kind: 'MultipleDefinition',
         header: string,
-        range: Agda.Syntax.Position.Range,
-        rangePrev: Agda.Syntax.Position.Range,
+        range: Agda.Range,
+        rangePrev: Agda.Range,
         expr: string,
         decl: string,
         declType: string
@@ -103,13 +103,13 @@ namespace EmacsAgdaError {
     export interface MissingDefinition {
         kind: 'MissingDefinition',
         header: string,
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         expr: string
     }
     export interface RHSOmitted {
         kind: 'RHSOmitted',
         header: string,
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         expr: string,
         exprType: string
     }
@@ -118,18 +118,18 @@ namespace EmacsAgdaError {
     export interface Termination {
         kind: 'Termination',
         header: string,
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         expr: string,
         calls: {
             expr: string,
-            range: Agda.Syntax.Position.Range,
+            range: Agda.Range,
         }[]
     }
 
     export interface ConstructorTarget {
         kind: 'ConstructorTarget',
         header: string,
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         expr: string,
         ctor: string,
         decl: string
@@ -138,7 +138,7 @@ namespace EmacsAgdaError {
     export interface FunctionType {
         kind: 'FunctionType',
         header: string,
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         expr: string,
         exprType: string
     }
@@ -154,7 +154,7 @@ namespace EmacsAgdaError {
     export interface Parse {
         kind: 'Parse',
         header: string,
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         message: string,
         expr: string,
     }
@@ -162,7 +162,7 @@ namespace EmacsAgdaError {
     export interface CaseSingleHole {
         kind: 'CaseSingleHole',
         header: string,
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         expr: string,
         exprType: string
     }
@@ -170,7 +170,7 @@ namespace EmacsAgdaError {
     export interface PatternMatchOnNonDatatype {
         kind: 'PatternMatchOnNonDatatype',
         header: string,
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         nonDatatype: string,
         expr: string,
         exprType: string
@@ -191,7 +191,7 @@ namespace EmacsAgdaError {
 
     export interface UnparsedButLocated {
         kind: 'UnparsedButLocated',
-        range: Agda.Syntax.Position.Range,
+        range: Agda.Range,
         header: string,
         input: string,
     }
@@ -206,7 +206,7 @@ namespace EmacsAgdaError {
 //  Error
 ////////////////////////////////////////////////////////////////////////////////
 
-const singleLineInterval: Parser<Agda.Syntax.Concrete.Interval> = seq(
+const singleLineInterval: Parser<Agda.Interval> = seq(
         digits,
         string(','),
         digits,
@@ -216,10 +216,10 @@ const singleLineInterval: Parser<Agda.Syntax.Concrete.Interval> = seq(
         const row = parseInt(result[0]);
         const start = [row, parseInt(result[2])];
         const end   = [row, parseInt(result[4])];
-        return <Agda.Syntax.Concrete.Interval>{ start, end };
+        return <Agda.Interval>{ start, end };
     });
 
-const multiLineInterval: Parser<Agda.Syntax.Concrete.Interval> = seq(
+const multiLineInterval: Parser<Agda.Interval> = seq(
         digits,
         string(','),
         digits,
@@ -230,31 +230,31 @@ const multiLineInterval: Parser<Agda.Syntax.Concrete.Interval> = seq(
     ).map((result) => {
         const start = [parseInt(result[0]), parseInt(result[2])];
         const end   = [parseInt(result[4]), parseInt(result[6])];
-        return <Agda.Syntax.Concrete.Interval>{ start, end };
+        return <Agda.Interval>{ start, end };
     });
 
 const interval = alt(multiLineInterval, singleLineInterval).skip(spaces);
 
-const rangeAbsolute: Parser<Agda.Syntax.Position.Range> = seq(
+const rangeAbsolute: Parser<Agda.Range> = seq(
         takeWhile((c) => c !== ':'),
         string(':'),
         interval
     ).map((result) => {
-        return <Agda.Syntax.Position.Range>{
+        return <Agda.Range>{
             source: normalize(result[0]),
             intervals: [result[2]]
         }
     }).skip(spaces);
 
-const rangeRelative: Parser<Agda.Syntax.Position.Range> = seq(
+const rangeRelative: Parser<Agda.Range> = seq(
         interval
     ).map((result) => {
-        return <Agda.Syntax.Position.Range>{
+        return <Agda.Range>{
             intervals: [result[0]]
         };
     }).skip(spaces);
 
-const range: Parser<Agda.Syntax.Position.Range> = alt(
+const range: Parser<Agda.Range> = alt(
         rangeAbsolute,
         rangeRelative
     )
