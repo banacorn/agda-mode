@@ -28,9 +28,16 @@ let make = (~metas: metas, ~emit, _children) => {
              )
         </ul>
       </section>
+      <section className="warnings">
+        <ul>
+          ...Type.TypeChecking.(
+               metas.warnings
+               |> List.map(x => <li> (string(x.warning')) </li>)
+               |> Array.of_list
+             )
+        </ul>
+      </section>
     </Context.Emitter.Provider>,
-  /* <button />
-     (string(string_of_int(List.length(metas.interactionMetas)))) */
 };
 
 [@bs.deriving abstract]

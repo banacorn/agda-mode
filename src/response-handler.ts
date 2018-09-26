@@ -236,7 +236,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.set('Constraints', 'TBD', View.Style.Warning);
             break;
         case 'AllGoalsWarnings':
-            core.view.setAgdaMetas(info);
+            core.view.setAgdaMetas(info.metas);
             break;
         case 'Error':
             core.view.setAgdaError(info.error, info.emacsMessage);
