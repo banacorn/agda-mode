@@ -575,7 +575,7 @@ module TypeChecking = {
     | CheckPrimitive(range, Syntax.C.name, expr)
     | CheckIsEmpty(range, expr)
     | CheckWithFunctionType(expr)
-    | CheckSectionApplication(range, Syntax.C.qname, moduleApplication)
+    | CheckSectionApplication(range, Syntax.C.qname, list(declaration))
     | CheckNamedWhere(Syntax.C.qname)
     | ScopeCheckExpr(expr)
     | ScopeCheckDeclaration(list(declaration))

@@ -750,7 +750,7 @@ module Decode = {
                ModuleMacro(
                  json |> field("range", Position.range),
                  json |> field("name", C.name),
-                 json |> field("moduleApplication", moduleApplication()),
+                 json |> field("moduleApp", moduleApplication()),
                  json |> field("openShortHand", openShortHand),
                  json |> field("importDirective", importDirective),
                )
@@ -1339,7 +1339,7 @@ module Decode = {
              CheckSectionApplication(
                json |> field("range", range),
                json |> field("module", Syntax.C.qname),
-               json |> field("modApp", moduleApplication()),
+               json |> field("modApp", list(declaration())),
              )
            | "CheckNamedWhere" =>
              CheckNamedWhere(json |> field("module", Syntax.C.qname))
