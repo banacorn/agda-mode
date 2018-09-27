@@ -1,1 +1,0 @@
-src/view/component/EmacsParser-AgdaMode.cmj :

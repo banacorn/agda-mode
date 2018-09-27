@@ -5,6 +5,7 @@ import { Agda, View } from '../../type';
 
 var reParseAllGoalsWarnings = require('../../view/component/Reason/Emacs.bs').jsParseAllGoalsWarnings;
 var reParseGoalTypeContext = require('../../view/component/Reason/Emacs.bs').jsParseGoalTypeContext;
+var reConcatLines = require('../../view/component/Reason/Emacs.bs').jsConcatLines;
 
 export function parseSolutions(raw: string[]): View.Solutions {
     // examine the first line and see if it's simple or indexed
@@ -88,7 +89,7 @@ function parseIndexedSolutions(message: string, raw: string[]): View.IndexedSolu
 export function parseAllGoalsWarnings(title: string, lines: string): View.EmacsMetas {
     // const {goalAndHave, metas, warnings, errors} = parseAllGoalsWarnings(title, lines);
     const [metas, warnings, errors] = reParseAllGoalsWarnings(title, lines);
-    const grouped = _.groupBy(concatItems(metas).map(parseExpression), 'judgementForm');
+    const grouped = _.groupBy(reConcatLines(metas).map(parseExpression), 'judgementForm');
     return {
         goalAndHave: null,
         goals: (grouped['goal'] || []) as View.Goal[],
@@ -102,7 +103,8 @@ export function parseAllGoalsWarnings(title: string, lines: string): View.EmacsM
 
 export function parseGoalTypeContext(lines: string): View.EmacsMetas {
     const [goal, have, metas] = reParseGoalTypeContext(lines);
-    const grouped = _.groupBy(concatItems(metas).map(parseExpression), 'judgementForm');
+
+    const grouped = _.groupBy(reConcatLines(metas).map(parseExpression), 'judgementForm');
     return {
         goalAndHave: {
             goal, have
@@ -115,66 +117,6 @@ export function parseGoalTypeContext(lines: string): View.EmacsMetas {
         warnings: [],
         errors: []
     }
-}
-// concatenate multiline judgements
-export function concatItems(lines: string[]): string[] {
-
-
-    function isNewLine({ line, nextLine }): boolean {
-        //      Goal: Banana
-        const goal = /^Goal\: \S*/;
-
-        //      Have: Banana
-        const have = /^Have\: \S*/;
-
-        //      Sort 123
-        const sort = /^Sort \S*/;
-
-        //      banana : Banana
-        const completeJudgement = /^[^\(\{\s]+\s+\:\s* \S*/;
-
-        // case when the term's name is too long, the rest of the judgement
-        // would go to the next line, e.g:
-        //      banananananananananananananananana
-        //          : Banana
-        const reallyLongTermIdentifier = /^\S+$/;
-        const restOfTheJudgement = /^\s*\:\s* \S*/;
-
-        // console.log(`%c${line}`, 'color: green')
-        // console.log(`reallyLongTermIdentifier: ${reallyLongTermIdentifier.test(line)}`)
-        // console.log(`restOfTheJudgement: ${(nextLine && restOfTheJudgement.test(nextLine))}`)
-        // console.log(`completeJudgement: ${completeJudgement.test(line)}`)
-
-        return goal.test(line)
-        || have.test(line)
-        || sort.test(line)
-        || reallyLongTermIdentifier.test(line) && (nextLine && restOfTheJudgement.test(nextLine))
-        || completeJudgement.test(line)
-    }
-
-
-    const newLineIndices = lines.map((line, index) => {
-            return {
-                line: line,
-                nextLine: lines[index + 1],
-                index: index
-            }
-        })
-        .filter(obj => isNewLine(obj))
-        .map(pair => pair.index)
-
-    const aggregatedLines = newLineIndices.map((index, i) => {
-            if (i === newLineIndices.length - 1) {
-                // the last inteval
-                return [index, lines.length];
-            } else {
-                return [index, newLineIndices[i + 1]];
-            }
-        }).map(interval => {
-            return lines.slice(interval[0], interval[1]).join('\n');
-        });
-
-    return aggregatedLines;
 }
 
 

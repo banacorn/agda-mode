@@ -117,8 +117,60 @@ module Parser = {
         };
       };
     };
+  let concatLines: array(string) => array(string) =
+    lines => {
+      let isNewline = (line, nextLine) => {
+        let sort = [%re "/^Sort \\S*/"];
+        /* banana : Banana */
+        let completeJudgement = [%re "/^[^\\(\\{\\s]+\\s+\\:\\s* \\S*/"];
+        /* case when the term's name is too long, the rest of the judgement
+              would go to the next line, e.g:
+                   banananananananananananananananana
+                       : Banana
+           */
+        let reallyLongTermIdentifier = [%re "/^\\S+$/"];
+        let restOfTheJudgement = [%re "/^\\s*\\:\\s* \\S*/"];
+        Js.Re.test(line, sort)
+        || Js.Re.test(line, reallyLongTermIdentifier)
+        && Js.Option.isSomeValue(
+             (. _, line) => Js.Re.test(line, restOfTheJudgement),
+             "",
+             nextLine,
+           )
+        || Js.Re.test(line, completeJudgement);
+      };
+      let newLineIndices: array(int) =
+        lines
+        |> Js.Array.mapi((line, index) =>
+             if (Array.length(lines) > index + 1) {
+               (line, Some(lines[index + 1]), index);
+             } else {
+               (line, None, index);
+             }
+           )
+        |> Js.Array.filter(((line, nextLine, _)) =>
+             isNewline(line, nextLine)
+           )
+        |> Array.map(((_, _, index)) => index);
+      newLineIndices
+      |> Js.Array.mapi((index, i) =>
+           if (Array.length(newLineIndices) === i + 1) {
+             (index, Array.length(newLineIndices) + 1);
+           } else {
+             (index, newLineIndices[i + 1]);
+           }
+         )
+      |> Array.map(((start, end_)) =>
+           lines
+           |> Js.Array.slice(~start, ~end_)
+           |> Array.to_list
+           |> String.concat("\n")
+         );
+    };
 };
 
 let jsParseAllGoalsWarnings = Parser.allGoalsWarnings;
 
 let jsParseGoalTypeContext = Parser.goalTypeContext;
+
+let jsConcatLines = Parser.concatLines;
