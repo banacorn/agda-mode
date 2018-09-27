@@ -21,6 +21,7 @@ module Component = {
   let declaration = statelessComponent("Declaration");
   let lhs = statelessComponent("LHS");
   let pattern = statelessComponent("Pattern");
+  let tel = statelessComponent("Tel");
   let telescope = statelessComponent("Telescope");
   let opApp = statelessComponent("OpApp");
 };
@@ -82,8 +83,8 @@ module Element = {
       module Declaration = {
         let make = makeDeclaration;
       };
-      module Telescope = {
-        let make = makeTelescope;
+      module Tel = {
+        let make = makeTel;
       };
       switch (value) {
       | Ident(value) => <QName value />
@@ -261,7 +262,7 @@ module Element = {
         </span>
       | Pi(telescope, expr) =>
         <span>
-          <Telescope telescope />
+          <Tel telescope />
           (string({js| → |js}))
           <Expr value=expr />
         </span>
@@ -419,6 +420,22 @@ module Element = {
         let make = makeTypedBindings;
       };
       let Telescope(typedBindings) = telescope;
+      <span>
+        (
+          typedBindings
+          |> List.map(value => <TypedBindings value />)
+          |> sepBy(string(" "))
+        )
+      </span>;
+    },
+  }
+  and makeTel = (~telescope, _children) => {
+    ...Component.tel,
+    render: _self => {
+      module Telescope = {
+        let make = makeTelescope;
+      };
+      let Telescope(typedBindings) = telescope;
       let isMeta = typedBindings =>
         switch (typedBindings) {
         | TypedBindings(_, Arg(_, TBind(_, _, Underscore(_, None)))) =>
@@ -427,11 +444,7 @@ module Element = {
         };
       <span>
         (List.exists(isMeta, typedBindings) ? string({js|∀ |js}) : null)
-        (
-          typedBindings
-          |> List.map(value => <TypedBindings value />)
-          |> sepBy(string(" "))
-        )
+        <Telescope telescope />
       </span>;
     },
   }
@@ -453,6 +466,10 @@ module Element = {
 
 module Expr = {
   let make = Element.makeExpr;
+};
+
+module Telescope = {
+  let make = Element.makeTelescope;
 };
 
 module LHS = {

@@ -758,7 +758,7 @@ module Decode = {
                Module(
                  json |> field("range", Position.range),
                  json |> field("name", C.qname),
-                 json |> field("bindings", list(typedBindings)),
+                 json |> field("bindings", telescope),
                  json |> field("declarations", list(declaration())),
                )
              | "UnquoteDecl" =>
@@ -938,7 +938,7 @@ module Decode = {
              | "SectionApp" =>
                SectionApp(
                  json |> field("range", Position.range),
-                 json |> field("bindings", list(typedBindings)),
+                 json |> field("bindings", telescope),
                  json |> field("expr", expr()),
                )
              | "RecordModuleIFS" =>
@@ -1394,6 +1394,15 @@ module Decode = {
                json |> field("definition", Syntax.C.qname),
                json |> field("previouslyAt", range),
              )
+           | "ModuleArityMismatch" =>
+             ModuleArityMismatch(
+               json |> field("module", Syntax.C.qname),
+               json |> field("isParameterized", bool),
+               json
+               |> withDefault(None, json =>
+                    Some(json |> field("telescope", telescope))
+                  ),
+             )
            | "NoRHSRequiresAbsurdPattern" =>
              NoRHSRequiresAbsurdPattern(
                json |> field("patterns", list(pattern())),
@@ -1560,8 +1569,8 @@ module Decode = {
                json |> field("comparison", comparison),
                json |> field("type1", expr()),
                json |> field("type2", expr()),
-               json |> field("telescope1", list(typedBindings)),
-               json |> field("telescope2", list(typedBindings)),
+               json |> field("telescope1", telescope),
+               json |> field("telescope2", telescope),
              )
            | "SortCmp" =>
              SortCmp(

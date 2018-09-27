@@ -70,6 +70,23 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
         (string("Previous definition at "))
         <Range range=previouslyAt />
       </div>
+    | ModuleArityMismatch(moduleName, _, tel) =>
+      switch (tel) {
+      | None =>
+        <div>
+          (string("The module "))
+          <C.QName value=moduleName />
+          (string(" is not parameterized, but is being applied to arguments"))
+        </div>
+      | Some(telescope) =>
+        <div>
+          (string("The arguments to "))
+          <C.QName value=moduleName />
+          (string(" do not fit the telescope "))
+          <br />
+          <Concrete.Telescope telescope />
+        </div>
+      }
     | NoRHSRequiresAbsurdPattern(_patterns) =>
       <div>
         (

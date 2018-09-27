@@ -469,12 +469,7 @@ module Syntax = {
           openShortHand,
           importDirective,
         )
-      | Module(
-          Position.range,
-          C.qname,
-          list(typedBindings),
-          list(declaration),
-        )
+      | Module(Position.range, C.qname, telescope, list(declaration))
       | UnquoteDecl(Position.range, list(C.name), expr)
       | UnquoteUnquoteDefDecl(Position.range, list(C.name), expr)
       | Pragma(pragma)
@@ -514,7 +509,7 @@ module Syntax = {
         )
       | NoUniverseCheckPragma(Position.range)
     and moduleApplication =
-      | SectionApp(Position.range, list(typedBindings), expr)
+      | SectionApp(Position.range, telescope, expr)
       | RecordModuleIFS(Position.range, C.qname)
     and opApp =
       | Placeholder(CommonPrim.positionInName)
@@ -595,6 +590,7 @@ module TypeChecking = {
     | ShouldBeASort(expr)
     | UnequalTerms(comparison, expr, expr, expr, string)
     | ClashingDefinition(Syntax.C.qname, range)
+    | ModuleArityMismatch(Syntax.C.qname, bool, option(telescope))
     | NoRHSRequiresAbsurdPattern(list(pattern))
     | NotInScope(map(Syntax.C.qname, list(Syntax.C.qname)))
     | NoSuchModule(Syntax.C.qname)
@@ -652,13 +648,7 @@ module TypeChecking = {
         list(elimTerm),
       )
     | TypeCmp(comparison, expr, expr)
-    | TelCmp(
-        comparison,
-        expr,
-        expr,
-        list(typedBindings),
-        list(typedBindings),
-      )
+    | TelCmp(comparison, expr, expr, telescope, telescope)
     | SortCmp(comparison, expr, expr)
     | LevelCmp(comparison, expr, expr)
     | HasBiggerSort(expr)

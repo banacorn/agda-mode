@@ -8,6 +8,7 @@ let typeErrorToHeader = error =>
     | ShouldBeASort(_) => "Should be a Sort"
     | UnequalTerms(_, _, _, _, _) => "Unequal Terms"
     | ClashingDefinition(_, _) => "Clashing Definition"
+    | ModuleArityMismatch(_, _, _) => "Module Arity Mismatch"
     | NoRHSRequiresAbsurdPattern(_) => "No RHS Requires Absurd Pattern"
     | NotInScope(_) => "Not in Scope"
     | NoSuchModule(_) => "No such Module"
