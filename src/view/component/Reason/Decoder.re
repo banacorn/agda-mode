@@ -730,7 +730,7 @@ module Decode = {
              | "Primitive" =>
                Primitive(
                  json |> field("range", Position.range),
-                 json |> field("typeSigs", list(declaration())),
+                 json |> field("declarations", list(declaration())),
                )
              | "Open" =>
                Open(

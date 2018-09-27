@@ -87,7 +87,6 @@ function parseIndexedSolutions(message: string, raw: string[]): View.IndexedSolu
 }
 
 export function parseAllGoalsWarnings(title: string, lines: string): View.EmacsMetas {
-    // const {goalAndHave, metas, warnings, errors} = parseAllGoalsWarnings(title, lines);
     const [metas, warnings, errors] = reParseAllGoalsWarnings(title, lines);
     const grouped = _.groupBy(reConcatLines(metas).map(parseExpression), 'judgementForm');
     return {
@@ -103,7 +102,6 @@ export function parseAllGoalsWarnings(title: string, lines: string): View.EmacsM
 
 export function parseGoalTypeContext(lines: string): View.EmacsMetas {
     const [goal, have, metas] = reParseGoalTypeContext(lines);
-
     const grouped = _.groupBy(reConcatLines(metas).map(parseExpression), 'judgementForm');
     return {
         goalAndHave: {
