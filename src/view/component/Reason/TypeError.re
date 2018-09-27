@@ -123,6 +123,8 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
         </li>;
       };
       <ul> ...(pairs |> List.map(pair) |> Array.of_list) </ul>;
+    | NoSuchModule(moduleName) =>
+      <div> (string("No such module ")) <C.QName value=moduleName /> </div>
     | AmbiguousName(ambiguousName, couldReferTo) =>
       <div>
         (string("Ambiguous name "))

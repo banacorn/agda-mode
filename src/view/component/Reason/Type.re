@@ -597,6 +597,7 @@ module TypeChecking = {
     | ClashingDefinition(Syntax.C.qname, range)
     | NoRHSRequiresAbsurdPattern(list(pattern))
     | NotInScope(map(Syntax.C.qname, list(Syntax.C.qname)))
+    | NoSuchModule(Syntax.C.qname)
     | AmbiguousName(Syntax.C.qname, list(Syntax.C.qname))
     | UnregisteredTypeError(Js.Json.t);
   type error =

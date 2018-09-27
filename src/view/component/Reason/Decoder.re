@@ -1411,6 +1411,8 @@ module Decode = {
                     ),
                   ),
              )
+           | "NoSuchModule" =>
+             NoSuchModule(json |> field("module", Syntax.C.qname))
            | "AmbiguousName" =>
              AmbiguousName(
                json |> field("ambiguousName", Syntax.C.qname),
