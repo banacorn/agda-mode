@@ -74,9 +74,7 @@ class Body extends React.Component<Props, {}> {
                     )}</V.EventContext.Consumer>}
                 {emacsMetas &&
                     <div>
-                        <ul className="list-group body-legacy">
-                            {emacsMetas.goalAndHave.map(goalAndHave)}
-                        </ul>
+                        {emacsMetas.goalAndHave && goalAndHave(emacsMetas.goalAndHave)}
                         <ul className="list-group body-legacy">
                             {emacsMetas.goals.map(goal)}
                             {emacsMetas.judgements.map(judgement)}
@@ -124,14 +122,25 @@ class Body extends React.Component<Props, {}> {
     }
 }
 
-const goalAndHave = (item: View.GoalAndHave, i: number): JSX.Element =>
-    <li className="list-item special-item" key={i}>
-        <div className="item-heading text-info">{item.label}</div>
-        <div className="item-colon"><span> : </span></div>
-        <div className="item-body">
-            <Expr>{item.type}</Expr>
-        </div>
-    </li>
+const goalAndHave = ({goal, have}: View.GoalAndHave): JSX.Element =>
+    <ul className="list-group body-legacy">
+        <li className="list-item special-item">
+            <div className="item-heading text-info">Goal</div>
+            <div className="item-colon"><span> : </span></div>
+            <div className="item-body">
+                <Expr>{goal}</Expr>
+            </div>
+        </li>
+        { have && (
+            <li className="list-item special-item">
+                <div className="item-heading text-info">Have</div>
+                <div className="item-colon"><span> : </span></div>
+                <div className="item-body">
+                    <Expr>{have}</Expr>
+                </div>
+            </li>
+        )}
+    </ul>
 
 const goal = (item: View.Goal, i: number): JSX.Element =>
     <li className="list-item body-item" key={i}>

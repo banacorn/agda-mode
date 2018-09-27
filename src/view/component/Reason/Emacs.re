@@ -70,6 +70,55 @@ module Parser = {
       | (false, false, false) => {metas: [||], warnings: [||], errors: [||]}
       };
     };
+  type goalTypeContext = {
+    goal: string,
+    have: option(string),
+    metas: array(string),
+  };
+  let goalTypeContext: string => goalTypeContext =
+    body => {
+      let shitpile = body |> Js.String.split("\n");
+      let indexOfHave =
+        shitpile
+        |> Js.Array.findIndex(s =>
+             s |> Js.String.match([%re "/^Have/"]) |> Js.Option.isSome
+           );
+      let indexOfDelimeter =
+        shitpile
+        |> Js.Array.findIndex(s =>
+             s |> Js.String.match([%re "/\\u2014{60}/g"]) |> Js.Option.isSome
+           );
+      let parseGoalOrHave = lines =>
+        lines
+        |> Array.to_list
+        |> String.concat("\n")
+        |> Js.String.sliceToEnd(~from=5);
+      if (indexOfHave === (-1)) {
+        {
+          goal:
+            shitpile
+            |> Js.Array.slice(~start=0, ~end_=indexOfDelimeter)
+            |> parseGoalOrHave,
+          have: None,
+          metas: shitpile |> Js.Array.sliceFrom(indexOfDelimeter + 1),
+        };
+      } else {
+        {
+          goal:
+            shitpile
+            |> Js.Array.slice(~start=0, ~end_=indexOfHave)
+            |> parseGoalOrHave,
+          have:
+            shitpile
+            |> Js.Array.slice(~start=indexOfHave, ~end_=indexOfDelimeter)
+            |> parseGoalOrHave
+            |> (x => Some(x)),
+          metas: shitpile |> Js.Array.sliceFrom(indexOfDelimeter + 1),
+        };
+      };
+    };
 };
 
 let jsParseAllGoalsWarnings = Parser.allGoalsWarnings;
+
+let jsParseGoalTypeContext = Parser.goalTypeContext;

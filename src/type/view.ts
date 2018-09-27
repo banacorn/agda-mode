@@ -178,7 +178,7 @@ export interface Sort {
 ////////////////////////////////////////////
 
 export interface EmacsMetas {
-    goalAndHave: GoalAndHave[];
+    goalAndHave?: GoalAndHave;
     // ------
     goals: Goal[];
     judgements: Judgement[];
@@ -192,6 +192,6 @@ export interface EmacsMetas {
 }
 
 export interface GoalAndHave {
-    type: string;
-    label: string;
+    goal: string,
+    have?: string,
 }

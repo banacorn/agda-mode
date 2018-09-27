@@ -4,6 +4,7 @@ import { Agda, View } from '../../type';
 
 
 var reParseAllGoalsWarnings = require('../../view/component/Reason/Emacs.bs').jsParseAllGoalsWarnings;
+var reParseGoalTypeContext = require('../../view/component/Reason/Emacs.bs').jsParseGoalTypeContext;
 
 export function parseSolutions(raw: string[]): View.Solutions {
     // examine the first line and see if it's simple or indexed
@@ -89,7 +90,7 @@ export function parseAllGoalsWarnings(title: string, lines: string): View.EmacsM
     const [metas, warnings, errors] = reParseAllGoalsWarnings(title, lines);
     const grouped = _.groupBy(concatItems(metas).map(parseExpression), 'judgementForm');
     return {
-        goalAndHave: [],
+        goalAndHave: null,
         goals: (grouped['goal'] || []) as View.Goal[],
         judgements: (grouped['type judgement'] || []) as View.Judgement[],
         terms: (grouped['term'] || []) as View.Term[],
@@ -99,63 +100,22 @@ export function parseAllGoalsWarnings(title: string, lines: string): View.EmacsM
     }
 }
 
-export function parseJudgements(lines: string): View.EmacsMetas {
-    // const {goalAndHave, metas, warnings, errors} = parseAllGoalsWarnings(title, lines);
-    const {goalAndHave, metas, warnings, errors} = divideJudgements(lines.split('\n'));
+export function parseGoalTypeContext(lines: string): View.EmacsMetas {
+    const [goal, have, metas] = reParseGoalTypeContext(lines);
     const grouped = _.groupBy(concatItems(metas).map(parseExpression), 'judgementForm');
     return {
-        goalAndHave: concatItems(goalAndHave).map(parseGoalAndHave),
+        goalAndHave: {
+            goal, have
+        },
         goals: (grouped['goal'] || []) as View.Goal[],
         judgements: (grouped['type judgement'] || []) as View.Judgement[],
         terms: (grouped['term'] || []) as View.Term[],
         metas: (grouped['meta'] || []) as View.Meta[],
         sorts: (grouped['sort'] || []) as View.Sort[],
-        warnings, errors
+        warnings: [],
+        errors: []
     }
 }
-
-
-// divide lines into sections
-function divideJudgements(lines: string[]): {
-    goalAndHave: string[],
-    metas: string[],
-    warnings: string[],
-    errors: string[],
-} {
-    const bodyDelimeterIndex    = lines.indexOf('————————————————————————————————————————————————————————————');
-    const warningsDelimeterIndex = lines.indexOf('———— Warnings ——————————————————————————————————————————————');
-    const errorsDelimeterIndex   = lines.indexOf('———— Errors ————————————————————————————————————————————————');
-    let lastLineIndex = lines.length;
-
-    let goalAndHave = [];
-    let metas = [];
-    let warnings = [];
-    let errors = [];
-
-    // starts segregating lines from the end, update lastLineIndex as we progress
-
-    // there are errors
-    if (errorsDelimeterIndex !== -1) {
-        errors = lines.slice(errorsDelimeterIndex + 1, lastLineIndex);
-        lastLineIndex = errorsDelimeterIndex;
-    }
-    // there are warnings
-    if (warningsDelimeterIndex !== -1) {
-        warnings = lines.slice(warningsDelimeterIndex + 1, lastLineIndex);
-        lastLineIndex = warningsDelimeterIndex;
-    }
-    // there is the body & the Goal & Have brothers
-    if (bodyDelimeterIndex !== -1) {
-        metas = lines.slice(bodyDelimeterIndex + 1, lastLineIndex);
-        goalAndHave = lines.slice(0, bodyDelimeterIndex);
-    // there is only the body
-    } else {
-        metas = lines.slice(0, lastLineIndex);
-    }
-
-    return { goalAndHave, metas, warnings, errors };
-}
-
 // concatenate multiline judgements
 export function concatItems(lines: string[]): string[] {
 
@@ -222,15 +182,6 @@ export function concatItems(lines: string[]): string[] {
 //  Components
 ////////////////////////////////////////////////////////////////////////////////
 
-
-function parseGoalAndHave(str: string): View.GoalAndHave {
-    const regex = /^(Goal|Have)\: ((?:\n|.)+)/;
-    const result = str.match(regex);
-    return {
-        label: result[1],
-        type: result[2]
-    };
-}
 
 // Occurence
 export interface Occurence {

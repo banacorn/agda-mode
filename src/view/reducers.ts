@@ -50,7 +50,7 @@ const defaultState: View.State = {
     body: {
         metas: null,
         emacsMetas: {
-            goalAndHave: [],
+            goalAndHave: null,
             goals: [],
             judgements: [],
             terms: [],
