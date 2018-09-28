@@ -1,0 +1,1 @@
+src/Reason/Decoder-AgdaMode.cmj : src/Reason/Type-AgdaMode.cmj src/Reason/Util-AgdaMode.cmj

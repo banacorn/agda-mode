@@ -1,0 +1,1 @@
+src/Reason/Call-AgdaMode.cmj : src/Reason/C-AgdaMode.cmj src/Reason/CommonPrim-AgdaMode.cmj src/Reason/Concrete-AgdaMode.cmj src/Reason/Type-AgdaMode.cmj src/Reason/Util-AgdaMode.cmj

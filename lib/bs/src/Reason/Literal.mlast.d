@@ -1,0 +1,1 @@
+src/Reason/Literal-AgdaMode.cmj : src/Reason/Abstract-AgdaMode.cmj src/Reason/Link-AgdaMode.cmj src/Reason/Type-AgdaMode.cmj

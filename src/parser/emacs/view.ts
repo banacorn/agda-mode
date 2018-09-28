@@ -3,9 +3,9 @@ import { parseFilepath } from './../util';
 import { Agda, View } from '../../type';
 
 
-var reParseAllGoalsWarnings = require('../../view/component/Reason/Emacs.bs').jsParseAllGoalsWarnings;
-var reParseGoalTypeContext = require('../../view/component/Reason/Emacs.bs').jsParseGoalTypeContext;
-var reConcatLines = require('../../view/component/Reason/Emacs.bs').jsConcatLines;
+var reParseAllGoalsWarnings = require('../../Reason/Emacs.bs').jsParseAllGoalsWarnings;
+var reParseGoalTypeContext = require('../../Reason/Emacs.bs').jsParseGoalTypeContext;
+var reConcatLines = require('../../Reason/Emacs.bs').jsConcatLines;
 
 export function parseSolutions(raw: string[]): View.Solutions {
     // examine the first line and see if it's simple or indexed

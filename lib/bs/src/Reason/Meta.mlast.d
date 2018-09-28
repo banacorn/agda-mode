@@ -1,0 +1,1 @@
+src/Reason/Meta-AgdaMode.cmj : src/Reason/Comparison-AgdaMode.cmj src/Reason/Concrete-AgdaMode.cmj src/Reason/Type-AgdaMode.cmj src/Reason/Util-AgdaMode.cmj
