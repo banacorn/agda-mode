@@ -41,7 +41,12 @@ let make = (~error: Js.Json.t, ~emacsMessage: string, ~emit, _children) => {
         <section className="error">
           <Range range />
           <TypeError typeError emacsMessage />
-          <Call call />
+          (
+            switch (call) {
+            | Some(call) => <Call call />
+            | None => <> </>
+            }
+          )
         </section>
       </Context.Emitter.Provider>
     | Exception(_) =>

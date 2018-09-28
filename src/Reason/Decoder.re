@@ -1437,7 +1437,7 @@ module Decode = {
            | "TypeError" =>
              TypeError(
                json |> field("range", range),
-               json |> field("call", call),
+               json |> field("call", optional(call)),
                json |> field("typeError", typeError),
              )
            | "Exception" =>

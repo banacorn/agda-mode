@@ -24,8 +24,8 @@ import { OutOfGoalError } from './error';
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
-var { errorToHeader } = require('./view/component/Reason/Error.bs');
-var { parseError, parseMetas } = require('./view/component/Reason/Decoder.bs');
+var { errorToHeader } = require('./Reason/Error.bs');
+var { parseError, parseMetas } = require('./Reason/Decoder.bs');
 
 
 class EditorViewManager {

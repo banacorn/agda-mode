@@ -597,7 +597,7 @@ module TypeChecking = {
     | AmbiguousName(Syntax.C.qname, list(Syntax.C.qname))
     | UnregisteredTypeError(Js.Json.t);
   type error =
-    | TypeError(range, call, typeError)
+    | TypeError(range, option(call), typeError)
     | Exception(range, string)
     | IOException(range, string)
     | PatternError(range);
