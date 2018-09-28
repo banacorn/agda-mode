@@ -1,6 +1,7 @@
 let typeErrorToHeader = error =>
   Type.TypeChecking.(
     switch (error) {
+    | GenericDocError(_)
     | GenericError(_) => "Generic Error"
     | ShouldEndInApplicationOfTheDatatype(_) => "Should end in Application of the Datatype"
     | ShadowedModule(_) => "Shadowed Module"

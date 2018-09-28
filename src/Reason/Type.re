@@ -579,6 +579,7 @@ module TypeChecking = {
     | ModuleContents
     | SetRange(range);
   type typeError =
+    | GenericDocError(string)
     | GenericError(string)
     | ShouldEndInApplicationOfTheDatatype(expr)
     | ShadowedModule(

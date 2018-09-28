@@ -11,6 +11,7 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
   render: _self => {
     Js.log(emacsMessage);
     switch (typeError) {
+    | GenericDocError(message) => <div> (string(message)) </div>
     | GenericError(message) => <div> (string(message)) </div>
     | ShouldEndInApplicationOfTheDatatype(type_) =>
       <div>

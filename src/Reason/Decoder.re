@@ -1364,6 +1364,8 @@ module Decode = {
       field("kind", string)
       |> andThen((kind, json) =>
            switch (kind) {
+           | "GenericDocError" =>
+             GenericDocError(json |> field("message", string))
            | "GenericError" => GenericError(json |> field("message", string))
            | "ShouldEndInApplicationOfTheDatatype" =>
              ShouldEndInApplicationOfTheDatatype(
