@@ -9,7 +9,8 @@ import * as Emacs from './parser/emacs';
 import * as Err from './error';
 
 import { Range } from 'atom';
-// import { parseError } from './view/component/Panel/Agda/Syntax/TypeChecking/Error.bs';
+
+var reParseAllGoalsWarnings = require('./Reason/Emacs.bs').jsParseAllGoalsWarnings;
 
 // classify responses into async and sync ones
 // don't deal everything with promises
@@ -152,6 +153,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.set('Constraints', response.constraints, View.Style.Info);
             break;
         case 'AllGoalsWarnings':
+            reParseAllGoalsWarnings(response.emacsTitle, response.emacsMessage);
             const body = Emacs.parseAllGoalsWarnings(response.emacsTitle, response.emacsMessage);
             core.view.setJudgements(response.emacsTitle, body);
             break;

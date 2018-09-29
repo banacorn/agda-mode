@@ -1,10 +1,12 @@
+open Util;
+
 module Parser = {
-  type allGoalsWarnings = {
+  type allGoalsWarningsOld = {
     metas: array(string),
     warnings: array(string),
     errors: array(string),
   };
-  let allGoalsWarnings: (string, string) => allGoalsWarnings =
+  let allGoalsWarningsOld: (string, string) => allGoalsWarningsOld =
     (title, body) => {
       let shitpile = body |> Js.String.split("\n");
       let hasMetas =
@@ -70,6 +72,36 @@ module Parser = {
       | (false, false, false) => {metas: [||], warnings: [||], errors: [||]}
       };
     };
+  let allGoalsWarnings = (title, body) => {
+    let metas = allGoalsWarningsOld(title, body).metas;
+    let hiddenMetas =
+      metas
+      |> Array.map(
+           Re_.captures(
+             [%re
+               "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
+             ],
+           ),
+         )
+      |> Array_.catMaybes
+      |> List.map(result => {
+           open Js.Option;
+           open Type.Syntax.Position;
+           Js.log(result);
+           let rowStart =
+             default(default("0", result[7]), result[3]) |> int_of_string;
+           let rowEnd =
+             default(default("0", result[7]), result[5]) |> int_of_string;
+           let colStart =
+             default(default("0", result[8]), result[4]) |> int_of_string;
+           let colEnd =
+             default(default("0", result[9]), result[6]) |> int_of_string;
+           /* Js.log((rowStart, colStart, rowEnd, colEnd)); */
+           /* Js.log(Some(3) |> getExn); */
+           3;
+         });
+    Js.log(hiddenMetas);
+  };
   type goalTypeContext = {
     goal: string,
     have: option(string),
@@ -168,6 +200,8 @@ module Parser = {
          );
     };
 };
+
+let jsParseAllGoalsWarningsOld = Parser.allGoalsWarningsOld;
 
 let jsParseAllGoalsWarnings = Parser.allGoalsWarnings;
 

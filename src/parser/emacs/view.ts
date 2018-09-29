@@ -3,7 +3,7 @@ import { parseFilepath } from './../util';
 import { Agda, View } from '../../type';
 
 
-var reParseAllGoalsWarnings = require('../../Reason/Emacs.bs').jsParseAllGoalsWarnings;
+var reParseAllGoalsWarningsOld = require('../../Reason/Emacs.bs').jsParseAllGoalsWarningsOld;
 var reParseGoalTypeContext = require('../../Reason/Emacs.bs').jsParseGoalTypeContext;
 var reConcatLines = require('../../Reason/Emacs.bs').jsConcatLines;
 
@@ -87,7 +87,7 @@ function parseIndexedSolutions(message: string, raw: string[]): View.IndexedSolu
 }
 
 export function parseAllGoalsWarnings(title: string, lines: string): View.EmacsMetas {
-    const [metas, warnings, errors] = reParseAllGoalsWarnings(title, lines);
+    const [metas, warnings, errors] = reParseAllGoalsWarningsOld(title, lines);
     const grouped = _.groupBy(reConcatLines(metas).map(parseExpression), 'judgementForm');
     return {
         goalAndHave: null,

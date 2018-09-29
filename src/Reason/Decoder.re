@@ -1,4 +1,5 @@
-/* [%%debugger.chrome]; */
+[%%debugger.chrome];
+
 open Util;
 
 module Decode = {
