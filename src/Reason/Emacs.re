@@ -1,6 +1,8 @@
 open Util;
 
 module Parser = {
+  open Util.Re_;
+  open Js.Option;
   type allGoalsWarningsOld = {
     metas: array(string),
     warnings: array(string),
@@ -9,19 +11,17 @@ module Parser = {
   let allGoalsWarningsOld: (string, string) => allGoalsWarningsOld =
     (title, body) => {
       let shitpile = body |> Js.String.split("\n");
-      let hasMetas =
-        title |> Js.String.match([%re "/Goals/"]) |> Js.Option.isSome;
+      let hasMetas = title |> Js.String.match([%re "/Goals/"]) |> isSome;
       let hasWarnings =
-        title |> Js.String.match([%re "/Warnings/"]) |> Js.Option.isSome;
-      let hasErrors =
-        title |> Js.String.match([%re "/Errors/"]) |> Js.Option.isSome;
+        title |> Js.String.match([%re "/Warnings/"]) |> isSome;
+      let hasErrors = title |> Js.String.match([%re "/Errors/"]) |> isSome;
       let indexOfWarnings =
         shitpile
         |> Js.Array.findIndex(s =>
              s
              |> Js.String.slice(~from=5, ~to_=13)
              |> Js.String.match([%re "/Warnings/"])
-             |> Js.Option.isSome
+             |> isSome
            );
       let indexOfErrors =
         shitpile
@@ -29,7 +29,7 @@ module Parser = {
              s
              |> Js.String.slice(~from=5, ~to_=11)
              |> Js.String.match([%re "/Errors/"])
-             |> Js.Option.isSome
+             |> isSome
            );
       switch (hasMetas, hasWarnings, hasErrors) {
       | (true, true, true) => {
@@ -72,35 +72,157 @@ module Parser = {
       | (false, false, false) => {metas: [||], warnings: [||], errors: [||]}
       };
     };
+  let filepath = raw => {
+    open Js.String;
+    /* remove newlines and sanitize with path.parse  */
+    let parsed = raw |> replace("\n", "") |> Node.Path.parse;
+    /* join it back and replace Windows' stupid backslash with slash */
+    let joined =
+      Node.Path.join2(parsed##dir, parsed##base)
+      |> split(Node.Path.sep)
+      |> Array.to_list
+      |> String.concat("/");
+    if (charCodeAt(0, joined) === 8234.0) {
+      joined |> sliceToEnd(~from=1) |> trim;
+    } else {
+      joined |> trim;
+    };
+  };
+  /* let outputConstraint = raw => (); */
+  module OutputConstraint = {
+    open Type.Interaction;
+    let ofType =
+      Regex(
+        [%re "/^([^\\:]*) \\: ((?:\\n|.)+)/"],
+        captured =>
+          captured[1]
+          |> andThen((. term) =>
+               captured[2]
+               |> andThen((. type_) => Some(OfType(term, type_)))
+             ),
+      );
+    let justType =
+      Regex(
+        [%re "/^Type ((?:\\n|.)+)/"],
+        captured =>
+          captured[1] |> andThen((. type_) => Some(JustType(type_))),
+      );
+    let justSort =
+      Regex(
+        [%re "/^Sort ((?:\\n|.)+)/"],
+        captured =>
+          captured[1] |> andThen((. type_) => Some(JustSort(type_))),
+      );
+    let others = Wildcard(raw => Some(EmacsWildcard(raw)));
+    let all = choice([|ofType, justType, justSort, others|]);
+  };
+  type isHiddenMeta =
+    | IsHiddenMeta(
+        Type.Interaction.outputConstraint(string, string),
+        Type.Syntax.Position.range,
+      )
+    | NotHiddenMeta(Type.Interaction.outputConstraint(string, string));
+  let occurence = (captured: array(option(string))) : option(isHiddenMeta) =>
+    captured[1]
+    |> andThen((. meta) => {
+         open Type.Syntax.Position;
+         Js.log(captured);
+         let rowStart =
+           getWithDefault(getWithDefault("0", captured[7]), captured[3])
+           |> int_of_string;
+         let rowEnd =
+           getWithDefault(getWithDefault("0", captured[7]), captured[5])
+           |> int_of_string;
+         let colStart =
+           getWithDefault(getWithDefault("0", captured[8]), captured[4])
+           |> int_of_string;
+         let colEnd =
+           getWithDefault(getWithDefault("0", captured[9]), captured[6])
+           |> int_of_string;
+         let start = {pos: None, line: rowStart, col: colStart};
+         let end_ = {pos: None, line: rowEnd, col: colEnd};
+         meta
+         |> OutputConstraint.all
+         |> andThen((. parsedOutputConstraint) =>
+              Some(
+                IsHiddenMeta(
+                  parsedOutputConstraint,
+                  Range(
+                    map((. x) => filepath(x), captured[2]),
+                    [{start, end_}],
+                  ),
+                ),
+              )
+            );
+       });
   let allGoalsWarnings = (title, body) => {
-    let metas = allGoalsWarningsOld(title, body).metas;
-    let hiddenMetas =
-      metas
+    let metas =
+      allGoalsWarningsOld(title, body).metas
       |> Array.map(
-           Re_.captures(
-             [%re
-               "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
-             ],
-           ),
-         )
-      |> Array_.catMaybes
-      |> List.map(result => {
-           open Js.Option;
-           open Type.Syntax.Position;
-           Js.log(result);
-           let rowStart =
-             default(default("0", result[7]), result[3]) |> int_of_string;
-           let rowEnd =
-             default(default("0", result[7]), result[5]) |> int_of_string;
-           let colStart =
-             default(default("0", result[8]), result[4]) |> int_of_string;
-           let colEnd =
-             default(default("0", result[9]), result[6]) |> int_of_string;
-           /* Js.log((rowStart, colStart, rowEnd, colEnd)); */
-           /* Js.log(Some(3) |> getExn); */
-           3;
-         });
-    Js.log(hiddenMetas);
+           Re_.choice([|
+             Regex(
+               [%re
+                 "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
+               ],
+               occurence,
+             ),
+           |]),
+         );
+    /* let metas =
+       allGoalsWarningsOld(title, body).metas
+       |> Array.map(raw => {
+            let result =
+              Re_.captures(
+                [%re
+                  "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
+                ],
+                raw,
+              );
+            switch (result) {
+            | Some(captured) =>
+              switch (captured[1]) {
+              | Some(meta) =>
+                open Js.Option;
+                open Type.Syntax.Position;
+                Js.log(captured);
+                let rowStart =
+                  getWithDefault(
+                    getWithDefault("0", captured[7]),
+                    captured[3],
+                  )
+                  |> int_of_string;
+                let rowEnd =
+                  getWithDefault(
+                    getWithDefault("0", captured[7]),
+                    captured[5],
+                  )
+                  |> int_of_string;
+                let colStart =
+                  getWithDefault(
+                    getWithDefault("0", captured[8]),
+                    captured[4],
+                  )
+                  |> int_of_string;
+                let colEnd =
+                  getWithDefault(
+                    getWithDefault("0", captured[9]),
+                    captured[6],
+                  )
+                  |> int_of_string;
+                let start = {pos: None, line: rowStart, col: colStart};
+                let end_ = {pos: None, line: rowEnd, col: colEnd};
+                IsHiddenMeta(
+                  meta,
+                  Range(
+                    map((. x) => filepath(x), captured[2]),
+                    [{start, end_}],
+                  ),
+                );
+              }
+            | None => NotHiddenMeta(raw)
+            };
+          }); */
+    Js.log(metas);
   };
   type goalTypeContext = {
     goal: string,
@@ -113,12 +235,12 @@ module Parser = {
       let indexOfHave =
         shitpile
         |> Js.Array.findIndex(s =>
-             s |> Js.String.match([%re "/^Have/"]) |> Js.Option.isSome
+             s |> Js.String.match([%re "/^Have/"]) |> isSome
            );
       let indexOfDelimeter =
         shitpile
         |> Js.Array.findIndex(s =>
-             s |> Js.String.match([%re "/\\u2014{60}/g"]) |> Js.Option.isSome
+             s |> Js.String.match([%re "/\\u2014{60}/g"]) |> isSome
            );
       let parseGoalOrHave = lines =>
         lines
@@ -164,7 +286,7 @@ module Parser = {
         let restOfTheJudgement = [%re "/^\\s*\\:\\s* \\S*/"];
         Js.Re.test(line, sort)
         || Js.Re.test(line, reallyLongTermIdentifier)
-        && Js.Option.isSomeValue(
+        && isSomeValue(
              (. _, line) => Js.Re.test(line, restOfTheJudgement),
              "",
              nextLine,

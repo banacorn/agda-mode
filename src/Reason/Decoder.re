@@ -25,7 +25,9 @@ module Decode = {
       open Type.Syntax.Position;
       let position =
         array(int)
-        |> andThen((tup, _) => {pos: tup[2], line: tup[0], col: tup[1]});
+        |> andThen((tup, _) =>
+             {pos: Some(tup[2]), line: tup[0], col: tup[1]}
+           );
       let interval = json => {
         start: json |> field("start", position),
         end_: json |> field("end", position),

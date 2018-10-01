@@ -36,6 +36,31 @@ module Re_ = {
     |> Js.Option.map((. result) =>
          result |> Js.Re.captures |> Array.map(Js.Nullable.toOption)
        );
+  type parser('a) =
+    | Regex(Js.Re.t, array(option(string)) => option('a))
+    | Wildcard(string => option('a));
+  let choice = (res: array(parser('a)), raw: string) : option('a) =>
+    Array.fold_left(
+      (result, parser) =>
+        switch (parser) {
+        | Regex(re, handler) =>
+          switch (result) {
+          /* Done, pass it on */
+          | Some(value) => Some(value)
+          /* Failed, try this one */
+          | None =>
+            switch (captures(re, raw)) {
+            /* Succeed, pass it on */
+            | Some(value) => handler(value)
+            /* Failed, try the next one */
+            | None => None
+            }
+          }
+        | Wildcard(handler) => handler(raw)
+        },
+      None,
+      res,
+    );
 };
 
 module List_ = {

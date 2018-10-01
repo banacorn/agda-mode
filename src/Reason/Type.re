@@ -26,7 +26,7 @@ module Syntax = {
   module Position = {
     type srcFile = option(string);
     type position = {
-      pos: int,
+      pos: option(int),
       line: int,
       col: int,
     };
@@ -729,7 +729,8 @@ module Interaction = {
     | IsEmptyType('a)
     | SizeLtSat('a)
     | FindInScopeOF('b, 'a, list(('a, 'a)))
-    | PTSInstance('b, 'b);
+    | PTSInstance('b, 'b)
+    | EmacsWildcard('b);
   type metas = {
     interactionMetas:
       list(outputConstraint(Syntax.Concrete.expr, Syntax.Concrete.expr)),
