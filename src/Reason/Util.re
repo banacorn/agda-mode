@@ -31,6 +31,7 @@ module Array_ = {
 };
 
 module Re_ = {
+  open Js.Option;
   let captures = (re: Js.Re.t, x: string) : option(array(option(string))) =>
     Js.Re.exec(x, re)
     |> Js.Option.map((. result) =>
@@ -38,28 +39,27 @@ module Re_ = {
        );
   type parser('a) =
     | Regex(Js.Re.t, array(option(string)) => option('a))
-    | Wildcard(string => option('a));
-  let choice = (res: array(parser('a)), raw: string) : option('a) =>
-    Array.fold_left(
-      (result, parser) =>
-        switch (parser) {
-        | Regex(re, handler) =>
-          switch (result) {
-          /* Done, pass it on */
-          | Some(value) => Some(value)
-          /* Failed, try this one */
-          | None =>
-            switch (captures(re, raw)) {
-            /* Succeed, pass it on */
-            | Some(value) => handler(value)
-            /* Failed, try the next one */
-            | None => None
-            }
-          }
-        | Wildcard(handler) => handler(raw)
-        },
-      None,
-      res,
+    | String(string => option('a));
+  let parse = (parser: parser('a), raw: string) : option('a) =>
+    switch (parser) {
+    | Regex(re, handler) =>
+      captures(re, raw) |> andThen((. value) => handler(value))
+    | String(handler) => handler(raw)
+    };
+  let choice = (res: array(parser('a))) =>
+    String(
+      raw =>
+        Array.fold_left(
+          (result, parser) =>
+            switch (result) {
+            /* Done, pass it on */
+            | Some(value) => Some(value)
+            /* Failed, try this one */
+            | None => parse(parser, raw)
+            },
+          None,
+          res,
+        ),
     );
 };
 

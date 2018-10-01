@@ -8,9 +8,59 @@ module Parser = {
     warnings: array(string),
     errors: array(string),
   };
+  let concatLines: array(string) => array(string) =
+    lines => {
+      let isNewline = (line, nextLine) => {
+        let sort = [%re "/^Sort \\S*/"];
+        /* banana : Banana */
+        let completeJudgement = [%re "/^[^\\(\\{\\s]+\\s+\\:\\s* \\S*/"];
+        /* case when the term's name is too long, the rest of the judgement
+              would go to the next line, e.g:
+                   banananananananananananananananana
+                       : Banana
+           */
+        let reallyLongTermIdentifier = [%re "/^\\S+$/"];
+        let restOfTheJudgement = [%re "/^\\s*\\:\\s* \\S*/"];
+        Js.Re.test(line, sort)
+        || Js.Re.test(line, reallyLongTermIdentifier)
+        && isSomeValue(
+             (. _, line) => Js.Re.test(line, restOfTheJudgement),
+             "",
+             nextLine,
+           )
+        || Js.Re.test(line, completeJudgement);
+      };
+      let newLineIndices: array(int) =
+        lines
+        |> Js.Array.mapi((line, index) =>
+             if (Array.length(lines) > index + 1) {
+               (line, Some(lines[index + 1]), index);
+             } else {
+               (line, None, index);
+             }
+           )
+        |> Js.Array.filter(((line, nextLine, _)) =>
+             isNewline(line, nextLine)
+           )
+        |> Array.map(((_, _, index)) => index);
+      newLineIndices
+      |> Js.Array.mapi((index, i) =>
+           if (Array.length(newLineIndices) === i + 1) {
+             (index, Array.length(newLineIndices) + 1);
+           } else {
+             (index, newLineIndices[i + 1]);
+           }
+         )
+      |> Array.map(((start, end_)) =>
+           lines
+           |> Js.Array.slice(~start, ~end_)
+           |> Array.to_list
+           |> String.concat("\n")
+         );
+    };
   let allGoalsWarningsOld: (string, string) => allGoalsWarningsOld =
     (title, body) => {
-      let shitpile = body |> Js.String.split("\n");
+      let shitpile = body |> Js.String.split("\n") |> concatLines;
       let hasMetas = title |> Js.String.match([%re "/Goals/"]) |> isSome;
       let hasWarnings =
         title |> Js.String.match([%re "/Warnings/"]) |> isSome;
@@ -113,7 +163,7 @@ module Parser = {
         captured =>
           captured[1] |> andThen((. type_) => Some(JustSort(type_))),
       );
-    let others = Wildcard(raw => Some(EmacsWildcard(raw)));
+    let others = String(raw => Some(EmacsWildcard(raw)));
     let all = choice([|ofType, justType, justSort, others|]);
   };
   type isHiddenMeta =
@@ -142,7 +192,7 @@ module Parser = {
          let start = {pos: None, line: rowStart, col: colStart};
          let end_ = {pos: None, line: rowEnd, col: colEnd};
          meta
-         |> OutputConstraint.all
+         |> parse(OutputConstraint.all)
          |> andThen((. parsedOutputConstraint) =>
               Some(
                 IsHiddenMeta(
@@ -158,15 +208,24 @@ module Parser = {
   let allGoalsWarnings = (title, body) => {
     let metas =
       allGoalsWarningsOld(title, body).metas
-      |> Array.map(
-           Re_.choice([|
-             Regex(
-               [%re
-                 "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
-               ],
-               occurence,
-             ),
-           |]),
+      |> Array.map(raw =>
+           raw
+           |> parse(
+                choice([|
+                  Regex(
+                    [%re
+                      "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
+                    ],
+                    occurence,
+                  ),
+                  String(
+                    raw =>
+                      raw
+                      |> parse(OutputConstraint.all)
+                      |> andThen((. x) => Some(NotHiddenMeta(x))),
+                  ),
+                |]),
+              )
          );
     /* let metas =
        allGoalsWarningsOld(title, body).metas
@@ -270,56 +329,6 @@ module Parser = {
           metas: shitpile |> Js.Array.sliceFrom(indexOfDelimeter + 1),
         };
       };
-    };
-  let concatLines: array(string) => array(string) =
-    lines => {
-      let isNewline = (line, nextLine) => {
-        let sort = [%re "/^Sort \\S*/"];
-        /* banana : Banana */
-        let completeJudgement = [%re "/^[^\\(\\{\\s]+\\s+\\:\\s* \\S*/"];
-        /* case when the term's name is too long, the rest of the judgement
-              would go to the next line, e.g:
-                   banananananananananananananananana
-                       : Banana
-           */
-        let reallyLongTermIdentifier = [%re "/^\\S+$/"];
-        let restOfTheJudgement = [%re "/^\\s*\\:\\s* \\S*/"];
-        Js.Re.test(line, sort)
-        || Js.Re.test(line, reallyLongTermIdentifier)
-        && isSomeValue(
-             (. _, line) => Js.Re.test(line, restOfTheJudgement),
-             "",
-             nextLine,
-           )
-        || Js.Re.test(line, completeJudgement);
-      };
-      let newLineIndices: array(int) =
-        lines
-        |> Js.Array.mapi((line, index) =>
-             if (Array.length(lines) > index + 1) {
-               (line, Some(lines[index + 1]), index);
-             } else {
-               (line, None, index);
-             }
-           )
-        |> Js.Array.filter(((line, nextLine, _)) =>
-             isNewline(line, nextLine)
-           )
-        |> Array.map(((_, _, index)) => index);
-      newLineIndices
-      |> Js.Array.mapi((index, i) =>
-           if (Array.length(newLineIndices) === i + 1) {
-             (index, Array.length(newLineIndices) + 1);
-           } else {
-             (index, newLineIndices[i + 1]);
-           }
-         )
-      |> Array.map(((start, end_)) =>
-           lines
-           |> Js.Array.slice(~start, ~end_)
-           |> Array.to_list
-           |> String.concat("\n")
-         );
     };
 };
 
