@@ -712,6 +712,21 @@ module TypeChecking = {
 };
 
 module Interaction = {
+  module Emacs = {
+    type expr =
+      | Plain(string)
+      | QuestionMark(string)
+      | Underscore(string);
+    type exprs = array(expr);
+    type meta =
+      | OfType(exprs, exprs)
+      | JustType(exprs)
+      | JustSort(exprs)
+      | Others(exprs);
+    type isHiddenMeta =
+      | IsHiddenMeta(meta, Syntax.Position.range)
+      | NotHiddenMeta(meta);
+  };
   type outputConstraint('a, 'b) =
     | OfType('b, 'a)
     | CmpInType(TypeChecking.comparison, 'a, 'b, 'b)
@@ -729,8 +744,7 @@ module Interaction = {
     | IsEmptyType('a)
     | SizeLtSat('a)
     | FindInScopeOF('b, 'a, list(('a, 'a)))
-    | PTSInstance('b, 'b)
-    | EmacsWildcard('b);
+    | PTSInstance('b, 'b);
   type metas = {
     interactionMetas:
       list(outputConstraint(Syntax.Concrete.expr, Syntax.Concrete.expr)),

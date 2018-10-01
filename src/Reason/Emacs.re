@@ -1,8 +1,7 @@
-open Util;
-
 module Parser = {
   open Util.Re_;
   open Js.Option;
+  open Type.Interaction.Emacs;
   type allGoalsWarningsOld = {
     metas: array(string),
     warnings: array(string),
@@ -138,9 +137,26 @@ module Parser = {
       joined |> trim;
     };
   };
-  /* let outputConstraint = raw => (); */
-  module OutputConstraint = {
-    open Type.Interaction;
+  let exprs =
+    String(
+      raw =>
+        raw
+        /*                            1         2         */
+        |> Js.String.splitByRe([%re "/(\\?\\d+)|(\\_[^\\.][^\\}\\)\\s]*)/"])
+        |> (
+          tokens =>
+            tokens
+            |> Js.Array.mapi((token, i) =>
+                 switch (i) {
+                 | 1 => QuestionMark(token)
+                 | 2 => Underscore(token)
+                 | _ => Plain(token)
+                 }
+               )
+            |> (x => Some(x))
+        ),
+    );
+  module Meta = {
     let ofType =
       Regex(
         [%re "/^([^\\:]*) \\: ((?:\\n|.)+)/"],
@@ -148,30 +164,48 @@ module Parser = {
           captured[1]
           |> andThen((. term) =>
                captured[2]
-               |> andThen((. type_) => Some(OfType(term, type_)))
+               |> andThen((. type_) =>
+                    term
+                    |> parse(exprs)
+                    |> andThen((. term') =>
+                         type_
+                         |> parse(exprs)
+                         |> andThen((. type_') =>
+                              Some(OfType(term', type_'))
+                            )
+                       )
+                  )
              ),
       );
     let justType =
       Regex(
         [%re "/^Type ((?:\\n|.)+)/"],
         captured =>
-          captured[1] |> andThen((. type_) => Some(JustType(type_))),
+          captured[1]
+          |> andThen((. type_) =>
+               type_
+               |> parse(exprs)
+               |> andThen((. type_') => Some(JustType(type_')))
+             ),
       );
     let justSort =
       Regex(
         [%re "/^Sort ((?:\\n|.)+)/"],
         captured =>
-          captured[1] |> andThen((. type_) => Some(JustSort(type_))),
+          captured[1]
+          |> andThen((. sort) =>
+               sort
+               |> parse(exprs)
+               |> andThen((. sort') => Some(JustSort(sort')))
+             ),
       );
-    let others = String(raw => Some(EmacsWildcard(raw)));
+    let others =
+      String(
+        raw =>
+          raw |> parse(exprs) |> andThen((. raw') => Some(Others(raw'))),
+      );
     let all = choice([|ofType, justType, justSort, others|]);
   };
-  type isHiddenMeta =
-    | IsHiddenMeta(
-        Type.Interaction.outputConstraint(string, string),
-        Type.Syntax.Position.range,
-      )
-    | NotHiddenMeta(Type.Interaction.outputConstraint(string, string));
   let occurence = (captured: array(option(string))) : option(isHiddenMeta) =>
     captured[1]
     |> andThen((. meta) => {
@@ -192,7 +226,7 @@ module Parser = {
          let start = {pos: None, line: rowStart, col: colStart};
          let end_ = {pos: None, line: rowEnd, col: colEnd};
          meta
-         |> parse(OutputConstraint.all)
+         |> parse(Meta.all)
          |> andThen((. parsedOutputConstraint) =>
               Some(
                 IsHiddenMeta(
@@ -221,67 +255,29 @@ module Parser = {
                   String(
                     raw =>
                       raw
-                      |> parse(OutputConstraint.all)
+                      |> parse(Meta.all)
                       |> andThen((. x) => Some(NotHiddenMeta(x))),
                   ),
                 |]),
               )
          );
-    /* let metas =
-       allGoalsWarningsOld(title, body).metas
-       |> Array.map(raw => {
-            let result =
-              Re_.captures(
-                [%re
-                  "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
-                ],
-                raw,
-              );
-            switch (result) {
-            | Some(captured) =>
-              switch (captured[1]) {
-              | Some(meta) =>
-                open Js.Option;
-                open Type.Syntax.Position;
-                Js.log(captured);
-                let rowStart =
-                  getWithDefault(
-                    getWithDefault("0", captured[7]),
-                    captured[3],
-                  )
-                  |> int_of_string;
-                let rowEnd =
-                  getWithDefault(
-                    getWithDefault("0", captured[7]),
-                    captured[5],
-                  )
-                  |> int_of_string;
-                let colStart =
-                  getWithDefault(
-                    getWithDefault("0", captured[8]),
-                    captured[4],
-                  )
-                  |> int_of_string;
-                let colEnd =
-                  getWithDefault(
-                    getWithDefault("0", captured[9]),
-                    captured[6],
-                  )
-                  |> int_of_string;
-                let start = {pos: None, line: rowStart, col: colStart};
-                let end_ = {pos: None, line: rowEnd, col: colEnd};
-                IsHiddenMeta(
-                  meta,
-                  Range(
-                    map((. x) => filepath(x), captured[2]),
-                    [{start, end_}],
-                  ),
-                );
-              }
-            | None => NotHiddenMeta(raw)
-            };
-          }); */
     Js.log(metas);
+    /* metas
+       |> Util.Array_.catMaybes
+       |> List.map(hm =>
+            switch (hm) {
+            | IsHiddenMeta(oc, _) => oc
+            | NotHiddenMeta(oc) => oc
+            }
+          )
+       |> List.map(meta =>
+            switch (meta) {
+            | OfType(term, type_) => type_ |> parse(expr) |> Js.log
+            | JustType(type_) => ()
+            | JustSort(sort) => ()
+            | Others(term) => ()
+            }
+          ); */
   };
   type goalTypeContext = {
     goal: string,
