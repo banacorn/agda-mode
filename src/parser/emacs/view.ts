@@ -5,7 +5,6 @@ import { Agda, View } from '../../type';
 
 var reParseAllGoalsWarningsOld = require('../../Reason/Emacs.bs').jsParseAllGoalsWarningsOld;
 var reParseGoalTypeContext = require('../../Reason/Emacs.bs').jsParseGoalTypeContext;
-var reConcatLines = require('../../Reason/Emacs.bs').jsConcatLines;
 
 export function parseSolutions(raw: string[]): View.Solutions {
     // examine the first line and see if it's simple or indexed
@@ -88,7 +87,7 @@ function parseIndexedSolutions(message: string, raw: string[]): View.IndexedSolu
 
 export function parseAllGoalsWarnings(title: string, lines: string): View.EmacsMetas {
     const [metas, warnings, errors] = reParseAllGoalsWarningsOld(title, lines);
-    const grouped = _.groupBy(reConcatLines(metas).map(parseExpression), 'judgementForm');
+    const grouped = _.groupBy(metas.map(parseExpression), 'judgementForm');
     return {
         goalAndHave: null,
         goals: (grouped['goal'] || []) as View.Goal[],
@@ -102,7 +101,7 @@ export function parseAllGoalsWarnings(title: string, lines: string): View.EmacsM
 
 export function parseGoalTypeContext(lines: string): View.EmacsMetas {
     const [goal, have, metas] = reParseGoalTypeContext(lines);
-    const grouped = _.groupBy(reConcatLines(metas).map(parseExpression), 'judgementForm');
+    const grouped = _.groupBy(metas.map(parseExpression), 'judgementForm');
     return {
         goalAndHave: {
             goal, have

@@ -1,6 +1,7 @@
 module Parser = {
   open Util.Re_;
-  open Js.Option;
+  open Util.Option;
+  /* open Js.Option; */
   open Type.Interaction.Emacs;
   type allGoalsWarningsOld = {
     metas: array(string),
@@ -22,7 +23,7 @@ module Parser = {
         let restOfTheJudgement = [%re "/^\\s*\\:\\s* \\S*/"];
         Js.Re.test(line, sort)
         || Js.Re.test(line, reallyLongTermIdentifier)
-        && isSomeValue(
+        && Js.Option.isSomeValue(
              (. _, line) => Js.Re.test(line, restOfTheJudgement),
              "",
              nextLine,
@@ -60,17 +61,19 @@ module Parser = {
   let allGoalsWarningsOld: (string, string) => allGoalsWarningsOld =
     (title, body) => {
       let shitpile = body |> Js.String.split("\n") |> concatLines;
-      let hasMetas = title |> Js.String.match([%re "/Goals/"]) |> isSome;
+      let hasMetas =
+        title |> Js.String.match([%re "/Goals/"]) |> Js.Option.isSome;
       let hasWarnings =
-        title |> Js.String.match([%re "/Warnings/"]) |> isSome;
-      let hasErrors = title |> Js.String.match([%re "/Errors/"]) |> isSome;
+        title |> Js.String.match([%re "/Warnings/"]) |> Js.Option.isSome;
+      let hasErrors =
+        title |> Js.String.match([%re "/Errors/"]) |> Js.Option.isSome;
       let indexOfWarnings =
         shitpile
         |> Js.Array.findIndex(s =>
              s
              |> Js.String.slice(~from=5, ~to_=13)
              |> Js.String.match([%re "/Warnings/"])
-             |> isSome
+             |> Js.Option.isSome
            );
       let indexOfErrors =
         shitpile
@@ -78,7 +81,7 @@ module Parser = {
              s
              |> Js.String.slice(~from=5, ~to_=11)
              |> Js.String.match([%re "/Errors/"])
-             |> isSome
+             |> Js.Option.isSome
            );
       switch (hasMetas, hasWarnings, hasErrors) {
       | (true, true, true) => {
@@ -121,22 +124,25 @@ module Parser = {
       | (false, false, false) => {metas: [||], warnings: [||], errors: [||]}
       };
     };
-  let filepath = raw => {
-    open Js.String;
-    /* remove newlines and sanitize with path.parse  */
-    let parsed = raw |> replace("\n", "") |> Node.Path.parse;
-    /* join it back and replace Windows' stupid backslash with slash */
-    let joined =
-      Node.Path.join2(parsed##dir, parsed##base)
-      |> split(Node.Path.sep)
-      |> Array.to_list
-      |> String.concat("/");
-    if (charCodeAt(0, joined) === 8234.0) {
-      joined |> sliceToEnd(~from=1) |> trim;
-    } else {
-      joined |> trim;
-    };
-  };
+  let filepath =
+    String(
+      raw => {
+        open Js.String;
+        /* remove newlines and sanitize with path.parse  */
+        let parsed = raw |> replace("\n", "") |> Node.Path.parse;
+        /* join it back and replace Windows' stupid backslash with slash */
+        let joined =
+          Node.Path.join2(parsed##dir, parsed##base)
+          |> split(Node.Path.sep)
+          |> Array.to_list
+          |> String.concat("/");
+        if (charCodeAt(0, joined) === 8234.0) {
+          joined |> sliceToEnd(~from=1) |> trim |> Js.Option.some;
+        } else {
+          joined |> trim |> Js.Option.some;
+        };
+      },
+    );
   let exprs =
     String(
       raw =>
@@ -153,7 +159,7 @@ module Parser = {
                  | _ => Plain(token)
                  }
                )
-            |> (x => Some(x))
+            |> Js.Option.some
         ),
     );
   module Meta = {
@@ -161,56 +167,34 @@ module Parser = {
       Regex(
         [%re "/^([^\\:]*) \\: ((?:\\n|.)+)/"],
         captured =>
-          captured[1]
-          |> andThen((. term) =>
-               captured[2]
-               |> andThen((. type_) =>
-                    term
-                    |> parse(exprs)
-                    |> andThen((. term') =>
-                         type_
-                         |> parse(exprs)
-                         |> andThen((. type_') =>
-                              Some(OfType(term', type_'))
-                            )
-                       )
-                  )
+          captured
+          |> at(1, exprs)
+          |> bind(type_ =>
+               captured
+               |> at(2, exprs)
+               |> bind(term => Some(OfType(term, type_)))
              ),
       );
     let justType =
       Regex(
         [%re "/^Type ((?:\\n|.)+)/"],
         captured =>
-          captured[1]
-          |> andThen((. type_) =>
-               type_
-               |> parse(exprs)
-               |> andThen((. type_') => Some(JustType(type_')))
-             ),
+          captured |> at(1, exprs) |> map(type_ => JustType(type_)),
       );
     let justSort =
       Regex(
         [%re "/^Sort ((?:\\n|.)+)/"],
-        captured =>
-          captured[1]
-          |> andThen((. sort) =>
-               sort
-               |> parse(exprs)
-               |> andThen((. sort') => Some(JustSort(sort')))
-             ),
+        captured => captured |> at(1, exprs) |> map(sort => JustSort(sort)),
       );
     let others =
-      String(
-        raw =>
-          raw |> parse(exprs) |> andThen((. raw') => Some(Others(raw'))),
-      );
+      String(raw => raw |> parse(exprs) |> map(raw' => Others(raw')));
     let all = choice([|ofType, justType, justSort, others|]);
   };
   let occurence = (captured: array(option(string))) : option(isHiddenMeta) =>
     captured[1]
-    |> andThen((. meta) => {
+    |> bind(meta => {
          open Type.Syntax.Position;
-         Js.log(captured);
+         let getWithDefault = Js.Option.getWithDefault;
          let rowStart =
            getWithDefault(getWithDefault("0", captured[7]), captured[3])
            |> int_of_string;
@@ -227,17 +211,13 @@ module Parser = {
          let end_ = {pos: None, line: rowEnd, col: colEnd};
          meta
          |> parse(Meta.all)
-         |> andThen((. parsedOutputConstraint) =>
-              Some(
-                IsHiddenMeta(
-                  parsedOutputConstraint,
-                  Range(
-                    map((. x) => filepath(x), captured[2]),
-                    [{start, end_}],
-                  ),
-                ),
-              )
-            );
+         |> map(parsedOutputConstraint => {
+              let path = captured |> at(2, filepath);
+              IsHiddenMeta(
+                parsedOutputConstraint,
+                Range(path, [{start, end_}]),
+              );
+            });
        });
   let allGoalsWarnings = (title, body) => {
     let metas =
@@ -254,30 +234,12 @@ module Parser = {
                   ),
                   String(
                     raw =>
-                      raw
-                      |> parse(Meta.all)
-                      |> andThen((. x) => Some(NotHiddenMeta(x))),
+                      raw |> parse(Meta.all) |> map(x => NotHiddenMeta(x)),
                   ),
                 |]),
               )
          );
     Js.log(metas);
-    /* metas
-       |> Util.Array_.catMaybes
-       |> List.map(hm =>
-            switch (hm) {
-            | IsHiddenMeta(oc, _) => oc
-            | NotHiddenMeta(oc) => oc
-            }
-          )
-       |> List.map(meta =>
-            switch (meta) {
-            | OfType(term, type_) => type_ |> parse(expr) |> Js.log
-            | JustType(type_) => ()
-            | JustSort(sort) => ()
-            | Others(term) => ()
-            }
-          ); */
   };
   type goalTypeContext = {
     goal: string,
@@ -286,16 +248,16 @@ module Parser = {
   };
   let goalTypeContext: string => goalTypeContext =
     body => {
-      let shitpile = body |> Js.String.split("\n");
+      let shitpile = body |> Js.String.split("\n") |> concatLines;
       let indexOfHave =
         shitpile
         |> Js.Array.findIndex(s =>
-             s |> Js.String.match([%re "/^Have/"]) |> isSome
+             s |> Js.String.match([%re "/^Have/"]) |> Js.Option.isSome
            );
       let indexOfDelimeter =
         shitpile
         |> Js.Array.findIndex(s =>
-             s |> Js.String.match([%re "/\\u2014{60}/g"]) |> isSome
+             s |> Js.String.match([%re "/\\u2014{60}/g"]) |> Js.Option.isSome
            );
       let parseGoalOrHave = lines =>
         lines
@@ -333,5 +295,3 @@ let jsParseAllGoalsWarningsOld = Parser.allGoalsWarningsOld;
 let jsParseAllGoalsWarnings = Parser.allGoalsWarnings;
 
 let jsParseGoalTypeContext = Parser.goalTypeContext;
-
-let jsConcatLines = Parser.concatLines;

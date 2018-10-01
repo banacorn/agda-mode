@@ -17,6 +17,13 @@ let contains: (string, string) => bool = [%raw
 let enclosedBy = (front: reactElement, back: reactElement, item: reactElement) =>
   <> front (string(" ")) item (string(" ")) back </>;
 
+module Option = {
+  let bind = (f: 'a => option('b), x: option('a)) : option('b) =>
+    x |> Js.Option.andThen((. x') => f(x'));
+  let map = (f: 'a => 'b, x: option('a)) : option('b) =>
+    x |> Js.Option.map((. x') => f(x'));
+};
+
 module Array_ = {
   let catMaybes = xs =>
     Array.fold_right(
@@ -31,10 +38,10 @@ module Array_ = {
 };
 
 module Re_ = {
-  open Js.Option;
+  open Option;
   let captures = (re: Js.Re.t, x: string) : option(array(option(string))) =>
     Js.Re.exec(x, re)
-    |> Js.Option.map((. result) =>
+    |> map(result =>
          result |> Js.Re.captures |> Array.map(Js.Nullable.toOption)
        );
   type parser('a) =
@@ -42,9 +49,16 @@ module Re_ = {
     | String(string => option('a));
   let parse = (parser: parser('a), raw: string) : option('a) =>
     switch (parser) {
-    | Regex(re, handler) =>
-      captures(re, raw) |> andThen((. value) => handler(value))
+    | Regex(re, handler) => captures(re, raw) |> bind(handler)
     | String(handler) => handler(raw)
+    };
+  let at =
+      (i: int, parser: parser('a), captured: array(option(string)))
+      : option('a) =>
+    if (i >= Array.length(captured)) {
+      None;
+    } else {
+      captured[i] |> bind(parse(parser));
     };
   let choice = (res: array(parser('a))) =>
     String(
