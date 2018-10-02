@@ -4,16 +4,16 @@ open Type.AgdaMode;
 
 open Type.Interaction;
 
-let component = ReasonReact.statelessComponent("Metas");
+let component = ReasonReact.statelessComponent("AllGoalsWarnings");
 
-let make = (~metas: metas, ~emit, _children) => {
+let make = (~allGoalsWarnings: allGoalsWarnings, ~emit, _children) => {
   ...component,
   render: _self =>
     <Context.Emitter.Provider value=emit>
       <section className="metas">
         <ul>
           ...(
-               metas.interactionMetas
+               allGoalsWarnings.interactionMetas
                |> List.map(meta => <Meta meta />)
                |> Array.of_list
              )
@@ -22,7 +22,7 @@ let make = (~metas: metas, ~emit, _children) => {
       <section className="metas">
         <ul>
           ...(
-               metas.hiddenMetas
+               allGoalsWarnings.hiddenMetas
                |> List.map(meta => <Meta meta />)
                |> Array.of_list
              )
@@ -31,7 +31,7 @@ let make = (~metas: metas, ~emit, _children) => {
       <section className="warnings">
         <ul>
           ...Type.TypeChecking.(
-               metas.warnings
+               allGoalsWarnings.warnings
                |> List.map(x => <li> (string(x.warning')) </li>)
                |> Array.of_list
              )
@@ -42,11 +42,15 @@ let make = (~metas: metas, ~emit, _children) => {
 
 [@bs.deriving abstract]
 type jsProps = {
-  metas,
+  allGoalsWarnings,
   emit: (string, Type.Syntax.Position.range) => unit,
 };
 
 let jsComponent =
   ReasonReact.wrapReasonForJs(~component, jsProps =>
-    make(~metas=metasGet(jsProps), ~emit=emitGet(jsProps), [||])
+    make(
+      ~allGoalsWarnings=allGoalsWarningsGet(jsProps),
+      ~emit=emitGet(jsProps),
+      [||],
+    )
   );

@@ -90,11 +90,11 @@ export interface QueryState {
 }
 
 export interface BodyState {
-    metas: object;
+    allGoalsWarnings: object;
     error: object;
     plainText: string;
     solutions: Solutions;
-    emacsMetas: EmacsMetas;
+    emacsAllGoalsWarnings: object;
     emacsError: EmacsAgdaError;
     emacsMessage: string;
     maxBodyHeight: number;
@@ -170,28 +170,4 @@ export interface Sort {
     judgementForm: ExprKind;
     range: Agda.Range;
     index: string;
-}
-
-
-////////////////////////////////////////////
-// Body components
-////////////////////////////////////////////
-
-export interface EmacsMetas {
-    goalAndHave?: GoalAndHave;
-    // ------
-    goals: Goal[];
-    judgements: Judgement[];
-    terms: Term[];
-    metas: Meta[];
-    sorts: Sort[];
-    // --------
-    warnings: string[];
-    // --------
-    errors: string[];
-}
-
-export interface GoalAndHave {
-    goal: string,
-    have?: string,
 }

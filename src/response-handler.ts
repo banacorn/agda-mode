@@ -153,9 +153,8 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.set('Constraints', response.constraints, View.Style.Info);
             break;
         case 'AllGoalsWarnings':
-            reParseAllGoalsWarnings(response.emacsTitle, response.emacsMessage);
-            const body = Emacs.parseAllGoalsWarnings(response.emacsTitle, response.emacsMessage);
-            core.view.setJudgements(response.emacsTitle, body);
+            const allGoalsWarnings = reParseAllGoalsWarnings(response.emacsTitle, response.emacsMessage);
+            core.view.setEmacsAllGoalsWarnings(response.emacsTitle, allGoalsWarnings);
             break;
         case 'Error':
             const error = Emacs.parseError(response.emacsMessage);
@@ -188,7 +187,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.set('Normal Form', response.payload, View.Style.Info);
             break;
         case 'GoalType':
-            core.view.setJudgements('Goal Type and Context', Emacs.parseGoalTypeContext(response.payload));
+            // core.view.setEmacsGoalTypeContext('Goal Type and Context', Emacs.parseGoalTypeContext(response.payload));
             break;
         case 'CurrentGoal':
             core.view.set('Current Goal', response.payload, View.Style.Info);
@@ -197,7 +196,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.set('Inferred Type', response.payload, View.Style.Info);
             break;
         case 'Context':
-            core.view.setJudgements('Context', Emacs.parseGoalTypeContext(response.payload));
+            // core.view.setEmacsGoalTypeContext('Context', Emacs.parseGoalTypeContext(response.payload));
             break;
         case 'Intro':
             core.view.set('Intro', 'No introduction forms found');
@@ -220,7 +219,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.set('Constraints', 'TBD', View.Style.Warning);
             break;
         case 'AllGoalsWarnings':
-            core.view.setAgdaMetas(info.metas);
+            core.view.setAgdaAllGoalsWarnings(info.metas);
             break;
         case 'Error':
             core.view.setAgdaError(info.error, info.emacsMessage);
@@ -249,7 +248,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.set('Normal Form', info.payload, View.Style.Info);
             break;
         case 'GoalType':
-            core.view.setJudgements('Goal Type and Context', Emacs.parseGoalTypeContext(info.payload));
+            // core.view.setEmacsGoalTypeContext('Goal Type and Context', Emacs.parseGoalTypeContext(info.payload));
             break;
         case 'CurrentGoal':
             core.view.set('Current Goal', info.payload, View.Style.Info);
@@ -258,7 +257,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.set('Inferred Type', info.payload, View.Style.Info);
             break;
         case 'Context':
-            core.view.setJudgements('Context', Emacs.parseGoalTypeContext(info.payload));
+            // core.view.setEmacsGoalTypeContext('Context', Emacs.parseGoalTypeContext(info.payload));
             break;
         case 'ModuleContents':
             core.view.set('Module Contents', info.payload, View.Style.Info);

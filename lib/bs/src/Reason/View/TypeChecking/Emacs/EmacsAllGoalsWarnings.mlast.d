@@ -1,0 +1,1 @@
+src/Reason/View/TypeChecking/Emacs/EmacsAllGoalsWarnings-AgdaMode.cmj : src/Reason/View/Context-AgdaMode.cmj src/Reason/View/TypeChecking/Emacs/EmacsMeta-AgdaMode.cmj src/Reason/Type-AgdaMode.cmj

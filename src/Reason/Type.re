@@ -627,19 +627,24 @@ module TypeChecking = {
 
 module Interaction = {
   module Emacs = {
-    type expr =
+    type term =
       | Plain(string)
       | QuestionMark(string)
       | Underscore(string);
-    type exprs = array(expr);
+    type expr = array(term);
+    type outputConstraint =
+      | OfType(expr, expr)
+      | JustType(expr)
+      | JustSort(expr)
+      | Others(expr);
     type meta =
-      | OfType(exprs, exprs)
-      | JustType(exprs)
-      | JustSort(exprs)
-      | Others(exprs);
-    type isHiddenMeta =
-      | IsHiddenMeta(meta, Syntax.Position.range)
-      | NotHiddenMeta(meta);
+      | HiddenMeta(outputConstraint, Syntax.Position.range)
+      | InteractionMeta(outputConstraint);
+    type allGoalsWarnings = {
+      metas: array(meta),
+      warnings: string,
+      errors: string,
+    };
   };
   type outputConstraint('a, 'b) =
     | OfType('b, 'a)
@@ -659,7 +664,7 @@ module Interaction = {
     | SizeLtSat('a)
     | FindInScopeOF('b, 'a, list(('a, 'a)))
     | PTSInstance('b, 'b);
-  type metas = {
+  type allGoalsWarnings = {
     interactionMetas:
       list(outputConstraint(Syntax.Concrete.expr, Syntax.Concrete.expr)),
     hiddenMetas:

@@ -12,7 +12,7 @@ bsb_dir_group = 0
 refmt = /Users/banacorn/github/agda-mode/node_modules/bs-platform/lib/refmt.exe
 reason_react_jsx = -ppx '/Users/banacorn/github/agda-mode/node_modules/bs-platform/lib/reactjs_jsx_ppx_2.exe'
 refmt_flags = --print binary
-bsc_lib_includes = -I . -I src/Reason/View/TypeChecking -I src/Reason/View/Syntax -I src/Reason/View -I src/Reason
+bsc_lib_includes = -I . -I src/Reason/View/TypeChecking/Emacs -I src/Reason/View/TypeChecking -I src/Reason/View/Syntax -I src/Reason/View -I src/Reason
 rule build_ast_and_module_sets_from_re
   command = ${bsc} -pp "${refmt} ${refmt_flags}" ${reason_react_jsx}  ${ppx_flags} ${warnings} ${bsc_flags} -c -o ${out} -bs-syntax-only -bs-binary-ast -impl ${in}
   description = [34mBuilding[39m [2m${out}[22m
@@ -93,11 +93,6 @@ build src/Reason/View/TypeChecking/Error.mlast.d : build_deps src/Reason/View/Ty
 build src/Reason/View/TypeChecking/Error-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/Error.bs.js src/Reason/View/TypeChecking/Error-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/Error.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
   bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking
-build src/Reason/View/TypeChecking/Metas.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/Metas.re
-build src/Reason/View/TypeChecking/Metas.mlast.d : build_deps src/Reason/View/TypeChecking/Metas.mlast
-build src/Reason/View/TypeChecking/Metas-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/Metas.bs.js src/Reason/View/TypeChecking/Metas-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/Metas.mlast
-  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
-  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking
 build src/Reason/View/TypeChecking/TypeError.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/TypeError.re
 build src/Reason/View/TypeChecking/TypeError.mlast.d : build_deps src/Reason/View/TypeChecking/TypeError.mlast
 build src/Reason/View/TypeChecking/TypeError-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/TypeError.bs.js src/Reason/View/TypeChecking/TypeError-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/TypeError.mlast
@@ -108,8 +103,38 @@ build src/Reason/View/TypeChecking/Comparison.mlast.d : build_deps src/Reason/Vi
 build src/Reason/View/TypeChecking/Comparison-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/Comparison.bs.js src/Reason/View/TypeChecking/Comparison-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/Comparison.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
   bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking
+build src/Reason/View/TypeChecking/AllGoalsWarnings.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/AllGoalsWarnings.re
+build src/Reason/View/TypeChecking/AllGoalsWarnings.mlast.d : build_deps src/Reason/View/TypeChecking/AllGoalsWarnings.mlast
+build src/Reason/View/TypeChecking/AllGoalsWarnings-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/AllGoalsWarnings.bs.js src/Reason/View/TypeChecking/AllGoalsWarnings-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/AllGoalsWarnings.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking
+build src/Reason/View/TypeChecking/Emacs/EmacsExpr.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/Emacs/EmacsExpr.re
+build src/Reason/View/TypeChecking/Emacs/EmacsExpr.mlast.d : build_deps src/Reason/View/TypeChecking/Emacs/EmacsExpr.mlast
+build src/Reason/View/TypeChecking/Emacs/EmacsExpr-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/Emacs/EmacsExpr.bs.js src/Reason/View/TypeChecking/Emacs/EmacsExpr-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/Emacs/EmacsExpr.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking/Emacs
+build src/Reason/View/TypeChecking/Emacs/EmacsMeta.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/Emacs/EmacsMeta.re
+build src/Reason/View/TypeChecking/Emacs/EmacsMeta.mlast.d : build_deps src/Reason/View/TypeChecking/Emacs/EmacsMeta.mlast
+build src/Reason/View/TypeChecking/Emacs/EmacsMeta-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/Emacs/EmacsMeta.bs.js src/Reason/View/TypeChecking/Emacs/EmacsMeta-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/Emacs/EmacsMeta.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking/Emacs
+build src/Reason/View/TypeChecking/Emacs/EmacsTerm.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/Emacs/EmacsTerm.re
+build src/Reason/View/TypeChecking/Emacs/EmacsTerm.mlast.d : build_deps src/Reason/View/TypeChecking/Emacs/EmacsTerm.mlast
+build src/Reason/View/TypeChecking/Emacs/EmacsTerm-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/Emacs/EmacsTerm.bs.js src/Reason/View/TypeChecking/Emacs/EmacsTerm-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/Emacs/EmacsTerm.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking/Emacs
+build src/Reason/View/TypeChecking/Emacs/EmacsAllGoalsWarnings.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/Emacs/EmacsAllGoalsWarnings.re
+build src/Reason/View/TypeChecking/Emacs/EmacsAllGoalsWarnings.mlast.d : build_deps src/Reason/View/TypeChecking/Emacs/EmacsAllGoalsWarnings.mlast
+build src/Reason/View/TypeChecking/Emacs/EmacsAllGoalsWarnings-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/Emacs/EmacsAllGoalsWarnings.bs.js src/Reason/View/TypeChecking/Emacs/EmacsAllGoalsWarnings-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/Emacs/EmacsAllGoalsWarnings.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking/Emacs
+build src/Reason/View/TypeChecking/Emacs/EmacsOutputConstraint.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/Emacs/EmacsOutputConstraint.re
+build src/Reason/View/TypeChecking/Emacs/EmacsOutputConstraint.mlast.d : build_deps src/Reason/View/TypeChecking/Emacs/EmacsOutputConstraint.mlast
+build src/Reason/View/TypeChecking/Emacs/EmacsOutputConstraint-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/Emacs/EmacsOutputConstraint.bs.js src/Reason/View/TypeChecking/Emacs/EmacsOutputConstraint-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/Emacs/EmacsOutputConstraint.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking/Emacs
 rule build_package
   command = ${bsc} -w -49 -no-alias-deps -c ${in}
   description = [34mBuilding[39m [2m${out}[22m
 build AgdaMode.cmi : build_package AgdaMode.mlmap
-build build.ninja : phony  ||  AgdaMode.cmi src/Reason/View/TypeChecking/Comparison.mlast.d src/Reason/View/TypeChecking/TypeError.mlast.d src/Reason/View/TypeChecking/Metas.mlast.d src/Reason/View/TypeChecking/Error.mlast.d src/Reason/View/TypeChecking/Meta.mlast.d src/Reason/View/TypeChecking/Call.mlast.d src/Reason/View/Syntax/CommonPrim.mlast.d src/Reason/View/Syntax/Concrete.mlast.d src/Reason/View/Syntax/Literal.mlast.d src/Reason/View/Syntax/Range.mlast.d src/Reason/View/Syntax/Name.mlast.d src/Reason/View/Context.mlast.d src/Reason/View/Link.mlast.d src/Reason/Decoder.mlast.d src/Reason/Emacs.mlast.d src/Reason/Util.mlast.d src/Reason/Type.mlast.d
+build build.ninja : phony  ||  AgdaMode.cmi src/Reason/View/TypeChecking/Emacs/EmacsOutputConstraint.mlast.d src/Reason/View/TypeChecking/Emacs/EmacsAllGoalsWarnings.mlast.d src/Reason/View/TypeChecking/Emacs/EmacsTerm.mlast.d src/Reason/View/TypeChecking/Emacs/EmacsMeta.mlast.d src/Reason/View/TypeChecking/Emacs/EmacsExpr.mlast.d src/Reason/View/TypeChecking/AllGoalsWarnings.mlast.d src/Reason/View/TypeChecking/Comparison.mlast.d src/Reason/View/TypeChecking/TypeError.mlast.d src/Reason/View/TypeChecking/Error.mlast.d src/Reason/View/TypeChecking/Meta.mlast.d src/Reason/View/TypeChecking/Call.mlast.d src/Reason/View/Syntax/CommonPrim.mlast.d src/Reason/View/Syntax/Concrete.mlast.d src/Reason/View/Syntax/Literal.mlast.d src/Reason/View/Syntax/Range.mlast.d src/Reason/View/Syntax/Name.mlast.d src/Reason/View/Context.mlast.d src/Reason/View/Link.mlast.d src/Reason/Decoder.mlast.d src/Reason/Emacs.mlast.d src/Reason/Util.mlast.d src/Reason/Type.mlast.d

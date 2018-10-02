@@ -85,7 +85,7 @@ function parseIndexedSolutions(message: string, raw: string[]): View.IndexedSolu
     };
 }
 
-export function parseAllGoalsWarnings(title: string, lines: string): View.EmacsMetas {
+export function parseAllGoalsWarnings(title: string, lines: string): object {
     const [metas, warnings, errors] = reParseAllGoalsWarningsOld(title, lines);
     const grouped = _.groupBy(metas.map(parseExpression), 'judgementForm');
     return {
@@ -99,22 +99,22 @@ export function parseAllGoalsWarnings(title: string, lines: string): View.EmacsM
     }
 }
 
-export function parseGoalTypeContext(lines: string): View.EmacsMetas {
-    const [goal, have, metas] = reParseGoalTypeContext(lines);
-    const grouped = _.groupBy(metas.map(parseExpression), 'judgementForm');
-    return {
-        goalAndHave: {
-            goal, have
-        },
-        goals: (grouped['goal'] || []) as View.Goal[],
-        judgements: (grouped['type judgement'] || []) as View.Judgement[],
-        terms: (grouped['term'] || []) as View.Term[],
-        metas: (grouped['meta'] || []) as View.Meta[],
-        sorts: (grouped['sort'] || []) as View.Sort[],
-        warnings: [],
-        errors: []
-    }
-}
+// export function parseGoalTypeContext(lines: string): object {
+//     const [goal, have, metas] = reParseGoalTypeContext(lines);
+//     const grouped = _.groupBy(metas.map(parseExpression), 'judgementForm');
+//     return {
+//         goalAndHave: {
+//             goal, have
+//         },
+//         goals: (grouped['goal'] || []) as View.Goal[],
+//         judgements: (grouped['type judgement'] || []) as View.Judgement[],
+//         terms: (grouped['term'] || []) as View.Term[],
+//         metas: (grouped['meta'] || []) as View.Meta[],
+//         sorts: (grouped['sort'] || []) as View.Sort[],
+//         warnings: [],
+//         errors: []
+//     }
+// }
 
 
 ////////////////////////////////////////////////////////////////////////////////

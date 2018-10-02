@@ -162,22 +162,22 @@ export namespace QUERY {
 }
 
 
-export type BODY = BODY.UPDATE_EMACS_METAS
-    | BODY.UPDATE_METAS
-    | BODY.UPDATE_ERROR
+export type BODY = BODY.UPDATE_All_GOALS_WARNINGS
+    | BODY.UPDATE_EMACS_All_GOALS_WARNINGS
     | BODY.UPDATE_EMACS_ERROR
+    | BODY.UPDATE_ERROR
     | BODY.UPDATE_SOLUTIONS
     | BODY.UPDATE_PLAIN_TEXT
     | BODY.UPDATE_MAX_BODY_HEIGHT;
 export namespace BODY {
-    export const UPDATE_EMACS_METAS = 'BODY.UPDATE_EMACS_METAS';
-    export type UPDATE_EMACS_METAS = View.EmacsMetas;
-    export const UPDATE_METAS = 'BODY.UPDATE_METAS';
-    export type UPDATE_METAS = object;
-    export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
-    export type UPDATE_ERROR = [object, string];
+    export const UPDATE_All_GOALS_WARNINGS = 'BODY.UPDATE_All_GOALS_WARNINGS';
+    export type UPDATE_All_GOALS_WARNINGS = object;
+    export const UPDATE_EMACS_All_GOALS_WARNINGS = 'BODY.UPDATE_EMACS_All_GOALS_WARNINGS';
+    export type UPDATE_EMACS_All_GOALS_WARNINGS = object;
     export const UPDATE_EMACS_ERROR = 'BODY.UPDATE_EMACS_ERROR';
     export type UPDATE_EMACS_ERROR = EmacsAgdaError;
+    export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
+    export type UPDATE_ERROR = [object, string];
     export const UPDATE_SOLUTIONS = 'BODY.UPDATE_SOLUTIONS';
     export type UPDATE_SOLUTIONS = View.Solutions;
     export const UPDATE_PLAIN_TEXT = 'BODY.UPDATE_PLAIN_TEXT';
@@ -186,10 +186,10 @@ export namespace BODY {
     export type UPDATE_MAX_BODY_HEIGHT = number;
 }
 
-export const updateEmacsMetas = createAction<BODY.UPDATE_EMACS_METAS>(BODY.UPDATE_EMACS_METAS);
-export const updateMetas = createAction<BODY.UPDATE_METAS>(BODY.UPDATE_METAS);
-export const updateError = createAction<BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
+export const updateAllGoalsWarnings = createAction<BODY.UPDATE_All_GOALS_WARNINGS>(BODY.UPDATE_All_GOALS_WARNINGS);
+export const updateEmacsAllGoalsWarnings = createAction<BODY.UPDATE_EMACS_All_GOALS_WARNINGS>(BODY.UPDATE_EMACS_All_GOALS_WARNINGS);
 export const updateEmacsError = createAction<BODY.UPDATE_EMACS_ERROR>(BODY.UPDATE_EMACS_ERROR);
+export const updateError = createAction<BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
 export const updateSolutions = createAction<BODY.UPDATE_SOLUTIONS>(BODY.UPDATE_SOLUTIONS);
 export const updatePlainText = createAction<BODY.UPDATE_PLAIN_TEXT>(BODY.UPDATE_PLAIN_TEXT);
 export const updateMaxBodyHeight = createAction<BODY.UPDATE_MAX_BODY_HEIGHT>(BODY.UPDATE_MAX_BODY_HEIGHT);

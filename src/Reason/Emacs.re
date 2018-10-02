@@ -3,11 +3,6 @@ module Parser = {
   open Util.Option;
   /* open Js.Option; */
   open Type.Interaction.Emacs;
-  type allGoalsWarningsOld = {
-    metas: array(string),
-    warnings: array(string),
-    errors: array(string),
-  };
   let concatLines: array(string) => array(string) =
     lines => {
       let isNewline = (line, nextLine) => {
@@ -46,7 +41,7 @@ module Parser = {
       newLineIndices
       |> Js.Array.mapi((index, i) =>
            if (Array.length(newLineIndices) === i + 1) {
-             (index, Array.length(newLineIndices) + 1);
+             (index, Array.length(lines) + 1);
            } else {
              (index, newLineIndices[i + 1]);
            }
@@ -58,7 +53,13 @@ module Parser = {
            |> String.concat("\n")
          );
     };
-  let allGoalsWarningsOld: (string, string) => allGoalsWarningsOld =
+  type allGoalsWarningsPreprocess = {
+    metas: array(string),
+    warnings: array(string),
+    errors: array(string),
+  };
+  let allGoalsWarningsPreprocess:
+    (string, string) => allGoalsWarningsPreprocess =
     (title, body) => {
       let shitpile = body |> Js.String.split("\n") |> concatLines;
       let hasMetas =
@@ -143,7 +144,7 @@ module Parser = {
         };
       },
     );
-  let exprs =
+  let expr =
     String(
       raw =>
         raw
@@ -153,7 +154,7 @@ module Parser = {
           tokens =>
             tokens
             |> Js.Array.mapi((token, i) =>
-                 switch (i) {
+                 switch (i mod 3) {
                  | 1 => QuestionMark(token)
                  | 2 => Underscore(token)
                  | _ => Plain(token)
@@ -162,84 +163,86 @@ module Parser = {
             |> Js.Option.some
         ),
     );
-  module Meta = {
+  module OutputConstraint = {
     let ofType =
       Regex(
         [%re "/^([^\\:]*) \\: ((?:\\n|.)+)/"],
         captured =>
           captured
-          |> at(1, exprs)
+          |> at(2, expr)
           |> bind(type_ =>
                captured
-               |> at(2, exprs)
+               |> at(1, expr)
                |> bind(term => Some(OfType(term, type_)))
              ),
       );
     let justType =
       Regex(
         [%re "/^Type ((?:\\n|.)+)/"],
-        captured =>
-          captured |> at(1, exprs) |> map(type_ => JustType(type_)),
+        captured => captured |> at(1, expr) |> map(type_ => JustType(type_)),
       );
     let justSort =
       Regex(
         [%re "/^Sort ((?:\\n|.)+)/"],
-        captured => captured |> at(1, exprs) |> map(sort => JustSort(sort)),
+        captured => captured |> at(1, expr) |> map(sort => JustSort(sort)),
       );
     let others =
-      String(raw => raw |> parse(exprs) |> map(raw' => Others(raw')));
-    let all = choice([|ofType, justType, justSort, others|]);
+      String(raw => raw |> parse(expr) |> map(raw' => Others(raw')));
   };
-  let occurence = (captured: array(option(string))) : option(isHiddenMeta) =>
-    captured[1]
-    |> bind(meta => {
-         open Type.Syntax.Position;
-         let getWithDefault = Js.Option.getWithDefault;
-         let rowStart =
-           getWithDefault(getWithDefault("0", captured[7]), captured[3])
-           |> int_of_string;
-         let rowEnd =
-           getWithDefault(getWithDefault("0", captured[7]), captured[5])
-           |> int_of_string;
-         let colStart =
-           getWithDefault(getWithDefault("0", captured[8]), captured[4])
-           |> int_of_string;
-         let colEnd =
-           getWithDefault(getWithDefault("0", captured[9]), captured[6])
-           |> int_of_string;
-         let start = {pos: None, line: rowStart, col: colStart};
-         let end_ = {pos: None, line: rowEnd, col: colEnd};
-         meta
-         |> parse(Meta.all)
-         |> map(parsedOutputConstraint => {
-              let path = captured |> at(2, filepath);
-              IsHiddenMeta(
-                parsedOutputConstraint,
-                Range(path, [{start, end_}]),
-              );
-            });
-       });
-  let allGoalsWarnings = (title, body) => {
+  let outputConstraint: parser(outputConstraint) =
+    choice([|
+      OutputConstraint.ofType,
+      OutputConstraint.justType,
+      OutputConstraint.justSort,
+      OutputConstraint.others,
+    |]);
+  let hiddenMeta: parser(meta) =
+    Regex(
+      [%re
+        "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
+      ],
+      captured =>
+        captured[1]
+        |> bind(raw => {
+             open Type.Syntax.Position;
+             let getWithDefault = Js.Option.getWithDefault;
+             let rowStart =
+               getWithDefault(getWithDefault("0", captured[7]), captured[3])
+               |> int_of_string;
+             let rowEnd =
+               getWithDefault(getWithDefault("0", captured[7]), captured[5])
+               |> int_of_string;
+             let colStart =
+               getWithDefault(getWithDefault("0", captured[8]), captured[4])
+               |> int_of_string;
+             let colEnd =
+               getWithDefault(getWithDefault("0", captured[9]), captured[6])
+               |> int_of_string;
+             let start = {pos: None, line: rowStart, col: colStart};
+             let end_ = {pos: None, line: rowEnd, col: colEnd};
+             raw
+             |> parse(outputConstraint)
+             |> map(parsed => {
+                  let path = captured |> at(2, filepath);
+                  HiddenMeta(parsed, Range(path, [{start, end_}]));
+                });
+           }),
+    );
+  let interactionMeta: parser(meta) =
+    String(
+      raw => raw |> parse(outputConstraint) |> map(x => InteractionMeta(x)),
+    );
+  let allGoalsWarnings = (title, body) : allGoalsWarnings => {
+    let preprocessed = allGoalsWarningsPreprocess(title, body);
+    Js.log(preprocessed.metas);
     let metas =
-      allGoalsWarningsOld(title, body).metas
+      preprocessed.metas
       |> Array.map(raw =>
-           raw
-           |> parse(
-                choice([|
-                  Regex(
-                    [%re
-                      "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
-                    ],
-                    occurence,
-                  ),
-                  String(
-                    raw =>
-                      raw |> parse(Meta.all) |> map(x => NotHiddenMeta(x)),
-                  ),
-                |]),
-              )
-         );
-    Js.log(metas);
+           raw |> parse(choice([|hiddenMeta, interactionMeta|]))
+         )
+      |> Util.Array_.catMaybes
+      |> Array.of_list;
+    {metas, warnings: "", errors: ""};
   };
   type goalTypeContext = {
     goal: string,
@@ -290,7 +293,7 @@ module Parser = {
     };
 };
 
-let jsParseAllGoalsWarningsOld = Parser.allGoalsWarningsOld;
+let jsParseAllGoalsWarningsOld = Parser.allGoalsWarningsPreprocess;
 
 let jsParseAllGoalsWarnings = Parser.allGoalsWarnings;
 

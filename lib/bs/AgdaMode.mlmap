@@ -12,6 +12,11 @@ CommonPrim
 Call
 Meta
 Error
-Metas
 TypeError
 Comparison
+AllGoalsWarnings
+EmacsExpr
+EmacsMeta
+EmacsTerm
+EmacsAllGoalsWarnings
+EmacsOutputConstraint

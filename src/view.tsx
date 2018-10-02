@@ -368,7 +368,7 @@ export default class View {
         }
     }
 
-    setAgdaMetas(raw: object) {
+    setAgdaAllGoalsWarnings(raw: object) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
@@ -376,11 +376,12 @@ export default class View {
             text: 'All Goals, Warnings, and Errors',
             style: V.Style.Info
         }));
-
-        this.store.dispatch(Action.updateMetas(parseMetas(raw)));
+        console.log(parseMetas(raw));
+        this.store.dispatch(Action.updateAllGoalsWarnings(parseMetas(raw)));
     }
 
-    setJudgements(header: string = 'Judgements', emacsMetas: V.EmacsMetas) {
+    setEmacsAllGoalsWarnings(header: string = 'Judgements', allGoalsWarnings: object) {
+        console.log(allGoalsWarnings);
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
@@ -389,9 +390,20 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(Action.updateEmacsMetas(emacsMetas));
+        this.store.dispatch(Action.updateEmacsAllGoalsWarnings(allGoalsWarnings));
     }
 
+    // setEmacsGoalTypeContext(header: string = 'Judgements', emacsMetas: object) {
+    //     this.store.dispatch(Action.MODE.display());
+    //     this.editors.focusMain()
+    //
+    //     this.store.dispatch(Action.HEADER.update({
+    //         text: header,
+    //         style: V.Style.Info
+    //     }));
+    //
+    //     this.store.dispatch(Action.updateEmacsMetas(emacsMetas));
+    // }
     setSolutions(solutions: V.Solutions) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain();
