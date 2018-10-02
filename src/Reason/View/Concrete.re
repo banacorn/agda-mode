@@ -2,11 +2,11 @@ open ReasonReact;
 
 open Type.Syntax.Concrete;
 
-open Type.Syntax.C;
+open Type.Syntax.Name;
+
+open Name;
 
 open Type;
-
-open C;
 
 open Util;
 

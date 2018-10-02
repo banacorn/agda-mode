@@ -44,7 +44,7 @@ let make = (~meta: outputConstraint(expr, expr), _children) => {
       <li> <Expr value=t /> <Comparison cmp /> <Expr value=t' /> </li>
     | CmpSorts(cmp, t, t') =>
       <li> <Expr value=t /> <Comparison cmp /> <Expr value=t' /> </li>
-    | Guard(o, pid) =>
+    | Guard(_o, _pid) =>
       <li> (string("Unimplemented: outputConstraint::Guard")) </li>
     | Assign(m, e) =>
       <li> <Expr value=m /> (string(" := ")) <Expr value=e /> </li>
@@ -75,9 +75,9 @@ let make = (~meta: outputConstraint(expr, expr), _children) => {
     | IsEmptyType(e) => <li> (string("Is empty: ")) <Expr value=e /> </li>
     | SizeLtSat(e) =>
       <li> (string("Not empty type of sizes: ")) <Expr value=e /> </li>
-    | FindInScopeOF(s, t, cs) =>
+    | FindInScopeOF(_s, _t, _cs) =>
       <li> (string("Unimplemented: outputConstraint::FindInScopeOF")) </li>
-    | PTSInstance(a, b) =>
+    | PTSInstance(_a, _b) =>
       <li> (string("Unimplemented: outputConstraint::PTSInstance")) </li>
     },
 };

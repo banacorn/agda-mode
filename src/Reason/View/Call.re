@@ -4,6 +4,10 @@ open ReasonReact;
 
 open Type.TypeChecking;
 
+open Concrete;
+
+open Name;
+
 open Util;
 
 let make = (~call, _children) => {
@@ -15,39 +19,39 @@ let make = (~call, _children) => {
         (string("when checking that the clause "))
         (
           declarations
-          |> List.map(value => <Concrete.Declaration value />)
+          |> List.map(value => <Declaration value />)
           |> sepBy(<br />)
         )
         (string(" has type "))
-        <Concrete.Expr value=type_ />
+        <Expr value=type_ />
       </span>
     | CheckPattern(pattern, type_) =>
       <span>
         (string("when checking that the pattern "))
-        <Concrete.Pattern pattern />
+        <Pattern pattern />
         (string(" has type "))
-        <Concrete.Expr value=type_ />
+        <Expr value=type_ />
       </span>
     | CheckLetBinding(declarations) =>
       <span>
         (string("when checking that the let biding "))
         (
           declarations
-          |> List.map(decl => <Concrete.Declaration value=decl />)
+          |> List.map(decl => <Declaration value=decl />)
           |> sepBy(<br />)
         )
       </span>
     | InferExpr(expr) =>
       <span>
         (string("when inferring the type of "))
-        <Concrete.Expr value=expr />
+        <Expr value=expr />
       </span>
     | CheckExprCall(_, expr, type_) =>
       <span>
         (string("when checking that the expression "))
-        <Concrete.Expr value=expr />
+        <Expr value=expr />
         (string(" has type "))
-        <Concrete.Expr value=type_ />
+        <Expr value=type_ />
       </span>
     | CheckArguments(_, exprs, type_) =>
       CommonPrim.(
@@ -60,7 +64,7 @@ let make = (~call, _children) => {
                    ...(
                         (prec, value) =>
                           <Named prec value>
-                            ...((_, value) => <Concrete.Expr value />)
+                            ...((_, value) => <Expr value />)
                           </Named>
                       )
                  </Arg>
@@ -73,31 +77,28 @@ let make = (~call, _children) => {
               string(" is a valid argument ")
           )
           (string("to a function of type "))
-          <Concrete.Expr value=type_ />
+          <Expr value=type_ />
         </span>
       )
     | CheckTargetType(_range, inf, exp) =>
       <span>
         (string("when checking that the inferred type of an application "))
         <br />
-        <Concrete.Expr value=inf />
+        <Expr value=inf />
         <br />
         (string("matches the expected type "))
         <br />
-        <Concrete.Expr value=exp />
+        <Expr value=exp />
       </span>
     | CheckConstructor(declaration, constructor) =>
       <span>
         (string("when checking the constructor "))
-        <C.QName value=constructor />
+        <QName value=constructor />
         (string(" in the declaration of "))
-        <C.QName value=declaration />
+        <QName value=declaration />
       </span>
     | ScopeCheckExpr(expr) =>
-      <span>
-        (string("when scope checking "))
-        <Concrete.Expr value=expr />
-      </span>
+      <span> (string("when scope checking ")) <Expr value=expr /> </span>
     | ScopeCheckDeclaration(declarations) =>
       <span>
         (
@@ -108,7 +109,7 @@ let make = (~call, _children) => {
         )
         (
           declarations
-          |> List.map(value => <Concrete.Declaration value />)
+          |> List.map(value => <Declaration value />)
           |> sepBy(<br />)
         )
       </span>

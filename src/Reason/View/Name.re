@@ -2,7 +2,7 @@ open ReasonReact;
 
 open Type;
 
-open Syntax.C;
+open Type.Syntax.Name;
 
 open Util;
 

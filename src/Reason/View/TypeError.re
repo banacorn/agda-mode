@@ -2,6 +2,8 @@ open ReasonReact;
 
 open Type.TypeChecking;
 
+open Name;
+
 open Util;
 
 let component = statelessComponent("TypeError");
@@ -34,10 +36,10 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
         );
       <div>
         (string("Duplicate definition of module "))
-        <C.Name value=duplicated />
+        <Name value=duplicated />
         <br />
         (string("Previous definition of " ++ type_ ++ "module "))
-        <C.QName value=previous />
+        <QName value=previous />
       </div>;
     /* (string(" at "))
        1<Range range=previous /> */
@@ -66,7 +68,7 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
     | ClashingDefinition(definition, previouslyAt) =>
       <div>
         (string("Multiple definitions of "))
-        <C.QName value=definition />
+        <QName value=definition />
         <br />
         (string("Previous definition at "))
         <Range range=previouslyAt />
@@ -76,13 +78,13 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
       | None =>
         <div>
           (string("The module "))
-          <C.QName value=moduleName />
+          <QName value=moduleName />
           (string(" is not parameterized, but is being applied to arguments"))
         </div>
       | Some(telescope) =>
         <div>
           (string("The arguments to "))
-          <C.QName value=moduleName />
+          <QName value=moduleName />
           (string(" do not fit the telescope "))
           <br />
           <Concrete.Telescope telescope />
@@ -98,16 +100,16 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
       </div>
     | NotInScope(pairs) =>
       let forgetSpaceColon = name =>
-        name |> C.QName.toString |> String.contains(_, ':');
+        name |> QName.toString |> String.contains(_, ':');
       let forgetSpaceArrow = name =>
-        name |> C.QName.toString |> contains(_, "->");
+        name |> QName.toString |> contains(_, "->");
       let pair = ((name, suggestions)) => {
         let colon = forgetSpaceColon(name);
         let arrow = forgetSpaceArrow(name);
         let hasSuggestions = List.length(suggestions) !== 0;
         let shouldRender = colon || arrow || hasSuggestions;
         <li>
-          <C.QName value=name />
+          <QName value=name />
           (string(" is not in scope"))
           (
             shouldRender ?
@@ -128,7 +130,7 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
                       (string("did you mean "))
                       (
                         suggestions
-                        |> List.map(value => <C.QName value />)
+                        |> List.map(value => <QName value />)
                         |> sepBy(string(" or "))
                       )
                       (string(" ?"))
@@ -142,11 +144,11 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
       };
       <ul> ...(pairs |> List.map(pair) |> Array.of_list) </ul>;
     | NoSuchModule(moduleName) =>
-      <div> (string("No such module ")) <C.QName value=moduleName /> </div>
+      <div> (string("No such module ")) <QName value=moduleName /> </div>
     | AmbiguousName(ambiguousName, couldReferTo) =>
       <div>
         (string("Ambiguous name "))
-        <C.QName value=ambiguousName />
+        <QName value=ambiguousName />
         (string("."))
         <br />
         (string("It could refer to any one of "))
@@ -155,7 +157,7 @@ let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
           ...(
                couldReferTo
                |> List.map(value =>
-                    <li> (string("    ")) <C.QName value /> </li>
+                    <li> (string("    ")) <QName value /> </li>
                   )
                |> Array.of_list
              )

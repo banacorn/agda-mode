@@ -17,7 +17,7 @@ let parens = children => <span> (string("(")) children (string(")")) </span>;
 
 module Relevance = {
   let component = statelessComponent("Relevance");
-  let make = (~relevance, children) => {
+  let make = (~relevance, _children) => {
     ...component,
     render: _self =>
       switch (relevance) {
@@ -30,7 +30,7 @@ module Relevance = {
 
 module Hiding = {
   let component = statelessComponent("Hiding");
-  let make = (~hiding=NotHidden, ~prec=0, ~parens=id, children) => {
+  let make = (~hiding=NotHidden, ~_prec=0, ~parens=id, children) => {
     ...component,
     render: _self =>
       switch (Array.length(children)) {

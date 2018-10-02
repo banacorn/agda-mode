@@ -168,7 +168,7 @@ module Syntax = {
       range: Position.range,
     };
   };
-  module C = {
+  module Name = {
     type nameId =
       | NameId(int, int);
     type namePart =
@@ -185,6 +185,7 @@ module Syntax = {
       fixity: Fixity.fixity2,
     };
   };
+  open Name;
   module Literal = {
     type literal =
       | LitNat(Position.range, int)
@@ -207,44 +208,40 @@ module Syntax = {
       | InvalidNoPositivityCheckPragma(Position.range)
       | InvalidNoUniverseCheckPragma(Position.range)
       | InvalidTerminationCheckPragma(Position.range)
-      | MissingDefinitions(list(C.name))
+      | MissingDefinitions(list(name))
       | NotAllowedInMutual(Position.range, string)
-      | PolarityPragmasButNotPostulates(list(C.name))
+      | PolarityPragmasButNotPostulates(list(name))
       | PragmaNoTerminationCheck(Position.range)
-      | UnknownFixityInMixfixDecl(list(C.name))
-      | UnknownNamesInFixityDecl(list(C.name))
-      | UnknownNamesInPolarityPragmas(list(C.name))
+      | UnknownFixityInMixfixDecl(list(name))
+      | UnknownNamesInFixityDecl(list(name))
+      | UnknownNamesInPolarityPragmas(list(name))
       | UselessAbstract(Position.range)
       | UselessInstance(Position.range)
       | UselessPrivate(Position.range);
-    type importDirective = CommonPrim.importDirective_(C.name, C.name);
+    type importDirective = CommonPrim.importDirective_(name, name);
     type asName = {
-      name: C.name,
+      name,
       range: Position.range,
     };
     type openShortHand =
       | DoOpen
       | DontOpen;
     type typedBinding =
-      | TBind(
-          Position.range,
-          list(CommonPrim.withHiding(C.boundName)),
-          expr,
-        )
+      | TBind(Position.range, list(CommonPrim.withHiding(boundName)), expr)
       | TLet(Position.range, list(declaration))
     and typedBindings =
       | TypedBindings(Position.range, CommonPrim.arg(typedBinding))
     and lamBinding =
-      | DomainFree(CommonPrim.argInfo, C.boundName)
+      | DomainFree(CommonPrim.argInfo, boundName)
       | DomainFull(typedBindings)
     and expr =
-      | Ident(C.qname)
+      | Ident(qname)
       | Lit(Literal.literal)
       | QuestionMark(Position.range, option(int))
       | Underscore(Position.range, option(string))
       | RawApp(Position.range, list(expr))
       | App(Position.range, expr, CommonPrim.namedArg(expr))
-      | OpApp(Position.range, C.qname, list(CommonPrim.namedArg(opApp)))
+      | OpApp(Position.range, qname, list(CommonPrim.namedArg(opApp)))
       | WithApp(Position.range, expr, list(expr))
       | HiddenArg(Position.range, CommonPrim.named(expr))
       | InstanceArg(Position.range, CommonPrim.named(expr))
@@ -264,10 +261,10 @@ module Syntax = {
       | IdiomBrackets(Position.range, expr)
       | DoBlock(Position.range, list(doStmt))
       | Absurd(Position.range)
-      | As(Position.range, C.name, expr)
+      | As(Position.range, name, expr)
       | Dot(Position.range, expr)
       | ETel(telescope)
-      | QuoteGoal(Position.range, C.name, expr)
+      | QuoteGoal(Position.range, name, expr)
       | QuoteContext(Position.range)
       | Quote(Position.range)
       | QuoteTerm(Position.range)
@@ -283,15 +280,15 @@ module Syntax = {
       withExpr: list(expr),
     }
     and fieldAssignmentExpr = {
-      name: C.name,
+      name,
       value: expr,
     }
     and fieldAssignmentPattern = {
-      name: C.name,
+      name,
       value: pattern,
     }
     and moduleAssignment = {
-      name: C.qname,
+      name: qname,
       exprs: list(expr),
       importDirective,
     }
@@ -299,20 +296,20 @@ module Syntax = {
     and whereClause_('a) =
       | NoWhere
       | AnyWhere('a)
-      | SomeWhere(C.name, CommonPrim.access, 'a)
+      | SomeWhere(name, CommonPrim.access, 'a)
     and whereClause = whereClause_(list(declaration))
     and pattern =
-      | IdentP(C.qname)
+      | IdentP(qname)
       | QuoteP(Position.range)
       | AppP(pattern, CommonPrim.namedArg(pattern))
       | RawAppP(Position.range, list(pattern))
-      | OpAppP(Position.range, C.qname, list(CommonPrim.namedArg(pattern)))
+      | OpAppP(Position.range, qname, list(CommonPrim.namedArg(pattern)))
       | HiddenP(Position.range, CommonPrim.named(pattern))
       | InstanceP(Position.range, CommonPrim.named(pattern))
       | ParenP(Position.range, pattern)
       | WildP(Position.range)
       | AbsurdP(Position.range)
-      | AsP(Position.range, C.name, pattern)
+      | AsP(Position.range, name, pattern)
       | DotP(Position.range, expr)
       | LitP(Literal.literal)
       | RecP(Position.range, list(fieldAssignmentPattern))
@@ -334,42 +331,42 @@ module Syntax = {
       catchAll: bool,
     }
     and declaration =
-      | TypeSig(CommonPrim.argInfo, C.name, expr)
-      | Generalize(CommonPrim.argInfo, C.name, expr)
-      | Field(CommonPrim.isInstance, C.name, CommonPrim.arg(expr))
+      | TypeSig(CommonPrim.argInfo, name, expr)
+      | Generalize(CommonPrim.argInfo, name, expr)
+      | Field(CommonPrim.isInstance, name, CommonPrim.arg(expr))
       | FunClause(lhs, rhs, whereClause, bool)
       | DataSig(
           Position.range,
           CommonPrim.induction,
-          C.name,
+          name,
           list(lamBinding),
           expr,
         )
       | Data(
           Position.range,
           CommonPrim.induction,
-          C.name,
+          name,
           list(lamBinding),
           option(expr),
           list(declaration),
         )
-      | RecordSig(Position.range, C.name, list(lamBinding), expr)
+      | RecordSig(Position.range, name, list(lamBinding), expr)
       | Record(
           Position.range,
-          C.name,
+          name,
           option(CommonPrim.ranged(CommonPrim.induction)),
           option(CommonPrim.hasEta),
-          option((C.name, CommonPrim.isInstance)),
+          option((name, CommonPrim.isInstance)),
           list(lamBinding),
           option(expr),
           list(declaration),
         )
-      | Infix(Fixity.fixity, list(C.name))
-      | Syntax(C.name, Notation.notation)
+      | Infix(Fixity.fixity, list(name))
+      | Syntax(name, Notation.notation)
       | PatternSyn(
           Position.range,
-          C.name,
-          list(CommonPrim.arg(C.name)),
+          name,
+          list(CommonPrim.arg(name)),
           pattern,
         )
       | Mutual(Position.range, list(declaration))
@@ -379,63 +376,63 @@ module Syntax = {
       | Macro(Position.range, list(declaration))
       | Postulate(Position.range, list(declaration))
       | Primitive(Position.range, list(declaration))
-      | Open(Position.range, C.qname, importDirective)
+      | Open(Position.range, qname, importDirective)
       | Import(
           Position.range,
-          C.qname,
+          qname,
           option(asName),
           openShortHand,
           importDirective,
         )
       | ModuleMacro(
           Position.range,
-          C.name,
+          name,
           moduleApplication,
           openShortHand,
           importDirective,
         )
-      | Module(Position.range, C.qname, telescope, list(declaration))
-      | UnquoteDecl(Position.range, list(C.name), expr)
-      | UnquoteUnquoteDefDecl(Position.range, list(C.name), expr)
+      | Module(Position.range, qname, telescope, list(declaration))
+      | UnquoteDecl(Position.range, list(name), expr)
+      | UnquoteUnquoteDefDecl(Position.range, list(name), expr)
       | Pragma(pragma)
     and pragma =
       | OptionsPragma(Position.range, list(string))
-      | BuiltinPragma(Position.range, string, C.qname, Fixity.fixity2)
-      | RewritePragma(Position.range, list(C.qname))
-      | CompiledDataPragma(Position.range, C.qname, string, list(string))
-      | CompiledTypePragma(Position.range, C.qname, string)
-      | CompiledPragma(Position.range, C.qname, string)
-      | CompiledExportPragma(Position.range, C.qname, string)
-      | CompiledJSPragma(Position.range, C.qname, string)
-      | CompiledUHCPragma(Position.range, C.qname, string)
-      | CompiledDataUHCPragma(Position.range, C.qname, string, list(string))
+      | BuiltinPragma(Position.range, string, qname, Fixity.fixity2)
+      | RewritePragma(Position.range, list(qname))
+      | CompiledDataPragma(Position.range, qname, string, list(string))
+      | CompiledTypePragma(Position.range, qname, string)
+      | CompiledPragma(Position.range, qname, string)
+      | CompiledExportPragma(Position.range, qname, string)
+      | CompiledJSPragma(Position.range, qname, string)
+      | CompiledUHCPragma(Position.range, qname, string)
+      | CompiledDataUHCPragma(Position.range, qname, string, list(string))
       | HaskellCodePragma(Position.range, string)
       | ForeignPragma(Position.range, string, string)
-      | CompilePragma(Position.range, string, C.qname, string)
-      | StaticPragma(Position.range, C.qname)
-      | InjectivePragma(Position.range, C.qname)
-      | InlinePragma(Position.range, bool, C.qname)
+      | CompilePragma(Position.range, string, qname, string)
+      | StaticPragma(Position.range, qname)
+      | InjectivePragma(Position.range, qname)
+      | InlinePragma(Position.range, bool, qname)
       | ImportPragma(Position.range, string)
       | ImportUHCPragma(Position.range, string)
       | ImpossiblePragma(Position.range)
-      | EtaPragma(Position.range, C.qname)
+      | EtaPragma(Position.range, qname)
       | TerminationCheckPragma(
           Position.range,
-          CommonPrim.terminationCheck(C.name),
+          CommonPrim.terminationCheck(name),
         )
-      | WarningOnUsage(Position.range, C.qname, string)
+      | WarningOnUsage(Position.range, qname, string)
       | CatchallPragma(Position.range)
       | DisplayPragma(Position.range, pattern, expr)
       | NoPositivityCheckPragma(Position.range)
       | PolarityPragma(
           Position.range,
-          C.name,
+          name,
           list(TypeCheckingPositivity.occurrence),
         )
       | NoUniverseCheckPragma(Position.range)
     and moduleApplication =
       | SectionApp(Position.range, telescope, expr)
-      | RecordModuleIFS(Position.range, C.qname)
+      | RecordModuleIFS(Position.range, qname)
     and opApp =
       | Placeholder(CommonPrim.positionInName)
       | SyntaxBindingLambda(
@@ -449,7 +446,7 @@ module Syntax = {
       | Telescope(list(typedBindings));
     type elimTerm =
       | Apply(CommonPrim.arg(expr))
-      | Proj(CommonPrim.projOrigin, C.qname)
+      | Proj(CommonPrim.projOrigin, qname)
       | IApply(expr, expr, expr);
   };
   module Common = {
@@ -467,6 +464,7 @@ module Syntax = {
 };
 
 module TypeChecking = {
+  open Syntax.Name;
   open Syntax.Position;
   open Syntax.Concrete;
   type comparison =
@@ -480,26 +478,26 @@ module TypeChecking = {
     | CheckExprCall(comparison, expr, expr)
     | CheckDotPattern(expr, expr)
     | CheckPatternShadowing(list(declaration))
-    | CheckProjection(range, Syntax.C.qname, expr)
+    | CheckProjection(range, qname, expr)
     | IsTypeCall(expr, expr)
     | IsType_(expr)
-    | InferVar(Syntax.C.name)
-    | InferDef(Syntax.C.qname)
+    | InferVar(name)
+    | InferDef(qname)
     | CheckArguments(range, list(Syntax.CommonPrim.namedArg(expr)), expr)
     | CheckTargetType(range, expr, expr)
-    | CheckDataDef(range, Syntax.C.name)
-    | CheckRecDef(range, Syntax.C.name)
-    | CheckConstructor(Syntax.C.qname, Syntax.C.qname)
-    | CheckFunDefCall(range, Syntax.C.name)
+    | CheckDataDef(range, name)
+    | CheckRecDef(range, name)
+    | CheckConstructor(qname, qname)
+    | CheckFunDefCall(range, name)
     | CheckPragma(range, pragma)
-    | CheckPrimitive(range, Syntax.C.name, expr)
+    | CheckPrimitive(range, name, expr)
     | CheckIsEmpty(range, expr)
     | CheckWithFunctionType(expr)
-    | CheckSectionApplication(range, Syntax.C.qname, list(declaration))
-    | CheckNamedWhere(Syntax.C.qname)
+    | CheckSectionApplication(range, qname, list(declaration))
+    | CheckNamedWhere(qname)
     | ScopeCheckExpr(expr)
     | ScopeCheckDeclaration(list(declaration))
-    | ScopeCheckLHS(Syntax.C.qname, pattern)
+    | ScopeCheckLHS(qname, pattern)
     | NoHighlighting
     | ModuleContents
     | SetRange(range);
@@ -507,20 +505,16 @@ module TypeChecking = {
     | GenericDocError(string)
     | GenericError(string)
     | ShouldEndInApplicationOfTheDatatype(expr)
-    | ShadowedModule(
-        Syntax.C.qname,
-        Syntax.C.name,
-        option(Syntax.CommonPrim.dataOrRecord),
-      )
+    | ShadowedModule(qname, name, option(Syntax.CommonPrim.dataOrRecord))
     | ShouldBePi(expr)
     | ShouldBeASort(expr)
     | UnequalTerms(comparison, expr, expr, expr, string)
-    | ClashingDefinition(Syntax.C.qname, range)
-    | ModuleArityMismatch(Syntax.C.qname, bool, option(telescope))
+    | ClashingDefinition(qname, range)
+    | ModuleArityMismatch(qname, bool, option(telescope))
     | NoRHSRequiresAbsurdPattern(list(pattern))
-    | NotInScope(map(Syntax.C.qname, list(Syntax.C.qname)))
-    | NoSuchModule(Syntax.C.qname)
-    | AmbiguousName(Syntax.C.qname, list(Syntax.C.qname))
+    | NotInScope(map(qname, list(qname)))
+    | NoSuchModule(qname)
+    | AmbiguousName(qname, list(qname))
     | UnregisteredTypeError(Js.Json.t);
   type error =
     | TypeError(range, option(call), typeError)
@@ -533,8 +527,8 @@ module TypeChecking = {
     | Invariant
     | Nonvariant;
   type terminationError = {
-    functions: list(Syntax.C.qname),
-    calls: list(Syntax.C.qname),
+    functions: list(qname),
+    calls: list(qname),
   };
   type where =
     | LeftOfArrow
@@ -585,7 +579,7 @@ module TypeChecking = {
     | IsEmpty(range, expr)
     | CheckSizeLtSat(expr)
     | FindInScope(int, option(int), option(list(candidate)))
-    | CheckFunDef(Syntax.C.qname, list(list(declaration)));
+    | CheckFunDef(qname, list(list(declaration)));
   type problemConstraint = {
     problems: array(int),
     constraint_,
@@ -593,10 +587,10 @@ module TypeChecking = {
   type warning =
     | NicifierIssue(declarationWarning)
     | TerminationIssue(list(terminationError))
-    | UnreachableClauses(Syntax.C.qname)
-    | CoverageIssue(Syntax.C.qname, list(list(declaration)))
-    | CoverageNoExactSplit(Syntax.C.qname, list(list(declaration)))
-    | NotStrictlyPositive(Syntax.C.qname, occursWhere)
+    | UnreachableClauses(qname)
+    | CoverageIssue(qname, list(list(declaration)))
+    | CoverageNoExactSplit(qname, list(list(declaration)))
+    | NotStrictlyPositive(qname, occursWhere)
     | UnsolvedMetaVariables(list(range))
     | UnsolvedInteractionMetas(list(range))
     | UnsolvedConstraints(list(problemConstraint))
@@ -604,11 +598,11 @@ module TypeChecking = {
     | OldBuiltin(string, string)
     | EmptyRewritePragma
     | UselessPublic
-    | UselessInline(Syntax.C.qname)
-    | InversionDepthReached(Syntax.C.qname)
+    | UselessInline(qname)
+    | InversionDepthReached(qname)
     | GenericWarning(string)
     | GenericNonFatalError(string)
-    | SafeFlagPostulate(Syntax.C.name)
+    | SafeFlagPostulate(name)
     | SafeFlagPragma(list(string))
     | SafeFlagNonTerminating
     | SafeFlagTerminating
@@ -620,13 +614,8 @@ module TypeChecking = {
     | DeprecationWarning(string, string, string)
     | UserWarning(string)
     | ModuleDoesntExport(
-        Syntax.C.qname,
-        list(
-          Syntax.CommonPrim.importedName_(
-            Syntax.C.qname,
-            list(Syntax.C.name),
-          ),
-        ),
+        qname,
+        list(Syntax.CommonPrim.importedName_(qname, list(name))),
       );
   type tcWarning = {
     cached: bool,
