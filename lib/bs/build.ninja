@@ -12,7 +12,7 @@ bsb_dir_group = 0
 refmt = /Users/banacorn/github/agda-mode/node_modules/bs-platform/lib/refmt.exe
 reason_react_jsx = -ppx '/Users/banacorn/github/agda-mode/node_modules/bs-platform/lib/reactjs_jsx_ppx_2.exe'
 refmt_flags = --print binary
-bsc_lib_includes = -I . -I src/Reason/View -I src/Reason
+bsc_lib_includes = -I . -I src/Reason/View/TypeChecking -I src/Reason/View/Syntax -I src/Reason/View -I src/Reason
 rule build_ast_and_module_sets_from_re
   command = ${bsc} -pp "${refmt} ${refmt_flags}" ${reason_react_jsx}  ${ppx_flags} ${warnings} ${bsc_flags} -c -o ${out} -bs-syntax-only -bs-binary-ast -impl ${in}
   description = [34mBuilding[39m [2m${out}[22m
@@ -43,39 +43,9 @@ build src/Reason/Decoder.mlast.d : build_deps src/Reason/Decoder.mlast
 build src/Reason/Decoder-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/Decoder.bs.js src/Reason/Decoder-AgdaMode.cmi : build_cmj_cmi src/Reason/Decoder.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
   bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason
-build src/Reason/View/Call.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Call.re
-build src/Reason/View/Call.mlast.d : build_deps src/Reason/View/Call.mlast
-build src/Reason/View/Call-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Call.bs.js src/Reason/View/Call-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Call.mlast
-  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
-  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View
 build src/Reason/View/Link.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Link.re
 build src/Reason/View/Link.mlast.d : build_deps src/Reason/View/Link.mlast
 build src/Reason/View/Link-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Link.bs.js src/Reason/View/Link-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Link.mlast
-  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
-  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View
-build src/Reason/View/Meta.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Meta.re
-build src/Reason/View/Meta.mlast.d : build_deps src/Reason/View/Meta.mlast
-build src/Reason/View/Meta-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Meta.bs.js src/Reason/View/Meta-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Meta.mlast
-  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
-  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View
-build src/Reason/View/Name.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Name.re
-build src/Reason/View/Name.mlast.d : build_deps src/Reason/View/Name.mlast
-build src/Reason/View/Name-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Name.bs.js src/Reason/View/Name-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Name.mlast
-  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
-  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View
-build src/Reason/View/Error.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Error.re
-build src/Reason/View/Error.mlast.d : build_deps src/Reason/View/Error.mlast
-build src/Reason/View/Error-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Error.bs.js src/Reason/View/Error-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Error.mlast
-  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
-  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View
-build src/Reason/View/Metas.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Metas.re
-build src/Reason/View/Metas.mlast.d : build_deps src/Reason/View/Metas.mlast
-build src/Reason/View/Metas-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Metas.bs.js src/Reason/View/Metas-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Metas.mlast
-  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
-  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View
-build src/Reason/View/Range.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Range.re
-build src/Reason/View/Range.mlast.d : build_deps src/Reason/View/Range.mlast
-build src/Reason/View/Range-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Range.bs.js src/Reason/View/Range-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Range.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
   bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View
 build src/Reason/View/Context.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Context.re
@@ -83,33 +53,63 @@ build src/Reason/View/Context.mlast.d : build_deps src/Reason/View/Context.mlast
 build src/Reason/View/Context-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Context.bs.js src/Reason/View/Context-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Context.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
   bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View
-build src/Reason/View/Literal.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Literal.re
-build src/Reason/View/Literal.mlast.d : build_deps src/Reason/View/Literal.mlast
-build src/Reason/View/Literal-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Literal.bs.js src/Reason/View/Literal-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Literal.mlast
+build src/Reason/View/Syntax/Name.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Syntax/Name.re
+build src/Reason/View/Syntax/Name.mlast.d : build_deps src/Reason/View/Syntax/Name.mlast
+build src/Reason/View/Syntax/Name-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Syntax/Name.bs.js src/Reason/View/Syntax/Name-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Syntax/Name.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
-  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View
-build src/Reason/View/Concrete.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Concrete.re
-build src/Reason/View/Concrete.mlast.d : build_deps src/Reason/View/Concrete.mlast
-build src/Reason/View/Concrete-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Concrete.bs.js src/Reason/View/Concrete-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Concrete.mlast
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/Syntax
+build src/Reason/View/Syntax/Range.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Syntax/Range.re
+build src/Reason/View/Syntax/Range.mlast.d : build_deps src/Reason/View/Syntax/Range.mlast
+build src/Reason/View/Syntax/Range-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Syntax/Range.bs.js src/Reason/View/Syntax/Range-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Syntax/Range.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
-  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View
-build src/Reason/View/TypeError.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeError.re
-build src/Reason/View/TypeError.mlast.d : build_deps src/Reason/View/TypeError.mlast
-build src/Reason/View/TypeError-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeError.bs.js src/Reason/View/TypeError-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeError.mlast
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/Syntax
+build src/Reason/View/Syntax/Literal.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Syntax/Literal.re
+build src/Reason/View/Syntax/Literal.mlast.d : build_deps src/Reason/View/Syntax/Literal.mlast
+build src/Reason/View/Syntax/Literal-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Syntax/Literal.bs.js src/Reason/View/Syntax/Literal-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Syntax/Literal.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
-  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View
-build src/Reason/View/CommonPrim.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/CommonPrim.re
-build src/Reason/View/CommonPrim.mlast.d : build_deps src/Reason/View/CommonPrim.mlast
-build src/Reason/View/CommonPrim-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/CommonPrim.bs.js src/Reason/View/CommonPrim-AgdaMode.cmi : build_cmj_cmi src/Reason/View/CommonPrim.mlast
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/Syntax
+build src/Reason/View/Syntax/Concrete.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Syntax/Concrete.re
+build src/Reason/View/Syntax/Concrete.mlast.d : build_deps src/Reason/View/Syntax/Concrete.mlast
+build src/Reason/View/Syntax/Concrete-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Syntax/Concrete.bs.js src/Reason/View/Syntax/Concrete-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Syntax/Concrete.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
-  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View
-build src/Reason/View/Comparison.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Comparison.re
-build src/Reason/View/Comparison.mlast.d : build_deps src/Reason/View/Comparison.mlast
-build src/Reason/View/Comparison-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Comparison.bs.js src/Reason/View/Comparison-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Comparison.mlast
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/Syntax
+build src/Reason/View/Syntax/CommonPrim.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/Syntax/CommonPrim.re
+build src/Reason/View/Syntax/CommonPrim.mlast.d : build_deps src/Reason/View/Syntax/CommonPrim.mlast
+build src/Reason/View/Syntax/CommonPrim-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/Syntax/CommonPrim.bs.js src/Reason/View/Syntax/CommonPrim-AgdaMode.cmi : build_cmj_cmi src/Reason/View/Syntax/CommonPrim.mlast
   bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
-  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/Syntax
+build src/Reason/View/TypeChecking/Call.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/Call.re
+build src/Reason/View/TypeChecking/Call.mlast.d : build_deps src/Reason/View/TypeChecking/Call.mlast
+build src/Reason/View/TypeChecking/Call-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/Call.bs.js src/Reason/View/TypeChecking/Call-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/Call.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking
+build src/Reason/View/TypeChecking/Meta.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/Meta.re
+build src/Reason/View/TypeChecking/Meta.mlast.d : build_deps src/Reason/View/TypeChecking/Meta.mlast
+build src/Reason/View/TypeChecking/Meta-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/Meta.bs.js src/Reason/View/TypeChecking/Meta-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/Meta.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking
+build src/Reason/View/TypeChecking/Error.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/Error.re
+build src/Reason/View/TypeChecking/Error.mlast.d : build_deps src/Reason/View/TypeChecking/Error.mlast
+build src/Reason/View/TypeChecking/Error-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/Error.bs.js src/Reason/View/TypeChecking/Error-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/Error.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking
+build src/Reason/View/TypeChecking/Metas.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/Metas.re
+build src/Reason/View/TypeChecking/Metas.mlast.d : build_deps src/Reason/View/TypeChecking/Metas.mlast
+build src/Reason/View/TypeChecking/Metas-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/Metas.bs.js src/Reason/View/TypeChecking/Metas-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/Metas.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking
+build src/Reason/View/TypeChecking/TypeError.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/TypeError.re
+build src/Reason/View/TypeChecking/TypeError.mlast.d : build_deps src/Reason/View/TypeChecking/TypeError.mlast
+build src/Reason/View/TypeChecking/TypeError-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/TypeError.bs.js src/Reason/View/TypeChecking/TypeError-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/TypeError.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking
+build src/Reason/View/TypeChecking/Comparison.mlast : build_ast_and_module_sets_from_re $src_root_dir/src/Reason/View/TypeChecking/Comparison.re
+build src/Reason/View/TypeChecking/Comparison.mlast.d : build_deps src/Reason/View/TypeChecking/Comparison.mlast
+build src/Reason/View/TypeChecking/Comparison-AgdaMode.cmj |  $src_root_dir/lib/js/src/Reason/View/TypeChecking/Comparison.bs.js src/Reason/View/TypeChecking/Comparison-AgdaMode.cmi : build_cmj_cmi src/Reason/View/TypeChecking/Comparison.mlast
+  bsc_flags = $bsc_flags -bs-re-out -bs-super-errors
+  bs_package_flags = $bs_package_flags  -bs-package-output commonjs:lib/js/src/Reason/View/TypeChecking
 rule build_package
   command = ${bsc} -w -49 -no-alias-deps -c ${in}
   description = [34mBuilding[39m [2m${out}[22m
 build AgdaMode.cmi : build_package AgdaMode.mlmap
-build build.ninja : phony  ||  AgdaMode.cmi src/Reason/View/Comparison.mlast.d src/Reason/View/CommonPrim.mlast.d src/Reason/View/TypeError.mlast.d src/Reason/View/Concrete.mlast.d src/Reason/View/Literal.mlast.d src/Reason/View/Context.mlast.d src/Reason/View/Range.mlast.d src/Reason/View/Metas.mlast.d src/Reason/View/Error.mlast.d src/Reason/View/Name.mlast.d src/Reason/View/Meta.mlast.d src/Reason/View/Link.mlast.d src/Reason/View/Call.mlast.d src/Reason/Decoder.mlast.d src/Reason/Emacs.mlast.d src/Reason/Util.mlast.d src/Reason/Type.mlast.d
+build build.ninja : phony  ||  AgdaMode.cmi src/Reason/View/TypeChecking/Comparison.mlast.d src/Reason/View/TypeChecking/TypeError.mlast.d src/Reason/View/TypeChecking/Metas.mlast.d src/Reason/View/TypeChecking/Error.mlast.d src/Reason/View/TypeChecking/Meta.mlast.d src/Reason/View/TypeChecking/Call.mlast.d src/Reason/View/Syntax/CommonPrim.mlast.d src/Reason/View/Syntax/Concrete.mlast.d src/Reason/View/Syntax/Literal.mlast.d src/Reason/View/Syntax/Range.mlast.d src/Reason/View/Syntax/Name.mlast.d src/Reason/View/Context.mlast.d src/Reason/View/Link.mlast.d src/Reason/Decoder.mlast.d src/Reason/Emacs.mlast.d src/Reason/Util.mlast.d src/Reason/Type.mlast.d

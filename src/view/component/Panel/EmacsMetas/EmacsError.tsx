@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { inspect } from 'util';
-import { EventEmitter } from 'events';
 import { EmacsAgdaError } from '../../../../parser/emacs';
 
 import Expr from './Expr';
-var Range = require('./../../../../Reason/Range.bs').jsComponent;
+var Range = require('./../../../../Reason/View/Syntax/Range.bs').jsComponent;
 
 import Suggestion from './Suggestion';
 

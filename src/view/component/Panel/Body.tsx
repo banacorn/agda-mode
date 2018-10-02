@@ -9,9 +9,9 @@ import Expr from './EmacsMetas/Expr';
 import EmacsError from './EmacsMetas/EmacsError';
 import Solution from './EmacsMetas/Solution';
 
-var Error = require('./../../../Reason/Error.bs').jsComponent;
-var Metas = require('./../../../Reason/Metas.bs').jsComponent;
-var { toAtomRange, toAtomFilepath } = require('./../../../Reason/Range.bs');
+var Error = require('./../../../Reason/View/TypeChecking/Error.bs').jsComponent;
+var Metas = require('./../../../Reason/View/TypeChecking/Metas.bs').jsComponent;
+var { toAtomRange, toAtomFilepath } = require('./../../../Reason/View/Syntax/Range.bs');
 
 
 type OwnProps = React.HTMLProps<HTMLElement>

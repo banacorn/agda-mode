@@ -24,7 +24,7 @@ import { OutOfGoalError } from './error';
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
-var { errorToHeader } = require('./Reason/Error.bs');
+var { errorToHeader } = require('./Reason/View/TypeChecking/Error.bs');
 var { parseError, parseMetas } = require('./Reason/Decoder.bs');
 
 
