@@ -185,71 +185,6 @@ module Syntax = {
       fixity: Fixity.fixity2,
     };
   };
-  module A = {
-    type name = {
-      nameId: C.nameId,
-      concrete: C.name,
-      bindingSite: Position.range,
-      fixity: Fixity.fixity2,
-    };
-    type qname =
-      | QName(list(name), name);
-  };
-  module Scope = {
-    type nameSpaceId =
-      | PrivatedNS
-      | PublicNS
-      | ImportedNS
-      | OnlyQualifiedNS;
-    type kindOfName =
-      | ConName
-      | FldName
-      | DefName
-      | PatternSynName
-      | GeneralizeName
-      | MacroName
-      | QuotableName;
-    type whyInScope =
-      | Defined
-      | Opened(C.qname, whyInScope)
-      | Applied(C.qname, whyInScope);
-    type abstractName = {
-      name: A.qname,
-      kind: kindOfName,
-      lineage: whyInScope,
-    };
-    type abstractModule = {
-      name: list(A.name),
-      lineage: whyInScope,
-    };
-    type namesInScope = map(C.name, list(abstractName));
-    type modulesInScope = map(C.name, list(abstractModule));
-    type nameSpace = {
-      names: namesInScope,
-      modules: modulesInScope,
-      namesInScope: array(A.qname),
-    };
-    type scopeNameSpaces = list((nameSpaceId, nameSpace));
-    type scope = {
-      name: list(A.name),
-      parents: list(list(A.name)),
-      nameSpaces: scopeNameSpaces,
-      imports: map(C.qname, list(A.name)),
-      datatypeModule: option(CommonPrim.dataOrRecord),
-    };
-  };
-  module Info = {
-    type scopeInfo = {
-      current: list(A.name),
-      modules: map(list(A.name), Scope.scope),
-    };
-    type metaInfo = {
-      range: Position.range,
-      scope: scopeInfo,
-      number: option(int),
-      nameSuggestion: string,
-    };
-  };
   module Literal = {
     type literal =
       | LitNat(Position.range, int)
@@ -257,7 +192,7 @@ module Syntax = {
       | LitFloat(Position.range, float)
       | LitString(Position.range, string)
       | LitChar(Position.range, char)
-      | LitQName(Position.range, A.qname)
+      | LitQName(Position.range, string)
       | LitMeta(Position.range, string, int);
   };
   module Concrete = {
@@ -309,12 +244,7 @@ module Syntax = {
       | Underscore(Position.range, option(string))
       | RawApp(Position.range, list(expr))
       | App(Position.range, expr, CommonPrim.namedArg(expr))
-      | OpApp(
-          Position.range,
-          C.qname,
-          array(A.name),
-          list(CommonPrim.namedArg(opApp)),
-        )
+      | OpApp(Position.range, C.qname, list(CommonPrim.namedArg(opApp)))
       | WithApp(Position.range, expr, list(expr))
       | HiddenArg(Position.range, CommonPrim.named(expr))
       | InstanceArg(Position.range, CommonPrim.named(expr))
@@ -376,12 +306,7 @@ module Syntax = {
       | QuoteP(Position.range)
       | AppP(pattern, CommonPrim.namedArg(pattern))
       | RawAppP(Position.range, list(pattern))
-      | OpAppP(
-          Position.range,
-          C.qname,
-          array(A.name),
-          list(CommonPrim.namedArg(pattern)),
-        )
+      | OpAppP(Position.range, C.qname, list(CommonPrim.namedArg(pattern)))
       | HiddenP(Position.range, CommonPrim.named(pattern))
       | InstanceP(Position.range, CommonPrim.named(pattern))
       | ParenP(Position.range, pattern)
@@ -524,7 +449,7 @@ module Syntax = {
       | Telescope(list(typedBindings));
     type elimTerm =
       | Apply(CommonPrim.arg(expr))
-      | Proj(CommonPrim.projOrigin, A.qname)
+      | Proj(CommonPrim.projOrigin, C.qname)
       | IApply(expr, expr, expr);
   };
   module Common = {
@@ -613,15 +538,15 @@ module TypeChecking = {
   };
   type where =
     | LeftOfArrow
-    | DefArg(Syntax.C.qname, int)
+    | DefArg(string, int)
     | UnderInf
     | VarArg
     | MetaArg
-    | ConArgType(Syntax.C.qname)
-    | IndArgType(Syntax.C.qname)
+    | ConArgType(string)
+    | IndArgType(string)
     | InClause(int)
     | Matched
-    | InDefOf(Syntax.C.qname);
+    | InDefOf(string);
   type occursWhere =
     | Unknown
     | Known(range, list(where));
@@ -698,8 +623,8 @@ module TypeChecking = {
         Syntax.C.qname,
         list(
           Syntax.CommonPrim.importedName_(
-            Syntax.A.qname,
-            list(Syntax.A.name),
+            Syntax.C.qname,
+            list(Syntax.C.name),
           ),
         ),
       );

@@ -338,20 +338,6 @@ module Decode = {
         range: json |> field("range", Position.range),
       };
     };
-    module A = {
-      open Type.Syntax.A;
-      let rec name = json => {
-        nameId: json |> field("id", C.nameId),
-        concrete: json |> field("concrete", C.name),
-        bindingSite: json |> field("bindingSite", Position.range),
-        fixity: json |> field("fixity", Fixity.fixity2),
-      };
-      let qname = json =>
-        QName(
-          json |> field("module", list(name)),
-          json |> field("name", name),
-        );
-    };
     module Literal = {
       open Type.Syntax.Literal;
       let literal =
@@ -386,7 +372,7 @@ module Decode = {
              | "LitQName" =>
                LitQName(
                  json |> field("range", Position.range),
-                 json |> field("value", A.qname),
+                 json |> field("value", string),
                )
              | "LitMeta" =>
                LitMeta(
@@ -517,7 +503,6 @@ module Decode = {
                OpApp(
                  json |> field("range", Position.range),
                  json |> field("name", C.qname),
-                 json |> field("names", array(A.name)),
                  json |> field("args", list(CommonPrim.namedArg(opApp()))),
                )
              | "WithApp" =>
@@ -1080,7 +1065,6 @@ module Decode = {
                  OpAppP(
                    json |> field("range", Position.range),
                    json |> field("name", C.qname),
-                   json |> field("names", array(A.name)),
                    json
                    |> field("args", list(CommonPrim.namedArg(pattern()))),
                  )
@@ -1183,7 +1167,7 @@ module Decode = {
              | "Proj" =>
                Proj(
                  json |> field("projOrigin", CommonPrim.projOrigin),
-                 json |> field("name", A.qname),
+                 json |> field("name", C.qname),
                )
              | "IApply" =>
                IApply(
@@ -1490,19 +1474,17 @@ module Decode = {
            | "LeftOfArrow" => LeftOfArrow
            | "DefArg" =>
              DefArg(
-               json |> field("name", Syntax.C.qname),
+               json |> field("name", string),
                json |> field("index", int),
              )
            | "UnderInf" => UnderInf
            | "VarArg" => VarArg
            | "MetaArg" => MetaArg
-           | "ConArgType" =>
-             ConArgType(json |> field("name", Syntax.C.qname))
-           | "IndArgType" =>
-             IndArgType(json |> field("name", Syntax.C.qname))
+           | "ConArgType" => ConArgType(json |> field("name", string))
+           | "IndArgType" => IndArgType(json |> field("name", string))
            | "InClause" => InClause(json |> field("index", int))
            | "Matched" => Matched
-           | "InDefOf" => InDefOf(json |> field("name", Syntax.C.qname))
+           | "InDefOf" => InDefOf(json |> field("name", string))
            | _ => failwith("unknown kind of Where")
            }
          );
@@ -1708,8 +1690,8 @@ module Decode = {
                     "warning",
                     list(
                       Syntax.CommonPrim.importedName_(
-                        Syntax.A.qname,
-                        list(Syntax.A.name),
+                        Syntax.C.qname,
+                        list(Syntax.C.name),
                       ),
                     ),
                   ),

@@ -1,0 +1,1 @@
+src/Reason/View/C-AgdaMode.cmj : src/Reason/View/Link-AgdaMode.cmj src/Reason/View/Range-AgdaMode.cmj src/Reason/Type-AgdaMode.cmj src/Reason/Util-AgdaMode.cmj

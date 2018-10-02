@@ -1,0 +1,1 @@
+src/Reason/View/Comparison-AgdaMode.cmj : src/Reason/Type-AgdaMode.cmj
