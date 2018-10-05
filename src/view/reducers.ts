@@ -48,10 +48,12 @@ const defaultState: View.State = {
         value: ''
     },
     body: {
+        emacs: {
+            allGoalsWarnings: ['', ''],
+            error: null,
+            message: '',
+        },
         allGoalsWarnings: null,
-        emacsAllGoalsWarnings: null,
-        emacsError: null,
-        emacsMessage: '',
         solutions: {
             kind: 'SimpleSolutions',
             message: '',
@@ -209,56 +211,54 @@ const query = handleActions<View.QueryState, QUERY>({
 
 const body = handleActions<View.BodyState, BODY>({
     [BODY.UPDATE_All_GOALS_WARNINGS]: (state, action: Action<BODY.UPDATE_All_GOALS_WARNINGS>) => ({ ...state,
-        allGoalsWarnings: action.payload,
-        emacsAllGoalsWarnings: null,
-        solutions: defaultState.body.solutions,
-        error: null,
-        emacsMessage: '',
-        emacsError: null,
-        plainText: defaultState.body.plainText
+        emacs:              defaultState.body.emacs,
+        allGoalsWarnings:   action.payload,
+        solutions:          defaultState.body.solutions,
+        error:              defaultState.body.error,
+        plainText:          defaultState.body.plainText
     }),
     [BODY.UPDATE_EMACS_All_GOALS_WARNINGS]: (state, action: Action<BODY.UPDATE_EMACS_All_GOALS_WARNINGS>) => ({ ...state,
-        allGoalsWarnings: null,
-        emacsAllGoalsWarnings: action.payload,
-        solutions: defaultState.body.solutions,
-        error: null,
-        emacsMessage: '',
-        emacsError: null,
-        plainText: defaultState.body.plainText
+        emacs: {
+            allGoalsWarnings:   action.payload,
+            error:              defaultState.body.emacs.error,
+            message:            defaultState.body.emacs.message,
+        },
+        allGoalsWarnings:   defaultState.body.allGoalsWarnings,
+        solutions:          defaultState.body.solutions,
+        error:              defaultState.body.error,
+        plainText:          defaultState.body.plainText
     }),
     [BODY.UPDATE_ERROR]: (state, action: Action<BODY.UPDATE_ERROR>) => ({ ...state,
-        allGoalsWarnings: null,
-        emacsAllGoalsWarnings: defaultState.body.emacsAllGoalsWarnings,
-        solutions: defaultState.body.solutions,
-        error: action.payload[0],
-        emacsMessage: action.payload[1],
-        emacsError: null,
-        plainText: defaultState.body.plainText
+        emacs:              defaultState.body.emacs,
+        allGoalsWarnings:   defaultState.body.allGoalsWarnings,
+        solutions:          defaultState.body.solutions,
+        error:              action.payload[0],
+        plainText:          defaultState.body.plainText
     }),
     [BODY.UPDATE_EMACS_ERROR]: (state, action: Action<BODY.UPDATE_EMACS_ERROR>) => ({ ...state,
-        allGoalsWarnings: null,
-        emacsAllGoalsWarnings: defaultState.body.emacsAllGoalsWarnings,
-        solutions: defaultState.body.solutions,
-        emacsError: action.payload,
-        plainText: defaultState.body.plainText
+        emacs: {
+            allGoalsWarnings:   defaultState.body.emacs.allGoalsWarnings,
+            error:              action.payload,
+            message:            defaultState.body.emacs.message,
+        },
+        allGoalsWarnings:   defaultState.body.allGoalsWarnings,
+        solutions:          defaultState.body.solutions,
+        error:              defaultState.body.error,
+        plainText:          defaultState.body.plainText
     }),
     [BODY.UPDATE_SOLUTIONS]: (state, action: Action<BODY.UPDATE_SOLUTIONS>) => ({ ...state,
-        allGoalsWarnings: null,
-        emacsAllGoalsWarnings: defaultState.body.emacsAllGoalsWarnings,
-        solutions: action.payload,
-        error: null,
-        emacsMessage: '',
-        emacsError: null,
-        plainText: defaultState.body.plainText
+        emacs:              defaultState.body.emacs,
+        allGoalsWarnings:   defaultState.body.allGoalsWarnings,
+        solutions:          action.payload,
+        error:              defaultState.body.error,
+        plainText:          defaultState.body.plainText
     }),
     [BODY.UPDATE_PLAIN_TEXT]: (state, action: Action<BODY.UPDATE_PLAIN_TEXT>) => ({ ...state,
-        allGoalsWarnings: null,
-        emacsAllGoalsWarnings: defaultState.body.emacsAllGoalsWarnings,
-        solutions: defaultState.body.solutions,
-        error: null,
-        emacsMessage: '',
-        emacsError: null,
-        plainText: action.payload
+        emacs:              defaultState.body.emacs,
+        allGoalsWarnings:   defaultState.body.allGoalsWarnings,
+        solutions:          defaultState.body.solutions,
+        error:              defaultState.body.error,
+        plainText:          action.payload
     }),
     [BODY.UPDATE_MAX_BODY_HEIGHT]: (state, action: Action<BODY.UPDATE_MAX_BODY_HEIGHT>) => ({ ...state,
         maxBodyHeight: action.payload

@@ -61,7 +61,7 @@ module Parser = {
   let allGoalsWarningsPreprocess:
     (string, string) => allGoalsWarningsPreprocess =
     (title, body) => {
-      let shitpile = body |> Js.String.split("\n") |> concatLines;
+      let shitpile = body |> Js.String.split("\n");
       let hasMetas =
         title |> Js.String.match([%re "/Goals/"]) |> Js.Option.isSome;
       let hasWarnings =
@@ -86,30 +86,42 @@ module Parser = {
            );
       switch (hasMetas, hasWarnings, hasErrors) {
       | (true, true, true) => {
-          metas: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfWarnings),
+          metas:
+            shitpile
+            |> Js.Array.slice(~start=0, ~end_=indexOfWarnings)
+            |> concatLines,
           warnings:
             shitpile
             |> Js.Array.slice(~start=indexOfWarnings + 1, ~end_=indexOfErrors),
           errors: shitpile |> Js.Array.sliceFrom(indexOfErrors + 1),
         }
       | (true, true, false) => {
-          metas: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfWarnings),
+          metas:
+            shitpile
+            |> Js.Array.slice(~start=0, ~end_=indexOfWarnings)
+            |> concatLines,
           warnings: shitpile |> Js.Array.sliceFrom(indexOfWarnings + 1),
           errors: [||],
         }
       | (true, false, true) => {
-          metas: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfErrors),
+          metas:
+            shitpile
+            |> Js.Array.slice(~start=0, ~end_=indexOfErrors)
+            |> concatLines,
           warnings: [||],
           errors: shitpile |> Js.Array.sliceFrom(indexOfErrors + 1),
         }
       | (true, false, false) => {
-          metas: shitpile,
+          metas: shitpile |> concatLines,
           warnings: [||],
           errors: [||],
         }
       | (false, true, true) => {
           metas: [||],
-          warnings: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfErrors),
+          warnings:
+            shitpile
+            |> Js.Array.slice(~start=0, ~end_=indexOfErrors)
+            |> concatLines,
           errors: shitpile |> Js.Array.sliceFrom(indexOfErrors + 1),
         }
       | (false, true, false) => {
@@ -234,7 +246,6 @@ module Parser = {
     );
   let allGoalsWarnings = (title, body) : allGoalsWarnings => {
     let preprocessed = allGoalsWarningsPreprocess(title, body);
-    Js.log(preprocessed.metas);
     let metas =
       preprocessed.metas
       |> Array.map(raw =>
@@ -242,7 +253,11 @@ module Parser = {
          )
       |> Util.Array_.catMaybes
       |> Array.of_list;
-    {metas, warnings: "", errors: ""};
+    {
+      metas,
+      warnings: preprocessed.warnings |> Array.to_list |> String.concat(""),
+      errors: preprocessed.errors |> Array.to_list |> String.concat(""),
+    };
   };
   type goalTypeContext = {
     goal: string,
@@ -292,9 +307,3 @@ module Parser = {
       };
     };
 };
-
-let jsParseAllGoalsWarningsOld = Parser.allGoalsWarningsPreprocess;
-
-let jsParseAllGoalsWarnings = Parser.allGoalsWarnings;
-
-let jsParseGoalTypeContext = Parser.goalTypeContext;

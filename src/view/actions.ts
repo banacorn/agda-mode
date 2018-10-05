@@ -173,7 +173,7 @@ export namespace BODY {
     export const UPDATE_All_GOALS_WARNINGS = 'BODY.UPDATE_All_GOALS_WARNINGS';
     export type UPDATE_All_GOALS_WARNINGS = object;
     export const UPDATE_EMACS_All_GOALS_WARNINGS = 'BODY.UPDATE_EMACS_All_GOALS_WARNINGS';
-    export type UPDATE_EMACS_All_GOALS_WARNINGS = object;
+    export type UPDATE_EMACS_All_GOALS_WARNINGS = [string, string];
     export const UPDATE_EMACS_ERROR = 'BODY.UPDATE_EMACS_ERROR';
     export type UPDATE_EMACS_ERROR = EmacsAgdaError;
     export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';

@@ -2,8 +2,6 @@ open ReasonReact;
 
 open Type.Interaction.Emacs;
 
-open Util;
-
 let component = ReasonReact.statelessComponent("EmacsTerm");
 
 let jump = true;

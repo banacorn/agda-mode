@@ -93,7 +93,7 @@ module List_ = {
     switch (xs) {
     | [] => failwith("last on empty list")
     | [x] => x
-    | [x, ...xs] => last(xs)
+    | [_, ...xs] => last(xs)
     };
   let rec span = (p, xs) =>
     switch (xs) {

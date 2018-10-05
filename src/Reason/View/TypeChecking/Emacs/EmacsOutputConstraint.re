@@ -2,8 +2,6 @@ open ReasonReact;
 
 open Type.Interaction.Emacs;
 
-open Util;
-
 let component = ReasonReact.statelessComponent("EmacsOutputConstraint");
 
 let make = (~value: outputConstraint, _children) => {

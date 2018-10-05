@@ -5,7 +5,6 @@ import * as classNames from 'classnames';
 import { View } from '../../../type';
 import V from '../../../view';
 import { updateMaxBodyHeight, EVENT } from '../../actions';
-import Expr from './EmacsMetas/Expr';
 import EmacsError from './EmacsMetas/EmacsError';
 import Solution from './EmacsMetas/Solution';
 
@@ -46,7 +45,7 @@ class Body extends React.Component<Props, {}> {
     }
 
     render() {
-        const { allGoalsWarnings, emacsAllGoalsWarnings, solutions, error, emacsMessage, emacsError, plainText, maxBodyHeight, mountAtBottom } = this.props;
+        const { emacs, allGoalsWarnings, solutions, error, plainText, maxBodyHeight, mountAtBottom } = this.props;
         const classes = classNames(this.props.className, `native-key-bindings`, 'agda-body');
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
@@ -74,9 +73,9 @@ class Body extends React.Component<Props, {}> {
                         }} />
                     )}</V.EventContext.Consumer>}
 
-                {emacsAllGoalsWarnings &&
+                {emacs.allGoalsWarnings &&
                     <V.EventContext.Consumer>{emitter => (
-                        <EmacsAllGoalsWarnings emacsAllGoalsWarnings={emacsAllGoalsWarnings} emit={(ev, range) => {
+                        <EmacsAllGoalsWarnings header={emacs.allGoalsWarnings[0]} allGoalsWarnings={emacs.allGoalsWarnings[1]} emit={(ev, range) => {
                             switch (ev) {
                                 case EVENT.JUMP_TO_RANGE:
                                     emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
@@ -96,7 +95,7 @@ class Body extends React.Component<Props, {}> {
                 }
                 {error &&
                     <V.EventContext.Consumer>{emitter => (
-                        <Error error={error} emacsMessage={emacsMessage} emit={(ev, range) => {
+                        <Error error={error} emacsMessage={emacs.message} emit={(ev, range) => {
                             switch (ev) {
                                 case EVENT.JUMP_TO_RANGE:
                                     emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
@@ -110,7 +109,7 @@ class Body extends React.Component<Props, {}> {
                             }
                         }} />
                     )}</V.EventContext.Consumer>}
-                {emacsError && <EmacsError>{emacsError}</EmacsError>}
+                {emacs.error && <EmacsError>{emacs.error}</EmacsError>}
                 {plainText && <p>{plainText}</p>}
             </section>
         )

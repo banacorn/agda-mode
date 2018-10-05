@@ -2,8 +2,6 @@ open ReasonReact;
 
 open Type.Interaction.Emacs;
 
-open Util;
-
 let component = ReasonReact.statelessComponent("EmacsExpr");
 
 let make = (~expr: expr, _children) => {

@@ -380,8 +380,7 @@ export default class View {
         this.store.dispatch(Action.updateAllGoalsWarnings(parseMetas(raw)));
     }
 
-    setEmacsAllGoalsWarnings(header: string = 'Judgements', allGoalsWarnings: object) {
-        console.log(allGoalsWarnings);
+    setEmacsAllGoalsWarnings(header: string = 'Judgements', allGoalsWarnings: string) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
@@ -390,7 +389,7 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(Action.updateEmacsAllGoalsWarnings(allGoalsWarnings));
+        this.store.dispatch(Action.updateEmacsAllGoalsWarnings([header, allGoalsWarnings]));
     }
 
     // setEmacsGoalTypeContext(header: string = 'Judgements', emacsMetas: object) {

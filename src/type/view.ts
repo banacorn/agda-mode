@@ -94,9 +94,11 @@ export interface BodyState {
     error: object;
     plainText: string;
     solutions: Solutions;
-    emacsAllGoalsWarnings: object;
-    emacsError: EmacsAgdaError;
-    emacsMessage: string;
+    emacs: {
+        allGoalsWarnings: [string, string];
+        error: EmacsAgdaError;
+        message: string;
+    }
     maxBodyHeight: number;
 }
 

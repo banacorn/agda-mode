@@ -6,7 +6,7 @@ open Syntax.Literal;
 
 let component = statelessComponent("Literal");
 
-let make = (~value, children) => {
+let make = (~value, _children) => {
   ...component,
   render: _self =>
     switch (value) {

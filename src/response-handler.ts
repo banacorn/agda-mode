@@ -10,8 +10,6 @@ import * as Err from './error';
 
 import { Range } from 'atom';
 
-var reParseAllGoalsWarnings = require('./Reason/Emacs.bs').jsParseAllGoalsWarnings;
-
 // classify responses into async and sync ones
 // don't deal everything with promises
 // for the nasty issue of https://github.com/petkaantonov/bluebird/issues/1326
@@ -153,8 +151,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.set('Constraints', response.constraints, View.Style.Info);
             break;
         case 'AllGoalsWarnings':
-            const allGoalsWarnings = reParseAllGoalsWarnings(response.emacsTitle, response.emacsMessage);
-            core.view.setEmacsAllGoalsWarnings(response.emacsTitle, allGoalsWarnings);
+            core.view.setEmacsAllGoalsWarnings(response.emacsTitle, response.emacsMessage);
             break;
         case 'Error':
             const error = Emacs.parseError(response.emacsMessage);
