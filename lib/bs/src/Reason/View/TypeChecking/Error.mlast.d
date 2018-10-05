@@ -1,1 +1,0 @@
-src/Reason/View/TypeChecking/Error-AgdaMode.cmj : src/Reason/View/TypeChecking/Call-AgdaMode.cmj src/Reason/View/Context-AgdaMode.cmj src/Reason/Decoder-AgdaMode.cmj src/Reason/View/Syntax/Range-AgdaMode.cmj src/Reason/Type-AgdaMode.cmj src/Reason/View/TypeChecking/TypeError-AgdaMode.cmj

@@ -645,6 +645,11 @@ module Interaction = {
       warnings: string,
       errors: string,
     };
+    type goalTypeContext = {
+      goal: string,
+      have: option(string),
+      metas: array(meta),
+    };
   };
   type outputConstraint('a, 'b) =
     | OfType('b, 'a)

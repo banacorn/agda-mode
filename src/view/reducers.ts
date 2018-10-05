@@ -50,6 +50,7 @@ const defaultState: View.State = {
     body: {
         emacs: {
             allGoalsWarnings: ['', ''],
+            goalTypeContext: '',
             error: null,
             message: '',
         },
@@ -220,6 +221,19 @@ const body = handleActions<View.BodyState, BODY>({
     [BODY.UPDATE_EMACS_All_GOALS_WARNINGS]: (state, action: Action<BODY.UPDATE_EMACS_All_GOALS_WARNINGS>) => ({ ...state,
         emacs: {
             allGoalsWarnings:   action.payload,
+            goalTypeContext:    defaultState.body.emacs.goalTypeContext,
+            error:              defaultState.body.emacs.error,
+            message:            defaultState.body.emacs.message,
+        },
+        allGoalsWarnings:   defaultState.body.allGoalsWarnings,
+        solutions:          defaultState.body.solutions,
+        error:              defaultState.body.error,
+        plainText:          defaultState.body.plainText
+    }),
+    [BODY.UPDATE_EMACS_GOAL_TYPE_CONTEXT]: (state, action: Action<BODY.UPDATE_EMACS_GOAL_TYPE_CONTEXT>) => ({ ...state,
+        emacs: {
+            allGoalsWarnings:   defaultState.body.emacs.allGoalsWarnings,
+            goalTypeContext:    action.payload,
             error:              defaultState.body.emacs.error,
             message:            defaultState.body.emacs.message,
         },
@@ -238,6 +252,7 @@ const body = handleActions<View.BodyState, BODY>({
     [BODY.UPDATE_EMACS_ERROR]: (state, action: Action<BODY.UPDATE_EMACS_ERROR>) => ({ ...state,
         emacs: {
             allGoalsWarnings:   defaultState.body.emacs.allGoalsWarnings,
+            goalTypeContext:    defaultState.body.emacs.goalTypeContext,
             error:              action.payload,
             message:            defaultState.body.emacs.message,
         },

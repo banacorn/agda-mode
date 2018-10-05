@@ -184,7 +184,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.set('Normal Form', response.payload, View.Style.Info);
             break;
         case 'GoalType':
-            // core.view.setEmacsGoalTypeContext('Goal Type and Context', Emacs.parseGoalTypeContext(response.payload));
+            core.view.setEmacsGoalTypeContext('Goal Type and Context', response.payload);
             break;
         case 'CurrentGoal':
             core.view.set('Current Goal', response.payload, View.Style.Info);
@@ -193,7 +193,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.set('Inferred Type', response.payload, View.Style.Info);
             break;
         case 'Context':
-            // core.view.setEmacsGoalTypeContext('Context', Emacs.parseGoalTypeContext(response.payload));
+            core.view.setEmacsGoalTypeContext('Context', response.payload);
             break;
         case 'Intro':
             core.view.set('Intro', 'No introduction forms found');

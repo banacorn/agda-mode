@@ -1,5 +1,5 @@
 module Parser = {
-  open Util.Re_;
+  open Util.Parser;
   open Util.Option;
   /* open Js.Option; */
   open Type.Interaction.Emacs;
@@ -244,25 +244,15 @@ module Parser = {
     String(
       raw => raw |> parse(outputConstraint) |> map(x => InteractionMeta(x)),
     );
+  let meta: parser(meta) = choice([|hiddenMeta, interactionMeta|]);
   let allGoalsWarnings = (title, body) : allGoalsWarnings => {
     let preprocessed = allGoalsWarningsPreprocess(title, body);
-    let metas =
-      preprocessed.metas
-      |> Array.map(raw =>
-           raw |> parse(choice([|hiddenMeta, interactionMeta|]))
-         )
-      |> Util.Array_.catMaybes
-      |> Array.of_list;
+    let metas = preprocessed.metas |> parseArray(meta);
     {
       metas,
       warnings: preprocessed.warnings |> Array.to_list |> String.concat(""),
       errors: preprocessed.errors |> Array.to_list |> String.concat(""),
     };
-  };
-  type goalTypeContext = {
-    goal: string,
-    have: option(string),
-    metas: array(string),
   };
   let goalTypeContext: string => goalTypeContext =
     body => {
@@ -289,7 +279,10 @@ module Parser = {
             |> Js.Array.slice(~start=0, ~end_=indexOfDelimeter)
             |> parseGoalOrHave,
           have: None,
-          metas: shitpile |> Js.Array.sliceFrom(indexOfDelimeter + 1),
+          metas:
+            shitpile
+            |> Js.Array.sliceFrom(indexOfDelimeter + 1)
+            |> parseArray(meta),
         };
       } else {
         {
@@ -302,7 +295,10 @@ module Parser = {
             |> Js.Array.slice(~start=indexOfHave, ~end_=indexOfDelimeter)
             |> parseGoalOrHave
             |> (x => Some(x)),
-          metas: shitpile |> Js.Array.sliceFrom(indexOfDelimeter + 1),
+          metas:
+            shitpile
+            |> Js.Array.sliceFrom(indexOfDelimeter + 1)
+            |> parseArray(meta),
         };
       };
     };

@@ -34,10 +34,11 @@ module Array_ = {
         },
       xs,
       [],
-    );
+    )
+    |> Array.of_list;
 };
 
-module Re_ = {
+module Parser = {
   open Option;
   let captures = (re: Js.Re.t, x: string) : option(array(option(string))) =>
     Js.Re.exec(x, re)
@@ -52,6 +53,8 @@ module Re_ = {
     | Regex(re, handler) => captures(re, raw) |> bind(handler)
     | String(handler) => handler(raw)
     };
+  let parseArray = (parser: parser('a), xs: array(string)) : array('a) =>
+    xs |> Array.map(raw => raw |> parse(parser)) |> Array_.catMaybes;
   let at =
       (i: int, parser: parser('a), captured: array(option(string)))
       : option('a) =>

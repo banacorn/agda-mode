@@ -96,6 +96,7 @@ export interface BodyState {
     solutions: Solutions;
     emacs: {
         allGoalsWarnings: [string, string];
+        goalTypeContext: string;
         error: EmacsAgdaError;
         message: string;
     }
