@@ -1,49 +1,21 @@
 module Parser = {
   open Util.Parser;
   open Util.Option;
-  /* open Js.Option; */
   open Type.Interaction.Emacs;
-  let concatLines: array(string) => array(string) =
+  let unindent: array(string) => array(string) =
     lines => {
-      let isNewline = (line, nextLine) => {
-        let sort = [%re "/^Sort \\S*/"];
-        /* banana : Banana */
-        let completeJudgement = [%re "/^[^\\(\\{\\s]+\\s+\\:\\s* \\S*/"];
-        /* case when the term's name is too long, the rest of the judgement
-              would go to the next line, e.g:
-                   banananananananananananananananana
-                       : Banana
-           */
-        let reallyLongTermIdentifier = [%re "/^\\S+$/"];
-        let restOfTheJudgement = [%re "/^\\s*\\:\\s* \\S*/"];
-        Js.Re.test(line, sort)
-        || Js.Re.test(line, reallyLongTermIdentifier)
-        && Js.Option.isSomeValue(
-             (. _, line) => Js.Re.test(line, restOfTheJudgement),
-             "",
-             nextLine,
-           )
-        || Js.Re.test(line, completeJudgement);
-      };
-      let newLineIndices: array(int) =
+      let lineStart = [%re "/^\\S+/"];
+      let lineStartIndices: array(int) =
         lines
-        |> Js.Array.mapi((line, index) =>
-             if (Array.length(lines) > index + 1) {
-               (line, Some(lines[index + 1]), index);
-             } else {
-               (line, None, index);
-             }
-           )
-        |> Js.Array.filter(((line, nextLine, _)) =>
-             isNewline(line, nextLine)
-           )
-        |> Array.map(((_, _, index)) => index);
-      newLineIndices
+        |> Js.Array.mapi((line, index) => (line, index))
+        |> Js.Array.filter(((line, index)) => Js.Re.test(line, lineStart))
+        |> Array.map(((_, index)) => index);
+      lineStartIndices
       |> Js.Array.mapi((index, i) =>
-           if (Array.length(newLineIndices) === i + 1) {
+           if (Array.length(lineStartIndices) === i + 1) {
              (index, Array.length(lines) + 1);
            } else {
-             (index, newLineIndices[i + 1]);
+             (index, lineStartIndices[i + 1]);
            }
          )
       |> Array.map(((start, end_)) =>
@@ -61,7 +33,7 @@ module Parser = {
   let allGoalsWarningsPreprocess:
     (string, string) => allGoalsWarningsPreprocess =
     (title, body) => {
-      let shitpile = body |> Js.String.split("\n");
+      let shitpile = body |> Js.String.split("\n") |> unindent;
       let hasMetas =
         title |> Js.String.match([%re "/Goals/"]) |> Js.Option.isSome;
       let hasWarnings =
@@ -86,42 +58,30 @@ module Parser = {
            );
       switch (hasMetas, hasWarnings, hasErrors) {
       | (true, true, true) => {
-          metas:
-            shitpile
-            |> Js.Array.slice(~start=0, ~end_=indexOfWarnings)
-            |> concatLines,
+          metas: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfWarnings),
           warnings:
             shitpile
             |> Js.Array.slice(~start=indexOfWarnings + 1, ~end_=indexOfErrors),
           errors: shitpile |> Js.Array.sliceFrom(indexOfErrors + 1),
         }
       | (true, true, false) => {
-          metas:
-            shitpile
-            |> Js.Array.slice(~start=0, ~end_=indexOfWarnings)
-            |> concatLines,
+          metas: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfWarnings),
           warnings: shitpile |> Js.Array.sliceFrom(indexOfWarnings + 1),
           errors: [||],
         }
       | (true, false, true) => {
-          metas:
-            shitpile
-            |> Js.Array.slice(~start=0, ~end_=indexOfErrors)
-            |> concatLines,
+          metas: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfErrors),
           warnings: [||],
           errors: shitpile |> Js.Array.sliceFrom(indexOfErrors + 1),
         }
       | (true, false, false) => {
-          metas: shitpile |> concatLines,
+          metas: shitpile,
           warnings: [||],
           errors: [||],
         }
       | (false, true, true) => {
           metas: [||],
-          warnings:
-            shitpile
-            |> Js.Array.slice(~start=0, ~end_=indexOfErrors)
-            |> concatLines,
+          warnings: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfErrors),
           errors: shitpile |> Js.Array.sliceFrom(indexOfErrors + 1),
         }
       | (false, true, false) => {
@@ -255,29 +215,6 @@ module Parser = {
       errors: preprocessed.errors |> Array.to_list |> String.concat(""),
     };
   };
-  let unindent: array(string) => array(string) =
-    lines => {
-      let lineStart = [%re "/^\\S+/"];
-      let lineStartIndices: array(int) =
-        lines
-        |> Js.Array.mapi((line, index) => (line, index))
-        |> Js.Array.filter(((line, index)) => Js.Re.test(line, lineStart))
-        |> Array.map(((_, index)) => index);
-      lineStartIndices
-      |> Js.Array.mapi((index, i) =>
-           if (Array.length(lineStartIndices) === i + 1) {
-             (index, Array.length(lines) + 1);
-           } else {
-             (index, lineStartIndices[i + 1]);
-           }
-         )
-      |> Array.map(((start, end_)) =>
-           lines
-           |> Js.Array.slice(~start, ~end_)
-           |> Array.to_list
-           |> String.concat("\n")
-         );
-    };
   let goalTypeContext: string => goalTypeContext =
     body => {
       let shitpile = body |> Js.String.split("\n") |> unindent;
