@@ -208,7 +208,11 @@ module Parser = {
       OutputConstraint.justSort,
       OutputConstraint.others,
     |]);
-  let hiddenMeta: parser(meta) =
+  let interactionMeta: parser(interactionMeta) =
+    String(
+      raw => raw |> parse(outputConstraint) |> map(x => InteractionMeta(x)),
+    );
+  let hiddenMeta: parser(hiddenMeta) =
     Regex(
       [%re
         "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
@@ -240,66 +244,75 @@ module Parser = {
                 });
            }),
     );
-  let interactionMeta: parser(meta) =
-    String(
-      raw => raw |> parse(outputConstraint) |> map(x => InteractionMeta(x)),
-    );
-  let meta: parser(meta) = choice([|hiddenMeta, interactionMeta|]);
   let allGoalsWarnings = (title, body) : allGoalsWarnings => {
     let preprocessed = allGoalsWarningsPreprocess(title, body);
-    let metas = preprocessed.metas |> parseArray(meta);
+    let interactionMetas = preprocessed.metas |> parseArray(interactionMeta);
+    let hiddenMetas = preprocessed.metas |> parseArray(hiddenMeta);
     {
-      metas,
+      interactionMetas,
+      hiddenMetas,
       warnings: preprocessed.warnings |> Array.to_list |> String.concat(""),
       errors: preprocessed.errors |> Array.to_list |> String.concat(""),
     };
   };
+  let unindent: array(string) => array(string) =
+    lines => {
+      let lineStart = [%re "/^\\S+/"];
+      let lineStartIndices: array(int) =
+        lines
+        |> Js.Array.mapi((line, index) => (line, index))
+        |> Js.Array.filter(((line, index)) => Js.Re.test(line, lineStart))
+        |> Array.map(((_, index)) => index);
+      lineStartIndices
+      |> Js.Array.mapi((index, i) =>
+           if (Array.length(lineStartIndices) === i + 1) {
+             (index, Array.length(lines) + 1);
+           } else {
+             (index, lineStartIndices[i + 1]);
+           }
+         )
+      |> Array.map(((start, end_)) =>
+           lines
+           |> Js.Array.slice(~start, ~end_)
+           |> Array.to_list
+           |> String.concat("\n")
+         );
+    };
   let goalTypeContext: string => goalTypeContext =
     body => {
-      let shitpile = body |> Js.String.split("\n") |> concatLines;
-      let indexOfHave =
+      let shitpile = body |> Js.String.split("\n") |> unindent;
+      /* see if Have: exists */
+      let haveExists =
         shitpile
-        |> Js.Array.findIndex(s =>
-             s |> Js.String.match([%re "/^Have/"]) |> Js.Option.isSome
-           );
+        |>
+        Js.Array.findIndex(s =>
+          s |> Js.String.match([%re "/^Have/"]) |> Js.Option.isSome
+        ) !== (-1);
       let indexOfDelimeter =
         shitpile
         |> Js.Array.findIndex(s =>
              s |> Js.String.match([%re "/\\u2014{60}/g"]) |> Js.Option.isSome
            );
-      let parseGoalOrHave = lines =>
-        lines
-        |> Array.to_list
-        |> String.concat("\n")
-        |> Js.String.sliceToEnd(~from=5);
-      if (indexOfHave === (-1)) {
-        {
-          goal:
-            shitpile
-            |> Js.Array.slice(~start=0, ~end_=indexOfDelimeter)
-            |> parseGoalOrHave,
-          have: None,
-          metas:
-            shitpile
-            |> Js.Array.sliceFrom(indexOfDelimeter + 1)
-            |> parseArray(meta),
-        };
-      } else {
-        {
-          goal:
-            shitpile
-            |> Js.Array.slice(~start=0, ~end_=indexOfHave)
-            |> parseGoalOrHave,
-          have:
-            shitpile
-            |> Js.Array.slice(~start=indexOfHave, ~end_=indexOfDelimeter)
-            |> parseGoalOrHave
-            |> (x => Some(x)),
-          metas:
-            shitpile
-            |> Js.Array.sliceFrom(indexOfDelimeter + 1)
-            |> parseArray(meta),
-        };
-      };
+      let goal =
+        shitpile[0]
+        |> Js.String.sliceToEnd(~from=5)
+        |> parse(expr)
+        |> map(x => Goal(x));
+      let have =
+        haveExists ?
+          shitpile[1]
+          |> Js.String.sliceToEnd(~from=5)
+          |> parse(expr)
+          |> map(x => Have(x)) :
+          None;
+      let interactionMetas =
+        shitpile
+        |> Js.Array.sliceFrom(indexOfDelimeter + 1)
+        |> parseArray(interactionMeta);
+      let hiddenMetas =
+        shitpile
+        |> Js.Array.sliceFrom(indexOfDelimeter + 1)
+        |> parseArray(hiddenMeta);
+      {goal, have, interactionMetas, hiddenMetas};
     };
 };

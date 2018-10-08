@@ -637,18 +637,25 @@ module Interaction = {
       | JustType(expr)
       | JustSort(expr)
       | Others(expr);
-    type meta =
-      | HiddenMeta(outputConstraint, Syntax.Position.range)
+    type goal =
+      | Goal(expr);
+    type have =
+      | Have(expr);
+    type interactionMeta =
       | InteractionMeta(outputConstraint);
+    type hiddenMeta =
+      | HiddenMeta(outputConstraint, Syntax.Position.range);
     type allGoalsWarnings = {
-      metas: array(meta),
+      interactionMetas: array(interactionMeta),
+      hiddenMetas: array(hiddenMeta),
       warnings: string,
       errors: string,
     };
     type goalTypeContext = {
-      goal: string,
-      have: option(string),
-      metas: array(meta),
+      goal: option(goal),
+      have: option(have),
+      interactionMetas: array(interactionMeta),
+      hiddenMetas: array(hiddenMeta),
     };
   };
   type outputConstraint('a, 'b) =

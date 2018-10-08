@@ -2,16 +2,35 @@ open ReasonReact;
 
 open Type.Interaction.Emacs;
 
+open EmacsComponent;
+
 let component = ReasonReact.statelessComponent("EmacsGoalTypeContext");
 
 let make = (~goalTypeContext: string, ~emit, _children) => {
   ...component,
   render: _self => {
     let parsed = Emacs.Parser.goalTypeContext(goalTypeContext);
-    Js.log(parsed.metas);
     <Context.Emitter.Provider value=emit>
       <section className="metas">
-        <ul> ...(parsed.metas |> Array.map(meta => <EmacsMeta meta />)) </ul>
+        <ul>
+          (
+            parsed.goal
+            |> Util.Option.option(ReasonReact.null, value => <Goal value />)
+          )
+          (
+            parsed.have
+            |> Util.Option.option(ReasonReact.null, value => <Have value />)
+          )
+        </ul>
+        <ul>
+          ...(
+               parsed.interactionMetas
+               |> Array.map(value => <InteractionMeta value />)
+             )
+        </ul>
+        <ul>
+          ...(parsed.hiddenMetas |> Array.map(value => <HiddenMeta value />))
+        </ul>
       </section>
     </Context.Emitter.Provider>;
   },

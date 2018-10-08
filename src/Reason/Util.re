@@ -22,6 +22,11 @@ module Option = {
     x |> Js.Option.andThen((. x') => f(x'));
   let map = (f: 'a => 'b, x: option('a)) : option('b) =>
     x |> Js.Option.map((. x') => f(x'));
+  let option = (default: 'b, f: 'a => 'b, x: option('a)) : 'b =>
+    switch (x) {
+    | Some(value) => f(value)
+    | None => default
+    };
 };
 
 module Array_ = {

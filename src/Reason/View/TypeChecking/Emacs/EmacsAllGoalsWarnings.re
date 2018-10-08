@@ -2,6 +2,8 @@ open ReasonReact;
 
 open Type.Interaction.Emacs;
 
+open EmacsComponent;
+
 let component = ReasonReact.statelessComponent("EmacsAllGoalsWarnings");
 
 let make = (~header: string, ~allGoalsWarnings: string, ~emit, _children) => {
@@ -10,7 +12,15 @@ let make = (~header: string, ~allGoalsWarnings: string, ~emit, _children) => {
     let parsed = Emacs.Parser.allGoalsWarnings(header, allGoalsWarnings);
     <Context.Emitter.Provider value=emit>
       <section className="metas">
-        <ul> ...(parsed.metas |> Array.map(meta => <EmacsMeta meta />)) </ul>
+        <ul>
+          ...(
+               parsed.interactionMetas
+               |> Array.map(value => <InteractionMeta value />)
+             )
+        </ul>
+        <ul>
+          ...(parsed.hiddenMetas |> Array.map(value => <HiddenMeta value />))
+        </ul>
       </section>
     </Context.Emitter.Provider>;
   },
