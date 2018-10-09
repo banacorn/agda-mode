@@ -22,7 +22,7 @@ import Tab from './view/tab';
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
-var { errorToHeader } = require('./Reason/View/TypeChecking/Error.bs');
+var { errorToHeader } = require('./Reason/View/JSON/Error.bs');
 var { parseError, parseMetas } = require('./Reason/Decoder.bs');
 
 
@@ -339,7 +339,7 @@ export default class View {
             text: 'Error'
         }));
 
-        this.store.dispatch(Action.EMACS.update({
+        this.store.dispatch(Action.updateEmacs({
             kind: 'PlainText',
             header: 'Error',
             body: error
@@ -355,7 +355,7 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(Action.EMACS.update({
+        this.store.dispatch(Action.updateEmacs({
             kind: 'AllGoalsWarnings',
             header: header,
             body: allGoalsWarnings
@@ -371,7 +371,7 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(Action.EMACS.update({
+        this.store.dispatch(Action.updateEmacs({
             kind: 'GoalTypeContext',
             header: header,
             body: goalTypeContext
@@ -387,7 +387,7 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(Action.EMACS.update({
+        this.store.dispatch(Action.updateEmacs({
             kind: 'PlainText',
             header: 'Constraints',
             body: constraints
@@ -403,7 +403,7 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(Action.EMACS.update({
+        this.store.dispatch(Action.updateEmacs({
             kind: 'PlainText',
             header: 'Auto',
             body: solutions

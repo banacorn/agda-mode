@@ -14,7 +14,6 @@ export interface State {
     inputMethod: InputMethodState;
     query: QueryState;
     body: BodyState;
-    emacs: EmacsState;
 }
 
 export interface ViewState {
@@ -89,18 +88,19 @@ export interface QueryState {
     value: string;
 }
 
+export interface EmacsState {
+    kind: 'AllGoalsWarnings' | 'GoalTypeContext' | 'Constraints' | 'PlainText';
+    header: string;
+    body: string;
+}
+
 export interface BodyState {
     allGoalsWarnings: object;
     error: object;
     plainText: string;
     maxBodyHeight: number;
     raw: string;
-}
-
-export interface EmacsState {
-    kind: 'AllGoalsWarnings' | 'GoalTypeContext' | 'Constraints' | 'PlainText';
-    header: string;
-    body: string;
+    emacs: EmacsState;
 }
 
 export type SettingsURI = {

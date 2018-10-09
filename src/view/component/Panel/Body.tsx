@@ -6,8 +6,8 @@ import { View } from '../../../type';
 import V from '../../../view';
 import { updateMaxBodyHeight, EVENT } from '../../actions';
 
-var Error = require('./../../../Reason/View/TypeChecking/Error.bs').jsComponent;
-var AllGoalsWarnings = require('./../../../Reason/View/TypeChecking/AllGoalsWarnings.bs').jsComponent;
+var Error = require('./../../../Reason/View/JSON/Error.bs').jsComponent;
+var AllGoalsWarnings = require('./../../../Reason/View/JSON/AllGoalsWarnings.bs').jsComponent;
 var EmacsBody = require('./../../../Reason/View/Emacs/EmacsBody.bs').jsComponent;
 var { toAtomRange, toAtomFilepath } = require('./../../../Reason/View/Syntax/Range.bs');
 
@@ -18,7 +18,6 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
 
 type InjProps = View.BodyState & {
     mountAtBottom: boolean;
-    emacs: View.EmacsState;
 };
 type DispatchProps = {
     onMaxBodyHeightChange: (count: number) => void;
@@ -28,7 +27,6 @@ type Props = OwnProps & InjProps & DispatchProps;
 function mapStateToProps(state: View.State): InjProps {
     return {
         mountAtBottom: state.view.mountAt.current === View.MountingPosition.Bottom,
-        emacs: state.emacs,
         ...state.body,
     }
 }

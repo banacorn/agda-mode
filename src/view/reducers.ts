@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { combineReducers } from 'redux';
 import { handleActions, Action } from 'redux-actions';
 import { View, Agda } from '../type';
-import { MODE, VIEW, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, CONNECTION, EMACS } from './actions';
+import { MODE, VIEW, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, CONNECTION } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -52,12 +52,12 @@ const defaultState: View.State = {
         error: null,
         plainText: '',
         maxBodyHeight: 170,
-        raw: ''
-    },
-    emacs: {
-        kind: 'PlainText',
-        header: '',
-        body: ''
+        raw: '',
+        emacs: {
+            kind: 'PlainText',
+            header: '',
+            body: ''
+        }
     },
 };
 
@@ -221,12 +221,10 @@ const body = handleActions<View.BodyState, BODY>({
     [BODY.UPDATE_RAW]: (state, action: Action<BODY.UPDATE_RAW>) => ({ ...state,
         raw:          action.payload
     }),
+    [BODY.UPDATE_EMACS]: (state, action: Action<BODY.UPDATE_EMACS>) => ({ ...state,
+        emacs:          action.payload
+    }),
 }, defaultState.body);
-
-const emacs = handleActions<View.EmacsState, EMACS>({
-    [EMACS.UPDATE]: (state, action: Action<EMACS.UPDATE>) => action.payload
-}, defaultState.emacs);
-
 
 // export default reducer;
 export default combineReducers<View.State>({
@@ -237,6 +235,5 @@ export default combineReducers<View.State>({
     header,
     inputMethod,
     query,
-    body,
-    emacs
+    body
 });
