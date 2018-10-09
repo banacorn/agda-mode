@@ -80,17 +80,6 @@ module Output = {
   };
 };
 
-/*
- module HiddenMeta = {
-   let component = ReasonReact.statelessComponent("EmacsHiddenMeta");
-   let make = (~value: hiddenMeta, _children) => {
-     ...component,
-     render: _self => {
-       let HiddenMeta(oc, _range) = value;
-       <OutputConstraint value=oc />;
-     },
-   };
- }; */
 module RawError = {
   let component = ReasonReact.statelessComponent("EmacsRawError");
   let make = (~value: array(string), _children) => {

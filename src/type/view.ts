@@ -93,11 +93,11 @@ export interface BodyState {
     allGoalsWarnings: object;
     error: object;
     plainText: string;
-    solutions: Solutions;
     emacs: {
         allGoalsWarnings: [string, string];
         goalTypeContext: string;
         constraints: string;
+        solutions: Solutions;
         error: EmacsAgdaError;
         message: string;
     }

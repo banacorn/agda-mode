@@ -416,7 +416,7 @@ export default class View {
         this.store.dispatch(Action.updateEmacsConstraints(constraints));
     }
 
-    setSolutions(solutions: V.Solutions) {
+    setEmacsSolutions(solutions: V.Solutions) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain();
 
@@ -425,7 +425,7 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(Action.updateSolutions(solutions));
+        this.store.dispatch(Action.updateEmacsSolutions(solutions));
     }
 
     query(header: string = '', _: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {
