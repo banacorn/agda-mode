@@ -98,7 +98,7 @@ export interface BodyState {
 }
 
 export interface EmacsState {
-    kind: 'AllGoalsWarnings' | 'GoalTypeContext' | 'PlainText';
+    kind: 'AllGoalsWarnings' | 'GoalTypeContext' | 'Constraints' | 'PlainText';
     header: string;
     body: string;
 }

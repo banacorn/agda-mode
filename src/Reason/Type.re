@@ -658,6 +658,7 @@ module Interaction = {
     type bodyKind =
       | AllGoalsWarnings
       | GoalTypeContext
+      | Constraints
       | PlainText;
     [@bs.deriving abstract]
     type bodyRaw = {

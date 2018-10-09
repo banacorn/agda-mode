@@ -16,6 +16,7 @@ let make = (~raw: bodyRaw, ~emit, _children) => {
       switch (parsed.kind) {
       | AllGoalsWarnings => <EmacsAllGoalsWarnings header body />
       | GoalTypeContext => <EmacsGoalTypeContext body />
+      | Constraints => <EmacsConstraints body />
       | PlainText =>
         <section className="metas"> <p> (string(body)) </p> </section>
       };
