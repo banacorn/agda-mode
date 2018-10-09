@@ -17,9 +17,7 @@ import reducer from './view/reducers';
 import { View as V } from './type';
 import { EVENT } from './view/actions';
 import * as Action from './view/actions';
-import { EmacsAgdaError } from './parser/emacs';
 import Tab from './view/tab';
-import { OutOfGoalError } from './error';
 
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
@@ -318,26 +316,6 @@ export default class View {
         }));
     }
 
-    // for Emacs
-    setEmacsAgdaError(error: EmacsAgdaError, isWarning: boolean = false) {
-
-        this.store.dispatch(Action.MODE.display());
-        this.editors.focusMain()
-
-        this.store.dispatch(Action.updateEmacsError(error));
-        if (error) {
-            this.store.dispatch(Action.HEADER.update({
-                style: isWarning ? V.Style.Warning : V.Style.Error,
-                text: isWarning ? 'Warning' : error.header,
-            }));
-        } else {
-            this.store.dispatch(Action.HEADER.update({
-                style: isWarning ? V.Style.Warning : V.Style.Error,
-                text: isWarning ? 'Warning' : 'Error'
-            }));
-        }
-    }
-
     setAgdaAllGoalsWarnings(raw: object) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
@@ -348,6 +326,20 @@ export default class View {
         }));
         console.log(parseMetas(raw));
         this.store.dispatch(Action.updateAllGoalsWarnings(parseMetas(raw)));
+    }
+
+    // for Emacs
+    setEmacsError(error: string) {
+
+        this.store.dispatch(Action.MODE.display());
+        this.editors.focusMain()
+
+        this.store.dispatch(Action.HEADER.update({
+            style: V.Style.Error,
+            text: 'Error'
+        }));
+
+        this.store.dispatch(Action.updateEmacsError(error));
     }
 
     setEmacsAllGoalsWarnings(header: string = 'Judgements', allGoalsWarnings: string) {

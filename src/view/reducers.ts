@@ -64,31 +64,31 @@ const defaultState: View.State = {
 };
 
 const view = handleActions<View.ViewState, VIEW>({
-    [VIEW.ACTIVATE]: (state, action) => ({ ...state,
+    [VIEW.ACTIVATE]: (state, _) => ({ ...state,
         activated: true
     }),
-    [VIEW.DEACTIVATE]: (state, action) => ({ ...state,
+    [VIEW.DEACTIVATE]: (state, _) => ({ ...state,
         activated: false
     }),
-    [VIEW.MOUNT]: (state, action) => ({ ...state,
+    [VIEW.MOUNT]: (state, _) => ({ ...state,
         mounted: true
     }),
-    [VIEW.UNMOUNT]: (state, action) => ({ ...state,
+    [VIEW.UNMOUNT]: (state, _) => ({ ...state,
         mounted: false
     }),
-    [VIEW.MOUNT_AT_PANE]: (state, action) => ({ ...state,
+    [VIEW.MOUNT_AT_PANE]: (state, _) => ({ ...state,
         mountAt: {
             previous: state.mountAt.current,
             current: View.MountingPosition.Pane
         }
     }),
-    [VIEW.MOUNT_AT_BOTTOM]: (state, action) => ({ ...state,
+    [VIEW.MOUNT_AT_BOTTOM]: (state, _) => ({ ...state,
         mountAt: {
             previous: state.mountAt.current,
             current: View.MountingPosition.Bottom
         }
     }),
-    [VIEW.TOGGLE_SETTINGS_VIEW]: (state, action) => ({ ...state,
+    [VIEW.TOGGLE_SETTINGS_VIEW]: (state, _) => ({ ...state,
         settingsView: !state.settingsView
     }),
     [VIEW.NAVIGATE]: (state, action: Action<VIEW.NAVIGATE>) => ({ ...state,
@@ -98,9 +98,9 @@ const view = handleActions<View.ViewState, VIEW>({
 }, defaultState.view);
 
 const mode = handleActions<View.Mode, MODE>({
-    [MODE.DISPLAY]: (state, action) => View.Mode.Display,
-    [MODE.QUERY]: (state, action) => View.Mode.Query,
-    [MODE.QUERY_CONNECTION]: (state, action) => View.Mode.QueryConnection
+    [MODE.DISPLAY]: (state, _) => View.Mode.Display,
+    [MODE.QUERY]: (state, _) => View.Mode.Query,
+    [MODE.QUERY_CONNECTION]: (state, _) => View.Mode.QueryConnection
 }, defaultState.mode);
 
 const connection = handleActions<View.ConnectionState, CONNECTION>({
@@ -208,12 +208,6 @@ const query = handleActions<View.QueryState, QUERY>({
 }, defaultState.query);
 
 const body = handleActions<View.BodyState, BODY>({
-    [BODY.UPDATE_All_GOALS_WARNINGS]: (state, action: Action<BODY.UPDATE_All_GOALS_WARNINGS>) => ({ ...state,
-        emacs:              defaultState.body.emacs,
-        allGoalsWarnings:   action.payload,
-        error:              defaultState.body.error,
-        plainText:          defaultState.body.plainText
-    }),
     [BODY.UPDATE_EMACS_All_GOALS_WARNINGS]: (state, action: Action<BODY.UPDATE_EMACS_All_GOALS_WARNINGS>) => ({ ...state,
         emacs: {
             allGoalsWarnings:   action.payload,
@@ -276,6 +270,12 @@ const body = handleActions<View.BodyState, BODY>({
             message:            defaultState.body.emacs.message,
         },
         allGoalsWarnings:   defaultState.body.allGoalsWarnings,
+        error:              defaultState.body.error,
+        plainText:          defaultState.body.plainText
+    }),
+    [BODY.UPDATE_All_GOALS_WARNINGS]: (state, action: Action<BODY.UPDATE_All_GOALS_WARNINGS>) => ({ ...state,
+        emacs:              defaultState.body.emacs,
+        allGoalsWarnings:   action.payload,
         error:              defaultState.body.error,
         plainText:          defaultState.body.plainText
     }),

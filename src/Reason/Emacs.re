@@ -249,15 +249,30 @@ module Parser = {
       preprocessed.metas
       |> Js.Array.findIndex(s =>
            s |> parse(Output.outputWithRange) |> Js.Option.isSome
-         );
+         )
+      |> (
+        x =>
+          switch (x) {
+          | (-1) => None
+          | _ => Some(x)
+          }
+      );
     let interactionMetas =
-      preprocessed.metas
-      |> Js.Array.slice(~start=0, ~end_=indexOfHiddenMetas)
-      |> parseArray(Output.outputWithoutRange);
+      switch (indexOfHiddenMetas) {
+      | None => preprocessed.metas |> parseArray(Output.outputWithoutRange)
+      | Some(n) =>
+        preprocessed.metas
+        |> Js.Array.slice(~start=0, ~end_=n)
+        |> parseArray(Output.outputWithoutRange)
+      };
     let hiddenMetas =
-      preprocessed.metas
-      |> Js.Array.sliceFrom(indexOfHiddenMetas)
-      |> parseArray(Output.outputWithRange);
+      switch (indexOfHiddenMetas) {
+      | None => [||]
+      | Some(n) =>
+        preprocessed.metas
+        |> Js.Array.sliceFrom(n)
+        |> parseArray(Output.outputWithRange)
+      };
     {
       interactionMetas,
       hiddenMetas,

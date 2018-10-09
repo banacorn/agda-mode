@@ -5,7 +5,6 @@ import * as classNames from 'classnames';
 import { View } from '../../../type';
 import V from '../../../view';
 import { updateMaxBodyHeight, EVENT } from '../../actions';
-import EmacsError from './EmacsMetas/EmacsError';
 
 var Error = require('./../../../Reason/View/TypeChecking/Error.bs').jsComponent;
 var AllGoalsWarnings = require('./../../../Reason/View/TypeChecking/AllGoalsWarnings.bs').jsComponent;
@@ -57,23 +56,6 @@ class Body extends React.Component<Props, {}> {
                 tabIndex={-1}
                 style={style}
             >
-                {allGoalsWarnings &&
-                    <V.EventContext.Consumer>{emitter => (
-                        <AllGoalsWarnings allGoalsWarnings={allGoalsWarnings} emit={(ev, range) => {
-                            switch (ev) {
-                                case EVENT.JUMP_TO_RANGE:
-                                    emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
-                                    break;
-                                case EVENT.MOUSE_OUT:
-                                    emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
-                                    break;
-                                case EVENT.MOUSE_OVER:
-                                    emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
-                                    break;
-                            }
-                        }} />
-                    )}</V.EventContext.Consumer>}
-
                 {emacs.allGoalsWarnings &&
                     <V.EventContext.Consumer>{emitter => (
                         <EmacsAllGoalsWarnings header={emacs.allGoalsWarnings[0]} allGoalsWarnings={emacs.allGoalsWarnings[1]} emit={(ev, range) => {
@@ -129,7 +111,11 @@ class Body extends React.Component<Props, {}> {
                         <p> {emacs.solutions} </p>
                       </section>
                 }
-                {emacs.error && <EmacsError>{emacs.error}</EmacsError>}
+                {emacs.error &&
+                      <section className="metas">
+                        <p> {emacs.error} </p>
+                      </section>
+                }
                 {error &&
                     <V.EventContext.Consumer>{emitter => (
                         <Error error={error} emacsMessage={emacs.message} emit={(ev, range) => {
@@ -146,6 +132,24 @@ class Body extends React.Component<Props, {}> {
                             }
                         }} />
                     )}</V.EventContext.Consumer>}
+
+                {allGoalsWarnings &&
+                    <V.EventContext.Consumer>{emitter => (
+                        <AllGoalsWarnings allGoalsWarnings={allGoalsWarnings} emit={(ev, range) => {
+                            switch (ev) {
+                                case EVENT.JUMP_TO_RANGE:
+                                    emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                                case EVENT.MOUSE_OUT:
+                                    emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                                case EVENT.MOUSE_OVER:
+                                    emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                            }
+                        }} />
+                    )}</V.EventContext.Consumer>}
+
                 {plainText && <p>{plainText}</p>}
             </section>
         )

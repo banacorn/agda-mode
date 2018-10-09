@@ -154,8 +154,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.setEmacsAllGoalsWarnings(response.emacsTitle, response.emacsMessage);
             break;
         case 'Error':
-            const error = Emacs.parseError(response.emacsMessage);
-            core.view.setEmacsAgdaError(error);
+            core.view.setEmacsError(response.emacsMessage);
             break;
         case 'Auto':
             core.view.setEmacsSolutions(response.payload);
@@ -165,16 +164,16 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             break;
         case 'WhyInScope':
             if (core.commander.currentCommand.kind === "GotoDefinition") {
-                const result = Emacs.parseWhyInScope(response.payload);
-                if (result) {
-                    const range = new Range(
-                        [result.range.intervals[0].start[0], result.range.intervals[0].start[1]],
-                        [result.range.intervals[0].end[0], result.range.intervals[0].end[1]]
-                    );
-                    core.editor.jumpToRange(range, result.range.source);
-                } else {
-                    core.view.set('Go to Definition', 'not in scope', View.Style.Info);
-                }
+                // const result = Emacs.parseWhyInScope(response.payload);
+                // if (result) {
+                //     const range = new Range(
+                //         [result.range.intervals[0].start[0], result.range.intervals[0].start[1]],
+                //         [result.range.intervals[0].end[0], result.range.intervals[0].end[1]]
+                //     );
+                //     core.editor.jumpToRange(range, result.range.source);
+                // } else {
+                //     core.view.set('Go to Definition', 'not in scope', View.Style.Info);
+                // }
             } else {
                 core.view.set('Scope Info', response.payload, View.Style.Info);
             }
@@ -225,16 +224,16 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             break;
         case 'WhyInScope':
             if (core.commander.currentCommand.kind === "GotoDefinition") {
-                const result = Emacs.parseWhyInScope(info.payload);
-                if (result) {
-                    const range = new Range(
-                        [result.range.intervals[0].start[0], result.range.intervals[0].start[1]],
-                        [result.range.intervals[0].end[0], result.range.intervals[0].end[1]]
-                    );
-                    core.editor.jumpToRange(range, result.range.source);
-                } else {
-                    core.view.set('Go to Definition', 'not in scope', View.Style.Info);
-                }
+                // const result = Emacs.parseWhyInScope(info.payload);
+                // if (result) {
+                //     const range = new Range(
+                //         [result.range.intervals[0].start[0], result.range.intervals[0].start[1]],
+                //         [result.range.intervals[0].end[0], result.range.intervals[0].end[1]]
+                //     );
+                //     core.editor.jumpToRange(range, result.range.source);
+                // } else {
+                //     core.view.set('Go to Definition', 'not in scope', View.Style.Info);
+                // }
             } else {
                 core.view.set('Scope Info', info.payload, View.Style.Info);
             }

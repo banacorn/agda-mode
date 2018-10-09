@@ -1,4 +1,3 @@
-import { EmacsAgdaError } from '../parser/emacs/error';
 import { Agda, Conn } from '../type';
 
 export interface Parsed<T> {
@@ -98,7 +97,7 @@ export interface BodyState {
         goalTypeContext: string;
         constraints: string;
         solutions: string;
-        error: EmacsAgdaError;
+        error: string;
         message: string;
     }
     maxBodyHeight: number;

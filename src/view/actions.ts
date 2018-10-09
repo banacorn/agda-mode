@@ -1,6 +1,5 @@
 import { createAction } from 'redux-actions';
 import { Agda, View, Conn } from '../type';
-import { EmacsAgdaError } from '../parser/emacs';
 
 export namespace EVENT {
     export const JUMP_TO_GOAL = 'EVENT.JUMP_TO_GOAL';
@@ -180,7 +179,7 @@ export namespace BODY {
     export const UPDATE_EMACS_SOLUTIONS = 'BODY.UPDATE_EMACS_SOLUTIONS';
     export type UPDATE_EMACS_SOLUTIONS = string;
     export const UPDATE_EMACS_ERROR = 'BODY.UPDATE_EMACS_ERROR';
-    export type UPDATE_EMACS_ERROR = EmacsAgdaError;
+    export type UPDATE_EMACS_ERROR = string;
     export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
     export type UPDATE_ERROR = [object, string];
     export const UPDATE_PLAIN_TEXT = 'BODY.UPDATE_PLAIN_TEXT';
