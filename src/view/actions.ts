@@ -164,6 +164,7 @@ export namespace QUERY {
 
 export type BODY = BODY.UPDATE_All_GOALS_WARNINGS
     | BODY.UPDATE_EMACS_All_GOALS_WARNINGS
+    | BODY.UPDATE_EMACS_CONSTRAINTS
     | BODY.UPDATE_EMACS_ERROR
     | BODY.UPDATE_ERROR
     | BODY.UPDATE_SOLUTIONS
@@ -176,6 +177,8 @@ export namespace BODY {
     export type UPDATE_EMACS_All_GOALS_WARNINGS = [string, string];
     export const UPDATE_EMACS_GOAL_TYPE_CONTEXT = 'BODY.UPDATE_EMACS_GOAL_TYPE_CONTEXT';
     export type UPDATE_EMACS_GOAL_TYPE_CONTEXT = string;
+    export const UPDATE_EMACS_CONSTRAINTS = 'BODY.UPDATE_EMACS_CONSTRAINTS';
+    export type UPDATE_EMACS_CONSTRAINTS = string;
     export const UPDATE_EMACS_ERROR = 'BODY.UPDATE_EMACS_ERROR';
     export type UPDATE_EMACS_ERROR = EmacsAgdaError;
     export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
@@ -191,6 +194,7 @@ export namespace BODY {
 export const updateAllGoalsWarnings = createAction<BODY.UPDATE_All_GOALS_WARNINGS>(BODY.UPDATE_All_GOALS_WARNINGS);
 export const updateEmacsAllGoalsWarnings = createAction<BODY.UPDATE_EMACS_All_GOALS_WARNINGS>(BODY.UPDATE_EMACS_All_GOALS_WARNINGS);
 export const updateEmacsGoalTypeContext = createAction<BODY.UPDATE_EMACS_GOAL_TYPE_CONTEXT>(BODY.UPDATE_EMACS_GOAL_TYPE_CONTEXT);
+export const updateEmacsConstraints = createAction<BODY.UPDATE_EMACS_CONSTRAINTS>(BODY.UPDATE_EMACS_CONSTRAINTS);
 export const updateEmacsError = createAction<BODY.UPDATE_EMACS_ERROR>(BODY.UPDATE_EMACS_ERROR);
 export const updateError = createAction<BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
 export const updateSolutions = createAction<BODY.UPDATE_SOLUTIONS>(BODY.UPDATE_SOLUTIONS);

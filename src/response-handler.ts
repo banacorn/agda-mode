@@ -148,7 +148,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.set('CompilationOk', response.emacsMessage, View.Style.Info);
             break;
         case 'Constraints':
-            core.view.set('Constraints', response.constraints, View.Style.Info);
+            core.view.setEmacsConstraints(response.constraints);
             break;
         case 'AllGoalsWarnings':
             core.view.setEmacsAllGoalsWarnings(response.emacsTitle, response.emacsMessage);

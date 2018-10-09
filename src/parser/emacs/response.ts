@@ -190,7 +190,7 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
         case '*Constraints*':
             return {
                 kind: 'Constraints',
-                constraints: ""
+                constraints: payload === 'nil' ? '' : payload
             };
         case '*Helper function*':
             return {

@@ -404,6 +404,18 @@ export default class View {
         this.store.dispatch(Action.updateEmacsGoalTypeContext(goalTypeContext));
     }
 
+    setEmacsConstraints(constraints: string) {
+        this.store.dispatch(Action.MODE.display());
+        this.editors.focusMain()
+
+        this.store.dispatch(Action.HEADER.update({
+            text: 'Constraints',
+            style: V.Style.Info
+        }));
+
+        this.store.dispatch(Action.updateEmacsConstraints(constraints));
+    }
+
     setSolutions(solutions: V.Solutions) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain();

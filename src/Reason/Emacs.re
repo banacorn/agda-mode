@@ -262,4 +262,9 @@ module Parser = {
         |> parseArray(hiddenMeta);
       {goal, have, interactionMetas, hiddenMetas};
     };
+  let constraints: string => array(hiddenMeta) =
+    body => {
+      let shitpile = body |> Js.String.split("\n") |> unindent;
+      shitpile |> parseArray(hiddenMeta);
+    };
 };
