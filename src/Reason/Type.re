@@ -655,6 +655,7 @@ module Interaction = {
       interactionMetas: array(output),
       hiddenMetas: array(output),
     };
+    /* type autoResult = {} */
   };
   type outputConstraint('a, 'b) =
     | OfType('b, 'a)

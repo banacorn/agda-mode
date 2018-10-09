@@ -187,36 +187,6 @@ export default class View {
         this.emitter.on(EVENT.MOUSE_OUT, (range: Atom.Range, source: string) => {
             this.core.editor.mouseOut();
         });
-        this.emitter.on(EVENT.FILL_IN_SIMPLE_SOLUTION, (solution: string) => {
-            this.core.editor.goal.pointing()
-                .then(goal => {
-                    goal.setContent(solution);
-                    this.core.commander.dispatch({ kind: 'Give' });
-                })
-                .catch(OutOfGoalError, () => {
-                    this.core.view.set('Out of goal', 'Please place the cursor in the goal before filling in the solution', V.Style.Error);
-                    return []
-                })
-        });
-
-        this.emitter.on(EVENT.FILL_IN_INDEXED_SOLUTIONS, (solutions: {
-            goalIndex: number;
-            expr: string;
-        }[]) => {
-            const thunks = solutions.map(({goalIndex, expr}) => () => {
-                this.core.editor.goal.find(goalIndex).setContent(expr);
-                this.core.editor.goal.find(goalIndex).selectContent();
-                return this.core.commander.dispatch({ kind: 'Give' });
-            });
-
-            Promise.each(thunks, thunk => {
-                // invoke the thunk
-                return thunk()
-            }).then(() => {
-                // Load after Giving all solutions
-                return this.core.commander.dispatch({ kind: 'Load' });
-            })
-        });
 
         // the event emitter garbage collector
         this.subscriptions = new CompositeDisposable;
@@ -416,7 +386,7 @@ export default class View {
         this.store.dispatch(Action.updateEmacsConstraints(constraints));
     }
 
-    setEmacsSolutions(solutions: V.Solutions) {
+    setEmacsSolutions(solutions: string) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain();
 

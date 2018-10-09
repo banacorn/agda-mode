@@ -7,8 +7,6 @@ export namespace EVENT {
     export const MOUSE_OVER = 'EVENT.MOUSE_OVER';
     export const MOUSE_OUT = 'EVENT.MOUSE_OUT';
     export const JUMP_TO_RANGE = 'EVENT.JUMP_TO_RANGE';
-    export const FILL_IN_SIMPLE_SOLUTION = 'EVENT.FILL_IN_SIMPLE_SOLUTION';
-    export const FILL_IN_INDEXED_SOLUTIONS = 'EVENT.FILL_IN_INDEXED_SOLUTIONS';
 }
 
 export type VIEW
@@ -180,7 +178,7 @@ export namespace BODY {
     export const UPDATE_EMACS_CONSTRAINTS = 'BODY.UPDATE_EMACS_CONSTRAINTS';
     export type UPDATE_EMACS_CONSTRAINTS = string;
     export const UPDATE_EMACS_SOLUTIONS = 'BODY.UPDATE_EMACS_SOLUTIONS';
-    export type UPDATE_EMACS_SOLUTIONS = View.Solutions;
+    export type UPDATE_EMACS_SOLUTIONS = string;
     export const UPDATE_EMACS_ERROR = 'BODY.UPDATE_EMACS_ERROR';
     export type UPDATE_EMACS_ERROR = EmacsAgdaError;
     export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';

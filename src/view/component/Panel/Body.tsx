@@ -6,7 +6,6 @@ import { View } from '../../../type';
 import V from '../../../view';
 import { updateMaxBodyHeight, EVENT } from '../../actions';
 import EmacsError from './EmacsMetas/EmacsError';
-import Solution from './EmacsMetas/Solution';
 
 var Error = require('./../../../Reason/View/TypeChecking/Error.bs').jsComponent;
 var AllGoalsWarnings = require('./../../../Reason/View/TypeChecking/AllGoalsWarnings.bs').jsComponent;
@@ -123,12 +122,14 @@ class Body extends React.Component<Props, {}> {
                                     emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
                                     break;
                             }
-                        }} />
+                         }} />
                     )}</V.EventContext.Consumer>}
-
-                {emacs.solutions.message &&
-                    <Solution solutions={emacs.solutions} />
+                {emacs.solutions &&
+                      <section className="metas">
+                        <p> {emacs.solutions} </p>
+                      </section>
                 }
+                {emacs.error && <EmacsError>{emacs.error}</EmacsError>}
                 {error &&
                     <V.EventContext.Consumer>{emitter => (
                         <Error error={error} emacsMessage={emacs.message} emit={(ev, range) => {
@@ -145,7 +146,6 @@ class Body extends React.Component<Props, {}> {
                             }
                         }} />
                     )}</V.EventContext.Consumer>}
-                {emacs.error && <EmacsError>{emacs.error}</EmacsError>}
                 {plainText && <p>{plainText}</p>}
             </section>
         )

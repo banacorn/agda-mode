@@ -25,78 +25,6 @@ module Parser = {
            |> String.concat("\n")
          );
     };
-  type allGoalsWarningsPreprocess = {
-    metas: array(string),
-    warnings: array(string),
-    errors: array(string),
-  };
-  let allGoalsWarningsPreprocess:
-    (string, string) => allGoalsWarningsPreprocess =
-    (title, body) => {
-      let shitpile = body |> Js.String.split("\n") |> unindent;
-      let hasMetas =
-        title |> Js.String.match([%re "/Goals/"]) |> Js.Option.isSome;
-      let hasWarnings =
-        title |> Js.String.match([%re "/Warnings/"]) |> Js.Option.isSome;
-      let hasErrors =
-        title |> Js.String.match([%re "/Errors/"]) |> Js.Option.isSome;
-      let indexOfWarnings =
-        shitpile
-        |> Js.Array.findIndex(s =>
-             s
-             |> Js.String.slice(~from=5, ~to_=13)
-             |> Js.String.match([%re "/Warnings/"])
-             |> Js.Option.isSome
-           );
-      let indexOfErrors =
-        shitpile
-        |> Js.Array.findIndex(s =>
-             s
-             |> Js.String.slice(~from=5, ~to_=11)
-             |> Js.String.match([%re "/Errors/"])
-             |> Js.Option.isSome
-           );
-      switch (hasMetas, hasWarnings, hasErrors) {
-      | (true, true, true) => {
-          metas: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfWarnings),
-          warnings:
-            shitpile
-            |> Js.Array.slice(~start=indexOfWarnings + 1, ~end_=indexOfErrors),
-          errors: shitpile |> Js.Array.sliceFrom(indexOfErrors + 1),
-        }
-      | (true, true, false) => {
-          metas: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfWarnings),
-          warnings: shitpile |> Js.Array.sliceFrom(indexOfWarnings + 1),
-          errors: [||],
-        }
-      | (true, false, true) => {
-          metas: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfErrors),
-          warnings: [||],
-          errors: shitpile |> Js.Array.sliceFrom(indexOfErrors + 1),
-        }
-      | (true, false, false) => {
-          metas: shitpile,
-          warnings: [||],
-          errors: [||],
-        }
-      | (false, true, true) => {
-          metas: [||],
-          warnings: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfErrors),
-          errors: shitpile |> Js.Array.sliceFrom(indexOfErrors + 1),
-        }
-      | (false, true, false) => {
-          metas: [||],
-          warnings: shitpile,
-          errors: [||],
-        }
-      | (false, false, true) => {
-          metas: [||],
-          warnings: [||],
-          errors: shitpile,
-        }
-      | (false, false, false) => {metas: [||], warnings: [||], errors: [||]}
-      };
-    };
   let filepath =
     String(
       raw => {
@@ -169,42 +97,56 @@ module Parser = {
       OutputConstraint.justSort,
       OutputConstraint.others,
     |]);
-  let outputWithoutRange: parser(output) =
-    String(
-      raw => raw |> parse(outputConstraint) |> map(x => Output(x, None)),
-    );
-  let outputWithRange: parser(output) =
-    Regex(
-      [%re
-        "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
-      ],
-      captured =>
-        captured[1]
-        |> bind(raw => {
-             open Type.Syntax.Position;
-             let getWithDefault = Js.Option.getWithDefault;
-             let rowStart =
-               getWithDefault(getWithDefault("0", captured[7]), captured[3])
-               |> int_of_string;
-             let rowEnd =
-               getWithDefault(getWithDefault("0", captured[7]), captured[5])
-               |> int_of_string;
-             let colStart =
-               getWithDefault(getWithDefault("0", captured[8]), captured[4])
-               |> int_of_string;
-             let colEnd =
-               getWithDefault(getWithDefault("0", captured[9]), captured[6])
-               |> int_of_string;
-             let start = {pos: None, line: rowStart, col: colStart};
-             let end_ = {pos: None, line: rowEnd, col: colEnd};
-             raw
-             |> parse(outputConstraint)
-             |> map(parsed => {
-                  let path = captured |> at(2, filepath);
-                  Output(parsed, Some(Range(path, [{start, end_}])));
-                });
-           }),
-    );
+  module Output = {
+    let outputWithoutRange: parser(output) =
+      String(
+        raw => raw |> parse(outputConstraint) |> map(x => Output(x, None)),
+      );
+    let outputWithRange: parser(output) =
+      Regex(
+        [%re
+          "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
+        ],
+        captured =>
+          captured[1]
+          |> bind(raw => {
+               open Type.Syntax.Position;
+               let getWithDefault = Js.Option.getWithDefault;
+               let rowStart =
+                 getWithDefault(
+                   getWithDefault("0", captured[7]),
+                   captured[3],
+                 )
+                 |> int_of_string;
+               let rowEnd =
+                 getWithDefault(
+                   getWithDefault("0", captured[7]),
+                   captured[5],
+                 )
+                 |> int_of_string;
+               let colStart =
+                 getWithDefault(
+                   getWithDefault("0", captured[8]),
+                   captured[4],
+                 )
+                 |> int_of_string;
+               let colEnd =
+                 getWithDefault(
+                   getWithDefault("0", captured[9]),
+                   captured[6],
+                 )
+                 |> int_of_string;
+               let start = {pos: None, line: rowStart, col: colStart};
+               let end_ = {pos: None, line: rowEnd, col: colEnd};
+               raw
+               |> parse(outputConstraint)
+               |> map(parsed => {
+                    let path = captured |> at(2, filepath);
+                    Output(parsed, Some(Range(path, [{start, end_}])));
+                  });
+             }),
+      );
+  };
   let output: parser(output) =
     String(
       raw => {
@@ -213,27 +155,109 @@ module Parser = {
         ];
         let hasRange = Js.Re.test(raw, rangeRe);
         if (hasRange) {
-          raw |> parse(outputWithRange);
+          raw |> parse(Output.outputWithRange);
         } else {
-          raw |> parse(outputWithoutRange);
+          raw |> parse(Output.outputWithoutRange);
         };
       },
     );
+  type allGoalsWarningsPreprocess = {
+    metas: array(string),
+    warnings: array(string),
+    errors: array(string),
+  };
   let allGoalsWarnings = (title, body) : allGoalsWarnings => {
+    let allGoalsWarningsPreprocess:
+      (string, string) => allGoalsWarningsPreprocess =
+      (title, body) => {
+        let shitpile = body |> Js.String.split("\n") |> unindent;
+        let hasMetas =
+          title |> Js.String.match([%re "/Goals/"]) |> Js.Option.isSome;
+        let hasWarnings =
+          title |> Js.String.match([%re "/Warnings/"]) |> Js.Option.isSome;
+        let hasErrors =
+          title |> Js.String.match([%re "/Errors/"]) |> Js.Option.isSome;
+        let indexOfWarnings =
+          shitpile
+          |> Js.Array.findIndex(s =>
+               s
+               |> Js.String.slice(~from=5, ~to_=13)
+               |> Js.String.match([%re "/Warnings/"])
+               |> Js.Option.isSome
+             );
+        let indexOfErrors =
+          shitpile
+          |> Js.Array.findIndex(s =>
+               s
+               |> Js.String.slice(~from=5, ~to_=11)
+               |> Js.String.match([%re "/Errors/"])
+               |> Js.Option.isSome
+             );
+        switch (hasMetas, hasWarnings, hasErrors) {
+        | (true, true, true) => {
+            metas:
+              shitpile |> Js.Array.slice(~start=0, ~end_=indexOfWarnings),
+            warnings:
+              shitpile
+              |> Js.Array.slice(
+                   ~start=indexOfWarnings + 1,
+                   ~end_=indexOfErrors,
+                 ),
+            errors: shitpile |> Js.Array.sliceFrom(indexOfErrors + 1),
+          }
+        | (true, true, false) => {
+            metas:
+              shitpile |> Js.Array.slice(~start=0, ~end_=indexOfWarnings),
+            warnings: shitpile |> Js.Array.sliceFrom(indexOfWarnings + 1),
+            errors: [||],
+          }
+        | (true, false, true) => {
+            metas: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfErrors),
+            warnings: [||],
+            errors: shitpile |> Js.Array.sliceFrom(indexOfErrors + 1),
+          }
+        | (true, false, false) => {
+            metas: shitpile,
+            warnings: [||],
+            errors: [||],
+          }
+        | (false, true, true) => {
+            metas: [||],
+            warnings:
+              shitpile |> Js.Array.slice(~start=0, ~end_=indexOfErrors),
+            errors: shitpile |> Js.Array.sliceFrom(indexOfErrors + 1),
+          }
+        | (false, true, false) => {
+            metas: [||],
+            warnings: shitpile,
+            errors: [||],
+          }
+        | (false, false, true) => {
+            metas: [||],
+            warnings: [||],
+            errors: shitpile,
+          }
+        | (false, false, false) => {
+            metas: [||],
+            warnings: [||],
+            errors: [||],
+          }
+        };
+      };
     let preprocessed = allGoalsWarningsPreprocess(title, body);
     let indexOfHiddenMetas =
       preprocessed.metas
       |> Js.Array.findIndex(s =>
-           s |> parse(outputWithRange) |> Js.Option.isSome
+           s |> parse(Output.outputWithRange) |> Js.Option.isSome
          );
     let interactionMetas =
       preprocessed.metas
       |> Js.Array.slice(~start=0, ~end_=indexOfHiddenMetas)
-      |> parseArray(outputWithoutRange);
+      |> parseArray(Output.outputWithoutRange);
     let hiddenMetas =
       preprocessed.metas
       |> Js.Array.sliceFrom(indexOfHiddenMetas)
-      |> parseArray(outputWithRange);
+      |> parseArray(Output.outputWithRange);
     {
       interactionMetas,
       hiddenMetas,
@@ -271,11 +295,11 @@ module Parser = {
       let interactionMetas =
         shitpile
         |> Js.Array.sliceFrom(indexOfDelimeter + 1)
-        |> parseArray(outputWithoutRange);
+        |> parseArray(Output.outputWithoutRange);
       let hiddenMetas =
         shitpile
         |> Js.Array.sliceFrom(indexOfDelimeter + 1)
-        |> parseArray(outputWithRange);
+        |> parseArray(Output.outputWithRange);
       {goal, have, interactionMetas, hiddenMetas};
     };
   let constraints: string => array(output) =

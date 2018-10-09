@@ -52,11 +52,7 @@ const defaultState: View.State = {
             allGoalsWarnings: ['', ''],
             goalTypeContext: '',
             constraints: '',
-            solutions: {
-                kind: 'SimpleSolutions',
-                message: '',
-                solutions: []
-            },
+            solutions: '',
             error: null,
             message: '',
         },

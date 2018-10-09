@@ -268,91 +268,6 @@ function parseWhyInScope(raws: string): Agda.WhyInScope {
     }
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-//  Parsing Solutions
-////////////////////////////////////////////////////////////////////////////////
-
-function parseSolutions(raw: string[]): View.Solutions {
-    // examine the first line and see if it's simple or indexed
-        // SimpleSolutions:   0  s
-        // IndexedSolutions:  1  ?0 := ℕ ?1 := y
-    const test = /(\d+)\s+(?:(\?.*)|(.*))/;
-
-    if (raw.length > 1) {
-        const result = raw[1].match(test);
-        if (result) {
-            if (result[2]) {
-                return parseIndexedSolutions(raw[0], _.tail(raw));
-            } else if (result[3]) {
-                return parseSimpleSolutions(raw[0], _.tail(raw));
-            }
-        }
-    } else {
-        return {
-            kind: 'SimpleSolutions',
-            message: raw[0],
-            solutions: []
-        }
-    }
-}
-
-function stripPrefixIndex(raw: string) {
-    const regex = /(\d+)\s+(.*)/;
-    const result = raw.match(regex);
-    if (result) {
-        return {
-            index: parseInt(result[1]),
-            expr: result[2]
-        };
-    } else {
-        return {
-            index: -1,
-            expr: ''
-        }
-    }
-}
-
-function parseSimpleSolutions(message: string, raw: string[]): View.SimpleSolutions {
-    const solutions = raw.map(stripPrefixIndex)
-    return {
-        kind: 'SimpleSolutions',
-        message,
-        solutions
-    };
-}
-
-// parsing combination of solutions such as "?0 := ℕ ?1 := y"
-function parseIndexedSolutions(message: string, raw: string[]): View.IndexedSolutions {
-    const segmentRegex = /\?(\d+)/g;
-    const exprRegex = /\?(\d+)\s+\:\=\s+(.*)/;
-    const solutions = raw.map(stripPrefixIndex)
-        .map(({ index, expr }) => {
-            const matches = expr.match(segmentRegex);
-            if (matches) {
-                const indices = matches.map(match => expr.indexOf(match))
-                const combination = indices.map((start, i) => {
-                    const end = indices[i + 1];
-                    const result = expr.substring(start, end).match(exprRegex);
-                    if (result) {
-                        const goalIndex = parseInt(result[1]);
-                        const expr = result[2];
-                        return { goalIndex, expr };
-                    }
-                });
-                return { index, combination }
-            } else {
-                return { index, combination: [] };
-            }
-        });
-    return {
-        kind: 'IndexedSolutions',
-        message,
-        solutions
-    };
-}
-
-
 ////////////////////////////////////////////////////////////////////////////////
 //  Parsing S-Expressions
 ////////////////////////////////////////////////////////////////////////////////
@@ -424,7 +339,6 @@ function preprocess(chunk: string): string {
 }
 
 export {
-    parseSolutions,
     parseResponse,
     parseResponses,
     prioritiseResponses,

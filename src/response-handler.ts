@@ -158,8 +158,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.setEmacsAgdaError(error);
             break;
         case 'Auto':
-            let solutions = Emacs.parseSolutions(response.payload.split('\n'));
-            core.view.setSolutions(solutions);
+            core.view.setEmacsSolutions(response.payload);
             break;
         case 'ModuleContents':
             core.view.set('Module Contents', response.payload, View.Style.Info);
@@ -222,8 +221,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.setAgdaError(info.error, info.emacsMessage);
             break;
         case 'Auto':
-            let solutions = Emacs.parseSolutions(info.payload.split('\n'));
-            core.view.setSolutions(solutions);
+            core.view.setEmacsSolutions(info.payload);
             break;
         case 'WhyInScope':
             if (core.commander.currentCommand.kind === "GotoDefinition") {

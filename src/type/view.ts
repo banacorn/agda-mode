@@ -97,7 +97,7 @@ export interface BodyState {
         allGoalsWarnings: [string, string];
         goalTypeContext: string;
         constraints: string;
-        solutions: Solutions;
+        solutions: string;
         error: EmacsAgdaError;
         message: string;
     }
@@ -108,70 +108,3 @@ export type SettingsURI = {
     path: '/' | '/Connection' | '/Protocol' | '/Protocol/*';
     param?: number;
 };
-
-////////////////////////////////////////////
-// Solutions
-////////////////////////////////////////////
-
-export type Solutions = SimpleSolutions | IndexedSolutions;
-export type SimpleSolutions = {
-    kind: 'SimpleSolutions';
-    message: string,
-    solutions: {
-        index: number;
-        expr: string;
-    }[];
-}
-export type IndexedSolutions = {
-    kind: 'IndexedSolutions';
-    message: string,
-    solutions: {
-        index: number;
-        combination: {
-            goalIndex: number;
-            expr: string;
-        }[];
-    }[];
-}
-
-////////////////////////////////////////////
-// Expressions components
-////////////////////////////////////////////
-
-export type Expr = Goal | Judgement | Term | Meta | Sort;
-export type ExprKind = 'goal' |
-    'type judgement' |
-    'meta' |
-    'term' |
-    'sort' ;
-
-export interface Goal {
-    judgementForm: ExprKind,
-    type: string;
-    index: string;
-}
-
-export interface Judgement {
-    judgementForm: ExprKind,
-    type: string;
-    expr: string;
-    index?: string;
-}
-
-export interface Term {
-    judgementForm: ExprKind;
-    expr: string;
-}
-
-export interface Meta {
-    judgementForm: ExprKind;
-    type: string;
-    range: Agda.Range;
-    index: string;
-}
-
-export interface Sort {
-    judgementForm: ExprKind;
-    range: Agda.Range;
-    index: string;
-}
