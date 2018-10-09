@@ -69,28 +69,28 @@ module Have = {
   };
 };
 
-module InteractionMeta = {
+module Output = {
   let component = ReasonReact.statelessComponent("EmacsInteractionMeta");
-  let make = (~value: interactionMeta, _children) => {
+  let make = (~value: output, _children) => {
     ...component,
     render: _self => {
-      let InteractionMeta(oc) = value;
+      let Output(oc, _r) = value;
       <OutputConstraint value=oc />;
     },
   };
 };
 
-module HiddenMeta = {
-  let component = ReasonReact.statelessComponent("EmacsHiddenMeta");
-  let make = (~value: hiddenMeta, _children) => {
-    ...component,
-    render: _self => {
-      let HiddenMeta(oc, _range) = value;
-      <OutputConstraint value=oc />;
-    },
-  };
-};
-
+/*
+ module HiddenMeta = {
+   let component = ReasonReact.statelessComponent("EmacsHiddenMeta");
+   let make = (~value: hiddenMeta, _children) => {
+     ...component,
+     render: _self => {
+       let HiddenMeta(oc, _range) = value;
+       <OutputConstraint value=oc />;
+     },
+   };
+ }; */
 module RawError = {
   let component = ReasonReact.statelessComponent("EmacsRawError");
   let make = (~value: array(string), _children) => {

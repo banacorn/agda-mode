@@ -13,7 +13,7 @@ let make = (~constraints: string, ~emit, _children) => {
     let parsed = Emacs.Parser.constraints(constraints);
     <Context.Emitter.Provider value=emit>
       <section className="metas">
-        <ul> ...(parsed |> Array.map(value => <HiddenMeta value />)) </ul>
+        <ul> ...(parsed |> Array.map(value => <Output value />)) </ul>
       </section>
     </Context.Emitter.Provider>;
   },

@@ -169,11 +169,11 @@ module Parser = {
       OutputConstraint.justSort,
       OutputConstraint.others,
     |]);
-  let interactionMeta: parser(interactionMeta) =
+  let outputWithoutRange: parser(output) =
     String(
-      raw => raw |> parse(outputConstraint) |> map(x => InteractionMeta(x)),
+      raw => raw |> parse(outputConstraint) |> map(x => Output(x, None)),
     );
-  let hiddenMeta: parser(hiddenMeta) =
+  let outputWithRange: parser(output) =
     Regex(
       [%re
         "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
@@ -201,23 +201,39 @@ module Parser = {
              |> parse(outputConstraint)
              |> map(parsed => {
                   let path = captured |> at(2, filepath);
-                  HiddenMeta(parsed, Range(path, [{start, end_}]));
+                  Output(parsed, Some(Range(path, [{start, end_}])));
                 });
            }),
+    );
+  let output: parser(output) =
+    String(
+      raw => {
+        let rangeRe = [%re
+          "/\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]$/"
+        ];
+        let hasRange = Js.Re.test(raw, rangeRe);
+        if (hasRange) {
+          raw |> parse(outputWithRange);
+        } else {
+          raw |> parse(outputWithoutRange);
+        };
+      },
     );
   let allGoalsWarnings = (title, body) : allGoalsWarnings => {
     let preprocessed = allGoalsWarningsPreprocess(title, body);
     let indexOfHiddenMetas =
       preprocessed.metas
-      |> Js.Array.findIndex(s => s |> parse(hiddenMeta) |> Js.Option.isSome);
+      |> Js.Array.findIndex(s =>
+           s |> parse(outputWithRange) |> Js.Option.isSome
+         );
     let interactionMetas =
       preprocessed.metas
       |> Js.Array.slice(~start=0, ~end_=indexOfHiddenMetas)
-      |> parseArray(interactionMeta);
+      |> parseArray(outputWithoutRange);
     let hiddenMetas =
       preprocessed.metas
       |> Js.Array.sliceFrom(indexOfHiddenMetas)
-      |> parseArray(hiddenMeta);
+      |> parseArray(outputWithRange);
     {
       interactionMetas,
       hiddenMetas,
@@ -255,16 +271,16 @@ module Parser = {
       let interactionMetas =
         shitpile
         |> Js.Array.sliceFrom(indexOfDelimeter + 1)
-        |> parseArray(interactionMeta);
+        |> parseArray(outputWithoutRange);
       let hiddenMetas =
         shitpile
         |> Js.Array.sliceFrom(indexOfDelimeter + 1)
-        |> parseArray(hiddenMeta);
+        |> parseArray(outputWithRange);
       {goal, have, interactionMetas, hiddenMetas};
     };
-  let constraints: string => array(hiddenMeta) =
+  let constraints: string => array(output) =
     body => {
       let shitpile = body |> Js.String.split("\n") |> unindent;
-      shitpile |> parseArray(hiddenMeta);
+      shitpile |> parseArray(output);
     };
 };

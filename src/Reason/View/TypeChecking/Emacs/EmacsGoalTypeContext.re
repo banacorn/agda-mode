@@ -23,13 +23,10 @@ let make = (~goalTypeContext: string, ~emit, _children) => {
           )
         </ul>
         <ul>
-          ...(
-               parsed.interactionMetas
-               |> Array.map(value => <InteractionMeta value />)
-             )
+          ...(parsed.interactionMetas |> Array.map(value => <Output value />))
         </ul>
         <ul>
-          ...(parsed.hiddenMetas |> Array.map(value => <HiddenMeta value />))
+          ...(parsed.hiddenMetas |> Array.map(value => <Output value />))
         </ul>
       </section>
     </Context.Emitter.Provider>;

@@ -641,21 +641,19 @@ module Interaction = {
       | Goal(expr);
     type have =
       | Have(expr);
-    type interactionMeta =
-      | InteractionMeta(outputConstraint);
-    type hiddenMeta =
-      | HiddenMeta(outputConstraint, Syntax.Position.range);
+    type output =
+      | Output(outputConstraint, option(Syntax.Position.range));
     type allGoalsWarnings = {
-      interactionMetas: array(interactionMeta),
-      hiddenMetas: array(hiddenMeta),
+      interactionMetas: array(output),
+      hiddenMetas: array(output),
       warnings: array(string),
       errors: array(string),
     };
     type goalTypeContext = {
       goal: option(goal),
       have: option(have),
-      interactionMetas: array(interactionMeta),
-      hiddenMetas: array(hiddenMeta),
+      interactionMetas: array(output),
+      hiddenMetas: array(output),
     };
   };
   type outputConstraint('a, 'b) =

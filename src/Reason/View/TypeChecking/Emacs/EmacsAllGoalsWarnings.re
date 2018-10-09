@@ -13,13 +13,10 @@ let make = (~header: string, ~allGoalsWarnings: string, ~emit, _children) => {
     <Context.Emitter.Provider value=emit>
       <section className="metas">
         <ul>
-          ...(
-               parsed.interactionMetas
-               |> Array.map(value => <InteractionMeta value />)
-             )
+          ...(parsed.interactionMetas |> Array.map(value => <Output value />))
         </ul>
         <ul>
-          ...(parsed.hiddenMetas |> Array.map(value => <HiddenMeta value />))
+          ...(parsed.hiddenMetas |> Array.map(value => <Output value />))
         </ul>
         <RawError value=parsed.warnings />
         <RawError value=parsed.errors />
