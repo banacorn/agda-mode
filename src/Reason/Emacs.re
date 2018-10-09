@@ -121,8 +121,8 @@ module Parser = {
       raw =>
         raw
         |> Js.String.trim
-        /*                            1         2         */
-        |> Js.String.splitByRe([%re "/(\\?\\d+)|(\\_[^\\.][^\\}\\)\\s]*)/"])
+        /*                            1         2                        */
+        |> Js.String.splitByRe([%re "/(\\?\\d+)|(\\_\\d+[^\\}\\)\\s]*)/"])
         |> (
           tokens =>
             tokens
@@ -207,8 +207,17 @@ module Parser = {
     );
   let allGoalsWarnings = (title, body) : allGoalsWarnings => {
     let preprocessed = allGoalsWarningsPreprocess(title, body);
-    let interactionMetas = preprocessed.metas |> parseArray(interactionMeta);
-    let hiddenMetas = preprocessed.metas |> parseArray(hiddenMeta);
+    let indexOfHiddenMetas =
+      preprocessed.metas
+      |> Js.Array.findIndex(s => s |> parse(hiddenMeta) |> Js.Option.isSome);
+    let interactionMetas =
+      preprocessed.metas
+      |> Js.Array.slice(~start=0, ~end_=indexOfHiddenMetas)
+      |> parseArray(interactionMeta);
+    let hiddenMetas =
+      preprocessed.metas
+      |> Js.Array.sliceFrom(indexOfHiddenMetas)
+      |> parseArray(hiddenMeta);
     {
       interactionMetas,
       hiddenMetas,
