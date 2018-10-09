@@ -5,18 +5,25 @@ import * as classNames from 'classnames';
 import { Core } from '../../core';
 import InputMethod from './Panel/InputMethod';
 import Header from './Panel/Header';
-import Body from './Panel/Body';
 import SizingHandle from './Panel/SizingHandle';
 import { View } from '../../type';
+import V from '../../view';
 import MiniEditor from './MiniEditor';
-import { MODE, updateMaxBodyHeight, QUERY } from './../actions';
+import { MODE, updateMaxBodyHeight, QUERY, EVENT } from './../actions';
+
+
+var JSONBody = require('./../../Reason/View/JSON/Body.bs').jsComponent;
+var { toAtomRange, toAtomFilepath } = require('./../../Reason/View/Syntax/Range.bs');
 
 //
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
 }
-type InjProps = View.State;
+type InjProps = View.State & {
+    mountAtBottom: boolean;
+};
 type DispatchProps = {
+    onMaxBodyHeightChange: (count: number) => void;
     deactivateMiniEditor: () => void;
     onResize: (offset: number) => void;
     handelQueryValueChange: (value: string) => void;
@@ -24,11 +31,17 @@ type DispatchProps = {
 type Props = OwnProps & InjProps & DispatchProps;
 
 function mapStateToProps(state: View.State): InjProps {
-    return state
+    return {
+        mountAtBottom: state.view.mountAt.current === View.MountingPosition.Bottom,
+        ...state,
+    }
 }
 
 function mapDispatchToProps(dispatch): DispatchProps {
     return {
+        onMaxBodyHeightChange: (count: number) => {
+            dispatch(updateMaxBodyHeight(count));
+        },
         deactivateMiniEditor: () => {
             dispatch(MODE.display());
         },
@@ -49,8 +62,15 @@ function show(kind: View.Mode, mode: View.Mode, ...classes): string {
 }
 
 class Panel extends React.Component<Props, {}> {
+
+    componentDidMount() {
+        atom.config.observe('agda-mode.maxBodyHeight', (newHeight) => {
+            this.props.onMaxBodyHeightChange(newHeight);
+        })
+    }
+
     render() {
-        const { core, mode, onResize } = this.props;
+        const { core, mode, body, onResize, mountAtBottom } = this.props;
         const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
         return (
@@ -82,10 +102,29 @@ class Panel extends React.Component<Props, {}> {
                     />
                 </section>
                 <section className='agda-body-container'>
-                    <Body
-                        className={show(View.Mode.Display, mode)}
-                        useJSON={core.connection.usesJSON()}
-                    />
+                    <V.EventContext.Consumer>{emitter => (
+                        <JSONBody
+                            raw={body.json}
+                            emacs={body.emacs}
+                            maxBodyHeight={body.maxBodyHeight}
+                            useJSON={core.connection.usesJSON()}
+                            hidden={View.Mode.Display !== mode}
+                            mountAtBottom={mountAtBottom}
+                            emit={(ev, range) => {
+                                switch (ev) {
+                                    case EVENT.JUMP_TO_RANGE:
+                                        emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
+                                        break;
+                                    case EVENT.MOUSE_OUT:
+                                        emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
+                                        break;
+                                    case EVENT.MOUSE_OVER:
+                                        emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
+                                        break;
+                                }
+                            }}
+                        />
+                    )}</V.EventContext.Consumer>
                     <MiniEditor
                         className={show(View.Mode.Query, mode)}
                         value={this.props.query.value}

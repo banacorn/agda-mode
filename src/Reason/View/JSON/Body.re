@@ -2,7 +2,17 @@ open ReasonReact;
 
 let component = ReasonReact.statelessComponent("JSONBody");
 
-let make = (~raw, ~emacs, ~useJSON, ~emit, _children) => {
+let make =
+    (
+      ~raw,
+      ~emacs,
+      ~maxBodyHeight,
+      ~useJSON,
+      ~hidden,
+      ~mountAtBottom,
+      ~emit,
+      _children,
+    ) => {
   ...component,
   render: _self => {
     let comp =
@@ -23,8 +33,21 @@ let make = (~raw, ~emacs, ~useJSON, ~emit, _children) => {
         | PlainText => <p> (string(body)) </p>
         };
       };
+    let className =
+      hidden ?
+        ["agda-body", "native-key-bindings", "hidden"] |> String.concat(" ") :
+        ["agda-body", "native-key-bindings"] |> String.concat(" ");
+    let style =
+      mountAtBottom ?
+        Some(
+          ReactDOMRe.Style.make(
+            ~maxHeight=string_of_int(maxBodyHeight) ++ "px",
+            (),
+          ),
+        ) :
+        None;
     <Context.Emitter.Provider value=emit>
-      <section className="agda-body"> comp </section>
+      <section className ?style tabIndex=(-1)> comp </section>
     </Context.Emitter.Provider>;
   },
 };
@@ -33,7 +56,10 @@ let make = (~raw, ~emacs, ~useJSON, ~emit, _children) => {
 type jsProps = {
   raw: Type.Interaction.bodyRaw,
   emacs: Type.Interaction.Emacs.bodyRaw,
+  maxBodyHeight: int,
+  hidden: bool,
   useJSON: bool,
+  mountAtBottom: bool,
   emit: (string, Type.Syntax.Position.range) => unit,
 };
 
@@ -42,7 +68,10 @@ let jsComponent =
     make(
       ~raw=rawGet(jsProps),
       ~emacs=emacsGet(jsProps),
+      ~maxBodyHeight=maxBodyHeightGet(jsProps),
+      ~hidden=hiddenGet(jsProps),
       ~useJSON=useJSONGet(jsProps),
+      ~mountAtBottom=mountAtBottomGet(jsProps),
       ~emit=emitGet(jsProps),
       [||],
     )
