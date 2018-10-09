@@ -90,3 +90,16 @@ module HiddenMeta = {
     },
   };
 };
+
+module RawError = {
+  let component = ReasonReact.statelessComponent("EmacsRawError");
+  let make = (~value: array(string), _children) => {
+    ...component,
+    render: _self =>
+      Array.length(value) === 0 ?
+        ReasonReact.null :
+        <p className="error">
+          (string(value |> Array.to_list |> String.concat("\n")))
+        </p>,
+  };
+};

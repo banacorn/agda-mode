@@ -21,6 +21,8 @@ let make = (~header: string, ~allGoalsWarnings: string, ~emit, _children) => {
         <ul>
           ...(parsed.hiddenMetas |> Array.map(value => <HiddenMeta value />))
         </ul>
+        <RawError value=parsed.warnings />
+        <RawError value=parsed.errors />
       </section>
     </Context.Emitter.Provider>;
   },

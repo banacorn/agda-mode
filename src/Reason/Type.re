@@ -648,8 +648,8 @@ module Interaction = {
     type allGoalsWarnings = {
       interactionMetas: array(interactionMeta),
       hiddenMetas: array(hiddenMeta),
-      warnings: string,
-      errors: string,
+      warnings: array(string),
+      errors: array(string),
     };
     type goalTypeContext = {
       goal: option(goal),

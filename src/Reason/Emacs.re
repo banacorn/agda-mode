@@ -120,6 +120,7 @@ module Parser = {
     String(
       raw =>
         raw
+        |> Js.String.trim
         /*                            1         2         */
         |> Js.String.splitByRe([%re "/(\\?\\d+)|(\\_[^\\.][^\\}\\)\\s]*)/"])
         |> (
@@ -211,8 +212,8 @@ module Parser = {
     {
       interactionMetas,
       hiddenMetas,
-      warnings: preprocessed.warnings |> Array.to_list |> String.concat(""),
-      errors: preprocessed.errors |> Array.to_list |> String.concat(""),
+      warnings: preprocessed.warnings,
+      errors: preprocessed.errors,
     };
   };
   let goalTypeContext: string => goalTypeContext =
