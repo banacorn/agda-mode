@@ -45,7 +45,7 @@ class Body extends React.Component<Props, {}> {
     }
 
     render() {
-        const { useJSON, emacs, raw, allGoalsWarnings, error, plainText, maxBodyHeight, mountAtBottom } = this.props;
+        const { useJSON, emacs, json, maxBodyHeight, mountAtBottom } = this.props;
         const classes = classNames(this.props.className, `native-key-bindings`, 'agda-body');
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
@@ -58,41 +58,6 @@ class Body extends React.Component<Props, {}> {
                     tabIndex={-1}
                     style={style}
                 >
-                    {error &&
-                        <V.EventContext.Consumer>{emitter => (
-                            <Error error={error} emacsMessage={raw} emit={(ev, range) => {
-                                switch (ev) {
-                                    case EVENT.JUMP_TO_RANGE:
-                                        emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
-                                        break;
-                                    case EVENT.MOUSE_OUT:
-                                        emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
-                                        break;
-                                    case EVENT.MOUSE_OVER:
-                                        emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
-                                        break;
-                                }
-                            }} />
-                        )}</V.EventContext.Consumer>}
-
-                    {allGoalsWarnings &&
-                        <V.EventContext.Consumer>{emitter => (
-                            <AllGoalsWarnings allGoalsWarnings={allGoalsWarnings} emit={(ev, range) => {
-                                switch (ev) {
-                                    case EVENT.JUMP_TO_RANGE:
-                                        emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
-                                        break;
-                                    case EVENT.MOUSE_OUT:
-                                        emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
-                                        break;
-                                    case EVENT.MOUSE_OVER:
-                                        emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
-                                        break;
-                                }
-                            }} />
-                        )}</V.EventContext.Consumer>}
-
-                    {plainText && <p>{plainText}</p>}
                 </section>
             )
         } else {
@@ -126,3 +91,40 @@ export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
     mapDispatchToProps
 )(Body);
+
+
+    // {error &&
+    //     <V.EventContext.Consumer>{emitter => (
+    //         <Error error={error} emacsMessage={raw} emit={(ev, range) => {
+    //             switch (ev) {
+    //                 case EVENT.JUMP_TO_RANGE:
+    //                     emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
+    //                     break;
+    //                 case EVENT.MOUSE_OUT:
+    //                     emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
+    //                     break;
+    //                 case EVENT.MOUSE_OVER:
+    //                     emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
+    //                     break;
+    //             }
+    //         }} />
+    //     )}</V.EventContext.Consumer>}
+    //
+    // {allGoalsWarnings &&
+    //     <V.EventContext.Consumer>{emitter => (
+    //         <AllGoalsWarnings allGoalsWarnings={allGoalsWarnings} emit={(ev, range) => {
+    //             switch (ev) {
+    //                 case EVENT.JUMP_TO_RANGE:
+    //                     emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
+    //                     break;
+    //                 case EVENT.MOUSE_OUT:
+    //                     emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
+    //                     break;
+    //                 case EVENT.MOUSE_OVER:
+    //                     emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
+    //                     break;
+    //             }
+    //         }} />
+    //     )}</V.EventContext.Consumer>}
+    //
+    // {plainText && <p>{plainText}</p>}

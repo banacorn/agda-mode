@@ -94,12 +94,15 @@ export interface EmacsState {
     body: string;
 }
 
+export interface JSONState {
+    kind: 'AllGoalsWarnings' | 'Error' | 'PlainText';
+    rawJSON: object;
+    rawString: string;
+}
+
 export interface BodyState {
-    allGoalsWarnings: object;
-    error: object;
-    plainText: string;
     maxBodyHeight: number;
-    raw: string;
+    json: JSONState;
     emacs: EmacsState;
 }
 

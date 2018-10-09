@@ -48,11 +48,12 @@ const defaultState: View.State = {
         value: ''
     },
     body: {
-        allGoalsWarnings: null,
-        error: null,
-        plainText: '',
         maxBodyHeight: 170,
-        raw: '',
+        json: {
+            kind: 'PlainText',
+            rawJSON: null,
+            rawString: ''
+        },
         emacs: {
             kind: 'PlainText',
             header: '',
@@ -206,20 +207,11 @@ const query = handleActions<View.QueryState, QUERY>({
 }, defaultState.query);
 
 const body = handleActions<View.BodyState, BODY>({
-    [BODY.UPDATE_All_GOALS_WARNINGS]: (state, action: Action<BODY.UPDATE_All_GOALS_WARNINGS>) => ({ ...state,
-        allGoalsWarnings:   action.payload
-    }),
-    [BODY.UPDATE_ERROR]: (state, action: Action<BODY.UPDATE_ERROR>) => ({ ...state,
-        error:              action.payload[0]
-    }),
-    [BODY.UPDATE_PLAIN_TEXT]: (state, action: Action<BODY.UPDATE_PLAIN_TEXT>) => ({ ...state,
-        plainText:          action.payload
-    }),
     [BODY.UPDATE_MAX_BODY_HEIGHT]: (state, action: Action<BODY.UPDATE_MAX_BODY_HEIGHT>) => ({ ...state,
         maxBodyHeight: action.payload
     }),
-    [BODY.UPDATE_RAW]: (state, action: Action<BODY.UPDATE_RAW>) => ({ ...state,
-        raw:          action.payload
+    [BODY.UPDATE_JSON]: (state, action: Action<BODY.UPDATE_JSON>) => ({ ...state,
+        json:          action.payload
     }),
     [BODY.UPDATE_EMACS]: (state, action: Action<BODY.UPDATE_EMACS>) => ({ ...state,
         emacs:          action.payload

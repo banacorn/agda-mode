@@ -293,30 +293,23 @@ export default class View {
         this.tabs.destroyAll();
     }
 
-    set(header: string, payload: string, type = V.Style.PlainText) {
-        this.store.dispatch(Action.MODE.display());
-        this.editors.focusMain()
-
-        this.store.dispatch(Action.HEADER.update({
-            text: header,
-            style: type
-        }));
-        this.store.dispatch(Action.updatePlainText(payload));
-    }
-
     // for JSON
-    setAgdaError(tsError: object, emacsMsg: string) {
-        console.log(tsError)
+    setJSONError(rawJSON: object, rawString: string) {
+        console.log(rawJSON)
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
-        this.store.dispatch(Action.updateError([tsError, emacsMsg]));
         this.store.dispatch(Action.HEADER.update({
             style: V.Style.Error,
-            text: errorToHeader(parseError(tsError)),
+            text: errorToHeader(parseError(rawJSON)),
+        }));
+        this.store.dispatch(Action.updateJSON({
+            kind: 'Error',
+            rawJSON: rawJSON,
+            rawString: rawString
         }));
     }
 
-    setAgdaAllGoalsWarnings(raw: object) {
+    setJSONAllGoalsWarnings(rawJSON: object, rawString: string) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
@@ -324,8 +317,11 @@ export default class View {
             text: 'All Goals, Warnings, and Errors',
             style: V.Style.Info
         }));
-        console.log(parseMetas(raw));
-        this.store.dispatch(Action.updateAllGoalsWarnings(parseMetas(raw)));
+        this.store.dispatch(Action.updateJSON({
+            kind: 'AllGoalsWarnings',
+            rawJSON: rawJSON,
+            rawString: rawString
+        }));
     }
 
     // for Emacs
@@ -407,6 +403,21 @@ export default class View {
             kind: 'PlainText',
             header: 'Auto',
             body: solutions
+        }));
+    }
+
+    set(header: string, body: string, type = V.Style.PlainText) {
+        this.store.dispatch(Action.MODE.display());
+        this.editors.focusMain()
+
+        this.store.dispatch(Action.HEADER.update({
+            text: header,
+            style: type
+        }));
+        this.store.dispatch(Action.updateEmacs({
+            kind: 'PlainText',
+            header: header,
+            body: body
         }));
     }
 

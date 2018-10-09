@@ -159,30 +159,19 @@ export namespace QUERY {
 }
 
 
-export type BODY = BODY.UPDATE_All_GOALS_WARNINGS
-    | BODY.UPDATE_ERROR
-    | BODY.UPDATE_PLAIN_TEXT
-    | BODY.UPDATE_MAX_BODY_HEIGHT
-    | BODY.UPDATE_RAW
+export type BODY =
+     BODY.UPDATE_MAX_BODY_HEIGHT
+    | BODY.UPDATE_JSON
     | BODY.UPDATE_EMACS;
 export namespace BODY {
-    export const UPDATE_All_GOALS_WARNINGS = 'BODY.UPDATE_All_GOALS_WARNINGS';
-    export type UPDATE_All_GOALS_WARNINGS = object;
-    export const UPDATE_ERROR = 'BODY.UPDATE_ERROR';
-    export type UPDATE_ERROR = [object, string];
-    export const UPDATE_PLAIN_TEXT = 'BODY.UPDATE_PLAIN_TEXT';
-    export type UPDATE_PLAIN_TEXT = string;
     export const UPDATE_MAX_BODY_HEIGHT = 'BODY.UPDATE_MAX_BODY_HEIGHT';
     export type UPDATE_MAX_BODY_HEIGHT = number;
-    export const UPDATE_RAW = 'BODY.UPDATE_RAW';
-    export type UPDATE_RAW = string;
+    export const UPDATE_JSON = 'BODY.UPDATE_JSON';
+    export type UPDATE_JSON = View.JSONState;
     export const UPDATE_EMACS = 'BODY.UPDATE_EMACS';
-    export type UPDATE_EMACS = View.EmacsState;;
+    export type UPDATE_EMACS = View.EmacsState;
 }
 
-export const updateAllGoalsWarnings = createAction<BODY.UPDATE_All_GOALS_WARNINGS>(BODY.UPDATE_All_GOALS_WARNINGS);
-export const updateError = createAction<BODY.UPDATE_ERROR>(BODY.UPDATE_ERROR);
-export const updatePlainText = createAction<BODY.UPDATE_PLAIN_TEXT>(BODY.UPDATE_PLAIN_TEXT);
 export const updateMaxBodyHeight = createAction<BODY.UPDATE_MAX_BODY_HEIGHT>(BODY.UPDATE_MAX_BODY_HEIGHT);
-export const updateRaw = createAction<BODY.UPDATE_RAW>(BODY.UPDATE_RAW);
+export const updateJSON = createAction<BODY.UPDATE_JSON>(BODY.UPDATE_JSON);
 export const updateEmacs = createAction<BODY.UPDATE_EMACS>(BODY.UPDATE_EMACS);
