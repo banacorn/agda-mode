@@ -655,7 +655,21 @@ module Interaction = {
       interactionMetas: array(output),
       hiddenMetas: array(output),
     };
-    /* type autoResult = {} */
+    type bodyKind =
+      | AllGoalsWarnings
+      | GoalTypeContext
+      | PlainText;
+    [@bs.deriving abstract]
+    type bodyRaw = {
+      kind: string,
+      header: string,
+      body: string,
+    };
+    type body = {
+      kind: bodyKind,
+      header: string,
+      body: string,
+    };
   };
   type outputConstraint('a, 'b) =
     | OfType('b, 'a)

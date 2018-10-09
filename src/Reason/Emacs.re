@@ -318,8 +318,18 @@ module Parser = {
       {goal, have, interactionMetas, hiddenMetas};
     };
   let constraints: string => array(output) =
-    body => {
-      let shitpile = body |> Js.String.split("\n") |> unindent;
+    raw => {
+      let shitpile = raw |> Js.String.split("\n") |> unindent;
       shitpile |> parseArray(output);
+    };
+  let body: bodyRaw => body =
+    raw => {
+      let kind =
+        switch (raw |> kindGet) {
+        | "AllGoalsWarnings" => AllGoalsWarnings
+        | "GoalTypeContext" => GoalTypeContext
+        | _ => PlainText
+        };
+      {kind, header: raw |> headerGet, body: raw |> bodyGet};
     };
 };

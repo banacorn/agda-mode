@@ -8,9 +8,7 @@ import { updateMaxBodyHeight, EVENT } from '../../actions';
 
 var Error = require('./../../../Reason/View/TypeChecking/Error.bs').jsComponent;
 var AllGoalsWarnings = require('./../../../Reason/View/TypeChecking/AllGoalsWarnings.bs').jsComponent;
-var EmacsAllGoalsWarnings = require('./../../../Reason/View/TypeChecking/Emacs/EmacsAllGoalsWarnings.bs').jsComponent;
-var EmacsGoalTypeContext = require('./../../../Reason/View/TypeChecking/Emacs/EmacsGoalTypeContext.bs').jsComponent;
-var EmacsConstraints = require('./../../../Reason/View/TypeChecking/Emacs/EmacsConstraints.bs').jsComponent;
+var EmacsBody = require('./../../../Reason/View/Emacs/EmacsBody.bs').jsComponent;
 var { toAtomRange, toAtomFilepath } = require('./../../../Reason/View/Syntax/Range.bs');
 
 
@@ -106,6 +104,21 @@ class Body extends React.Component<Props, {}> {
                     tabIndex={-1}
                     style={style}
                 >
+                    <V.EventContext.Consumer>{emitter => (
+                        <EmacsBody raw={emacs} emit={(ev, range) => {
+                            switch (ev) {
+                                case EVENT.JUMP_TO_RANGE:
+                                    emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                                case EVENT.MOUSE_OUT:
+                                    emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                                case EVENT.MOUSE_OVER:
+                                    emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                            }
+                        }} />
+                    )}</V.EventContext.Consumer>
                 </section>
             );
         }
@@ -115,100 +128,3 @@ export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
     mapDispatchToProps
 )(Body);
-
-
-    // {emacs.allGoalsWarnings &&
-    //     <V.EventContext.Consumer>{emitter => (
-    //         <EmacsAllGoalsWarnings header={emacs.allGoalsWarnings[0]} allGoalsWarnings={emacs.allGoalsWarnings[1]} emit={(ev, range) => {
-    //             switch (ev) {
-    //                 case EVENT.JUMP_TO_RANGE:
-    //                     emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OUT:
-    //                     emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OVER:
-    //                     emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //             }
-    //         }} />
-    //     )}</V.EventContext.Consumer>}
-    //
-    // {emacs.goalTypeContext &&
-    //     <V.EventContext.Consumer>{emitter => (
-    //         <EmacsGoalTypeContext goalTypeContext={emacs.goalTypeContext} emit={(ev, range) => {
-    //             switch (ev) {
-    //                 case EVENT.JUMP_TO_RANGE:
-    //                     emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OUT:
-    //                     emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OVER:
-    //                     emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //             }
-    //         }} />
-    //     )}</V.EventContext.Consumer>}
-    //
-    // {emacs.constraints &&
-    //     <V.EventContext.Consumer>{emitter => (
-    //         <EmacsConstraints constraints={emacs.constraints} emit={(ev, range) => {
-    //             switch (ev) {
-    //                 case EVENT.JUMP_TO_RANGE:
-    //                     emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OUT:
-    //                     emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OVER:
-    //                     emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //             }
-    //          }} />
-    //     )}</V.EventContext.Consumer>}
-    // {emacs.solutions &&
-    //       <section className="metas">
-    //         <p> {emacs.solutions} </p>
-    //       </section>
-    // }
-    // {emacs.error &&
-    //       <section className="metas">
-    //         <p> {emacs.error} </p>
-    //       </section>
-    // }
-    // {error &&
-    //     <V.EventContext.Consumer>{emitter => (
-    //         <Error error={error} emacsMessage={emacs.message} emit={(ev, range) => {
-    //             switch (ev) {
-    //                 case EVENT.JUMP_TO_RANGE:
-    //                     emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OUT:
-    //                     emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OVER:
-    //                     emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //             }
-    //         }} />
-    //     )}</V.EventContext.Consumer>}
-    //
-    // {allGoalsWarnings &&
-    //     <V.EventContext.Consumer>{emitter => (
-    //         <AllGoalsWarnings allGoalsWarnings={allGoalsWarnings} emit={(ev, range) => {
-    //             switch (ev) {
-    //                 case EVENT.JUMP_TO_RANGE:
-    //                     emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OUT:
-    //                     emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OVER:
-    //                     emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //             }
-    //         }} />
-    //     )}</V.EventContext.Consumer>}
-    //
-    // {plainText && <p>{plainText}</p>}
