@@ -49,56 +49,27 @@ class Body extends React.Component<Props, {}> {
         const style = mountAtBottom ? {
             maxHeight: `${maxBodyHeight}px`
         } : {};
-
-        if (useJSON) {
-            return (
-                <section
-                    className={classes}
-                    tabIndex={-1}
-                    style={style}
-                >
-                    <V.EventContext.Consumer>{emitter => (
-                        <JSONBody raw={json} emit={(ev, range) => {
-                            switch (ev) {
-                                case EVENT.JUMP_TO_RANGE:
-                                    emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
-                                    break;
-                                case EVENT.MOUSE_OUT:
-                                    emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
-                                    break;
-                                case EVENT.MOUSE_OVER:
-                                    emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
-                                    break;
-                            }
-                        }} />
-                    )}</V.EventContext.Consumer>
-                </section>
-            )
-        } else {
-            return (
-                <section
-                    className={classes}
-                    tabIndex={-1}
-                    style={style}
-                >
-                    <V.EventContext.Consumer>{emitter => (
-                        <EmacsBody raw={emacs} emit={(ev, range) => {
-                            switch (ev) {
-                                case EVENT.JUMP_TO_RANGE:
-                                    emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
-                                    break;
-                                case EVENT.MOUSE_OUT:
-                                    emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
-                                    break;
-                                case EVENT.MOUSE_OVER:
-                                    emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
-                                    break;
-                            }
-                        }} />
-                    )}</V.EventContext.Consumer>
-                </section>
-            );
-        }
+        return (<section
+            className={classes}
+            tabIndex={-1}
+            style={style}
+        >
+            <V.EventContext.Consumer>{emitter => (
+                <JSONBody raw={json} emacs={emacs} useJSON={useJSON} emit={(ev, range) => {
+                    switch (ev) {
+                        case EVENT.JUMP_TO_RANGE:
+                            emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
+                            break;
+                        case EVENT.MOUSE_OUT:
+                            emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
+                            break;
+                        case EVENT.MOUSE_OVER:
+                            emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
+                            break;
+                    }
+                }} />
+            )}</V.EventContext.Consumer>
+        </section>)
     }
 }
 export default connect<InjProps, DispatchProps, OwnProps>(
