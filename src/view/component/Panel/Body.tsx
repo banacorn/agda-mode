@@ -6,8 +6,7 @@ import { View } from '../../../type';
 import V from '../../../view';
 import { updateMaxBodyHeight, EVENT } from '../../actions';
 
-var Error = require('./../../../Reason/View/JSON/Error.bs').jsComponent;
-var AllGoalsWarnings = require('./../../../Reason/View/JSON/AllGoalsWarnings.bs').jsComponent;
+var JSONBody = require('./../../../Reason/View/JSON/Body.bs').jsComponent;
 var EmacsBody = require('./../../../Reason/View/Emacs/EmacsBody.bs').jsComponent;
 var { toAtomRange, toAtomFilepath } = require('./../../../Reason/View/Syntax/Range.bs');
 
@@ -58,6 +57,21 @@ class Body extends React.Component<Props, {}> {
                     tabIndex={-1}
                     style={style}
                 >
+                    <V.EventContext.Consumer>{emitter => (
+                        <JSONBody raw={json} emit={(ev, range) => {
+                            switch (ev) {
+                                case EVENT.JUMP_TO_RANGE:
+                                    emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                                case EVENT.MOUSE_OUT:
+                                    emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                                case EVENT.MOUSE_OVER:
+                                    emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
+                                    break;
+                            }
+                        }} />
+                    )}</V.EventContext.Consumer>
                 </section>
             )
         } else {
@@ -91,40 +105,3 @@ export default connect<InjProps, DispatchProps, OwnProps>(
     mapStateToProps,
     mapDispatchToProps
 )(Body);
-
-
-    // {error &&
-    //     <V.EventContext.Consumer>{emitter => (
-    //         <Error error={error} emacsMessage={raw} emit={(ev, range) => {
-    //             switch (ev) {
-    //                 case EVENT.JUMP_TO_RANGE:
-    //                     emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OUT:
-    //                     emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OVER:
-    //                     emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //             }
-    //         }} />
-    //     )}</V.EventContext.Consumer>}
-    //
-    // {allGoalsWarnings &&
-    //     <V.EventContext.Consumer>{emitter => (
-    //         <AllGoalsWarnings allGoalsWarnings={allGoalsWarnings} emit={(ev, range) => {
-    //             switch (ev) {
-    //                 case EVENT.JUMP_TO_RANGE:
-    //                     emitter.emit(EVENT.JUMP_TO_RANGE, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OUT:
-    //                     emitter.emit(EVENT.MOUSE_OUT, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //                 case EVENT.MOUSE_OVER:
-    //                     emitter.emit(EVENT.MOUSE_OVER, toAtomRange(range), toAtomFilepath(range));
-    //                     break;
-    //             }
-    //         }} />
-    //     )}</V.EventContext.Consumer>}
-    //
-    // {plainText && <p>{plainText}</p>}

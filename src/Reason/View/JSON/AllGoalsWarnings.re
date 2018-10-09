@@ -6,51 +6,40 @@ open Type.Interaction;
 
 let component = ReasonReact.statelessComponent("AllGoalsWarnings");
 
-let make = (~allGoalsWarnings: allGoalsWarnings, ~emit, _children) => {
+let make = (~value: allGoalsWarnings, _children) => {
   ...component,
-  render: _self =>
-    <Context.Emitter.Provider value=emit>
-      <section className="metas">
-        <ul>
-          ...(
-               allGoalsWarnings.interactionMetas
-               |> List.map(meta => <Meta meta />)
-               |> Array.of_list
-             )
-        </ul>
-      </section>
-      <section className="metas">
-        <ul>
-          ...(
-               allGoalsWarnings.hiddenMetas
-               |> List.map(meta => <Meta meta />)
-               |> Array.of_list
-             )
-        </ul>
-      </section>
-      <section className="warnings">
-        <ul>
-          ...Type.TypeChecking.(
-               allGoalsWarnings.warnings
-               |> List.map(x => <li> (string(x.warning')) </li>)
-               |> Array.of_list
-             )
-        </ul>
-      </section>
-    </Context.Emitter.Provider>,
+  render: _self => {
+    let interactionMetas =
+      <ul className="metas">
+        ...(
+             value.interactionMetas
+             |> List.map(meta => <Meta meta />)
+             |> Array.of_list
+           )
+      </ul>;
+    let hiddenMetas =
+      <ul className="metas">
+        ...(
+             value.hiddenMetas
+             |> List.map(meta => <Meta meta />)
+             |> Array.of_list
+           )
+      </ul>;
+    let warnings =
+      <ul className="warnings">
+        ...Type.TypeChecking.(
+             value.warnings
+             |> List.map(x => <li> (string(x.warning')) </li>)
+             |> Array.of_list
+           )
+      </ul>;
+    <>
+      (
+        List.length(value.interactionMetas) > 0 ?
+          interactionMetas : ReasonReact.null
+      )
+      (List.length(value.hiddenMetas) > 0 ? hiddenMetas : ReasonReact.null)
+      (List.length(value.warnings) > 0 ? warnings : ReasonReact.null)
+    </>;
+  },
 };
-
-[@bs.deriving abstract]
-type jsProps = {
-  allGoalsWarnings,
-  emit: (string, Type.Syntax.Position.range) => unit,
-};
-
-let jsComponent =
-  ReasonReact.wrapReasonForJs(~component, jsProps =>
-    make(
-      ~allGoalsWarnings=allGoalsWarningsGet(jsProps),
-      ~emit=emitGet(jsProps),
-      [||],
-    )
-  );

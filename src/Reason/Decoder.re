@@ -1793,7 +1793,7 @@ module Decode = {
            | _ => failwith("unknown kind of OutputConstraint")
            }
          );
-    let metas = json => {
+    let allGoalsWarnings = json => {
       interactionMetas:
         json
         |> field(
@@ -1822,6 +1822,18 @@ module Decode = {
   };
 };
 
-let parseError = (json: Js.Json.t) => json |> Decode.TypeChecking.error;
+open Type.Interaction;
 
-let parseMetas = (json: Js.Json.t) => json |> Decode.Interaction.metas;
+open Json.Decode;
+
+let parseError = Decode.TypeChecking.error;
+
+let parseBody = (raw: bodyRaw) =>
+  switch (raw |> kindGet) {
+  | "AllGoalsWarnings" =>
+    AllGoalsWarnings(raw |> rawJSONGet |> Decode.Interaction.allGoalsWarnings)
+  | "Error" =>
+    Error(raw |> rawJSONGet |> Decode.TypeChecking.error, raw |> rawString)
+  | "PlainText" => PlainText(raw |> rawString)
+  | _ => failwith("unknown kind of Body")
+  };

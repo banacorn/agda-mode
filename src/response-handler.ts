@@ -8,8 +8,6 @@ import * as J from './parser/json';
 import * as Emacs from './parser/emacs';
 import * as Err from './error';
 
-import { Range } from 'atom';
-
 // classify responses into async and sync ones
 // don't deal everything with promises
 // for the nasty issue of https://github.com/petkaantonov/bluebird/issues/1326

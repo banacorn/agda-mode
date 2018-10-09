@@ -31,54 +31,26 @@ let errorToHeader = error =>
 
 let component = ReasonReact.statelessComponent("Error");
 
-let make = (~error: Js.Json.t, ~emacsMessage: string, ~emit, _children) => {
+let make = (~value: Type.TypeChecking.error, ~rawString: string, _children) => {
   ...component,
-  render: _self => {
-    let decodedError = Decoder.parseError(error);
-    Js.log(decodedError);
-    switch (decodedError) {
+  render: _self =>
+    switch (value) {
     | TypeError(range, call, typeError) =>
-      <Context.Emitter.Provider value=emit>
-        <section className="error">
-          <Range range />
-          <TypeError typeError emacsMessage />
-          (
-            switch (call) {
-            | Some(call) => <Call call />
-            | None => <> </>
-            }
-          )
-        </section>
-      </Context.Emitter.Provider>
-    | Exception(_) =>
-      <section className="error">
-        (ReasonReact.string(emacsMessage))
+      <section>
+        <Range range />
+        <TypeError typeError rawString />
+        (
+          switch (call) {
+          | Some(call) => <Call call />
+          | None => <> </>
+          }
+        )
       </section>
-    | IOException(_) =>
-      <section className="error">
-        (ReasonReact.string(emacsMessage))
-      </section>
+    | Exception(_) => <section> (ReasonReact.string(rawString)) </section>
+    | IOException(_) => <section> (ReasonReact.string(rawString)) </section>
     | PatternError(_) =>
-      <section className="error">
+      <section>
         (ReasonReact.string("Pattern violation (you shouldn't see this)"))
       </section>
-    };
-  },
+    },
 };
-
-[@bs.deriving abstract]
-type jsProps = {
-  error: Js.Json.t,
-  emacsMessage: string,
-  emit: (string, Type.Syntax.Position.range) => unit,
-};
-
-let jsComponent =
-  ReasonReact.wrapReasonForJs(~component, jsProps =>
-    make(
-      ~error=errorGet(jsProps),
-      ~emacsMessage=emacsMessageGet(jsProps),
-      ~emit=emitGet(jsProps),
-      [||],
-    )
-  );

@@ -8,10 +8,10 @@ open Util;
 
 let component = statelessComponent("TypeError");
 
-let make = (~typeError: typeError, ~emacsMessage: string, _children) => {
+let make = (~typeError: typeError, ~rawString: string, _children) => {
   ...component,
   render: _self => {
-    Js.log(emacsMessage);
+    Js.log(rawString);
     switch (typeError) {
     | GenericDocError(message) => <div> (string(message)) </div>
     | GenericError(message) => <div> (string(message)) </div>

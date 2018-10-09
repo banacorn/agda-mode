@@ -698,6 +698,16 @@ module Interaction = {
     warnings: list(TypeChecking.tcWarning),
     errors: list(TypeChecking.tcWarning),
   };
+  [@bs.deriving abstract]
+  type bodyRaw = {
+    kind: string,
+    rawJSON: Js.Json.t,
+    rawString: string,
+  };
+  type body =
+    | AllGoalsWarnings(allGoalsWarnings)
+    | Error(TypeChecking.error, string)
+    | PlainText(string);
 };
 
 type underscore('t) = 't => bool;

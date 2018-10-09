@@ -23,7 +23,7 @@ import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
 var { errorToHeader } = require('./Reason/View/JSON/Error.bs');
-var { parseError, parseMetas } = require('./Reason/Decoder.bs');
+var Reason = require('./Reason/Decoder.bs');
 
 
 class EditorViewManager {
@@ -300,7 +300,7 @@ export default class View {
         this.editors.focusMain()
         this.store.dispatch(Action.HEADER.update({
             style: V.Style.Error,
-            text: errorToHeader(parseError(rawJSON)),
+            text: errorToHeader(Reason.parseError(rawJSON)),
         }));
         this.store.dispatch(Action.updateJSON({
             kind: 'Error',
