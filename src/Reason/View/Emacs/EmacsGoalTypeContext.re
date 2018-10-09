@@ -10,7 +10,7 @@ let make = (~body: string, _children) => {
   ...component,
   render: _self => {
     let parsed = Emacs.Parser.goalTypeContext(body);
-    <section className="metas">
+    <>
       <ul>
         (
           parsed.goal
@@ -27,6 +27,6 @@ let make = (~body: string, _children) => {
       <ul>
         ...(parsed.hiddenMetas |> Array.map(value => <Output value />))
       </ul>
-    </section>;
+    </>;
   },
 };

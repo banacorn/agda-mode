@@ -10,7 +10,7 @@ let make = (~header: string, ~body: string, _children) => {
   ...component,
   render: _self => {
     let parsed = Emacs.Parser.allGoalsWarnings(header, body);
-    <section className="metas">
+    <>
       <ul>
         ...(parsed.interactionMetas |> Array.map(value => <Output value />))
       </ul>
@@ -19,6 +19,6 @@ let make = (~header: string, ~body: string, _children) => {
       </ul>
       <RawError value=parsed.warnings />
       <RawError value=parsed.errors />
-    </section>;
+    </>;
   },
 };

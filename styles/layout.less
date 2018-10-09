@@ -88,30 +88,48 @@
         font-size: 125%;
         white-space: pre-wrap;       // preserves whitespaces
 
-        .metas li {
-            min-height: @height;
-            line-height: @height !important;
-            padding: 0px @component-padding;
-            margin: 10px 0;
+        // <EmacsBody>
+        .agda-body {
+            li {
+                min-height: @height;
+                line-height: @height !important;
+                padding: 0px @component-padding;
+                margin: 10px 0;
+            }
 
-            // display: flex;
-            // white-space: pre-wrap;       // preserves whitespaces
+            p {
+                min-height: @height;
+                line-height: @height !important;
+                padding: 0px @component-padding;
+                margin: 10px 0;
+            }
         }
 
-        li.goal-or-have {
-            background: @base-background-color;
-        }
+        //
+        // .metas li {
+        //     min-height: @height;
+        //     line-height: @height !important;
+        //     padding: 0px @component-padding;
+        //     margin: 10px 0;
+        //
+        //     // display: flex;
+        //     // white-space: pre-wrap;       // preserves whitespaces
+        // }
 
-        ul.raw-error {
-            background: @base-background-color;
-        }
-
-        .error {
-            min-height: @height;
-            line-height: @height !important;
-            padding: 0px @component-padding;
-            margin: 10px 0;
-        }
+        // li.goal-or-have {
+        //     background: @base-background-color;
+        // }
+        //
+        // ul.raw-error {
+        //     background: @base-background-color;
+        // }
+        //
+        // .error {
+        //     min-height: @height;
+        //     line-height: @height !important;
+        //     padding: 0px @component-padding;
+        //     margin: 10px 0;
+        // }
 
         .body-legacy li {
             min-height: @height;

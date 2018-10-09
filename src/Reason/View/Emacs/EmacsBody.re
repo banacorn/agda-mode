@@ -17,10 +17,11 @@ let make = (~raw: bodyRaw, ~emit, _children) => {
       | AllGoalsWarnings => <EmacsAllGoalsWarnings header body />
       | GoalTypeContext => <EmacsGoalTypeContext body />
       | Constraints => <EmacsConstraints body />
-      | PlainText =>
-        <section className="metas"> <p> (string(body)) </p> </section>
+      | PlainText => <p> (string(body)) </p>
       };
-    <Context.Emitter.Provider value=emit> comp </Context.Emitter.Provider>;
+    <Context.Emitter.Provider value=emit>
+      <section className="agda-body"> comp </section>
+    </Context.Emitter.Provider>;
   },
 };
 
