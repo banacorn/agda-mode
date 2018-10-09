@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { combineReducers } from 'redux';
 import { handleActions, Action } from 'redux-actions';
 import { View, Agda } from '../type';
-import { MODE, VIEW, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, CONNECTION } from './actions';
+import { MODE, VIEW, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, CONNECTION, EMACS } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -48,18 +48,16 @@ const defaultState: View.State = {
         value: ''
     },
     body: {
-        emacs: {
-            allGoalsWarnings: ['', ''],
-            goalTypeContext: '',
-            constraints: '',
-            solutions: '',
-            error: null,
-            message: '',
-        },
         allGoalsWarnings: null,
         error: null,
         plainText: '',
-        maxBodyHeight: 170
+        maxBodyHeight: 170,
+        raw: ''
+    },
+    emacs: {
+        kind: 'PlainText',
+        header: '',
+        body: ''
     },
 };
 
@@ -208,93 +206,26 @@ const query = handleActions<View.QueryState, QUERY>({
 }, defaultState.query);
 
 const body = handleActions<View.BodyState, BODY>({
-    [BODY.UPDATE_EMACS_All_GOALS_WARNINGS]: (state, action: Action<BODY.UPDATE_EMACS_All_GOALS_WARNINGS>) => ({ ...state,
-        emacs: {
-            allGoalsWarnings:   action.payload,
-            goalTypeContext:    defaultState.body.emacs.goalTypeContext,
-            constraints:        defaultState.body.emacs.constraints,
-            solutions:          defaultState.body.emacs.solutions,
-            error:              defaultState.body.emacs.error,
-            message:            defaultState.body.emacs.message,
-        },
-        allGoalsWarnings:   defaultState.body.allGoalsWarnings,
-        error:              defaultState.body.error,
-        plainText:          defaultState.body.plainText
-    }),
-    [BODY.UPDATE_EMACS_GOAL_TYPE_CONTEXT]: (state, action: Action<BODY.UPDATE_EMACS_GOAL_TYPE_CONTEXT>) => ({ ...state,
-        emacs: {
-            allGoalsWarnings:   defaultState.body.emacs.allGoalsWarnings,
-            goalTypeContext:    action.payload,
-            constraints:        defaultState.body.emacs.constraints,
-            solutions:          defaultState.body.emacs.solutions,
-            error:              defaultState.body.emacs.error,
-            message:            defaultState.body.emacs.message,
-        },
-        allGoalsWarnings:   defaultState.body.allGoalsWarnings,
-        error:              defaultState.body.error,
-        plainText:          defaultState.body.plainText
-    }),
-    [BODY.UPDATE_EMACS_CONSTRAINTS]: (state, action: Action<BODY.UPDATE_EMACS_CONSTRAINTS>) => ({ ...state,
-        emacs: {
-            allGoalsWarnings:   defaultState.body.emacs.allGoalsWarnings,
-            goalTypeContext:    defaultState.body.emacs.goalTypeContext,
-            constraints:        action.payload,
-            solutions:          defaultState.body.emacs.solutions,
-            error:              defaultState.body.emacs.error,
-            message:            defaultState.body.emacs.message,
-        },
-        allGoalsWarnings:   defaultState.body.allGoalsWarnings,
-        error:              defaultState.body.error,
-        plainText:          defaultState.body.plainText
-    }),
-    [BODY.UPDATE_EMACS_ERROR]: (state, action: Action<BODY.UPDATE_EMACS_ERROR>) => ({ ...state,
-        emacs: {
-            allGoalsWarnings:   defaultState.body.emacs.allGoalsWarnings,
-            goalTypeContext:    defaultState.body.emacs.goalTypeContext,
-            constraints:        defaultState.body.emacs.constraints,
-            solutions:          defaultState.body.emacs.solutions,
-            error:              action.payload,
-            message:            defaultState.body.emacs.message,
-        },
-        allGoalsWarnings:   defaultState.body.allGoalsWarnings,
-        error:              defaultState.body.error,
-        plainText:          defaultState.body.plainText
-    }),
-    [BODY.UPDATE_EMACS_SOLUTIONS]: (state, action: Action<BODY.UPDATE_EMACS_SOLUTIONS>) => ({ ...state,
-        emacs: {
-            allGoalsWarnings:   defaultState.body.emacs.allGoalsWarnings,
-            goalTypeContext:    defaultState.body.emacs.goalTypeContext,
-            constraints:        defaultState.body.emacs.constraints,
-            solutions:          action.payload,
-            error:              defaultState.body.emacs.error,
-            message:            defaultState.body.emacs.message,
-        },
-        allGoalsWarnings:   defaultState.body.allGoalsWarnings,
-        error:              defaultState.body.error,
-        plainText:          defaultState.body.plainText
-    }),
     [BODY.UPDATE_All_GOALS_WARNINGS]: (state, action: Action<BODY.UPDATE_All_GOALS_WARNINGS>) => ({ ...state,
-        emacs:              defaultState.body.emacs,
-        allGoalsWarnings:   action.payload,
-        error:              defaultState.body.error,
-        plainText:          defaultState.body.plainText
+        allGoalsWarnings:   action.payload
     }),
     [BODY.UPDATE_ERROR]: (state, action: Action<BODY.UPDATE_ERROR>) => ({ ...state,
-        emacs:              defaultState.body.emacs,
-        allGoalsWarnings:   defaultState.body.allGoalsWarnings,
-        error:              action.payload[0],
-        plainText:          defaultState.body.plainText
+        error:              action.payload[0]
     }),
     [BODY.UPDATE_PLAIN_TEXT]: (state, action: Action<BODY.UPDATE_PLAIN_TEXT>) => ({ ...state,
-        emacs:              defaultState.body.emacs,
-        allGoalsWarnings:   defaultState.body.allGoalsWarnings,
-        error:              defaultState.body.error,
         plainText:          action.payload
     }),
     [BODY.UPDATE_MAX_BODY_HEIGHT]: (state, action: Action<BODY.UPDATE_MAX_BODY_HEIGHT>) => ({ ...state,
         maxBodyHeight: action.payload
-    })
+    }),
+    [BODY.UPDATE_RAW]: (state, action: Action<BODY.UPDATE_RAW>) => ({ ...state,
+        raw:          action.payload
+    }),
 }, defaultState.body);
+
+const emacs = handleActions<View.EmacsState, EMACS>({
+    [EMACS.UPDATE]: (state, action: Action<EMACS.UPDATE>) => action.payload
+}, defaultState.emacs);
 
 
 // export default reducer;
@@ -306,5 +237,6 @@ export default combineReducers<View.State>({
     header,
     inputMethod,
     query,
-    body
+    body,
+    emacs
 });

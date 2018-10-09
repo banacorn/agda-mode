@@ -339,7 +339,11 @@ export default class View {
             text: 'Error'
         }));
 
-        this.store.dispatch(Action.updateEmacsError(error));
+        this.store.dispatch(Action.EMACS.update({
+            kind: 'PlainText',
+            header: 'Error',
+            body: error
+        }));
     }
 
     setEmacsAllGoalsWarnings(header: string = 'Judgements', allGoalsWarnings: string) {
@@ -351,7 +355,11 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(Action.updateEmacsAllGoalsWarnings([header, allGoalsWarnings]));
+        this.store.dispatch(Action.EMACS.update({
+            kind: 'AllGoalsWarnings',
+            header: header,
+            body: allGoalsWarnings
+        }));
     }
 
     setEmacsGoalTypeContext(header: string = 'Judgements', goalTypeContext: string) {
@@ -363,7 +371,11 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(Action.updateEmacsGoalTypeContext(goalTypeContext));
+        this.store.dispatch(Action.EMACS.update({
+            kind: 'GoalTypeContext',
+            header: header,
+            body: goalTypeContext
+        }));
     }
 
     setEmacsConstraints(constraints: string) {
@@ -375,7 +387,11 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(Action.updateEmacsConstraints(constraints));
+        this.store.dispatch(Action.EMACS.update({
+            kind: 'PlainText',
+            header: 'Constraints',
+            body: constraints
+        }));
     }
 
     setEmacsSolutions(solutions: string) {
@@ -387,7 +403,11 @@ export default class View {
             style: V.Style.Info
         }));
 
-        this.store.dispatch(Action.updateEmacsSolutions(solutions));
+        this.store.dispatch(Action.EMACS.update({
+            kind: 'PlainText',
+            header: 'Auto',
+            body: solutions
+        }));
     }
 
     query(header: string = '', _: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
-import { EventEmitter } from 'events';
 
 import { Core } from '../../core';
 import InputMethod from './Panel/InputMethod';
@@ -85,6 +84,7 @@ class Panel extends React.Component<Props, {}> {
                 <section className='agda-body-container'>
                     <Body
                         className={show(View.Mode.Display, mode)}
+                        useJSON={core.connection.usesJSON()}
                     />
                     <MiniEditor
                         className={show(View.Mode.Query, mode)}
