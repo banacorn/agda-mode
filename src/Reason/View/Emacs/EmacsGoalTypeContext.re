@@ -14,11 +14,15 @@ let make = (~body: string, _children) => {
       <ul>
         (
           parsed.goal
-          |> Util.Option.option(ReasonReact.null, value => <Goal value />)
+          |> Util.Option.option(ReasonReact.null, (Goal(expr)) =>
+               <Labeled label="Goal " expr />
+             )
         )
         (
           parsed.have
-          |> Util.Option.option(ReasonReact.null, value => <Have value />)
+          |> Util.Option.option(ReasonReact.null, (Have(expr)) =>
+               <Labeled label="Have " expr />
+             )
         )
       </ul>
       <ul>

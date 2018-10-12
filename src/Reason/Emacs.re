@@ -6,8 +6,11 @@ module Parser = {
     lines => {
       let isNewline = (line, nextLine) => {
         let sort = [%re "/^Sort \\S*/"];
+        let delimeter = [%re "/^\\u2014{4}/g"];
         /* banana : Banana */
-        let completeJudgement = [%re "/^[^\\(\\{\\s]+\\s+\\:\\s* \\S*/"];
+        let completeJudgement = [%re
+          "/^(?:(?:[^\\(\\{\\s]+\\s+\\:)|Have\\:|Goal\\:)\\s* \\S*/"
+        ];
         /* case when the term's name is too long, the rest of the judgement
               would go to the next line, e.g:
                    banananananananananananananananana
@@ -16,6 +19,7 @@ module Parser = {
         let reallyLongTermIdentifier = [%re "/^\\S+$/"];
         let restOfTheJudgement = [%re "/^\\s*\\:\\s* \\S*/"];
         Js.Re.test(line, sort)
+        || Js.Re.test(line, delimeter)
         || Js.Re.test(line, reallyLongTermIdentifier)
         && Js.Option.isSomeValue(
              (. _, line) => Js.Re.test(line, restOfTheJudgement),
@@ -197,7 +201,7 @@ module Parser = {
     let allGoalsWarningsPreprocess:
       (string, string) => allGoalsWarningsPreprocess =
       (title, body) => {
-        let shitpile = body |> Js.String.split("\n") |> unindent;
+        let shitpile = body |> Js.String.split("\n");
         let hasMetas =
           title |> Js.String.match([%re "/Goals/"]) |> Js.Option.isSome;
         let hasWarnings =
@@ -223,7 +227,9 @@ module Parser = {
         switch (hasMetas, hasWarnings, hasErrors) {
         | (true, true, true) => {
             metas:
-              shitpile |> Js.Array.slice(~start=0, ~end_=indexOfWarnings),
+              shitpile
+              |> Js.Array.slice(~start=0, ~end_=indexOfWarnings)
+              |> unindent,
             warnings:
               shitpile
               |> Js.Array.slice(
@@ -234,17 +240,22 @@ module Parser = {
           }
         | (true, true, false) => {
             metas:
-              shitpile |> Js.Array.slice(~start=0, ~end_=indexOfWarnings),
+              shitpile
+              |> Js.Array.slice(~start=0, ~end_=indexOfWarnings)
+              |> unindent,
             warnings: shitpile |> Js.Array.sliceFrom(indexOfWarnings + 1),
             errors: [||],
           }
         | (true, false, true) => {
-            metas: shitpile |> Js.Array.slice(~start=0, ~end_=indexOfErrors),
+            metas:
+              shitpile
+              |> Js.Array.slice(~start=0, ~end_=indexOfErrors)
+              |> unindent,
             warnings: [||],
             errors: shitpile |> Js.Array.sliceFrom(indexOfErrors + 1),
           }
         | (true, false, false) => {
-            metas: shitpile,
+            metas: shitpile |> unindent,
             warnings: [||],
             errors: [||],
           }
@@ -308,8 +319,8 @@ module Parser = {
     };
   };
   let goalTypeContext: string => goalTypeContext =
-    body => {
-      let shitpile = body |> Js.String.split("\n") |> unindent;
+    raw => {
+      let shitpile = raw |> Js.String.split("\n") |> unindent;
       /* see if Have: exists */
       let haveExists =
         shitpile

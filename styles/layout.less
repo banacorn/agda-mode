@@ -90,25 +90,22 @@
 
         // <EmacsBody>
         .agda-body {
-            li {
+
+            padding: 0px @component-padding;
+
+            li, p, section {
                 min-height: @height;
                 line-height: @height !important;
                 padding: 0px @component-padding;
                 margin: 10px 0;
             }
 
-            p {
-                min-height: @height;
-                line-height: @height !important;
-                padding: 0px @component-padding;
-                margin: 10px 0;
-            }
+            li.labeled {
+                background: @base-background-color;
 
-            section {
-                min-height: @height;
-                line-height: @height !important;
-                padding: 0px @component-padding;
-                margin: 10px 0;
+                span.label {
+                    color: @text-color-info;
+                }
             }
         }
 

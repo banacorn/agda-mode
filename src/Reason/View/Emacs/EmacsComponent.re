@@ -47,25 +47,15 @@ module OutputConstraint = {
   };
 };
 
-module Goal = {
+module Labeled = {
   let component = ReasonReact.statelessComponent("EmacsGoal");
-  let make = (~value: goal, _children) => {
+  let make = (~label: string, ~expr: expr, _children) => {
     ...component,
-    render: _self => {
-      let Goal(expr) = value;
-      <li className="goal-or-have"> (string("Goal : ")) <Expr expr /> </li>;
-    },
-  };
-};
-
-module Have = {
-  let component = ReasonReact.statelessComponent("EmacsHave");
-  let make = (~value: have, _children) => {
-    ...component,
-    render: _self => {
-      let Have(expr) = value;
-      <li className="goal-or-have"> (string("Have : ")) <Expr expr /> </li>;
-    },
+    render: _self =>
+      <li className="labeled">
+        <span className="label"> (string(label)) </span>
+        <Expr expr />
+      </li>,
   };
 };
 

@@ -22,7 +22,7 @@ import Tab from './view/tab';
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
-var { errorToHeader } = require('./Reason/View/JSON/Error.bs');
+var { errorToHeader } = require('./Reason/View/Typechecking/Error.bs');
 var Reason = require('./Reason/Decoder.bs');
 
 
