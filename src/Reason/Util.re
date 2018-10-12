@@ -29,6 +29,11 @@ module Option = {
     };
 };
 
+/*
+ module React = {
+   let option: ('a => reactElement, option('a)) => reactElement =
+     Option.option(null);
+ }; */
 module Array_ = {
   let catMaybes = xs =>
     Array.fold_right(

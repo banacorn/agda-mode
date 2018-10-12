@@ -107,108 +107,12 @@
                     color: @text-color-info;
                 }
             }
-        }
 
-        //
-        // .metas li {
-        //     min-height: @height;
-        //     line-height: @height !important;
-        //     padding: 0px @component-padding;
-        //     margin: 10px 0;
-        //
-        //     // display: flex;
-        //     // white-space: pre-wrap;       // preserves whitespaces
-        // }
-
-        // li.goal-or-have {
-        //     background: @base-background-color;
-        // }
-        //
-        // ul.raw-error {
-        //     background: @base-background-color;
-        // }
-        //
-        // .error {
-        //     min-height: @height;
-        //     line-height: @height !important;
-        //     padding: 0px @component-padding;
-        //     margin: 10px 0;
-        // }
-
-        .body-legacy li {
-            min-height: @height;
-            line-height: @height !important;
-            padding: 0px @component-padding;
-            margin: 10px 0;
-
-            display: flex;
-            white-space: pre-wrap;       // preserves whitespaces
-
-            // prevents parent <li> from collapsing
-            &:after {
-               content: " ";
-               display: block;
-               height: 0;
-               clear: both;
-            }
-
-            .item-heading {
-                align-self: flex-start;
-                white-space: nowrap;
-            }
-
-            .item-body {
-                flex-grow: 1;
-            }
-
-            // <Range>
-            .range {
-                float: right;
-            }
-
-            .item-cell {
-                display: flex;
-                background: @pane-item-background-color;
-                padding: 0 0.5em;
-                margin: 0 0.5em;
-            }
-
-            .check-solutions:hover {
-                background: inherit;
-                color: @text-color-success;
-            }
-
-        }
-        .body-legacy {
-
-            li.special-item {
-                background: @base-background-color;
-
-            }
-
-            p, section.error, div.error {
-                min-height: @height;
-                line-height: @height;
-                padding: 0 @component-padding;
-                margin: 10px 0;
-            }
-
-            // <Expr>
-            .expr {
-                vertical-align: top;
-            }
-
-            // <Range>
-            .range {
-                &:hover {
-                    color: @text-color;
-                    cursor: pointer;
-                }
-                &.no-float {
-                    float: none;
+            li.output {
+                .range {
+                    float: right;
                 }
             }
-
         }
     }
 

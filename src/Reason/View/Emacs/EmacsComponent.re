@@ -1,9 +1,11 @@
 open ReasonReact;
 
+open Util.Option;
+
 open Type.Interaction.Emacs;
 
 module Term = {
-  let component = ReasonReact.statelessComponent("EmacsTerm");
+  let component = statelessComponent("EmacsTerm");
   let jump = true;
   let hover = true;
   let make = (~term: term, _children) => {
@@ -22,7 +24,7 @@ module Term = {
 };
 
 module Expr = {
-  let component = ReasonReact.statelessComponent("EmacsExpr");
+  let component = statelessComponent("EmacsExpr");
   let make = (~expr: expr, _children) => {
     ...component,
     render: _self =>
@@ -33,22 +35,46 @@ module Expr = {
 };
 
 module OutputConstraint = {
-  let component = ReasonReact.statelessComponent("EmacsOutputConstraint");
-  let make = (~value: outputConstraint, _children) => {
+  let component = statelessComponent("EmacsOutputConstraint");
+  let make =
+      (
+        ~value: outputConstraint,
+        ~range: option(Type.Syntax.Position.range),
+        _children,
+      ) => {
     ...component,
     render: _self =>
       switch (value) {
       | OfType(e, t) =>
-        <li> <Expr expr=e /> (string(" : ")) <Expr expr=t /> </li>
-      | JustType(e) => <li> (string("Type ")) <Expr expr=e /> </li>
-      | JustSort(e) => <li> (string("Sort ")) <Expr expr=e /> </li>
-      | Others(e) => <li> <Expr expr=e /> </li>
+        <li className="output">
+          <Expr expr=e />
+          (string(" : "))
+          <Expr expr=t />
+          (option(null, range => <Range range abbr=true />, range))
+        </li>
+      | JustType(e) =>
+        <li className="output">
+          (string("Type "))
+          <Expr expr=e />
+          (option(null, range => <Range range abbr=true />, range))
+        </li>
+      | JustSort(e) =>
+        <li className="output">
+          (string("Sort "))
+          <Expr expr=e />
+          (option(null, range => <Range range abbr=true />, range))
+        </li>
+      | Others(e) =>
+        <li className="output">
+          <Expr expr=e />
+          (option(null, range => <Range range abbr=true />, range))
+        </li>
       },
   };
 };
 
 module Labeled = {
-  let component = ReasonReact.statelessComponent("EmacsGoal");
+  let component = statelessComponent("EmacsGoal");
   let make = (~label: string, ~expr: expr, _children) => {
     ...component,
     render: _self =>
@@ -60,23 +86,23 @@ module Labeled = {
 };
 
 module Output = {
-  let component = ReasonReact.statelessComponent("EmacsInteractionMeta");
+  let component = statelessComponent("EmacsInteractionMeta");
   let make = (~value: output, _children) => {
     ...component,
     render: _self => {
-      let Output(oc, _r) = value;
-      <OutputConstraint value=oc />;
+      let Output(oc, range) = value;
+      <OutputConstraint value=oc range />;
     },
   };
 };
 
 module RawError = {
-  let component = ReasonReact.statelessComponent("EmacsRawError");
+  let component = statelessComponent("EmacsRawError");
   let make = (~value: array(string), _children) => {
     ...component,
     render: _self =>
       Array.length(value) === 0 ?
-        ReasonReact.null :
+        null :
         <p className="error">
           (string(value |> Array.to_list |> String.concat("\n")))
         </p>,
