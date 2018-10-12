@@ -4,18 +4,45 @@ module Parser = {
   open Type.Interaction.Emacs;
   let unindent: array(string) => array(string) =
     lines => {
-      let lineStart = [%re "/^\\S+/"];
-      let lineStartIndices: array(int) =
+      let isNewline = (line, nextLine) => {
+        let sort = [%re "/^Sort \\S*/"];
+        /* banana : Banana */
+        let completeJudgement = [%re "/^[^\\(\\{\\s]+\\s+\\:\\s* \\S*/"];
+        /* case when the term's name is too long, the rest of the judgement
+              would go to the next line, e.g:
+                   banananananananananananananananana
+                       : Banana
+           */
+        let reallyLongTermIdentifier = [%re "/^\\S+$/"];
+        let restOfTheJudgement = [%re "/^\\s*\\:\\s* \\S*/"];
+        Js.Re.test(line, sort)
+        || Js.Re.test(line, reallyLongTermIdentifier)
+        && Js.Option.isSomeValue(
+             (. _, line) => Js.Re.test(line, restOfTheJudgement),
+             "",
+             nextLine,
+           )
+        || Js.Re.test(line, completeJudgement);
+      };
+      let newLineIndices: array(int) =
         lines
-        |> Js.Array.mapi((line, index) => (line, index))
-        |> Js.Array.filter(((line, _index)) => Js.Re.test(line, lineStart))
-        |> Array.map(((_, index)) => index);
-      lineStartIndices
+        |> Js.Array.mapi((line, index) =>
+             if (Array.length(lines) > index + 1) {
+               (line, Some(lines[index + 1]), index);
+             } else {
+               (line, None, index);
+             }
+           )
+        |> Js.Array.filter(((line, nextLine, _)) =>
+             isNewline(line, nextLine)
+           )
+        |> Array.map(((_, _, index)) => index);
+      newLineIndices
       |> Js.Array.mapi((index, i) =>
-           if (Array.length(lineStartIndices) === i + 1) {
+           if (Array.length(newLineIndices) === i + 1) {
              (index, Array.length(lines) + 1);
            } else {
-             (index, lineStartIndices[i + 1]);
+             (index, newLineIndices[i + 1]);
            }
          )
       |> Array.map(((start, end_)) =>
