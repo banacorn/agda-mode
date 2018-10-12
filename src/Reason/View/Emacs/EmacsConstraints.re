@@ -1,7 +1,5 @@
 open ReasonReact;
 
-open Type.Interaction.Emacs;
-
 open EmacsComponent;
 
 let component = ReasonReact.statelessComponent("EmacsConstraints");

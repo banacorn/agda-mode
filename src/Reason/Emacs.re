@@ -8,7 +8,7 @@ module Parser = {
       let lineStartIndices: array(int) =
         lines
         |> Js.Array.mapi((line, index) => (line, index))
-        |> Js.Array.filter(((line, index)) => Js.Re.test(line, lineStart))
+        |> Js.Array.filter(((line, _index)) => Js.Re.test(line, lineStart))
         |> Array.map(((_, index)) => index);
       lineStartIndices
       |> Js.Array.mapi((index, i) =>

@@ -167,7 +167,7 @@ module Element = {
                 ...prOp(ms, xs, es),
               ]
             }
-          | ([Hole, ...xs], []) => failwith("OpApp::prOp")
+          | ([Hole, ..._xs], []) => failwith("OpApp::prOp")
           | ([Id(x), ...xs], es) => [
               (
                 qualify(ms, <Name value=(Name(NoRange, [Id(x)])) />),

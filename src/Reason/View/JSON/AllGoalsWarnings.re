@@ -1,7 +1,5 @@
 open ReasonReact;
 
-open Type.AgdaMode;
-
 open Type.Interaction;
 
 let component = ReasonReact.statelessComponent("AllGoalsWarnings");
@@ -13,7 +11,7 @@ let make = (~value: allGoalsWarnings, _children) => {
       <ul className="metas">
         ...(
              value.interactionMetas
-             |> List.map(meta => <Meta meta />)
+             |> List.map(meta => <OutputConstraint meta />)
              |> Array.of_list
            )
       </ul>;
@@ -21,7 +19,7 @@ let make = (~value: allGoalsWarnings, _children) => {
       <ul className="metas">
         ...(
              value.hiddenMetas
-             |> List.map(meta => <Meta meta />)
+             |> List.map(meta => <OutputConstraint meta />)
              |> Array.of_list
            )
       </ul>;

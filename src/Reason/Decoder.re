@@ -1824,8 +1824,6 @@ module Decode = {
 
 open Type.Interaction;
 
-open Json.Decode;
-
 let parseError = Decode.TypeChecking.error;
 
 let parseBody = (raw: bodyRaw) =>
@@ -1833,7 +1831,7 @@ let parseBody = (raw: bodyRaw) =>
   | "AllGoalsWarnings" =>
     AllGoalsWarnings(raw |> rawJSONGet |> Decode.Interaction.allGoalsWarnings)
   | "Error" =>
-    Error(raw |> rawJSONGet |> Decode.TypeChecking.error, raw |> rawString)
-  | "PlainText" => PlainText(raw |> rawString)
+    Error(raw |> rawJSONGet |> Decode.TypeChecking.error, raw |> rawStringGet)
+  | "PlainText" => PlainText(raw |> rawStringGet)
   | _ => failwith("unknown kind of Body")
   };

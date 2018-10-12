@@ -1,7 +1,5 @@
 open ReasonReact;
 
-open Type.AgdaMode;
-
 open Type.Interaction;
 
 open Concrete;
@@ -10,7 +8,7 @@ open Type.Syntax.Concrete;
 
 open Util;
 
-let component = ReasonReact.statelessComponent("Meta");
+let component = ReasonReact.statelessComponent("OutputConstraint");
 
 let make = (~meta: outputConstraint(expr, expr), _children) => {
   ...component,
@@ -76,8 +74,8 @@ let make = (~meta: outputConstraint(expr, expr), _children) => {
     | SizeLtSat(e) =>
       <li> (string("Not empty type of sizes: ")) <Expr value=e /> </li>
     | FindInScopeOF(_s, _t, _cs) =>
-      <li> (string("Unimplemented: outputConstraint::FindInScopeOF")) </li>
+      <li> (string("Unimplemented: OutputConstraint::FindInScopeOF")) </li>
     | PTSInstance(_a, _b) =>
-      <li> (string("Unimplemented: outputConstraint::PTSInstance")) </li>
+      <li> (string("Unimplemented: OutputConstraint::PTSInstance")) </li>
     },
 };

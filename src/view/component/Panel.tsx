@@ -8,11 +8,12 @@ import Header from './Panel/Header';
 import SizingHandle from './Panel/SizingHandle';
 import { View } from '../../type';
 import V from '../../view';
-import MiniEditor from './MiniEditor';
+import TSMiniEditor from './MiniEditor';
 import { MODE, updateMaxBodyHeight, QUERY, EVENT } from './../actions';
 
 
 var JSONBody = require('./../../Reason/View/JSON/Body.bs').jsComponent;
+var MiniEditor = require('./../../Reason/View/JSON/MiniEditor.bs').jsComponent;
 var { toAtomRange, toAtomFilepath } = require('./../../Reason/View/Syntax/Range.bs');
 
 //
@@ -125,7 +126,7 @@ class Panel extends React.Component<Props, {}> {
                             }}
                         />
                     )}</V.EventContext.Consumer>
-                    <MiniEditor
+                    <TSMiniEditor
                         className={show(View.Mode.Query, mode)}
                         value={this.props.query.value}
                         placeholder={this.props.query.placeholder}
