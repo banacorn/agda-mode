@@ -192,14 +192,13 @@ module Parser = {
         };
       },
     );
-  type allGoalsWarningsPreprocess = {
+  type allGoalsWarningsPartition = {
     metas: array(string),
     warnings: array(string),
     errors: array(string),
   };
   let allGoalsWarnings = (title, body) : allGoalsWarnings => {
-    let allGoalsWarningsPreprocess:
-      (string, string) => allGoalsWarningsPreprocess =
+    let partiteAllGoalsWarnings: (string, string) => allGoalsWarningsPartition =
       (title, body) => {
         let shitpile = body |> Js.String.split("\n");
         let hasMetas =
@@ -282,9 +281,9 @@ module Parser = {
           }
         };
       };
-    let preprocessed = allGoalsWarningsPreprocess(title, body);
+    let {metas, warnings, errors} = partiteAllGoalsWarnings(title, body);
     let indexOfHiddenMetas =
-      preprocessed.metas
+      metas
       |> Js.Array.findIndex(s =>
            s |> parse(Output.outputWithRange) |> Js.Option.isSome
          )
@@ -297,9 +296,9 @@ module Parser = {
       );
     let interactionMetas =
       switch (indexOfHiddenMetas) {
-      | None => preprocessed.metas |> parseArray(Output.outputWithoutRange)
+      | None => metas |> parseArray(Output.outputWithoutRange)
       | Some(n) =>
-        preprocessed.metas
+        metas
         |> Js.Array.slice(~start=0, ~end_=n)
         |> parseArray(Output.outputWithoutRange)
       };
@@ -307,53 +306,82 @@ module Parser = {
       switch (indexOfHiddenMetas) {
       | None => [||]
       | Some(n) =>
-        preprocessed.metas
-        |> Js.Array.sliceFrom(n)
-        |> parseArray(Output.outputWithRange)
+        metas |> Js.Array.sliceFrom(n) |> parseArray(Output.outputWithRange)
       };
-    {
-      interactionMetas,
-      hiddenMetas,
-      warnings: preprocessed.warnings,
-      errors: preprocessed.errors,
-    };
+    {interactionMetas, hiddenMetas, warnings, errors};
+  };
+  type goalTypeContextPartition = {
+    goal: string,
+    have: option(string),
+    metas: array(string),
   };
   let goalTypeContext: string => goalTypeContext =
     raw => {
-      let shitpile = raw |> Js.String.split("\n") |> unindent;
-      /* see if Have: exists */
-      let haveExists =
-        shitpile
-        |>
-        Js.Array.findIndex(s =>
-          s |> Js.String.match([%re "/^Have/"]) |> Js.Option.isSome
-        ) !== (-1);
-      let indexOfDelimeter =
-        shitpile
-        |> Js.Array.findIndex(s =>
-             s |> Js.String.match([%re "/\\u2014{60}/g"]) |> Js.Option.isSome
-           );
-      let goal =
-        shitpile[0]
-        |> Js.String.sliceToEnd(~from=5)
-        |> parse(expr)
-        |> map(x => Goal(x));
-      let have =
-        haveExists ?
-          shitpile[1]
+      let partiteGoalTypeContext: string => goalTypeContextPartition =
+        raw => {
+          let lines = raw |> Js.String.split("\n");
+          let indexOfGoal =
+            lines
+            |> Js.Array.findIndex(s =>
+                 s |> Js.String.match([%re "/^Goal:/"]) |> Js.Option.isSome
+               );
+          let indexOfHave =
+            lines
+            |> Js.Array.findIndex(s =>
+                 s |> Js.String.match([%re "/^Have:/"]) |> Js.Option.isSome
+               );
+          let indexOfDelimeter =
+            lines
+            |> Js.Array.findIndex(s =>
+                 s
+                 |> Js.String.match([%re "/\\u2014{60}/g"])
+                 |> Js.Option.isSome
+               );
+          if (indexOfHave === (-1)) {
+            {
+              goal:
+                lines
+                |> Js.Array.slice(~start=0, ~end_=indexOfDelimeter)
+                |> Array.to_list
+                |> String.concat(""),
+              have: None,
+              metas: lines |> Js.Array.sliceFrom(indexOfDelimeter + 1),
+            };
+          } else {
+            {
+              goal:
+                lines
+                |> Js.Array.slice(~start=0, ~end_=indexOfHave)
+                |> Array.to_list
+                |> String.concat(""),
+              have:
+                lines
+                |> Js.Array.slice(~start=indexOfHave, ~end_=indexOfDelimeter)
+                |> Array.to_list
+                |> String.concat("")
+                |> Js.Option.some,
+              metas: lines |> Js.Array.sliceFrom(indexOfDelimeter + 1),
+            };
+          };
+        };
+      let {goal, have, metas} = partiteGoalTypeContext(raw);
+      {
+        goal:
+          goal
           |> Js.String.sliceToEnd(~from=5)
           |> parse(expr)
-          |> map(x => Have(x)) :
-          None;
-      let interactionMetas =
-        shitpile
-        |> Js.Array.sliceFrom(indexOfDelimeter + 1)
-        |> parseArray(Output.outputWithoutRange);
-      let hiddenMetas =
-        shitpile
-        |> Js.Array.sliceFrom(indexOfDelimeter + 1)
-        |> parseArray(Output.outputWithRange);
-      {goal, have, interactionMetas, hiddenMetas};
+          |> map(x => Goal(x)),
+        have:
+          have
+          |> Js.Option.andThen((. line) =>
+               line
+               |> Js.String.sliceToEnd(~from=5)
+               |> parse(expr)
+               |> map(x => Have(x))
+             ),
+        interactionMetas: metas |> parseArray(Output.outputWithoutRange),
+        hiddenMetas: metas |> parseArray(Output.outputWithRange),
+      };
     };
   let constraints: string => array(output) =
     raw => {
