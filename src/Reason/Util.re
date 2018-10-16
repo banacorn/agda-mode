@@ -1,58 +1,39 @@
 open ReasonReact;
 
+open Rebase;
+
 let sepBy = (sep: reactElement, item: list(reactElement)) =>
   switch (item) {
   | [] => <> </>
   | [x] => x
   | [x, ...xs] =>
     <span>
-      ...(Array.of_list([x, ...List.map(i => <> sep i </>, xs)]))
+      ...(Array.fromList([x, ...List.map(i => <> sep i </>, xs)]))
     </span>
   };
-
-let contains: (string, string) => bool = [%raw
-  "function (haystack, needle) { return (haystack.indexOf(needle) !== -1)}"
-];
 
 let enclosedBy = (front: reactElement, back: reactElement, item: reactElement) =>
   <> front (string(" ")) item (string(" ")) back </>;
 
-module Option = {
-  let bind = (f: 'a => option('b), x: option('a)) : option('b) =>
-    x |> Js.Option.andThen((. x') => f(x'));
-  let map = (f: 'a => 'b, x: option('a)) : option('b) =>
-    x |> Js.Option.map((. x') => f(x'));
-  let option = (default: 'b, f: 'a => 'b, x: option('a)) : 'b =>
-    switch (x) {
-    | Some(value) => f(value)
-    | None => default
-    };
-};
-
-/*
- module React = {
-   let option: ('a => reactElement, option('a)) => reactElement =
-     Option.option(null);
- }; */
 module Array_ = {
   let catMaybes = xs =>
-    Array.fold_right(
-      (x, acc) =>
+    Array.reduceRight(
+      (acc, x) =>
         switch (x) {
         | Some(v) => [v, ...acc]
         | None => acc
         },
-      xs,
       [],
+      xs,
     )
-    |> Array.of_list;
+    |> Array.fromList;
 };
 
 module Parser = {
-  open Option;
+  /* open Option; */
   let captures = (re: Js.Re.t, x: string) : option(array(option(string))) =>
     Js.Re.exec(x, re)
-    |> map(result =>
+    |> Option.map(result =>
          result |> Js.Re.captures |> Array.map(Js.Nullable.toOption)
        );
   type parser('a) =
@@ -60,7 +41,7 @@ module Parser = {
     | String(string => option('a));
   let parse = (parser: parser('a), raw: string) : option('a) =>
     switch (parser) {
-    | Regex(re, handler) => captures(re, raw) |> bind(handler)
+    | Regex(re, handler) => captures(re, raw) |> Option.flatMap(handler)
     | String(handler) => handler(raw)
     };
   let parseArray = (parser: parser('a), xs: array(string)) : array('a) =>
@@ -71,12 +52,12 @@ module Parser = {
     if (i >= Array.length(captured)) {
       None;
     } else {
-      captured[i] |> bind(parse(parser));
+      Option.flatten(captured[i]) |> Option.flatMap(parse(parser));
     };
   let choice = (res: array(parser('a))) =>
     String(
       raw =>
-        Array.fold_left(
+        Array.reduce(
           (result, parser) =>
             switch (result) {
             /* Done, pass it on */
@@ -94,7 +75,7 @@ module List_ = {
   let sepBy = (sep: 'a, item: list('a)) : list('a) =>
     switch (item) {
     | [] => []
-    | [x, ...xs] => [x, ...xs |> List.map(i => [sep, i]) |> List.concat]
+    | [x, ...xs] => [x, ...xs |> List.flatMap(i => [sep, i])]
     };
   let rec init = xs =>
     switch (xs) {

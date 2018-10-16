@@ -4,7 +4,7 @@ open Type.Interaction.Emacs;
 
 open EmacsComponent;
 
-let component = ReasonReact.statelessComponent("EmacsAllGoalsWarnings");
+let component = statelessComponent("EmacsAllGoalsWarnings");
 
 let make = (~header: string, ~body: string, _children) => {
   ...component,

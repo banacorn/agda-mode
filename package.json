@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@glennsl/bs-json": "^3.0.0",
+    "@glennsl/rebase": "^0.2.1",
     "@types/atom": "^1.28",
     "@types/bluebird": "^3.5",
     "@types/classnames": "^2.2",

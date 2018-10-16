@@ -11,6 +11,8 @@ S /Users/banacorn/github/agda-mode/node_modules/reason-react/lib/ocaml
 B /Users/banacorn/github/agda-mode/node_modules/reason-react/lib/ocaml
 S /Users/banacorn/github/agda-mode/node_modules/@glennsl/bs-json/lib/ocaml
 B /Users/banacorn/github/agda-mode/node_modules/@glennsl/bs-json/lib/ocaml
+S /Users/banacorn/github/agda-mode/node_modules/@glennsl/rebase/lib/ocaml
+B /Users/banacorn/github/agda-mode/node_modules/@glennsl/rebase/lib/ocaml
 S src/Reason
 B lib/bs/src/Reason
 S src/Reason/View

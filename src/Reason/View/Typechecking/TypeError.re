@@ -6,6 +6,8 @@ open Name;
 
 open Util;
 
+open Rebase;
+
 let component = statelessComponent("TypeError");
 
 let make = (~typeError: typeError, ~rawString: string, _children) => {
@@ -100,9 +102,9 @@ let make = (~typeError: typeError, ~rawString: string, _children) => {
       </div>
     | NotInScope(pairs) =>
       let forgetSpaceColon = name =>
-        name |> QName.toString |> String.contains(_, ':');
+        name |> QName.toString |> String.includes(_, ":");
       let forgetSpaceArrow = name =>
-        name |> QName.toString |> contains(_, "->");
+        name |> QName.toString |> String.includes(_, "->");
       let pair = ((name, suggestions)) => {
         let colon = forgetSpaceColon(name);
         let arrow = forgetSpaceArrow(name);
@@ -142,7 +144,7 @@ let make = (~typeError: typeError, ~rawString: string, _children) => {
           )
         </li>;
       };
-      <ul> ...(pairs |> List.map(pair) |> Array.of_list) </ul>;
+      <ul> ...(pairs |> List.map(pair) |> Array.fromList) </ul>;
     | NoSuchModule(moduleName) =>
       <div> (string("No such module ")) <QName value=moduleName /> </div>
     | AmbiguousName(ambiguousName, couldReferTo) =>
@@ -159,7 +161,7 @@ let make = (~typeError: typeError, ~rawString: string, _children) => {
                |> List.map(value =>
                     <li> (string("    ")) <QName value /> </li>
                   )
-               |> Array.of_list
+               |> Array.fromList
              )
         </ul>
       </div>

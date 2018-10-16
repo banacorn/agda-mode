@@ -2,7 +2,7 @@ open ReasonReact;
 
 open EmacsComponent;
 
-let component = ReasonReact.statelessComponent("EmacsConstraints");
+let component = statelessComponent("EmacsConstraints");
 
 let make = (~body: string, _children) => {
   ...component,

@@ -19,7 +19,8 @@
   "namespace": true,
   "bs-dependencies": [
     "reason-react",
-    "@glennsl/bs-json"
+    "@glennsl/bs-json",
+    "@glennsl/rebase"
   ],
   "bsc-flags": ["-bs-g"]  ,
   "refmt": 3

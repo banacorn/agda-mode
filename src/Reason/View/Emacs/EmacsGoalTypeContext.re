@@ -1,10 +1,12 @@
 open ReasonReact;
 
+open Rebase;
+
 open Type.Interaction.Emacs;
 
 open EmacsComponent;
 
-let component = ReasonReact.statelessComponent("EmacsGoalTypeContext");
+let component = statelessComponent("EmacsGoalTypeContext");
 
 let make = (~body: string, _children) => {
   ...component,
@@ -14,14 +16,16 @@ let make = (~body: string, _children) => {
       <ul>
         (
           parsed.goal
-          |> Util.Option.option(ReasonReact.null, (Goal(expr)) =>
-               <Labeled label="Goal " expr />
+          |> Option.mapOr(
+               (Goal(expr)) => <Labeled label="Goal " expr />,
+               null,
              )
         )
         (
           parsed.have
-          |> Util.Option.option(ReasonReact.null, (Have(expr)) =>
-               <Labeled label="Have " expr />
+          |> Option.mapOr(
+               (Have(expr)) => <Labeled label="Have " expr />,
+               null,
              )
         )
       </ul>

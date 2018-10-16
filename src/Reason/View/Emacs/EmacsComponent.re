@@ -1,6 +1,6 @@
 open ReasonReact;
 
-open Util.Option;
+open Rebase;
 
 open Type.Interaction.Emacs;
 
@@ -50,24 +50,24 @@ module OutputConstraint = {
           <Expr expr=e />
           (string(" : "))
           <Expr expr=t />
-          (option(null, range => <Range range abbr=true />, range))
+          (Option.mapOr(range => <Range range abbr=true />, null, range))
         </li>
       | JustType(e) =>
         <li className="output">
           (string("Type "))
           <Expr expr=e />
-          (option(null, range => <Range range abbr=true />, range))
+          (Option.mapOr(range => <Range range abbr=true />, null, range))
         </li>
       | JustSort(e) =>
         <li className="output">
           (string("Sort "))
           <Expr expr=e />
-          (option(null, range => <Range range abbr=true />, range))
+          (Option.mapOr(range => <Range range abbr=true />, null, range))
         </li>
       | Others(e) =>
         <li className="output">
           <Expr expr=e />
-          (option(null, range => <Range range abbr=true />, range))
+          (Option.mapOr(range => <Range range abbr=true />, null, range))
         </li>
       },
   };
@@ -104,7 +104,7 @@ module RawError = {
       Array.length(value) === 0 ?
         null :
         <p className="error">
-          (string(value |> Array.to_list |> String.concat("\n")))
+          (string(value |> List.fromArray |> String.joinWith("\n")))
         </p>,
   };
 };
