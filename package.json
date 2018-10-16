@@ -29,12 +29,12 @@
     "atom": ">=1.19.0 <2.0.0"
   },
   "devDependencies": {
-    "bs-platform": "^4.0.5",
+    "bs-platform": "^4.0.6",
     "typescript": "^2.9.2"
   },
   "dependencies": {
     "@glennsl/bs-json": "^3.0.0",
-    "@glennsl/rebase": "^0.2.1",
+    "@glennsl/rebase": "git@github.com:banacorn/rebase.git#5f349c",
     "@types/atom": "^1.28",
     "@types/bluebird": "^3.5",
     "@types/classnames": "^2.2",

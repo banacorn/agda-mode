@@ -14,7 +14,7 @@ import { MODE, updateMaxBodyHeight, QUERY, EVENT } from './../actions';
 
 var JSONBody = require('./../../Reason/View/JSON/Body.bs').jsComponent;
 var MiniEditor = require('./../../Reason/View/JSON/MiniEditor.bs').jsComponent;
-var { toAtomRange, toAtomFilepath } = require('./../../Reason/View/Syntax/Range.bs');
+var { toAtomRange, toAtomFilepath } = require('./../../Reason/View/Syntax/Syntax__Range.bs');
 
 //
 type OwnProps = React.HTMLProps<HTMLElement> & {

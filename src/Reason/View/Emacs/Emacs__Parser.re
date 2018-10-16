@@ -229,19 +229,19 @@ let allGoalsWarnings = (title, body) : allGoalsWarnings => {
           warnings:
             lines
             |> Array.slice(~from=indexOfWarnings + 1, ~to_=indexOfErrors),
-          errors: lines |> Array.sliceFrom(indexOfErrors + 1),
+          errors: lines |> Js.Array.sliceFrom(indexOfErrors + 1),
         }
       | (true, true, false) => {
           metas:
             lines |> Array.slice(~from=0, ~to_=indexOfWarnings) |> unindent,
-          warnings: lines |> Array.sliceFrom(indexOfWarnings + 1),
+          warnings: lines |> Js.Array.sliceFrom(indexOfWarnings + 1),
           errors: [||],
         }
       | (true, false, true) => {
           metas:
             lines |> Array.slice(~from=0, ~to_=indexOfErrors) |> unindent,
           warnings: [||],
-          errors: lines |> Array.sliceFrom(indexOfErrors + 1),
+          errors: lines |> Js.Array.sliceFrom(indexOfErrors + 1),
         }
       | (true, false, false) => {
           metas: lines |> unindent,
@@ -279,7 +279,7 @@ let allGoalsWarnings = (title, body) : allGoalsWarnings => {
     switch (indexOfHiddenMetas) {
     | None => [||]
     | Some(n) =>
-      metas |> Array.sliceFrom(n) |> parseArray(Output.outputWithRange)
+      metas |> Js.Array.sliceFrom(n) |> parseArray(Output.outputWithRange)
     };
   {interactionMetas, hiddenMetas, warnings, errors};
 };
@@ -319,7 +319,7 @@ let goalTypeContext: string => goalTypeContext =
               |> List.fromArray
               |> String.join
               |> Option.some,
-            metas: lines |> Array.sliceFrom(indexOfDelimeter + 1),
+            metas: lines |> Js.Array.sliceFrom(indexOfDelimeter + 1),
           }
         | None => {
             goal:
@@ -328,7 +328,7 @@ let goalTypeContext: string => goalTypeContext =
               |> List.fromArray
               |> String.join,
             have: None,
-            metas: lines |> Array.sliceFrom(indexOfDelimeter + 1),
+            metas: lines |> Js.Array.sliceFrom(indexOfDelimeter + 1),
           }
         };
       };

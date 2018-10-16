@@ -7,7 +7,6 @@ import { parseHole, parseFilepath } from './parser';
 import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
 import Goal from './editor/goal';
-// var { toAtomRange, toAtomFilepathq } = require('./view/component/Reason/Range.bs');
 
 import { Point, Range } from 'atom';
 import * as Atom from 'atom';
