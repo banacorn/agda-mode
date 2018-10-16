@@ -1,6 +1,6 @@
 open ReasonReact;
 
-let component = ReasonReact.statelessComponent("JSONBody");
+let component = statelessComponent("JSONBody");
 
 let make =
     (
@@ -27,9 +27,9 @@ let make =
         let header = parsed.header;
         let body = parsed.body;
         switch (parsed.kind) {
-        | AllGoalsWarnings => <EmacsAllGoalsWarnings header body />
-        | GoalTypeContext => <EmacsGoalTypeContext body />
-        | Constraints => <EmacsConstraints body />
+        | AllGoalsWarnings => <Emacs__AllGoalsWarnings header body />
+        | GoalTypeContext => <Emacs__GoalTypeContext body />
+        | Constraints => <Emacs__Constraints body />
         | PlainText => <p> (string(body)) </p>
         };
       };
@@ -64,7 +64,7 @@ type jsProps = {
 };
 
 let jsComponent =
-  ReasonReact.wrapReasonForJs(~component, jsProps =>
+  wrapReasonForJs(~component, jsProps =>
     make(
       ~raw=rawGet(jsProps),
       ~emacs=emacsGet(jsProps),

@@ -4,9 +4,9 @@ open ReasonReact;
 
 open Type.TypeChecking;
 
-open Concrete;
+open Syntax.Concrete;
 
-open Name;
+open Syntax;
 
 open Util;
 

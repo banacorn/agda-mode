@@ -2,7 +2,7 @@ open ReasonReact;
 
 open Type.Interaction;
 
-open Concrete;
+open Syntax.Concrete;
 
 open Type.Syntax.Concrete;
 

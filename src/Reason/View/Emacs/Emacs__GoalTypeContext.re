@@ -4,7 +4,7 @@ open Rebase;
 
 open Type.Interaction.Emacs;
 
-open EmacsComponent;
+open Emacs.Component;
 
 let component = statelessComponent("EmacsGoalTypeContext");
 

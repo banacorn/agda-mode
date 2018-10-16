@@ -1,8 +1,6 @@
 open ReasonReact;
 
-open Type;
-
-open Syntax.Literal;
+open Type.Syntax.Literal;
 
 let component = statelessComponent("Literal");
 

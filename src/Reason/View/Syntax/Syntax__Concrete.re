@@ -4,7 +4,7 @@ open Type.Syntax.Concrete;
 
 open Type.Syntax.Name;
 
-open Name;
+open Syntax__Name;
 
 open Type;
 
@@ -39,7 +39,7 @@ module TypedBinding_ = {
 
 module Expr_ = {
   open Type.Syntax.CommonPrim;
-  open CommonPrim;
+  open Syntax__CommonPrim;
   let rec appView: expr => (expr, list(namedArg(expr))) =
     expr => {
       let vApp = ((e, es), arg) => (e, List.append(es, [arg]));
@@ -66,7 +66,7 @@ module Expr_ = {
 module Element = {
   /* namespaces */
   /* open Type.Syntax.CommonPrim; */
-  open CommonPrim;
+  open Syntax__CommonPrim;
   /* elements */
   let rec makeExpr = (~value, _children) => {
     ...Expr_.component,
@@ -77,9 +77,6 @@ module Element = {
       module LamBinding = {
         let make = makeLamBinding;
       };
-      module TypedBindings = {
-        let make = makeTypedBindings;
-      };
       module Declaration = {
         let make = makeDeclaration;
       };
@@ -88,7 +85,7 @@ module Element = {
       };
       switch (value) {
       | Ident(value) => <QName value />
-      | Lit(value) => <Literal value />
+      | Lit(value) => <Syntax__Literal value />
       | QuestionMark(range, None) =>
         <Link className=["expr", "question-mark"] jump hover range>
           (string("?"))
@@ -223,11 +220,11 @@ module Element = {
         |> List.map(value => <Expr value />)
         |> sepBy(string(" | "))
       | HiddenArg(_, expr) =>
-        CommonPrim.braces(
+        Syntax__CommonPrim.braces(
           <Named value=expr> ...((_, value) => <Expr value />) </Named>,
         )
       | InstanceArg(_, expr) =>
-        CommonPrim.dbraces(
+        Syntax__CommonPrim.dbraces(
           <Named value=expr> ...((_, value) => <Expr value />) </Named>,
         )
       | Lam(_, bindings, AbsurdLam(_, hiding)) =>
@@ -293,18 +290,24 @@ module Element = {
             }
           )
         </span>
-      | Paren(_, value) => CommonPrim.parens(<Expr value />)
+      | Paren(_, value) => Syntax__CommonPrim.parens(<Expr value />)
       | _ => <span> (string("unimplemented: <Expr>")) </span>
       };
     },
   }
   and makeDeclaration = (~value, _children) => {
     ...Component.declaration,
-    render: _self => <span> (string("<Declaration> unimplemented")) </span>,
+    render: _self => {
+      Js.log(value);
+      <span> (string("<Declaration> unimplemented")) </span>;
+    },
   }
   and makePattern = (~pattern, _children) => {
     ...Component.pattern,
-    render: _self => <span> (string("<Pattern> unimplemented")) </span>,
+    render: _self => {
+      Js.log(pattern);
+      <span> (string("<Pattern> unimplemented")) </span>;
+    },
   }
   and makeTypedBinding = (~value, _children) => {
     ...Component.typedBindings,

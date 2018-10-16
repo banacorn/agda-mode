@@ -1,37 +1,39 @@
+open ReasonReact;
+
+open Type.TypeChecking;
+
+open Syntax;
+
 let typeErrorToHeader = error =>
-  Type.TypeChecking.(
-    switch (error) {
-    | GenericDocError(_)
-    | GenericError(_) => "Generic Error"
-    | ShouldEndInApplicationOfTheDatatype(_) => "Should end in Application of the Datatype"
-    | ShadowedModule(_) => "Shadowed Module"
-    | ShouldBePi(_) => "Should be Pi"
-    | ShouldBeASort(_) => "Should be a Sort"
-    | UnequalTerms(_, _, _, _, _) => "Unequal Terms"
-    | ClashingDefinition(_, _) => "Clashing Definition"
-    | ModuleArityMismatch(_, _, _) => "Module Arity Mismatch"
-    | NoRHSRequiresAbsurdPattern(_) => "No RHS Requires Absurd Pattern"
-    | NotInScope(_) => "Not in Scope"
-    | NoSuchModule(_) => "No such Module"
-    | AmbiguousName(_, _) => "Ambiguous Name"
-    | UnregisteredTypeError(_) => "Unregistered Type Error"
-    }
-  );
+  switch (error) {
+  | GenericDocError(_)
+  | GenericError(_) => "Generic Error"
+  | ShouldEndInApplicationOfTheDatatype(_) => "Should end in Application of the Datatype"
+  | ShadowedModule(_) => "Shadowed Module"
+  | ShouldBePi(_) => "Should be Pi"
+  | ShouldBeASort(_) => "Should be a Sort"
+  | UnequalTerms(_, _, _, _, _) => "Unequal Terms"
+  | ClashingDefinition(_, _) => "Clashing Definition"
+  | ModuleArityMismatch(_, _, _) => "Module Arity Mismatch"
+  | NoRHSRequiresAbsurdPattern(_) => "No RHS Requires Absurd Pattern"
+  | NotInScope(_) => "Not in Scope"
+  | NoSuchModule(_) => "No such Module"
+  | AmbiguousName(_, _) => "Ambiguous Name"
+  | UnregisteredTypeError(_) => "Unregistered Type Error"
+  };
 
 let errorToHeader = error =>
-  Type.TypeChecking.(
-    switch (error) {
-    | TypeError(_, _, typeError) =>
-      "Type Error: " ++ typeErrorToHeader(typeError)
-    | Exception(_) => "Exception"
-    | IOException(_) => "IOException"
-    | PatternError(_) => "PatternError"
-    }
-  );
+  switch (error) {
+  | TypeError(_, _, typeError) =>
+    "Type Error: " ++ typeErrorToHeader(typeError)
+  | Exception(_) => "Exception"
+  | IOException(_) => "IOException"
+  | PatternError(_) => "PatternError"
+  };
 
-let component = ReasonReact.statelessComponent("Error");
+let component = statelessComponent("Error");
 
-let make = (~value: Type.TypeChecking.error, ~rawString: string, _children) => {
+let make = (~value: error, ~rawString: string, _children) => {
   ...component,
   render: _self =>
     switch (value) {
@@ -46,11 +48,11 @@ let make = (~value: Type.TypeChecking.error, ~rawString: string, _children) => {
           }
         )
       </section>
-    | Exception(_) => <section> (ReasonReact.string(rawString)) </section>
-    | IOException(_) => <section> (ReasonReact.string(rawString)) </section>
+    | Exception(_) => <section> (string(rawString)) </section>
+    | IOException(_) => <section> (string(rawString)) </section>
     | PatternError(_) =>
       <section>
-        (ReasonReact.string("Pattern violation (you shouldn't see this)"))
+        (string("Pattern violation (you shouldn't see this)"))
       </section>
     },
 };

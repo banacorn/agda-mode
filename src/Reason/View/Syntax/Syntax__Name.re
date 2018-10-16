@@ -57,7 +57,7 @@ module QName = {
     switch (name) {
     | QName([], x) => Name.getRange(x)
     | QName([x', ...xs], x) =>
-      Range.fuse(getRange(QName(xs, x')), Name.getRange(x))
+      Syntax__Range.fuse(getRange(QName(xs, x')), Name.getRange(x))
     };
   let unqualify = (QName(xs, x)) => {
     let range = getRange(QName(xs, x));

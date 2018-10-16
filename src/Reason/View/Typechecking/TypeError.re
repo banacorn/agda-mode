@@ -2,7 +2,7 @@ open ReasonReact;
 
 open Type.TypeChecking;
 
-open Name;
+open Syntax;
 
 open Util;
 

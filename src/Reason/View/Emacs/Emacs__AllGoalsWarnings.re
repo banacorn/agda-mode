@@ -2,7 +2,7 @@ open ReasonReact;
 
 open Type.Interaction.Emacs;
 
-open EmacsComponent;
+open Emacs.Component;
 
 let component = statelessComponent("EmacsAllGoalsWarnings");
 

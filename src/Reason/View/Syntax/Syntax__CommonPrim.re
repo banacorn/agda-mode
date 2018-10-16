@@ -1,10 +1,8 @@
 open ReasonReact;
 
-open Type;
-
 open Util;
 
-open Syntax.CommonPrim;
+open Type.Syntax.CommonPrim;
 
 let id = children => children;
 
