@@ -261,6 +261,35 @@ let output: parser(output) =
     },
   );
 
+let partiteMetas =
+  Util.Dict.split("metas", (rawMetas: array(string)) => {
+    let metas = unindent(rawMetas);
+    let indexOfHiddenMetas =
+      metas
+      |> Array.findIndex(s => s |> parse(Output.outputWithRange) |> isSome)
+      |> map(fst);
+    metas
+    |> Util.Dict.partite(((_, i)) =>
+         switch (indexOfHiddenMetas) {
+         | Some(n) =>
+           if (i === n) {
+             Some("hiddenMetas");
+           } else if (i === 0) {
+             Some("interactionMetas");
+           } else {
+             None;
+           }
+         | None =>
+           /* All interaction metas */
+           if (i === 0) {
+             Some("interactionMetas");
+           } else {
+             None;
+           }
+         }
+       );
+  });
+
 let allGoalsWarnings = (title, body) : allGoalsWarnings => {
   let partiteAllGoalsWarnings: (string, string) => Js.Dict.t(array(string)) =
     (title, body) => {
@@ -300,39 +329,7 @@ let allGoalsWarnings = (title, body) : allGoalsWarnings => {
       |> Util.Dict.partite(line =>
            or_(or_(markMetas(line), markWarnings(line)), markErrors(line))
          );
-      /* let metas = "metas" |> Js.Dict.get(dictionary) |> map(unindent);
-         let warnings = "warnings" |> Js.Dict.get(dictionary);
-         let errors = "errors" |> Js.Dict.get(dictionary);
-         {metas, warnings, errors}; */
     };
-  let partiteMetas =
-    Util.Dict.split("metas", (rawMetas: array(string)) => {
-      let metas = unindent(rawMetas);
-      let indexOfHiddenMetas =
-        metas
-        |> Array.findIndex(s => s |> parse(Output.outputWithRange) |> isSome)
-        |> map(fst);
-      metas
-      |> Util.Dict.partite(((_, i)) =>
-           switch (indexOfHiddenMetas) {
-           | Some(n) =>
-             if (i === n) {
-               Some("hiddenMetas");
-             } else if (i === 0) {
-               Some("interactionMetas");
-             } else {
-               None;
-             }
-           | None =>
-             /* All interaction metas */
-             if (i === 0) {
-               Some("interactionMetas");
-             } else {
-               None;
-             }
-           }
-         );
-    });
   let partiteWarningsOrErrors = key =>
     Util.Dict.update(
       key,
@@ -349,6 +346,7 @@ let allGoalsWarnings = (title, body) : allGoalsWarnings => {
     |> partiteMetas
     |> partiteWarningsOrErrors("warnings")
     |> partiteWarningsOrErrors("errors");
+  /* extract entries from the dictionary */
   let interactionMetas =
     "interactionMetas"
     |> Js.Dict.get(dictionary)
@@ -362,72 +360,54 @@ let allGoalsWarnings = (title, body) : allGoalsWarnings => {
   {interactionMetas, hiddenMetas, warnings, errors};
 };
 
-type goalTypeContextPartition = {
-  goal: string,
-  have: option(string),
-  metas: array(string),
-};
-
 let goalTypeContext: string => goalTypeContext =
   raw => {
-    let partiteGoalTypeContext: string => goalTypeContextPartition =
-      raw => {
-        let lines = raw |> Js.String.split("\n");
-        let indexOfHave =
-          lines
-          |> Array.findIndex(s =>
-               s |> Js.String.match([%re "/^Have:/"]) |> isSome
-             );
-        let indexOfDelimeter =
-          lines
-          |> Js.Array.findIndex(s =>
-               s |> Js.String.match([%re "/\\u2014{60}/g"]) |> isSome
-             );
-        ();
-        switch (indexOfHave) {
-        | Some((n, _)) => {
-            goal:
-              lines
-              |> Array.slice(~from=0, ~to_=n)
-              |> List.fromArray
-              |> String.join,
-            have:
-              lines
-              |> Array.slice(~from=n, ~to_=indexOfDelimeter)
-              |> List.fromArray
-              |> String.join
-              |> some,
-            metas: lines |> Js.Array.sliceFrom(indexOfDelimeter + 1),
-          }
-        | None => {
-            goal:
-              lines
-              |> Array.slice(~from=0, ~to_=indexOfDelimeter)
-              |> List.fromArray
-              |> String.join,
-            have: None,
-            metas: lines |> Js.Array.sliceFrom(indexOfDelimeter + 1),
-          }
-        };
-      };
-    let {goal, have, metas} = partiteGoalTypeContext(raw);
-    {
-      goal:
-        goal
-        |> Js.String.sliceToEnd(~from=5)
-        |> parse(expr)
-        |> map(x => Goal(x)),
-      have:
-        have
-        |> flatMap(line =>
-             line
-             |> Js.String.sliceToEnd(~from=5)
-             |> parse(expr)
-             |> map(x => Have(x))
-           ),
-      interactionMetas: metas |> parseArray(Output.outputWithoutRange),
-      hiddenMetas: metas |> parseArray(Output.outputWithRange),
-    };
+    let markGoal = ((line, _)) =>
+      line |> Js.String.match([%re "/^Goal:/"]) |> map((_) => "goal");
+    let markHave = ((line, _)) =>
+      line |> Js.String.match([%re "/^Have:/"]) |> map((_) => "have");
+    let markMetas = ((line, _)) =>
+      line |> Js.String.match([%re "/\\u2014{60}/g"]) |> map((_) => "metas");
+    let partiteGoalTypeContext =
+      Util.Dict.partite(line =>
+        or_(or_(markGoal(line), markHave(line)), markMetas(line))
+      );
+    let removeDelimeter = Util.Dict.update("metas", Js.Array.sliceFrom(1));
+    let lines = raw |> Js.String.split("\n");
+    let dictionary =
+      lines |> partiteGoalTypeContext |> removeDelimeter |> partiteMetas;
+    /* extract entries from the dictionary */
+    let goal =
+      "goal"
+      |> Js.Dict.get(dictionary)
+      |> flatMap(line =>
+           line
+           |> List.fromArray
+           |> String.joinWith("\n")
+           |> Js.String.sliceToEnd(~from=5)
+           |> parse(expr)
+         )
+      |> map(x => Goal(x));
+    let have =
+      "have"
+      |> Js.Dict.get(dictionary)
+      |> flatMap(line =>
+           line
+           |> List.fromArray
+           |> String.joinWith("\n")
+           |> Js.String.sliceToEnd(~from=5)
+           |> parse(expr)
+         )
+      |> map(x => Have(x));
+    let interactionMetas =
+      "interactionMetas"
+      |> Js.Dict.get(dictionary)
+      |> mapOr(metas => metas |> parseArray(Output.outputWithoutRange), [||]);
+    let hiddenMetas =
+      "hiddenMetas"
+      |> Js.Dict.get(dictionary)
+      |> mapOr(metas => metas |> parseArray(Output.outputWithRange), [||]);
+    {goal, have, interactionMetas, hiddenMetas};
   };
 
 let constraints: string => array(output) =
