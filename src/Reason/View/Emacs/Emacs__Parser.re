@@ -207,41 +207,13 @@ module Output = {
     );
   let outputWithRange: parser(output) =
     Regex(
-      [%re
-        "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
-      ],
+      [%re "/((?:\\n|.)*\\S+)\\s*\\[ at ([^\\]]+) \\]/"],
       captured =>
         flatten(captured[1])
-        |> flatMap(raw => {
-             open Type.Syntax.Position;
-             let rowStart =
-               captured[3]
-               |> getOr(flatten(captured[7]))
-               |> getOr("0")
-               |> int_of_string;
-             let rowEnd =
-               captured[5]
-               |> getOr(flatten(captured[7]))
-               |> getOr("0")
-               |> int_of_string;
-             let colStart =
-               captured[4]
-               |> getOr(flatten(captured[8]))
-               |> getOr("0")
-               |> int_of_string;
-             let colEnd =
-               captured[6]
-               |> getOr(flatten(captured[9]))
-               |> getOr("0")
-               |> int_of_string;
-             let start = {pos: None, line: rowStart, col: colStart};
-             let end_ = {pos: None, line: rowEnd, col: colEnd};
-             raw
-             |> parse(outputConstraint)
-             |> map(parsed => {
-                  let path = captured |> at(2, filepath);
-                  Output(parsed, Some(Range(path, [{start, end_}])));
-                });
+        |> flatMap(parse(outputConstraint))
+        |> map(oc => {
+             let r = flatten(captured[2]) |> flatMap(parse(range));
+             Output(oc, r);
            }),
     );
 };
@@ -258,6 +230,37 @@ let output: parser(output) =
       } else {
         raw |> parse(Output.outputWithoutRange);
       };
+    },
+  );
+
+/* warnings */
+let warning: parser(warningError) =
+  String(
+    raw => {
+      let lines = raw |> Js.String.split("\n");
+      let range = lines[0] |> flatMap(parse(range));
+      let body =
+        lines
+        |> Js.Array.sliceFrom(1)
+        |> List.fromArray
+        |> String.joinWith("\n");
+      ();
+      range |> map(r => Warning(r, body));
+    },
+  );
+
+let error: parser(warningError) =
+  String(
+    raw => {
+      let lines = raw |> Js.String.split("\n");
+      let range = lines[0] |> flatMap(parse(range));
+      let body =
+        lines
+        |> Js.Array.sliceFrom(1)
+        |> List.fromArray
+        |> String.joinWith("\n");
+      ();
+      range |> map(r => Error(r, body));
     },
   );
 
@@ -355,8 +358,14 @@ let allGoalsWarnings = (title, body) : allGoalsWarnings => {
     "hiddenMetas"
     |> Js.Dict.get(dictionary)
     |> mapOr(metas => metas |> parseArray(Output.outputWithRange), [||]);
-  let warnings = "warnings" |> Js.Dict.get(dictionary) |> getOr([||]);
-  let errors = "errors" |> Js.Dict.get(dictionary) |> getOr([||]);
+  let warnings =
+    "warnings"
+    |> Js.Dict.get(dictionary)
+    |> mapOr(entries => entries |> parseArray(warning), [||]);
+  let errors =
+    "errors"
+    |> Js.Dict.get(dictionary)
+    |> mapOr(entries => entries |> parseArray(error), [||]);
   {interactionMetas, hiddenMetas, warnings, errors};
 };
 

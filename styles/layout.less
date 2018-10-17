@@ -108,6 +108,28 @@
                 }
             }
 
+            li.warning-error {
+
+                background: @base-background-color;
+                border-radius: @component-border-radius * 2;
+                
+                padding: @component-padding;
+
+                span.warning-label {
+                    font-variant: small-caps;
+                    font-weight: bolder;
+                    color: @text-color-warning;
+                    float: right;
+                }
+
+                span.error-label {
+                    font-variant: small-caps;
+                    font-weight: bolder;
+                    color: @text-color-error;
+                    float: right;
+                }
+            }
+
             li.output {
                 .range {
                     float: right;

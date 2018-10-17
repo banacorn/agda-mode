@@ -98,15 +98,26 @@ module Output = {
   };
 };
 
-module RawError = {
-  let component = statelessComponent("EmacsRawError");
-  let make = (~value: array(string), _children) => {
+module WarningError = {
+  let component = statelessComponent("WarningError");
+  let make = (~value: warningError, _children) => {
     ...component,
     render: _self =>
-      Array.length(value) === 0 ?
-        null :
-        <p className="error">
-          (string(value |> List.fromArray |> String.joinWith("\n")))
-        </p>,
+      switch (value) {
+      | Warning(range, body) =>
+        <li className="warning-error">
+          <span className="warning-label"> (string("warning")) </span>
+          <Range range />
+          <br />
+          (string(body))
+        </li>
+      | Error(range, body) =>
+        <li className="warning-error">
+          <span className="error-label"> (string("error")) </span>
+          <Range range />
+          <br />
+          (string(body))
+        </li>
+      },
   };
 };

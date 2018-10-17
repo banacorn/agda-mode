@@ -643,11 +643,14 @@ module Interaction = {
       | Have(expr);
     type output =
       | Output(outputConstraint, option(Syntax.Position.range));
+    type warningError =
+      | Warning(Syntax.Position.range, string)
+      | Error(Syntax.Position.range, string);
     type allGoalsWarnings = {
       interactionMetas: array(output),
       hiddenMetas: array(output),
-      warnings: array(string),
-      errors: array(string),
+      warnings: array(warningError),
+      errors: array(warningError),
     };
     type goalTypeContext = {
       goal: option(goal),

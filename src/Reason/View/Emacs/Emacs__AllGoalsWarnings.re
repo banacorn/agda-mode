@@ -17,8 +17,12 @@ let make = (~header: string, ~body: string, _children) => {
       <ul>
         ...(parsed.hiddenMetas |> Array.map(value => <Output value />))
       </ul>
-      <RawError value=parsed.warnings />
-      <RawError value=parsed.errors />
+      <ul>
+        ...(parsed.warnings |> Array.map(value => <WarningError value />))
+      </ul>
+      <ul>
+        ...(parsed.errors |> Array.map(value => <WarningError value />))
+      </ul>
     </>;
   },
 };
