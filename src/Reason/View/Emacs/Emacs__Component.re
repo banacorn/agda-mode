@@ -99,6 +99,7 @@ module Output = {
 };
 
 module WarningError = {
+  open Type;
   let component = statelessComponent("WarningError");
   let make = (~value: warningError, _children) => {
     ...component,
@@ -109,14 +110,34 @@ module WarningError = {
           <span className="warning-label"> (string("warning")) </span>
           <Range range />
           <br />
-          (string(body))
+          <span>
+            ...(
+                 body
+                 |> Array.map(token =>
+                      switch (token) {
+                      | Left(plainText) => string(plainText)
+                      | Right(range) => <Range range />
+                      }
+                    )
+               )
+          </span>
         </li>
       | Error(range, body) =>
         <li className="warning-error">
           <span className="error-label"> (string("error")) </span>
           <Range range />
           <br />
-          (string(body))
+          <span>
+            ...(
+                 body
+                 |> Array.map(token =>
+                      switch (token) {
+                      | Left(plainText) => string(plainText)
+                      | Right(range) => <Range range />
+                      }
+                    )
+               )
+          </span>
         </li>
       },
   };

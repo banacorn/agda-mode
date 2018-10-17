@@ -644,8 +644,14 @@ module Interaction = {
     type output =
       | Output(outputConstraint, option(Syntax.Position.range));
     type warningError =
-      | Warning(Syntax.Position.range, string)
-      | Error(Syntax.Position.range, string);
+      | Warning(
+          Syntax.Position.range,
+          array(either(string, Syntax.Position.range)),
+        )
+      | Error(
+          Syntax.Position.range,
+          array(either(string, Syntax.Position.range)),
+        );
     type allGoalsWarnings = {
       interactionMetas: array(output),
       hiddenMetas: array(output),

@@ -72,8 +72,8 @@ let filepath =
 let range =
   Regex(
     [%re
-      /*      |  different row                    |    same row            | */
-      "/^(.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+))$/"
+      /*          |  different row                    |    same row            | */
+      "/^(\\S+)\\:(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+))$/"
     ],
     captured => {
       open Type.Syntax.Position;
@@ -222,7 +222,7 @@ let output: parser(output) =
   String(
     raw => {
       let rangeRe = [%re
-        "/\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]$/"
+        "/\\[ at (\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+)) \\]$/"
       ];
       let hasRange = Js.Re.test(raw, rangeRe);
       if (hasRange) {
@@ -233,36 +233,38 @@ let output: parser(output) =
     },
   );
 
-/* warnings */
-let warning: parser(warningError) =
-  String(
-    raw => {
-      let lines = raw |> Js.String.split("\n");
-      let range = lines[0] |> flatMap(parse(range));
-      let body =
-        lines
-        |> Js.Array.sliceFrom(1)
-        |> List.fromArray
-        |> String.joinWith("\n");
-      ();
-      range |> map(r => Warning(r, body));
-    },
-  );
+/* warnings or errors */
+let warningOrErrors: bool => parser(warningError) =
+  isWarning =>
+    String(
+      raw => {
+        open Type;
+        let lines = raw |> Js.String.split("\n");
+        let range' = lines[0] |> flatMap(parse(range));
+        let body =
+          lines
+          |> Js.Array.sliceFrom(1)
+          |> List.fromArray
+          |> String.joinWith("\n")
+          |> Js.String.splitByRe(
+               [%re
+                 "/(\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/"
+               ],
+             )
+          |> Array.mapi((token, i) =>
+               switch (i mod 2) {
+               | 0 => Left(token)
+               | 1 =>
+                 token |> parse(range) |> mapOr(x => Right(x), Left(token))
+               }
+             );
+        range' |> map(r => isWarning ? Warning(r, body) : Error(r, body));
+      },
+    );
 
-let error: parser(warningError) =
-  String(
-    raw => {
-      let lines = raw |> Js.String.split("\n");
-      let range = lines[0] |> flatMap(parse(range));
-      let body =
-        lines
-        |> Js.Array.sliceFrom(1)
-        |> List.fromArray
-        |> String.joinWith("\n");
-      ();
-      range |> map(r => Error(r, body));
-    },
-  );
+let warning = warningOrErrors(true);
+
+let error = warningOrErrors(false);
 
 let partiteMetas =
   Util.Dict.split("metas", (rawMetas: array(string)) => {
