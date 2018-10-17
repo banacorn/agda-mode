@@ -79,9 +79,7 @@
     .agda-body-container {
         @height: 30px;
 
-        // so that <Body> will overflow and be scrollable
-        height: 100%;
-        overflow-y: scroll;
+        // height: 100%;
 
         // texts
         font-family: Menlo, inconsolata, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
@@ -91,6 +89,8 @@
         // <EmacsBody>
         .agda-body {
 
+            // so that <Body> will overflow and be scrollable
+            overflow-y: scroll;
             padding: 0px @component-padding;
 
             li, p, section {
@@ -112,7 +112,7 @@
 
                 background: @base-background-color;
                 border-radius: @component-border-radius * 2;
-                
+
                 padding: @component-padding;
 
                 span.warning-label {
