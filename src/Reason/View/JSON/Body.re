@@ -1,5 +1,7 @@
 open ReasonReact;
 
+open Rebase;
+
 let component = statelessComponent("JSONBody");
 
 let make =
@@ -31,13 +33,14 @@ let make =
         | GoalTypeContext => <Emacs__GoalTypeContext body />
         | Constraints => <Emacs__Constraints body />
         | Error => <Emacs__Error body />
-        | PlainText => <p> (string(body)) </p>
+        | PlainText => String.isEmpty(body) ? null : <p> (string(body)) </p>
         };
       };
     let className =
       hidden ?
-        ["agda-body", "native-key-bindings", "hidden"] |> String.concat(" ") :
-        ["agda-body", "native-key-bindings"] |> String.concat(" ");
+        ["agda-body", "native-key-bindings", "hidden"]
+        |> String.joinWith(" ") :
+        ["agda-body", "native-key-bindings"] |> String.joinWith(" ");
     let style =
       mountAtBottom ?
         Some(

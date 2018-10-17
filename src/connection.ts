@@ -97,7 +97,7 @@ export default class ConnectionManager {
                                 promise.resolve(responses);
                             })
                             .catch(Err.ParseError, error => {
-                                this.core.view.set('Parse Error', `${error.message}\n${error.raw}`, View.Style.Error);
+                                this.core.view.setPlainText('Parse Error', `${error.message}\n${error.raw}`, View.Style.Error);
                                 promise.resolve([]);
                             })
                             .catch(error => {
@@ -126,7 +126,7 @@ export default class ConnectionManager {
                                 promise.resolve(responses);
                             })
                             .catch(Err.ParseError, error => {
-                                this.core.view.set('Parse Error', `${error.message}\n${error.raw}`, View.Style.Error);
+                                this.core.view.setPlainText('Parse Error', `${error.message}\n${error.raw}`, View.Style.Error);
                                 promise.resolve([]);
                             })
                             .catch(error => {
@@ -142,7 +142,7 @@ export default class ConnectionManager {
     queryPath(error: Error): Promise<ValidPath> {
         this.core.view.store.dispatch(Action.CONNECTION.startQuerying());
         this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
-        this.core.view.set('Connection Error', '', View.Style.Error);
+        this.core.view.setPlainText('Connection Error', '', View.Style.Error);
         return this.core.view.queryConnection()
             .then(validateAgda)
             .then(result => {
@@ -153,7 +153,7 @@ export default class ConnectionManager {
     }
 
     handleAgdaError(error: Error) {
-        this.core.view.set(error.name, '', View.Style.Error);
+        this.core.view.setPlainText(error.name, '', View.Style.Error);
         switch (error.name) {
             case 'QueryCancelled':   return Promise.resolve();
             default:

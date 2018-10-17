@@ -406,7 +406,7 @@ export default class View {
         }));
     }
 
-    set(header: string, body: string, type = V.Style.PlainText) {
+    setPlainText(header: string, body: string, type = V.Style.PlainText) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 

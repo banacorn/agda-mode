@@ -105,11 +105,11 @@ export default class Editor {
 
 
     warnOutOfGoal() {
-        this.core.view.set('Out of goal', 'For this command, please place the cursor in a goal', View.Style.Warning);
+        this.core.view.setPlainText('Out of goal', 'For this command, please place the cursor in a goal', View.Style.Warning);
     }
 
     warnEmptyGoal(error: any) {
-        this.core.view.set('No content', error.message, View.Style.Warning);
+        this.core.view.setPlainText('No content', error.message, View.Style.Warning);
     }
 
     //////////////////
