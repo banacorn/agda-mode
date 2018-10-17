@@ -49,6 +49,25 @@ module Array_ = {
          );
     intervals |> Array.map(((from, to_)) => xs |> Array.slice(~from, ~to_));
   };
+  let mergeWithNext:
+    (array('a) => bool, array(array('a))) => array(array('a)) =
+    p =>
+      Array.reduce(
+        (acc, x) => {
+          let last = acc[Array.length(acc) - 1];
+          switch (last) {
+          | None => [|x|]
+          | Some(l) =>
+            if (p(l)) {
+              acc[Array.length(acc) - 1] = Array.concat(x, l);
+              acc;
+            } else {
+              Array.concat([|x|], acc);
+            }
+          };
+        },
+        [||],
+      );
 };
 
 module Dict = {

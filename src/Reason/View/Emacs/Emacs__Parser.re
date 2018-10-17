@@ -253,9 +253,9 @@ let warningOrErrors: bool => parser(warningError) =
              )
           |> Array.mapi((token, i) =>
                switch (i mod 2) {
-               | 0 => Left(token)
                | 1 =>
                  token |> parse(range) |> mapOr(x => Right(x), Left(token))
+               | _ => Left(token)
                }
              );
         range' |> map(r => isWarning ? Warning(r, body) : Error(r, body));
@@ -304,8 +304,14 @@ module Response = {
           raw[0] |> flatMap(Js.String.match([%re "/^\\u2014{4}/"])) |> isSome;
         let lines = hasDelimeter ? raw |> Js.Array.sliceFrom(1) : raw;
         let markWarningStart = line => line |> parse(range) |> isSome;
+        /* If the previous warning of error ends with "at", then we have to glue it back */
+        let glueBack = xs =>
+          xs[Array.length(xs) - 1]
+          |> flatMap(Js.String.match([%re "/at$/"]))
+          |> isSome;
         lines
         |> Util.Array_.partite(markWarningStart)
+        |> Util.Array_.mergeWithNext(glueBack)
         |> Array.map(xs => xs |> List.fromArray |> String.joinWith("\n"));
       },
     );
