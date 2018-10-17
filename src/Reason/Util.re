@@ -27,6 +27,74 @@ module Array_ = {
       xs,
     )
     |> Array.fromList;
+  let partite = (p: 'a => bool, xs: array('a)) : array(array('a)) => {
+    let indices: array(int) =
+      xs
+      |> Array.mapi((x, i) => (x, i))  /* zip with index */
+      |> Array.filter(((x, _)) => p(x))  /* filter bad indices out */
+      |> Array.map(snd); /* leave only the indices */
+    /* prepend 0 as the first index */
+    let indicesWF: array(int) =
+      switch (indices[0]) {
+      | Some(n) => n === 0 ? indices : Array.concat([|0|], indices)
+      | None => indices
+      };
+    let intervals: array((int, int)) =
+      indicesWF
+      |> Array.mapi((index, n) =>
+           switch (indicesWF[n + 1]) {
+           | Some(next) => (index, next)
+           | None => (index, Array.length(xs))
+           }
+         );
+    intervals |> Array.map(((from, to_)) => xs |> Array.slice(~from, ~to_));
+  };
+};
+
+module Dict = {
+  open Js.Dict;
+  let partite =
+      (tagEntry: (('a, int)) => option(string), xs: array('a))
+      : t(array('a)) => {
+    let keys: array((key, int)) =
+      xs
+      |> Array.mapi((x, i) => (x, i))  /* zip with index */
+      |> Array.filterMap(((x, i)) =>
+           tagEntry((x, i)) |> Option.map(key => (key, i))
+         );
+    let intervals: array((key, int, int)) =
+      keys
+      |> Array.mapi(((key, index), n) =>
+           switch (keys[n + 1]) {
+           | Some((_, next)) => (key, index, next)
+           | None => (key, index, Array.length(xs))
+           }
+         );
+    intervals
+    |> Array.map(((key, from, to_)) =>
+         (key, xs |> Array.slice(~from, ~to_))
+       )
+    |> fromArray;
+  };
+  /* split an entry */
+  let split =
+      (key: key, splitter: 'a => t('a), dict: t('a))
+      : t(array(string)) =>
+    switch (get(dict, key)) {
+    | Some(value) =>
+      /* insert new entries */
+      entries(splitter(value))
+      |> Array.forEach(((k, v)) => set(dict, k, v));
+      dict;
+    | None => dict
+    };
+  let update = (key: key, f: 'a => 'a, dict: t('a)) : t('a) =>
+    switch (get(dict, key)) {
+    | Some(value) =>
+      set(dict, key, f(value));
+      dict;
+    | None => dict
+    };
 };
 
 module Parser = {

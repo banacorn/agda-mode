@@ -1,5 +1,7 @@
 open Rebase;
 
+open Rebase.Option;
+
 open Util.Parser;
 
 open Type.Interaction.Emacs;
@@ -24,7 +26,7 @@ let unindent: array(string) => array(string) =
       || Js.Re.test(line, delimeter)
       || Js.Re.test(line, reallyLongTermIdentifier)
       && nextLine
-      |> Option.exists(line => Js.Re.test(line, restOfTheJudgement))
+      |> exists(line => Js.Re.test(line, restOfTheJudgement))
       || Js.Re.test(line, completeJudgement);
     };
     let newLineIndices: array(int) =
@@ -60,9 +62,84 @@ let filepath =
         |> List.fromArray
         |> String.joinWith("/");
       if (charCodeAt(0, joined) === 8234.0) {
-        joined |> sliceToEnd(~from=1) |> trim |> Option.some;
+        joined |> sliceToEnd(~from=1) |> trim |> some;
       } else {
-        joined |> trim |> Option.some;
+        joined |> trim |> some;
+      };
+    },
+  );
+
+let range =
+  Regex(
+    [%re
+      /*      |  different row                    |    same row            | */
+      "/^(.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+))$/"
+    ],
+    captured => {
+      open Type.Syntax.Position;
+      let srcFile: srcFile = flatten(captured[1]);
+      let sameRow = flatten(captured[6]) |> isSome;
+      if (sameRow) {
+        flatten(captured[6])
+        |> flatMap(row =>
+             flatten(captured[7])
+             |> flatMap(colStart =>
+                  flatten(captured[8])
+                  |> flatMap(colEnd =>
+                       Some(
+                         Range(
+                           srcFile,
+                           [
+                             {
+                               start: {
+                                 pos: None,
+                                 line: int_of_string(row),
+                                 col: int_of_string(colStart),
+                               },
+                               end_: {
+                                 pos: None,
+                                 line: int_of_string(row),
+                                 col: int_of_string(colEnd),
+                               },
+                             },
+                           ],
+                         ),
+                       )
+                     )
+                )
+           );
+      } else {
+        flatten(captured[2])
+        |> flatMap(rowStart =>
+             flatten(captured[3])
+             |> flatMap(colStart =>
+                  flatten(captured[4])
+                  |> flatMap(rowEnd =>
+                       flatten(captured[5])
+                       |> flatMap(colEnd =>
+                            Some(
+                              Range(
+                                srcFile,
+                                [
+                                  {
+                                    start: {
+                                      pos: None,
+                                      line: int_of_string(rowStart),
+                                      col: int_of_string(colStart),
+                                    },
+                                    end_: {
+                                      pos: None,
+                                      line: int_of_string(rowEnd),
+                                      col: int_of_string(colEnd),
+                                    },
+                                  },
+                                ],
+                              ),
+                            )
+                          )
+                     )
+                )
+           );
       };
     },
   );
@@ -84,7 +161,7 @@ let expr =
                | _ => Plain(token)
                }
              )
-          |> Option.some
+          |> some
       ),
   );
 
@@ -95,26 +172,24 @@ module OutputConstraint = {
       captured =>
         captured
         |> at(2, expr)
-        |> Option.flatMap(type_ =>
+        |> flatMap(type_ =>
              captured
              |> at(1, expr)
-             |> Option.flatMap(term => Some(OfType(term, type_)))
+             |> flatMap(term => Some(OfType(term, type_)))
            ),
     );
   let justType =
     Regex(
       [%re "/^Type ((?:\\n|.)+)/"],
-      captured =>
-        captured |> at(1, expr) |> Option.map(type_ => JustType(type_)),
+      captured => captured |> at(1, expr) |> map(type_ => JustType(type_)),
     );
   let justSort =
     Regex(
       [%re "/^Sort ((?:\\n|.)+)/"],
-      captured =>
-        captured |> at(1, expr) |> Option.map(sort => JustSort(sort)),
+      captured => captured |> at(1, expr) |> map(sort => JustSort(sort)),
     );
   let others =
-    String(raw => raw |> parse(expr) |> Option.map(raw' => Others(raw')));
+    String(raw => raw |> parse(expr) |> map(raw' => Others(raw')));
 };
 
 let outputConstraint: parser(outputConstraint) =
@@ -128,8 +203,7 @@ let outputConstraint: parser(outputConstraint) =
 module Output = {
   let outputWithoutRange: parser(output) =
     String(
-      raw =>
-        raw |> parse(outputConstraint) |> Option.map(x => Output(x, None)),
+      raw => raw |> parse(outputConstraint) |> map(x => Output(x, None)),
     );
   let outputWithRange: parser(output) =
     Regex(
@@ -137,34 +211,34 @@ module Output = {
         "/((?:\\n|.)*\\S+)\\s*\\[ at (.+):(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+)) \\]/"
       ],
       captured =>
-        Option.flatten(captured[1])
-        |> Option.flatMap(raw => {
+        flatten(captured[1])
+        |> flatMap(raw => {
              open Type.Syntax.Position;
              let rowStart =
                captured[3]
-               |> Option.getOr(Option.flatten(captured[7]))
-               |> Option.getOr("0")
+               |> getOr(flatten(captured[7]))
+               |> getOr("0")
                |> int_of_string;
              let rowEnd =
                captured[5]
-               |> Option.getOr(Option.flatten(captured[7]))
-               |> Option.getOr("0")
+               |> getOr(flatten(captured[7]))
+               |> getOr("0")
                |> int_of_string;
              let colStart =
                captured[4]
-               |> Option.getOr(Option.flatten(captured[8]))
-               |> Option.getOr("0")
+               |> getOr(flatten(captured[8]))
+               |> getOr("0")
                |> int_of_string;
              let colEnd =
                captured[6]
-               |> Option.getOr(Option.flatten(captured[9]))
-               |> Option.getOr("0")
+               |> getOr(flatten(captured[9]))
+               |> getOr("0")
                |> int_of_string;
              let start = {pos: None, line: rowStart, col: colStart};
              let end_ = {pos: None, line: rowEnd, col: colEnd};
              raw
              |> parse(outputConstraint)
-             |> Option.map(parsed => {
+             |> map(parsed => {
                   let path = captured |> at(2, filepath);
                   Output(parsed, Some(Range(path, [{start, end_}])));
                 });
@@ -187,100 +261,104 @@ let output: parser(output) =
     },
   );
 
-type allGoalsWarningsPartition = {
-  metas: array(string),
-  warnings: array(string),
-  errors: array(string),
-};
-
 let allGoalsWarnings = (title, body) : allGoalsWarnings => {
-  let partiteAllGoalsWarnings: (string, string) => allGoalsWarningsPartition =
+  let partiteAllGoalsWarnings: (string, string) => Js.Dict.t(array(string)) =
     (title, body) => {
       let lines = body |> Js.String.split("\n");
       /* examine the header to see what's in the body */
-      let hasMetas =
-        title |> Js.String.match([%re "/Goals/"]) |> Option.isSome;
+      let hasMetas = title |> Js.String.match([%re "/Goals/"]) |> isSome;
       let hasWarnings =
-        title |> Js.String.match([%re "/Warnings/"]) |> Option.isSome;
-      let hasErrors =
-        title |> Js.String.match([%re "/Errors/"]) |> Option.isSome;
-      let (indexOfWarnings, _) =
-        lines
-        |> Array.findIndex(s =>
-             s
-             |> Js.String.slice(~from=5, ~to_=13)
-             |> Js.String.match([%re "/Warnings/"])
-             |> Option.isSome
-           )
-        |> Option.getOr((0, ""));
-      let (indexOfErrors, _) =
-        lines
-        |> Array.findIndex(s =>
-             s
-             |> Js.String.slice(~from=5, ~to_=11)
-             |> Js.String.match([%re "/Errors/"])
-             |> Option.isSome
-           )
-        |> Option.getOr((0, ""));
-      switch (hasMetas, hasWarnings, hasErrors) {
-      | (true, true, true) => {
-          metas:
-            lines |> Array.slice(~from=0, ~to_=indexOfWarnings) |> unindent,
-          warnings:
-            lines
-            |> Array.slice(~from=indexOfWarnings + 1, ~to_=indexOfErrors),
-          errors: lines |> Js.Array.sliceFrom(indexOfErrors + 1),
-        }
-      | (true, true, false) => {
-          metas:
-            lines |> Array.slice(~from=0, ~to_=indexOfWarnings) |> unindent,
-          warnings: lines |> Js.Array.sliceFrom(indexOfWarnings + 1),
-          errors: [||],
-        }
-      | (true, false, true) => {
-          metas:
-            lines |> Array.slice(~from=0, ~to_=indexOfErrors) |> unindent,
-          warnings: [||],
-          errors: lines |> Js.Array.sliceFrom(indexOfErrors + 1),
-        }
-      | (true, false, false) => {
-          metas: lines |> unindent,
-          warnings: [||],
-          errors: [||],
-        }
-      | (false, true, true) => {
-          metas: [||],
-          warnings: lines |> Array.slice(~from=0, ~to_=indexOfErrors),
-          errors:
-            lines
-            |> Array.slice(~from=indexOfErrors + 1, ~to_=Array.length(lines)),
-        }
-      | (false, true, false) => {metas: [||], warnings: lines, errors: [||]}
-      | (false, false, true) => {metas: [||], warnings: [||], errors: lines}
-      | (false, false, false) => {metas: [||], warnings: [||], errors: [||]}
-      };
+        title |> Js.String.match([%re "/Warnings/"]) |> isSome;
+      let hasErrors = title |> Js.String.match([%re "/Errors/"]) |> isSome;
+      /* predicates for partitioning the body */
+      let markMetas = ((_, i)) =>
+        hasMetas && i === 0 ? Some("metas") : None;
+      let markWarnings = ((line, i)) =>
+        hasWarnings ?
+          hasMetas ?
+            /* Has both warnings and metas */
+            line
+            |> Js.String.slice(~from=5, ~to_=13)
+            |> Js.String.match([%re "/Warnings/"])
+            |> map((_) => "warnings") :
+            /* Has only warnings */
+            i === 0 ? Some("warnings") : None :
+          /* Has no warnings */
+          None;
+      let markErrors = ((line, i)) =>
+        hasErrors ?
+          /* Has both warnings or metas and errors */
+          hasMetas || hasWarnings ?
+            line
+            |> Js.String.slice(~from=5, ~to_=11)
+            |> Js.String.match([%re "/Errors/"])
+            |> map((_) => "errors") :
+            /* Has only errors */
+            i === 0 ? Some("errors") : None :
+          None;
+      lines
+      |> Util.Dict.partite(line =>
+           or_(or_(markMetas(line), markWarnings(line)), markErrors(line))
+         );
+      /* let metas = "metas" |> Js.Dict.get(dictionary) |> map(unindent);
+         let warnings = "warnings" |> Js.Dict.get(dictionary);
+         let errors = "errors" |> Js.Dict.get(dictionary);
+         {metas, warnings, errors}; */
     };
-  let {metas, warnings, errors} = partiteAllGoalsWarnings(title, body);
-  let indexOfHiddenMetas =
-    metas
-    |> Array.findIndex(s =>
-         s |> parse(Output.outputWithRange) |> Option.isSome
-       )
-    |> Option.map(fst);
-  let interactionMetas =
-    switch (indexOfHiddenMetas) {
-    | None => metas |> parseArray(Output.outputWithoutRange)
-    | Some(n) =>
+  let partiteMetas =
+    Util.Dict.split("metas", (rawMetas: array(string)) => {
+      let metas = unindent(rawMetas);
+      let indexOfHiddenMetas =
+        metas
+        |> Array.findIndex(s => s |> parse(Output.outputWithRange) |> isSome)
+        |> map(fst);
       metas
-      |> Array.slice(~from=0, ~to_=n)
-      |> parseArray(Output.outputWithoutRange)
-    };
+      |> Util.Dict.partite(((_, i)) =>
+           switch (indexOfHiddenMetas) {
+           | Some(n) =>
+             if (i === n) {
+               Some("hiddenMetas");
+             } else if (i === 0) {
+               Some("interactionMetas");
+             } else {
+               None;
+             }
+           | None =>
+             /* All interaction metas */
+             if (i === 0) {
+               Some("interactionMetas");
+             } else {
+               None;
+             }
+           }
+         );
+    });
+  let partiteWarningsOrErrors = key =>
+    Util.Dict.update(
+      key,
+      (raw: array(string)) => {
+        let lines = raw |> Js.Array.sliceFrom(1);
+        let markWarningStart = line => line |> parse(range) |> isSome;
+        lines
+        |> Util.Array_.partite(markWarningStart)
+        |> Array.map(xs => xs |> List.fromArray |> String.joinWith("\n"));
+      },
+    );
+  let dictionary: Js.Dict.t(array(string)) =
+    partiteAllGoalsWarnings(title, body)
+    |> partiteMetas
+    |> partiteWarningsOrErrors("warnings")
+    |> partiteWarningsOrErrors("errors");
+  let interactionMetas =
+    "interactionMetas"
+    |> Js.Dict.get(dictionary)
+    |> mapOr(metas => metas |> parseArray(Output.outputWithoutRange), [||]);
   let hiddenMetas =
-    switch (indexOfHiddenMetas) {
-    | None => [||]
-    | Some(n) =>
-      metas |> Js.Array.sliceFrom(n) |> parseArray(Output.outputWithRange)
-    };
+    "hiddenMetas"
+    |> Js.Dict.get(dictionary)
+    |> mapOr(metas => metas |> parseArray(Output.outputWithRange), [||]);
+  let warnings = "warnings" |> Js.Dict.get(dictionary) |> getOr([||]);
+  let errors = "errors" |> Js.Dict.get(dictionary) |> getOr([||]);
   {interactionMetas, hiddenMetas, warnings, errors};
 };
 
@@ -298,12 +376,12 @@ let goalTypeContext: string => goalTypeContext =
         let indexOfHave =
           lines
           |> Array.findIndex(s =>
-               s |> Js.String.match([%re "/^Have:/"]) |> Option.isSome
+               s |> Js.String.match([%re "/^Have:/"]) |> isSome
              );
         let indexOfDelimeter =
           lines
           |> Js.Array.findIndex(s =>
-               s |> Js.String.match([%re "/\\u2014{60}/g"]) |> Option.isSome
+               s |> Js.String.match([%re "/\\u2014{60}/g"]) |> isSome
              );
         ();
         switch (indexOfHave) {
@@ -318,7 +396,7 @@ let goalTypeContext: string => goalTypeContext =
               |> Array.slice(~from=n, ~to_=indexOfDelimeter)
               |> List.fromArray
               |> String.join
-              |> Option.some,
+              |> some,
             metas: lines |> Js.Array.sliceFrom(indexOfDelimeter + 1),
           }
         | None => {
@@ -338,14 +416,14 @@ let goalTypeContext: string => goalTypeContext =
         goal
         |> Js.String.sliceToEnd(~from=5)
         |> parse(expr)
-        |> Option.map(x => Goal(x)),
+        |> map(x => Goal(x)),
       have:
         have
-        |> Option.flatMap(line =>
+        |> flatMap(line =>
              line
              |> Js.String.sliceToEnd(~from=5)
              |> parse(expr)
-             |> Option.map(x => Have(x))
+             |> map(x => Have(x))
            ),
       interactionMetas: metas |> parseArray(Output.outputWithoutRange),
       hiddenMetas: metas |> parseArray(Output.outputWithRange),
