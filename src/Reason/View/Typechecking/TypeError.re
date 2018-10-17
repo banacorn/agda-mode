@@ -12,8 +12,7 @@ let component = statelessComponent("TypeError");
 
 let make = (~typeError: typeError, ~rawString: string, _children) => {
   ...component,
-  render: _self => {
-    Js.log(rawString);
+  render: _self =>
     switch (typeError) {
     | GenericDocError(message) => <div> (string(message)) </div>
     | GenericError(message) => <div> (string(message)) </div>
@@ -167,6 +166,5 @@ let make = (~typeError: typeError, ~rawString: string, _children) => {
       </div>
     | UnregisteredTypeError(json) =>
       <div> (string(Js.Json.stringify(json))) </div>
-    };
-  },
+    },
 };
