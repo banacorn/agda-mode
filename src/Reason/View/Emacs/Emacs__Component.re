@@ -105,11 +105,9 @@ module WarningError = {
     ...component,
     render: _self =>
       switch (value) {
-      | Warning(range, body) =>
+      | Warning(body) =>
         <li className="warning-error">
           <span className="warning-label"> (string("warning")) </span>
-          <Range range />
-          <br />
           <span>
             ...(
                  body
@@ -122,11 +120,9 @@ module WarningError = {
                )
           </span>
         </li>
-      | Error(range, body) =>
+      | Error(body) =>
         <li className="warning-error">
           <span className="error-label"> (string("error")) </span>
-          <Range range />
-          <br />
           <span>
             ...(
                  body

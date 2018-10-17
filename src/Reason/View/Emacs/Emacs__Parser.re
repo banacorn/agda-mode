@@ -239,13 +239,8 @@ let warningOrErrors: bool => parser(warningError) =
     String(
       raw => {
         open Type;
-        let lines = raw |> Js.String.split("\n");
-        let range' = lines[0] |> flatMap(parse(range));
         let body =
-          lines
-          |> Js.Array.sliceFrom(1)
-          |> List.fromArray
-          |> String.joinWith("\n")
+          raw
           |> Js.String.splitByRe(
                [%re
                  "/(\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/"
@@ -258,7 +253,7 @@ let warningOrErrors: bool => parser(warningError) =
                | _ => Left(token)
                }
              );
-        range' |> map(r => isWarning ? Warning(r, body) : Error(r, body));
+        isWarning ? Some(Warning(body)) : Some(Error(body));
       },
     );
 

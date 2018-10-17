@@ -36,7 +36,7 @@ module Array_ = {
     /* prepend 0 as the first index */
     let indicesWF: array(int) =
       switch (indices[0]) {
-      | Some(n) => n === 0 ? indices : Array.concat([|0|], indices)
+      | Some(n) => n === 0 ? indices : Array.concat(indices, [|0|])
       | None => indices
       };
     let intervals: array((int, int)) =
