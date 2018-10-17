@@ -161,20 +161,21 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.setPlainText('Module Contents', response.payload, View.Style.Info);
             break;
         case 'WhyInScope':
-            if (core.commander.currentCommand.kind === "GotoDefinition") {
-                // const result = Emacs.parseWhyInScope(response.payload);
-                // if (result) {
-                //     const range = new Range(
-                //         [result.range.intervals[0].start[0], result.range.intervals[0].start[1]],
-                //         [result.range.intervals[0].end[0], result.range.intervals[0].end[1]]
-                //     );
-                //     core.editor.jumpToRange(range, result.range.source);
-                // } else {
-                //     core.view.setPlainText('Go to Definition', 'not in scope', View.Style.Info);
-                // }
-            } else {
-                core.view.setPlainText('Scope Info', response.payload, View.Style.Info);
-            }
+            core.view.setEmacsWhyInScope(response.payload);
+            // if (core.commander.currentCommand.kind === "GotoDefinition") {
+            //     // const result = Emacs.parseWhyInScope(response.payload);
+            //     // if (result) {
+            //     //     const range = new Range(
+            //     //         [result.range.intervals[0].start[0], result.range.intervals[0].start[1]],
+            //     //         [result.range.intervals[0].end[0], result.range.intervals[0].end[1]]
+            //     //     );
+            //     //     core.editor.jumpToRange(range, result.range.source);
+            //     // } else {
+            //     //     core.view.setPlainText('Go to Definition', 'not in scope', View.Style.Info);
+            //     // }
+            // } else {
+            //     core.view.setPlainText('Scope Info', response.payload, View.Style.Info);
+            // }
             break;
         case 'NormalForm':
             core.view.setPlainText('Normal Form', response.payload, View.Style.Info);

@@ -643,9 +643,10 @@ module Interaction = {
       | Have(expr);
     type output =
       | Output(outputConstraint, option(Syntax.Position.range));
+    type plainText = array(either(string, Syntax.Position.range));
     type warningError =
-      | Warning(array(either(string, Syntax.Position.range)))
-      | Error(array(either(string, Syntax.Position.range)));
+      | Warning(plainText)
+      | Error(plainText);
     type allGoalsWarnings = {
       interactionMetas: array(output),
       hiddenMetas: array(output),
@@ -662,6 +663,7 @@ module Interaction = {
       | AllGoalsWarnings
       | GoalTypeContext
       | Constraints
+      | WhyInScope
       | Error
       | PlainText;
     [@bs.deriving abstract]

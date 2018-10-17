@@ -1,7 +1,5 @@
 open ReasonReact;
 
-open Type.Interaction.Emacs;
-
 open Emacs.Component;
 
 let component = statelessComponent("EmacsError");

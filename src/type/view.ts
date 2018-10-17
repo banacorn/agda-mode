@@ -89,7 +89,7 @@ export interface QueryState {
 }
 
 export interface EmacsState {
-    kind: 'AllGoalsWarnings' | 'GoalTypeContext' | 'Constraints' | 'Error' | 'PlainText';
+    kind: 'AllGoalsWarnings' | 'GoalTypeContext' | 'Constraints' | 'Error' | 'WhyInScope' | 'PlainText';
     header: string;
     body: string;
 }

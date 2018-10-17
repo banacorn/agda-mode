@@ -98,8 +98,27 @@ module Output = {
   };
 };
 
-module WarningError = {
+module PlainText = {
   open Type;
+  let component = statelessComponent("PlainText");
+  let make = (~value: plainText, _children) => {
+    ...component,
+    render: _self =>
+      <span>
+        ...(
+             value
+             |> Array.map(token =>
+                  switch (token) {
+                  | Left(plainText) => string(plainText)
+                  | Right(range) => <Range range />
+                  }
+                )
+           )
+      </span>,
+  };
+};
+
+module WarningError = {
   let component = statelessComponent("WarningError");
   let make = (~value: warningError, _children) => {
     ...component,
@@ -108,32 +127,12 @@ module WarningError = {
       | Warning(body) =>
         <li className="warning-error">
           <span className="warning-label"> (string("warning")) </span>
-          <span>
-            ...(
-                 body
-                 |> Array.map(token =>
-                      switch (token) {
-                      | Left(plainText) => string(plainText)
-                      | Right(range) => <Range range />
-                      }
-                    )
-               )
-          </span>
+          <PlainText value=body />
         </li>
       | Error(body) =>
         <li className="warning-error">
           <span className="error-label"> (string("error")) </span>
-          <span>
-            ...(
-                 body
-                 |> Array.map(token =>
-                      switch (token) {
-                      | Left(plainText) => string(plainText)
-                      | Right(range) => <Range range />
-                      }
-                    )
-               )
-          </span>
+          <PlainText value=body />
         </li>
       },
   };

@@ -390,6 +390,22 @@ export default class View {
         }));
     }
 
+    setEmacsWhyInScope(raw: string) {
+        this.store.dispatch(Action.MODE.display());
+        this.editors.focusMain()
+
+        this.store.dispatch(Action.HEADER.update({
+            text: 'Scope Info',
+            style: V.Style.Info
+        }));
+
+        this.store.dispatch(Action.updateEmacs({
+            kind: 'WhyInScope',
+            header: 'Scope Info',
+            body: raw
+        }));
+    }
+
     setEmacsSolutions(solutions: string) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain();

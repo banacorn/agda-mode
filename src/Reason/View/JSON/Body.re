@@ -32,6 +32,7 @@ let make =
         | AllGoalsWarnings => <Emacs__AllGoalsWarnings header body />
         | GoalTypeContext => <Emacs__GoalTypeContext body />
         | Constraints => <Emacs__Constraints body />
+        | WhyInScope => <Emacs__WhyInScope body />
         | Error => <Emacs__Error body />
         | PlainText => String.isEmpty(body) ? null : <p> (string(body)) </p>
         };

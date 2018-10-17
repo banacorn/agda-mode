@@ -233,28 +233,35 @@ let output: parser(output) =
     },
   );
 
+let plainText: parser(plainText) =
+  String(
+    raw =>
+      Type.(
+        raw
+        |> Js.String.splitByRe(
+             [%re
+               "/(\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/"
+             ],
+           )
+        |> Array.mapi((token, i) =>
+             switch (i mod 2) {
+             | 1 =>
+               token |> parse(range) |> mapOr(x => Right(x), Left(token))
+             | _ => Left(token)
+             }
+           )
+        |> some
+      ),
+  );
+
 /* warnings or errors */
 let warningOrErrors: bool => parser(warningError) =
   isWarning =>
     String(
-      raw => {
-        open Type;
-        let body =
-          raw
-          |> Js.String.splitByRe(
-               [%re
-                 "/(\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/"
-               ],
-             )
-          |> Array.mapi((token, i) =>
-               switch (i mod 2) {
-               | 1 =>
-                 token |> parse(range) |> mapOr(x => Right(x), Left(token))
-               | _ => Left(token)
-               }
-             );
-        isWarning ? Some(Warning(body)) : Some(Error(body));
-      },
+      raw =>
+        raw
+        |> parse(plainText)
+        |> map(body => isWarning ? Warning(body) : Error(body)),
     );
 
 let warning = warningOrErrors(true);
@@ -445,12 +452,15 @@ module Response = {
       |> Js.Dict.get(_, "errors")
       |> mapOr(metas => metas |> parseArray(error), [||]);
     };
+  let whyInScope: string => plainText =
+    raw => raw |> parse(plainText) |> getOr([||]);
   let body: bodyRaw => body =
     raw => {
       let kind =
         switch (raw |> kindGet) {
         | "AllGoalsWarnings" => AllGoalsWarnings
         | "GoalTypeContext" => GoalTypeContext
+        | "WhyInScope" => WhyInScope
         | "Error" => Error
         | _ => PlainText
         };
