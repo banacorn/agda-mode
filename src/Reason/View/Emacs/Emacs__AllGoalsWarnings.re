@@ -9,7 +9,7 @@ let component = statelessComponent("EmacsAllGoalsWarnings");
 let make = (~header: string, ~body: string, _children) => {
   ...component,
   render: _self => {
-    let parsed = Emacs.Parser.allGoalsWarnings(header, body);
+    let parsed = Emacs.Parser.Response.allGoalsWarnings(header, body);
     <>
       <ul>
         ...(parsed.interactionMetas |> Array.map(value => <Output value />))

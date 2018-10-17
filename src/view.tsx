@@ -336,7 +336,7 @@ export default class View {
         }));
 
         this.store.dispatch(Action.updateEmacs({
-            kind: 'PlainText',
+            kind: 'Error',
             header: 'Error',
             body: error
         }));

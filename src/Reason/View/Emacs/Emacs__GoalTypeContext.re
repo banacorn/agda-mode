@@ -11,7 +11,7 @@ let component = statelessComponent("EmacsGoalTypeContext");
 let make = (~body: string, _children) => {
   ...component,
   render: _self => {
-    let parsed = Emacs.Parser.goalTypeContext(body);
+    let parsed = Emacs.Parser.Response.goalTypeContext(body);
     <>
       <ul>
         (

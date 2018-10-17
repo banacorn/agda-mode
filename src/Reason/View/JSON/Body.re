@@ -23,13 +23,14 @@ let make =
         | PlainText(s) => <p> (string(s)) </p>
         };
       } else {
-        let parsed = Emacs.Parser.body(emacs);
+        let parsed = Emacs.Parser.Response.body(emacs);
         let header = parsed.header;
         let body = parsed.body;
         switch (parsed.kind) {
         | AllGoalsWarnings => <Emacs__AllGoalsWarnings header body />
         | GoalTypeContext => <Emacs__GoalTypeContext body />
         | Constraints => <Emacs__Constraints body />
+        | Error => <Emacs__Error body />
         | PlainText => <p> (string(body)) </p>
         };
       };

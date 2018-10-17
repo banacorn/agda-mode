@@ -295,46 +295,7 @@ let partiteMetas =
        );
   });
 
-let allGoalsWarnings = (title, body) : allGoalsWarnings => {
-  let partiteAllGoalsWarnings: (string, string) => Js.Dict.t(array(string)) =
-    (title, body) => {
-      let lines = body |> Js.String.split("\n");
-      /* examine the header to see what's in the body */
-      let hasMetas = title |> Js.String.match([%re "/Goals/"]) |> isSome;
-      let hasWarnings =
-        title |> Js.String.match([%re "/Warnings/"]) |> isSome;
-      let hasErrors = title |> Js.String.match([%re "/Errors/"]) |> isSome;
-      /* predicates for partitioning the body */
-      let markMetas = ((_, i)) =>
-        hasMetas && i === 0 ? Some("metas") : None;
-      let markWarnings = ((line, i)) =>
-        hasWarnings ?
-          hasMetas ?
-            /* Has both warnings and metas */
-            line
-            |> Js.String.slice(~from=5, ~to_=13)
-            |> Js.String.match([%re "/Warnings/"])
-            |> map((_) => "warnings") :
-            /* Has only warnings */
-            i === 0 ? Some("warnings") : None :
-          /* Has no warnings */
-          None;
-      let markErrors = ((line, i)) =>
-        hasErrors ?
-          /* Has both warnings or metas and errors */
-          hasMetas || hasWarnings ?
-            line
-            |> Js.String.slice(~from=5, ~to_=11)
-            |> Js.String.match([%re "/Errors/"])
-            |> map((_) => "errors") :
-            /* Has only errors */
-            i === 0 ? Some("errors") : None :
-          None;
-      lines
-      |> Util.Dict.partite(line =>
-           or_(or_(markMetas(line), markWarnings(line)), markErrors(line))
-         );
-    };
+module Response = {
   let partiteWarningsOrErrors = key =>
     Util.Dict.update(
       key,
@@ -348,70 +309,55 @@ let allGoalsWarnings = (title, body) : allGoalsWarnings => {
         |> Array.map(xs => xs |> List.fromArray |> String.joinWith("\n"));
       },
     );
-  let dictionary: Js.Dict.t(array(string)) =
-    partiteAllGoalsWarnings(title, body)
-    |> partiteMetas
-    |> partiteWarningsOrErrors("warnings")
-    |> partiteWarningsOrErrors("errors");
-  /* extract entries from the dictionary */
-  let interactionMetas =
-    "interactionMetas"
-    |> Js.Dict.get(dictionary)
-    |> mapOr(metas => metas |> parseArray(Output.outputWithoutRange), [||]);
-  let hiddenMetas =
-    "hiddenMetas"
-    |> Js.Dict.get(dictionary)
-    |> mapOr(metas => metas |> parseArray(Output.outputWithRange), [||]);
-  let warnings =
-    "warnings"
-    |> Js.Dict.get(dictionary)
-    |> mapOr(entries => entries |> parseArray(warning), [||]);
-  let errors =
-    "errors"
-    |> Js.Dict.get(dictionary)
-    |> mapOr(entries => entries |> parseArray(error), [||]);
-  {interactionMetas, hiddenMetas, warnings, errors};
-};
-
-let goalTypeContext: string => goalTypeContext =
-  raw => {
-    let markGoal = ((line, _)) =>
-      line |> Js.String.match([%re "/^Goal:/"]) |> map((_) => "goal");
-    let markHave = ((line, _)) =>
-      line |> Js.String.match([%re "/^Have:/"]) |> map((_) => "have");
-    let markMetas = ((line, _)) =>
-      line |> Js.String.match([%re "/\\u2014{60}/g"]) |> map((_) => "metas");
-    let partiteGoalTypeContext =
-      Util.Dict.partite(line =>
-        or_(or_(markGoal(line), markHave(line)), markMetas(line))
-      );
-    let removeDelimeter = Util.Dict.update("metas", Js.Array.sliceFrom(1));
-    let lines = raw |> Js.String.split("\n");
-    let dictionary =
-      lines |> partiteGoalTypeContext |> removeDelimeter |> partiteMetas;
+  let allGoalsWarnings = (title, body) : allGoalsWarnings => {
+    let partiteAllGoalsWarnings: (string, string) => Js.Dict.t(array(string)) =
+      (title, body) => {
+        let lines = body |> Js.String.split("\n");
+        /* examine the header to see what's in the body */
+        let hasMetas = title |> Js.String.match([%re "/Goals/"]) |> isSome;
+        let hasWarnings =
+          title |> Js.String.match([%re "/Warnings/"]) |> isSome;
+        let hasErrors = title |> Js.String.match([%re "/Errors/"]) |> isSome;
+        /* predicates for partitioning the body */
+        let markMetas = ((_, i)) =>
+          hasMetas && i === 0 ? Some("metas") : None;
+        let markWarnings = ((line, i)) =>
+          hasWarnings ?
+            hasMetas ?
+              /* Has both warnings and metas */
+              line
+              |> Js.String.slice(~from=5, ~to_=13)
+              |> Js.String.match([%re "/Warnings/"])
+              |> map((_) => "warnings") :
+              /* Has only warnings */
+              i === 0 ? Some("warnings") : None :
+            /* Has no warnings */
+            None;
+        let markErrors = ((line, i)) =>
+          hasErrors ?
+            /* Has both warnings or metas and errors */
+            hasMetas || hasWarnings ?
+              line
+              |> Js.String.slice(~from=5, ~to_=11)
+              |> Js.String.match([%re "/Errors/"])
+              |> map((_) => "errors") :
+              /* Has only errors */
+              i === 0 ? Some("errors") : None :
+            None;
+        lines
+        |> Util.Dict.partite(line =>
+             or_(
+               or_(markMetas(line), markWarnings(line)),
+               markErrors(line),
+             )
+           );
+      };
+    let dictionary: Js.Dict.t(array(string)) =
+      partiteAllGoalsWarnings(title, body)
+      |> partiteMetas
+      |> partiteWarningsOrErrors("warnings")
+      |> partiteWarningsOrErrors("errors");
     /* extract entries from the dictionary */
-    let goal =
-      "goal"
-      |> Js.Dict.get(dictionary)
-      |> flatMap(line =>
-           line
-           |> List.fromArray
-           |> String.joinWith("\n")
-           |> Js.String.sliceToEnd(~from=5)
-           |> parse(expr)
-         )
-      |> map(x => Goal(x));
-    let have =
-      "have"
-      |> Js.Dict.get(dictionary)
-      |> flatMap(line =>
-           line
-           |> List.fromArray
-           |> String.joinWith("\n")
-           |> Js.String.sliceToEnd(~from=5)
-           |> parse(expr)
-         )
-      |> map(x => Have(x));
     let interactionMetas =
       "interactionMetas"
       |> Js.Dict.get(dictionary)
@@ -420,22 +366,93 @@ let goalTypeContext: string => goalTypeContext =
       "hiddenMetas"
       |> Js.Dict.get(dictionary)
       |> mapOr(metas => metas |> parseArray(Output.outputWithRange), [||]);
-    {goal, have, interactionMetas, hiddenMetas};
+    let warnings =
+      "warnings"
+      |> Js.Dict.get(dictionary)
+      |> mapOr(entries => entries |> parseArray(warning), [||]);
+    let errors =
+      "errors"
+      |> Js.Dict.get(dictionary)
+      |> mapOr(entries => entries |> parseArray(error), [||]);
+    {interactionMetas, hiddenMetas, warnings, errors};
   };
-
-let constraints: string => array(output) =
-  raw => {
-    let shitpile = raw |> Js.String.split("\n") |> unindent;
-    shitpile |> parseArray(output);
-  };
-
-let body: bodyRaw => body =
-  raw => {
-    let kind =
-      switch (raw |> kindGet) {
-      | "AllGoalsWarnings" => AllGoalsWarnings
-      | "GoalTypeContext" => GoalTypeContext
-      | _ => PlainText
-      };
-    {kind, header: raw |> headerGet, body: raw |> bodyGet};
-  };
+  let goalTypeContext: string => goalTypeContext =
+    raw => {
+      let markGoal = ((line, _)) =>
+        line |> Js.String.match([%re "/^Goal:/"]) |> map((_) => "goal");
+      let markHave = ((line, _)) =>
+        line |> Js.String.match([%re "/^Have:/"]) |> map((_) => "have");
+      let markMetas = ((line, _)) =>
+        line
+        |> Js.String.match([%re "/\\u2014{60}/g"])
+        |> map((_) => "metas");
+      let partiteGoalTypeContext =
+        Util.Dict.partite(line =>
+          or_(or_(markGoal(line), markHave(line)), markMetas(line))
+        );
+      let removeDelimeter = Util.Dict.update("metas", Js.Array.sliceFrom(1));
+      let lines = raw |> Js.String.split("\n");
+      let dictionary =
+        lines |> partiteGoalTypeContext |> removeDelimeter |> partiteMetas;
+      /* extract entries from the dictionary */
+      let goal =
+        "goal"
+        |> Js.Dict.get(dictionary)
+        |> flatMap(line =>
+             line
+             |> List.fromArray
+             |> String.joinWith("\n")
+             |> Js.String.sliceToEnd(~from=5)
+             |> parse(expr)
+           )
+        |> map(x => Goal(x));
+      let have =
+        "have"
+        |> Js.Dict.get(dictionary)
+        |> flatMap(line =>
+             line
+             |> List.fromArray
+             |> String.joinWith("\n")
+             |> Js.String.sliceToEnd(~from=5)
+             |> parse(expr)
+           )
+        |> map(x => Have(x));
+      let interactionMetas =
+        "interactionMetas"
+        |> Js.Dict.get(dictionary)
+        |> mapOr(
+             metas => metas |> parseArray(Output.outputWithoutRange),
+             [||],
+           );
+      let hiddenMetas =
+        "hiddenMetas"
+        |> Js.Dict.get(dictionary)
+        |> mapOr(metas => metas |> parseArray(Output.outputWithRange), [||]);
+      {goal, have, interactionMetas, hiddenMetas};
+    };
+  let constraints: string => array(output) =
+    raw => {
+      let shitpile = raw |> Js.String.split("\n") |> unindent;
+      shitpile |> parseArray(output);
+    };
+  let error: string => array(warningError) =
+    raw => {
+      let lines = raw |> Js.String.split("\n");
+      lines
+      |> Util.Dict.partite(((_, i)) => i === 0 ? Some("errors") : None)
+      |> partiteWarningsOrErrors("errors")
+      |> Js.Dict.get(_, "errors")
+      |> mapOr(metas => metas |> parseArray(error), [||]);
+    };
+  let body: bodyRaw => body =
+    raw => {
+      let kind =
+        switch (raw |> kindGet) {
+        | "AllGoalsWarnings" => AllGoalsWarnings
+        | "GoalTypeContext" => GoalTypeContext
+        | "Error" => Error
+        | _ => PlainText
+        };
+      {kind, header: raw |> headerGet, body: raw |> bodyGet};
+    };
+};
