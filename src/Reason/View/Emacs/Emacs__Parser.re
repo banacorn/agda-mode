@@ -339,7 +339,9 @@ let allGoalsWarnings = (title, body) : allGoalsWarnings => {
     Util.Dict.update(
       key,
       (raw: array(string)) => {
-        let lines = raw |> Js.Array.sliceFrom(1);
+        let hasDelimeter =
+          raw[0] |> flatMap(Js.String.match([%re "/^\\u2014{4}/"])) |> isSome;
+        let lines = hasDelimeter ? raw |> Js.Array.sliceFrom(1) : raw;
         let markWarningStart = line => line |> parse(range) |> isSome;
         lines
         |> Util.Array_.partite(markWarningStart)
