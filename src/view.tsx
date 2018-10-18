@@ -12,7 +12,6 @@ import { Resource } from './util';
 import { Core } from './core';
 import Panel from './view/component/Panel';
 import Settings from './view/component/Settings';
-import MiniEditor from './view/component/MiniEditor';
 import reducer from './view/reducers';
 import { View as V } from './type';
 import { EVENT } from './view/actions';
@@ -33,11 +32,12 @@ var Reason = require('./Reason/Decoder.bs');
 class EditorViewManager {
     main: Atom.TextEditor;
     general: Resource<Atom.TextEditor>;
-    connection: Resource<MiniEditor>;
+    connection: Resource<Atom.TextEditor>;
 
     private focus: 'general' | 'connection' | 'main';
 
     private queryGeneralTP: TelePromise<string>;
+    private queryConnectionTP: TelePromise<string>;
 
     constructor(main: Atom.TextEditor) {
         this.main = main;
@@ -46,23 +46,20 @@ class EditorViewManager {
         this.focus = 'main';
 
         this.queryGeneralTP = new TelePromise;
+        this.queryConnectionTP = new TelePromise;
     }
 
     focusMain() {
         atom.views.getView(this.main).focus();
+        this.focus = 'main';
     }
 
     setFocus(focus: 'general' | 'connection' | 'main') {
         this.focus = focus;
     }
 
-    generalIsFocused(): boolean {
-        return this.focus === 'general';
-    }
-
-    connectionIsFocused(): boolean {
-        return this.focus === 'general';
-    }
+    generalIsFocused(): boolean { return this.focus === 'general' }
+    connectionIsFocused(): boolean { return this.focus === 'connection' }
 
     // get the focused editor
     getFocusedEditor(): Promise<Atom.TextEditor> {
@@ -76,8 +73,8 @@ class EditorViewManager {
         }
         if (this.connection.isAvailable()) {
             return this.connection.access().then(editor => {
-                if (editor.isFocused())
-                    return editor.getModel();
+                if (this.connectionIsFocused())
+                    return atom.views.getView(editor).getModel();
                 else
                     return this.main;
             });
@@ -94,8 +91,19 @@ class EditorViewManager {
         this.queryGeneralTP.reject(new QueryCancelled);
     }
 
+    answerConnection(payload :string) {
+        this.queryConnectionTP.resolve(payload);
+    }
+    rejectConnection() {
+        this.queryConnectionTP.reject(new QueryCancelled);
+    }
+
     queryGeneral(): Promise<string> {
         return new Promise(this.queryGeneralTP.wire());
+    }
+
+    queryConnection(): Promise<string> {
+        return new Promise(this.queryConnectionTP.wire());
     }
 }
 
@@ -544,10 +552,12 @@ export default class View {
             this.store.dispatch(Action.VIEW.navigate({path: '/Connection'}));
             return this.editors.connection.access()
                 .then(editor => {
-                    if (!editor.isFocused()) {
-                        editor.activate()
+                    if (!this.editors.connectionIsFocused()) {
+                        let element = atom.views.getView(editor);
+                        element.focus();
+                        element.getModel().selectAll();
                     }
-                    return editor.query();
+                    return this.editors.queryConnection();
                 });
         });
     }

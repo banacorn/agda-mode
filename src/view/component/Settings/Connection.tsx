@@ -6,8 +6,7 @@ import { View } from '../../../type';
 import * as Conn from '../../../connection';
 import * as Action from '../../actions';
 import { Core } from '../../../core';
-import MiniEditor from '../MiniEditor';
-
+var MiniEditor = require('../../../Reason/View/JSON/MiniEditor.bs').jsComponent;
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
@@ -130,21 +129,27 @@ class Connection extends React.Component<Props, {}> {
                                 <p>
                                     <MiniEditor
                                         value={atom.config.get('agda-mode.agdaPath')}
-                                        placeholder='path to Agda'
-                                        ref={(ref) => {
-                                            if (ref)
-                                                this.props.core.view.editors.connection.resolve(ref);
+                                        placeholder={'path to Agda'}
+                                        editorRef={(editor) => {
+                                            this.props.core.view.editors.connection.resolve(editor);
                                         }}
-                                        onConfirm={(path) => {
-                                            atom.config.set('agda-mode.agdaPath', path);
+                                        onFocus={() => {
+                                            this.props.core.view.editors.setFocus('connection');
+                                        }}
+                                        onBlur={() => {
+                                            this.props.core.view.editors.setFocus('main');
+                                        }}
+                                        onConfirm={(result) => {
+                                            atom.config.set('agda-mode.agdaPath', result);
                                             if (!querying) {
                                                 this.reconnectAgda();
                                             }
+                                            this.props.core.view.editors.answerConnection(result);
                                         }}
                                         onCancel={() => {
+                                            this.props.core.view.editors.rejectConnection();
                                             this.props.core.view.editors.focusMain();
                                         }}
-
                                     />
                                 </p>
                                 <p>

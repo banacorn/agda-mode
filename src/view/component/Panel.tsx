@@ -8,7 +8,6 @@ import Header from './Panel/Header';
 import SizingHandle from './Panel/SizingHandle';
 import { View } from '../../type';
 import V from '../../view';
-import TSMiniEditor from './MiniEditor';
 import { MODE, updateMaxBodyHeight, QUERY, EVENT } from './../actions';
 
 
@@ -168,27 +167,3 @@ export default connect<InjProps, DispatchProps, OwnProps>(
 )(Panel);
 
 // <button className='btn icon icon-gear inline-block-tight'>Advenced Connection Settings</button>
-
-
-
-// <TSMiniEditor
-//     className={show(View.Mode.Query, mode)}
-//     value={this.props.query.value}
-//     placeholder={this.props.query.placeholder}
-//     data-grammar='agda'
-//     ref={(ref) => {
-//         if (ref)
-//             core.view.editors.general.resolve(ref);
-//     }}
-//     onConfirm={(result) => {
-//         this.props.handelQueryValueChange(result);
-//         core.view.editors.focusMain()
-//         this.props.deactivateMiniEditor();
-//         core.inputMethod.confirm();
-//     }}
-//     onCancel={() => {
-//         core.view.editors.focusMain()
-//         this.props.deactivateMiniEditor();
-//         core.inputMethod.cancel();
-//     }}
-// />
