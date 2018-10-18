@@ -23,6 +23,7 @@ import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
 var { errorToHeader } = require('./Reason/View/Typechecking/Error.bs');
+var { parseWhyInScope } = require('./Reason/View/Emacs/Emacs__Parser.bs');
 var Reason = require('./Reason/Decoder.bs');
 
 
@@ -389,8 +390,18 @@ export default class View {
             body: constraints
         }));
     }
+    
+    setEmacsGoToDefinition(raw: string) {
+        const result = parseWhyInScope(raw);
+        if (result) {
+            const [range, source] = result;
+            this.core.editor.jumpToRange(range, source);
+        }
+    }
 
     setEmacsWhyInScope(raw: string) {
+
+
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 

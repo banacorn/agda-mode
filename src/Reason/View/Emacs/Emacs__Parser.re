@@ -151,18 +151,14 @@ let expr =
       |> String.trim
       /*                            1         2                        */
       |> Js.String.splitByRe([%re "/(\\?\\d+)|(\\_\\d+[^\\}\\)\\s]*)/"])
-      |> (
-        tokens =>
-          tokens
-          |> Array.mapi((token, i) =>
-               switch (i mod 3) {
-               | 1 => QuestionMark(token)
-               | 2 => Underscore(token)
-               | _ => Plain(token)
-               }
-             )
-          |> some
-      ),
+      |> Array.mapi((token, i) =>
+           switch (i mod 3) {
+           | 1 => QuestionMark(token)
+           | 2 => Underscore(token)
+           | _ => Plain(token)
+           }
+         )
+      |> some,
   );
 
 module OutputConstraint = {
@@ -452,8 +448,24 @@ module Response = {
       |> Js.Dict.get(_, "errors")
       |> mapOr(metas => metas |> parseArray(error), [||]);
     };
-  let whyInScope: string => plainText =
-    raw => raw |> parse(plainText) |> getOr([||]);
+  let whyInScope: string => (plainText, array(Type.Syntax.Position.range)) =
+    raw => {
+      let ranges =
+        raw
+        |> Js.String.splitByRe(
+             [%re
+               "/its definition at (\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/g"
+             ],
+           )
+        |> Array.mapi((token, i) =>
+             switch (i mod 2) {
+             | 1 => token |> parse(range)
+             | _ => None
+             }
+           )
+        |> Util.Array_.catMaybes;
+      (raw |> parse(plainText) |> getOr([||]), ranges);
+    };
   let body: bodyRaw => body =
     raw => {
       let kind =
@@ -466,4 +478,13 @@ module Response = {
         };
       {kind, header: raw |> headerGet, body: raw |> bodyGet};
     };
+};
+
+/* extract the first range and convert it to Atom Range */
+let parseWhyInScope = raw => {
+  let (_, ranges) = Response.whyInScope(raw);
+  ranges[0]
+  |> map(range =>
+       (Syntax.Range.toAtomRange(range), Syntax.Range.toAtomFilepath(range))
+     );
 };
