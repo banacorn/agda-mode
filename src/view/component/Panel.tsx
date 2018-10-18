@@ -11,9 +11,9 @@ import V from '../../view';
 import { MODE, updateMaxBodyHeight, QUERY, EVENT } from './../actions';
 
 
-var JSONBody = require('./../../Reason/View/JSON/Body.bs').jsComponent;
-var MiniEditor = require('./../../Reason/View/JSON/MiniEditor.bs').jsComponent;
-var { toAtomRange, toAtomFilepath } = require('./../../Reason/View/Syntax/Syntax__Range.bs');
+var JSONBody = require('./../../Reason/View/Panel/Body.bs').jsComponent;
+var MiniEditor = require('./../../Reason/View/MiniEditor.bs').jsComponent;
+var { toAtomRange, toAtomFilepath } = require('./../../Reason/View/Range.bs');
 
 //
 type OwnProps = React.HTMLProps<HTMLElement> & {
@@ -52,13 +52,6 @@ function mapDispatchToProps(dispatch): DispatchProps {
             dispatch(QUERY.updateValue(value));
         }
     };
-}
-
-function show(kind: View.Mode, mode: View.Mode, ...classes): string {
-    return classNames({
-        'hidden': kind !== mode,
-        ...classes
-    })
 }
 
 class Panel extends React.Component<Props, {}> {

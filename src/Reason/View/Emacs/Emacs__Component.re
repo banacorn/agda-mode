@@ -2,8 +2,6 @@ open ReasonReact;
 
 open Rebase;
 
-open Syntax;
-
 open Type.Interaction.Emacs;
 
 module Term = {

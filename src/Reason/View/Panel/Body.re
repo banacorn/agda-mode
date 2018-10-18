@@ -20,12 +20,12 @@ let make =
     let comp =
       if (useJSON) {
         switch (Decoder.parseBody(raw)) {
-        | AllGoalsWarnings(value) => <AllGoalsWarnings value />
-        | Error(value, rawString) => <Error value rawString />
+        | AllGoalsWarnings(value) => <JSON__AllGoalsWarnings value />
+        | Error(value, rawString) => <JSON__Error value rawString />
         | PlainText(s) => <p> (string(s)) </p>
         };
       } else {
-        let parsed = Emacs.Parser.Response.body(emacs);
+        let parsed = Emacs__Parser.Response.body(emacs);
         let header = parsed.header;
         let body = parsed.body;
         switch (parsed.kind) {

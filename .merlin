@@ -17,12 +17,14 @@ S src/Reason
 B lib/bs/src/Reason
 S src/Reason/View
 B lib/bs/src/Reason/View
-S src/Reason/View/Syntax
-B lib/bs/src/Reason/View/Syntax
-S src/Reason/View/Typechecking
-B lib/bs/src/Reason/View/Typechecking
 S src/Reason/View/JSON
 B lib/bs/src/Reason/View/JSON
+S src/Reason/View/JSON/Syntax
+B lib/bs/src/Reason/View/JSON/Syntax
+S src/Reason/View/JSON/Typechecking
+B lib/bs/src/Reason/View/JSON/Typechecking
 S src/Reason/View/Emacs
 B lib/bs/src/Reason/View/Emacs
+S src/Reason/View/Panel
+B lib/bs/src/Reason/View/Panel
 ####BSB GENERATED: NO EDIT}

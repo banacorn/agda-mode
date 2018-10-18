@@ -6,7 +6,7 @@ import { View } from '../../../type';
 import * as Conn from '../../../connection';
 import * as Action from '../../actions';
 import { Core } from '../../../core';
-var MiniEditor = require('../../../Reason/View/JSON/MiniEditor.bs').jsComponent;
+var MiniEditor = require('../../../Reason/View/MiniEditor.bs').jsComponent;
 
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;

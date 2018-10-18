@@ -24,7 +24,7 @@ import { QueryCancelled } from './error';
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
 
-var { errorToHeader } = require('./Reason/View/Typechecking/Error.bs');
+var { errorToHeader } = require('./Reason/View/JSON/JSON__Error.bs');
 var { parseWhyInScope } = require('./Reason/View/Emacs/Emacs__Parser.bs');
 var Reason = require('./Reason/Decoder.bs');
 
