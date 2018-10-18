@@ -297,21 +297,8 @@ export default class Commander {
     //
 
     private searchAbout = (normalization: Agda.Normalization) => (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.editor.goal.pointing()
-            .then(goal => {
-                // goal-specific
-                if (goal.isEmpty()) {
-                    return this.core.view.query(`Searching through definitions ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
-                        .then(expr => [Req.searchAbout(normalization, expr, goal)(command, connection)])
-                } else {
-                    return [Req.searchAbout(normalization, goal.getContent(), goal)(command, connection)];
-                }
-            })
-            .catch(() => {
-                // global command
-                return this.core.view.query(`Searching through definitions ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
-                    .then(expr => [Req.searchAboutGlobal(normalization, expr)(command, connection)])
-            })
+        return this.core.view.query(`Searching through definitions ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
+            .then(expr => [Req.searchAbout(normalization, expr)(command, connection)])
     }
 
     private whyInScope = (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {

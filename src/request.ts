@@ -76,10 +76,7 @@ export const showConstraints =
 export const showGoals =
     buildRequest('NonInteractive', 'Cmd_metas');
 
-export const searchAbout = (normalization: Agda.Normalization, expr: string, goal: Goal) =>
-    buildRequest('NonInteractive', `Cmd_search_about_toplevel ${normalization} ${goal.index} noRange \"${expr}\"`);
-
-export const searchAboutGlobal = (normalization: Agda.Normalization, expr: string) =>
+export const searchAbout = (normalization: Agda.Normalization, expr: string) =>
     buildRequest('None', `Cmd_search_about_toplevel ${normalization} \"${expr}\"`);
 
 export const whyInScope = (expr: string, goal: Goal) =>
