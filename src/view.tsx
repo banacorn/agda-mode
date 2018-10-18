@@ -29,12 +29,13 @@ var Reason = require('./Reason/Decoder.bs');
 
 class EditorViewManager {
     main: Atom.TextEditor;
-    general: MiniEditor;
+    general: Resource<MiniEditor>;
     connection: Resource<MiniEditor>;
 
     constructor(main: Atom.TextEditor) {
         this.main = main;
         this.connection = new Resource;
+        this.general = new Resource;
     }
 
     focusMain() {
@@ -43,8 +44,14 @@ class EditorViewManager {
 
     // get the focused editor
     getFocusedEditor(): Promise<Atom.TextEditor> {
-        if (this.general && this.general.isFocused())
-            return Promise.resolve(this.general.getModel());
+        if (this.general.isAvailable()) {
+            return this.general.access().then(editor => {
+                if (editor.isFocused())
+                    return editor.getModel();
+                else
+                    return this.main;
+            });
+        }
         if (this.connection.isAvailable()) {
             return this.connection.access().then(editor => {
                 if (editor.isFocused())
@@ -487,9 +494,13 @@ export default class View {
             text: header,
             style: type
         }));
-        this.editors.general.activate();
-
-        return this.editors.general.query();
+        return this.editors.general.access()
+            .then(editor => {
+                if (!editor.isFocused()) {
+                    editor.activate()
+                }
+                return editor.query();
+            });
     }
 
     queryConnection(): Promise<string> {

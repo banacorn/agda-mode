@@ -133,7 +133,7 @@ class Panel extends React.Component<Props, {}> {
                         data-grammar='agda'
                         ref={(ref) => {
                             if (ref)
-                                core.view.editors.general = ref;
+                                core.view.editors.general.resolve(ref);
                         }}
                         onConfirm={(result) => {
                             this.props.handelQueryValueChange(result);
@@ -159,3 +159,36 @@ export default connect<InjProps, DispatchProps, OwnProps>(
 )(Panel);
 
 // <button className='btn icon icon-gear inline-block-tight'>Advenced Connection Settings</button>
+
+
+
+
+// <MiniEditor
+//     hidden={View.Mode.Query !== mode}
+//     value={this.props.query.value}
+//     placeholder={this.props.query.placeholder}
+//     grammar='agda'
+//     editorRef={(editor) => {
+//         if (editor) {
+//             console.log(editor)
+//             // core.view.editors.general = ref;
+//         }
+//     }}
+//     onFocus={() => {
+//         // core.view.editors.setFocus('general');
+//     }}
+//     onBlur={() => {
+//         // core.view.editors.setFocus('none');
+//     }}
+//     onConfirm={(result) => {
+//         this.props.handelQueryValueChange(result);
+//         core.view.editors.focusMain()
+//         this.props.deactivateMiniEditor();
+//         core.inputMethod.confirm();
+//     }}
+//     onCancel={() => {
+//         core.view.editors.focusMain()
+//         this.props.deactivateMiniEditor();
+//         core.inputMethod.cancel();
+//     }}
+// />
