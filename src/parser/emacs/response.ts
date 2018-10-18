@@ -35,6 +35,7 @@ function prioritiseResponses(responses: Agda.Response[]): Agda.Response[] {
 
 function parseResponse(raw: string, fileType: FileType): Promise<Agda.Response> {
     const tokens: any[] = parseSExpression(raw);
+    console.log(tokens);
     switch (tokens[0]) {
         // Resp_HighlightingInfo HighlightingInfo HighlightingMethod ModuleToSource
         case 'agda2-highlight-add-annotations':
@@ -205,6 +206,7 @@ function parseDisplayInfo(tokens: any[]): Agda.Info {
         case '*Auto*':                  return { kind: 'Auto', payload};
         case '*Time*':                  return { kind: 'Time', payload};
         case '*Normal Form*':           return { kind: 'NormalForm', payload};
+        case '*Search About*':          return { kind: 'SearchAbout', payload};
         case '*Inferred Type*':         return { kind: 'InferredType', payload};
         case '*Current Goal*':          return { kind: 'CurrentGoal', payload};
         case '*Goal type etc.*':        return { kind: 'GoalType', payload};

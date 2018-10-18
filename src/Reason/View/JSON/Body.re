@@ -34,6 +34,7 @@ let make =
         | Context => <Emacs__Context body />
         | Constraints => <Emacs__Context body />
         | WhyInScope => <Emacs__WhyInScope body />
+        | SearchAbout => <Emacs__SearchAbout body />
         | Error => <Emacs__Error body />
         | PlainText => String.isEmpty(body) ? null : <p> (string(body)) </p>
         };

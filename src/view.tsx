@@ -448,6 +448,23 @@ export default class View {
         }));
     }
 
+    setEmacsSearchAbout(raw: string) {
+        this.store.dispatch(Action.MODE.display());
+        this.editors.focusMain();
+
+        this.store.dispatch(Action.HEADER.update({
+            text: 'Searching about ...',
+            style: V.Style.Info
+        }));
+
+        this.store.dispatch(Action.updateEmacs({
+            kind: 'SearchAbout',
+            header: 'Searching about ...',
+            body: raw
+        }));
+    }
+
+
     setPlainText(header: string, body: string, type = V.Style.PlainText) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()

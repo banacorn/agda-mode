@@ -466,6 +466,19 @@ module Response = {
         |> Util.Array_.catMaybes;
       (raw |> parse(plainText) |> getOr([||]), ranges);
     };
+  let searchAbout: string => (string, array(output)) =
+    raw => {
+      let lines = raw |> Js.String.split("\n");
+      let target =
+        lines[0] |> map(Js.String.sliceToEnd(~from=18)) |> getOr("???");
+      let outputs =
+        lines
+        |> Js.Array.sliceFrom(1)
+        |> Array.map(s => s |> Js.String.sliceToEnd(~from=2))
+        |> unindent
+        |> parseArray(output);
+      (target, outputs);
+    };
   let body: bodyRaw => body =
     raw => {
       let kind =
@@ -474,6 +487,7 @@ module Response = {
         | "GoalTypeContext" => GoalTypeContext
         | "Context" => Context
         | "WhyInScope" => WhyInScope
+        | "SearchAbout" => SearchAbout
         | "Error" => Error
         | _ => PlainText
         };

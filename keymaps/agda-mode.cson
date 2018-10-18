@@ -39,6 +39,9 @@
 
     # the commands below may have a goal-specific version
     'ctrl-c               ctrl-w': 'agda-mode:why-in-scope'
+    'ctrl-c               ctrl-z': 'agda-mode:search-about[Simplified]'
+    'ctrl-u ctrl-c        ctrl-z': 'agda-mode:search-about[Instantiated]'
+    'ctrl-u ctrl-u ctrl-c ctrl-z': 'agda-mode:search-about[Normalised]'
     'ctrl-c               ctrl-d': 'agda-mode:infer-type[Simplified]'
     'ctrl-u ctrl-c        ctrl-d': 'agda-mode:infer-type[Instantiated]'
     'ctrl-u ctrl-u ctrl-c ctrl-d': 'agda-mode:infer-type[Normalised]'

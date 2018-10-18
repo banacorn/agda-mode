@@ -176,6 +176,9 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
         case 'CurrentGoal':
             core.view.setPlainText('Current Goal', response.payload, View.Style.Info);
             break;
+        case 'SearchAbout':
+            core.view.setEmacsSearchAbout(response.payload);
+            break;
         case 'InferredType':
             core.view.setPlainText('Inferred Type', response.payload, View.Style.Info);
             break;

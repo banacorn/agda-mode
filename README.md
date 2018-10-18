@@ -68,6 +68,7 @@ Commands listed below support 3 different levels of normalization.
 
 | Keymap                        | Command                                 | Global | Goal-specific |
 |------------------------------:|:----------------------------------------|:------:|:-------------:|
+| <kbd>C-c</kbd> <kbd>C-z</kbd> | search about                            |   ✓    |       ✓       |
 | <kbd>C-c</kbd> <kbd>C-d</kbd> | infer type                              |   ✓    |       ✓       |
 | <kbd>C-c</kbd> <kbd>C-o</kbd> | module contents                         |   ✓    |       ✓       |
 | <kbd>C-c</kbd> <kbd>C-t</kbd> | goal type                               |        |       ✓       |

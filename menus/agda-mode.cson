@@ -18,6 +18,7 @@
             { 'label': 'Show Goals', 'command': 'agda-mode:show-goals' }
             { 'label': 'Next Goal', 'command': 'agda-mode:next-goal' }
             { 'label': 'Previous Goal', 'command': 'agda-mode:previous-goal' }
+            { 'label': 'Search About', 'command': 'agda-mode:search-about[Simplified]' }
             { 'label': 'Infer Type', 'command': 'agda-mode:infer-type[Simplified]' }
             { 'label': 'Module Contents', 'command': 'agda-mode:module-contents[Simplified]' }
             { 'label': 'Why In Scope', 'command': 'agda-mode:why-in-scope' }

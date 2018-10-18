@@ -6,7 +6,7 @@ import { Conn } from '../type';
 export type CommandKind = 'Load' | 'Quit' | 'Restart' | 'Abort' | 'Compile' |
     'ToggleDisplayOfImplicitArguments' | 'ShowConstraints' |
     'SolveConstraints' | 'ShowGoals' | 'NextGoal' | 'PreviousGoal' |
-    'ToggleDocking' |
+    'ToggleDocking' | 'SearchAbout' |
     'WhyInScope' | 'InferType' | 'ModuleContents' | 'ComputeNormalForm' |
     'Give' | 'Refine' | 'Auto' | 'Case' |
     'GoalType' | 'Context' | 'GoalTypeAndContext' | 'GoalTypeAndInferredType' |
@@ -160,7 +160,7 @@ export type Info =
     Info_Time | Info_Error | Info_Intro | Info_Auto | Info_ModuleContents |
     Info_SearchAbout | Info_WhyInScope | Info_NormalForm | Info_GoalType |
     Info_CurrentGoal | Info_InferredType | Info_Context |
-    Info_HelperFunction | Info_Version;
+    Info_HelperFunction | Info_Version | Info_SearchAbout ;
 
 export interface Info_CompilationOk {
     kind: "CompilationOk";
@@ -194,6 +194,7 @@ export interface Info_WhyInScope { kind: "WhyInScope"; payload: string }
 export interface Info_NormalForm { kind: "NormalForm"; payload: string }
 export interface Info_GoalType { kind: "GoalType"; payload: string }
 export interface Info_CurrentGoal { kind: "CurrentGoal"; payload: string }
+export interface Info_SearchAbout { kind: "SearchAbout"; payload: string }
 export interface Info_InferredType { kind: "InferredType"; payload: string }
 export interface Info_Context { kind: "Context"; payload: string }
 export interface Info_HelperFunction { kind: "HelperFunction"; payload: string }

@@ -665,6 +665,7 @@ module Interaction = {
       | Context
       | Constraints
       | WhyInScope
+      | SearchAbout
       | Error
       | PlainText;
     [@bs.deriving abstract]

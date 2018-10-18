@@ -58,6 +58,10 @@ function parseCommand(raw: string): Agda.Command {
         case 'toggle-docking': return {
             kind: 'ToggleDocking',
         };
+        case 'search-about': return {
+            kind: 'SearchAbout',
+            normalization: parseNormalization(result[2]),
+        };
         case 'why-in-scope': return {
             kind: 'WhyInScope',
         };
