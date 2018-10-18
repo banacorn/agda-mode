@@ -52,6 +52,7 @@ let make =
       ~onFocus=() => (),
       ~onBlur=() => (),
       ~grammar="",
+      ~editorRef=(_) => (),
       _children,
     ) => {
   let observeFocus = (self, r) => {
@@ -98,6 +99,8 @@ let make =
       switch (self.state.ref^) {
       | None => ()
       | Some(r) =>
+        /* expose the editor */
+        editorRef(ReasonReact.refToJsObj(r));
         /* pass the grammar down to enable input method */
         if (grammar === "agda") {
           let agdaGrammar = grammarForScopeName("source.agda");
@@ -150,6 +153,7 @@ type jsProps = {
   onFocus: unit => unit,
   onBlur: unit => unit,
   grammar: string,
+  editorRef: {. "a": int} => unit,
 };
 
 let jsComponent =
@@ -163,6 +167,7 @@ let jsComponent =
       ~onFocus=onFocusGet(jsProps),
       ~onBlur=onBlurGet(jsProps),
       ~grammar=grammarGet(jsProps),
+      ~editorRef=editorRefGet(jsProps),
       [||],
     )
   );

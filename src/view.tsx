@@ -18,6 +18,9 @@ import { View as V } from './type';
 import { EVENT } from './view/actions';
 import * as Action from './view/actions';
 import Tab from './view/tab';
+import { TelePromise } from './util';
+import { QueryCancelled } from './error';
+
 
 import { CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
@@ -29,25 +32,44 @@ var Reason = require('./Reason/Decoder.bs');
 
 class EditorViewManager {
     main: Atom.TextEditor;
-    general: Resource<MiniEditor>;
+    general: Resource<Atom.TextEditor>;
     connection: Resource<MiniEditor>;
+
+    private focus: 'general' | 'connection' | 'main';
+
+    private queryGeneralTP: TelePromise<string>;
 
     constructor(main: Atom.TextEditor) {
         this.main = main;
         this.connection = new Resource;
         this.general = new Resource;
+        this.focus = 'main';
+
+        this.queryGeneralTP = new TelePromise;
     }
 
     focusMain() {
         atom.views.getView(this.main).focus();
     }
 
+    setFocus(focus: 'general' | 'connection' | 'main') {
+        this.focus = focus;
+    }
+
+    generalIsFocused(): boolean {
+        return this.focus === 'general';
+    }
+
+    connectionIsFocused(): boolean {
+        return this.focus === 'general';
+    }
+
     // get the focused editor
     getFocusedEditor(): Promise<Atom.TextEditor> {
         if (this.general.isAvailable()) {
             return this.general.access().then(editor => {
-                if (editor.isFocused())
-                    return editor.getModel();
+                if (this.generalIsFocused())
+                    return atom.views.getView(editor).getModel();
                 else
                     return this.main;
             });
@@ -62,6 +84,18 @@ class EditorViewManager {
         } else {
             return Promise.resolve(this.main);
         }
+    }
+
+    //
+    answerGeneral(payload :string) {
+        this.queryGeneralTP.resolve(payload);
+    }
+    rejectGeneral() {
+        this.queryGeneralTP.reject(new QueryCancelled);
+    }
+
+    queryGeneral(): Promise<string> {
+        return new Promise(this.queryGeneralTP.wire());
     }
 }
 
@@ -496,10 +530,12 @@ export default class View {
         }));
         return this.editors.general.access()
             .then(editor => {
-                if (!editor.isFocused()) {
-                    editor.activate()
+                if (!this.editors.generalIsFocused()) {
+                    let element = atom.views.getView(editor);
+                    element.focus();
+                    element.getModel().selectAll();
                 }
-                return editor.query();
+                return this.editors.queryGeneral();
             });
     }
 

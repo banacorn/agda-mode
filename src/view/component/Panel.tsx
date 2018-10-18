@@ -126,22 +126,31 @@ class Panel extends React.Component<Props, {}> {
                             }}
                         />
                     )}</V.EventContext.Consumer>
-                    <TSMiniEditor
-                        className={show(View.Mode.Query, mode)}
+                    <MiniEditor
+                        hidden={View.Mode.Query !== mode}
                         value={this.props.query.value}
                         placeholder={this.props.query.placeholder}
-                        data-grammar='agda'
-                        ref={(ref) => {
-                            if (ref)
-                                core.view.editors.general.resolve(ref);
+                        grammar='agda'
+                        editorRef={(editor) => {
+                            core.view.editors.general.resolve(editor);
+                        }}
+                        onFocus={() => {
+                            core.view.editors.setFocus('general');
+                        }}
+                        onBlur={() => {
+                            core.view.editors.setFocus('main');
                         }}
                         onConfirm={(result) => {
+                            core.view.editors.answerGeneral(result);
+
                             this.props.handelQueryValueChange(result);
-                            core.view.editors.focusMain()
+                            core.view.editors.focusMain();
                             this.props.deactivateMiniEditor();
                             core.inputMethod.confirm();
                         }}
                         onCancel={() => {
+                            core.view.editors.rejectGeneral();
+
                             core.view.editors.focusMain()
                             this.props.deactivateMiniEditor();
                             core.inputMethod.cancel();
@@ -162,23 +171,14 @@ export default connect<InjProps, DispatchProps, OwnProps>(
 
 
 
-
-// <MiniEditor
-//     hidden={View.Mode.Query !== mode}
+// <TSMiniEditor
+//     className={show(View.Mode.Query, mode)}
 //     value={this.props.query.value}
 //     placeholder={this.props.query.placeholder}
-//     grammar='agda'
-//     editorRef={(editor) => {
-//         if (editor) {
-//             console.log(editor)
-//             // core.view.editors.general = ref;
-//         }
-//     }}
-//     onFocus={() => {
-//         // core.view.editors.setFocus('general');
-//     }}
-//     onBlur={() => {
-//         // core.view.editors.setFocus('none');
+//     data-grammar='agda'
+//     ref={(ref) => {
+//         if (ref)
+//             core.view.editors.general.resolve(ref);
 //     }}
 //     onConfirm={(result) => {
 //         this.props.handelQueryValueChange(result);
