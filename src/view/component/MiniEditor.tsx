@@ -113,7 +113,7 @@ class MiniEditor extends React.Component<Props, State> {
 
         // value
         if (this.props.value)
-            this.ref.getModel().setText(this.props.value);
+            this.ref.getModel().setText(this.props.value.toString());
     }
 
     componentWillUnmount() {
@@ -151,9 +151,6 @@ class MiniEditor extends React.Component<Props, State> {
     }
 
     render() {
-        if (this.ref && this.props.value)
-            this.ref.getModel().setText(this.props.value.toString());
-
         const classes = classNames(this.props.className, 'mini-editor');
         return (
             <atom-text-editor
