@@ -662,6 +662,7 @@ module Interaction = {
     type bodyKind =
       | AllGoalsWarnings
       | GoalTypeContext
+      | Context
       | Constraints
       | WhyInScope
       | Error

@@ -375,6 +375,21 @@ export default class View {
         }));
     }
 
+    setEmacsContext(raw: string) {
+        this.store.dispatch(Action.MODE.display());
+        this.editors.focusMain()
+
+        this.store.dispatch(Action.HEADER.update({
+            text: 'Context',
+            style: V.Style.Info
+        }));
+
+        this.store.dispatch(Action.updateEmacs({
+            kind: 'Context',
+            header: 'Context',
+            body: raw
+        }));
+    }
     setEmacsConstraints(constraints: string) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
@@ -390,7 +405,7 @@ export default class View {
             body: constraints
         }));
     }
-    
+
     setEmacsGoToDefinition(raw: string) {
         const result = parseWhyInScope(raw);
         if (result) {

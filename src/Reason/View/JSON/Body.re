@@ -31,7 +31,8 @@ let make =
         switch (parsed.kind) {
         | AllGoalsWarnings => <Emacs__AllGoalsWarnings header body />
         | GoalTypeContext => <Emacs__GoalTypeContext body />
-        | Constraints => <Emacs__Constraints body />
+        | Context => <Emacs__Context body />
+        | Constraints => <Emacs__Context body />
         | WhyInScope => <Emacs__WhyInScope body />
         | Error => <Emacs__Error body />
         | PlainText => String.isEmpty(body) ? null : <p> (string(body)) </p>

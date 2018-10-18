@@ -434,10 +434,10 @@ module Response = {
         |> mapOr(metas => metas |> parseArray(Output.outputWithRange), [||]);
       {goal, have, interactionMetas, hiddenMetas};
     };
-  let constraints: string => array(output) =
+  let context: string => array(output) =
     raw => {
-      let shitpile = raw |> Js.String.split("\n") |> unindent;
-      shitpile |> parseArray(output);
+      let lines = raw |> Js.String.split("\n") |> unindent;
+      lines |> parseArray(output);
     };
   let error: string => array(warningError) =
     raw => {
@@ -472,6 +472,7 @@ module Response = {
         switch (raw |> kindGet) {
         | "AllGoalsWarnings" => AllGoalsWarnings
         | "GoalTypeContext" => GoalTypeContext
+        | "Context" => Context
         | "WhyInScope" => WhyInScope
         | "Error" => Error
         | _ => PlainText

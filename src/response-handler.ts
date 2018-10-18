@@ -180,7 +180,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.setPlainText('Inferred Type', response.payload, View.Style.Info);
             break;
         case 'Context':
-            core.view.setEmacsGoalTypeContext('Context', response.payload);
+            core.view.setEmacsContext(response.payload);
             break;
         case 'Intro':
             core.view.setPlainText('Intro', 'No introduction forms found');
