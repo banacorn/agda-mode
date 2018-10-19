@@ -2,7 +2,20 @@ open ReasonReact;
 
 open Util;
 
-let component = statelessComponent("Dashboard");
+type state = {
+  settingsButtonRef: ref(option(Dom.element)),
+  dockingButtonRef: ref(option(Dom.element)),
+};
+
+type action;
+
+let setSettingsButtonRef = (r, {state}) =>
+  state.settingsButtonRef := Js.Nullable.toOption(r);
+
+let setDockingButtonRef = (r, {state}) =>
+  state.dockingButtonRef := Js.Nullable.toOption(r);
+
+let component = reducerComponent("Dashboard");
 
 let make =
     (
@@ -17,7 +30,49 @@ let make =
       _children,
     ) => {
   ...component,
-  render: _self => {
+  initialState: () => {
+    settingsButtonRef: ref(None),
+    dockingButtonRef: ref(None),
+  },
+  reducer: (_: action, _) => NoUpdate,
+  didMount: self => {
+    switch (self.state.settingsButtonRef^) {
+    | None => ()
+    | Some(settingsButton) =>
+      let disposables = Atom.CompositeDisposable.make();
+      Atom.Environment.Tooltips.add(
+        Atom.Environment.Views.getView(settingsButton),
+        {
+          "title": "settings",
+          "delay": {
+            "show": 100,
+            "hide": 1000,
+          },
+        },
+      )
+      |> Atom.CompositeDisposable.add(disposables);
+      self.onUnmount(() => disposables |> Atom.CompositeDisposable.dispose);
+    };
+    switch (self.state.dockingButtonRef^) {
+    | None => ()
+    | Some(dockingButton) =>
+      let disposables = Atom.CompositeDisposable.make();
+      Atom.Environment.Tooltips.add(
+        Atom.Environment.Views.getView(dockingButton),
+        {
+          "title": "toggle panel docking position",
+          "delay": {
+            "show": 300,
+            "hide": 1000,
+          },
+          "keyBindingCommand": "agda-mode:toggle-docking",
+        },
+      )
+      |> Atom.CompositeDisposable.add(disposables);
+      self.onUnmount(() => disposables |> Atom.CompositeDisposable.dispose);
+    };
+  },
+  render: self => {
     let classList =
       ["agda-header"] |> addClass("hidden", hidden) |> toClassName;
     let headerClassList = "text-" ++ style;
@@ -36,7 +91,8 @@ let make =
         <li>
           <button
             className=settingsViewClassList
-            onClick=((_) => onSettingsViewToggle(! settingsViewOn))>
+            onClick=((_) => onSettingsViewToggle(! settingsViewOn))
+            ref=(self.handle(setSettingsButtonRef))>
             <span className="icon icon-settings" />
           </button>
         </li>
@@ -47,7 +103,8 @@ let make =
               (_) =>
                 mountAt === "pane" ?
                   onMountChange("bottom") : onMountChange("pane")
-            )>
+            )
+            ref=(self.handle(setDockingButtonRef))>
             <span className="icon icon-versions" />
           </button>
         </li>

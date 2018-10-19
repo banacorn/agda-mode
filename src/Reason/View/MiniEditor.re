@@ -87,21 +87,22 @@ let make =
         /* expose the editor */
         editorRef(editor);
         /* subscribe to Atom's core events */
-        let disposable = Atom.CompositeDisposable.make();
+        let disposables = Atom.CompositeDisposable.make();
         Atom.Environment.Commands.add(
           `DOMElement(Atom.Environment.Views.getView(editor)),
           "core:confirm",
           (~displayName as _, ~description as _, ~hiddenInCommandPalette as _) =>
           onConfirm(editor |> Atom.TextEditor.getText)
         )
-        |> Atom.CompositeDisposable.add(disposable);
+        |> Atom.CompositeDisposable.add(disposables);
         Atom.Environment.Commands.add(
           `DOMElement(Atom.Environment.Views.getView(editor)),
           "core:cancel",
           (~displayName as _, ~description as _, ~hiddenInCommandPalette as _) =>
           onCancel()
         )
-        |> Atom.CompositeDisposable.add(disposable);
+        |> Atom.CompositeDisposable.add(disposables);
+        self.onUnmount(() => disposables |> Atom.CompositeDisposable.dispose);
         /* observer the status of focus of the editor */
         observeFocus(self, editor);
         /* value */
