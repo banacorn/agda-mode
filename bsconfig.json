@@ -20,7 +20,9 @@
   "bs-dependencies": [
     "reason-react",
     "@glennsl/bs-json",
-    "@glennsl/rebase"
+    "@glennsl/rebase",
+    "atom",
+    "bs-webapi"
   ],
   "bsc-flags": ["-bs-g"]  ,
   "refmt": 3

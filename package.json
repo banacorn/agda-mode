@@ -35,6 +35,7 @@
   "dependencies": {
     "@glennsl/bs-json": "^3.0.0",
     "@glennsl/rebase": "git@github.com:banacorn/rebase.git#5f349c",
+    "atom": "git@github.com:banacorn/bs-atom.git#7c77d33",
     "@types/atom": "^1.28",
     "@types/bluebird": "^3.5",
     "@types/classnames": "^2.2",
@@ -48,6 +49,7 @@
     "@types/redux-actions": "^2.3",
     "@types/semver": "^5.5",
     "bluebird": "^3.5",
+    "bs-webapi": "^0.13.0",
     "classnames": "^2.2",
     "duplexer": "^0.1",
     "lodash": "^4.17",

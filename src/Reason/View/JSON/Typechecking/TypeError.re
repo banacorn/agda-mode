@@ -10,7 +10,7 @@ open Rebase;
 
 let component = statelessComponent("TypeError");
 
-let make = (~typeError: typeError, ~rawString: string, _children) => {
+let make = (~typeError: typeError, ~rawString as _, _children) => {
   ...component,
   render: _self =>
     switch (typeError) {

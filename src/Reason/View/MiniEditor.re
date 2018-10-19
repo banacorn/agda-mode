@@ -1,44 +1,22 @@
 open ReasonReact;
 
-[@bs.val] [@bs.scope ("atom", "commands")]
-external add : (ReasonReact.reactRef, string, unit => unit) => unit = "add";
+open Rebase;
 
-type grammar;
-
-[@bs.val] [@bs.scope ("atom", "grammars")]
-external grammarForScopeName : string => grammar = "grammarForScopeName";
-
-type mutationRecord = {. "attributeName": string};
-
-type observerConfig = {
-  .
-  "attributes": bool,
-  "childList": bool,
-  "subtree": bool,
-};
-
-type mutationObserver = {
-  .
-  [@bs.meth] "observe": (ReasonReact.reactRef, observerConfig) => unit,
-  [@bs.meth] "disconnect": unit => unit,
-};
-
-[@bs.new]
-external createMutationObserver :
-  (array(mutationRecord) => unit) => mutationObserver =
-  "MutationObserver";
+open Webapi.Dom;
 
 type state = {
   focused: bool,
-  ref: ref(option(ReasonReact.reactRef)),
+  ref: ref(option(Atom.TextEditor.t)),
 };
 
 type action =
   | Focus
   | Blur;
 
-let setRef = (theRef, {ReasonReact.state}) =>
-  state.ref := Js.Nullable.toOption(theRef);
+let setRef = (r, {ReasonReact.state}) =>
+  state.ref :=
+    Js.Nullable.toOption(r)
+    |> Option.map(r => ReasonReact.refToJsObj(r)##getModel());
 
 let component = ReasonReact.reducerComponent("MiniEditor");
 
@@ -51,22 +29,25 @@ let make =
       ~onCancel=() => (),
       ~onFocus=() => (),
       ~onBlur=() => (),
-      ~grammar="",
       ~editorRef=(_) => (),
       _children,
     ) => {
-  let observeFocus = (self, r) => {
-    /* monitoring the "is-fucos" class in the classList  */
+  let observeFocus = (self, editor) => {
+    /* monitoring the "is-focus" class in the classList  */
     let observer =
-      createMutationObserver(mutations => {
+      MutationObserver.make((mutations, _) => {
         let focusedNow =
           mutations
-          |> Array.to_list
-          |> List.filter(m => m##attributeName === "class")
-          |> Array.of_list
-          |> Js.Array.every(_m =>
-               ReasonReact.refToJsObj(r)##className
-               |> Js.String.includes("is-focused")
+          |> Array.exists(m =>
+               m
+               |> MutationRecord.target
+               |> Element.ofNode
+               |> Option.map(elem =>
+                    elem
+                    |> Element.classList
+                    |> DomTokenList.contains("is-focused")
+                  )
+               |> Option.mapOr(Fn.id, false)
              );
         /* trigger the actions and the events  */
         if (focusedNow) {
@@ -77,19 +58,23 @@ let make =
           onBlur();
         };
       });
-    let config: observerConfig = {
+    let config = {
       "attributes": true, /* we are only interested in the class list */
       "childList": false,
       "subtree": false,
     };
     /* start observing */
-    observer##observe(r, config);
+    let element = Atom.Environment.Views.getView(editor);
+    observer |> MutationObserver.observe(element, config);
     /* stop observing */
-    self.onUnmount(() => observer##disconnect());
+    self.onUnmount(() => observer |> MutationObserver.disconnect);
   };
   {
     ...component,
-    initialState: () => {focused: false, ref: ref(None)},
+    initialState: () => {
+      focused: false,
+      ref: ref(None: option(Atom.TextEditor.t)),
+    },
     reducer: (action, state) =>
       switch (action) {
       | Blur => ReasonReact.Update({...state, focused: false})
@@ -98,37 +83,37 @@ let make =
     didMount: self =>
       switch (self.state.ref^) {
       | None => ()
-      | Some(r) =>
+      | Some(editor) =>
         /* expose the editor */
-        editorRef(ReasonReact.refToJsObj(r));
-        /* pass the grammar down to enable input method */
-        if (grammar === "agda") {
-          let agdaGrammar = grammarForScopeName("source.agda");
-          try (
-            ReasonReact.refToJsObj(r)##getModel()##setGrammar(agdaGrammar)
-          ) {
-          | _ => () /* do nothing when we fail to load the grammar */
-          };
-        };
+        editorRef(editor);
         /* subscribe to Atom's core events */
-        add(r, "core:confirm", () =>
-          onConfirm(ReasonReact.refToJsObj(r)##getModel()##getText())
-        );
-        add(r, "core:cancel", () => onCancel());
+        let disposable = Atom.CompositeDisposable.make();
+        Atom.Environment.Commands.add(
+          `DOMElement(Atom.Environment.Views.getView(editor)),
+          "core:confirm",
+          (~displayName as _, ~description as _, ~hiddenInCommandPalette as _) =>
+          onConfirm(editor |> Atom.TextEditor.getText)
+        )
+        |> Atom.CompositeDisposable.add(disposable);
+        Atom.Environment.Commands.add(
+          `DOMElement(Atom.Environment.Views.getView(editor)),
+          "core:cancel",
+          (~displayName as _, ~description as _, ~hiddenInCommandPalette as _) =>
+          onCancel()
+        )
+        |> Atom.CompositeDisposable.add(disposable);
         /* observer the status of focus of the editor */
-        observeFocus(self, r);
+        observeFocus(self, editor);
         /* value */
-        ReasonReact.refToJsObj(r)##getModel()##setText(value);
+        editor |> Atom.TextEditor.setText(value);
         /* placeholder */
-        ReasonReact.refToJsObj(r)##getModel()##setPlaceholderText(
-          placeholder,
-        );
+        editor |> Atom.TextEditor.setPlaceholderText(placeholder);
       },
     render: self => {
       let className =
-        hidden ?
-          ["mini-editor", "hidden"] |> String.concat(" ") :
-          ["mini-editor"] |> String.concat(" ");
+        ["mini-editor"]
+        |> Util.addClass("hidden", hidden)
+        |> Util.toClassName;
       ReactDOMRe.createElement(
         "atom-text-editor",
         ~props=
@@ -152,8 +137,7 @@ type jsProps = {
   onCancel: unit => unit,
   onFocus: unit => unit,
   onBlur: unit => unit,
-  grammar: string,
-  editorRef: {. "a": int} => unit,
+  editorRef: Atom.TextEditor.t => unit,
 };
 
 let jsComponent =
@@ -166,7 +150,6 @@ let jsComponent =
       ~onCancel=onCancelGet(jsProps),
       ~onFocus=onFocusGet(jsProps),
       ~onBlur=onBlurGet(jsProps),
-      ~grammar=grammarGet(jsProps),
       ~editorRef=editorRefGet(jsProps),
       [||],
     )
