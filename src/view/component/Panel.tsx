@@ -1,16 +1,29 @@
+import * as _ from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
 
+import * as Action from '../actions';
 import { Core } from '../../core';
 import InputMethod from './Panel/InputMethod';
-import Header from './Panel/Header';
 import SizingHandle from './Panel/SizingHandle';
 import { View } from '../../type';
 import V from '../../view';
 import { MODE, updateMaxBodyHeight, QUERY, EVENT } from './../actions';
 
 
+function toStyle(type: View.Style): string {
+    switch (type) {
+        case View.Style.Error:     return 'error';
+        case View.Style.Warning:   return 'warning';
+        case View.Style.Info:      return 'info';
+        case View.Style.Success:   return 'success';
+        case View.Style.PlainText: return 'plain-text';
+        default:                  return '';
+    }
+}
+
+var Dashboard = require('./../../Reason/View/Panel/Dashboard.bs').jsComponent;
 var JSONBody = require('./../../Reason/View/Panel/Body.bs').jsComponent;
 var MiniEditor = require('./../../Reason/View/MiniEditor.bs').jsComponent;
 var { toAtomRange, toAtomFilepath } = require('./../../Reason/View/Range.bs');
@@ -20,19 +33,39 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
 }
 type InjProps = View.State & {
-    mountAtBottom: boolean;
+    headerText: string;
+    style: View.Style;
+
+    inputMethodActivated: boolean;
+
+    mountAt: {
+        previous: View.MountingPosition,
+        current: View.MountingPosition
+    };
+    settingsView: boolean;
+    pending: boolean;
 };
 type DispatchProps = {
     onMaxBodyHeightChange: (count: number) => void;
     deactivateMiniEditor: () => void;
     onResize: (offset: number) => void;
     handelQueryValueChange: (value: string) => void;
+    //
+    handleMountAtPane: () => void
+    handleMountAtBottom: () => void;
+    handleToggleSettingsView: () => void;
 }
 type Props = OwnProps & InjProps & DispatchProps;
 
 function mapStateToProps(state: View.State): InjProps {
     return {
-        mountAtBottom: state.view.mountAt.current === View.MountingPosition.Bottom,
+        headerText: state.header.text,
+        style: state.header.style,
+        inputMethodActivated: state.inputMethod.activated,
+
+        mountAt: state.view.mountAt,
+        settingsView: state.view.settingsView,
+        pending: state.protocol.pending,
         ...state,
     }
 }
@@ -50,6 +83,16 @@ function mapDispatchToProps(dispatch): DispatchProps {
         },
         handelQueryValueChange: (value: string) => {
             dispatch(QUERY.updateValue(value));
+        },
+        //
+        handleMountAtPane: () => {
+            dispatch(Action.VIEW.mountAtPane());
+        },
+        handleMountAtBottom: () => {
+            dispatch(Action.VIEW.mountAtBottom());
+        },
+        handleToggleSettingsView: () => {
+            dispatch(Action.VIEW.toggleSettings());
         }
     };
 }
@@ -63,7 +106,7 @@ class Panel extends React.Component<Props, {}> {
     }
 
     render() {
-        const { core, mode, body, onResize, mountAtBottom } = this.props;
+        const { core, mode, body, onResize, mountAt, pending, settingsView, headerText, style, inputMethodActivated } = this.props;
         const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
         return (
@@ -90,8 +133,29 @@ class Panel extends React.Component<Props, {}> {
                             core.view.editors.focusMain()
                         }}
                     />
-                    <Header
-                        core={core}
+                    <Dashboard
+                        header={headerText}
+                        style={toStyle(style)}
+                        hidden={inputMethodActivated || _.isEmpty(headerText)}
+                        isPending={pending}
+                        mountAt={mountAt.current === View.MountingPosition.Bottom ? 'bottom' : 'pane'}
+                        onMountChange={(at) => {
+                            core.view.toggleDocking();
+                            if (at === "bottom") {
+                                this.props.handleMountAtBottom();
+                            } else {
+                                this.props.handleMountAtPane();
+                            }
+                        }}
+                        settingsViewOn={settingsView}
+                        onSettingsViewToggle={(isActivated) => {
+                            this.props.handleToggleSettingsView();
+                            if (isActivated) {
+                                core.view.tabs.open('settings');
+                            } else {
+                                core.view.tabs.close('settings');
+                            }
+                        }}
                     />
                 </section>
                 <section className='agda-body-container'>
@@ -102,7 +166,7 @@ class Panel extends React.Component<Props, {}> {
                             maxBodyHeight={body.maxBodyHeight}
                             useJSON={core.connection.usesJSON()}
                             hidden={View.Mode.Display !== mode}
-                            mountAtBottom={mountAtBottom}
+                            mountAtBottom={mountAt.current === View.MountingPosition.Bottom}
                             emit={(ev, range) => {
                                 switch (ev) {
                                     case EVENT.JUMP_TO_RANGE:
