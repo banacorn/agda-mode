@@ -91,14 +91,14 @@ let make =
         Atom.Environment.Commands.add(
           `DOMElement(Atom.Environment.Views.getView(editor)),
           "core:confirm",
-          (~displayName as _, ~description as _, ~hiddenInCommandPalette as _) =>
+          _event =>
           onConfirm(editor |> Atom.TextEditor.getText)
         )
         |> Atom.CompositeDisposable.add(disposables);
         Atom.Environment.Commands.add(
           `DOMElement(Atom.Environment.Views.getView(editor)),
           "core:cancel",
-          (~displayName as _, ~description as _, ~hiddenInCommandPalette as _) =>
+          _event =>
           onCancel()
         )
         |> Atom.CompositeDisposable.add(disposables);

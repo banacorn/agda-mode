@@ -5,7 +5,6 @@ import * as classNames from 'classnames';
 
 import * as Action from '../actions';
 import { Core } from '../../core';
-import InputMethod from './Panel/InputMethod';
 import SizingHandle from './Panel/SizingHandle';
 import { View } from '../../type';
 import V from '../../view';
@@ -23,6 +22,7 @@ function toStyle(type: View.Style): string {
     }
 }
 
+var Keyboard = require('./../../Reason/View/Panel/Keyboard.bs').jsComponent;
 var Dashboard = require('./../../Reason/View/Panel/Dashboard.bs').jsComponent;
 var JSONBody = require('./../../Reason/View/Panel/Body.bs').jsComponent;
 var MiniEditor = require('./../../Reason/View/MiniEditor.bs').jsComponent;
@@ -32,7 +32,7 @@ var { toAtomRange, toAtomFilepath } = require('./../../Reason/View/Range.bs');
 type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
 }
-type InjProps = View.State & {
+type InjProps = View.State &  {
     headerText: string;
     style: View.Style;
 
@@ -44,6 +44,9 @@ type InjProps = View.State & {
     };
     settingsView: boolean;
     pending: boolean;
+
+    // IM
+    inputMethod: View.InputMethodState;
 };
 type DispatchProps = {
     onMaxBodyHeightChange: (count: number) => void;
@@ -66,6 +69,8 @@ function mapStateToProps(state: View.State): InjProps {
         mountAt: state.view.mountAt,
         settingsView: state.view.settingsView,
         pending: state.protocol.pending,
+
+        inputMethod: state.inputMethod,
         ...state,
     }
 }
@@ -106,7 +111,7 @@ class Panel extends React.Component<Props, {}> {
     }
 
     render() {
-        const { core, mode, body, onResize, mountAt, pending, settingsView, headerText, style, inputMethodActivated } = this.props;
+        const { core, mode, body, onResize, mountAt, pending, settingsView, headerText, style, inputMethodActivated, inputMethod } = this.props;
         const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
         return (
@@ -121,8 +126,13 @@ class Panel extends React.Component<Props, {}> {
                         }}
                         atBottom={atBottom}
                     />
-                    <InputMethod
-                        updateTranslation={(c) => core.inputMethod.replaceBuffer(c)}
+                    <Keyboard
+                        activated={inputMethod.activated}
+                        buffer={inputMethod.buffer}
+                        keySuggestions={inputMethod.keySuggestions}
+                        candidateSymbols={inputMethod.candidateSymbols}
+
+                        updateTranslation={(c) => {if (c) { core.inputMethod.replaceBuffer(c) }}}
                         insertCharacter={(c) => {
                             core.inputMethod.insertCharToBuffer(c);
                             core.view.editors.focusMain()
