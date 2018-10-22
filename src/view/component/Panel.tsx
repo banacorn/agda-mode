@@ -5,7 +5,6 @@ import * as classNames from 'classnames';
 
 import * as Action from '../actions';
 import { Core } from '../../core';
-import SizingHandle from './Panel/SizingHandle';
 import { View } from '../../type';
 import V from '../../view';
 import { MODE, updateMaxBodyHeight, QUERY, EVENT } from './../actions';
@@ -22,6 +21,7 @@ function toStyle(type: View.Style): string {
     }
 }
 
+var SizingHandle = require('./../../Reason/View/Panel/SizingHandle.bs').jsComponent;
 var Keyboard = require('./../../Reason/View/Panel/Keyboard.bs').jsComponent;
 var Dashboard = require('./../../Reason/View/Panel/Dashboard.bs').jsComponent;
 var JSONBody = require('./../../Reason/View/Panel/Body.bs').jsComponent;
@@ -118,10 +118,13 @@ class Panel extends React.Component<Props, {}> {
             <section className={hideEverything}>
                 <section className='panel-heading agda-header-container'>
                     <SizingHandle
-                        onResize={(height) => {
+                        onResizeStart={(height) => {
                             onResize(height)
                         }}
-                        onResizeEnd={() => {
+                        onResizeEnd={(height) => {
+                            setTimeout(() => {
+                                onResize(height);
+                            }, 0)
                             atom.config.set('agda-mode.maxBodyHeight', this.props.body.maxBodyHeight);
                         }}
                         atBottom={atBottom}
