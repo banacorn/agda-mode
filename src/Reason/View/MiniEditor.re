@@ -25,6 +25,7 @@ let make =
       ~value="",
       ~placeholder="",
       ~hidden,
+      ~grammar="",
       ~onConfirm=(_) => (),
       ~onCancel=() => (),
       ~onFocus=() => (),
@@ -84,6 +85,15 @@ let make =
       switch (self.state.ref^) {
       | None => ()
       | Some(editor) =>
+        /* WARNING: TextEditor.setGrammar is DEPRECATED!!! */
+        /* pass the grammar down to enable input method */
+        if (grammar === "agda") {
+          let agdaGrammar =
+            Atom.Environment.Grammar.grammarForScopeName("source.agda");
+          try (editor |> Atom.TextEditor.setGrammar(agdaGrammar)) {
+          | _ => () /* do nothing when we fail to load the grammar */
+          };
+        };
         /* expose the editor */
         editorRef(editor);
         /* subscribe to Atom's core events */
@@ -134,6 +144,7 @@ type jsProps = {
   value: string,
   placeholder: string,
   hidden: bool,
+  grammar: string,
   onConfirm: string => unit,
   onCancel: unit => unit,
   onFocus: unit => unit,
@@ -147,6 +158,7 @@ let jsComponent =
       ~value=valueGet(jsProps),
       ~placeholder=placeholderGet(jsProps),
       ~hidden=hiddenGet(jsProps),
+      ~grammar=grammarGet(jsProps),
       ~onConfirm=onConfirmGet(jsProps),
       ~onCancel=onCancelGet(jsProps),
       ~onFocus=onFocusGet(jsProps),
