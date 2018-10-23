@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import * as Promise from 'bluebird';
 import * as React from 'react';
 import * as Redux from 'redux';
@@ -10,7 +11,7 @@ import ReduxThunk from 'redux-thunk'
 
 import { Resource } from './util';
 import { Core } from './core';
-import Panel from './view/component/Panel';
+// import Panel from './view/component/Panel';
 import Settings from './view/component/Settings';
 import reducer from './view/reducers';
 import { View as V } from './type';
@@ -26,6 +27,7 @@ import * as Atom from 'atom';
 
 var { errorToHeader } = require('./Reason/View/JSON/JSON__Error.bs');
 var { parseWhyInScope } = require('./Reason/View/Emacs/Emacs__Parser.bs');
+var Panel = require('./Reason/View/Panel/Panel.bs').jsComponent;
 var Reason = require('./Reason/Decoder.bs');
 
 
@@ -206,6 +208,19 @@ class TabManager {
     }
 }
 
+
+type Style = "plain-text" | "error" | "info" | "success" | "warning";
+
+function toStyle(type: V.Style): string {
+    switch (type) {
+        case V.Style.Error:     return 'error';
+        case V.Style.Warning:   return 'warning';
+        case V.Style.Info:      return 'info';
+        case V.Style.Success:   return 'success';
+        case V.Style.PlainText: return 'plain-text';
+        default:                  return '';
+    }
+}
 export default class View {
     public static EventContext = React.createContext(new EventEmitter);
     public static CoreContext = React.createContext(undefined);
@@ -216,6 +231,8 @@ export default class View {
     public editors: EditorViewManager;
     private bottomPanel: Atom.Panel;
     public tabs: TabManager;
+
+    private updateHeader: (state :{text: string; style: string}) => void;
 
     constructor(private core: Core) {
         this.store = createStore(
@@ -255,17 +272,40 @@ export default class View {
 
 
     public renderPanel(mountingPoint: HTMLElement) {
-
+        const state = this.store.getState();
         ReactDOM.render(
-            <Provider store={this.store}>
-                <View.EventContext.Provider value={this.emitter}>
-                    <View.CoreContext.Provider value={this.core}>
-                    <Panel
-                        core={this.core}
-                    />
-                    </View.CoreContext.Provider>
-                </View.EventContext.Provider>
-            </Provider>,
+            <View.EventContext.Provider value={this.emitter}>
+                <View.CoreContext.Provider value={this.core}>
+                <Panel
+                    updateHeader={send => {
+                        this.updateHeader = send;
+                    }}
+                    // core={this.core}
+                    // headerText={state.header.text}
+                    // style={toStyle(state.header.style)}
+                    // hidden={state.inputMethod.activated || _.isEmpty(state.header.text)}
+                    // isPending={state.protocol.pending}
+                    // mountAt={state.view.mountAt.current === V.MountingPosition.Bottom ? 'bottom' : 'pane'}
+                    onMountChange={(at) => {
+                        this.core.view.toggleDocking();
+                        if (at === "bottom") {
+                            this.store.dispatch(Action.VIEW.mountAtBottom());
+                        } else {
+                            this.store.dispatch(Action.VIEW.mountAtPane());
+                        }
+                    }}
+                    // settingsViewOn={state.view.settingsView}
+                    onSettingsViewToggle={(isActivated) => {
+                        this.store.dispatch(Action.VIEW.toggleSettings());
+                        if (isActivated) {
+                            this.core.view.tabs.open('settings');
+                        } else {
+                            this.core.view.tabs.close('settings');
+                        }
+                    }}
+                />
+                </View.CoreContext.Provider>
+            </View.EventContext.Provider>,
             mountingPoint
         )
     }
@@ -352,10 +392,12 @@ export default class View {
         console.log(rawJSON)
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
-        this.store.dispatch(Action.HEADER.update({
-            style: V.Style.Error,
+
+        this.updateHeader({
             text: errorToHeader(Reason.parseError(rawJSON)),
-        }));
+            style: 'error',
+        });
+
         this.store.dispatch(Action.updateJSON({
             kind: 'Error',
             rawJSON: rawJSON,
@@ -367,10 +409,12 @@ export default class View {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
-        this.store.dispatch(Action.HEADER.update({
+
+        this.updateHeader({
             text: 'All Goals, Warnings, and Errors',
-            style: V.Style.Info
-        }));
+            style: 'info'
+        });
+
         this.store.dispatch(Action.updateJSON({
             kind: 'AllGoalsWarnings',
             rawJSON: rawJSON,
@@ -379,83 +423,20 @@ export default class View {
     }
 
     // for Emacs
-    setEmacsError(error: string) {
+    setEmacsPanel(header, kind, payload, style: Style ="info") {
 
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
-        this.store.dispatch(Action.HEADER.update({
-            style: V.Style.Error,
-            text: 'Error'
-        }));
-
-        this.store.dispatch(Action.updateEmacs({
-            kind: 'Error',
-            header: 'Error',
-            body: error
-        }));
-    }
-
-    setEmacsAllGoalsWarnings(header: string = 'Judgements', allGoalsWarnings: string) {
-        this.store.dispatch(Action.MODE.display());
-        this.editors.focusMain()
-
-        this.store.dispatch(Action.HEADER.update({
+        this.updateHeader({
             text: header,
-            style: V.Style.Info
-        }));
+            style: style,
+        });
 
         this.store.dispatch(Action.updateEmacs({
-            kind: 'AllGoalsWarnings',
+            kind: kind,
             header: header,
-            body: allGoalsWarnings
-        }));
-    }
-
-    setEmacsGoalTypeContext(header: string = 'Judgements', goalTypeContext: string) {
-        this.store.dispatch(Action.MODE.display());
-        this.editors.focusMain()
-
-        this.store.dispatch(Action.HEADER.update({
-            text: header,
-            style: V.Style.Info
-        }));
-
-        this.store.dispatch(Action.updateEmacs({
-            kind: 'GoalTypeContext',
-            header: header,
-            body: goalTypeContext
-        }));
-    }
-
-    setEmacsContext(raw: string) {
-        this.store.dispatch(Action.MODE.display());
-        this.editors.focusMain()
-
-        this.store.dispatch(Action.HEADER.update({
-            text: 'Context',
-            style: V.Style.Info
-        }));
-
-        this.store.dispatch(Action.updateEmacs({
-            kind: 'Context',
-            header: 'Context',
-            body: raw
-        }));
-    }
-    setEmacsConstraints(constraints: string) {
-        this.store.dispatch(Action.MODE.display());
-        this.editors.focusMain()
-
-        this.store.dispatch(Action.HEADER.update({
-            text: 'Constraints',
-            style: V.Style.Info
-        }));
-
-        this.store.dispatch(Action.updateEmacs({
-            kind: 'PlainText',
-            header: 'Constraints',
-            body: constraints
+            body: payload
         }));
     }
 
@@ -467,65 +448,15 @@ export default class View {
         }
     }
 
-    setEmacsWhyInScope(raw: string) {
-
-
-        this.store.dispatch(Action.MODE.display());
-        this.editors.focusMain()
-
-        this.store.dispatch(Action.HEADER.update({
-            text: 'Scope Info',
-            style: V.Style.Info
-        }));
-
-        this.store.dispatch(Action.updateEmacs({
-            kind: 'WhyInScope',
-            header: 'Scope Info',
-            body: raw
-        }));
-    }
-
-    setEmacsSolutions(solutions: string) {
-        this.store.dispatch(Action.MODE.display());
-        this.editors.focusMain();
-
-        this.store.dispatch(Action.HEADER.update({
-            text: 'Auto',
-            style: V.Style.Info
-        }));
-
-        this.store.dispatch(Action.updateEmacs({
-            kind: 'PlainText',
-            header: 'Auto',
-            body: solutions
-        }));
-    }
-
-    setEmacsSearchAbout(raw: string) {
-        this.store.dispatch(Action.MODE.display());
-        this.editors.focusMain();
-
-        this.store.dispatch(Action.HEADER.update({
-            text: 'Searching about ...',
-            style: V.Style.Info
-        }));
-
-        this.store.dispatch(Action.updateEmacs({
-            kind: 'SearchAbout',
-            header: 'Searching about ...',
-            body: raw
-        }));
-    }
-
-
     setPlainText(header: string, body: string, type = V.Style.PlainText) {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
-        this.store.dispatch(Action.HEADER.update({
+
+        this.updateHeader({
             text: header,
-            style: type
-        }));
+            style: 'plain-text',
+        });
         this.store.dispatch(Action.updateEmacs({
             kind: 'PlainText',
             header: header,
@@ -536,10 +467,12 @@ export default class View {
     query(header: string = '', _: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {
         this.store.dispatch(Action.QUERY.setPlaceholder(placeholder));
         this.store.dispatch(Action.MODE.query());
-        this.store.dispatch(Action.HEADER.update({
+
+        this.updateHeader({
             text: header,
-            style: type
-        }));
+            style: 'plain-text',
+        });
+
         return this.editors.general.access()
             .then(editor => {
                 if (!this.editors.generalIsFocused()) {

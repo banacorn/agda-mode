@@ -138,15 +138,6 @@ export namespace INPUT_METHOD {
     export const replaceSymbol = createAction<INPUT_METHOD.REPLACE_SYMBOL>(INPUT_METHOD.REPLACE_SYMBOL);
 }
 
-
-export type HEADER = HEADER.UPDATE;
-export namespace HEADER {
-    export const UPDATE = 'HEADER.UPDATE';
-    export type UPDATE = View.HeaderState;
-
-    export const update = createAction<HEADER.UPDATE>(HEADER.UPDATE);
-}
-
 export type QUERY = QUERY.SET_PLACEHOLDER | QUERY.UPDATE_VALUE;
 export namespace QUERY {
     export const SET_PLACEHOLDER = 'QUERY.SET_PLACEHOLDER';

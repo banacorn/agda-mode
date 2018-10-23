@@ -33,11 +33,6 @@ type OwnProps = React.HTMLProps<HTMLElement> & {
     core: Core;
 }
 type InjProps = View.State &  {
-    headerText: string;
-    style: View.Style;
-
-    inputMethodActivated: boolean;
-
     mountAt: {
         previous: View.MountingPosition,
         current: View.MountingPosition
@@ -62,10 +57,6 @@ type Props = OwnProps & InjProps & DispatchProps;
 
 function mapStateToProps(state: View.State): InjProps {
     return {
-        headerText: state.header.text,
-        style: state.header.style,
-        inputMethodActivated: state.inputMethod.activated,
-
         mountAt: state.view.mountAt,
         settingsView: state.view.settingsView,
         pending: state.protocol.pending,
@@ -111,7 +102,7 @@ class Panel extends React.Component<Props, {}> {
     }
 
     render() {
-        const { core, mode, body, onResize, mountAt, pending, settingsView, headerText, style, inputMethodActivated, inputMethod } = this.props;
+        const { core, mode, body, onResize, mountAt, pending, settingsView, inputMethod } = this.props;
         const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
         return (
@@ -147,9 +138,10 @@ class Panel extends React.Component<Props, {}> {
                         }}
                     />
                     <Dashboard
-                        header={headerText}
-                        style={toStyle(style)}
-                        hidden={inputMethodActivated || _.isEmpty(headerText)}
+                        // header={headerText}
+                        // style={toStyle(style)}
+                        // hidden={inputMethod.activated || _.isEmpty(headerText)}
+                        hidden={inputMethod.activated}
                         isPending={pending}
                         mountAt={mountAt.current === View.MountingPosition.Bottom ? 'bottom' : 'pane'}
                         onMountChange={(at) => {

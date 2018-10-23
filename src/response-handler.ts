@@ -146,16 +146,16 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.setPlainText('CompilationOk', response.emacsMessage, View.Style.Info);
             break;
         case 'Constraints':
-            core.view.setEmacsConstraints(response.constraints);
+            core.view.setEmacsPanel('Constraints', 'Constraints', response.constraints);
             break;
         case 'AllGoalsWarnings':
-            core.view.setEmacsAllGoalsWarnings(response.emacsTitle, response.emacsMessage);
+            core.view.setEmacsPanel(response.emacsTitle, 'AllGoalsWarnings', response.emacsMessage);
             break;
         case 'Error':
-            core.view.setEmacsError(response.emacsMessage);
+            core.view.setEmacsPanel('Error', 'Error', response.emacsMessage, 'error');
             break;
         case 'Auto':
-            core.view.setEmacsSolutions(response.payload);
+            core.view.setEmacsPanel('Auto', 'Auto', response.payload, 'plain-text');
             break;
         case 'ModuleContents':
             core.view.setPlainText('Module Contents', response.payload, View.Style.Info);
@@ -164,26 +164,26 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             if (core.commander.currentCommand.kind === "GotoDefinition") {
                 core.view.setEmacsGoToDefinition(response.payload);
             } else {
-                core.view.setEmacsWhyInScope(response.payload);
+                core.view.setEmacsPanel('Scope Info', 'WhyInScope', response.payload);
             }
             break;
         case 'NormalForm':
             core.view.setPlainText('Normal Form', response.payload, View.Style.Info);
             break;
         case 'GoalType':
-            core.view.setEmacsGoalTypeContext('Goal Type and Context', response.payload);
+            core.view.setEmacsPanel('Goal Type and Context', 'GoalTypeContext', response.payload);
             break;
         case 'CurrentGoal':
             core.view.setPlainText('Current Goal', response.payload, View.Style.Info);
             break;
         case 'SearchAbout':
-            core.view.setEmacsSearchAbout(response.payload);
+            core.view.setEmacsPanel('Searching about ...', 'SearchAbout', response.payload);
             break;
         case 'InferredType':
             core.view.setPlainText('Inferred Type', response.payload, View.Style.Info);
             break;
         case 'Context':
-            core.view.setEmacsContext(response.payload);
+            core.view.setEmacsPanel('Context', 'Context', response.payload);
             break;
         case 'Intro':
             core.view.setPlainText('Intro', 'No introduction forms found');
@@ -212,7 +212,7 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
             core.view.setJSONError(info.error, info.emacsMessage);
             break;
         case 'Auto':
-            core.view.setEmacsSolutions(info.payload);
+            // core.view.setEmacsSolutions(info.payload);
             break;
         case 'WhyInScope':
             if (core.commander.currentCommand.kind === "GotoDefinition") {

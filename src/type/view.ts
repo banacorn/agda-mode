@@ -10,7 +10,6 @@ export interface State {
     mode: Mode;
     connection: ConnectionState;
     protocol: Protocol;
-    header: HeaderState;
     inputMethod: InputMethodState;
     query: QueryState;
     body: BodyState;
@@ -76,11 +75,6 @@ export const enum Style {
     Success,
     Error,
     Warning
-}
-
-export interface HeaderState {
-    text: string;
-    style: Style;
 }
 
 export interface QueryState {

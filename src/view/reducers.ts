@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { combineReducers } from 'redux';
 import { handleActions, Action } from 'redux-actions';
 import { View, Agda } from '../type';
-import { MODE, VIEW, PROTOCOL, INPUT_METHOD, HEADER, QUERY, BODY, CONNECTION } from './actions';
+import { MODE, VIEW, PROTOCOL, INPUT_METHOD, QUERY, BODY, CONNECTION } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -33,10 +33,6 @@ const defaultState: View.State = {
         id: 0,
         pending: false,
         limitLog: true
-    },
-    header: {
-        text: '',
-        style: View.Style.PlainText
     },
     inputMethod: {
         activated: false,
@@ -193,10 +189,6 @@ const inputMethod = handleActions<View.InputMethodState, INPUT_METHOD>({
     },
 }, defaultState.inputMethod);
 
-const header = handleActions<View.HeaderState, HEADER>({
-    [HEADER.UPDATE]: (state, action: Action<HEADER.UPDATE>) => action.payload
-}, defaultState.header);
-
 const query = handleActions<View.QueryState, QUERY>({
     [QUERY.SET_PLACEHOLDER]: (state, action: Action<QUERY.SET_PLACEHOLDER>) => ({ ...state,
         placeholder: action.payload
@@ -224,7 +216,6 @@ export default combineReducers<View.State>({
     mode,
     connection,
     protocol,
-    header,
     inputMethod,
     query,
     body
