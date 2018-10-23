@@ -211,16 +211,6 @@ class TabManager {
 
 type Style = "plain-text" | "error" | "info" | "success" | "warning";
 
-function toStyle(type: V.Style): string {
-    switch (type) {
-        case V.Style.Error:     return 'error';
-        case V.Style.Warning:   return 'warning';
-        case V.Style.Info:      return 'info';
-        case V.Style.Success:   return 'success';
-        case V.Style.PlainText: return 'plain-text';
-        default:                  return '';
-    }
-}
 export default class View {
     public static EventContext = React.createContext(new EventEmitter);
     public static CoreContext = React.createContext(undefined);
@@ -233,6 +223,12 @@ export default class View {
     public tabs: TabManager;
 
     private updateHeader: (state :{text: string; style: string}) => void;
+    private updateIsPending: (state :{isPending: boolean}) => void;
+
+    isPending(isPending: boolean) {
+        if (this.updateIsPending)
+            this.updateIsPending({isPending: isPending});
+    }
 
     constructor(private core: Core) {
         this.store = createStore(
@@ -272,13 +268,15 @@ export default class View {
 
 
     public renderPanel(mountingPoint: HTMLElement) {
-        const state = this.store.getState();
         ReactDOM.render(
             <View.EventContext.Provider value={this.emitter}>
                 <View.CoreContext.Provider value={this.core}>
                 <Panel
-                    updateHeader={send => {
-                        this.updateHeader = send;
+                    updateHeader={handle => {
+                        this.updateHeader = handle;
+                    }}
+                    updateIsPending={handle => {
+                        this.updateIsPending = handle;
                     }}
                     // core={this.core}
                     // headerText={state.header.text}
@@ -448,14 +446,14 @@ export default class View {
         }
     }
 
-    setPlainText(header: string, body: string, type = V.Style.PlainText) {
+    setPlainText(header: string, body: string, style: Style ="plain-text") {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
 
         this.updateHeader({
             text: header,
-            style: 'plain-text',
+            style: style,
         });
         this.store.dispatch(Action.updateEmacs({
             kind: 'PlainText',
@@ -464,7 +462,7 @@ export default class View {
         }));
     }
 
-    query(header: string = '', _: string[] = [], type: V.Style = V.Style.PlainText, placeholder: string = '', inputMethodOn = true): Promise<string> {
+    query(header: string = '', _: string[] = [], placeholder: string = ''): Promise<string> {
         this.store.dispatch(Action.QUERY.setPlaceholder(placeholder));
         this.store.dispatch(Action.MODE.query());
 

@@ -31,7 +31,6 @@ const defaultState: View.State = {
     protocol: {
         log: [],
         id: 0,
-        pending: false,
         limitLog: true
     },
     inputMethod: {
@@ -159,9 +158,6 @@ const protocol = handleActions<View.Protocol, PROTOCOL>({
     }),
     [PROTOCOL.LIMIT_LOG]: (state, action: Action<PROTOCOL.LIMIT_LOG>) => ({ ...state,
         limitLog: action.payload
-    }),
-    [PROTOCOL.PENDING]: (state, action: Action<PROTOCOL.PENDING>) => ({ ...state,
-        pending: action.payload
     }),
 }, defaultState.protocol);
 

@@ -91,7 +91,6 @@ export namespace CONNECTION {
 export type PROTOCOL
     = PROTOCOL.LOG_REQUEST
     | PROTOCOL.LOG_RESPONSES
-    | PROTOCOL.PENDING
     | PROTOCOL.LIMIT_LOG
 
 export namespace PROTOCOL {
@@ -103,13 +102,9 @@ export namespace PROTOCOL {
     export const LIMIT_LOG = 'PROTOCOL.LIMIT_LOG';
     export type LIMIT_LOG = boolean;
 
-    export const PENDING = 'PROTOCOL.PENDING';
-    export type PENDING = boolean;
-
     export const logRequest = createAction<PROTOCOL.LOG_REQUEST>(PROTOCOL.LOG_REQUEST);
     export const logResponses = createAction<PROTOCOL.LOG_RESPONSES>(PROTOCOL.LOG_RESPONSES);
     export const limitLog = createAction<PROTOCOL.LIMIT_LOG>(PROTOCOL.LIMIT_LOG);
-    export const pending = createAction<PROTOCOL.PENDING>(PROTOCOL.PENDING);
 }
 
 

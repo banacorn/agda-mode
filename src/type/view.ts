@@ -41,9 +41,6 @@ export interface ConnectionState {
 export interface Protocol {
     log: ReqRes[];
     id: number;// for indexing ReqRes
-
-    pending: boolean;
-
     limitLog: boolean;
 }
 
@@ -67,14 +64,6 @@ export interface InputMethodState {
     further: boolean;
     keySuggestions: string[];
     candidateSymbols: string[];
-}
-
-export const enum Style {
-    PlainText,
-    Info,
-    Success,
-    Error,
-    Warning
 }
 
 export interface QueryState {

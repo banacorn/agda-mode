@@ -93,11 +93,11 @@ export default class ConnectionManager {
                                     }))
                                     .filter(({ parsed }) => parsed.kind !== "RunningInfo")  // don't log RunningInfo because there's too many of them
                                 this.core.view.store.dispatch(Action.PROTOCOL.logResponses(resps));
-                                this.core.view.store.dispatch(Action.PROTOCOL.pending(false));
+                                this.core.view.isPending(false);
                                 promise.resolve(responses);
                             })
                             .catch(Err.ParseError, error => {
-                                this.core.view.setPlainText('Parse Error', `${error.message}\n${error.raw}`, View.Style.Error);
+                                this.core.view.setPlainText('Parse Error', `${error.message}\n${error.raw}`, 'error');
                                 promise.resolve([]);
                             })
                             .catch(error => {
@@ -122,11 +122,11 @@ export default class ConnectionManager {
                                     }))
                                     .filter(({ parsed }) => parsed.kind !== "RunningInfo")  // don't log RunningInfo because there's too many of them
                                 this.core.view.store.dispatch(Action.PROTOCOL.logResponses(resps));
-                                this.core.view.store.dispatch(Action.PROTOCOL.pending(false));
+                                this.core.view.isPending(false);
                                 promise.resolve(responses);
                             })
                             .catch(Err.ParseError, error => {
-                                this.core.view.setPlainText('Parse Error', `${error.message}\n${error.raw}`, View.Style.Error);
+                                this.core.view.setPlainText('Parse Error', `${error.message}\n${error.raw}`, 'error');
                                 promise.resolve([]);
                             })
                             .catch(error => {
@@ -142,7 +142,7 @@ export default class ConnectionManager {
     queryPath(error: Error): Promise<ValidPath> {
         this.core.view.store.dispatch(Action.CONNECTION.startQuerying());
         this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
-        this.core.view.setPlainText('Connection Error', '', View.Style.Error);
+        this.core.view.setPlainText('Connection Error', '', 'error');
         return this.core.view.queryConnection()
             .then(validateAgda)
             .then(result => {
@@ -153,7 +153,7 @@ export default class ConnectionManager {
     }
 
     handleAgdaError(error: Error) {
-        this.core.view.setPlainText(error.name, '', View.Style.Error);
+        this.core.view.setPlainText(error.name, '', 'error');
         switch (error.name) {
             case 'QueryCancelled':   return Promise.resolve();
             default:

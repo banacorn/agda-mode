@@ -22,7 +22,8 @@ type jsState = {
 };
 
 type action =
-  | UpdateHeader(string, string);
+  | UpdateHeader(string, string)
+  | UpdateIsPending(bool);
 
 let initialState = () => {
   header: "",
@@ -36,6 +37,7 @@ let initialState = () => {
 let reducer = (action, state) =>
   switch (action) {
   | UpdateHeader(text, style) => Update({...state, header: text, style})
+  | UpdateIsPending(isPending) => Update({...state, isPending})
   };
 
 let component = reducerComponent("Panel");
@@ -44,6 +46,7 @@ let make =
     /* <Dashboard> */
     (
       ~updateHeader: (jsState => unit) => unit,
+      ~updateIsPending: (jsState => unit) => unit,
       ~onMountChange: string => unit,
       ~onSettingsViewToggle: bool => unit,
       _children,
@@ -57,6 +60,7 @@ let make =
     updateHeader(state =>
       self.send(UpdateHeader(state##text, state##style))
     );
+    updateIsPending(state => self.send(UpdateIsPending(state##isPending)));
     <section>
       <section className="panel-heading agda-header-container">
         <Dashboard
@@ -77,6 +81,7 @@ let make =
 [@bs.deriving abstract]
 type jsProps = {
   updateHeader: (jsState => unit) => unit,
+  updateIsPending: (jsState => unit) => unit,
   onMountChange: string => unit,
   onSettingsViewToggle: bool => unit,
 };
@@ -85,6 +90,7 @@ let jsComponent =
   wrapReasonForJs(~component, jsProps =>
     make(
       ~updateHeader=updateHeaderGet(jsProps),
+      ~updateIsPending=updateIsPendingGet(jsProps),
       ~onMountChange=onMountChangeGet(jsProps),
       ~onSettingsViewToggle=onSettingsViewToggleGet(jsProps),
       [||],

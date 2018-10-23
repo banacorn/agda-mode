@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import * as classNames from 'classnames';
@@ -9,17 +8,6 @@ import { View } from '../../type';
 import V from '../../view';
 import { MODE, updateMaxBodyHeight, QUERY, EVENT } from './../actions';
 
-
-function toStyle(type: View.Style): string {
-    switch (type) {
-        case View.Style.Error:     return 'error';
-        case View.Style.Warning:   return 'warning';
-        case View.Style.Info:      return 'info';
-        case View.Style.Success:   return 'success';
-        case View.Style.PlainText: return 'plain-text';
-        default:                  return '';
-    }
-}
 
 var SizingHandle = require('./../../Reason/View/Panel/SizingHandle.bs').jsComponent;
 var Keyboard = require('./../../Reason/View/Panel/Keyboard.bs').jsComponent;
@@ -38,7 +26,6 @@ type InjProps = View.State &  {
         current: View.MountingPosition
     };
     settingsView: boolean;
-    pending: boolean;
 
     // IM
     inputMethod: View.InputMethodState;
@@ -59,7 +46,6 @@ function mapStateToProps(state: View.State): InjProps {
     return {
         mountAt: state.view.mountAt,
         settingsView: state.view.settingsView,
-        pending: state.protocol.pending,
 
         inputMethod: state.inputMethod,
         ...state,
@@ -102,7 +88,7 @@ class Panel extends React.Component<Props, {}> {
     }
 
     render() {
-        const { core, mode, body, onResize, mountAt, pending, settingsView, inputMethod } = this.props;
+        const { core, mode, body, onResize, mountAt, settingsView, inputMethod } = this.props;
         const atBottom = this.props.view.mountAt.current === View.MountingPosition.Bottom
         const hideEverything = classNames({'hidden': !this.props.view.activated && this.props.view.mountAt.current === View.MountingPosition.Bottom});
         return (
@@ -142,7 +128,7 @@ class Panel extends React.Component<Props, {}> {
                         // style={toStyle(style)}
                         // hidden={inputMethod.activated || _.isEmpty(headerText)}
                         hidden={inputMethod.activated}
-                        isPending={pending}
+                        // isPending={pending}
                         mountAt={mountAt.current === View.MountingPosition.Bottom ? 'bottom' : 'pane'}
                         onMountChange={(at) => {
                             core.view.toggleDocking();

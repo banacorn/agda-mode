@@ -113,7 +113,7 @@ export default class Commander {
                 .then(this.sendRequests)
                 .then(handleResponses(this.core))
                 .catch(Err.QueryCancelled, () => {
-                    this.core.view.setPlainText('Query cancelled', '', View.Style.Warning);
+                    this.core.view.setPlainText('Query cancelled', '', 'warning');
                 })
                 .catch(this.core.connection.handleAgdaError)
         } else {
@@ -229,7 +229,7 @@ export default class Commander {
                 parsed: request,
                 raw: request.body
             }));
-            this.core.view.store.dispatch(Action.PROTOCOL.pending(true));
+            this.core.view.isPending(true);
             // send it out
             request.connection.stream.write(request.body);
             return promise;
@@ -297,7 +297,7 @@ export default class Commander {
     //
 
     private searchAbout = (normalization: Agda.Normalization) => (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.view.query(`Searching through definitions ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
+        return this.core.view.query(`Searching through definitions ${toDescription(normalization)}`, [], 'expression to infer:')
             .then(expr => [Req.searchAbout(normalization, expr)(command, connection)])
     }
 
@@ -306,7 +306,7 @@ export default class Commander {
         if (selectedText) {
             return Promise.resolve([Req.whyInScopeGlobal(selectedText)(command, connection)])
         } else {
-            return this.core.view.query('Scope info', [], View.Style.PlainText, 'name:')
+            return this.core.view.query('Scope info', [], 'name:')
                 .then((expr) => {
                     return this.core.editor.goal.pointing()
                         .then(goal => [Req.whyInScope(expr, goal)(command, connection)])
@@ -320,7 +320,7 @@ export default class Commander {
             .then(goal => {
                 // goal-specific
                 if (goal.isEmpty()) {
-                    return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
+                    return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], 'expression to infer:')
                         .then(expr => [Req.inferType(normalization, expr, goal)(command, connection)])
                 } else {
                     return [Req.inferType(normalization, goal.getContent(), goal)(command, connection)];
@@ -328,14 +328,14 @@ export default class Commander {
             })
             .catch(() => {
                 // global command
-                return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], View.Style.PlainText, 'expression to infer:')
+                return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], 'expression to infer:')
                     .then(expr => [Req.inferTypeGlobal(normalization, expr)(command, connection)])
             })
     }
 
 
     private moduleContents = (normalization: Agda.Normalization) => (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], View.Style.PlainText, 'module name:')
+        return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], 'module name:')
             .then(expr => {
                 return this.core.editor.goal.pointing()
                     .then(goal => [Req.moduleContents(normalization, expr, goal)(command, connection)])
@@ -348,14 +348,14 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, 'expression to normalize:')
+                    return this.core.view.query(`Compute normal form`, [], 'expression to normalize:')
                         .then(expr => [Req.computeNormalForm(computeMode, expr, goal)(command, connection)])
                 } else {
                     return [Req.computeNormalForm(computeMode, goal.getContent(), goal)(command, connection)]
                 }
             })
             .catch(Err.OutOfGoalError, () => {
-                return this.core.view.query(`Compute normal form`, [], View.Style.PlainText, 'expression to normalize:')
+                return this.core.view.query(`Compute normal form`, [], 'expression to normalize:')
                     .then(expr => [Req.computeNormalFormGlobal(computeMode, expr)(command, connection)])
             })
 
@@ -369,7 +369,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query('Give', [], View.Style.PlainText, 'expression to give:')
+                    return this.core.view.query('Give', [], 'expression to give:')
                         .then(goal.setContent);
                 } else {
                     return goal;
@@ -377,7 +377,7 @@ export default class Commander {
             })
             .then(goal => [Req.give(goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.setPlainText('Out of goal', '`Give` is a goal-specific command, please place the cursor in a goal', View.Style.Error);
+                this.core.view.setPlainText('Out of goal', '`Give` is a goal-specific command, please place the cursor in a goal', 'error');
                 return [];
             })
     }
@@ -386,7 +386,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then(goal => [Req.refine(goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.setPlainText('Out of goal', '`Refine` is a goal-specific command, please place the cursor in a goal', View.Style.Error);
+                this.core.view.setPlainText('Out of goal', '`Refine` is a goal-specific command, please place the cursor in a goal', 'error');
                 return [];
             })
     }
@@ -395,7 +395,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then(goal => [Req.auto(goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.setPlainText('Out of goal', '`Auto` is a goal-specific command, please place the cursor in a goal', View.Style.Error);
+                this.core.view.setPlainText('Out of goal', '`Auto` is a goal-specific command, please place the cursor in a goal', 'error');
                 return [];
             })
     }
@@ -404,7 +404,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then((goal) => {
                 if (goal.isEmpty()) {
-                    return this.core.view.query('Case', [], View.Style.PlainText, 'the argument to case:')
+                    return this.core.view.query('Case', [], 'the argument to case:')
                         .then(goal.setContent);
                 } else {
                     return goal;
@@ -412,7 +412,7 @@ export default class Commander {
             })
             .then(goal => [Req.makeCase(goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.setPlainText('Out of goal', '`Case` is a goal-specific command, please place the cursor in a goal', View.Style.Error);
+                this.core.view.setPlainText('Out of goal', '`Case` is a goal-specific command, please place the cursor in a goal', 'error');
                 return [];
             })
     }
@@ -421,7 +421,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then(goal => [Req.goalType(normalization, goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.setPlainText('Out of goal', '"Goal Type" is a goal-specific command, please place the cursor in a goal', View.Style.Error);
+                this.core.view.setPlainText('Out of goal', '"Goal Type" is a goal-specific command, please place the cursor in a goal', 'error');
                 return [];
             })
     }
@@ -430,7 +430,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then(goal => [Req.context(normalization, goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.setPlainText('Out of goal', '"Context" is a goal-specific command, please place the cursor in a goal', View.Style.Error);
+                this.core.view.setPlainText('Out of goal', '"Context" is a goal-specific command, please place the cursor in a goal', 'error');
                 return [];
             })
     }
@@ -439,7 +439,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then(goal => [Req.goalTypeAndContext(normalization, goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.setPlainText('Out of goal', '"Goal Type & Context" is a goal-specific command, please place the cursor in a goal', View.Style.Error);
+                this.core.view.setPlainText('Out of goal', '"Goal Type & Context" is a goal-specific command, please place the cursor in a goal', 'error');
                 return [];
             })
     }
@@ -448,7 +448,7 @@ export default class Commander {
         return this.core.editor.goal.pointing()
             .then(goal => [Req.goalTypeAndInferredType(normalization, goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
-                this.core.view.setPlainText('Out of goal', '"Goal Type & Inferred Type" is a goal-specific command, please place the cursor in a goal', View.Style.Error);
+                this.core.view.setPlainText('Out of goal', '"Goal Type & Inferred Type" is a goal-specific command, please place the cursor in a goal', 'error');
                 return [];
             });
     }
@@ -459,7 +459,7 @@ export default class Commander {
                 const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
                 this.core.view.mountPanel(currentMountingPosition);
                 this.core.view.activatePanel();
-                this.core.view.setPlainText('Not loaded', '', View.Style.PlainText);
+                this.core.view.setPlainText('Not loaded', '');
             }
             this.core.inputMethod.activate();
         } else {
@@ -475,17 +475,15 @@ export default class Commander {
             const sequences = Table[symbol.codePointAt(0)] || [];
             this.core.view.setPlainText(
                 `Input sequence for ${symbol}`,
-                sequences,
-                View.Style.PlainText);
+                sequences);
             return Promise.resolve([]);
         } else {
-            return this.core.view.query(`Query Unicode symbol input sequences`, [], View.Style.PlainText, 'symbol:')
+            return this.core.view.query(`Query Unicode symbol input sequences`, [], 'symbol:')
                 .then(symbol => {
                     const sequences = Table[symbol.codePointAt(0)] || [];
                     this.core.view.setPlainText(
                         `Input sequence for ${symbol}`,
-                        sequences,
-                        View.Style.PlainText);
+                        sequences);
                     return [];
                 });
         }

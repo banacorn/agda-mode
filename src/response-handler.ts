@@ -25,27 +25,27 @@ const handleResponses = (core: Core) => (responses: Agda.Response[]): Promise<vo
     return Promise.each(promises, a => a)
         .then(() => {})
         .catch(Err.Conn.NotEstablished, () => {
-            core.view.setPlainText('Connection to Agda not established', '', View.Style.Warning);
+            core.view.setPlainText('Connection to Agda not established', '', 'warning');
         })
         .catch(Err.Conn.ConnectionError, error => {
-                core.view.setPlainText(error.name, error.message, View.Style.Error);
+                core.view.setPlainText(error.name, error.message, 'error');
                 // core.view.store.dispatch(Action.CONNECTION.err(error.guid));
         })
         .catch(Err.QueryCancelled, () => {
-            core.view.setPlainText('Query cancelled', '', View.Style.Warning);
+            core.view.setPlainText('Query cancelled', '', 'warning');
         })
         .catch((error) => { // catch all the rest
             if (error) {
                 console.log(error)
                 switch (error.name) {
                     case 'Err.InvalidExecutablePathError':
-                    core.view.setPlainText(error.message, error.path, View.Style.Error);
+                    core.view.setPlainText(error.message, error.path, 'error');
                     break;
                 default:
-                    core.view.setPlainText(error.name, error.message, View.Style.Error);
+                    core.view.setPlainText(error.name, error.message, 'error');
                 }
             } else {
-                core.view.setPlainText('Panic!', 'unknown error', View.Style.Error);
+                core.view.setPlainText('Panic!', 'unknown error', 'error');
             }
         });
 }
@@ -120,7 +120,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             if (response.verbosity >= 2)
                 core.editor.runningInfo.add(response.message)
             else
-                core.view.setPlainText('Type-checking', response.message, View.Style.PlainText);
+                core.view.setPlainText('Type-checking', response.message);
             return null;
 
         case 'ClearRunningInfo':
@@ -131,7 +131,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             return core.editor.highlighting.destroyAll();
 
         case 'DoneAborting':
-            core.view.setPlainText('Status', `Done aborting`, View.Style.Warning);
+            core.view.setPlainText('Status', `Done aborting`, 'warning');
             return null;
 
         default:
@@ -143,7 +143,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
 function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
     switch (response.kind) {
         case 'CompilationOk':
-            core.view.setPlainText('CompilationOk', response.emacsMessage, View.Style.Info);
+            core.view.setPlainText('CompilationOk', response.emacsMessage, 'info');
             break;
         case 'Constraints':
             core.view.setEmacsPanel('Constraints', 'Constraints', response.constraints);
@@ -158,7 +158,7 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             core.view.setEmacsPanel('Auto', 'Auto', response.payload, 'plain-text');
             break;
         case 'ModuleContents':
-            core.view.setPlainText('Module Contents', response.payload, View.Style.Info);
+            core.view.setPlainText('Module Contents', response.payload, 'info');
             break;
         case 'WhyInScope':
             if (core.commander.currentCommand.kind === "GotoDefinition") {
@@ -168,19 +168,19 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
             }
             break;
         case 'NormalForm':
-            core.view.setPlainText('Normal Form', response.payload, View.Style.Info);
+            core.view.setPlainText('Normal Form', response.payload, 'info');
             break;
         case 'GoalType':
             core.view.setEmacsPanel('Goal Type and Context', 'GoalTypeContext', response.payload);
             break;
         case 'CurrentGoal':
-            core.view.setPlainText('Current Goal', response.payload, View.Style.Info);
+            core.view.setPlainText('Current Goal', response.payload, 'info');
             break;
         case 'SearchAbout':
             core.view.setEmacsPanel('Searching about ...', 'SearchAbout', response.payload);
             break;
         case 'InferredType':
-            core.view.setPlainText('Inferred Type', response.payload, View.Style.Info);
+            core.view.setPlainText('Inferred Type', response.payload, 'info');
             break;
         case 'Context':
             core.view.setEmacsPanel('Context', 'Context', response.payload);
@@ -200,10 +200,10 @@ function handleEmacsDisplayInfo(core: Core, response: Agda.Info)  {
 function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
     switch (info.kind) {
         case 'CompilationOk':
-            core.view.setPlainText('CompilationOk', 'TBD', View.Style.Warning);
+            core.view.setPlainText('CompilationOk', 'TBD', 'warning');
             break;
         case 'Constraints':
-            core.view.setPlainText('Constraints', 'TBD', View.Style.Warning);
+            core.view.setPlainText('Constraints', 'TBD', 'warning');
             break;
         case 'AllGoalsWarnings':
             core.view.setJSONAllGoalsWarnings(info.metas, info.emacsMessage);
@@ -224,37 +224,37 @@ function handleJSONDisplayInfo(core: Core, info: Agda.Info)  {
                 //     );
                 //     core.editor.jumpToRange(range, result.range.source);
                 // } else {
-                //     core.view.setPlainText('Go to Definition', 'not in scope', View.Style.Info);
+                //     core.view.setPlainText('Go to Definition', 'not in scope', 'info');
                 // }
             } else {
-                core.view.setPlainText('Scope Info', info.payload, View.Style.Info);
+                core.view.setPlainText('Scope Info', info.payload, 'info');
             }
             break;
         case 'NormalForm':
-            core.view.setPlainText('Normal Form', info.payload, View.Style.Info);
+            core.view.setPlainText('Normal Form', info.payload, 'info');
             break;
         case 'GoalType':
             // core.view.setEmacsGoalTypeContext('Goal Type and Context', Emacs.parseGoalTypeContext(info.payload));
             break;
         case 'CurrentGoal':
-            core.view.setPlainText('Current Goal', info.payload, View.Style.Info);
+            core.view.setPlainText('Current Goal', info.payload, 'info');
             break;
         case 'InferredType':
-            core.view.setPlainText('Inferred Type', info.payload, View.Style.Info);
+            core.view.setPlainText('Inferred Type', info.payload, 'info');
             break;
         case 'Context':
             // core.view.setEmacsGoalTypeContext('Context', Emacs.parseGoalTypeContext(info.payload));
             break;
         case 'ModuleContents':
-            core.view.setPlainText('Module Contents', info.payload, View.Style.Info);
+            core.view.setPlainText('Module Contents', info.payload, 'info');
         case 'HelperFunction':
         case 'Time':
         case 'Intro':
         case 'SearchAbout':
-            core.view.setPlainText(info.kind, info.payload, View.Style.PlainText);
+            core.view.setPlainText(info.kind, info.payload);
             break;
         case 'Version':
-            core.view.setPlainText(info.kind, '', View.Style.PlainText);
+            core.view.setPlainText(info.kind, '');
             break;
     }
 }
