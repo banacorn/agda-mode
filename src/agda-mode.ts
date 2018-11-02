@@ -181,7 +181,7 @@ const config = {
         title: 'Enable the JSON protocol (experimental)',
         description: 'Demand Agda to output in JSON format when possible',
         type: 'boolean',
-        default: true,
+        default: false,
         order: 2
     },
     // languageServerEnabled: {
@@ -247,13 +247,6 @@ const config = {
         default: true,
         order: 50
     },
-    reasonDevMode: {
-        title: 'Reason React dev mode',
-        description: 'Enabled this for better Reason React debugging',
-        type: 'boolean',
-        default: false,
-        order: 60
-    }
 }
 
 
