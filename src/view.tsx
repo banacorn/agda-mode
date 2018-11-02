@@ -401,7 +401,7 @@ export default class View {
         this.editors.focusMain()
 
         this.store.dispatch(Action.HEADER.update({
-            text: header,
+            text: header.substring(1, header.length - 1),
             style: V.Style.Info
         }));
 
