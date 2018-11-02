@@ -34,8 +34,8 @@
   },
   "dependencies": {
     "@glennsl/bs-json": "^3.0.0",
-    "@glennsl/rebase": "git@github.com:banacorn/rebase.git#5f349c",
-    "atom": "~/reason/bs-atom",
+    "@glennsl/rebase": "git@github.com:glennsl/rebase.git",
+    "atom": "git@github.com:banacorn/bs-atom.git",
     "@types/atom": "^1.28",
     "@types/bluebird": "^3.5",
     "@types/classnames": "^2.2",
