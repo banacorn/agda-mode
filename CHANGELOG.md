@@ -1,3 +1,7 @@
+## 0.8.0
+* Convert (presumably) 60% of the codebase to Reason/OCaml
+* Fix loads of goals/warnings/errors parsing problems
+
 ## 0.7.16
 * Fix #66
 * Fix `agda-mode:restart`
