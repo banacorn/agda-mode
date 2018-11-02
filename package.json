@@ -1,7 +1,7 @@
 {
   "name": "agda-mode",
   "main": "./lib/js/src/agda-mode",
-  "version": "0.7.17",
+  "version": "0.8.0",
   "description": "agda-mode on Atom",
   "scripts": {
     "start": "bsb -make-world -w",
