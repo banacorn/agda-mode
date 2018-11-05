@@ -1,11 +1,12 @@
 {
   "name": "agda-mode",
   "main": "./lib/js/src/agda-mode",
-  "version": "0.8.0",
+  "version": "0.7.17",
   "description": "agda-mode on Atom",
   "scripts": {
+    "install": "tsc && bsb -make-world",
     "start": "bsb -make-world -w",
-    "rebuild": "rm -rf lib && tsc && bsb -make-world"
+    "rebuild": "rm -rf lib && npm install"
   },
   "activationCommands": {
     "atom-text-editor": [
@@ -29,12 +30,14 @@
     "atom": ">=1.19.0 <2.0.0"
   },
   "devDependencies": {
-    "bs-platform": "^4.0.6",
-    "typescript": "^2.9.2",
-    "@glennsl/bs-json": "^3.0.0",
-    "bs-webapi": "^0.13.0"
+    "typescript": "^2.9.2"
   },
   "dependencies": {
+    "bs-platform": "^4.0.6",
+    "@glennsl/rebase": "github:glennsl/rebase",
+    "@glennsl/bs-json": "^3.0.0",
+    "atom": "github:banacorn/bs-atom",
+    "bs-webapi": "^0.13.0",
     "@types/atom": "^1.28",
     "@types/bluebird": "^3.5",
     "@types/classnames": "^2.2",
