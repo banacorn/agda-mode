@@ -1,11 +1,12 @@
 {
   "name": "agda-mode",
-  "main": "./lib/js/src/agda-mode",
-  "version": "0.7.17",
+  "main": "./lib/js/bundled",
+  "version": "0.8.6",
   "description": "agda-mode on Atom",
   "scripts": {
     "start": "bsb -make-world -w",
-    "rebuild": "rm -rf lib && tsc && bsb -make-world"
+    "build": "tsc && bsb -make-world && npx webpack --mode=production",
+    "rebuild": "rm -rf lib && npm run build"
   },
   "activationCommands": {
     "atom-text-editor": [
@@ -29,13 +30,17 @@
     "atom": ">=1.19.0 <2.0.0"
   },
   "devDependencies": {
-    "bs-platform": "^4.0.6",
-    "typescript": "^2.9.2"
+    "bs-platform": "^4.0.7",
+    "ts-loader": "^5.3.0",
+    "typescript": "^2.9.2",
+    "webpack": "^4.24.0",
+    "webpack-cli": "^3.1.2",
+    "@glennsl/rebase": "github:glennsl/rebase",
+    "@glennsl/bs-json": "^3.0.0",
+    "atom": "github:banacorn/bs-atom",
+    "bs-webapi": "^0.13.0"
   },
   "dependencies": {
-    "@glennsl/bs-json": "^3.0.0",
-    "@glennsl/rebase": "git@github.com:banacorn/rebase.git#5f349c",
-    "atom": "~/reason/bs-atom",
     "@types/atom": "^1.28",
     "@types/bluebird": "^3.5",
     "@types/classnames": "^2.2",
@@ -49,7 +54,6 @@
     "@types/redux-actions": "^2.3",
     "@types/semver": "^5.5",
     "bluebird": "^3.5",
-    "bs-webapi": "^0.13.0",
     "classnames": "^2.2",
     "duplexer": "^0.1",
     "lodash": "^4.17",

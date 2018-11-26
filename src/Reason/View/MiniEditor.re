@@ -27,9 +27,9 @@ let make =
       ~hidden,
       ~grammar="",
       ~onConfirm=(_) => (),
-      ~onCancel=() => (),
-      ~onFocus=() => (),
-      ~onBlur=() => (),
+      ~onCancel=(.) => (),
+      ~onFocus=(.) => (),
+      ~onBlur=(.) => (),
       ~editorRef=(_) => (),
       _children,
     ) => {
@@ -53,10 +53,10 @@ let make =
         /* trigger the actions and the events  */
         if (focusedNow) {
           self.send(Focus);
-          onFocus();
+          onFocus(.);
         } else {
           self.send(Blur);
-          onBlur();
+          onBlur(.);
         };
       });
     let config = {
@@ -109,7 +109,7 @@ let make =
           `DOMElement(Atom.Environment.Views.getView(editor)),
           "core:cancel",
           _event =>
-          onCancel()
+          onCancel(.)
         )
         |> Atom.CompositeDisposable.add(disposables);
         self.onUnmount(() => disposables |> Atom.CompositeDisposable.dispose);
@@ -146,9 +146,9 @@ type jsProps = {
   hidden: bool,
   grammar: string,
   onConfirm: string => unit,
-  onCancel: unit => unit,
-  onFocus: unit => unit,
-  onBlur: unit => unit,
+  onCancel: (. unit) => unit,
+  onFocus: (. unit) => unit,
+  onBlur: (. unit) => unit,
   editorRef: Atom.TextEditor.t => unit,
 };
 

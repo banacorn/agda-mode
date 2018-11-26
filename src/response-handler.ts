@@ -108,7 +108,7 @@ const handleResponse = (core: Core) => (response: Agda.Response): Promise<void> 
             }).then(() => {});
 
         case 'DisplayInfo':
-            console.log(response.info)
+            // console.log(response.info)
             if (core.connection.usesJSON())
                 handleJSONDisplayInfo(core, response.info);
             else

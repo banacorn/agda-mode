@@ -427,14 +427,30 @@ export default class View {
         this.editors.focusMain()
 
         this.updateHeader({
-            text: header,
-            style: style,
+            text: header.substring(1, header.length - 1),
+            style: 'info'
         });
 
         this.store.dispatch(Action.updateEmacs({
-            kind: kind,
+            kind: 'AllGoalsWarnings',
             header: header,
             body: payload
+        }));
+    }
+
+    setEmacsGoalTypeContext(header: string = 'Judgements', goalTypeContext: string) {
+        this.store.dispatch(Action.MODE.display());
+        this.editors.focusMain()
+
+        this.updateHeader({
+            text: header,
+            style: 'info'
+        });
+
+        this.store.dispatch(Action.updateEmacs({
+            kind: 'GoalTypeContext',
+            header: header,
+            body: goalTypeContext
         }));
     }
 
