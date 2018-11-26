@@ -5,7 +5,7 @@
   "description": "agda-mode on Atom",
   "scripts": {
     "start": "bsb -make-world -w",
-    "build": "tsc && bsb -make-world && npx webpack",
+    "build": "tsc && bsb -make-world && npx webpack --mode=production",
     "rebuild": "rm -rf lib && npm run build"
   },
   "activationCommands": {
