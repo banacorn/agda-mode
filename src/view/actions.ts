@@ -143,21 +143,3 @@ export namespace QUERY {
     export const updateValue = createAction<QUERY.UPDATE_VALUE>(QUERY.UPDATE_VALUE);
     export const setPlaceholder = createAction<QUERY.SET_PLACEHOLDER>(QUERY.SET_PLACEHOLDER);
 }
-
-
-export type BODY =
-     BODY.UPDATE_MAX_BODY_HEIGHT
-    | BODY.UPDATE_JSON
-    | BODY.UPDATE_EMACS;
-export namespace BODY {
-    export const UPDATE_MAX_BODY_HEIGHT = 'BODY.UPDATE_MAX_BODY_HEIGHT';
-    export type UPDATE_MAX_BODY_HEIGHT = number;
-    export const UPDATE_JSON = 'BODY.UPDATE_JSON';
-    export type UPDATE_JSON = View.JSONState;
-    export const UPDATE_EMACS = 'BODY.UPDATE_EMACS';
-    export type UPDATE_EMACS = View.EmacsState;
-}
-
-export const updateMaxBodyHeight = createAction<BODY.UPDATE_MAX_BODY_HEIGHT>(BODY.UPDATE_MAX_BODY_HEIGHT);
-export const updateJSON = createAction<BODY.UPDATE_JSON>(BODY.UPDATE_JSON);
-export const updateEmacs = createAction<BODY.UPDATE_EMACS>(BODY.UPDATE_EMACS);

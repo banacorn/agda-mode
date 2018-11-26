@@ -4,28 +4,20 @@ open Rebase;
 
 let component = statelessComponent("JSONBody");
 
-let make =
-    (
-      ~raw,
-      ~emacs,
-      ~maxBodyHeight,
-      ~useJSON,
-      ~hidden,
-      ~mountAtBottom,
-      ~emit,
-      _children,
-    ) => {
+let make = (~state: Type.Interaction.body, ~hidden, ~mountAtBottom, _children) => {
   ...component,
   render: _self => {
     let comp =
-      if (useJSON) {
+      switch (state.raw) {
+      | Unloaded => <Emacs__Error body="not loaded yet" />
+      | RawJSON(raw) =>
         switch (Decoder.parseBody(raw)) {
         | AllGoalsWarnings(value) => <JSON__AllGoalsWarnings value />
         | Error(value, rawString) => <JSON__Error value rawString />
         | PlainText(s) => <p> (string(s)) </p>
-        };
-      } else {
-        let parsed = Emacs__Parser.Response.body(emacs);
+        }
+      | RawEmacs(raw) =>
+        let parsed = Emacs__Parser.Response.body(raw);
         let header = parsed.header;
         let body = parsed.body;
         switch (parsed.kind) {
@@ -48,38 +40,11 @@ let make =
       mountAtBottom ?
         Some(
           ReactDOMRe.Style.make(
-            ~maxHeight=string_of_int(maxBodyHeight) ++ "px",
+            ~maxHeight=string_of_int(state.maxHeight) ++ "px",
             (),
           ),
         ) :
         None;
-    <Context.Emitter.Provider value=emit>
-      <section className ?style tabIndex=(-1)> comp </section>
-    </Context.Emitter.Provider>;
+    <section className ?style tabIndex=(-1)> comp </section>;
   },
 };
-
-[@bs.deriving abstract]
-type jsProps = {
-  raw: Type.Interaction.bodyRaw,
-  emacs: Type.Interaction.Emacs.bodyRaw,
-  maxBodyHeight: int,
-  hidden: bool,
-  useJSON: bool,
-  mountAtBottom: bool,
-  emit: (string, Type.Syntax.Position.range) => unit,
-};
-
-let jsComponent =
-  wrapReasonForJs(~component, jsProps =>
-    make(
-      ~raw=rawGet(jsProps),
-      ~emacs=emacsGet(jsProps),
-      ~maxBodyHeight=maxBodyHeightGet(jsProps),
-      ~hidden=hiddenGet(jsProps),
-      ~useJSON=useJSONGet(jsProps),
-      ~mountAtBottom=mountAtBottomGet(jsProps),
-      ~emit=emitGet(jsProps),
-      [||],
-    )
-  );

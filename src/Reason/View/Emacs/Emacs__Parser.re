@@ -479,10 +479,10 @@ module Response = {
         |> parseArray(output);
       (target, outputs);
     };
-  let body: bodyRaw => body =
+  let body: rawBody => body =
     raw => {
       let kind =
-        switch (raw |> kindGet) {
+        switch (raw.kind) {
         | "AllGoalsWarnings" => AllGoalsWarnings
         | "GoalTypeContext" => GoalTypeContext
         | "Context" => Context
@@ -491,7 +491,7 @@ module Response = {
         | "Error" => Error
         | _ => PlainText
         };
-      {kind, header: raw |> headerGet, body: raw |> bodyGet};
+      {kind, header: raw.header, body: raw.body};
     };
 };
 

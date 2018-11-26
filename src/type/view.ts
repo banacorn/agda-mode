@@ -12,7 +12,6 @@ export interface State {
     protocol: Protocol;
     inputMethod: InputMethodState;
     query: QueryState;
-    body: BodyState;
 }
 
 export interface ViewState {
@@ -69,24 +68,6 @@ export interface InputMethodState {
 export interface QueryState {
     placeholder: string;
     value: string;
-}
-
-export interface EmacsState {
-    kind: 'AllGoalsWarnings' | 'GoalTypeContext' | 'Context' | 'Constraints' | 'Error' | 'WhyInScope' | 'GoToDefinition' | 'PlainText' | 'SearchAbout';
-    header: string;
-    body: string;
-}
-
-export interface JSONState {
-    kind: 'AllGoalsWarnings' | 'Error' | 'PlainText';
-    rawJSON: object;
-    rawString: string;
-}
-
-export interface BodyState {
-    maxBodyHeight: number;
-    json: JSONState;
-    emacs: EmacsState;
 }
 
 export type SettingsURI = {

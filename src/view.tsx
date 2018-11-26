@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import * as Promise from 'bluebird';
 import * as React from 'react';
 import * as Redux from 'redux';
@@ -223,6 +222,8 @@ export default class View {
     public tabs: TabManager;
 
     private updateHeader: (state :{text: string; style: string}) => void;
+    private updateJSONBody: (state :{kind: string; rawJSON: object; rawString: string}) => void;
+    private updateEmacsBody: (state :{kind: string; header: string; body: string}) => void;
     private updateIsPending: (state :{isPending: boolean}) => void;
 
     isPending(isPending: boolean) {
@@ -274,6 +275,12 @@ export default class View {
                 <Panel
                     updateHeader={handle => {
                         this.updateHeader = handle;
+                    }}
+                    updateJSONBody={handle => {
+                        this.updateJSONBody = handle;
+                    }}
+                    updateEmacsBody={handle => {
+                        this.updateEmacsBody = handle;
                     }}
                     updateIsPending={handle => {
                         this.updateIsPending = handle;
@@ -396,11 +403,11 @@ export default class View {
             style: 'error',
         });
 
-        this.store.dispatch(Action.updateJSON({
+        this.updateJSONBody({
             kind: 'Error',
             rawJSON: rawJSON,
             rawString: rawString
-        }));
+        });
     }
 
     setJSONAllGoalsWarnings(rawJSON: object, rawString: string) {
@@ -413,11 +420,11 @@ export default class View {
             style: 'info'
         });
 
-        this.store.dispatch(Action.updateJSON({
+        this.updateJSONBody({
             kind: 'AllGoalsWarnings',
             rawJSON: rawJSON,
-            rawString: rawString
-        }));
+            rawString: rawString,
+        });
     }
 
     // for Emacs
@@ -427,14 +434,14 @@ export default class View {
 
         this.updateHeader({
             text: header,
-            style: 'info'
+            style: style
         });
 
-        this.store.dispatch(Action.updateEmacs({
-            kind: 'AllGoalsWarnings',
+        this.updateEmacsBody({
+            kind: kind,
             header: header,
             body: payload
-        }));
+        });
     }
 
     setEmacsGoalTypeContext(header: string = 'Judgements', goalTypeContext: string) {
@@ -446,11 +453,11 @@ export default class View {
             style: 'info'
         });
 
-        this.store.dispatch(Action.updateEmacs({
+        this.updateEmacsBody({
             kind: 'GoalTypeContext',
             header: header,
             body: goalTypeContext
-        }));
+        });
     }
 
     setEmacsGoToDefinition(raw: string) {
@@ -470,11 +477,11 @@ export default class View {
             text: header,
             style: style,
         });
-        this.store.dispatch(Action.updateEmacs({
+        this.updateEmacsBody({
             kind: 'PlainText',
             header: header,
             body: body
-        }));
+        });
     }
 
     query(header: string = '', _: string[] = [], placeholder: string = ''): Promise<string> {

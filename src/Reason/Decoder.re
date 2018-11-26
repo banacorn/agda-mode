@@ -1828,12 +1828,11 @@ open Type.Interaction.JSON;
 
 let parseError = Decode.TypeChecking.error;
 
-let parseBody = (raw: bodyRaw) =>
-  switch (raw |> kindGet) {
+let parseBody = (raw: rawBody) =>
+  switch (raw.kind) {
   | "AllGoalsWarnings" =>
-    AllGoalsWarnings(raw |> rawJSONGet |> Decode.Interaction.allGoalsWarnings)
-  | "Error" =>
-    Error(raw |> rawJSONGet |> Decode.TypeChecking.error, raw |> rawStringGet)
-  | "PlainText" => PlainText(raw |> rawStringGet)
+    AllGoalsWarnings(raw.rawJSON |> Decode.Interaction.allGoalsWarnings)
+  | "Error" => Error(raw.rawJSON |> Decode.TypeChecking.error, raw.rawString)
+  | "PlainText" => PlainText(raw.rawString)
   | _ => failwith("unknown kind of Body")
   };

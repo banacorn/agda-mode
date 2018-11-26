@@ -22,8 +22,8 @@ let make =
       ~header: Type.Interaction.header,
       ~hidden: bool,
       ~isPending: bool,
-      ~mountAt: string,
-      ~onMountChange: string => unit,
+      ~mountAt: Type.Interaction.mountAt,
+      ~onMountChange: Type.Interaction.mountAt => unit,
       ~settingsViewOn: bool,
       ~onSettingsViewToggle: bool => unit,
       _children,
@@ -82,7 +82,9 @@ let make =
     let settingsViewClassList =
       ["no-btn"] |> addClass("activated", settingsViewOn) |> toClassName;
     let toggleMountingPosition =
-      ["no-btn"] |> addClass("activated", mountAt === "pane") |> toClassName;
+      ["no-btn"]
+      |> addClass("activated", mountAt === Type.Interaction.Pane)
+      |> toClassName;
     <div className=classList>
       <h1 className=headerClassList> (string(header.text)) </h1>
       <ul className="agda-dashboard">
@@ -100,8 +102,9 @@ let make =
             className=toggleMountingPosition
             onClick=(
               (_) =>
-                mountAt === "pane" ?
-                  onMountChange("bottom") : onMountChange("pane")
+                mountAt === Type.Interaction.Pane ?
+                  onMountChange(Type.Interaction.Bottom) :
+                  onMountChange(Type.Interaction.Pane)
             )
             ref=(self.handle(setDockingButtonRef))>
             <span className="icon icon-versions" />
@@ -111,30 +114,3 @@ let make =
     </div>;
   },
 };
-/*
- [@bs.deriving abstract]
- type jsProps = {
-   header: string,
-   style: string,
-   hidden: bool,
-   isPending: bool,
-   mountAt: string,
-   onMountChange: string => unit,
-   settingsViewOn: bool,
-   onSettingsViewToggle: bool => unit,
- };
-
- let jsComponent =
-   wrapReasonForJs(~component, jsProps =>
-     make(
-       ~header=headerGet(jsProps),
-       ~style=styleGet(jsProps),
-       ~hidden=hiddenGet(jsProps),
-       ~isPending=isPendingGet(jsProps),
-       ~mountAt=mountAtGet(jsProps),
-       ~onMountChange=onMountChangeGet(jsProps),
-       ~settingsViewOn=settingsViewOnGet(jsProps),
-       ~onSettingsViewToggle=onSettingsViewToggleGet(jsProps),
-       [||],
-     )
-   ); */

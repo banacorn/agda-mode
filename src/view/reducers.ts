@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { combineReducers } from 'redux';
 import { handleActions, Action } from 'redux-actions';
 import { View, Agda } from '../type';
-import { MODE, VIEW, PROTOCOL, INPUT_METHOD, QUERY, BODY, CONNECTION } from './actions';
+import { MODE, VIEW, PROTOCOL, INPUT_METHOD, QUERY, CONNECTION } from './actions';
 import { translate } from '../input-method';
 
 // default state
@@ -41,19 +41,6 @@ const defaultState: View.State = {
     query: {
         placeholder: '',
         value: ''
-    },
-    body: {
-        maxBodyHeight: 170,
-        json: {
-            kind: 'PlainText',
-            rawJSON: null,
-            rawString: ''
-        },
-        emacs: {
-            kind: 'PlainText',
-            header: '',
-            body: ''
-        }
     },
 };
 
@@ -194,18 +181,6 @@ const query = handleActions<View.QueryState, QUERY>({
     })
 }, defaultState.query);
 
-const body = handleActions<View.BodyState, BODY>({
-    [BODY.UPDATE_MAX_BODY_HEIGHT]: (state, action: Action<BODY.UPDATE_MAX_BODY_HEIGHT>) => ({ ...state,
-        maxBodyHeight: action.payload
-    }),
-    [BODY.UPDATE_JSON]: (state, action: Action<BODY.UPDATE_JSON>) => ({ ...state,
-        json:          action.payload
-    }),
-    [BODY.UPDATE_EMACS]: (state, action: Action<BODY.UPDATE_EMACS>) => ({ ...state,
-        emacs:          action.payload
-    }),
-}, defaultState.body);
-
 // export default reducer;
 export default combineReducers<View.State>({
     view,
@@ -213,6 +188,5 @@ export default combineReducers<View.State>({
     connection,
     protocol,
     inputMethod,
-    query,
-    body
+    query
 });

@@ -627,6 +627,11 @@ module TypeChecking = {
 
 module Interaction = {
   module JSON = {
+    type rawBody = {
+      kind: string,
+      rawJSON: Js.Json.t,
+      rawString: string,
+    };
     type outputConstraint('a, 'b) =
       | OfType('b, 'a)
       | CmpInType(TypeChecking.comparison, 'a, 'b, 'b)
@@ -700,8 +705,7 @@ module Interaction = {
       | SearchAbout
       | Error
       | PlainText;
-    [@bs.deriving abstract]
-    type bodyRaw = {
+    type rawBody = {
       kind: string,
       header: string,
       body: string,
@@ -712,16 +716,25 @@ module Interaction = {
       body: string,
     };
   };
-  [@bs.deriving abstract]
-  type bodyRaw = {
-    kind: string,
-    rawJSON: Js.Json.t,
-    rawString: string,
+  type rawBody =
+    | Unloaded
+    | RawEmacs(Emacs.rawBody)
+    | RawJSON(JSON.rawBody);
+  type body = {
+    maxHeight: int,
+    raw: rawBody,
   };
   type header = {
     text: string,
     style: string,
   };
+  type mountAt =
+    | Bottom
+    | Pane
+    | Nowhere;
+  type mode =
+    | Display
+    | Query;
 };
 
 type underscore('t) = 't => bool;
