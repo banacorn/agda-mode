@@ -2,6 +2,7 @@ open ReasonReact;
 
 type state = {
   header: Type.Interaction.header,
+  height: int,
   hidden: bool,
   isPending: bool,
   settingsViewOn: bool,
@@ -20,6 +21,7 @@ type jsState = {
 
 type action =
   | UpdateHeader(Type.Interaction.header)
+  | UpdateMaxHeight(int)
   | UpdateIsPending(bool);
 
 let initialState = () => {
@@ -27,6 +29,7 @@ let initialState = () => {
     text: "",
     style: "",
   },
+  height: 170,
   hidden: false,
   isPending: false,
   settingsViewOn: false,
@@ -36,6 +39,7 @@ let initialState = () => {
 let reducer = (action, state) =>
   switch (action) {
   | UpdateHeader(header) => Update({...state, header})
+  | UpdateMaxHeight(height) => Update({...state, height})
   | UpdateIsPending(isPending) => Update({...state, isPending})
   };
 
@@ -61,6 +65,24 @@ let make =
     updateIsPending(state => self.send(UpdateIsPending(state##isPending)));
     <section>
       <section className="panel-heading agda-header-container">
+        <SizingHandle
+          onResizeStart=(height => self.send(UpdateMaxHeight(height)))
+          onResizeEnd=(
+            height =>
+              Js.Global.setTimeout(
+                () => {
+                  self.send(UpdateMaxHeight(height));
+                  Atom.Environment.Config.set(
+                    "agda-mode.maxBodyHeight",
+                    string_of_int(height),
+                  );
+                },
+                0,
+              )
+              |> ignore
+          )
+          atBottom=(mountAt == "bottom")
+        />
         <Dashboard
           header
           hidden

@@ -80,34 +80,3 @@ let make =
       </div> :
       null,
 };
-
-[@bs.deriving abstract]
-type jsProps = {
-  onResizeStart: int => unit,
-  onResizeEnd: int => unit,
-  atBottom: bool,
-};
-
-let jsComponent =
-  wrapReasonForJs(~component, jsProps =>
-    make(
-      ~onResizeStart=onResizeStartGet(jsProps),
-      ~onResizeEnd=onResizeEndGet(jsProps),
-      ~atBottom=atBottomGet(jsProps),
-      [||],
-    )
-  );
-/* onDrag=(
-     ev => {
-       let clientY = ev |> ReactEvent.Mouse.clientY;
-       let pageY = ev |> ReactEvent.Mouse.pageY;
-       let offset = pageY - self.state.height;
-       if (offset !== 0) {
-         self.send(UpdateHeight(clientY));
-         switch (calculateBodyHeight(self.state.handleRef, clientY)) {
-         | Some(y) => onResize(y)
-         | _ => ()
-         };
-       };
-     }
-   ) */
