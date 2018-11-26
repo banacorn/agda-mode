@@ -1,6 +1,6 @@
 {
   "name": "agda-mode",
-  "main": "./lib/js/bundled",
+  "main": "./lib/js/src/agda-mode",
   "version": "0.8.6",
   "description": "agda-mode on Atom",
   "scripts": {

@@ -1,10 +1,7 @@
 open ReasonReact;
 
-open Rebase;
-
 type state = {
-  header: string,
-  style: string,
+  header: Type.Interaction.header,
   hidden: bool,
   isPending: bool,
   settingsViewOn: bool,
@@ -22,12 +19,14 @@ type jsState = {
 };
 
 type action =
-  | UpdateHeader(string, string)
+  | UpdateHeader(Type.Interaction.header)
   | UpdateIsPending(bool);
 
 let initialState = () => {
-  header: "",
-  style: "",
+  header: {
+    text: "",
+    style: "",
+  },
   hidden: false,
   isPending: false,
   settingsViewOn: false,
@@ -36,7 +35,7 @@ let initialState = () => {
 
 let reducer = (action, state) =>
   switch (action) {
-  | UpdateHeader(text, style) => Update({...state, header: text, style})
+  | UpdateHeader(header) => Update({...state, header})
   | UpdateIsPending(isPending) => Update({...state, isPending})
   };
 
@@ -55,17 +54,15 @@ let make =
   initialState,
   reducer,
   render: self => {
-    let {header, style, hidden, isPending, mountAt, settingsViewOn} =
-      self.state;
+    let {header, hidden, isPending, mountAt, settingsViewOn} = self.state;
     updateHeader(state =>
-      self.send(UpdateHeader(state##text, state##style))
+      self.send(UpdateHeader({text: state##text, style: state##style}))
     );
     updateIsPending(state => self.send(UpdateIsPending(state##isPending)));
     <section>
       <section className="panel-heading agda-header-container">
         <Dashboard
           header
-          style
           hidden
           isPending
           mountAt

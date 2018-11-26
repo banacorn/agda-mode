@@ -19,8 +19,7 @@ let component = reducerComponent("Dashboard");
 
 let make =
     (
-      ~header: string,
-      ~style: string,
+      ~header: Type.Interaction.header,
       ~hidden: bool,
       ~isPending: bool,
       ~mountAt: string,
@@ -75,7 +74,7 @@ let make =
   render: self => {
     let classList =
       ["agda-header"] |> addClass("hidden", hidden) |> toClassName;
-    let headerClassList = "text-" ++ style;
+    let headerClassList = "text-" ++ header.style;
     let spinnerClassList =
       ["loading", "loading-spinner-tiny", "inline-block"]
       |> addClass("pending", isPending)
@@ -85,7 +84,7 @@ let make =
     let toggleMountingPosition =
       ["no-btn"] |> addClass("activated", mountAt === "pane") |> toClassName;
     <div className=classList>
-      <h1 className=headerClassList> (string(header)) </h1>
+      <h1 className=headerClassList> (string(header.text)) </h1>
       <ul className="agda-dashboard">
         <li> <span id="spinner" className=spinnerClassList /> </li>
         <li>
@@ -112,30 +111,30 @@ let make =
     </div>;
   },
 };
+/*
+ [@bs.deriving abstract]
+ type jsProps = {
+   header: string,
+   style: string,
+   hidden: bool,
+   isPending: bool,
+   mountAt: string,
+   onMountChange: string => unit,
+   settingsViewOn: bool,
+   onSettingsViewToggle: bool => unit,
+ };
 
-[@bs.deriving abstract]
-type jsProps = {
-  header: string,
-  style: string,
-  hidden: bool,
-  isPending: bool,
-  mountAt: string,
-  onMountChange: string => unit,
-  settingsViewOn: bool,
-  onSettingsViewToggle: bool => unit,
-};
-
-let jsComponent =
-  wrapReasonForJs(~component, jsProps =>
-    make(
-      ~header=headerGet(jsProps),
-      ~style=styleGet(jsProps),
-      ~hidden=hiddenGet(jsProps),
-      ~isPending=isPendingGet(jsProps),
-      ~mountAt=mountAtGet(jsProps),
-      ~onMountChange=onMountChangeGet(jsProps),
-      ~settingsViewOn=settingsViewOnGet(jsProps),
-      ~onSettingsViewToggle=onSettingsViewToggleGet(jsProps),
-      [||],
-    )
-  );
+ let jsComponent =
+   wrapReasonForJs(~component, jsProps =>
+     make(
+       ~header=headerGet(jsProps),
+       ~style=styleGet(jsProps),
+       ~hidden=hiddenGet(jsProps),
+       ~isPending=isPendingGet(jsProps),
+       ~mountAt=mountAtGet(jsProps),
+       ~onMountChange=onMountChangeGet(jsProps),
+       ~settingsViewOn=settingsViewOnGet(jsProps),
+       ~onSettingsViewToggle=onSettingsViewToggleGet(jsProps),
+       [||],
+     )
+   ); */

@@ -422,12 +422,11 @@ export default class View {
 
     // for Emacs
     setEmacsPanel(header, kind, payload, style: Style ="info") {
-
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
         this.updateHeader({
-            text: header.substring(1, header.length - 1),
+            text: header,
             style: 'info'
         });
 

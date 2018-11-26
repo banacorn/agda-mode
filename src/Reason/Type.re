@@ -716,6 +716,10 @@ module Interaction = {
     | AllGoalsWarnings(allGoalsWarnings)
     | Error(TypeChecking.error, string)
     | PlainText(string);
+  type header = {
+    text: string,
+    style: string,
+  };
 };
 
 type underscore('t) = 't => bool;
