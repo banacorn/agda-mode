@@ -626,6 +626,38 @@ module TypeChecking = {
 };
 
 module Interaction = {
+  module JSON = {
+    type outputConstraint('a, 'b) =
+      | OfType('b, 'a)
+      | CmpInType(TypeChecking.comparison, 'a, 'b, 'b)
+      | CmpElim('a, list('b), list('b))
+      | JustType('b)
+      | CmpTypes(TypeChecking.comparison, 'b, 'b)
+      | CmpLevels(TypeChecking.comparison, 'b, 'b)
+      | CmpTeles(TypeChecking.comparison, 'b, 'b)
+      | JustSort('b)
+      | CmpSorts(TypeChecking.comparison, 'b, 'b)
+      | Guard(outputConstraint('a, 'b), int)
+      | Assign('b, 'a)
+      | TypedAssign('b, 'a, 'a)
+      | PostponedCheckArgs('b, list('a), 'a, 'a)
+      | IsEmptyType('a)
+      | SizeLtSat('a)
+      | FindInScopeOF('b, 'a, list(('a, 'a)))
+      | PTSInstance('b, 'b);
+    type allGoalsWarnings = {
+      interactionMetas:
+        list(outputConstraint(Syntax.Concrete.expr, Syntax.Concrete.expr)),
+      hiddenMetas:
+        list(outputConstraint(Syntax.Concrete.expr, Syntax.Concrete.expr)),
+      warnings: list(TypeChecking.tcWarning),
+      errors: list(TypeChecking.tcWarning),
+    };
+    type body =
+      | AllGoalsWarnings(allGoalsWarnings)
+      | Error(TypeChecking.error, string)
+      | PlainText(string);
+  };
   module Emacs = {
     type term =
       | Plain(string)
@@ -680,42 +712,12 @@ module Interaction = {
       body: string,
     };
   };
-  type outputConstraint('a, 'b) =
-    | OfType('b, 'a)
-    | CmpInType(TypeChecking.comparison, 'a, 'b, 'b)
-    | CmpElim('a, list('b), list('b))
-    | JustType('b)
-    | CmpTypes(TypeChecking.comparison, 'b, 'b)
-    | CmpLevels(TypeChecking.comparison, 'b, 'b)
-    | CmpTeles(TypeChecking.comparison, 'b, 'b)
-    | JustSort('b)
-    | CmpSorts(TypeChecking.comparison, 'b, 'b)
-    | Guard(outputConstraint('a, 'b), int)
-    | Assign('b, 'a)
-    | TypedAssign('b, 'a, 'a)
-    | PostponedCheckArgs('b, list('a), 'a, 'a)
-    | IsEmptyType('a)
-    | SizeLtSat('a)
-    | FindInScopeOF('b, 'a, list(('a, 'a)))
-    | PTSInstance('b, 'b);
-  type allGoalsWarnings = {
-    interactionMetas:
-      list(outputConstraint(Syntax.Concrete.expr, Syntax.Concrete.expr)),
-    hiddenMetas:
-      list(outputConstraint(Syntax.Concrete.expr, Syntax.Concrete.expr)),
-    warnings: list(TypeChecking.tcWarning),
-    errors: list(TypeChecking.tcWarning),
-  };
   [@bs.deriving abstract]
   type bodyRaw = {
     kind: string,
     rawJSON: Js.Json.t,
     rawString: string,
   };
-  type body =
-    | AllGoalsWarnings(allGoalsWarnings)
-    | Error(TypeChecking.error, string)
-    | PlainText(string);
   type header = {
     text: string,
     style: string,

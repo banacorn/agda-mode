@@ -1701,7 +1701,7 @@ module Decode = {
     };
   };
   module Interaction = {
-    open Type.Interaction;
+    open Type.Interaction.JSON;
     let rec outputConstraint = (decoderA, decoderB) =>
       field("kind", string)
       |> andThen((kind, json) =>
@@ -1823,6 +1823,8 @@ module Decode = {
 };
 
 open Type.Interaction;
+
+open Type.Interaction.JSON;
 
 let parseError = Decode.TypeChecking.error;
 
