@@ -6,7 +6,7 @@ type pair;
 
 [@bs.get] external consumer : pair => ReasonReact.reactClass = "Consumer";
 
-[@bs.module "React"] external createContext : 'a => pair = "";
+[@bs.module "react"] external createContext : 'a => pair = "";
 
 module MakePair = (Config: {type t; let defaultValue: t;}) => {
   let _pair = createContext(Config.defaultValue);
