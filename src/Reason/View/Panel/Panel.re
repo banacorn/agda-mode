@@ -11,26 +11,6 @@ type state = {
   settingsViewOn: bool,
 };
 
-type jsHeaderState = {
-  .
-  "text": string,
-  "style": string,
-};
-
-type jsEmacsBodyState = {
-  .
-  "kind": string,
-  "header": string,
-  "body": string,
-};
-
-type jsJSONBodyState = {
-  .
-  "kind": string,
-  "rawJSON": Js.Json.t,
-  "rawString": string,
-};
-
 type jsState = {
   .
   "hidden": bool,
@@ -95,13 +75,16 @@ let component = reducerComponent("Panel");
 
 let make =
     (
-      ~updateHeader: (jsHeaderState => unit) => unit,
-      ~updateJSONBody: (jsJSONBodyState => unit) => unit,
-      ~updateEmacsBody: (jsEmacsBodyState => unit) => unit,
-      ~updateIsPending: (jsState => unit) => unit,
-      ~onMountChange: string => unit,
-      ~onSettingsViewToggle: bool => unit,
-      ~emit,
+      ~updateHeader: (Type.Interaction.header => unit) => unit,
+      ~updateEmacsBody: (Type.Interaction.Emacs.rawBody => unit) => unit,
+      ~updateJSONBody: (Type.Interaction.JSON.rawBody => unit) => unit,
+      /* ~jsonBody: Type.Interaction.Emacs.rawBody, */
+      /* ~updateHeader: (jsHeaderState => unit) => unit,
+         ~updateEmacsBody: (jsEmacsBodyState => unit) => unit,
+         ~updateIsPending: (jsState => unit) => unit,
+         ~onMountChange: string => unit,
+         ~onSettingsViewToggle: bool => unit,
+         ~emit, */
       _children,
     ) => {
   ...component,
@@ -109,28 +92,11 @@ let make =
   reducer,
   render: self => {
     let {header, body, mode, isPending, mountAt, settingsViewOn} = self.state;
-    updateHeader(state =>
-      self.send(UpdateHeader({text: state##text, style: state##style}))
-    );
-    updateJSONBody(state =>
-      self.send(
-        UpdateJSONBody({
-          kind: state##kind,
-          rawJSON: state##rawJSON,
-          rawString: state##rawString,
-        }),
-      )
-    );
-    updateEmacsBody(state =>
-      self.send(
-        UpdateEmacsBody({
-          kind: state##kind,
-          header: state##header,
-          body: state##body,
-        }),
-      )
-    );
-    updateIsPending(state => self.send(UpdateIsPending(state##isPending)));
+    updateHeader(state => self.send(UpdateHeader(state)));
+    updateEmacsBody(state => self.send(UpdateEmacsBody(state)));
+    updateJSONBody(state => self.send(UpdateJSONBody(state)));
+    /* updateIsPending(state => self.send(UpdateIsPending(state##isPending))); */
+    let onSettingsViewToggle = (_) => ();
     <section>
       <section className="panel-heading agda-header-container">
         <SizingHandle
@@ -158,26 +124,24 @@ let make =
           mountAt
           onMountChange=(
             mountAt =>
-              switch (mountAt) {
-              | Bottom => onMountChange("bottom")
-              | Pane => onMountChange("pane")
-              | Nowhere => onMountChange("nowhere")
-              }
+              ()
+              /* switch (mountAt) {
+                 | Bottom => onMountChange("bottom")
+                 | Pane => onMountChange("pane")
+                 | Nowhere => onMountChange("nowhere")
+                 } */
           )
           settingsViewOn
           onSettingsViewToggle
         />
       </section>
       <section className="agda-body-container">
-        <Context.Emitter.Provider value=emit>
-          <Body
-            state=body
-            hidden=(mode != Display)
-            mountAtBottom=(mountAt == Bottom)
-          />
-        </Context.Emitter.Provider>
-      </section>
+        /* <Context.Emitter.Provider value=emit> */
+
+          <Body state=body hidden=false mountAtBottom=(mountAt == Bottom) />
+        </section>
     </section>;
+    /* </Context.Emitter.Provider> */
     /* <MiniEditor
          hidden=(View.Mode.Query !== mode)
          value=this.props.query.value
@@ -206,28 +170,27 @@ let make =
        /> */
   },
 };
+/* [@bs.deriving abstract]
+   type jsProps = {
+     updateHeader: (jsHeaderState => unit) => unit,
+     updateJSONBody: (jsJSONBodyState => unit) => unit,
+     updateEmacsBody: (jsEmacsBodyState => unit) => unit,
+     updateIsPending: (jsState => unit) => unit,
+     onMountChange: string => unit,
+     onSettingsViewToggle: bool => unit,
+     emit: (string, Type.Syntax.Position.range) => unit,
+   };
 
-[@bs.deriving abstract]
-type jsProps = {
-  updateHeader: (jsHeaderState => unit) => unit,
-  updateJSONBody: (jsJSONBodyState => unit) => unit,
-  updateEmacsBody: (jsEmacsBodyState => unit) => unit,
-  updateIsPending: (jsState => unit) => unit,
-  onMountChange: string => unit,
-  onSettingsViewToggle: bool => unit,
-  emit: (string, Type.Syntax.Position.range) => unit,
-};
-
-let jsComponent =
-  wrapReasonForJs(~component, jsProps =>
-    make(
-      ~updateHeader=updateHeaderGet(jsProps),
-      ~updateJSONBody=updateJSONBodyGet(jsProps),
-      ~updateEmacsBody=updateEmacsBodyGet(jsProps),
-      ~updateIsPending=updateIsPendingGet(jsProps),
-      ~onMountChange=onMountChangeGet(jsProps),
-      ~onSettingsViewToggle=onSettingsViewToggleGet(jsProps),
-      ~emit=emitGet(jsProps),
-      [||],
-    )
-  );
+   let jsComponent =
+     wrapReasonForJs(~component, jsProps =>
+       make(
+         ~updateHeader=updateHeaderGet(jsProps),
+         ~updateJSONBody=updateJSONBodyGet(jsProps),
+         ~updateEmacsBody=updateEmacsBodyGet(jsProps),
+         ~updateIsPending=updateIsPendingGet(jsProps),
+         ~onMountChange=onMountChangeGet(jsProps),
+         ~onSettingsViewToggle=onSettingsViewToggleGet(jsProps),
+         ~emit=emitGet(jsProps),
+         [||],
+       )
+     ); */

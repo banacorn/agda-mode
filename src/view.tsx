@@ -30,6 +30,9 @@ var Panel = require('./Reason/View/Panel/Panel.bs').jsComponent;
 var Reason = require('./Reason/Decoder.bs');
 
 
+const ViewRE = require('./Reason/View/View.bs');
+
+
 class EditorViewManager {
     main: Atom.TextEditor;
     general: Resource<Atom.TextEditor>;
@@ -123,7 +126,8 @@ class TabManager {
             // activate the previous pane (which opened this pane item)
             panes.previous.activate();
             // render
-            this.core.view.renderPanel(tab.getElement());
+            ViewRE.renderPanel(tab.getElement());
+            // this.core.view.renderPanel(tab.getElement());
         });
 
         // open <Panel> at the bottom when this tab got destroyed
@@ -221,10 +225,11 @@ export default class View {
     private bottomPanel: Atom.Panel;
     public tabs: TabManager;
 
-    private updateHeader: (state :{text: string; style: string}) => void;
-    private updateJSONBody: (state :{kind: string; rawJSON: object; rawString: string}) => void;
-    private updateEmacsBody: (state :{kind: string; header: string; body: string}) => void;
-    private updateIsPending: (state :{isPending: boolean}) => void;
+    private updateHeader: (state: {text: string; style: string}) => void;
+    private updateJSONBody: (state: {kind: string; rawJSON: object; rawString: string}) => void;
+    private updateEmacsBody: (state: {kind: string; header: string; body: string}) => void;
+    private updateIsPending: (state: {isPending: boolean}) => void;
+    private updateMountAt: (state: string) => void;
 
     isPending(isPending: boolean) {
         if (this.updateIsPending)
@@ -268,52 +273,53 @@ export default class View {
     }
 
 
-    public renderPanel(mountingPoint: HTMLElement) {
-        ReactDOM.render(
-            <View.EventContext.Provider value={this.emitter}>
-                <View.CoreContext.Provider value={this.core}>
-                <Panel
-                    updateHeader={handle => {
-                        this.updateHeader = handle;
-                    }}
-                    updateJSONBody={handle => {
-                        this.updateJSONBody = handle;
-                    }}
-                    updateEmacsBody={handle => {
-                        this.updateEmacsBody = handle;
-                    }}
-                    updateIsPending={handle => {
-                        this.updateIsPending = handle;
-                    }}
-                    // core={this.core}
-                    // headerText={state.header.text}
-                    // style={toStyle(state.header.style)}
-                    // hidden={state.inputMethod.activated || _.isEmpty(state.header.text)}
-                    // isPending={state.protocol.pending}
-                    // mountAt={state.view.mountAt.current === V.MountingPosition.Bottom ? 'bottom' : 'pane'}
-                    onMountChange={(at) => {
-                        this.core.view.toggleDocking();
-                        if (at === "bottom") {
-                            this.store.dispatch(Action.VIEW.mountAtBottom());
-                        } else {
-                            this.store.dispatch(Action.VIEW.mountAtPane());
-                        }
-                    }}
-                    // settingsViewOn={state.view.settingsView}
-                    onSettingsViewToggle={(isActivated) => {
-                        this.store.dispatch(Action.VIEW.toggleSettings());
-                        if (isActivated) {
-                            this.core.view.tabs.open('settings');
-                        } else {
-                            this.core.view.tabs.close('settings');
-                        }
-                    }}
-                />
-                </View.CoreContext.Provider>
-            </View.EventContext.Provider>,
-            mountingPoint
-        )
-    }
+    // public renderPanel(mountingPoint: HTMLElement) {
+    //     ReactDOM.render(
+    //         <div></div>,
+    //         // <View.EventContext.Provider value={this.emitter}>
+    //         //     <View.CoreContext.Provider value={this.core}>
+    //         //     <Panel
+    //         //         updateHeader={handle => {
+    //         //             this.updateHeader = handle;
+    //         //         }}
+    //         //         updateJSONBody={handle => {
+    //         //             this.updateJSONBody = handle;
+    //         //         }}
+    //         //         updateEmacsBody={handle => {
+    //         //             this.updateEmacsBody = handle;
+    //         //         }}
+    //         //         updateIsPending={handle => {
+    //         //             this.updateIsPending = handle;
+    //         //         }}
+    //         //         // core={this.core}
+    //         //         // headerText={state.header.text}
+    //         //         // style={toStyle(state.header.style)}
+    //         //         // hidden={state.inputMethod.activated || _.isEmpty(state.header.text)}
+    //         //         // isPending={state.protocol.pending}
+    //         //         // mountAt={state.view.mountAt.current === V.MountingPosition.Bottom ? 'bottom' : 'pane'}
+    //         //         onMountChange={(at) => {
+    //         //             this.core.view.toggleDocking();
+    //         //             if (at === "bottom") {
+    //         //                 this.store.dispatch(Action.VIEW.mountAtBottom());
+    //         //             } else {
+    //         //                 this.store.dispatch(Action.VIEW.mountAtPane());
+    //         //             }
+    //         //         }}
+    //         //         // settingsViewOn={state.view.settingsView}
+    //         //         onSettingsViewToggle={(isActivated) => {
+    //         //             this.store.dispatch(Action.VIEW.toggleSettings());
+    //         //             if (isActivated) {
+    //         //                 this.core.view.tabs.open('settings');
+    //         //             } else {
+    //         //                 this.core.view.tabs.close('settings');
+    //         //             }
+    //         //         }}
+    //         //     />
+    //         //     </View.CoreContext.Provider>
+    //         // </View.EventContext.Provider>,
+    //         mountingPoint
+    //     )
+    // }
 
     mountPanel(mountAt: V.MountingPosition) {
         if (!this.state().mounted) {
@@ -330,7 +336,7 @@ export default class View {
                         visible: true
                     });
                     // render
-                    this.renderPanel(element);
+                    ViewRE.renderPanel(element);
                     break;
                 case V.MountingPosition.Pane:
                     this.tabs.open('panel')
@@ -398,12 +404,12 @@ export default class View {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
-        this.updateHeader({
+        ViewRE.jsUpdateHeader({
             text: errorToHeader(Reason.parseError(rawJSON)),
             style: 'error',
         });
 
-        this.updateJSONBody({
+        ViewRE.jsUpdateHeader({
             kind: 'Error',
             rawJSON: rawJSON,
             rawString: rawString
@@ -415,12 +421,12 @@ export default class View {
         this.editors.focusMain()
 
 
-        this.updateHeader({
+        ViewRE.jsUpdateHeader({
             text: 'All Goals, Warnings, and Errors',
             style: 'info'
         });
 
-        this.updateJSONBody({
+        ViewRE.jsUpdateJSONBody({
             kind: 'AllGoalsWarnings',
             rawJSON: rawJSON,
             rawString: rawString,
@@ -432,12 +438,12 @@ export default class View {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
-        this.updateHeader({
+        ViewRE.jsUpdateHeader({
             text: header,
             style: style
         });
 
-        this.updateEmacsBody({
+        ViewRE.jsUpdateEmacsBody({
             kind: kind,
             header: header,
             body: payload
@@ -448,12 +454,12 @@ export default class View {
         this.store.dispatch(Action.MODE.display());
         this.editors.focusMain()
 
-        this.updateHeader({
+        ViewRE.jsUpdateHeader({
             text: header,
             style: 'info'
         });
 
-        this.updateEmacsBody({
+        ViewRE.jsUpdateEmacsBody({
             kind: 'GoalTypeContext',
             header: header,
             body: goalTypeContext
@@ -473,11 +479,12 @@ export default class View {
         this.editors.focusMain()
 
 
-        this.updateHeader({
+        ViewRE.jsUpdateHeader({
             text: header,
-            style: style,
+            style: style
         });
-        this.updateEmacsBody({
+
+        ViewRE.jsUpdateEmacsBody({
             kind: 'PlainText',
             header: header,
             body: body

@@ -37,7 +37,7 @@
     "webpack-cli": "^3.1.2",
     "@glennsl/rebase": "github:glennsl/rebase",
     "@glennsl/bs-json": "^3.0.0",
-    "atom": "github:banacorn/bs-atom",
+    "atom": "~/reason/bs-atom",
     "bs-webapi": "^0.13.0"
   },
   "dependencies": {
