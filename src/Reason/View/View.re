@@ -1,5 +1,7 @@
 open ReasonReact;
 
+open Type.Interaction;
+
 type jsHeaderState = {
   .
   "text": string,
@@ -36,6 +38,49 @@ let renderPanel = element =>
     element,
   );
 
+/* TODO */
+let translateJSMountAt = (jsMountAt: string) : mountAt =>
+  switch (jsMountAt) {
+  | "bottom" => Bottom
+  | "pane" => Pane
+  | _ => Nowhere
+  };
+
+let mountingPosition = ref(Nowhere);
+
+let mountPanel = (jsMountAt: string) =>
+  switch (mountingPosition^, translateJSMountAt(jsMountAt)) {
+  | (Bottom, Bottom) => ()
+  | (Bottom, Pane) => ()
+  | (Bottom, Nowhere) => ()
+  | (Pane, Bottom) => ()
+  | (Pane, Pane) => ()
+  | (Pane, Nowhere) => ()
+  | (Nowhere, Bottom) => ()
+  | (Nowhere, Pane) => ()
+  | (Nowhere, Nowhere) => ()
+  };
+
+/* switch (mountingPosition^) {
+   | Bottom => ()
+   | Pane => ()
+   | Nowhere =>
+     switch (translateJSMountAt(jsMountAt)) {
+     | Bottom =>
+       open Webapi.Dom;
+       open DomTokenListRe;
+       let element = document |> Document.createElement("article");
+       element |> Element.classList |> add("agda-mode");
+       Atom.Environment.Workspace.addBottomPanel({
+         "item": element,
+         "visible": true,
+       });
+       renderPanel(element);
+     | Pane => Js.log("open tab panel")
+     /* this.tabs.open('panel') */
+     | Nowhere => ()
+     }
+   }; */
 /* let renderPanel = () => {
      open Webapi.Dom;
      open DomTokenListRe;
