@@ -6,7 +6,7 @@ open Js.Promise;
 
 open Atom;
 
-type item = {
+type itemDescriptor = {
   .
   "element": ElementRe.t,
   "getURI": unit => string,
@@ -14,7 +14,7 @@ type item = {
   "getDefaultLocation": unit => string,
 };
 
-let createItem = (editor: TextEditor.t) : item => {
+let createItemDescriptor = (editor: TextEditor.t) : itemDescriptor => {
   open DomTokenListRe;
   let element = document |> Document.createElement("article");
   element |> Element.classList |> add("agda-mode");
@@ -33,23 +33,18 @@ type state = {
   closedDeliberately: bool,
 };
 
-type method = {
-  open_: unit => unit,
-  kill: unit => unit,
-  activate: unit => unit,
-};
-
 type action =
   | Open
+  | Kill
   | Activate
-  | UpdatePaneItem(TextEditor.t)
-  | Kill;
+  | UpdatePaneItem(TextEditor.t);
 
-/* let setRef = (r, {ReasonReact.state}) =>
-   state.ref :=
-     Js.Nullable.toOption(r)
-     |> Option.map(r => ReasonReact.refToJsObj(r)##getModel()); */
-let component = ReasonReact.reducerComponent("Tab");
+type retainedProps = {
+  open_: bool,
+  active: bool,
+};
+
+let component = ReasonReact.reducerComponentWithRetainedProps("Tab");
 
 let trigger = (callback: option(unit => unit)) : unit =>
   switch (callback) {
@@ -65,11 +60,13 @@ let triggerArg = (callback: option('a => unit), arg: 'a) : unit =>
 
 let make =
     (
-      ~handle: option(method => unit)=?,
       ~editor: TextEditor.t,
+      ~active: bool=false,
+      ~open_: bool=false,
       ~onOpen: option(TextEditor.t => unit)=?,
       ~onKill: option(unit => unit)=?,
       ~onClose: option(unit => unit)=?,
+      ~onDidChangeActive: option(bool => unit)=?,
       _children,
     ) => {
   ...component,
@@ -104,8 +101,8 @@ let make =
           self => {
             let subscriptions = CompositeDisposable.make();
             /* mount the view onto the element */
-            let item = createItem(editor);
-            Environment.Workspace.open_(item)
+            let itemDescriptor = createItemDescriptor(editor);
+            Environment.Workspace.open_(itemDescriptor)
             |> then_(newItem => {
                  /* this pane */
                  let pane = Environment.Workspace.paneForItem(newItem);
@@ -118,7 +115,7 @@ let make =
                  |> Pane.onWillDestroyItem(event => {
                       /* if the item that's going to be destroyed happens to be this tab */
                       let destroyedTitle = Pane.getTitle(event##item);
-                      let getTitle = item##getTitle;
+                      let getTitle = itemDescriptor##getTitle;
                       if (destroyedTitle === getTitle()) {
                         /* invoke the onKill or onClose */
                         if (state.closedDeliberately) {
@@ -128,6 +125,18 @@ let make =
                         };
                         /* dispose */
                         CompositeDisposable.dispose(subscriptions);
+                      };
+                    })
+                 |> CompositeDisposable.add(subscriptions);
+                 /* onDidChangeActive */
+                 pane
+                 |> Pane.onDidChangeActiveItem(item => {
+                      let activatedTitle = Pane.getTitle(item);
+                      let getTitle = itemDescriptor##getTitle;
+                      if (activatedTitle == getTitle()) {
+                        triggerArg(onDidChangeActive, true);
+                      } else {
+                        triggerArg(onDidChangeActive, false);
                       };
                     })
                  |> CompositeDisposable.add(subscriptions);
@@ -142,11 +151,25 @@ let make =
     | (UpdatePaneItem(item), None) => Update({...state, item: Some(item)})
     | (Kill, None) => NoUpdate
     },
-  didMount: self => {
-    let open_ = () => self.send(Open);
-    let kill = () => self.send(Kill);
-    let activate = () => self.send(Activate);
-    triggerArg(handle, {open_, kill, activate});
+  retainedProps: {
+    open_,
+    active,
+  },
+  didUpdate: ({oldSelf, newSelf}) => {
+    /* open/close */
+    switch (oldSelf.retainedProps.open_, newSelf.retainedProps.open_) {
+    | (true, true) => ()
+    | (true, false) => newSelf.send(Kill)
+    | (false, true) => newSelf.send(Open)
+    | (false, false) => ()
+    };
+    /* activation */
+    switch (oldSelf.retainedProps.active, newSelf.retainedProps.active) {
+    | (true, true) => ()
+    | (true, false) => ()
+    | (false, true) => newSelf.send(Activate)
+    | (false, false) => ()
+    };
   },
   render: _self => null,
 };
