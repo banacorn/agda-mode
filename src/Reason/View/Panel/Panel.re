@@ -41,6 +41,8 @@ let make =
       ~header: header,
       ~mountAt: mountAt,
       ~mode: mode,
+      ~query: query,
+      /* ~onQueryConfirm: string => unit, */
       /* ~jsonBody: Emacs.rawBody, */
       /* ~updateHeader: (jsHeaderState => unit) => unit,
          ~updateEmacsBody: (jsEmacsBodyState => unit) => unit,
@@ -93,58 +95,49 @@ let make =
       </section>
       <section className="agda-body-container">
         /* <Context.Emitter.Provider value=emit> */
-         <Body body hidden=(mode != Display) mountAtBottom /> </section>
+
+          <Body body hidden=(mode != Display) mountAtBottom />
+          <MiniEditor
+            hidden=(mode != Query)
+            value=query.value
+            placeholder=query.placeholder
+            grammar="agda"
+            onConfirm=(
+              result =>
+                ()
+                /* onQueryConfirm(
+                     result,
+                     /* core.view.editors.answerGeneral(result);
+                        this.props.handelQueryValueChange(result);
+                        core.view.editors.focusMain();
+                        this.props.deactivateMiniEditor();
+                        core.inputMethod.confirm(); */
+                   ) */
+            )
+            /* editorRef=(editor => core.view.editors.general.resolve(editor))
+               onFocus=(() => core.view.editors.setFocus("general"))
+               onBlur=(() => core.view.editors.setFocus("main"))
+               onConfirm=(
+                 result => {
+                   onQueryConfirm(result);
+                   /* core.view.editors.answerGeneral(result);
+                      this.props.handelQueryValueChange(result);
+                      core.view.editors.focusMain();
+                      this.props.deactivateMiniEditor();
+                      core.inputMethod.confirm(); */
+                 }
+               )
+               onCancel=(
+                 () => {
+                   /* core.view.editors.rejectGeneral();
+                      core.view.editors.focusMain()
+                      this.props.deactivateMiniEditor();
+                      core.inputMethod.cancel(); */
+                 }
+               ) */
+          />
+        </section>
     </section>;
     /* </Context.Emitter.Provider> */
-    /* <MiniEditor
-         hidden=(View.Mode.Query !== mode)
-         value=this.props.query.value
-         placeholder=this.props.query.placeholder
-         grammar="agda"
-         editorRef=(editor => core.view.editors.general.resolve(editor))
-         onFocus=(() => core.view.editors.setFocus("general"))
-         onBlur=(() => core.view.editors.setFocus("main"))
-         onConfirm=(
-           result => {
-             /* core.view.editors.answerGeneral(result);
-                this.props.handelQueryValueChange(result);
-                core.view.editors.focusMain();
-                this.props.deactivateMiniEditor();
-                core.inputMethod.confirm(); */
-           }
-         )
-         onCancel=(
-           () => {
-             /* core.view.editors.rejectGeneral();
-                core.view.editors.focusMain()
-                this.props.deactivateMiniEditor();
-                core.inputMethod.cancel(); */
-           }
-         )
-       /> */
   },
 };
-/* [@bs.deriving abstract]
-   type jsProps = {
-     updateHeader: (jsHeaderState => unit) => unit,
-     updateJSONBody: (jsJSONBodyState => unit) => unit,
-     updateEmacsBody: (jsEmacsBodyState => unit) => unit,
-     updateIsPending: (jsState => unit) => unit,
-     onMountChange: string => unit,
-     onSettingsViewToggle: bool => unit,
-     emit: (string, Type.Syntax.Position.range) => unit,
-   };
-
-   let jsComponent =
-     wrapReasonForJs(~component, jsProps =>
-       make(
-         ~updateHeader=updateHeaderGet(jsProps),
-         ~updateJSONBody=updateJSONBodyGet(jsProps),
-         ~updateEmacsBody=updateEmacsBodyGet(jsProps),
-         ~updateIsPending=updateIsPendingGet(jsProps),
-         ~onMountChange=onMountChangeGet(jsProps),
-         ~onSettingsViewToggle=onSettingsViewToggleGet(jsProps),
-         ~emit=emitGet(jsProps),
-         [||],
-       )
-     ); */

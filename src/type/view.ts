@@ -10,7 +10,6 @@ export interface State {
     connection: ConnectionState;
     protocol: Protocol;
     inputMethod: InputMethodState;
-    query: QueryState;
 }
 
 export interface ViewState {
@@ -56,11 +55,6 @@ export interface InputMethodState {
     further: boolean;
     keySuggestions: string[];
     candidateSymbols: string[];
-}
-
-export interface QueryState {
-    placeholder: string;
-    value: string;
 }
 
 export type SettingsURI = {

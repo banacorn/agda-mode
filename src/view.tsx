@@ -497,8 +497,12 @@ export default class View {
     }
 
     query(header: string = '', _: string[] = [], placeholder: string = ''): Promise<string> {
-        this.store.dispatch(Action.QUERY.setPlaceholder(placeholder));
+
         ViewRE.jsUpdateMode("query");
+
+        ViewRE.jsUpdateQuery({
+            placeholder: placeholder
+        });
 
         ViewRE.jsUpdateHeader({
             text: header,

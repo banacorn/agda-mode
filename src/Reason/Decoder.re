@@ -1822,8 +1822,6 @@ module Decode = {
   };
 };
 
-open Type.Interaction;
-
 open Type.Interaction.JSON;
 
 let parseError = Decode.TypeChecking.error;

@@ -9,6 +9,7 @@ type state = {
   body: ref(body),
   mountAt: ref(mountAt),
   mode: ref(mode),
+  query: ref(query),
 };
 
 let state = {
@@ -16,6 +17,7 @@ let state = {
   body: ref({maxHeight: 170, raw: Unloaded}),
   mountAt: ref(Nowhere),
   mode: ref(Display),
+  query: ref({placeholder: "", value: ""}),
 };
 
 let editorRef = ref(None: option(Atom.TextEditor.t));
@@ -33,7 +35,7 @@ let createElement = () : Element.t => {
 };
 
 let rec renderPanel = element => {
-  let {header, body, mountAt, mode} = state;
+  let {header, body, mountAt, mode, query} = state;
   ReactDOMRe.render(
     <Panel
       header=header^
@@ -41,6 +43,14 @@ let rec renderPanel = element => {
       mountAt=mountAt^
       onMountAtChange=(mountTo => mountPanel(mountTo))
       mode=mode^
+      query=query^
+      /* onQueryConfirm=(
+           value => {
+             let newQuery = {...query^, value};
+             ();
+             /* updateQuery(newQuery); */
+           }
+         ) */
     />,
     element,
   );
@@ -116,6 +126,11 @@ let updateMode = mode => {
   rerenderPanel();
 };
 
+let updateQuery = query => {
+  state.query := query;
+  rerenderPanel();
+};
+
 /* exposed to the JS counterpart */
 type jsHeaderState = {
   .
@@ -135,6 +150,12 @@ type jsJSONBodyState = {
   "kind": string,
   "rawJSON": Js.Json.t,
   "rawString": string,
+};
+
+type jsQueryState = {
+  .
+  "placeholder": string,
+  "value": string,
 };
 
 let jsUpdateEmacsBody = (raw: jsEmacsBodyState) =>
@@ -173,3 +194,6 @@ let jsUpdateMode = (mode: string) =>
   | "display" => updateMode(Display)
   | _ => updateMode(Query)
   };
+
+let jsUpdateQuery = (obj: jsQueryState) =>
+  updateQuery({placeholder: obj##placeholder, value: obj##value});

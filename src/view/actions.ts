@@ -115,14 +115,3 @@ export namespace INPUT_METHOD {
     export const deleteChar = createAction(INPUT_METHOD.DELETE);
     export const replaceSymbol = createAction<INPUT_METHOD.REPLACE_SYMBOL>(INPUT_METHOD.REPLACE_SYMBOL);
 }
-
-export type QUERY = QUERY.SET_PLACEHOLDER | QUERY.UPDATE_VALUE;
-export namespace QUERY {
-    export const SET_PLACEHOLDER = 'QUERY.SET_PLACEHOLDER';
-    export type SET_PLACEHOLDER = string;
-    export const UPDATE_VALUE = 'QUERY.UPDATE_VALUE';
-    export type UPDATE_VALUE = string;
-
-    export const updateValue = createAction<QUERY.UPDATE_VALUE>(QUERY.UPDATE_VALUE);
-    export const setPlaceholder = createAction<QUERY.SET_PLACEHOLDER>(QUERY.SET_PLACEHOLDER);
-}
