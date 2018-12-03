@@ -2,13 +2,16 @@ open ReasonReact;
 
 open Rebase;
 
+open Type.Interaction;
+
 let component = statelessComponent("JSONBody");
 
-let make = (~state: Type.Interaction.body, ~hidden, ~mountAtBottom, _children) => {
+let make = (~body: body, ~hidden, ~mountAtBottom, _children) => {
   ...component,
   render: _self => {
+    let {raw, maxHeight} = body;
     let comp =
-      switch (state.raw) {
+      switch (raw) {
       | Unloaded => <Emacs__Error body="not loaded yet" />
       | RawJSON(raw) =>
         switch (Decoder.parseBody(raw)) {
@@ -40,7 +43,7 @@ let make = (~state: Type.Interaction.body, ~hidden, ~mountAtBottom, _children) =
       mountAtBottom ?
         Some(
           ReactDOMRe.Style.make(
-            ~maxHeight=string_of_int(state.maxHeight) ++ "px",
+            ~maxHeight=string_of_int(maxHeight) ++ "px",
             (),
           ),
         ) :

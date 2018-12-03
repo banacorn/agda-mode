@@ -4,7 +4,6 @@ open Type.Interaction;
 
 type state = {
   maxHeight: int,
-  mode,
   isPending: bool,
   settingsViewOn: bool,
 };
@@ -23,7 +22,6 @@ type action =
 
 let initialState = () => {
   maxHeight: 170,
-  mode: Display,
   isPending: false,
   settingsViewOn: false,
 };
@@ -38,11 +36,12 @@ let component = reducerComponent("Panel");
 
 let make =
     (
-      ~onMountAtChange: Type.Interaction.mountTo => unit,
-      ~body: Type.Interaction.body,
-      ~header: Type.Interaction.header,
-      ~mountAt: Type.Interaction.mountAt,
-      /* ~jsonBody: Type.Interaction.Emacs.rawBody, */
+      ~onMountAtChange: mountTo => unit,
+      ~body: body,
+      ~header: header,
+      ~mountAt: mountAt,
+      ~mode: mode,
+      /* ~jsonBody: Emacs.rawBody, */
       /* ~updateHeader: (jsHeaderState => unit) => unit,
          ~updateEmacsBody: (jsEmacsBodyState => unit) => unit,
          ~updateIsPending: (jsState => unit) => unit,
@@ -55,7 +54,7 @@ let make =
   initialState,
   reducer,
   render: self => {
-    let {mode, isPending, settingsViewOn} = self.state;
+    let {isPending, settingsViewOn} = self.state;
     let onSettingsViewToggle = (_) => ();
     let mountAtBottom =
       switch (mountAt) {
@@ -94,7 +93,7 @@ let make =
       </section>
       <section className="agda-body-container">
         /* <Context.Emitter.Provider value=emit> */
-         <Body state=body hidden=false mountAtBottom /> </section>
+         <Body body hidden=(mode != Display) mountAtBottom /> </section>
     </section>;
     /* </Context.Emitter.Provider> */
     /* <MiniEditor

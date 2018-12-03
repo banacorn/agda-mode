@@ -7,7 +7,6 @@ export interface Parsed<T> {
 
 export interface State {
     view: ViewState;
-    mode: Mode;
     connection: ConnectionState;
     protocol: Protocol;
     inputMethod: InputMethodState;
@@ -23,12 +22,6 @@ export interface ViewState {
     };
     settingsView: boolean;
     settingsURI: SettingsURI;
-}
-
-export const enum Mode {
-    Display,
-    Query,
-    QueryConnection
 }
 
 export interface ConnectionState {

@@ -1,28 +1,21 @@
-open ReasonReact;
-
 open Type.Interaction;
 
 open Webapi.Dom;
 
-open Rebase;
-
 exception EditorNotSet;
 
-/*
- type mountingPosition =
-   | Bottom(Element.t)
-   | Pane(Tab.handle)
-   | Nowhere; */
 type state = {
   header: ref(header),
   body: ref(body),
   mountAt: ref(mountAt),
+  mode: ref(mode),
 };
 
 let state = {
   header: ref({text: "", style: ""}),
   body: ref({maxHeight: 170, raw: Unloaded}),
   mountAt: ref(Nowhere),
+  mode: ref(Display),
 };
 
 let editorRef = ref(None: option(Atom.TextEditor.t));
@@ -40,13 +33,14 @@ let createElement = () : Element.t => {
 };
 
 let rec renderPanel = element => {
-  let {header, body, mountAt} = state;
+  let {header, body, mountAt, mode} = state;
   ReactDOMRe.render(
     <Panel
       header=header^
       body=body^
       mountAt=mountAt^
       onMountAtChange=(mountTo => mountPanel(mountTo))
+      mode=mode^
     />,
     element,
   );
@@ -117,6 +111,11 @@ let updateBody = body => {
   rerenderPanel();
 };
 
+let updateMode = mode => {
+  state.mode := mode;
+  rerenderPanel();
+};
+
 /* exposed to the JS counterpart */
 type jsHeaderState = {
   .
@@ -168,3 +167,9 @@ let jsMountPanel = (jsMountTo: string) => {
     };
   mountPanel(translateJSMountTo(jsMountTo));
 };
+
+let jsUpdateMode = (mode: string) =>
+  switch (mode) {
+  | "display" => updateMode(Display)
+  | _ => updateMode(Query)
+  };

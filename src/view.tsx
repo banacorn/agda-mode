@@ -404,7 +404,7 @@ export default class View {
     // for JSON
     setJSONError(rawJSON: object, rawString: string) {
         console.log(rawJSON)
-        this.store.dispatch(Action.MODE.display());
+        ViewRE.jsUpdateMode("display");
         this.editors.focusMain()
 
         ViewRE.jsUpdateHeader({
@@ -420,7 +420,7 @@ export default class View {
     }
 
     setJSONAllGoalsWarnings(rawJSON: object, rawString: string) {
-        this.store.dispatch(Action.MODE.display());
+        ViewRE.jsUpdateMode("display");
         this.editors.focusMain()
 
 
@@ -438,7 +438,7 @@ export default class View {
 
     // for Emacs
     setEmacsPanel(header, kind, payload, style: Style ="info") {
-        this.store.dispatch(Action.MODE.display());
+        ViewRE.jsUpdateMode("display");
         this.editors.focusMain()
 
         ViewRE.jsUpdateHeader({
@@ -454,7 +454,7 @@ export default class View {
     }
 
     setEmacsGoalTypeContext(header: string = 'Judgements', goalTypeContext: string) {
-        this.store.dispatch(Action.MODE.display());
+        ViewRE.jsUpdateMode("display");
         this.editors.focusMain()
 
         ViewRE.jsUpdateHeader({
@@ -478,7 +478,9 @@ export default class View {
     }
 
     setPlainText(header: string, body: string, style: Style ="plain-text") {
-        this.store.dispatch(Action.MODE.display());
+        ViewRE.jsUpdateMode("display");
+
+        ViewRE.jsUpdateMode("display");
         this.editors.focusMain()
 
 
@@ -496,9 +498,9 @@ export default class View {
 
     query(header: string = '', _: string[] = [], placeholder: string = ''): Promise<string> {
         this.store.dispatch(Action.QUERY.setPlaceholder(placeholder));
-        this.store.dispatch(Action.MODE.query());
+        ViewRE.jsUpdateMode("query");
 
-        this.updateHeader({
+        ViewRE.jsUpdateHeader({
             text: header,
             style: 'plain-text',
         });
