@@ -10,6 +10,8 @@ import * as Req from './request';
 import * as Action from './view/actions';
 import Table from './asset/query';
 
+const ViewRE = require('./Reason/View.bs');
+
 function toDescription(normalization: Agda.Normalization): string {
     switch(normalization) {
         case 'Simplified':      return '';
@@ -121,9 +123,11 @@ export default class Commander {
                 .catch(Err.Conn.NotEstablished, () => {
                     if (activationCommands) {
                         // activate the view first
-                        const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
-                        this.core.view.mountPanel(currentMountingPosition);
-                        this.core.view.activatePanel();
+                        // const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+                        // this.core.view.mountPanel(currentMountingPosition);
+                        // this.core.view.activatePanel();
+                        ViewRE.jsMountPanel("bottom");
+
 
                         if (command.kind === 'Load') {
                             this.core.view.setPlainText('Type Checking ...', '');
@@ -251,9 +255,10 @@ export default class Commander {
     }
 
     private quit = (): Promise<Agda.Request[]> => {
-        this.core.view.deactivatePanel();
-        const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
-        this.core.view.unmountPanel(currentMountingPosition);
+        // this.core.view.deactivatePanel();
+        // const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+        // this.core.view.unmountPanel(currentMountingPosition);
+        ViewRE.jsMountPanel("nowhere");
         if (this.loaded) {
             this.loaded = false;
             this.core.editor.goal.removeAll();
@@ -456,9 +461,10 @@ export default class Commander {
     private inputSymbol = (): Promise<Agda.Request[]> => {
         if (atom.config.get('agda-mode.inputMethod')) {
             if (!this.loaded) {
-                const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
-                this.core.view.mountPanel(currentMountingPosition);
-                this.core.view.activatePanel();
+                // const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
+                // this.core.view.mountPanel(currentMountingPosition);
+                // this.core.view.activatePanel();
+                ViewRE.jsMountPanel("bottom");
                 this.core.view.setPlainText('Not loaded', '');
             }
             this.core.inputMethod.activate();

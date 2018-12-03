@@ -3,9 +3,7 @@ open ReasonReact;
 open Type.Interaction;
 
 type state = {
-  header,
-  body,
-  mountAt,
+  maxHeight: int,
   mode,
   isPending: bool,
   settingsViewOn: bool,
@@ -20,22 +18,11 @@ type jsState = {
 };
 
 type action =
-  | UpdateHeader(header)
-  | UpdateJSONBody(Type.Interaction.JSON.rawBody)
-  | UpdateEmacsBody(Type.Interaction.Emacs.rawBody)
   | UpdateMaxHeight(int)
   | UpdateIsPending(bool);
 
 let initialState = () => {
-  header: {
-    text: "",
-    style: "",
-  },
-  body: {
-    maxHeight: 170,
-    raw: Unloaded,
-  },
-  mountAt: Bottom,
+  maxHeight: 170,
   mode: Display,
   isPending: false,
   settingsViewOn: false,
@@ -43,31 +30,7 @@ let initialState = () => {
 
 let reducer = (action, state) =>
   switch (action) {
-  | UpdateHeader(header) => Update({...state, header})
-  | UpdateJSONBody(raw) =>
-    Update({
-      ...state,
-      body: {
-        ...state.body,
-        raw: RawJSON(raw),
-      },
-    })
-  | UpdateEmacsBody(raw) =>
-    Update({
-      ...state,
-      body: {
-        ...state.body,
-        raw: RawEmacs(raw),
-      },
-    })
-  | UpdateMaxHeight(maxHeight) =>
-    Update({
-      ...state,
-      body: {
-        ...state.body,
-        maxHeight,
-      },
-    })
+  | UpdateMaxHeight(maxHeight) => Update({...state, maxHeight})
   | UpdateIsPending(isPending) => Update({...state, isPending})
   };
 
@@ -75,9 +38,10 @@ let component = reducerComponent("Panel");
 
 let make =
     (
-      ~updateHeader: (Type.Interaction.header => unit) => unit,
-      ~updateEmacsBody: (Type.Interaction.Emacs.rawBody => unit) => unit,
-      ~updateJSONBody: (Type.Interaction.JSON.rawBody => unit) => unit,
+      ~onMountAtChange: Type.Interaction.mountTo => unit,
+      ~body: Type.Interaction.body,
+      ~header: Type.Interaction.header,
+      ~mountAt: Type.Interaction.mountAt,
       /* ~jsonBody: Type.Interaction.Emacs.rawBody, */
       /* ~updateHeader: (jsHeaderState => unit) => unit,
          ~updateEmacsBody: (jsEmacsBodyState => unit) => unit,
@@ -91,12 +55,13 @@ let make =
   initialState,
   reducer,
   render: self => {
-    let {header, body, mode, isPending, mountAt, settingsViewOn} = self.state;
-    updateHeader(state => self.send(UpdateHeader(state)));
-    updateEmacsBody(state => self.send(UpdateEmacsBody(state)));
-    updateJSONBody(state => self.send(UpdateJSONBody(state)));
-    /* updateIsPending(state => self.send(UpdateIsPending(state##isPending))); */
+    let {mode, isPending, settingsViewOn} = self.state;
     let onSettingsViewToggle = (_) => ();
+    let mountAtBottom =
+      switch (mountAt) {
+      | Bottom(_) => true
+      | _ => false
+      };
     <section>
       <section className="panel-heading agda-header-container">
         <SizingHandle
@@ -115,31 +80,21 @@ let make =
               )
               |> ignore
           )
-          atBottom=(mountAt == Bottom)
+          mountAtBottom
         />
         <Dashboard
           header
           hidden=false
           isPending
           mountAt
-          onMountChange=(
-            mountAt =>
-              ()
-              /* switch (mountAt) {
-                 | Bottom => onMountChange("bottom")
-                 | Pane => onMountChange("pane")
-                 | Nowhere => onMountChange("nowhere")
-                 } */
-          )
+          onMountAtChange
           settingsViewOn
           onSettingsViewToggle
         />
       </section>
       <section className="agda-body-container">
         /* <Context.Emitter.Provider value=emit> */
-
-          <Body state=body hidden=false mountAtBottom=(mountAt == Bottom) />
-        </section>
+         <Body state=body hidden=false mountAtBottom /> </section>
     </section>;
     /* </Context.Emitter.Provider> */
     /* <MiniEditor

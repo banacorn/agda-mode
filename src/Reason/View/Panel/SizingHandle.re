@@ -41,14 +41,14 @@ let make =
     (
       ~onResizeStart: int => unit,
       ~onResizeEnd: int => unit,
-      ~atBottom: bool,
+      ~mountAtBottom: bool,
       _children,
     ) => {
   ...component,
   initialState: () => {height: 0, handleRef: ref(None)},
   reducer: (UpdateHeight(height), state) => Update({...state, height}),
   render: self =>
-    atBottom ?
+    mountAtBottom ?
       <div className="sizing-handle-anchor">
         <div
           className="sizing-handle native-key-bindings"

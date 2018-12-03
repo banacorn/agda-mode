@@ -203,3 +203,31 @@ module List_ = {
       }
     };
 };
+
+module Resource = {
+  type t('a) = {
+    acquire: unit => Js.Promise.t('a),
+    supply: 'a => unit,
+  };
+  let make = () : t('a) => {
+    /* resource that is temporarily unavailable */
+    let resource = ref(None: option('a));
+    /* queue of callbacks waiting to be resolved */
+    let queue = ref([]);
+    /* return the resource if it's immediately available,
+         else waits in the queue
+       */
+    let acquire = () =>
+      switch (resource^) {
+      | None =>
+        Js.Promise.make((~resolve, ~reject) => queue := [resolve, ...queue^])
+      | Some(x) => Js.Promise.resolve(x)
+      };
+    /* iterate through the list of waiting callbacks and resolve them  */
+    let supply = x => {
+      resource := Some(x);
+      queue^ |> List.forEach(resolve => resolve(. x));
+    };
+    {acquire, supply};
+  };
+};

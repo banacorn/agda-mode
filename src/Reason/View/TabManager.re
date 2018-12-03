@@ -1,24 +1,24 @@
-open ReasonReact;
+/* open ReasonReact;
 
-open Webapi.Dom;
+   open Webapi.Dom;
 
-open Js.Promise;
+   open Js.Promise;
 
-open Atom;
+   open Atom;
 
-type state = {panel: bool};
+   type state = {panel: bool};
 
-type action =
-  | Open;
+   type action =
+     | Open;
 
-let component = ReasonReact.reducerComponent("TabManager");
+   let component = ReasonReact.reducerComponent("TabManager");
 
-let make = (~editor: TextEditor.t, _children) => {
-  ...component,
-  initialState: () => {panel: false},
-  reducer: (action: action, state: state) =>
-    switch (action) {
-    | Open => NoUpdate
-    },
-  render: _self => <> <Tab editor /> </>,
-};
+   let make = (~editor: TextEditor.t, _children) => {
+     ...component,
+     initialState: () => {panel: false},
+     reducer: (action: action, state: state) =>
+       switch (action) {
+       | Open => NoUpdate
+       },
+     render: _self => <> <Tab editor> <div /> </Tab> </>,
+   }; */

@@ -728,9 +728,15 @@ module Interaction = {
     text: string,
     style: string,
   };
+  /* action  */
+  type mountTo =
+    | ToBottom
+    | ToPane
+    | ToNowhere;
+  /* state */
   type mountAt =
-    | Bottom
-    | Pane
+    | Bottom(Webapi.Dom.Element.t)
+    | Pane(Tab.handle)
     | Nowhere;
   type mode =
     | Display

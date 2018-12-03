@@ -30,7 +30,7 @@ var Panel = require('./Reason/View/Panel/Panel.bs').jsComponent;
 var Reason = require('./Reason/Decoder.bs');
 
 
-const ViewRE = require('./Reason/View/View.bs');
+const ViewRE = require('./Reason/View.bs');
 
 
 class EditorViewManager {
@@ -133,8 +133,9 @@ class TabManager {
         // open <Panel> at the bottom when this tab got destroyed
         this.panel.onKill(tab => {
             this.store.dispatch(Action.VIEW.mountAtBottom());
-            this.core.view.unmountPanel(V.MountingPosition.Pane);
-            this.core.view.mountPanel(V.MountingPosition.Bottom);
+            // this.core.view.unmountPanel(V.MountingPosition.Pane);
+            // this.core.view.mountPanel(V.MountingPosition.Bottom);
+            ViewRE.jsMountPanel("bottom");
         });
 
         // Tab for <Settings>
@@ -321,79 +322,81 @@ export default class View {
     //     )
     // }
 
-    mountPanel(mountAt: V.MountingPosition) {
-        if (!this.state().mounted) {
-            // Redux
-            this.store.dispatch(Action.VIEW.mount());
+    // mountPanel(mountAt: V.MountingPosition) {
+    //     console.log(mountAt);
+    //     if (!this.state().mounted) {
+    //         // Redux
+    //         this.store.dispatch(Action.VIEW.mount());
+    //
+    //         switch (mountAt) {
+    //             case V.MountingPosition.Bottom:
+    //                 // mounting position
+    //                 const element = document.createElement('article');
+    //                 element.classList.add('agda-mode');
+    //                 this.bottomPanel = atom.workspace.addBottomPanel({
+    //                     item: element,
+    //                     visible: true
+    //                 });
+    //                 // render
+    //                 ViewRE.renderPanel(element);
+    //                 break;
+    //             case V.MountingPosition.Pane:
+    //                 this.tabs.open('panel')
+    //                 break;
+    //             default:
+    //                 console.error('no mounting position to transist to')
+    //         }
+    //     }
+    // }
 
-            switch (mountAt) {
-                case V.MountingPosition.Bottom:
-                    // mounting position
-                    const element = document.createElement('article');
-                    element.classList.add('agda-mode');
-                    this.bottomPanel = atom.workspace.addBottomPanel({
-                        item: element,
-                        visible: true
-                    });
-                    // render
-                    ViewRE.renderPanel(element);
-                    break;
-                case V.MountingPosition.Pane:
-                    this.tabs.open('panel')
-                    break;
-                default:
-                    console.error('no mounting position to transist to')
-            }
-        }
-    }
+    // unmountPanel(mountAt: V.MountingPosition) {
+    //     console.log(mountAt);
+    //     if (this.state().mounted) {
+    //         // Redux
+    //         this.store.dispatch(Action.VIEW.unmount());
+    //
+    //
+    //         switch (mountAt) {
+    //             case V.MountingPosition.Bottom:
+    //                 this.bottomPanel.destroy();
+    //                 const itemElement = this.bottomPanel.getItem() as Element;
+    //                 ReactDOM.unmountComponentAtNode(itemElement);
+    //                 break;
+    //             case V.MountingPosition.Pane:
+    //                 this.tabs.close('panel');
+    //                 break;
+    //             default:
+    //                 // do nothing
+    //                 break;
+    //         }
+    //
+    //     }
+    // }
 
-    unmountPanel(mountAt: V.MountingPosition) {
-        if (this.state().mounted) {
-            // Redux
-            this.store.dispatch(Action.VIEW.unmount());
-
-
-            switch (mountAt) {
-                case V.MountingPosition.Bottom:
-                    this.bottomPanel.destroy();
-                    const itemElement = this.bottomPanel.getItem() as Element;
-                    ReactDOM.unmountComponentAtNode(itemElement);
-                    break;
-                case V.MountingPosition.Pane:
-                    this.tabs.close('panel');
-                    break;
-                default:
-                    // do nothing
-                    break;
-            }
-
-        }
-    }
-
-    activatePanel() {
-        setTimeout(() => {
-            this.store.dispatch(Action.VIEW.activate());
-        })
-        switch (this.state().mountAt.current) {
-            case V.MountingPosition.Bottom:
-                // do nothing
-                break;
-            case V.MountingPosition.Pane:
-                this.tabs.activate('panel');
-                break;
-            default:
-                // do nothing
-                break;
-        }
-    }
-
-    deactivatePanel() {
-        this.store.dispatch(Action.VIEW.deactivate());
-    }
+    // activatePanel() {
+    //     setTimeout(() => {
+    //         this.store.dispatch(Action.VIEW.activate());
+    //     })
+    //     switch (this.state().mountAt.current) {
+    //         case V.MountingPosition.Bottom:
+    //             // do nothing
+    //             break;
+    //         case V.MountingPosition.Pane:
+    //             this.tabs.activate('panel');
+    //             break;
+    //         default:
+    //             // do nothing
+    //             break;
+    //     }
+    // }
+    //
+    // deactivatePanel() {
+    //     this.store.dispatch(Action.VIEW.deactivate());
+    // }
 
     // destructor
     destroy() {
-        this.unmountPanel(this.state().mountAt.current);
+        // this.unmountPanel(this.state().mountAt.current);
         this.subscriptions.dispose();
         this.tabs.destroyAll();
     }
@@ -530,13 +533,15 @@ export default class View {
         switch (this.state().mountAt.current) {
             case V.MountingPosition.Bottom:
                 this.store.dispatch(Action.VIEW.mountAtPane());
-                this.unmountPanel(V.MountingPosition.Bottom);
-                this.mountPanel(V.MountingPosition.Pane);
+                // this.unmountPanel(V.MountingPosition.Bottom);
+                // this.mountPanel(V.MountingPosition.Pane);
+                ViewRE.jsMountPanel("pane");
                 break;
             case V.MountingPosition.Pane:
                 this.store.dispatch(Action.VIEW.mountAtBottom());
-                this.unmountPanel(V.MountingPosition.Pane);
-                this.mountPanel(V.MountingPosition.Bottom);
+                // this.unmountPanel(V.MountingPosition.Pane);
+                // this.mountPanel(V.MountingPosition.Bottom);
+                ViewRE.jsMountPanel("bottom");
                 break;
             default:
                 // do nothing

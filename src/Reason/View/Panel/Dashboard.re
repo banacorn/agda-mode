@@ -23,7 +23,7 @@ let make =
       ~hidden: bool,
       ~isPending: bool,
       ~mountAt: Type.Interaction.mountAt,
-      ~onMountChange: Type.Interaction.mountAt => unit,
+      ~onMountAtChange: Type.Interaction.mountTo => unit,
       ~settingsViewOn: bool,
       ~onSettingsViewToggle: bool => unit,
       _children,
@@ -83,7 +83,13 @@ let make =
       ["no-btn"] |> addClass("activated", settingsViewOn) |> toClassName;
     let toggleMountingPosition =
       ["no-btn"]
-      |> addClass("activated", mountAt === Type.Interaction.Pane)
+      |> addClass(
+           "activated",
+           switch (mountAt) {
+           | Pane(_) => true
+           | _ => false
+           },
+         )
       |> toClassName;
     <div className=classList>
       <h1 className=headerClassList> (string(header.text)) </h1>
@@ -102,9 +108,10 @@ let make =
             className=toggleMountingPosition
             onClick=(
               (_) =>
-                mountAt === Type.Interaction.Pane ?
-                  onMountChange(Type.Interaction.Bottom) :
-                  onMountChange(Type.Interaction.Pane)
+                switch (mountAt) {
+                | Pane(_) => onMountAtChange(Type.Interaction.ToBottom)
+                | _ => onMountAtChange(Type.Interaction.ToPane)
+                }
             )
             ref=(self.handle(setDockingButtonRef))>
             <span className="icon icon-versions" />
