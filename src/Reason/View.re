@@ -1,3 +1,5 @@
+open ReasonReact;
+
 open Type.Interaction;
 
 open Webapi.Dom;
@@ -5,23 +7,41 @@ open Webapi.Dom;
 exception EditorNotSet;
 
 type state = {
-  header: ref(header),
-  body: ref(body),
-  mountAt: ref(mountAt),
-  mode: ref(mode),
-  query: ref(query),
+  header,
+  body,
+  mountAt,
+  editor: Atom.TextEditor.t,
+  mode,
+  query,
 };
 
-let state = {
-  header: ref({text: "", style: ""}),
-  body: ref({maxHeight: 170, raw: Unloaded}),
-  mountAt: ref(Nowhere),
-  mode: ref(Display),
-  query: ref({placeholder: "", value: ""}),
+let initialState = (editor, _) => {
+  header: {
+    text: "",
+    style: "",
+  },
+  body: {
+    maxHeight: 170,
+    raw: Unloaded,
+  },
+  mountAt: Nowhere,
+  editor,
+  mode: Display,
+  query: {
+    placeholder: "",
+    value: "",
+  },
 };
 
-let editorRef = ref(None: option(Atom.TextEditor.t));
+type action =
+  | MountTo(mountTo)
+  | UpdateMountAt(mountAt)
+  | UpdateHeader(header)
+  | UpdateRawBody(rawBody)
+  | UpdateMode(mode)
+  | UpdateQuery(query);
 
+/* let editorRef = ref(None: option(Atom.TextEditor.t)); */
 let createElement = () : Element.t => {
   open DomTokenListRe;
   let element = document |> Document.createElement("article");
@@ -34,102 +54,108 @@ let createElement = () : Element.t => {
   element;
 };
 
-let rec renderPanel = element => {
-  let {header, body, mountAt, mode, query} = state;
-  ReactDOMRe.render(
-    <Panel
-      header=header^
-      body=body^
-      mountAt=mountAt^
-      onMountAtChange=(mountTo => mountPanel(mountTo))
-      mode=mode^
-      query=query^
-      /* onQueryConfirm=(
-           value => {
-             let newQuery = {...query^, value};
-             ();
-             /* updateQuery(newQuery); */
-           }
-         ) */
-    />,
-    element,
-  );
-}
-and mountPanel = mountTo => {
+let mountPanel = (self, editor, mountTo) => {
   let createTab = () =>
-    switch (editorRef^) {
-    | Some(editor) =>
-      Tab.make(
-        ~editor,
-        /* ~onOpen=(element, _) => renderPanel(element), */
-        /* panel killed */
-        ~onKill=() => (),
-        /* tab closed */
-        ~onClose=() => mountPanel(ToBottom),
-        (),
-      )
-    | None => raise(EditorNotSet)
-    };
-  switch (state.mountAt^, mountTo) {
-  | (Bottom(element), ToBottom) => renderPanel(element)
+    Tab.make(
+      ~editor,
+      /* ~onOpen=(element, _) => renderPanel(element), */
+      /* panel killed */
+      ~onKill=() => (),
+      /* tab closed */
+      ~onClose=() => self.send(MountTo(ToBottom)),
+      (),
+    );
+  switch (self.state.mountAt, mountTo) {
+  | (Bottom(_), ToBottom) => ()
   | (Bottom(element), ToPane) =>
     ReactDOMRe.unmountComponentAtNode(element);
     let tab = createTab();
-    state.mountAt := Pane(tab);
-    renderPanel(tab.element);
+    self.send(UpdateMountAt(Pane(tab)));
   | (Bottom(element), ToNowhere) =>
-    state.mountAt := Nowhere;
+    self.send(UpdateMountAt(Nowhere));
     ReactDOMRe.unmountComponentAtNode(element);
   | (Pane(tab), ToBottom) =>
     tab.kill();
     let element = createElement();
-    state.mountAt := Bottom(element);
-    renderPanel(element);
-  | (Pane(tab), ToPane) => renderPanel(tab.element)
+    self.send(UpdateMountAt(Bottom(element)));
+  | (Pane(_), ToPane) => ()
   | (Pane(tab), ToNowhere) =>
-    Js.log("hey");
     tab.kill();
-    state.mountAt := Nowhere;
+    self.send(UpdateMountAt(Nowhere));
   | (Nowhere, ToBottom) =>
     let element = createElement();
-    state.mountAt := Bottom(element);
-    renderPanel(element);
+    self.send(UpdateMountAt(Bottom(element)));
   | (Nowhere, ToPane) =>
     let tab = createTab();
-    state.mountAt := Pane(tab);
-    renderPanel(tab.element);
+    self.send(UpdateMountAt(Pane(tab)));
   | (Nowhere, ToNowhere) => ()
   };
 };
 
-let rerenderPanel = () =>
-  switch (state.mountAt^) {
-  | Bottom(_) => mountPanel(ToBottom)
-  | Pane(_) => mountPanel(ToPane)
-  | Nowhere => mountPanel(ToNowhere)
+let renderPanel = self => {
+  let {header, body, mountAt, mode, query} = self.state;
+  switch (mountAt) {
+  | Nowhere => ()
+  | Bottom(element) =>
+    ReactDOMRe.render(
+      <Panel
+        header
+        body
+        mountAt
+        onMountAtChange=(mountTo => self.send(MountTo(mountTo)))
+        mode
+        query
+      />,
+      element,
+    )
+  | Pane(tab) =>
+    ReactDOMRe.render(
+      <Panel
+        header
+        body
+        mountAt
+        onMountAtChange=(mountTo => self.send(MountTo(mountTo)))
+        mode
+        query
+      />,
+      tab.element,
+    )
+  };
+};
+
+let reducer = (action, state) =>
+  switch (action) {
+  | MountTo(mountTo) =>
+    SideEffects((self => mountPanel(self, state.editor, mountTo)))
+  | UpdateMountAt(mountAt) =>
+    UpdateWithSideEffects({...state, mountAt}, renderPanel)
+  | UpdateHeader(header) =>
+    UpdateWithSideEffects({...state, header}, renderPanel)
+  | UpdateRawBody(raw) =>
+    UpdateWithSideEffects(
+      {
+        ...state,
+        body: {
+          ...state.body,
+          raw,
+        },
+      },
+      renderPanel,
+    )
+  | UpdateMode(mode) => UpdateWithSideEffects({...state, mode}, renderPanel)
+  | UpdateQuery(query) =>
+    UpdateWithSideEffects({...state, query}, renderPanel)
   };
 
-let initialize = editor => editorRef := Some(editor);
+let updateHeader = ref((_) => ());
 
-let updateHeader = header => {
-  state.header := header;
-  rerenderPanel();
-};
+let updateRawBody = ref((_) => ());
 
-let updateBody = body => {
-  state.body := body;
-  rerenderPanel();
-};
+let updateMode = ref((_) => ());
 
-let updateMode = mode => {
-  state.mode := mode;
-  rerenderPanel();
-};
+let updateQuery = ref((_) => ());
 
-let updateQuery = query => {
-  state.query := query;
-  rerenderPanel();
-};
+let updateMountTo = ref((_) => ());
 
 /* exposed to the JS counterpart */
 type jsHeaderState = {
@@ -159,24 +185,30 @@ type jsQueryState = {
 };
 
 let jsUpdateEmacsBody = (raw: jsEmacsBodyState) =>
-  updateBody({
-    maxHeight: state.body^.maxHeight,
-    raw: RawEmacs({kind: raw##kind, header: raw##header, body: raw##body}),
-  });
+  updateRawBody^(
+    RawEmacs({kind: raw##kind, header: raw##header, body: raw##body}),
+  );
 
 let jsUpdateJSONBody = (raw: jsJSONBodyState) =>
-  updateBody({
-    maxHeight: state.body^.maxHeight,
-    raw:
-      RawJSON({
-        kind: raw##kind,
-        rawJSON: raw##rawJSON,
-        rawString: raw##rawString,
-      }),
-  });
+  updateRawBody^(
+    RawJSON({
+      kind: raw##kind,
+      rawJSON: raw##rawJSON,
+      rawString: raw##rawString,
+    }),
+  );
 
 let jsUpdateHeader = (raw: jsHeaderState) =>
-  updateHeader({text: raw##text, style: raw##style});
+  updateHeader^({text: raw##text, style: raw##style});
+
+let jsUpdateMode = (mode: string) =>
+  switch (mode) {
+  | "display" => updateMode^(Display)
+  | _ => updateMode^(Query)
+  };
+
+let jsUpdateQuery = (obj: jsQueryState) =>
+  updateQuery^({placeholder: obj##placeholder, value: obj##value});
 
 let jsMountPanel = (jsMountTo: string) => {
   /* TODO */
@@ -186,14 +218,48 @@ let jsMountPanel = (jsMountTo: string) => {
     | "pane" => ToPane
     | _ => ToNowhere
     };
-  mountPanel(translateJSMountTo(jsMountTo));
+  updateMountTo^(translateJSMountTo(jsMountTo));
 };
 
-let jsUpdateMode = (mode: string) =>
-  switch (mode) {
-  | "display" => updateMode(Display)
-  | _ => updateMode(Query)
-  };
+let component = reducerComponent("View");
 
-let jsUpdateQuery = (obj: jsQueryState) =>
-  updateQuery({placeholder: obj##placeholder, value: obj##value});
+let make =
+    (
+      ~editor: Atom.TextEditor.t,
+      ~updateRawBody: (rawBody => unit) => unit,
+      ~updateHeader: (header => unit) => unit,
+      ~updateQuery: (query => unit) => unit,
+      ~updateMode: (mode => unit) => unit,
+      ~updateMountTo: (mountTo => unit) => unit,
+      _children,
+    ) => {
+  ...component,
+  initialState: initialState(editor),
+  reducer,
+  render: self => {
+    updateMountTo(mountTo => self.send(MountTo(mountTo)));
+    updateHeader(header => self.send(UpdateHeader(header)));
+    updateRawBody(rawBody => self.send(UpdateRawBody(rawBody)));
+    updateMode(mode => self.send(UpdateMode(mode)));
+    updateQuery(query => self.send(UpdateQuery(query)));
+    null;
+  },
+};
+
+let initialize = editor => {
+  let element = document |> Document.createElement("article");
+  ReactDOMRe.render(
+    ReasonReact.element(
+      make(
+        ~editor,
+        ~updateRawBody=handle => updateRawBody := handle,
+        ~updateHeader=handle => updateHeader := handle,
+        ~updateQuery=handle => updateQuery := handle,
+        ~updateMode=handle => updateMode := handle,
+        ~updateMountTo=handle => updateMountTo := handle,
+        [||],
+      ),
+    ),
+    element,
+  );
+};
