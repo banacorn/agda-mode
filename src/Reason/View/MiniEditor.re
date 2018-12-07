@@ -99,14 +99,14 @@ let make =
         /* subscribe to Atom's core events */
         let disposables = Atom.CompositeDisposable.make();
         Atom.Environment.Commands.add(
-          `DOMElement(Atom.Environment.Views.getView(editor)),
+          `HtmlElement(Atom.Environment.Views.getView(editor)),
           "core:confirm",
           _event =>
           onConfirm(editor |> Atom.TextEditor.getText)
         )
         |> Atom.CompositeDisposable.add(disposables);
         Atom.Environment.Commands.add(
-          `DOMElement(Atom.Environment.Views.getView(editor)),
+          `HtmlElement(Atom.Environment.Views.getView(editor)),
           "core:cancel",
           _event =>
           onCancel(.)

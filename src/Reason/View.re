@@ -4,8 +4,6 @@ open Type.Interaction;
 
 open Webapi.Dom;
 
-open Rebase;
-
 exception EditorNotSet;
 
 type state = {
@@ -14,7 +12,6 @@ type state = {
   mountAt,
   editors: Editors.t,
   mode,
-  query,
 };
 
 let initialState = (editor, _) => {
@@ -27,28 +24,18 @@ let initialState = (editor, _) => {
     raw: Unloaded,
   },
   mountAt: Nowhere,
-  editors: {
-    main: editor,
-    general: {
-      ref: None,
-      focused: false,
-    },
-  },
+  editors: Editors.make(editor),
   mode: Display,
-  query: {
-    placeholder: "",
-    value: "",
-  },
 };
 
 type action =
   | UpdateEditors(Editors.t)
+  | QueryGeneral(string, string)
   | MountTo(mountTo)
   | UpdateMountAt(mountAt)
   | UpdateHeader(header)
   | UpdateRawBody(rawBody)
-  | UpdateMode(mode)
-  | UpdateQuery(query);
+  | UpdateMode(mode);
 
 /* let editorRef = ref(None: option(Atom.TextEditor.t)); */
 let createElement = () : Element.t => {
@@ -67,9 +54,6 @@ let mountPanel = (self, editor, mountTo) => {
   let createTab = () =>
     Tab.make(
       ~editor,
-      /* ~onOpen=(element, _) => renderPanel(element), */
-      /* panel killed */
-      ~onKill=() => (),
       /* tab closed */
       ~onClose=() => self.send(MountTo(ToBottom)),
       (),
@@ -102,7 +86,7 @@ let mountPanel = (self, editor, mountTo) => {
 };
 
 let renderPanel = self => {
-  let {header, body, mountAt, mode, query, editors} = self.state;
+  let {header, body, mountAt, mode, editors} = self.state;
   let component =
     <Panel
       header
@@ -110,10 +94,35 @@ let renderPanel = self => {
       mountAt
       onMountAtChange=(mountTo => self.send(MountTo(mountTo)))
       mode
-      query
       /* editors */
-      onUpdateEditors=(editors => self.send(UpdateEditors(editors)))
-      editors
+      onEditorConfirm=(
+        result => {
+          Editors.focusMain(editors);
+          Editors.answerGeneral(editors, result);
+          self.send(UpdateMode(Display));
+        }
+      )
+      onEditorCancel=(
+        (.) => {
+          Editors.focusMain(editors);
+          Editors.rejectGeneral(editors, Editors.QueryCanceled);
+          self.send(UpdateMode(Display));
+        }
+      )
+      onEditorRef=(
+        ref =>
+          self.send(
+            UpdateEditors({
+              ...editors,
+              general: {
+                ...editors.general,
+                ref: Some(ref),
+              },
+            }),
+          )
+      )
+      editorValue=editors.general.value
+      editorPlaceholder=editors.general.placeholder
     />;
   switch (mountAt) {
   | Nowhere => ()
@@ -124,7 +133,28 @@ let renderPanel = self => {
 
 let reducer = (action, state) =>
   switch (action) {
-  | UpdateEditors(editors) => Update({...state, editors})
+  | UpdateEditors(editors) =>
+    UpdateWithSideEffects({...state, editors}, renderPanel)
+  | QueryGeneral(placeholder, value) =>
+    UpdateWithSideEffects(
+      {
+        ...state,
+        editors: {
+          ...state.editors,
+          general: {
+            ...state.editors.general,
+            placeholder,
+            value,
+          },
+        },
+      },
+      (
+        self => {
+          Editors.focusGeneral(self.state.editors);
+          renderPanel(self);
+        }
+      ),
+    )
   | MountTo(mountTo) =>
     SideEffects((self => mountPanel(self, state.editors.main, mountTo)))
   | UpdateMountAt(mountAt) =>
@@ -143,8 +173,6 @@ let reducer = (action, state) =>
       renderPanel,
     )
   | UpdateMode(mode) => UpdateWithSideEffects({...state, mode}, renderPanel)
-  | UpdateQuery(query) =>
-    UpdateWithSideEffects({...state, query}, renderPanel)
   };
 
 let updateHeader = ref((_) => ());
@@ -153,9 +181,10 @@ let updateRawBody = ref((_) => ());
 
 let updateMode = ref((_) => ());
 
-let updateQuery = ref((_) => ());
-
 let updateMountTo = ref((_) => ());
+
+let queryGeneral =
+  ref((_, _) => Js.Promise.reject(Util.TelePromise.Uninitialized));
 
 /* exposed to the JS counterpart */
 type jsHeaderState = {
@@ -176,12 +205,6 @@ type jsJSONBodyState = {
   "kind": string,
   "rawJSON": Js.Json.t,
   "rawString": string,
-};
-
-type jsQueryState = {
-  .
-  "placeholder": string,
-  "value": string,
 };
 
 let jsUpdateEmacsBody = (raw: jsEmacsBodyState) =>
@@ -207,8 +230,8 @@ let jsUpdateMode = (mode: string) =>
   | _ => updateMode^(Query)
   };
 
-let jsUpdateQuery = (obj: jsQueryState) =>
-  updateQuery^({placeholder: obj##placeholder, value: obj##value});
+let jsQueryGeneral = (placeholder, value) =>
+  queryGeneral^(placeholder, value);
 
 let jsMountPanel = (jsMountTo: string) => {
   /* TODO */
@@ -228,9 +251,9 @@ let make =
       ~editor: Atom.TextEditor.t,
       ~updateRawBody: (rawBody => unit) => unit,
       ~updateHeader: (header => unit) => unit,
-      ~updateQuery: (query => unit) => unit,
       ~updateMode: (mode => unit) => unit,
       ~updateMountTo: (mountTo => unit) => unit,
+      ~queryGeneral: ((string, string) => Js.Promise.t(string)) => unit,
       _children,
     ) => {
   ...component,
@@ -241,7 +264,20 @@ let make =
     updateHeader(header => self.send(UpdateHeader(header)));
     updateRawBody(rawBody => self.send(UpdateRawBody(rawBody)));
     updateMode(mode => self.send(UpdateMode(mode)));
-    updateQuery(query => self.send(UpdateQuery(query)));
+    queryGeneral((placeholder, value) => {
+      self.send(QueryGeneral(placeholder, value));
+      let promise = Util.TelePromise.make();
+      self.handle(
+        (_, newSelf) =>
+          Editors.queryGeneral(newSelf.state.editors)
+          |> Js.Promise.then_(answer =>
+               promise.resolve(answer) |> Js.Promise.resolve
+             )
+          |> ignore,
+        (),
+      );
+      promise.wire();
+    });
   },
   render: _self => null,
 };
@@ -254,7 +290,7 @@ let initialize = editor => {
         ~editor,
         ~updateRawBody=handle => updateRawBody := handle,
         ~updateHeader=handle => updateHeader := handle,
-        ~updateQuery=handle => updateQuery := handle,
+        ~queryGeneral=handle => queryGeneral := handle,
         ~updateMode=handle => updateMode := handle,
         ~updateMountTo=handle => updateMountTo := handle,
         [||],

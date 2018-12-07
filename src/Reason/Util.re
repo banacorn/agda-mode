@@ -231,3 +231,41 @@ module Resource = {
     {acquire, supply};
   };
 };
+
+module TelePromise = {
+  exception Uninitialized;
+  exception Expired;
+  type t('a) = {
+    wire: unit => Js.Promise.t('a),
+    resolve: 'a => unit,
+    reject: exn => unit,
+  };
+  let make = () => {
+    let resolver = ref(None);
+    let rejecter = ref(None);
+    let wire = () => {
+      /* reject the old wired TelePromise */
+      switch (rejecter^) {
+      | Some(_) => ()
+      /* | Some(f) => f(. Expired) */
+      | None => ()
+      };
+      /* make a new Promise and update the resolver and the rejecter */
+      Js.Promise.make((~resolve, ~reject) => {
+        resolver := Some(resolve);
+        rejecter := Some(reject);
+      });
+    };
+    let resolve = value =>
+      switch (resolver^) {
+      | Some(f) => f(. value)
+      | None => ()
+      };
+    let reject = exn =>
+      switch (rejecter^) {
+      | Some(f) => f(. exn)
+      | None => ()
+      };
+    {wire, resolve, reject};
+  };
+};

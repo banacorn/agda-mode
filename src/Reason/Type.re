@@ -741,10 +741,6 @@ module Interaction = {
   type mode =
     | Display
     | Query;
-  type query = {
-    placeholder: string,
-    value: string,
-  };
 };
 
 type underscore('t) = 't => bool;

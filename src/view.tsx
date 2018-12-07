@@ -29,9 +29,7 @@ var { parseWhyInScope } = require('./Reason/View/Emacs/Emacs__Parser.bs');
 var Panel = require('./Reason/View/Panel/Panel.bs').jsComponent;
 var Reason = require('./Reason/Decoder.bs');
 
-
 const ViewRE = require('./Reason/View.bs');
-
 
 class EditorViewManager {
     main: Atom.TextEditor;
@@ -499,25 +497,21 @@ export default class View {
     query(header: string = '', _: string[] = [], placeholder: string = ''): Promise<string> {
 
         ViewRE.jsUpdateMode("query");
-
-        ViewRE.jsUpdateQuery({
-            placeholder: placeholder
-        });
-
         ViewRE.jsUpdateHeader({
             text: header,
             style: 'plain-text',
         });
-
-        return this.editors.general.access()
-            .then(editor => {
-                if (!this.editors.generalIsFocused()) {
-                    let element = atom.views.getView(editor);
-                    element.focus();
-                    element.getModel().selectAll();
-                }
-                return this.editors.queryGeneral();
-            });
+        return ViewRE.jsQueryGeneral(placeholder, '')
+        //
+        // return this.editors.general.access()
+        //     .then(editor => {
+        //         if (!this.editors.generalIsFocused()) {
+        //             let element = atom.views.getView(editor);
+        //             element.focus();
+        //             element.getModel().selectAll();
+        //         }
+        //         return this.editors.queryGeneral();
+        //     });
     }
 
     queryConnection(): Promise<string> {

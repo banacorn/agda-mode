@@ -8,14 +8,6 @@ type state = {
   settingsViewOn: bool,
 };
 
-type jsState = {
-  .
-  "hidden": bool,
-  "isPending": bool,
-  "settingsViewOn": bool,
-  "mountAt": string,
-};
-
 type action =
   | UpdateMaxHeight(int)
   | UpdateIsPending(bool);
@@ -41,10 +33,15 @@ let make =
       ~header: header,
       ~mountAt: mountAt,
       ~mode: mode,
-      ~query: query,
       /* Editors */
-      ~onUpdateEditors: Editors.t => unit,
-      ~editors: Editors.t,
+      ~onEditorConfirm: string => unit,
+      ~onEditorCancel: (. unit) => unit,
+      ~onEditorRef: Atom.TextEditor.t => unit,
+      ~editorPlaceholder: string,
+      ~editorValue: string,
+      /* ~onGeneralEditorChange: Editors.miniEditor => unit,
+         ~onGeneralEditorConfirm: string => unit,
+         ~generalEditor: Editors.miniEditor, */
       /* ~onQueryConfirm: string => unit, */
       /* ~jsonBody: Emacs.rawBody, */
       /* ~updateHeader: (jsHeaderState => unit) => unit,
@@ -97,77 +94,35 @@ let make =
         />
       </section>
       <section className="agda-body-container">
-        /* <Context.Emitter.Provider value=emit> */
-
-          <Body body hidden=(mode != Display) mountAtBottom />
-          <MiniEditor
-            hidden=(mode != Query)
-            value=query.value
-            placeholder=query.placeholder
-            grammar="agda"
-            editorRef=(
-              ref =>
-                onUpdateEditors({
-                  ...editors,
-                  general: {
-                    ...editors.general,
-                    ref: Some(ref),
-                  },
-                })
-            )
-            onFocus=(
-              (.) =>
-                onUpdateEditors({
-                  ...editors,
-                  general: {
-                    ...editors.general,
-                    focused: true,
-                  },
-                })
-            )
-            onBlur=(
-              (.) =>
-                onUpdateEditors({
-                  ...editors,
-                  general: {
-                    ...editors.general,
-                    focused: false,
-                  },
-                })
-            )
-            onConfirm=(
-              result =>
-                ()
-                /* onQueryConfirm(
-                     result,
-                     /* core.view.editors.answerGeneral(result);
-                        this.props.handelQueryValueChange(result);
-                        core.view.editors.focusMain();
-                        this.props.deactivateMiniEditor();
-                        core.inputMethod.confirm(); */
-                   ) */
-            )
-            /* onConfirm=(
-                 result => {
-                   onQueryConfirm(result);
-                   /* core.view.editors.answerGeneral(result);
-                      this.props.handelQueryValueChange(result);
-                      core.view.editors.focusMain();
-                      this.props.deactivateMiniEditor();
-                      core.inputMethod.confirm(); */
-                 }
-               )
-               onCancel=(
-                 () => {
-                   /* core.view.editors.rejectGeneral();
-                      core.view.editors.focusMain()
-                      this.props.deactivateMiniEditor();
-                      core.inputMethod.cancel(); */
-                 }
-               ) */
-          />
-        </section>
+        <Body body hidden=(mode != Display) mountAtBottom />
+        <MiniEditor
+          hidden=(mode != Query)
+          value=editorValue
+          placeholder=editorPlaceholder
+          grammar="agda"
+          editorRef=onEditorRef
+          onConfirm=onEditorConfirm
+          onCancel=onEditorCancel
+          /* onConfirm=(
+               result => {
+                 onQueryConfirm(result);
+                 /* core.view.editors.answerGeneral(result);
+                    this.props.handelQueryValueChange(result);
+                    core.view.editors.focusMain();
+                    this.props.deactivateMiniEditor();
+                    core.inputMethod.confirm(); */
+               }
+             )
+             onCancel=(
+               () => {
+                 /* core.view.editors.rejectGeneral();
+                    core.view.editors.focusMain()
+                    this.props.deactivateMiniEditor();
+                    core.inputMethod.cancel(); */
+               }
+             ) */
+        />
+      </section>
     </section>;
-    /* </Context.Emitter.Provider> */
   },
 };
