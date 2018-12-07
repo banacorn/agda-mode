@@ -4,13 +4,15 @@ open Type.Interaction;
 
 open Webapi.Dom;
 
+open Rebase;
+
 exception EditorNotSet;
 
 type state = {
   header,
   body,
   mountAt,
-  editor: Atom.TextEditor.t,
+  editors: Editors.t,
   mode,
   query,
 };
@@ -25,7 +27,13 @@ let initialState = (editor, _) => {
     raw: Unloaded,
   },
   mountAt: Nowhere,
-  editor,
+  editors: {
+    main: editor,
+    general: {
+      ref: None,
+      focused: false,
+    },
+  },
   mode: Display,
   query: {
     placeholder: "",
@@ -34,6 +42,7 @@ let initialState = (editor, _) => {
 };
 
 type action =
+  | UpdateEditors(Editors.t)
   | MountTo(mountTo)
   | UpdateMountAt(mountAt)
   | UpdateHeader(header)
@@ -93,40 +102,31 @@ let mountPanel = (self, editor, mountTo) => {
 };
 
 let renderPanel = self => {
-  let {header, body, mountAt, mode, query} = self.state;
+  let {header, body, mountAt, mode, query, editors} = self.state;
+  let component =
+    <Panel
+      header
+      body
+      mountAt
+      onMountAtChange=(mountTo => self.send(MountTo(mountTo)))
+      mode
+      query
+      /* editors */
+      onUpdateEditors=(editors => self.send(UpdateEditors(editors)))
+      editors
+    />;
   switch (mountAt) {
   | Nowhere => ()
-  | Bottom(element) =>
-    ReactDOMRe.render(
-      <Panel
-        header
-        body
-        mountAt
-        onMountAtChange=(mountTo => self.send(MountTo(mountTo)))
-        mode
-        query
-      />,
-      element,
-    )
-  | Pane(tab) =>
-    ReactDOMRe.render(
-      <Panel
-        header
-        body
-        mountAt
-        onMountAtChange=(mountTo => self.send(MountTo(mountTo)))
-        mode
-        query
-      />,
-      tab.element,
-    )
+  | Bottom(element) => ReactDOMRe.render(component, element)
+  | Pane(tab) => ReactDOMRe.render(component, tab.element)
   };
 };
 
 let reducer = (action, state) =>
   switch (action) {
+  | UpdateEditors(editors) => Update({...state, editors})
   | MountTo(mountTo) =>
-    SideEffects((self => mountPanel(self, state.editor, mountTo)))
+    SideEffects((self => mountPanel(self, state.editors.main, mountTo)))
   | UpdateMountAt(mountAt) =>
     UpdateWithSideEffects({...state, mountAt}, renderPanel)
   | UpdateHeader(header) =>
@@ -236,14 +236,14 @@ let make =
   ...component,
   initialState: initialState(editor),
   reducer,
-  render: self => {
+  didMount: self => {
     updateMountTo(mountTo => self.send(MountTo(mountTo)));
     updateHeader(header => self.send(UpdateHeader(header)));
     updateRawBody(rawBody => self.send(UpdateRawBody(rawBody)));
     updateMode(mode => self.send(UpdateMode(mode)));
     updateQuery(query => self.send(UpdateQuery(query)));
-    null;
   },
+  render: _self => null,
 };
 
 let initialize = editor => {

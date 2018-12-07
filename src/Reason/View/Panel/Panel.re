@@ -42,6 +42,9 @@ let make =
       ~mountAt: mountAt,
       ~mode: mode,
       ~query: query,
+      /* Editors */
+      ~onUpdateEditors: Editors.t => unit,
+      ~editors: Editors.t,
       /* ~onQueryConfirm: string => unit, */
       /* ~jsonBody: Emacs.rawBody, */
       /* ~updateHeader: (jsHeaderState => unit) => unit,
@@ -102,6 +105,36 @@ let make =
             value=query.value
             placeholder=query.placeholder
             grammar="agda"
+            editorRef=(
+              ref =>
+                onUpdateEditors({
+                  ...editors,
+                  general: {
+                    ...editors.general,
+                    ref: Some(ref),
+                  },
+                })
+            )
+            onFocus=(
+              (.) =>
+                onUpdateEditors({
+                  ...editors,
+                  general: {
+                    ...editors.general,
+                    focused: true,
+                  },
+                })
+            )
+            onBlur=(
+              (.) =>
+                onUpdateEditors({
+                  ...editors,
+                  general: {
+                    ...editors.general,
+                    focused: false,
+                  },
+                })
+            )
             onConfirm=(
               result =>
                 ()
@@ -114,10 +147,7 @@ let make =
                         core.inputMethod.confirm(); */
                    ) */
             )
-            /* editorRef=(editor => core.view.editors.general.resolve(editor))
-               onFocus=(() => core.view.editors.setFocus("general"))
-               onBlur=(() => core.view.editors.setFocus("main"))
-               onConfirm=(
+            /* onConfirm=(
                  result => {
                    onQueryConfirm(result);
                    /* core.view.editors.answerGeneral(result);
