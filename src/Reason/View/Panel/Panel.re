@@ -28,6 +28,7 @@ let component = reducerComponent("Panel");
 
 let make =
     (
+      ~element: option(Webapi.Dom.Element.t),
       ~onMountAtChange: mountTo => unit,
       ~body: body,
       ~header: header,
@@ -35,6 +36,7 @@ let make =
       ~mode: mode,
       /* Editors */
       ~onEditorConfirm: string => unit,
+      ~onEditorFocus: (. unit) => unit,
       ~onEditorCancel: (. unit) => unit,
       ~onEditorRef: Atom.TextEditor.t => unit,
       ~editorPlaceholder: string,
@@ -63,66 +65,74 @@ let make =
       | Bottom(_) => true
       | _ => false
       };
-    <section>
-      <section className="panel-heading agda-header-container">
-        <SizingHandle
-          onResizeStart=(height => self.send(UpdateMaxHeight(height)))
-          onResizeEnd=(
-            height =>
-              Js.Global.setTimeout(
-                () => {
-                  self.send(UpdateMaxHeight(height));
-                  Atom.Environment.Config.set(
-                    "agda-mode.maxBodyHeight",
-                    string_of_int(height),
-                  );
-                },
-                0,
+    switch (element) {
+    | None => null
+    | Some(elem) =>
+      ReactDOMRe.createPortal(
+        <section>
+          <section className="panel-heading agda-header-container">
+            <SizingHandle
+              onResizeStart=(height => self.send(UpdateMaxHeight(height)))
+              onResizeEnd=(
+                height =>
+                  Js.Global.setTimeout(
+                    () => {
+                      self.send(UpdateMaxHeight(height));
+                      Atom.Environment.Config.set(
+                        "agda-mode.maxBodyHeight",
+                        string_of_int(height),
+                      );
+                    },
+                    0,
+                  )
+                  |> ignore
               )
-              |> ignore
-          )
-          mountAtBottom
-        />
-        <Dashboard
-          header
-          hidden=false
-          isPending
-          mountAt
-          onMountAtChange
-          settingsViewOn
-          onSettingsViewToggle
-        />
-      </section>
-      <section className="agda-body-container">
-        <Body body hidden=(mode != Display) mountAtBottom />
-        <MiniEditor
-          hidden=(mode != Query)
-          value=editorValue
-          placeholder=editorPlaceholder
-          grammar="agda"
-          editorRef=onEditorRef
-          onConfirm=onEditorConfirm
-          onCancel=onEditorCancel
-          /* onConfirm=(
-               result => {
-                 onQueryConfirm(result);
-                 /* core.view.editors.answerGeneral(result);
-                    this.props.handelQueryValueChange(result);
-                    core.view.editors.focusMain();
-                    this.props.deactivateMiniEditor();
-                    core.inputMethod.confirm(); */
-               }
-             )
-             onCancel=(
-               () => {
-                 /* core.view.editors.rejectGeneral();
-                    core.view.editors.focusMain()
-                    this.props.deactivateMiniEditor();
-                    core.inputMethod.cancel(); */
-               }
-             ) */
-        />
-      </section>
-    </section>;
+              mountAtBottom
+            />
+            <Dashboard
+              header
+              hidden=false
+              isPending
+              mountAt
+              onMountAtChange
+              settingsViewOn
+              onSettingsViewToggle
+            />
+          </section>
+          <section className="agda-body-container">
+            <Body body hidden=(mode != Display) mountAtBottom />
+            <MiniEditor
+              hidden=(mode != Query)
+              value=editorValue
+              placeholder=editorPlaceholder
+              grammar="agda"
+              editorRef=onEditorRef
+              onFocus=onEditorFocus
+              onConfirm=onEditorConfirm
+              onCancel=onEditorCancel
+              /* onConfirm=(
+                   result => {
+                     onQueryConfirm(result);
+                     /* core.view.editors.answerGeneral(result);
+                        this.props.handelQueryValueChange(result);
+                        core.view.editors.focusMain();
+                        this.props.deactivateMiniEditor();
+                        core.inputMethod.confirm(); */
+                   }
+                 )
+                 onCancel=(
+                   () => {
+                     /* core.view.editors.rejectGeneral();
+                        core.view.editors.focusMain()
+                        this.props.deactivateMiniEditor();
+                        core.inputMethod.cancel(); */
+                   }
+                 ) */
+            />
+          </section>
+        </section>,
+        elem,
+      )
+    };
   },
 };

@@ -29,8 +29,10 @@ let initialState = (editor, _) => {
 };
 
 type action =
-  | UpdateEditors(Editors.t)
+  | SetGeneralRef(Atom.TextEditor.t)
+  | FocusGeneral
   | QueryGeneral(string, string)
+  | FocusMain
   | MountTo(mountTo)
   | UpdateMountAt(mountAt)
   | UpdateHeader(header)
@@ -60,81 +62,57 @@ let mountPanel = (self, editor, mountTo) => {
     );
   switch (self.state.mountAt, mountTo) {
   | (Bottom(_), ToBottom) => ()
-  | (Bottom(element), ToPane) =>
-    ReactDOMRe.unmountComponentAtNode(element);
-    let tab = createTab();
-    self.send(UpdateMountAt(Pane(tab)));
-  | (Bottom(element), ToNowhere) =>
-    self.send(UpdateMountAt(Nowhere));
-    ReactDOMRe.unmountComponentAtNode(element);
+  | (Bottom(_), ToPane) => self.send(UpdateMountAt(Pane(createTab())))
+  | (Bottom(_), ToNowhere) => self.send(UpdateMountAt(Nowhere))
   | (Pane(tab), ToBottom) =>
     tab.kill();
-    let element = createElement();
-    self.send(UpdateMountAt(Bottom(element)));
+    self.send(UpdateMountAt(Bottom(createElement())));
   | (Pane(_), ToPane) => ()
   | (Pane(tab), ToNowhere) =>
     tab.kill();
     self.send(UpdateMountAt(Nowhere));
   | (Nowhere, ToBottom) =>
-    let element = createElement();
-    self.send(UpdateMountAt(Bottom(element)));
-  | (Nowhere, ToPane) =>
-    let tab = createTab();
-    self.send(UpdateMountAt(Pane(tab)));
+    self.send(UpdateMountAt(Bottom(createElement())))
+  | (Nowhere, ToPane) => self.send(UpdateMountAt(Pane(createTab())))
   | (Nowhere, ToNowhere) => ()
-  };
-};
-
-let renderPanel = self => {
-  let {header, body, mountAt, mode, editors} = self.state;
-  let component =
-    <Panel
-      header
-      body
-      mountAt
-      onMountAtChange=(mountTo => self.send(MountTo(mountTo)))
-      mode
-      /* editors */
-      onEditorConfirm=(
-        result => {
-          Editors.focusMain(editors);
-          Editors.answerGeneral(editors, result);
-          self.send(UpdateMode(Display));
-        }
-      )
-      onEditorCancel=(
-        (.) => {
-          Editors.focusMain(editors);
-          Editors.rejectGeneral(editors, Editors.QueryCanceled);
-          self.send(UpdateMode(Display));
-        }
-      )
-      onEditorRef=(
-        ref =>
-          self.send(
-            UpdateEditors({
-              ...editors,
-              general: {
-                ...editors.general,
-                ref: Some(ref),
-              },
-            }),
-          )
-      )
-      editorValue=editors.general.value
-      editorPlaceholder=editors.general.placeholder
-    />;
-  switch (mountAt) {
-  | Nowhere => ()
-  | Bottom(element) => ReactDOMRe.render(component, element)
-  | Pane(tab) => ReactDOMRe.render(component, tab.element)
   };
 };
 
 let reducer = (action, state) =>
   switch (action) {
-  | UpdateEditors(editors) =>
-    UpdateWithSideEffects({...state, editors}, renderPanel)
+  | SetGeneralRef(ref) =>
+    Update({
+      ...state,
+      editors: {
+        ...state.editors,
+        general: {
+          ...state.editors.general,
+          ref: Some(ref),
+        },
+      },
+    })
+  | FocusGeneral =>
+    UpdateWithSideEffects(
+      {
+        ...state,
+        editors: {
+          ...state.editors,
+          focused: Editors.General,
+        },
+      },
+      (self => Editors.focusGeneral(self.state.editors)),
+    )
+  | FocusMain =>
+    UpdateWithSideEffects(
+      {
+        ...state,
+        editors: {
+          ...state.editors,
+          focused: Editors.Main,
+        },
+      },
+      (self => Editors.focusMain(self.state.editors)),
+    )
   | QueryGeneral(placeholder, value) =>
     UpdateWithSideEffects(
       {
@@ -148,31 +126,20 @@ let reducer = (action, state) =>
           },
         },
       },
-      (
-        self => {
-          Editors.focusGeneral(self.state.editors);
-          renderPanel(self);
-        }
-      ),
+      (self => Editors.focusGeneral(self.state.editors)),
     )
   | MountTo(mountTo) =>
     SideEffects((self => mountPanel(self, state.editors.main, mountTo)))
-  | UpdateMountAt(mountAt) =>
-    UpdateWithSideEffects({...state, mountAt}, renderPanel)
-  | UpdateHeader(header) =>
-    UpdateWithSideEffects({...state, header}, renderPanel)
-  | UpdateRawBody(raw) =>
-    UpdateWithSideEffects(
-      {
-        ...state,
-        body: {
-          ...state.body,
-          raw,
-        },
-      },
-      renderPanel,
-    )
-  | UpdateMode(mode) => UpdateWithSideEffects({...state, mode}, renderPanel)
+  | UpdateMountAt(mountAt) => Update({...state, mountAt})
+  | UpdateHeader(header) => Update({...state, header})
+  | UpdateRawBody(raw) => Update({
+                            ...state,
+                            body: {
+                              ...state.body,
+                              raw,
+                            },
+                          })
+  | UpdateMode(mode) => Update({...state, mode})
   };
 
 let updateHeader = ref((_) => ());
@@ -279,7 +246,42 @@ let make =
       promise.wire();
     });
   },
-  render: _self => null,
+  render: self => {
+    let {header, body, mountAt, mode, editors} = self.state;
+    let element: option(Element.t) =
+      switch (mountAt) {
+      | Nowhere => None
+      | Bottom(element) => Some(element)
+      | Pane(tab) => Some(tab.element)
+      };
+    <Panel
+      element
+      header
+      body
+      mountAt
+      onMountAtChange=(mountTo => self.send(MountTo(mountTo)))
+      mode
+      /* editors */
+      onEditorFocus=((.) => self.send(FocusGeneral))
+      onEditorConfirm=(
+        result => {
+          Editors.answerGeneral(editors, result);
+          self.send(FocusMain);
+          self.send(UpdateMode(Display));
+        }
+      )
+      onEditorCancel=(
+        (.) => {
+          Editors.rejectGeneral(editors, Editors.QueryCanceled);
+          self.send(FocusMain);
+          self.send(UpdateMode(Display));
+        }
+      )
+      onEditorRef=(ref => self.send(SetGeneralRef(ref)))
+      editorValue=editors.general.value
+      editorPlaceholder=editors.general.placeholder
+    />;
+  },
 };
 
 let initialize = editor => {
