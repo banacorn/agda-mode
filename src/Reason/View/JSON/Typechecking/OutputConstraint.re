@@ -6,8 +6,6 @@ open Syntax.Concrete;
 
 open Type.Syntax.Concrete;
 
-open Util;
-
 let component = ReasonReact.statelessComponent("OutputConstraint");
 
 let make = (~meta: outputConstraint(expr, expr), _children) => {
@@ -28,9 +26,17 @@ let make = (~meta: outputConstraint(expr, expr), _children) => {
       </li>
     | CmpElim(t, es, es') =>
       <li>
-        (es |> List.map(value => <Expr value />) |> sepBy(string(", ")))
+        (
+          es
+          |> List.map(value => <Expr value />)
+          |> Util.React.sepBy(string(", "))
+        )
         <Comparison cmp=Type.TypeChecking.CmpEq />
-        (es' |> List.map(value => <Expr value />) |> sepBy(string(", ")))
+        (
+          es'
+          |> List.map(value => <Expr value />)
+          |> Util.React.sepBy(string(", "))
+        )
         (string(" : "))
         <Expr value=t />
       </li>
@@ -65,7 +71,7 @@ let make = (~meta: outputConstraint(expr, expr), _children) => {
           |> List.map(value =>
                <> (string("(")) <Expr value /> (string(")")) </>
              )
-          |> sepBy(string(", "))
+          |> Util.React.sepBy(string(", "))
         )
         (string(": "))
         <Expr value=t' />

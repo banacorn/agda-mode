@@ -257,7 +257,7 @@ let warningOrErrors: bool => parser(warningError) =
       raw =>
         raw
         |> parse(plainText)
-        |> map(body => isWarning ? Warning(body) : Error(body)),
+        |> map(body => isWarning ? WarningMessage(body) : ErrorMessage(body)),
     );
 
 let warning = warningOrErrors(true);

@@ -20,12 +20,12 @@ let make =
   render: _self => {
     let className =
       ["input-method"]
-      |> Util.addClass("hidden", ! activated)
-      |> Util.toClassName;
+      |> Util.React.addClass("hidden", ! activated)
+      |> Util.React.toClassName;
     let bufferClassName =
       ["inline-block", "buffer"]
-      |> Util.addClass("hidden", String.isEmpty(buffer))
-      |> Util.toClassName;
+      |> Util.React.addClass("hidden", String.isEmpty(buffer))
+      |> Util.React.toClassName;
     <section className>
       <div className="keyboard">
         <div className=bufferClassName> (string(buffer)) </div>

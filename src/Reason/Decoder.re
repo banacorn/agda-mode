@@ -1830,7 +1830,8 @@ let parseBody = (raw: rawBody) =>
   switch (raw.kind) {
   | "AllGoalsWarnings" =>
     AllGoalsWarnings(raw.rawJSON |> Decode.Interaction.allGoalsWarnings)
-  | "Error" => Error(raw.rawJSON |> Decode.TypeChecking.error, raw.rawString)
+  | "Error" =>
+    ErrorMessage(raw.rawJSON |> Decode.TypeChecking.error, raw.rawString)
   | "PlainText" => PlainText(raw.rawString)
   | _ => failwith("unknown kind of Body")
   };

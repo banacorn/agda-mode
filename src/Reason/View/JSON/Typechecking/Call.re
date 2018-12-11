@@ -8,8 +8,6 @@ open Syntax.Concrete;
 
 open Syntax;
 
-open Util;
-
 let make = (~call, _children) => {
   ...component,
   render: _self =>
@@ -20,7 +18,7 @@ let make = (~call, _children) => {
         (
           declarations
           |> List.map(value => <Declaration value />)
-          |> sepBy(<br />)
+          |> Util.React.sepBy(<br />)
         )
         (string(" has type "))
         <Expr value=type_ />
@@ -38,7 +36,7 @@ let make = (~call, _children) => {
         (
           declarations
           |> List.map(decl => <Declaration value=decl />)
-          |> sepBy(<br />)
+          |> Util.React.sepBy(<br />)
         )
       </span>
     | InferExpr(expr) =>
@@ -69,7 +67,7 @@ let make = (~call, _children) => {
                       )
                  </Arg>
                )
-            |> sepBy(string(" "))
+            |> Util.React.sepBy(string(" "))
           )
           (
             List.length(exprs) > 1 ?
@@ -110,7 +108,7 @@ let make = (~call, _children) => {
         (
           declarations
           |> List.map(value => <Declaration value />)
-          |> sepBy(<br />)
+          |> Util.React.sepBy(<br />)
         )
       </span>
     | _ => <span> (string("<Call> unimplemented")) </span>

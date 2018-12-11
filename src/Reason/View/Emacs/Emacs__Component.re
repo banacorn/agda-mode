@@ -122,12 +122,12 @@ module WarningError = {
     ...component,
     render: _self =>
       switch (value) {
-      | Warning(body) =>
+      | WarningMessage(body) =>
         <li className="warning-error">
           <span className="warning-label"> (string("warning")) </span>
           <PlainText value=body />
         </li>
-      | Error(body) =>
+      | ErrorMessage(body) =>
         <li className="warning-error">
           <span className="error-label"> (string("error")) </span>
           <PlainText value=body />

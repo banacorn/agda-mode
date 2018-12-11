@@ -82,24 +82,24 @@ export default class InputMethod {
 
 
     constructor(private core: Core) {
-        this.activated = false;
-        this.mute = false;
-        this.subscriptions = new CompositeDisposable;
-
-        // intercept newline `\n` as confirm
-        const commands = {
-            'editor:newline': (event) => {
-                if (this.activated) {
-                    this.deactivate();
-                    event.stopImmediatePropagation();
-                }
-            }
-        }
-
-        this.subscriptions.add(atom.commands.add(
-            'atom-text-editor.agda-mode-input-method-activated',
-            commands
-        ));
+        // this.activated = false;
+        // this.mute = false;
+        // this.subscriptions = new CompositeDisposable;
+        //
+        // // intercept newline `\n` as confirm
+        // const commands = {
+        //     'editor:newline': (event) => {
+        //         if (this.activated) {
+        //             this.deactivate();
+        //             event.stopImmediatePropagation();
+        //         }
+        //     }
+        // }
+        //
+        // this.subscriptions.add(atom.commands.add(
+        //     'atom-text-editor.agda-mode-input-method-activated',
+        //     commands
+        // ));
     }
 
     // Issue #34: https://github.com/banacorn/agda-mode/issues/34
@@ -112,96 +112,85 @@ export default class InputMethod {
     //  we cannot simply detect which key was pressed, so we can only hardwire
     //  the keys we wanna intercept from the Keymaps
     interceptAndInsertKey(key: string) {
-        this.insertCharToBuffer(key);
-    }
-
-    confirm() {
-        if (this.activated) {
-            this.deactivate();
-            event.stopImmediatePropagation();
-        }
+        // this.insertCharToBuffer(key);
     }
 
     destroy() {
-        this.subscriptions.dispose();
+        // this.subscriptions.dispose();
     }
 
     activate() {
-        if (!this.activated) {
-            // initializations
-            this.activated = true;
-            this.core.view.editors.getFocusedEditor().then(editor => {
-                this.editor = editor;
-
-                // add class 'agda-mode-input-method-activated'
-                const editorElement = atom.views.getView(this.editor);
-                editorElement.classList.add('agda-mode-input-method-activated');
-                // monitors raw text buffer and figures out what happend
-                const ranges = this.editor.getSelectedBufferRanges();
-
-                this.textEditorMarkers = ranges.map(range => this.editor.markBufferRange(new Range(range.start, range.end), {}));
-                // monitors only the first marker
-                this.textEditorMarkers[0].onDidChange(this.dispatchEvent);
-                // decorations
-                this.decorations = this.textEditorMarkers.map((textEditorMarker) =>
-                    this.editor.decorateMarker(textEditorMarker, {
-                        type: 'highlight',
-                        class: 'input-method-decoration'
-                    })
-                );
-
-                // insert '\' at the cursor quitely without triggering any shit
-                this.muteEvent(() => {
-                    this.insertCharToBuffer('\\');
-                });
-
-                // initialize input suggestion
-                this.core.view.store.dispatch(INPUT_METHOD.activate());
-
-            });
-
-        } else {
-            // input method already activated, it happens when we get the 2nd
-            // backslash '\' coming in
-            const buffer = this.core.view.store.getState().inputMethod.buffer;
-            if (_.isEmpty(buffer)) {
-                // the user probably just want to type '\', we shall leave it
-                // the editor as is.
-                this.deactivate();
-            } else {
-                // keep going, see issue #34: https://github.com/banacorn/agda-mode/issues/34
-                this.insertCharToBuffer('\\');
-            }
-        }
+        // if (!this.activated) {
+        //     // initializations
+        //     this.activated = true;
+        //     this.core.view.editors.getFocusedEditor().then(editor => {
+        //         this.editor = editor;
+        //
+        //         // add class 'agda-mode-input-method-activated'
+        //         const editorElement = atom.views.getView(this.editor);
+        //         editorElement.classList.add('agda-mode-input-method-activated');
+        //         // monitors raw text buffer and figures out what happend
+        //         const ranges = this.editor.getSelectedBufferRanges();
+        //
+        //         this.textEditorMarkers = ranges.map(range => this.editor.markBufferRange(new Range(range.start, range.end), {}));
+        //         // monitors only the first marker
+        //         this.textEditorMarkers[0].onDidChange(this.dispatchEvent);
+        //         // decorations
+        //         this.decorations = this.textEditorMarkers.map((textEditorMarker) =>
+        //             this.editor.decorateMarker(textEditorMarker, {
+        //                 type: 'highlight',
+        //                 class: 'input-method-decoration'
+        //             })
+        //         );
+        //
+        //         // insert '\' at the cursor quitely without triggering any shit
+        //         this.muteEvent(() => {
+        //             this.insertCharToBuffer('\\');
+        //         });
+        //
+        //         // initialize input suggestion
+        //         this.core.view.store.dispatch(INPUT_METHOD.activate());
+        //
+        //     });
+        //
+        // } else {
+        //     // input method already activated, it happens when we get the 2nd
+        //     // backslash '\' coming in
+        //     const buffer = this.core.view.store.getState().inputMethod.buffer;
+        //     if (_.isEmpty(buffer)) {
+        //         // the user probably just want to type '\', we shall leave it
+        //         // the editor as is.
+        //         this.deactivate();
+        //     } else {
+        //         // keep going, see issue #34: https://github.com/banacorn/agda-mode/issues/34
+        //         this.insertCharToBuffer('\\');
+        //     }
+        // }
     }
 
     deactivate() {
-        if (this.activated) {
-            // add class 'agda-mode-input-method-activated'
-            const editorElement = atom.views.getView(this.core.view.editors.main);
-            editorElement.classList.remove('agda-mode-input-method-activated');
-            this.core.view.store.dispatch(INPUT_METHOD.deactivate());
-            this.textEditorMarkers.forEach(marker => marker.destroy());
-            this.decorations.forEach(deco => deco.destroy());
-            this.activated = false;
-        }
-    }
-
-    cancel() {
-        this.deactivate();
+        // if (this.activated) {
+        //     // add class 'agda-mode-input-method-activated'
+        //     const editorElement = atom.views.getView(this.core.view.editors.main);
+        //     editorElement.classList.remove('agda-mode-input-method-activated');
+        //     this.core.view.store.dispatch(INPUT_METHOD.deactivate());
+        //     this.textEditorMarkers.forEach(marker => marker.destroy());
+        //     this.decorations.forEach(deco => deco.destroy());
+        //     this.activated = false;
+        // }
     }
 
     //////////////
     //  Events  //
     //////////////
 
-    muteEvent(callback: Function) {
+    private muteEvent(callback: Function) {
         this.mute = true;
         callback();
         this.mute = false;
     }
 
-    public dispatchEvent = (event: any) => {
+    private dispatchEvent = (event: any) => {
         if (!this.mute) {
             const rangeOld = new Range(event.oldTailBufferPosition, event.oldHeadBufferPosition);
             const rangeNew = new Range(event.newTailBufferPosition, event.newHeadBufferPosition);
@@ -245,7 +234,7 @@ export default class InputMethod {
     ///////////////////
 
     // inserts 1 character to the text buffer (may trigger some events)
-    insertCharToBuffer(char: string) {
+    private insertCharToBuffer(char: string) {
         // get all selections and sort them
         // the last selection will be placed in the front
         const selections = _.reverse(_.sortBy(this.editor.getSelections(), (selection) => this.editor.getBuffer().characterIndexForPosition(selection.getBufferRange().start)))
@@ -268,7 +257,7 @@ export default class InputMethod {
     }
 
     // replace content of the marker with supplied string (may trigger some events)
-    replaceBuffer(str: string) {
+    private replaceBuffer(str: string) {
         this.textEditorMarkers.forEach((marker) => {
             this.editor.getBuffer().setTextInRange(marker.getBufferRange(), str);
         })

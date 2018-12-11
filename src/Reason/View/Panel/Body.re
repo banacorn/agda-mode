@@ -16,7 +16,7 @@ let make = (~body: body, ~hidden, ~mountAtBottom, _children) => {
       | RawJSON(raw) =>
         switch (Decoder.parseBody(raw)) {
         | AllGoalsWarnings(value) => <JSON__AllGoalsWarnings value />
-        | Error(value, rawString) => <JSON__Error value rawString />
+        | ErrorMessage(value, rawString) => <JSON__Error value rawString />
         | PlainText(s) => <p> (string(s)) </p>
         }
       | RawEmacs(raw) =>

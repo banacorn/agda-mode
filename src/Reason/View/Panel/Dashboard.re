@@ -1,7 +1,5 @@
 open ReasonReact;
 
-open Util;
-
 type state = {
   settingsButtonRef: ref(option(Dom.element)),
   dockingButtonRef: ref(option(Dom.element)),
@@ -73,24 +71,28 @@ let make =
   },
   render: self => {
     let classList =
-      ["agda-header"] |> addClass("hidden", hidden) |> toClassName;
+      ["agda-header"]
+      |> Util.React.addClass("hidden", hidden)
+      |> Util.React.toClassName;
     let headerClassList = "text-" ++ header.style;
     let spinnerClassList =
       ["loading", "loading-spinner-tiny", "inline-block"]
-      |> addClass("pending", isPending)
-      |> toClassName;
+      |> Util.React.addClass("pending", isPending)
+      |> Util.React.toClassName;
     let settingsViewClassList =
-      ["no-btn"] |> addClass("activated", settingsViewOn) |> toClassName;
+      ["no-btn"]
+      |> Util.React.addClass("activated", settingsViewOn)
+      |> Util.React.toClassName;
     let toggleMountingPosition =
       ["no-btn"]
-      |> addClass(
+      |> Util.React.addClass(
            "activated",
            switch (mountAt) {
            | Pane(_) => true
            | _ => false
            },
          )
-      |> toClassName;
+      |> Util.React.toClassName;
     <div className=classList>
       <h1 className=headerClassList> (string(header.text)) </h1>
       <ul className="agda-dashboard">

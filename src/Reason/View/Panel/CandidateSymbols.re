@@ -104,8 +104,8 @@ let make =
              let isSelected = rowStart + i === self.state.index;
              let className =
                ["btn"]
-               |> Util.addClass("selected", isSelected)
-               |> Util.toClassName;
+               |> Util.React.addClass("selected", isSelected)
+               |> Util.React.toClassName;
              <button className onClick=((_) => chooseSymbol(key)) key>
                (string(key))
              </button>;

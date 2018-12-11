@@ -660,7 +660,7 @@ module Interaction = {
     };
     type body =
       | AllGoalsWarnings(allGoalsWarnings)
-      | Error(TypeChecking.error, string)
+      | ErrorMessage(TypeChecking.error, string)
       | PlainText(string);
   };
   module Emacs = {
@@ -682,8 +682,8 @@ module Interaction = {
       | Output(outputConstraint, option(Syntax.Position.range));
     type plainText = array(either(string, Syntax.Position.range));
     type warningError =
-      | Warning(plainText)
-      | Error(plainText);
+      | WarningMessage(plainText)
+      | ErrorMessage(plainText);
     type allGoalsWarnings = {
       interactionMetas: array(output),
       hiddenMetas: array(output),

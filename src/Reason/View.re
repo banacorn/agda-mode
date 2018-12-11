@@ -153,6 +153,14 @@ let updateMountTo = ref((_) => ());
 let queryGeneral =
   ref((_, _) => Js.Promise.reject(Util.TelePromise.Uninitialized));
 
+let interceptAndInsertKey = ref((_) => ());
+
+let activateInputMethod = ref(() => ());
+
+let jsInterceptAndInsertKey = char => interceptAndInsertKey^(char);
+
+let jsActivateInputMethod = () => activateInputMethod^();
+
 /* exposed to the JS counterpart */
 type jsHeaderState = {
   .
@@ -254,33 +262,40 @@ let make =
       | Bottom(element) => Some(element)
       | Pane(tab) => Some(tab.element)
       };
-    <Panel
-      element
-      header
-      body
-      mountAt
-      onMountAtChange=(mountTo => self.send(MountTo(mountTo)))
-      mode
-      /* editors */
-      onEditorFocus=((.) => self.send(FocusGeneral))
-      onEditorConfirm=(
-        result => {
-          Editors.answerGeneral(editors, result);
-          self.send(FocusMain);
-          self.send(UpdateMode(Display));
-        }
-      )
-      onEditorCancel=(
-        (.) => {
-          Editors.rejectGeneral(editors, Editors.QueryCanceled);
-          self.send(FocusMain);
-          self.send(UpdateMode(Display));
-        }
-      )
-      onEditorRef=(ref => self.send(SetGeneralRef(ref)))
-      editorValue=editors.general.value
-      editorPlaceholder=editors.general.placeholder
-    />;
+    <>
+      <Panel
+        element
+        header
+        body
+        mountAt
+        onMountAtChange=(mountTo => self.send(MountTo(mountTo)))
+        mode
+        /* editors */
+        onEditorFocus=((.) => self.send(FocusGeneral))
+        onEditorConfirm=(
+          result => {
+            Editors.answerGeneral(editors, result);
+            self.send(FocusMain);
+            self.send(UpdateMode(Display));
+          }
+        )
+        onEditorCancel=(
+          (.) => {
+            Editors.rejectGeneral(editors, Editors.QueryCanceled);
+            self.send(FocusMain);
+            self.send(UpdateMode(Display));
+          }
+        )
+        onEditorRef=(ref => self.send(SetGeneralRef(ref)))
+        editorValue=editors.general.value
+        editorPlaceholder=editors.general.placeholder
+      />
+      <InputMethod
+        editors
+        interceptAndInsertKey=(handle => interceptAndInsertKey := handle)
+        activate=(handle => activateInputMethod := handle)
+      />
+    </>;
   },
 };
 

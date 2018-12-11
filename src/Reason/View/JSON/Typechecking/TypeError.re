@@ -4,8 +4,6 @@ open Type.TypeChecking;
 
 open Syntax;
 
-open Util;
-
 open Rebase;
 
 let component = statelessComponent("TypeError");
@@ -132,7 +130,7 @@ let make = (~typeError: typeError, ~rawString as _, _children) => {
                       (
                         suggestions
                         |> List.map(value => <QName value />)
-                        |> sepBy(string(" or "))
+                        |> Util.React.sepBy(string(" or "))
                       )
                       (string(" ?"))
                     </> :

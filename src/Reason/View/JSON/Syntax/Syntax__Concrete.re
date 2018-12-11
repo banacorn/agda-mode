@@ -8,8 +8,6 @@ open Syntax__Name;
 
 open Type;
 
-open Util;
-
 let jump = true;
 
 let hover = true;
@@ -113,9 +111,11 @@ module Element = {
                   </NamedArg>
                 ),
         ]
-        |> sepBy(string(" "));
+        |> Util.React.sepBy(string(" "));
       | RawApp(_, exprs) =>
-        exprs |> List.map(value => <Expr value />) |> sepBy(string(" "))
+        exprs
+        |> List.map(value => <Expr value />)
+        |> Util.React.sepBy(string(" "))
       | OpApp(_, func, args) =>
         module OpApp = {
           let make = makeOpApp;
@@ -132,7 +132,7 @@ module Element = {
           ms
           |> List.map(value => <Name value />)
           |> List.append(_, [rest])
-          |> sepBy(string("."));
+          |> Util.React.sepBy(string("."));
         let rec prOp =
                 (
                   ms: list(name),
@@ -214,11 +214,11 @@ module Element = {
           | [] => (d, [])
           | [b, ...bs] => (<> b d </>, bs)
           };
-        merge([], prOp(ms, xs, args)) |> sepBy(string(" "));
+        merge([], prOp(ms, xs, args)) |> Util.React.sepBy(string(" "));
       | WithApp(_, expr, exprs) =>
         [expr, ...exprs]
         |> List.map(value => <Expr value />)
-        |> sepBy(string(" | "))
+        |> Util.React.sepBy(string(" | "))
       | HiddenArg(_, expr) =>
         Syntax__CommonPrim.braces(
           <Named value=expr> ...((_, value) => <Expr value />) </Named>,
@@ -232,13 +232,13 @@ module Element = {
         |> List.map(value => <LamBinding value />)
         |> List.append([string({js|λ|js})], _)
         |> List.append(_, [<Hiding hiding />])
-        |> sepBy(string(" "))
+        |> Util.React.sepBy(string(" "))
       | Lam(_, bindings, expr) =>
         bindings
         |> List.map(value => <LamBinding value />)
         |> List.append([string({js|λ|js})], _)
         |> List.append(_, [string({js|→|js}), <Expr value=expr />])
-        |> sepBy(string(" "))
+        |> Util.React.sepBy(string(" "))
       | AbsurdLam(_range, hiding) =>
         <span> (string({js|λ |js})) <Hiding hiding /> </span>
       | ExtendedLam(_range, bindings) =>
@@ -247,8 +247,8 @@ module Element = {
           (
             bindings
             |> List.map(value => <LamBinding value />)
-            |> sepBy(string(" "))
-            |> enclosedBy(string("{"), string("}"))
+            |> Util.React.sepBy(string(" "))
+            |> Util.React.enclosedBy(string("{"), string("}"))
           )
         </span>
       | Fun(_range, arg, expr) =>
@@ -322,7 +322,7 @@ module Element = {
           |> List.map((WithHiding(hiding, value)) =>
                <Hiding hiding> <BoundName value /> </Hiding>
              )
-          |> sepBy(string(" "))
+          |> Util.React.sepBy(string(" "))
         | TBind(_, xs, expr) =>
           module Expr = {
             let make = makeExpr;
@@ -332,7 +332,7 @@ module Element = {
             |> List.map((WithHiding(hiding, value)) =>
                  <Hiding hiding> <BoundName value /> </Hiding>
                )
-            |> sepBy(string(" "));
+            |> Util.React.sepBy(string(" "));
           <span> names (string(" : ")) <Expr value=expr /> </span>;
         | TLet(_, ds) =>
           <>
@@ -405,13 +405,13 @@ module Element = {
         (
           lhs.rewriteEqn
           |> List.map(value => <Expr value />)
-          |> sepBy(string(" | "))
+          |> Util.React.sepBy(string(" | "))
         )
         (string("with"))
         (
           lhs.rewriteEqn
           |> List.map(value => <Expr value />)
-          |> sepBy(string(" | "))
+          |> Util.React.sepBy(string(" | "))
         )
       </span>;
     },
@@ -427,7 +427,7 @@ module Element = {
         (
           typedBindings
           |> List.map(value => <TypedBindings value />)
-          |> sepBy(string(" "))
+          |> Util.React.sepBy(string(" "))
         )
       </span>;
     },

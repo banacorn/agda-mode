@@ -4,7 +4,7 @@ open Type;
 
 open Type.Syntax.Name;
 
-open Util;
+open Util.React;
 
 module NamePart = {
   let toString: toString(namePart) =
@@ -79,7 +79,7 @@ module QName = {
         List.append(xs, [x])
         |> List.filter(x => ! Name.isUnderscore(x))
         |> List.map(n => <Name value=n />)
-        |> sepBy(string("."))
+        |> Util.React.sepBy(string("."))
       },
   };
 };

@@ -123,8 +123,8 @@ let make =
     render: self => {
       let className =
         ["mini-editor"]
-        |> Util.addClass("hidden", hidden)
-        |> Util.toClassName;
+        |> Util.React.addClass("hidden", hidden)
+        |> Util.React.toClassName;
       ReactDOMRe.createElement(
         "atom-text-editor",
         ~props=

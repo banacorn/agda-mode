@@ -1,24 +1,26 @@
 open ReasonReact;
 
+module OCamlString = String;
+
 open Rebase;
 
-let sepBy = (sep: reactElement, item: list(reactElement)) =>
-  switch (item) {
-  | [] => <> </>
-  | [x] => x
-  | [x, ...xs] =>
-    <span>
-      ...(Array.fromList([x, ...List.map(i => <> sep i </>, xs)]))
-    </span>
-  };
-
-let enclosedBy = (front: reactElement, back: reactElement, item: reactElement) =>
-  <> front (string(" ")) item (string(" ")) back </>;
-
-let addClass = (x: string, p: bool, xs: list(string)) : list(string) =>
-  p ? [x, ...xs] : xs;
-
-let toClassName = String.joinWith(" ");
+module React = {
+  let sepBy = (sep: reactElement, item: list(reactElement)) =>
+    switch (item) {
+    | [] => <> </>
+    | [x] => x
+    | [x, ...xs] =>
+      <span>
+        ...(Array.fromList([x, ...List.map(i => <> sep i </>, xs)]))
+      </span>
+    };
+  let enclosedBy =
+      (front: reactElement, back: reactElement, item: reactElement) =>
+    <> front (string(" ")) item (string(" ")) back </>;
+  let addClass = (x: string, p: bool, xs: list(string)) : list(string) =>
+    p ? [x, ...xs] : xs;
+  let toClassName = String.joinWith(" ");
+};
 
 module Array_ = {
   let catMaybes = xs =>
@@ -202,6 +204,13 @@ module List_ = {
         [x, ...xs];
       }
     };
+};
+
+module String = {
+  let rec toCharArray = (input: string) : array(string) => {
+    Js.log(input);
+    input |> Js.String.split("");
+  };
 };
 
 module Resource = {

@@ -1,7 +1,5 @@
 open ReasonReact;
 
-open Util;
-
 open Type.Syntax.CommonPrim;
 
 let id = children => children;
@@ -57,7 +55,7 @@ module Named = {
       | Some(Ranged(_, s)) =>
         let elem =
           [string(s), string("="), children(0, value)]
-          |> sepBy(string(" "));
+          |> Util.React.sepBy(string(" "));
         if (prec > 0) {
           parens(elem);
         } else {
