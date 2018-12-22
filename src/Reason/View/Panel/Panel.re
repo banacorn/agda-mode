@@ -6,28 +6,34 @@ type state = {
   maxHeight: int,
   isPending: bool,
   settingsViewOn: bool,
+  inputMethodActivated: bool,
 };
 
 type action =
   | UpdateMaxHeight(int)
-  | UpdateIsPending(bool);
+  | UpdateIsPending(bool)
+  | UpdateInputMethodActivation(bool);
 
 let initialState = () => {
   maxHeight: 170,
   isPending: false,
   settingsViewOn: false,
+  inputMethodActivated: false,
 };
 
 let reducer = (action, state) =>
   switch (action) {
   | UpdateMaxHeight(maxHeight) => Update({...state, maxHeight})
   | UpdateIsPending(isPending) => Update({...state, isPending})
+  | UpdateInputMethodActivation(activated) =>
+    Update({...state, inputMethodActivated: activated})
   };
 
 let component = reducerComponent("Panel");
 
 let make =
     (
+      ~editors: Editors.t,
       ~element: option(Webapi.Dom.Element.t),
       ~onMountAtChange: mountTo => unit,
       ~body: body,
@@ -41,6 +47,8 @@ let make =
       ~onEditorRef: Atom.TextEditor.t => unit,
       ~editorPlaceholder: string,
       ~editorValue: string,
+      ~interceptAndInsertKey: (string => unit) => unit,
+      ~activateInputMethod: (unit => unit) => unit,
       /* ~onGeneralEditorChange: Editors.miniEditor => unit,
          ~onGeneralEditorConfirm: string => unit,
          ~generalEditor: Editors.miniEditor, */
@@ -58,7 +66,7 @@ let make =
   initialState,
   reducer,
   render: self => {
-    let {isPending, settingsViewOn} = self.state;
+    let {isPending, settingsViewOn, inputMethodActivated} = self.state;
     let onSettingsViewToggle = (_) => ();
     let mountAtBottom =
       switch (mountAt) {
@@ -89,9 +97,18 @@ let make =
               )
               mountAtBottom
             />
+            <InputMethod
+              editors
+              interceptAndInsertKey
+              activate=activateInputMethod
+              onActivationChange=(
+                activated =>
+                  self.send(UpdateInputMethodActivation(activated))
+              )
+            />
             <Dashboard
               header
-              hidden=false
+              hidden=inputMethodActivated
               isPending
               mountAt
               onMountAtChange

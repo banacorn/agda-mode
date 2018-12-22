@@ -264,6 +264,7 @@ let make =
       };
     <>
       <Panel
+        editors
         element
         header
         body
@@ -289,11 +290,9 @@ let make =
         onEditorRef=(ref => self.send(SetGeneralRef(ref)))
         editorValue=editors.general.value
         editorPlaceholder=editors.general.placeholder
-      />
-      <InputMethod
-        editors
+        /* inputMethod */
         interceptAndInsertKey=(handle => interceptAndInsertKey := handle)
-        activate=(handle => activateInputMethod := handle)
+        activateInputMethod=(handle => activateInputMethod := handle)
       />
     </>;
   },

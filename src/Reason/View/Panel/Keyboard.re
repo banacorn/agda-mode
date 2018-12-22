@@ -47,29 +47,3 @@ let make =
     </section>;
   },
 };
-
-[@bs.deriving abstract]
-type jsProps = {
-  activated: bool,
-  buffer: string,
-  keySuggestions: array(string),
-  candidateSymbols: array(string),
-  /* callbacks */
-  updateTranslation: option(string) => unit,
-  insertCharacter: string => unit,
-  chooseSymbol: string => unit,
-};
-
-let jsComponent =
-  wrapReasonForJs(~component, jsProps =>
-    make(
-      ~activated=activatedGet(jsProps),
-      ~buffer=bufferGet(jsProps),
-      ~keySuggestions=keySuggestionsGet(jsProps),
-      ~candidateSymbols=candidateSymbolsGet(jsProps),
-      ~updateTranslation=updateTranslationGet(jsProps),
-      ~insertCharacter=insertCharacterGet(jsProps),
-      ~chooseSymbol=chooseSymbolGet(jsProps),
-      [||],
-    )
-  );
