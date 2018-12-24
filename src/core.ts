@@ -5,7 +5,6 @@ import * as Atom from 'atom';
 import Commander from './commander';
 import ConnectionManager from './connection';
 import Editor from './editor';
-import InputMethod from './input-method';
 import View from './view';
 import * as Action from './view/actions';
 
@@ -18,7 +17,6 @@ export interface AgdaEditor extends Atom.TextEditor {
 export class Core {
     private disposables: Atom.CompositeDisposable;
     public editor: Editor;
-    public inputMethod: InputMethod;
     public commander: Commander;
     public view: View;
     public connection: ConnectionManager;
@@ -27,8 +25,8 @@ export class Core {
         // initialize all components
         this.disposables        = new CompositeDisposable();
         this.editor             = new Editor(this, textEditor);
-        if (atom.config.get('agda-mode.inputMethod'))
-            this.inputMethod    = new InputMethod(this);
+        // if (atom.config.get('agda-mode.inputMethod'))
+        //     this.inputMethod    = new InputMethod(this);
         this.commander          = new Commander(this);
         this.connection         = new ConnectionManager(this);
 

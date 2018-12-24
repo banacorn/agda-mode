@@ -9,7 +9,6 @@ export interface State {
     view: ViewState;
     connection: ConnectionState;
     protocol: Protocol;
-    inputMethod: InputMethodState;
 }
 
 export interface ViewState {
@@ -46,15 +45,6 @@ export interface ReqRes {
 export const enum MountingPosition {
     Pane,
     Bottom
-}
-
-export interface InputMethodState {
-    activated: boolean;
-    buffer: string;
-    translation: string;
-    further: boolean;
-    keySuggestions: string[];
-    candidateSymbols: string[];
 }
 
 export type SettingsURI = {

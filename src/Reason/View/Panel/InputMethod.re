@@ -125,7 +125,7 @@ type action =
   | Activate
   | Deactivate
   /* user actions */
-  | Insert(string)
+  | InsertUnderlying(string)
   | Backspace
   /* resource bookkeeping */
   | UpdateMarkers(
@@ -134,8 +134,9 @@ type action =
       option(Atom.Disposable.t),
     )
   /* manual actions */
-  | InsertSurfaceBuffer(string)
-  | RewriteSurfaceBuffer(string);
+  | InsertSurface(string)
+  | InsertSurfaceAndUnderlying(string)
+  | RewriteSurface(string);
 
 let markerOnDidChange = (event, self) => {
   open Atom;
@@ -159,12 +160,12 @@ let markerOnDidChange = (event, self) => {
     if (surfaceBuffer != self.state.buffer.surface) {
       /* Insert */
       if (comparison == (-1)) {
-        let char =
+        let insertedChar =
           Js.String.substr(
             ~from=-1,
             textBuffer |> TextBuffer.getTextInRange(rangeNew),
           );
-        self.send(Insert(char));
+        self.send(InsertUnderlying(insertedChar));
       };
       /* Backspace */
       if (comparison == 1) {
@@ -216,7 +217,7 @@ let reducer = (onActivationChange, action, state) =>
             } else {
               /* keep going, see issue #34: https://github.com/banacorn/agda-mode/issues/34 */
               self.send(
-                InsertSurfaceBuffer("\\"),
+                InsertSurface("\\"),
               );
             }
         ),
@@ -266,7 +267,7 @@ let reducer = (onActivationChange, action, state) =>
               UpdateMarkers(markers, decorations, markersDisposable),
             );
             /* insert '\' at the cursor to indicate the activation */
-            self.send(InsertSurfaceBuffer("\\"));
+            self.send(InsertSurface("\\"));
           }
         ),
       );
@@ -298,7 +299,7 @@ let reducer = (onActivationChange, action, state) =>
         ),
       ) :
       NoUpdate;
-  | Insert(char) =>
+  | InsertUnderlying(char) =>
     let input = state.buffer.underlying ++ char;
     let translation = translate(input);
     switch (translation.symbol) {
@@ -315,7 +316,7 @@ let reducer = (onActivationChange, action, state) =>
         (
           self => {
             /* reflects current translation to the text buffer */
-            self.send(RewriteSurfaceBuffer(symbol));
+            self.send(RewriteSurface(symbol));
             /* deactivate if we can't go further */
             if (! translation.further) {
               self.send(Deactivate);
@@ -328,7 +329,8 @@ let reducer = (onActivationChange, action, state) =>
         {
           ...state,
           buffer: {
-            surface: state.buffer.surface ++ char,
+            surface: state.buffer.surface,
+            /* surface: state.buffer.surface ++ char, */
             underlying: input,
           },
           translation,
@@ -358,7 +360,7 @@ let reducer = (onActivationChange, action, state) =>
     });
   | UpdateMarkers(markers, decorations, markersDisposable) =>
     Update({...state, markers, decorations, markersDisposable})
-  | InsertSurfaceBuffer(char) =>
+  | InsertSurface(char) =>
     UpdateWithSideEffects(
       {
         ...state,
@@ -369,7 +371,23 @@ let reducer = (onActivationChange, action, state) =>
       },
       insertActualBuffer(char),
     )
-  | RewriteSurfaceBuffer(string) =>
+  | InsertSurfaceAndUnderlying(char) =>
+    UpdateWithSideEffects(
+      {
+        ...state,
+        buffer: {
+          ...state.buffer,
+          surface: state.buffer.surface ++ char,
+        },
+      },
+      (
+        self => {
+          insertActualBuffer(char, self);
+          self.send(InsertUnderlying(char));
+        }
+      ),
+    )
+  | RewriteSurface(string) =>
     UpdateWithSideEffects(
       {
         ...state,
@@ -401,6 +419,17 @@ let component = reducerComponent("InputMethod");
 let make =
     (
       ~editors: Editors.t,
+      /*
+       Issue #34: https://github.com/banacorn/agda-mode/issues/34
+       Intercept some keys that Bracket Matcher autocompletes
+        to name them all: "{", "[", "{", "\"", "'", and `
+       Because the Bracket Matcher package is too lacking, it does not responds
+        to the disabling of the package itself, making it impossible to disable
+        the package during the process of input.
+       On the other hand, the Atom's CommandRegistry API is also inadequate,
+        we cannot simply detect which key was pressed, so we can only hardwire
+        the keys we wanna intercept from the Keymaps
+         */
       ~interceptAndInsertKey: (string => unit) => unit,
       ~activate: (unit => unit) => unit,
       ~onActivationChange: bool => unit,
@@ -411,10 +440,9 @@ let make =
   reducer: reducer(onActivationChange),
   didMount: self => {
     /* binding for the JS */
-    interceptAndInsertKey(char => {
-      self.send(InsertSurfaceBuffer(char));
-      self.send(Insert(char));
-    });
+    interceptAndInsertKey(char =>
+      self.send(InsertSurfaceAndUnderlying(char))
+    );
     activate(() => self.send(Activate));
     /* listening some events */
     let garbages = Garbages.make();
@@ -439,7 +467,7 @@ let make =
       |> Util.React.toClassName;
     let bufferClassName =
       ["inline-block", "buffer"]
-      |> Util.React.addClass("hidden", String.isEmpty(buffer.surface))
+      |> Util.React.addClass("hidden", String.isEmpty(buffer.underlying))
       |> Util.React.toClassName;
     <section className>
       <div className="keyboard">
@@ -451,10 +479,7 @@ let make =
                     <button
                       className="btn"
                       onClick=(
-                        (_) => {
-                          self.send(Insert(key));
-                          self.send(InsertSurfaceBuffer(key));
-                        }
+                        (_) => self.send(InsertSurfaceAndUnderlying(key))
                       )
                       key>
                       (string(key))
@@ -467,13 +492,13 @@ let make =
         updateTranslation=(
           replace =>
             switch (replace) {
-            | Some(symbol) => self.send(InsertSurfaceBuffer(symbol))
+            | Some(symbol) => self.send(RewriteSurface(symbol))
             | None => ()
             }
         )
         chooseSymbol=(
           symbol => {
-            self.send(InsertSurfaceBuffer(symbol));
+            self.send(InsertSurfaceAndUnderlying(symbol));
             self.send(Deactivate);
           }
         )

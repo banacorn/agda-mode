@@ -468,7 +468,6 @@ export default class Commander {
                 this.core.view.setPlainText('Not loaded', '');
             }
             ViewRE.jsActivateInputMethod();
-            this.core.inputMethod.activate();
         } else {
             this.core.view.editors.getFocusedEditor().then(editor => editor.insertText('\\'));
         }
@@ -528,7 +527,6 @@ export default class Commander {
 
     private inputSymbolInterceptKey = (_, key: string) => (): Promise<Agda.Request[]> => {
         ViewRE.jsInterceptAndInsertKey(key);
-        this.core.inputMethod.interceptAndInsertKey(key);
         return Promise.resolve([]);
     }
 }

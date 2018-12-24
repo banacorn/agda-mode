@@ -2,11 +2,7 @@ import * as _ from 'lodash';
 import { combineReducers } from 'redux';
 import { handleActions, Action } from 'redux-actions';
 import { View, Agda } from '../type';
-import { VIEW, PROTOCOL, INPUT_METHOD, CONNECTION } from './actions';
-import { translate } from '../input-method';
-
-// default state
-const { translation, further, keySuggestions, candidateSymbols } = translate('');
+import { VIEW, PROTOCOL, CONNECTION } from './actions';
 
 // const initialInternalState = InternalState.get();
 const defaultState: View.State = {
@@ -31,12 +27,7 @@ const defaultState: View.State = {
         log: [],
         id: 0,
         limitLog: true
-    },
-    inputMethod: {
-        activated: false,
-        buffer: '',
-        translation, further, keySuggestions, candidateSymbols
-    },
+    }
 };
 
 const view = handleActions<View.ViewState, VIEW>({
@@ -137,34 +128,9 @@ const protocol = handleActions<View.Protocol, PROTOCOL>({
     }),
 }, defaultState.protocol);
 
-const inputMethod = handleActions<View.InputMethodState, INPUT_METHOD>({
-    [INPUT_METHOD.ACTIVATE]: (state, action: Action<INPUT_METHOD.ACTIVATE>) => {
-        const { translation, further, keySuggestions, candidateSymbols } = translate('');
-        return ({ ...state,
-            activated: true,
-            buffer: '',
-            translation, further, keySuggestions, candidateSymbols
-        });
-    },
-    [INPUT_METHOD.DEACTIVATE]: (state, action: Action<INPUT_METHOD.DEACTIVATE>) => ({ ...state,
-        activated: false
-    }),
-    [INPUT_METHOD.INSERT]: (state, action: Action<INPUT_METHOD.INSERT>) => {
-        const buffer = state.buffer + action.payload;
-        const { translation, further, keySuggestions, candidateSymbols } = translate(buffer);
-        return ({ ...state, buffer, translation, further, keySuggestions, candidateSymbols });
-    },
-    [INPUT_METHOD.DELETE]: (state, action: Action<INPUT_METHOD.DELETE>) => {
-        const buffer = state.buffer.substring(0, state.buffer.length - 1);
-        const { translation, further, keySuggestions, candidateSymbols } = translate(buffer);
-        return ({ ...state, buffer, translation, further, keySuggestions, candidateSymbols });
-    },
-}, defaultState.inputMethod);
-
 // export default reducer;
 export default combineReducers<View.State>({
     view,
     connection,
     protocol,
-    inputMethod,
 });
