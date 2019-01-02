@@ -94,7 +94,6 @@ type buffer = {
 };
 
 type state = {
-  editors: Editors.t,
   activated: bool,
   /* view related */
   decorations: array(Atom.Decoration.t),
@@ -109,8 +108,7 @@ let initialBuffer = {surface: "", underlying: ""};
 
 let initialTranslation = translate("");
 
-let initialState = (editors, _) => {
-  editors,
+let initialState = (_) => {
   activated: false,
   /* view related */
   decorations: [||],
@@ -138,7 +136,7 @@ type action =
   | InsertSurfaceAndUnderlying(string)
   | RewriteSurface(string);
 
-let markerOnDidChange = (event, self) => {
+let markerOnDidChange = (editors, event, self) => {
   open Atom;
   let rangeOld =
     Atom.Range.make(
@@ -151,8 +149,7 @@ let markerOnDidChange = (event, self) => {
       event##newHeadBufferPosition,
     );
   let comparison = Atom.Range.compare(rangeOld, rangeNew);
-  let textBuffer =
-    Editors.getFocusedEditor(self.state.editors) |> TextEditor.getBuffer;
+  let textBuffer = Editors.getFocusedEditor(editors) |> TextEditor.getBuffer;
   if (Atom.Range.isEmpty(rangeNew)) {
     self.send(Deactivate);
   } else {
@@ -175,9 +172,9 @@ let markerOnDidChange = (event, self) => {
   };
 };
 
-let insertActualBuffer = (char, self) => {
+let insertActualBuffer = (editors, char, _self) => {
   open Atom;
-  let editor = Editors.getFocusedEditor(self.state.editors);
+  let editor = Editors.getFocusedEditor(editors);
   let textBuffer = editor |> TextEditor.getBuffer;
   /* get all selections and sort them */
   let getCharIndex = selection => {
@@ -199,7 +196,7 @@ let insertActualBuffer = (char, self) => {
      });
 };
 
-let reducer = (onActivationChange, action, state) =>
+let reducer = (editors, onActivationChange, action, state) =>
   switch (action) {
   | Activate =>
     onActivationChange(true);
@@ -227,7 +224,7 @@ let reducer = (onActivationChange, action, state) =>
         (
           self => {
             open Atom;
-            let editor = Editors.getFocusedEditor(state.editors);
+            let editor = Editors.getFocusedEditor(editors);
             /* add class 'agda-mode-input-method-activated' */
             Views.getView(editor)
             |> HtmlElement.classList
@@ -246,7 +243,7 @@ let reducer = (onActivationChange, action, state) =>
               |> Option.map(marker =>
                    marker
                    |> DisplayMarker.onDidChange(
-                        self.handle(markerOnDidChange),
+                        self.handle(markerOnDidChange(editors)),
                       )
                  );
             /* decorate the editor with these markers */
@@ -285,7 +282,7 @@ let reducer = (onActivationChange, action, state) =>
           _self => {
             open Atom;
             /* remove class 'agda-mode-input-method-activated' */
-            Editors.getFocusedEditor(state.editors)
+            Editors.getFocusedEditor(editors)
             |> Views.getView
             |> HtmlElement.classList
             |> DomTokenListRe.remove("agda-mode-input-method-activated");
@@ -369,7 +366,7 @@ let reducer = (onActivationChange, action, state) =>
           surface: state.buffer.surface ++ char,
         },
       },
-      insertActualBuffer(char),
+      insertActualBuffer(editors, char),
     )
   | InsertSurfaceAndUnderlying(char) =>
     UpdateWithSideEffects(
@@ -382,7 +379,7 @@ let reducer = (onActivationChange, action, state) =>
       },
       (
         self => {
-          insertActualBuffer(char, self);
+          insertActualBuffer(editors, char, self);
           self.send(InsertUnderlying(char));
         }
       ),
@@ -401,7 +398,7 @@ let reducer = (onActivationChange, action, state) =>
           state.markers
           |> Array.forEach(marker =>
                Atom.(
-                 Editors.getFocusedEditor(state.editors)
+                 Editors.getFocusedEditor(editors)
                  |> TextEditor.getBuffer
                  |> TextBuffer.setTextInRange(
                       DisplayMarker.getBufferRange(marker),
@@ -436,8 +433,8 @@ let make =
       _children,
     ) => {
   ...component,
-  initialState: initialState(editors),
-  reducer: reducer(onActivationChange),
+  initialState,
+  reducer: reducer(editors, onActivationChange),
   didMount: self => {
     /* binding for the JS */
     interceptAndInsertKey(char =>

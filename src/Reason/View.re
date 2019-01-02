@@ -85,8 +85,8 @@ let reducer = (action, state) =>
       ...state,
       editors: {
         ...state.editors,
-        general: {
-          ...state.editors.general,
+        query: {
+          ...state.editors.query,
           ref: Some(ref),
         },
       },
@@ -119,8 +119,8 @@ let reducer = (action, state) =>
         ...state,
         editors: {
           ...state.editors,
-          general: {
-            ...state.editors.general,
+          query: {
+            ...state.editors.query,
             placeholder,
             value,
           },
@@ -288,8 +288,8 @@ let make =
           }
         )
         onEditorRef=(ref => self.send(SetGeneralRef(ref)))
-        editorValue=editors.general.value
-        editorPlaceholder=editors.general.placeholder
+        editorValue=editors.query.value
+        editorPlaceholder=editors.query.placeholder
         /* inputMethod */
         interceptAndInsertKey=(handle => interceptAndInsertKey := handle)
         activateInputMethod=(handle => activateInputMethod := handle)

@@ -14,7 +14,7 @@ type sort =
 type t = {
   focused: sort,
   main: Atom.TextEditor.t,
-  general: miniEditor,
+  query: miniEditor,
 };
 
 exception QueryCanceled;
@@ -22,7 +22,7 @@ exception QueryCanceled;
 let make = editor => {
   focused: Main,
   main: editor,
-  general: {
+  query: {
     value: "",
     placeholder: "",
     ref: None,
@@ -34,7 +34,7 @@ let getFocusedEditor = editors : Atom.TextEditor.t =>
   switch (editors.focused) {
   | Main => editors.main
   | General =>
-    switch (editors.general.ref) {
+    switch (editors.query.ref) {
     | Some(editor) => editor
     | None => editors.main
     }
@@ -52,7 +52,7 @@ let focusGeneral = editors =>
   switch (editors.focused) {
   | General => ()
   | _ =>
-    switch (editors.general.ref) {
+    switch (editors.query.ref) {
     | Some(editor) =>
       let element = Atom.Environment.Views.getView(editor);
       HtmlElement.focus(element);
@@ -60,8 +60,8 @@ let focusGeneral = editors =>
     }
   };
 
-let queryGeneral = editors => editors.general.telePromise.wire();
+let queryGeneral = editors => editors.query.telePromise.wire();
 
-let answerGeneral = editors => editors.general.telePromise.resolve;
+let answerGeneral = editors => editors.query.telePromise.resolve;
 
-let rejectGeneral = editors => editors.general.telePromise.reject;
+let rejectGeneral = editors => editors.query.telePromise.reject;
