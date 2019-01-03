@@ -42,13 +42,13 @@ let make =
       ~mode: mode,
       /* Editors */
       ~onEditorConfirm: string => unit,
-      ~onEditorFocus: (. unit) => unit,
+      ~onEditorFocused: bool => unit,
       ~onEditorCancel: (. unit) => unit,
       ~onEditorRef: Atom.TextEditor.t => unit,
       ~editorPlaceholder: string,
       ~editorValue: string,
       ~interceptAndInsertKey: (string => unit) => unit,
-      ~activateInputMethod: (unit => unit) => unit,
+      ~inputMethodHandle: (bool => unit) => unit,
       /* ~onGeneralEditorChange: Editors.miniEditor => unit,
          ~onGeneralEditorConfirm: string => unit,
          ~generalEditor: Editors.miniEditor, */
@@ -100,7 +100,7 @@ let make =
             <InputMethod
               editors
               interceptAndInsertKey
-              activate=activateInputMethod
+              activationHandle=inputMethodHandle
               onActivationChange=(
                 activated =>
                   self.send(UpdateInputMethodActivation(activated))
@@ -124,7 +124,8 @@ let make =
               placeholder=editorPlaceholder
               grammar="agda"
               editorRef=onEditorRef
-              onFocus=onEditorFocus
+              onFocus=((.) => onEditorFocused(true))
+              onBlur=((.) => onEditorFocused(false))
               onConfirm=onEditorConfirm
               onCancel=onEditorCancel
               /* onConfirm=(

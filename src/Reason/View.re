@@ -30,9 +30,9 @@ let initialState = (editor, _) => {
 
 type action =
   | SetGeneralRef(Atom.TextEditor.t)
-  | FocusGeneral
-  | QueryGeneral(string, string)
-  | FocusMain
+  | FocusQuery
+  | InquireQuery(string, string)
+  | FocusSource
   | MountTo(mountTo)
   | UpdateMountAt(mountAt)
   | UpdateHeader(header)
@@ -91,29 +91,29 @@ let reducer = (action, state) =>
         },
       },
     })
-  | FocusGeneral =>
+  | FocusQuery =>
     UpdateWithSideEffects(
       {
         ...state,
         editors: {
           ...state.editors,
-          focused: Editors.General,
+          focused: Editors.Query,
         },
       },
-      (self => Editors.focusGeneral(self.state.editors)),
+      (self => Editors.focusQuery(self.state.editors)),
     )
-  | FocusMain =>
+  | FocusSource =>
     UpdateWithSideEffects(
       {
         ...state,
         editors: {
           ...state.editors,
-          focused: Editors.Main,
+          focused: Editors.Source,
         },
       },
-      (self => Editors.focusMain(self.state.editors)),
+      (self => Editors.focusSource(self.state.editors)),
     )
-  | QueryGeneral(placeholder, value) =>
+  | InquireQuery(placeholder, value) =>
     UpdateWithSideEffects(
       {
         ...state,
@@ -126,10 +126,10 @@ let reducer = (action, state) =>
           },
         },
       },
-      (self => Editors.focusGeneral(self.state.editors)),
+      (self => Editors.focusQuery(self.state.editors)),
     )
   | MountTo(mountTo) =>
-    SideEffects((self => mountPanel(self, state.editors.main, mountTo)))
+    SideEffects((self => mountPanel(self, state.editors.source, mountTo)))
   | UpdateMountAt(mountAt) => Update({...state, mountAt})
   | UpdateHeader(header) => Update({...state, header})
   | UpdateRawBody(raw) => Update({
@@ -155,11 +155,13 @@ let queryGeneral =
 
 let interceptAndInsertKey = ref((_) => ());
 
-let activateInputMethod = ref(() => ());
+let inputMethodHandle = ref((_) => ());
 
 let jsInterceptAndInsertKey = char => interceptAndInsertKey^(char);
 
-let jsActivateInputMethod = () => activateInputMethod^();
+let jsActivateInputMethod = () => inputMethodHandle^(true);
+
+let jsDeactivateInputMethod = () => inputMethodHandle^(false);
 
 /* exposed to the JS counterpart */
 type jsHeaderState = {
@@ -240,12 +242,12 @@ let make =
     updateRawBody(rawBody => self.send(UpdateRawBody(rawBody)));
     updateMode(mode => self.send(UpdateMode(mode)));
     queryGeneral((placeholder, value) => {
-      self.send(QueryGeneral(placeholder, value));
+      self.send(InquireQuery(placeholder, value));
       let promise = Util.TelePromise.make();
       self.handle(
         (_, newSelf) =>
           Js.Promise.(
-            Editors.query(newSelf.state.editors)
+            Editors.inquire(newSelf.state.editors)
             |> then_(answer => promise.resolve(answer) |> resolve)
             |> catch(error =>
                  promise.reject(Util.JSPromiseError(error)) |> resolve
@@ -275,18 +277,22 @@ let make =
         onMountAtChange=(mountTo => self.send(MountTo(mountTo)))
         mode
         /* editors */
-        onEditorFocus=((.) => self.send(FocusGeneral))
+        onEditorFocused=(
+          focused => self.send(focused ? FocusQuery : FocusSource)
+        )
         onEditorConfirm=(
           result => {
             Editors.answer(editors, result);
-            self.send(FocusMain);
+            jsDeactivateInputMethod();
+            self.send(FocusSource);
             self.send(UpdateMode(Display));
           }
         )
         onEditorCancel=(
           (.) => {
             Editors.reject(editors, Editors.QueryCancelled);
-            self.send(FocusMain);
+            jsDeactivateInputMethod();
+            self.send(FocusSource);
             self.send(UpdateMode(Display));
           }
         )
@@ -295,7 +301,7 @@ let make =
         editorPlaceholder=editors.query.placeholder
         /* inputMethod */
         interceptAndInsertKey=(handle => interceptAndInsertKey := handle)
-        activateInputMethod=(handle => activateInputMethod := handle)
+        inputMethodHandle=(handle => inputMethodHandle := handle)
       />
     </>;
   },

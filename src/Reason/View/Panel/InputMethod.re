@@ -428,7 +428,7 @@ let make =
         the keys we wanna intercept from the Keymaps
          */
       ~interceptAndInsertKey: (string => unit) => unit,
-      ~activate: (unit => unit) => unit,
+      ~activationHandle: (bool => unit) => unit,
       ~onActivationChange: bool => unit,
       _children,
     ) => {
@@ -440,7 +440,7 @@ let make =
     interceptAndInsertKey(char =>
       self.send(InsertSurfaceAndUnderlying(char))
     );
-    activate(() => self.send(Activate));
+    activationHandle(activate => self.send(activate ? Activate : Deactivate));
     /* listening some events */
     let garbages = Garbages.make();
     /* intercept newline `\n` as confirm */
