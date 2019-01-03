@@ -244,11 +244,14 @@ let make =
       let promise = Util.TelePromise.make();
       self.handle(
         (_, newSelf) =>
-          Editors.queryGeneral(newSelf.state.editors)
-          |> Js.Promise.then_(answer =>
-               promise.resolve(answer) |> Js.Promise.resolve
-             )
-          |> ignore,
+          Js.Promise.(
+            Editors.query(newSelf.state.editors)
+            |> then_(answer => promise.resolve(answer) |> resolve)
+            |> catch(error =>
+                 promise.reject(Util.JSPromiseError(error)) |> resolve
+               )
+            |> ignore
+          ),
         (),
       );
       promise.wire();
@@ -275,14 +278,14 @@ let make =
         onEditorFocus=((.) => self.send(FocusGeneral))
         onEditorConfirm=(
           result => {
-            Editors.answerGeneral(editors, result);
+            Editors.answer(editors, result);
             self.send(FocusMain);
             self.send(UpdateMode(Display));
           }
         )
         onEditorCancel=(
           (.) => {
-            Editors.rejectGeneral(editors, Editors.QueryCanceled);
+            Editors.reject(editors, Editors.QueryCancelled);
             self.send(FocusMain);
             self.send(UpdateMode(Display));
           }

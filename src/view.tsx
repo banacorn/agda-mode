@@ -501,7 +501,7 @@ export default class View {
             text: header,
             style: 'plain-text',
         });
-        return ViewRE.jsQueryGeneral(placeholder, '')
+        return ViewRE.jsQueryGeneral(placeholder, '');
         //
         // return this.editors.general.access()
         //     .then(editor => {

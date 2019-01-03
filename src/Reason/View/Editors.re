@@ -17,7 +17,7 @@ type t = {
   query: miniEditor,
 };
 
-exception QueryCanceled;
+exception QueryCancelled;
 
 let make = editor => {
   focused: Main,
@@ -60,8 +60,8 @@ let focusGeneral = editors =>
     }
   };
 
-let queryGeneral = editors => editors.query.telePromise.wire();
+let query = editors => editors.query.telePromise.wire();
 
-let answerGeneral = editors => editors.query.telePromise.resolve;
+let answer = editors => editors.query.telePromise.resolve;
 
-let rejectGeneral = editors => editors.query.telePromise.reject;
+let reject = editors => editors.query.telePromise.reject;

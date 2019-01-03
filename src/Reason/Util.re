@@ -241,6 +241,8 @@ module Resource = {
   };
 };
 
+exception JSPromiseError(Js.Promise.error);
+
 module TelePromise = {
   exception Uninitialized;
   exception Expired;
