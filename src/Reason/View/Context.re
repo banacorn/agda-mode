@@ -27,11 +27,3 @@ module MakePair = (Config: {type t; let defaultValue: t;}) => {
       );
   };
 };
-
-module Emitter =
-  MakePair(
-    {
-      type t = (string, Type.Syntax.Position.range) => unit;
-      let defaultValue = (_, _) => ();
-    },
-  );

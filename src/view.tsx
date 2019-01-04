@@ -272,126 +272,6 @@ export default class View {
     }
 
 
-    // public renderPanel(mountingPoint: HTMLElement) {
-    //     ReactDOM.render(
-    //         <div></div>,
-    //         // <View.EventContext.Provider value={this.emitter}>
-    //         //     <View.CoreContext.Provider value={this.core}>
-    //         //     <Panel
-    //         //         updateHeader={handle => {
-    //         //             this.updateHeader = handle;
-    //         //         }}
-    //         //         updateJSONBody={handle => {
-    //         //             this.updateJSONBody = handle;
-    //         //         }}
-    //         //         updateEmacsBody={handle => {
-    //         //             this.updateEmacsBody = handle;
-    //         //         }}
-    //         //         updateIsPending={handle => {
-    //         //             this.updateIsPending = handle;
-    //         //         }}
-    //         //         // core={this.core}
-    //         //         // headerText={state.header.text}
-    //         //         // style={toStyle(state.header.style)}
-    //         //         // hidden={state.inputMethod.activated || _.isEmpty(state.header.text)}
-    //         //         // isPending={state.protocol.pending}
-    //         //         // mountAt={state.view.mountAt.current === V.MountingPosition.Bottom ? 'bottom' : 'pane'}
-    //         //         onMountChange={(at) => {
-    //         //             this.core.view.toggleDocking();
-    //         //             if (at === "bottom") {
-    //         //                 this.store.dispatch(Action.VIEW.mountAtBottom());
-    //         //             } else {
-    //         //                 this.store.dispatch(Action.VIEW.mountAtPane());
-    //         //             }
-    //         //         }}
-    //         //         // settingsViewOn={state.view.settingsView}
-    //         //         onSettingsViewToggle={(isActivated) => {
-    //         //             this.store.dispatch(Action.VIEW.toggleSettings());
-    //         //             if (isActivated) {
-    //         //                 this.core.view.tabs.open('settings');
-    //         //             } else {
-    //         //                 this.core.view.tabs.close('settings');
-    //         //             }
-    //         //         }}
-    //         //     />
-    //         //     </View.CoreContext.Provider>
-    //         // </View.EventContext.Provider>,
-    //         mountingPoint
-    //     )
-    // }
-
-    // mountPanel(mountAt: V.MountingPosition) {
-    //     console.log(mountAt);
-    //     if (!this.state().mounted) {
-    //         // Redux
-    //         this.store.dispatch(Action.VIEW.mount());
-    //
-    //         switch (mountAt) {
-    //             case V.MountingPosition.Bottom:
-    //                 // mounting position
-    //                 const element = document.createElement('article');
-    //                 element.classList.add('agda-mode');
-    //                 this.bottomPanel = atom.workspace.addBottomPanel({
-    //                     item: element,
-    //                     visible: true
-    //                 });
-    //                 // render
-    //                 ViewRE.renderPanel(element);
-    //                 break;
-    //             case V.MountingPosition.Pane:
-    //                 this.tabs.open('panel')
-    //                 break;
-    //             default:
-    //                 console.error('no mounting position to transist to')
-    //         }
-    //     }
-    // }
-
-    // unmountPanel(mountAt: V.MountingPosition) {
-    //     console.log(mountAt);
-    //     if (this.state().mounted) {
-    //         // Redux
-    //         this.store.dispatch(Action.VIEW.unmount());
-    //
-    //
-    //         switch (mountAt) {
-    //             case V.MountingPosition.Bottom:
-    //                 this.bottomPanel.destroy();
-    //                 const itemElement = this.bottomPanel.getItem() as Element;
-    //                 ReactDOM.unmountComponentAtNode(itemElement);
-    //                 break;
-    //             case V.MountingPosition.Pane:
-    //                 this.tabs.close('panel');
-    //                 break;
-    //             default:
-    //                 // do nothing
-    //                 break;
-    //         }
-    //
-    //     }
-    // }
-
-    // activatePanel() {
-    //     setTimeout(() => {
-    //         this.store.dispatch(Action.VIEW.activate());
-    //     })
-    //     switch (this.state().mountAt.current) {
-    //         case V.MountingPosition.Bottom:
-    //             // do nothing
-    //             break;
-    //         case V.MountingPosition.Pane:
-    //             this.tabs.activate('panel');
-    //             break;
-    //         default:
-    //             // do nothing
-    //             break;
-    //     }
-    // }
-    //
-    // deactivatePanel() {
-    //     this.store.dispatch(Action.VIEW.deactivate());
-    // }
-
     // destructor
     destroy() {
         // this.unmountPanel(this.state().mountAt.current);
@@ -502,16 +382,6 @@ export default class View {
             style: 'plain-text',
         });
         return ViewRE.jsQueryGeneral(placeholder, '');
-        //
-        // return this.editors.general.access()
-        //     .then(editor => {
-        //         if (!this.editors.generalIsFocused()) {
-        //             let element = atom.views.getView(editor);
-        //             element.focus();
-        //             element.getModel().selectAll();
-        //         }
-        //         return this.editors.queryGeneral();
-        //     });
     }
 
     queryConnection(): Promise<string> {
@@ -533,14 +403,10 @@ export default class View {
         switch (this.state().mountAt.current) {
             case V.MountingPosition.Bottom:
                 this.store.dispatch(Action.VIEW.mountAtPane());
-                // this.unmountPanel(V.MountingPosition.Bottom);
-                // this.mountPanel(V.MountingPosition.Pane);
                 ViewRE.jsMountPanel("pane");
                 break;
             case V.MountingPosition.Pane:
                 this.store.dispatch(Action.VIEW.mountAtBottom());
-                // this.unmountPanel(V.MountingPosition.Pane);
-                // this.mountPanel(V.MountingPosition.Bottom);
                 ViewRE.jsMountPanel("bottom");
                 break;
             default:

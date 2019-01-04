@@ -12,7 +12,8 @@ type state = {
 type action =
   | UpdateMaxHeight(int)
   | UpdateIsPending(bool)
-  | UpdateInputMethodActivation(bool);
+  | UpdateInputMethodActivation(bool)
+  | MouseEvent(mouseEvent);
 
 let initialState = () => {
   maxHeight: 170,
@@ -27,6 +28,12 @@ let reducer = (action, state) =>
   | UpdateIsPending(isPending) => Update({...state, isPending})
   | UpdateInputMethodActivation(activated) =>
     Update({...state, inputMethodActivated: activated})
+  | MouseEvent(JumpToRange(range)) =>
+    SideEffects(((_) => Js.log("JumpToRange")))
+  | MouseEvent(MouseOver(range)) =>
+    SideEffects(((_) => Js.log("MouseOver")))
+  | MouseEvent(MouseOut(range)) =>
+    SideEffects(((_) => Js.log("MouseOut")))
   };
 
 let component = reducerComponent("Panel");
@@ -77,78 +84,80 @@ let make =
     | None => null
     | Some(elem) =>
       ReactDOMRe.createPortal(
-        <section>
-          <section className="panel-heading agda-header-container">
-            <SizingHandle
-              onResizeStart=(height => self.send(UpdateMaxHeight(height)))
-              onResizeEnd=(
-                height =>
-                  Js.Global.setTimeout(
-                    () => {
-                      self.send(UpdateMaxHeight(height));
-                      Atom.Environment.Config.set(
-                        "agda-mode.maxBodyHeight",
-                        string_of_int(height),
-                      );
-                    },
-                    0,
-                  )
-                  |> ignore
-              )
-              mountAtBottom
-            />
-            <InputMethod
-              editors
-              interceptAndInsertKey
-              activationHandle=inputMethodHandle
-              onActivationChange=(
-                activated =>
-                  self.send(UpdateInputMethodActivation(activated))
-              )
-            />
-            <Dashboard
-              header
-              hidden=inputMethodActivated
-              isPending
-              mountAt
-              onMountAtChange
-              settingsViewOn
-              onSettingsViewToggle
-            />
+        <MouseEmitter.Provider value=(ev => self.send(MouseEvent(ev)))>
+          <section>
+            <section className="panel-heading agda-header-container">
+              <SizingHandle
+                onResizeStart=(height => self.send(UpdateMaxHeight(height)))
+                onResizeEnd=(
+                  height =>
+                    Js.Global.setTimeout(
+                      () => {
+                        self.send(UpdateMaxHeight(height));
+                        Atom.Environment.Config.set(
+                          "agda-mode.maxBodyHeight",
+                          string_of_int(height),
+                        );
+                      },
+                      0,
+                    )
+                    |> ignore
+                )
+                mountAtBottom
+              />
+              <InputMethod
+                editors
+                interceptAndInsertKey
+                activationHandle=inputMethodHandle
+                onActivationChange=(
+                  activated =>
+                    self.send(UpdateInputMethodActivation(activated))
+                )
+              />
+              <Dashboard
+                header
+                hidden=inputMethodActivated
+                isPending
+                mountAt
+                onMountAtChange
+                settingsViewOn
+                onSettingsViewToggle
+              />
+            </section>
+            <section className="agda-body-container">
+              <Body body hidden=(mode != Display) mountAtBottom />
+              <MiniEditor
+                hidden=(mode != Query)
+                value=editorValue
+                placeholder=editorPlaceholder
+                grammar="agda"
+                editorRef=onEditorRef
+                onFocus=((.) => onEditorFocused(true))
+                onBlur=((.) => onEditorFocused(false))
+                onConfirm=onEditorConfirm
+                onCancel=onEditorCancel
+                /* onConfirm=(
+                     result => {
+                       onQueryConfirm(result);
+                       /* core.view.editors.answerGeneral(result);
+                          this.props.handelQueryValueChange(result);
+                          core.view.editors.focusMain();
+                          this.props.deactivateMiniEditor();
+                          core.inputMethod.confirm(); */
+                     }
+                   )
+                   onCancel=(
+                     () => {
+                       /* core.view.editors.rejectGeneral();
+                          core.view.editors.focusMain()
+                          this.props.deactivateMiniEditor();
+                          core.inputMethod.cancel(); */
+                     }
+                   ) */
+              />
+            </section>
           </section>
-          <section className="agda-body-container">
-            <Body body hidden=(mode != Display) mountAtBottom />
-            <MiniEditor
-              hidden=(mode != Query)
-              value=editorValue
-              placeholder=editorPlaceholder
-              grammar="agda"
-              editorRef=onEditorRef
-              onFocus=((.) => onEditorFocused(true))
-              onBlur=((.) => onEditorFocused(false))
-              onConfirm=onEditorConfirm
-              onCancel=onEditorCancel
-              /* onConfirm=(
-                   result => {
-                     onQueryConfirm(result);
-                     /* core.view.editors.answerGeneral(result);
-                        this.props.handelQueryValueChange(result);
-                        core.view.editors.focusMain();
-                        this.props.deactivateMiniEditor();
-                        core.inputMethod.confirm(); */
-                   }
-                 )
-                 onCancel=(
-                   () => {
-                     /* core.view.editors.rejectGeneral();
-                        core.view.editors.focusMain()
-                        this.props.deactivateMiniEditor();
-                        core.inputMethod.cancel(); */
-                   }
-                 ) */
-            />
-          </section>
-        </section>,
+        </MouseEmitter.Provider>,
         elem,
       )
     };

@@ -2,13 +2,6 @@ type either('a, 'b) =
   | Left('a)
   | Right('b);
 
-module AgdaMode = {
-  type event =
-    | JumpToRange
-    | MouseOver
-    | MouseOut;
-};
-
 module TypeCheckingPositivity = {
   type occurrence =
     | Mixed
@@ -741,6 +734,17 @@ module Interaction = {
   type mode =
     | Display
     | Query;
+  type mouseEvent =
+    | JumpToRange(Syntax.Position.range)
+    | MouseOver(Syntax.Position.range)
+    | MouseOut(Syntax.Position.range);
+  module MouseEmitter =
+    Context.MakePair(
+      {
+        type t = mouseEvent => unit;
+        let defaultValue = (_) => ();
+      },
+    );
 };
 
 type underscore('t) = 't => bool;
