@@ -136,7 +136,7 @@ type action =
   | InsertSurfaceAndUnderlying(string)
   | RewriteSurface(string);
 
-let markerOnDidChange = (editors, event, self) => {
+let markerOnDidChange = (editor, event, self) => {
   open Atom;
   let rangeOld =
     Atom.Range.make(
@@ -149,7 +149,7 @@ let markerOnDidChange = (editors, event, self) => {
       event##newHeadBufferPosition,
     );
   let comparison = Atom.Range.compare(rangeOld, rangeNew);
-  let textBuffer = Editors.getFocusedEditor(editors) |> TextEditor.getBuffer;
+  let textBuffer = Editor.Focus.get(editor) |> TextEditor.getBuffer;
   if (Atom.Range.isEmpty(rangeNew)) {
     self.send(Deactivate);
   } else {
@@ -174,7 +174,7 @@ let markerOnDidChange = (editors, event, self) => {
 
 let insertActualBuffer = (editors, char, _self) => {
   open Atom;
-  let editor = Editors.getFocusedEditor(editors);
+  let editor = Editor.Focus.get(editors);
   let textBuffer = editor |> TextEditor.getBuffer;
   /* get all selections and sort them */
   let getCharIndex = selection => {
@@ -196,7 +196,7 @@ let insertActualBuffer = (editors, char, _self) => {
      });
 };
 
-let reducer = (editors, onActivationChange, action, state) =>
+let reducer = (editor, onActivationChange, action, state) =>
   switch (action) {
   | Activate =>
     onActivationChange(true);
@@ -224,17 +224,17 @@ let reducer = (editors, onActivationChange, action, state) =>
         (
           self => {
             open Atom;
-            let editor = Editors.getFocusedEditor(editors);
+            let focusedEditor = Editor.Focus.get(editor);
             /* add class 'agda-mode-input-method-activated' */
-            Views.getView(editor)
+            Views.getView(focusedEditor)
             |> HtmlElement.classList
             |> DomTokenListRe.add("agda-mode-input-method-activated");
             /* monitors raw text buffer and figures out what happend */
             let markers =
-              editor
+              focusedEditor
               |> TextEditor.getSelectedBufferRanges
               |> Array.map(range =>
-                   editor
+                   focusedEditor
                    |> TextEditor.markBufferRange(Atom.Range.copy(range))
                  );
             /* monitors only the first marker */
@@ -243,14 +243,14 @@ let reducer = (editors, onActivationChange, action, state) =>
               |> Option.map(marker =>
                    marker
                    |> DisplayMarker.onDidChange(
-                        self.handle(markerOnDidChange(editors)),
+                        self.handle(markerOnDidChange(editor)),
                       )
                  );
             /* decorate the editor with these markers */
             let decorations =
               markers
               |> Array.map(marker =>
-                   editor
+                   focusedEditor
                    |> TextEditor.decorateMarker(
                         marker,
                         {
@@ -282,7 +282,8 @@ let reducer = (editors, onActivationChange, action, state) =>
           _self => {
             open Atom;
             /* remove class 'agda-mode-input-method-activated' */
-            Editors.getFocusedEditor(editors)
+            editor
+            |> Editor.Focus.get
             |> Views.getView
             |> HtmlElement.classList
             |> DomTokenListRe.remove("agda-mode-input-method-activated");
@@ -366,7 +367,7 @@ let reducer = (editors, onActivationChange, action, state) =>
           surface: state.buffer.surface ++ char,
         },
       },
-      insertActualBuffer(editors, char),
+      insertActualBuffer(editor, char),
     )
   | InsertSurfaceAndUnderlying(char) =>
     UpdateWithSideEffects(
@@ -379,7 +380,7 @@ let reducer = (editors, onActivationChange, action, state) =>
       },
       (
         self => {
-          insertActualBuffer(editors, char, self);
+          insertActualBuffer(editor, char, self);
           self.send(InsertUnderlying(char));
         }
       ),
@@ -398,7 +399,8 @@ let reducer = (editors, onActivationChange, action, state) =>
           state.markers
           |> Array.forEach(marker =>
                Atom.(
-                 Editors.getFocusedEditor(editors)
+                 editor
+                 |> Editor.Focus.get
                  |> TextEditor.getBuffer
                  |> TextBuffer.setTextInRange(
                       DisplayMarker.getBufferRange(marker),
@@ -415,7 +417,7 @@ let component = reducerComponent("InputMethod");
 
 let make =
     (
-      ~editors: Editors.t,
+      ~editor: Editor.t,
       /*
        Issue #34: https://github.com/banacorn/agda-mode/issues/34
        Intercept some keys that Bracket Matcher autocompletes
@@ -434,7 +436,7 @@ let make =
     ) => {
   ...component,
   initialState,
-  reducer: reducer(editors, onActivationChange),
+  reducer: reducer(editor, onActivationChange),
   didMount: self => {
     /* binding for the JS */
     interceptAndInsertKey(char =>

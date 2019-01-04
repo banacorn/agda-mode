@@ -10,7 +10,7 @@ type state = {
   header,
   body,
   mountAt,
-  editors: Editors.t,
+  editor: Editor.t,
   mode,
 };
 
@@ -24,7 +24,7 @@ let initialState = (editor, _) => {
     raw: Unloaded,
   },
   mountAt: Nowhere,
-  editors: Editors.make(editor),
+  editor: Editor.make(editor),
   mode: Display,
 };
 
@@ -83,10 +83,10 @@ let reducer = (action, state) =>
   | SetGeneralRef(ref) =>
     Update({
       ...state,
-      editors: {
-        ...state.editors,
+      editor: {
+        ...state.editor,
         query: {
-          ...state.editors.query,
+          ...state.editor.query,
           ref: Some(ref),
         },
       },
@@ -95,41 +95,41 @@ let reducer = (action, state) =>
     UpdateWithSideEffects(
       {
         ...state,
-        editors: {
-          ...state.editors,
-          focused: Editors.Query,
+        editor: {
+          ...state.editor,
+          focused: Editor.Query,
         },
       },
-      (self => Editors.focusQuery(self.state.editors)),
+      (self => Editor.Focus.onQuery(self.state.editor)),
     )
   | FocusSource =>
     UpdateWithSideEffects(
       {
         ...state,
-        editors: {
-          ...state.editors,
-          focused: Editors.Source,
+        editor: {
+          ...state.editor,
+          focused: Editor.Source,
         },
       },
-      (self => Editors.focusSource(self.state.editors)),
+      (self => Editor.Focus.onSource(self.state.editor)),
     )
   | InquireQuery(placeholder, value) =>
     UpdateWithSideEffects(
       {
         ...state,
-        editors: {
-          ...state.editors,
+        editor: {
+          ...state.editor,
           query: {
-            ...state.editors.query,
+            ...state.editor.query,
             placeholder,
             value,
           },
         },
       },
-      (self => Editors.focusQuery(self.state.editors)),
+      (self => Editor.Focus.onQuery(self.state.editor)),
     )
   | MountTo(mountTo) =>
-    SideEffects((self => mountPanel(self, state.editors.source, mountTo)))
+    SideEffects((self => mountPanel(self, state.editor.source, mountTo)))
   | UpdateMountAt(mountAt) => Update({...state, mountAt})
   | UpdateHeader(header) => Update({...state, header})
   | UpdateRawBody(raw) => Update({
@@ -247,7 +247,7 @@ let make =
       self.handle(
         (_, newSelf) =>
           Js.Promise.(
-            Editors.inquire(newSelf.state.editors)
+            Editor.Query.inquire(newSelf.state.editor)
             |> then_(answer => promise.resolve(answer) |> resolve)
             |> catch(error =>
                  promise.reject(Util.JSPromiseError(error)) |> resolve
@@ -260,7 +260,7 @@ let make =
     });
   },
   render: self => {
-    let {header, body, mountAt, mode, editors} = self.state;
+    let {header, body, mountAt, mode, editor} = self.state;
     let element: option(Element.t) =
       switch (mountAt) {
       | Nowhere => None
@@ -269,7 +269,7 @@ let make =
       };
     <>
       <Panel
-        editors
+        editor
         element
         header
         body
@@ -282,7 +282,7 @@ let make =
         )
         onEditorConfirm=(
           result => {
-            Editors.answer(editors, result);
+            Editor.(editor |. Query.answer(result));
             jsDeactivateInputMethod();
             self.send(FocusSource);
             self.send(UpdateMode(Display));
@@ -290,15 +290,15 @@ let make =
         )
         onEditorCancel=(
           (.) => {
-            Editors.reject(editors, Editors.QueryCancelled);
+            Editor.(editor |. Query.reject(QueryCancelled));
             jsDeactivateInputMethod();
             self.send(FocusSource);
             self.send(UpdateMode(Display));
           }
         )
         onEditorRef=(ref => self.send(SetGeneralRef(ref)))
-        editorValue=editors.query.value
-        editorPlaceholder=editors.query.placeholder
+        editorValue=editor.query.value
+        editorPlaceholder=editor.query.placeholder
         /* inputMethod */
         interceptAndInsertKey=(handle => interceptAndInsertKey := handle)
         inputMethodHandle=(handle => inputMethodHandle := handle)

@@ -40,7 +40,7 @@ let component = reducerComponent("Panel");
 
 let make =
     (
-      ~editors: Editors.t,
+      ~editor: Editor.t,
       ~element: option(Webapi.Dom.Element.t),
       ~onMountAtChange: mountTo => unit,
       ~body: body,
@@ -106,7 +106,7 @@ let make =
                 mountAtBottom
               />
               <InputMethod
-                editors
+                editor
                 interceptAndInsertKey
                 activationHandle=inputMethodHandle
                 onActivationChange=(
