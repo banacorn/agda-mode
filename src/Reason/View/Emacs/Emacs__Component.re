@@ -4,6 +4,8 @@ open Rebase;
 
 open Type.Interaction.Emacs;
 
+open Component;
+
 module Term = {
   let component = statelessComponent("EmacsTerm");
   let jump = true;

@@ -499,5 +499,10 @@ module Response = {
 let parseWhyInScope = raw => {
   let (_, ranges) = Response.whyInScope(raw);
   ranges[0]
-  |> map(range => (Range.toAtomRange(range), Range.toAtomFilepath(range)));
+  |> map(range =>
+       (
+         Component.Range.toAtomRange(range),
+         Component.Range.toAtomFilepath(range),
+       )
+     );
 };

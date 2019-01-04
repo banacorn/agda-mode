@@ -6,6 +6,8 @@ open Syntax;
 
 open Rebase;
 
+open Component;
+
 let component = statelessComponent("TypeError");
 
 let make = (~typeError: typeError, ~rawString as _, _children) => {

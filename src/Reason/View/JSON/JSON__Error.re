@@ -2,6 +2,8 @@ open ReasonReact;
 
 open Type.TypeChecking;
 
+open Component;
+
 let typeErrorToHeader = error =>
   switch (error) {
   | GenericDocError(_)

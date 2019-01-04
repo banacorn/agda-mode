@@ -98,6 +98,8 @@ let fuse = (a, b) => {
   };
 };
 
+module Link = Component__Link;
+
 let make = (~range, ~abbr=false, _children) => {
   ...component,
   render: _self =>

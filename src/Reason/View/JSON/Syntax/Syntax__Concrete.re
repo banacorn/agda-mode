@@ -8,6 +8,8 @@ open Syntax__Name;
 
 open Type;
 
+open Component;
+
 let jump = true;
 
 let hover = true;

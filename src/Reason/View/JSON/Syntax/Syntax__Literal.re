@@ -2,6 +2,8 @@ open ReasonReact;
 
 open Type.Syntax.Literal;
 
+open Component;
+
 let component = statelessComponent("Literal");
 
 let make = (~value, _children) => {

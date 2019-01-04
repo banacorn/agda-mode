@@ -6,6 +6,8 @@ open Type.Syntax.Name;
 
 open Util.React;
 
+open Component;
+
 module NamePart = {
   let toString: toString(namePart) =
     part =>
