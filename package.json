@@ -30,7 +30,7 @@
     "atom": ">=1.19.0 <2.0.0"
   },
   "devDependencies": {
-    "bs-platform": "^4.0.7",
+    "bs-platform": "^4.0.17",
     "ts-loader": "^5.3.0",
     "typescript": "^2.9.2",
     "webpack": "^4.24.0",

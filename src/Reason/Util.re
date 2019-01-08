@@ -11,13 +11,13 @@ module React = {
     | [x] => x
     | [x, ...xs] =>
       <span>
-        ...(Array.fromList([x, ...List.map(i => <> sep i </>, xs)]))
+        ...{Array.fromList([x, ...List.map(i => <> sep i </>, xs)])}
       </span>
     };
   let enclosedBy =
       (front: reactElement, back: reactElement, item: reactElement) =>
-    <> front (string(" ")) item (string(" ")) back </>;
-  let addClass = (x: string, p: bool, xs: list(string)) : list(string) =>
+    <> front {string(" ")} item {string(" ")} back </>;
+  let addClass = (x: string, p: bool, xs: list(string)): list(string) =>
     p ? [x, ...xs] : xs;
   let toClassName = String.joinWith(" ");
 };
@@ -34,7 +34,7 @@ module Array_ = {
       xs,
     )
     |> Array.fromList;
-  let partite = (p: 'a => bool, xs: array('a)) : array(array('a)) => {
+  let partite = (p: 'a => bool, xs: array('a)): array(array('a)) => {
     let indices: array(int) =
       xs
       |> Array.mapi((x, i) => (x, i))  /* zip with index */
@@ -104,8 +104,7 @@ module Dict = {
   };
   /* split an entry */
   let split =
-      (key: key, splitter: 'a => t('a), dict: t('a))
-      : t(array(string)) =>
+      (key: key, splitter: 'a => t('a), dict: t('a)): t(array(string)) =>
     switch (get(dict, key)) {
     | Some(value) =>
       /* insert new entries */
@@ -114,7 +113,7 @@ module Dict = {
       dict;
     | None => dict
     };
-  let update = (key: key, f: 'a => 'a, dict: t('a)) : t('a) =>
+  let update = (key: key, f: 'a => 'a, dict: t('a)): t('a) =>
     switch (get(dict, key)) {
     | Some(value) =>
       set(dict, key, f(value));
@@ -125,7 +124,7 @@ module Dict = {
 
 module Parser = {
   /* open Option; */
-  let captures = (re: Js.Re.t, x: string) : option(array(option(string))) =>
+  let captures = (re: Js.Re.t, x: string): option(array(option(string))) =>
     Js.Re.exec(x, re)
     |> Option.map(result =>
          result |> Js.Re.captures |> Array.map(Js.Nullable.toOption)
@@ -133,12 +132,12 @@ module Parser = {
   type parser('a) =
     | Regex(Js.Re.t, array(option(string)) => option('a))
     | String(string => option('a));
-  let parse = (parser: parser('a), raw: string) : option('a) =>
+  let parse = (parser: parser('a), raw: string): option('a) =>
     switch (parser) {
     | Regex(re, handler) => captures(re, raw) |> Option.flatMap(handler)
     | String(handler) => handler(raw)
     };
-  let parseArray = (parser: parser('a), xs: array(string)) : array('a) =>
+  let parseArray = (parser: parser('a), xs: array(string)): array('a) =>
     xs |> Array.map(raw => raw |> parse(parser)) |> Array_.catMaybes;
   let at =
       (i: int, parser: parser('a), captured: array(option(string)))
@@ -166,7 +165,7 @@ module Parser = {
 };
 
 module List_ = {
-  let sepBy = (sep: 'a, item: list('a)) : list('a) =>
+  let sepBy = (sep: 'a, item: list('a)): list('a) =>
     switch (item) {
     | [] => []
     | [x, ...xs] => [x, ...xs |> List.flatMap(i => [sep, i])]
@@ -207,9 +206,20 @@ module List_ = {
 };
 
 module String = {
-  let rec toCharArray = (input: string) : array(string) => {
-    Js.log(input);
+  let toCharArray = (input: string): array(string) => {
     input |> Js.String.split("");
+  };
+  let indexOf = (needle, haystack) => {
+    switch (Js.String.indexOf(needle, haystack)) {
+    | (-1) => None
+    | n => Some(n)
+    };
+  };
+  let lastIndexOf = (needle, haystack) => {
+    switch (Js.String.lastIndexOf(needle, haystack)) {
+    | (-1) => None
+    | n => Some(n)
+    };
   };
 };
 
@@ -218,7 +228,7 @@ module Resource = {
     acquire: unit => Js.Promise.t('a),
     supply: 'a => unit,
   };
-  let make = () : t('a) => {
+  let make = (): t('a) => {
     /* resource that is temporarily unavailable */
     let resource = ref(None: option('a));
     /* queue of callbacks waiting to be resolved */
