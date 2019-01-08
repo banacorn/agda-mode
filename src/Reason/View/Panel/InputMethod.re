@@ -7,14 +7,14 @@ open Rebase;
 open Webapi.Dom;
 
 [@bs.module "./../../../asset/keymap"]
-external rawKeymap : Js.t({.}) = "default";
+external rawKeymap: Js.t({.}) = "default";
 
 type trie = {
   symbol: array(string),
   subTrie: Js.Dict.t(trie),
 };
 
-let rec toTrie = (obj: Js.t({.})) : trie => {
+let rec toTrie = (obj: Js.t({.})): trie => {
   let symbol = [%raw {|
   obj[">>"] || ""
 |}];
@@ -31,14 +31,14 @@ let rec toTrie = (obj: Js.t({.})) : trie => {
 
 let keymap = toTrie(rawKeymap);
 
-let toKeySuggestions = (trie: trie) : array(string) =>
+let toKeySuggestions = (trie: trie): array(string) =>
   Js.Dict.keys(trie.subTrie);
 
-let toCandidateSymbols = (trie: trie) : array(string) => trie.symbol;
+let toCandidateSymbols = (trie: trie): array(string) => trie.symbol;
 
 /* see if the underlying is in the keymap */
-let isInKeymap = (input: string) : option(trie) => {
-  let rec helper = (input: string, trie: trie) : option(trie) =>
+let isInKeymap = (input: string): option(trie) => {
+  let rec helper = (input: string, trie: trie): option(trie) =>
     switch (String.length(input)) {
     | 0 => Some(trie)
     | n =>
@@ -60,7 +60,7 @@ type translation = {
 };
 
 /* converts characters to symbol, and tells if there's any further possible combinations */
-let translate = (input: string) : translation =>
+let translate = (input: string): translation =>
   switch (isInKeymap(input)) {
   | Some(trie) =>
     let keySuggestions = toKeySuggestions(trie);
@@ -81,7 +81,6 @@ let translate = (input: string) : translation =>
       candidateSymbols: [||],
     }
   };
-
 
 /********************************************************************************************/
 module Garbages = Atom.CompositeDisposable;
@@ -108,7 +107,7 @@ let initialBuffer = {surface: "", underlying: ""};
 
 let initialTranslation = translate("");
 
-let initialState = (_) => {
+let initialState = _ => {
   activated: false,
   /* view related */
   decorations: [||],
@@ -202,71 +201,66 @@ let reducer = (editor, onActivationChange, action, state) =>
     onActivationChange(true);
     state.activated ?
       SideEffects(
-        (
-          self =>
-            /* already activated, it happens when we get the 2nd */
-            /* backslash '\' comes in */
-            if (state.buffer.underlying |> String.isEmpty) {
-              /* the user probably just want to type '\', we shall leave it as is */
-              self.send(
-                Deactivate,
-              );
-            } else {
-              /* keep going, see issue #34: https://github.com/banacorn/agda-mode/issues/34 */
-              self.send(
-                InsertSurface("\\"),
-              );
-            }
-        ),
+        self =>
+          /* already activated, it happens when we get the 2nd */
+          /* backslash '\' comes in */
+          if (state.buffer.underlying |> String.isEmpty) {
+            /* the user probably just want to type '\', we shall leave it as is */
+            self.send(
+              Deactivate,
+            );
+          } else {
+            /* keep going, see issue #34: https://github.com/banacorn/agda-mode/issues/34 */
+            self.send(
+              InsertSurface("\\"),
+            );
+          },
       ) :
       UpdateWithSideEffects(
         {...state, activated: true},
-        (
-          self => {
-            open Atom;
-            let focusedEditor = Editor.Focus.get(editor);
-            /* add class 'agda-mode-input-method-activated' */
-            Views.getView(focusedEditor)
-            |> HtmlElement.classList
-            |> DomTokenListRe.add("agda-mode-input-method-activated");
-            /* monitors raw text buffer and figures out what happend */
-            let markers =
-              focusedEditor
-              |> TextEditor.getSelectedBufferRanges
-              |> Array.map(range =>
-                   focusedEditor
-                   |> TextEditor.markBufferRange(Atom.Range.copy(range))
-                 );
-            /* monitors only the first marker */
-            let markersDisposable =
-              markers[0]
-              |> Option.map(marker =>
-                   marker
-                   |> DisplayMarker.onDidChange(
-                        self.handle(markerOnDidChange(editor)),
-                      )
-                 );
-            /* decorate the editor with these markers */
-            let decorations =
-              markers
-              |> Array.map(marker =>
-                   focusedEditor
-                   |> TextEditor.decorateMarker(
-                        marker,
-                        {
-                          "type": "highlight",
-                          "class": "input-method-decoration",
-                        },
-                      )
-                 );
-            /* store these markers and stuff */
-            self.send(
-              UpdateMarkers(markers, decorations, markersDisposable),
-            );
-            /* insert '\' at the cursor to indicate the activation */
-            self.send(InsertSurface("\\"));
-          }
-        ),
+        self => {
+          open Atom;
+          let focusedEditor = Editor.Focus.get(editor);
+          /* add class 'agda-mode-input-method-activated' */
+          Views.getView(focusedEditor)
+          |> HtmlElement.classList
+          |> DomTokenListRe.add("agda-mode-input-method-activated");
+          /* monitors raw text buffer and figures out what happend */
+          let markers =
+            focusedEditor
+            |> TextEditor.getSelectedBufferRanges
+            |> Array.map(range =>
+                 focusedEditor
+                 |> TextEditor.markBufferRange(Atom.Range.copy(range))
+               );
+          /* monitors only the first marker */
+          let markersDisposable =
+            markers[0]
+            |> Option.map(marker =>
+                 marker
+                 |> DisplayMarker.onDidChange(
+                      self.handle(markerOnDidChange(editor)),
+                    )
+               );
+          /* decorate the editor with these markers */
+          let decorations =
+            markers
+            |> Array.map(marker =>
+                 focusedEditor
+                 |> TextEditor.decorateMarker(
+                      marker,
+                      TextEditor.decorationParams(
+                        ~type_="highlight",
+                        ~class_="input-method-decoration",
+                        (),
+                      ),
+                    )
+               );
+          /* store these markers and stuff */
+          self.send(UpdateMarkers(markers, decorations, markersDisposable));
+          /* insert '\' at the cursor to indicate the activation */
+          self.send(InsertSurface("\\"));
+        },
       );
   | Deactivate =>
     onActivationChange(false);
@@ -278,23 +272,19 @@ let reducer = (editor, onActivationChange, action, state) =>
           buffer: initialBuffer,
           translation: initialTranslation,
         },
-        (
-          _self => {
-            open Atom;
-            /* remove class 'agda-mode-input-method-activated' */
-            editor
-            |> Editor.Focus.get
-            |> Views.getView
-            |> HtmlElement.classList
-            |> DomTokenListRe.remove("agda-mode-input-method-activated");
-            /* destroy all markers and stuff */
-            state.markers |> Array.forEach(DisplayMarker.destroy);
-            state.decorations |> Array.forEach(Decoration.destroy);
-            state.markersDisposable
-            |> Option.map(Disposable.dispose)
-            |> ignore;
-          }
-        ),
+        _self => {
+          open Atom;
+          /* remove class 'agda-mode-input-method-activated' */
+          editor
+          |> Editor.Focus.get
+          |> Views.getView
+          |> HtmlElement.classList
+          |> DomTokenListRe.remove("agda-mode-input-method-activated");
+          /* destroy all markers and stuff */
+          state.markers |> Array.forEach(DisplayMarker.destroy);
+          state.decorations |> Array.forEach(Decoration.destroy);
+          state.markersDisposable |> Option.map(Disposable.dispose) |> ignore;
+        },
       ) :
       NoUpdate;
   | InsertUnderlying(char) =>
@@ -311,16 +301,14 @@ let reducer = (editor, onActivationChange, action, state) =>
           },
           translation,
         },
-        (
-          self => {
-            /* reflects current translation to the text buffer */
-            self.send(RewriteSurface(symbol));
-            /* deactivate if we can't go further */
-            if (! translation.further) {
-              self.send(Deactivate);
-            };
-          }
-        ),
+        self => {
+          /* reflects current translation to the text buffer */
+          self.send(RewriteSurface(symbol));
+          /* deactivate if we can't go further */
+          if (!translation.further) {
+            self.send(Deactivate);
+          };
+        },
       )
     | None =>
       UpdateWithSideEffects(
@@ -333,13 +321,11 @@ let reducer = (editor, onActivationChange, action, state) =>
           },
           translation,
         },
-        (
-          self =>
-            /* deactivate if we can't go further */
-            if (! translation.further) {
-              self.send(Deactivate);
-            }
-        ),
+        self =>
+          /* deactivate if we can't go further */
+          if (!translation.further) {
+            self.send(Deactivate);
+          },
       )
     };
   | Backspace =>
@@ -378,12 +364,10 @@ let reducer = (editor, onActivationChange, action, state) =>
           surface: state.buffer.surface ++ char,
         },
       },
-      (
-        self => {
-          insertActualBuffer(editor, char, self);
-          self.send(InsertUnderlying(char));
-        }
-      ),
+      self => {
+        insertActualBuffer(editor, char, self);
+        self.send(InsertUnderlying(char));
+      },
     )
   | RewriteSurface(string) =>
     UpdateWithSideEffects(
@@ -394,22 +378,20 @@ let reducer = (editor, onActivationChange, action, state) =>
           surface: string,
         },
       },
-      (
-        _self =>
-          state.markers
-          |> Array.forEach(marker =>
-               Atom.(
-                 editor
-                 |> Editor.Focus.get
-                 |> TextEditor.getBuffer
-                 |> TextBuffer.setTextInRange(
-                      DisplayMarker.getBufferRange(marker),
-                      string,
-                    )
-               )
-               |> ignore
+      _self =>
+        state.markers
+        |> Array.forEach(marker =>
+             Atom.(
+               editor
+               |> Editor.Focus.get
+               |> TextEditor.getBuffer
+               |> TextBuffer.setTextInRange(
+                    DisplayMarker.getBufferRange(marker),
+                    string,
+                  )
              )
-      ),
+             |> ignore
+           ),
     )
   };
 
@@ -462,7 +444,7 @@ let make =
     let {activated, buffer, translation} = self.state;
     let className =
       ["input-method"]
-      |> Util.React.addClass("hidden", ! activated)
+      |> Util.React.addClass("hidden", !activated)
       |> Util.React.toClassName;
     let bufferClassName =
       ["inline-block", "buffer"]
@@ -470,38 +452,35 @@ let make =
       |> Util.React.toClassName;
     <section className>
       <div className="keyboard">
-        <div className=bufferClassName> (string(buffer.underlying)) </div>
+        <div className=bufferClassName> {string(buffer.underlying)} </div>
         <div className="keys btn-group btn-group-sm">
-          ...(
+          ...{
                translation.keySuggestions
                |> Array.map(key =>
                     <button
                       className="btn"
-                      onClick=(
-                        (_) => self.send(InsertSurfaceAndUnderlying(key))
-                      )
+                      onClick={_ =>
+                        self.send(InsertSurfaceAndUnderlying(key))
+                      }
                       key>
-                      (string(key))
+                      {string(key)}
                     </button>
                   )
-             )
+             }
         </div>
       </div>
       <CandidateSymbols
-        updateTranslation=(
-          replace =>
-            switch (replace) {
-            | Some(symbol) => self.send(RewriteSurface(symbol))
-            | None => ()
-            }
-        )
-        chooseSymbol=(
-          symbol => {
-            self.send(InsertSurfaceAndUnderlying(symbol));
-            self.send(Deactivate);
+        updateTranslation={replace =>
+          switch (replace) {
+          | Some(symbol) => self.send(RewriteSurface(symbol))
+          | None => ()
           }
-        )
-        candidateSymbols=translation.candidateSymbols
+        }
+        chooseSymbol={symbol => {
+          self.send(InsertSurfaceAndUnderlying(symbol));
+          self.send(Deactivate);
+        }}
+        candidateSymbols={translation.candidateSymbols}
       />
     </section>;
   },
