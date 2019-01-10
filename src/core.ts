@@ -8,7 +8,7 @@ import Editor from './editor';
 import View from './view';
 import * as Action from './view/actions';
 
-const ViewRE = require('./Reason/View.bs');
+const AgdaModeRE = require('./Reason/AgdaMode.bs');
 
 export interface AgdaEditor extends Atom.TextEditor {
     core: Core;
@@ -32,7 +32,9 @@ export class Core {
 
         // view
         this.view               = new View(this);
-        ViewRE.initialize(textEditor);
+
+        AgdaModeRE.initialize(textEditor);
+        // ViewRE.initialize(textEditor);
         // dispatch config related data to the store on initialization
         // this.view.store.dispatch(Action.updateMaxBodyHeight(atom.config.get('agda-mode.maxBodyHeight')));
 
@@ -48,12 +50,15 @@ export class Core {
     // Editor Events
 
     activate() {
-        ViewRE.jsMountPanel("bottom");
+        AgdaModeRE.activate(this.editor.getPath());
+
+        // ViewRE.jsMountPanel("bottom");
         // this.view.activatePanel();
     }
 
     deactivate() {
-        ViewRE.jsMountPanel("nowhere");
+        AgdaModeRE.deactivate(this.editor.getPath());
+        // ViewRE.jsMountPanel("nowhere");
         // this.view.deactivatePanel();
     }
 

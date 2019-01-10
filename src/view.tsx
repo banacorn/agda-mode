@@ -29,7 +29,7 @@ var { parseWhyInScope } = require('./Reason/View/Emacs/Emacs__Parser.bs');
 var Panel = require('./Reason/View/Panel/Panel.bs').jsComponent;
 var Reason = require('./Reason/Decoder.bs');
 
-const ViewRE = require('./Reason/View.bs');
+const AgdaModeRE = require('./Reason/AgdaMode.bs');
 
 class EditorViewManager {
     main: Atom.TextEditor;
@@ -119,22 +119,22 @@ class TabManager {
         mainEditor: Atom.TextEditor
     ) {
         // Tab for <Panel>
-        this.panel = new Tab(mainEditor, 'panel');
-        this.panel.onOpen((tab, panes) => {
-            // activate the previous pane (which opened this pane item)
-            panes.previous.activate();
-            // render
-            ViewRE.renderPanel(tab.getElement());
-            // this.core.view.renderPanel(tab.getElement());
-        });
-
-        // open <Panel> at the bottom when this tab got destroyed
-        this.panel.onKill(tab => {
-            this.store.dispatch(Action.VIEW.mountAtBottom());
-            // this.core.view.unmountPanel(V.MountingPosition.Pane);
-            // this.core.view.mountPanel(V.MountingPosition.Bottom);
-            ViewRE.jsMountPanel("bottom");
-        });
+        // this.panel = new Tab(mainEditor, 'panel');
+        // this.panel.onOpen((tab, panes) => {
+        //     // activate the previous pane (which opened this pane item)
+        //     panes.previous.activate();
+        //     // render
+        //     // ViewRE.renderPanel(tab.getElement());
+        //     // this.core.view.renderPanel(tab.getElement());
+        // });
+        //
+        // // open <Panel> at the bottom when this tab got destroyed
+        // this.panel.onKill(tab => {
+        //     this.store.dispatch(Action.VIEW.mountAtBottom());
+        //     // this.core.view.unmountPanel(V.MountingPosition.Pane);
+        //     // this.core.view.mountPanel(V.MountingPosition.Bottom);
+        //     AgdaModeRE.activate(this.core.editor);
+        // });
 
         // Tab for <Settings>
         this.settings = new Tab(mainEditor, 'settings', () => {
@@ -282,15 +282,16 @@ export default class View {
     // for JSON
     setJSONError(rawJSON: object, rawString: string) {
         console.log(rawJSON)
-        ViewRE.jsUpdateMode("display");
+        AgdaModeRE.modeDisplay(this.core.editor);
         this.editors.focusMain()
 
-        ViewRE.jsUpdateHeader({
+
+        AgdaModeRE.jsUpdateHeader(this.core.editor, {
             text: errorToHeader(Reason.parseError(rawJSON)),
             style: 'error',
         });
 
-        ViewRE.jsUpdateHeader({
+        AgdaModeRE.jsUpdateHeader(this.core.editor, {
             kind: 'Error',
             rawJSON: rawJSON,
             rawString: rawString
@@ -298,16 +299,16 @@ export default class View {
     }
 
     setJSONAllGoalsWarnings(rawJSON: object, rawString: string) {
-        ViewRE.jsUpdateMode("display");
+        AgdaModeRE.modeDisplay(this.core.editor);
         this.editors.focusMain()
 
 
-        ViewRE.jsUpdateHeader({
+        AgdaModeRE.jsUpdateHeader(this.core.editor, {
             text: 'All Goals, Warnings, and Errors',
             style: 'info'
         });
 
-        ViewRE.jsUpdateJSONBody({
+        AgdaModeRE.jsUpdateJSONBody(this.core.editor, {
             kind: 'AllGoalsWarnings',
             rawJSON: rawJSON,
             rawString: rawString,
@@ -316,15 +317,15 @@ export default class View {
 
     // for Emacs
     setEmacsPanel(header, kind, payload, style: Style ="info") {
-        ViewRE.jsUpdateMode("display");
+        AgdaModeRE.modeDisplay(this.core.editor);
         this.editors.focusMain()
 
-        ViewRE.jsUpdateHeader({
+        AgdaModeRE.jsUpdateHeader(this.core.editor, {
             text: header,
             style: style
         });
 
-        ViewRE.jsUpdateEmacsBody({
+        AgdaModeRE.jsUpdateEmacsBody(this.core.editor, {
             kind: kind,
             header: header,
             body: payload
@@ -332,15 +333,15 @@ export default class View {
     }
 
     setEmacsGoalTypeContext(header: string = 'Judgements', goalTypeContext: string) {
-        ViewRE.jsUpdateMode("display");
+        AgdaModeRE.modeDisplay(this.core.editor);
         this.editors.focusMain()
 
-        ViewRE.jsUpdateHeader({
+        AgdaModeRE.jsUpdateHeader(this.core.editor, {
             text: header,
             style: 'info'
         });
 
-        ViewRE.jsUpdateEmacsBody({
+        AgdaModeRE.jsUpdateEmacsBody(this.core.editor, {
             kind: 'GoalTypeContext',
             header: header,
             body: goalTypeContext
@@ -356,18 +357,17 @@ export default class View {
     }
 
     setPlainText(header: string, body: string, style: Style ="plain-text") {
-        ViewRE.jsUpdateMode("display");
+        AgdaModeRE.modeDisplay(this.core.editor);
 
-        ViewRE.jsUpdateMode("display");
+        AgdaModeRE.modeDisplay(this.core.editor);
         this.editors.focusMain()
 
-
-        ViewRE.jsUpdateHeader({
+        AgdaModeRE.jsUpdateHeader(this.core.editor, {
             text: header,
             style: style
         });
 
-        ViewRE.jsUpdateEmacsBody({
+        AgdaModeRE.jsUpdateEmacsBody(this.core.editor, {
             kind: 'PlainText',
             header: header,
             body: body
@@ -376,12 +376,12 @@ export default class View {
 
     query(header: string = '', _: string[] = [], placeholder: string = ''): Promise<string> {
 
-        ViewRE.jsUpdateMode("query");
-        ViewRE.jsUpdateHeader({
+        AgdaModeRE.modeQuery(this.core.editor);
+        AgdaModeRE.jsUpdateHeader(this.core.editor, {
             text: header,
             style: 'plain-text',
         });
-        return ViewRE.jsQueryGeneral(placeholder, '');
+        return AgdaModeRE.jsInquireQuery(this.core.editor, placeholder, '');
     }
 
     queryConnection(): Promise<string> {
@@ -403,11 +403,13 @@ export default class View {
         switch (this.state().mountAt.current) {
             case V.MountingPosition.Bottom:
                 this.store.dispatch(Action.VIEW.mountAtPane());
-                ViewRE.jsMountPanel("pane");
+                // TODO
+                // AgdaModeRE.activate(this.core.editor);
+                // ViewRE.jsMountPanel("pane");
                 break;
             case V.MountingPosition.Pane:
                 this.store.dispatch(Action.VIEW.mountAtBottom());
-                ViewRE.jsMountPanel("bottom");
+                AgdaModeRE.activate(this.core.editor);
                 break;
             default:
                 // do nothing

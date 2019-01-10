@@ -10,8 +10,8 @@ import * as Req from './request';
 import * as Action from './view/actions';
 import Table from './asset/query';
 
-const ViewRE = require('./Reason/View.bs');
 const HoleRE = require('./Reason/Hole.bs');
+const AgdaModeRE = require('./Reason/AgdaMode.bs');
 
 function toDescription(normalization: Agda.Normalization): string {
     switch(normalization) {
@@ -127,7 +127,7 @@ export default class Commander {
                         // const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
                         // this.core.view.mountPanel(currentMountingPosition);
                         // this.core.view.activatePanel();
-                        ViewRE.jsMountPanel("bottom");
+                        AgdaModeRE.activate(this.core.editor);
 
 
                         if (command.kind === 'Load') {
@@ -259,7 +259,7 @@ export default class Commander {
         // this.core.view.deactivatePanel();
         // const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
         // this.core.view.unmountPanel(currentMountingPosition);
-        ViewRE.jsMountPanel("nowhere");
+        AgdaModeRE.deactivate(this.core.editor);
         if (this.loaded) {
             this.loaded = false;
             this.core.editor.holes.removeAll();
@@ -465,10 +465,10 @@ export default class Commander {
                 // const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
                 // this.core.view.mountPanel(currentMountingPosition);
                 // this.core.view.activatePanel();
-                ViewRE.jsMountPanel("bottom");
+                AgdaModeRE.activate(this.core.editor);
                 this.core.view.setPlainText('Not loaded', '');
             }
-            ViewRE.jsActivateInputMethod();
+            AgdaModeRE.activateInputMethod(this.core.editor);
         } else {
             this.core.view.editors.getFocusedEditor().then(editor => editor.insertText('\\'));
         }
@@ -527,7 +527,7 @@ export default class Commander {
     }
 
     private inputSymbolInterceptKey = (_, key: string) => (): Promise<Agda.Request[]> => {
-        ViewRE.jsInterceptAndInsertKey(key);
+        AgdaModeRE.interceptAndInsertKey(this.core.editor, key);
         return Promise.resolve([]);
     }
 }
