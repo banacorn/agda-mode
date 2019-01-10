@@ -1,4 +1,4 @@
-import Goal from './editor/goal';
+// import Goal from './editor/goal';
 import { Path } from './type/connection';
 
 // for parsing related errors
@@ -79,7 +79,7 @@ export class NotLoadedError extends Error {
 }
 
 export class EmptyGoalError extends Error {
-    constructor(message: string, public goal: Goal) {
+    constructor(message: string, public goal) {
         super(message);
         this.message = message;
         this.name = 'EmptyGoalError';
