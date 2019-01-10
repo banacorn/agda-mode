@@ -221,6 +221,25 @@ module String = {
     | n => Some(n)
     };
   };
+  /* return the number of blank characters at the front */
+  /* ' ', '\012', '\n', '\r', and '\t' */
+  let indentedBy = s => {
+    let n = ref(0);
+    for (i in 0 to Js.String.length(s) - 1) {
+      switch (Js.String.charAt(i, s)) {
+      | " "
+      | "\012"
+      | "\n"
+      | "\r"
+      | "\t" =>
+        if (i == n^) {
+          n := n^ + 1;
+        }
+      | _ => ()
+      };
+    };
+    n^;
+  };
 };
 
 module Resource = {

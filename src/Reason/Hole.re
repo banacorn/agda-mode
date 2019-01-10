@@ -1,7 +1,7 @@
 open Atom;
-
 open Rebase;
 
+[@bs.deriving accessors]
 type t = {
   textEditor: TextEditor.t,
   index: option(int),
@@ -30,7 +30,7 @@ let removeBoundary = self => {
 
 /* replace and insert one or more lines of content at the goal
    usage: splitting case */
-let writeLines = (self, contents: list(string)) => {
+let writeLines = (self, contents: array(string)) => {
   let textBuffer = self.textEditor |> TextEditor.getBuffer;
   let rowNumbers = self.range |> Range.getRows;
   switch (rowNumbers[0]) {
@@ -42,18 +42,16 @@ let writeLines = (self, contents: list(string)) => {
       self.textEditor |> TextEditor.getTextInBufferRange(firstRowRange);
     /* indent and join with \n */
     let indentSpaces =
-      switch (Js.String.match([%re "/^(\\s)*/"], firstRow)) {
-      | None => ""
-      | Some(matches) =>
-        switch (matches[0]) {
-        | None => ""
-        | Some(spaces) => spaces
-        }
-      };
+      Js.String.repeat(Util.String.indentedBy(firstRow), " ");
+
     let indentedContents =
       contents
-      |> List.map(line => indentSpaces ++ line)
-      |> String.joinWith("\n");
+      |> Array.map(line => indentSpaces ++ line)
+      |> List.fromArray
+      |> String.joinWith("\n")
+      |> String.concat("\n");
+
+    /* Js.log(indentedContents); */
 
     /* delete original rows */
     switch (rowNumbers[Array.length(rowNumbers) - 1]) {
@@ -70,49 +68,66 @@ let writeLines = (self, contents: list(string)) => {
   };
 };
 
-/* rewrite lambda expression
+/* Replace definition of extended lambda with new clauses
    aside from the goal itself, its clauses also need to be rewritten */
-let writeLambda = (self, contents: list(string)) => {
-  /* range to scan */
-  let textBuffer = self.textEditor |> TextEditor.getBuffer;
-  let beforeRange =
-    Range.make(
-      textBuffer |> TextBuffer.getFirstPosition,
-      self.range |> Range.start,
-    );
-  let afterRange =
-    Range.make(
-      self.range |> Range.end_,
-      textBuffer |> TextBuffer.getEndPosition,
-    );
+/* https://github.com/agda/agda/blob/f46ecaf729c00217efad7a77e5d9932bfdd030e5/src/data/emacs-mode/agda2-mode.el#L950 */
 
-  /* scan and build the range to replace text with */
-  self.textEditor
-  |> TextEditor.backwardsScanInBufferRange(
-       [%re "/\\;\\s*|\\{\\s*/"],
-       beforeRange,
-       result => {
-         let rewriteRangeStart = result##range |> Range.end_;
-         result##stop();
-         self.textEditor
-         |> TextEditor.scanInBufferRange(
-              [%re "/\\s*\\;|\\s*\\}/"],
-              afterRange,
-              result => {
-                let rewriteRangeEnd = result##range |> Range.start;
-                result##stop();
-                let rewriteRange =
-                  Range.make(rewriteRangeStart, rewriteRangeEnd);
-                self.textEditor
-                |> TextEditor.setTextInBufferRange(
-                     rewriteRange,
-                     contents |> String.joinWith(" ; "),
-                   )
-                |> ignore;
-              },
-            );
-       },
-     );
+let writeLambda = (self, contents: array(string)) => {
+  Js.log(contents);
+  /* range to scan */
+  let scanRow = self.range |> Range.start |> Point.row;
+  let scanRowText =
+    self.textEditor
+    |> TextEditor.getTextInBufferRange(
+         Range.make(Point.make(scanRow, 0), self.range |> Range.start),
+       );
+  let indent = Util.String.indentedBy(scanRowText);
+  /* start at the last ";", or the first non-black character if not found */
+  let scanColStart =
+    switch (Util.String.lastIndexOf(";", scanRowText)) {
+    | Some(n) => n + 1
+    | None => indent
+    };
+
+  let scanColEnd = self.range |> Range.start |> Point.column;
+  /* ugly iteration  */
+  let bracketCount = ref(0);
+  let i = ref(scanColEnd - 1);
+  while (i^ >= scanColStart && bracketCount^ >= 0) {
+    switch (i^) {
+    /* no preceding character */
+    | 0 => ()
+    /* has preceding character */
+    | i' =>
+      switch (Js.String.charAt(i' - 1, scanRowText)) {
+      | "}" => bracketCount := bracketCount^ + 1
+      | "{" => bracketCount := bracketCount^ - 1
+      | _ => ()
+      }
+    };
+    i := i^ - 1;
+  };
+  let rewriteRangeStart = Point.make(scanRow, i^ + 1);
+  let rewriteRangeEnd = self.range |> Range.end_;
+  let rewriteRange = Range.make(rewriteRangeStart, rewriteRangeEnd);
+  let isLambdaWhere = i^ + 1 == indent;
+  if (isLambdaWhere) {
+    self.textEditor
+    |> TextEditor.setTextInBufferRange(
+         rewriteRange,
+         contents
+         |> List.fromArray
+         |> String.joinWith("\n" ++ Js.String.repeat(indent, " ")),
+       )
+    |> ignore;
+  } else {
+    self.textEditor
+    |> TextEditor.setTextInBufferRange(
+         rewriteRange,
+         " " ++ (contents |> List.fromArray |> String.joinWith(" ; ")),
+       )
+    |> ignore;
+  };
 };
 
 let destroy = self => {
@@ -144,15 +159,14 @@ let make =
   module DomTokenList = Webapi.Dom.DomTokenList;
   let element = Webapi.Dom.document |> Document.createElement("div");
   Element.setInnerHTML(element, indexText);
-  element |> Element.classList |> DomTokenList.add("agda-mode");
+  element |> Element.classList |> DomTokenList.add("goal-index");
   /* adjusting the position of the overlay */
   /* setStyle is not supported by Reason Webapi for the moment, so we use setAttribute instead */
   element
   |> Element.setAttribute(
        "style",
-       "left: " ++ string_of_int(- indexWidth - 2) ++ "ex",
+       "left: " ++ string_of_int(- indexWidth - 2) ++ "ex ; top: -1.5em",
      );
-  element |> Element.setAttribute("style", "top: -1.5em");
   /* decorations */
   textEditor
   |> TextEditor.decorateMarker(
@@ -199,10 +213,11 @@ let make =
            |> Range.translate(Point.make(0, left), Point.make(0, right'));
          t.content = textBuffer |> TextBuffer.getTextInRange(t.range);
          t.marker
-         |> DisplayMarker.setBufferRange'(t.range, {"reversed": false});
+         |> DisplayMarker.setBufferRange_(t.range, {"reversed": false});
        };
      })
   |> CompositeDisposable.add(disposables);
+  t;
 };
 
 let getContent = self => {
@@ -251,4 +266,36 @@ let isEmpty = self => {
   getContent(self)
   |> Js.String.replaceByRe([%re "/(\\s|\\\\n)*/"], "")
   |> String.isEmpty;
+};
+
+let buildHaskellRange = (old, filepath, self) => {
+  let start = self.range |> Range.start;
+  let startIndex =
+    self.textEditor
+    |> TextEditor.getBuffer
+    |> TextBuffer.characterIndexForPosition(start);
+
+  let end_ = self.range |> Range.end_;
+  let endIndex =
+    self.textEditor
+    |> TextEditor.getBuffer
+    |> TextBuffer.characterIndexForPosition(end_);
+  ();
+
+  let startIndex' = string_of_int(startIndex + 3);
+  let startRow = string_of_int(Point.row(start) + 1);
+  let startColumn = string_of_int(Point.column(start) + 3);
+  let startPart = {j|$(startIndex') $(startRow) $(startColumn)|j};
+  let endIndex' = string_of_int(endIndex - 3);
+  let endRow = string_of_int(Point.row(end_) + 1);
+  let endColumn = string_of_int(Point.column(end_) - 1);
+  let endPart = {j|$(endIndex') $(endRow) $(endColumn)|j};
+
+  if (old) {
+    {j|(Range [Interval (Pn (Just (mkAbsolute "$(filepath)")) $(startPart)) (Pn (Just (mkAbsolute "$(filepath)")) $(endPart))])|j}
+    /* before (not including) 2.5.1 */
+  } else {
+    {j|(intervalsToRange (Just (mkAbsolute "$(filepath)")) [Interval (Pn () $(startPart)) (Pn () $(endPart))])|j}
+    /* after 2.5.1 */
+  };
 };
