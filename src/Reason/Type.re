@@ -729,7 +729,7 @@ module Interaction = {
   /* state */
   type mountAt =
     | Bottom(Webapi.Dom.Element.t)
-    | Pane(Tab.handle)
+    | Pane(Tab.t)
     | Nowhere;
   type mode =
     | Display
@@ -739,12 +739,10 @@ module Interaction = {
     | MouseOver(Syntax.Position.range)
     | MouseOut(Syntax.Position.range);
   module MouseEmitter =
-    Context.MakePair(
-      {
-        type t = mouseEvent => unit;
-        let defaultValue = (_) => ();
-      },
-    );
+    Context.MakePair({
+      type t = mouseEvent => unit;
+      let defaultValue = _ => ();
+    });
 };
 
 type underscore('t) = 't => bool;

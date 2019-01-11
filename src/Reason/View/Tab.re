@@ -16,7 +16,7 @@ type itemDescriptor = {
   "getDefaultLocation": unit => string,
 };
 
-let createItemDescriptor = (editor: TextEditor.t) : itemDescriptor => {
+let createItemDescriptor = (editor: TextEditor.t): itemDescriptor => {
   open DomTokenListRe;
   let element = document |> Document.createElement("article");
   element |> Element.classList |> add("agda-mode");
@@ -30,19 +30,19 @@ let createItemDescriptor = (editor: TextEditor.t) : itemDescriptor => {
   };
 };
 
-let trigger = (callback: option(unit => unit)) : unit =>
+let trigger = (callback: option(unit => unit)): unit =>
   switch (callback) {
   | Some(f) => f()
   | None => ()
   };
 
-let triggerArg = (callback: option('a => unit), arg: 'a) : unit =>
+let triggerArg = (callback: option('a => unit), arg: 'a): unit =>
   switch (callback) {
   | Some(f) => f(arg)
   | None => ()
   };
 
-type handle = {
+type t = {
   element: Element.t,
   kill: unit => unit,
   activate: unit => unit,
@@ -56,8 +56,7 @@ let make =
       ~onClose: option(unit => unit)=?,
       ~onDidChangeActive: option(bool => unit)=?,
       (),
-    )
-    : handle => {
+    ) => {
   let itemResource = Util.Resource.make();
   let closedDeliberately = ref(false);
   let subscriptions = CompositeDisposable.make();

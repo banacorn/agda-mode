@@ -15,6 +15,7 @@ module Handle = {
     inquireQuery: ref((string, string) => Js.Promise.t(string)),
     interceptAndInsertKey: ref(string => unit),
     inputMethodHandle: ref(bool => unit),
+    settingsViewHandle: ref(bool => unit),
   };
   let updateHeader = ref(_ => ());
 
@@ -30,6 +31,8 @@ module Handle = {
 
   let inputMethodHandle = ref(_ => ());
 
+  let settingsViewHandle = ref(_ => ());
+
   let collection = {
     updateHeader,
     updateRawBody,
@@ -38,6 +41,7 @@ module Handle = {
     inquireQuery,
     interceptAndInsertKey,
     inputMethodHandle,
+    settingsViewHandle,
   };
 
   /* these "Hooked" callbacks sets the refs */
@@ -49,6 +53,7 @@ module Handle = {
     let inquireQuery = handle => inquireQuery := handle;
     let interceptAndInsertKey = handle => interceptAndInsertKey := handle;
     let inputMethodHandle = handle => inputMethodHandle := handle;
+    let settingsViewHandle = handle => settingsViewHandle := handle;
   };
 };
 
@@ -56,6 +61,7 @@ type state = {
   header,
   body,
   mountAt,
+  settingsView: option(Tab.t),
   editor: Editor.t,
   mode,
 };
@@ -70,6 +76,7 @@ let initialState = (editor, _) => {
     raw: Unloaded,
   },
   mountAt: Nowhere,
+  settingsView: None,
   editor: Editor.make(editor),
   mode: Display,
 };
@@ -80,12 +87,13 @@ type action =
   | InquireQuery(string, string)
   | FocusSource
   | MountTo(mountTo)
+  | ToggleSettingsTab(bool)
+  | UpdateSettingsView(option(Tab.t))
   | UpdateMountAt(mountAt)
   | UpdateHeader(header)
   | UpdateRawBody(rawBody)
   | UpdateMode(mode);
 
-/* let editorRef = ref(None: option(Atom.TextEditor.t)); */
 let createElement = (): Element.t => {
   open DomTokenListRe;
   let element = document |> Document.createElement("article");
@@ -98,10 +106,10 @@ let createElement = (): Element.t => {
   element;
 };
 
-let mountPanel = (self, editor, mountTo) => {
+let mountPanel = (self, mountTo) => {
   let createTab = () =>
     Tab.make(
-      ~editor,
+      ~editor=self.state.editor.source,
       /* tab closed */
       ~onClose=() => self.send(MountTo(ToBottom)),
       (),
@@ -174,8 +182,33 @@ let reducer = (action, state) =>
       },
       self => Editor.Focus.onQuery(self.state.editor),
     )
-  | MountTo(mountTo) =>
-    SideEffects(self => mountPanel(self, state.editor.source, mountTo))
+  | MountTo(mountTo) => SideEffects(self => mountPanel(self, mountTo))
+  | ToggleSettingsTab(open_) =>
+    SideEffects(
+      self =>
+        switch (state.settingsView) {
+        | None =>
+          if (open_) {
+            let tab =
+              Tab.make(
+                ~editor=self.state.editor.source,
+                ~onClose=
+                  () => {
+                    self.send(ToggleSettingsTab(false));
+                    Handle.settingsViewHandle^(false);
+                  },
+                (),
+              );
+            self.send(UpdateSettingsView(Some(tab)));
+          }
+        | Some(tab) =>
+          if (!open_) {
+            tab.kill();
+            self.send(UpdateSettingsView(None));
+          }
+        },
+    )
+  | UpdateSettingsView(settingsView) => Update({...state, settingsView})
   | UpdateMountAt(mountAt) => Update({...state, mountAt})
   | UpdateHeader(header) => Update({...state, header})
   | UpdateRawBody(raw) => Update({
@@ -201,6 +234,7 @@ let make =
       /* input method */
       ~interceptAndInsertKey: (string => unit) => unit,
       ~inputMethodHandle: (bool => unit) => unit,
+      ~settingsViewHandle: (bool => unit) => unit,
       _children,
     ) => {
   ...component,
@@ -267,6 +301,8 @@ let make =
         editorPlaceholder={editor.query.placeholder}
         interceptAndInsertKey
         inputMethodHandle
+        settingsViewHandle
+        onSettingsViewToggle={status => self.send(ToggleSettingsTab(status))}
       />
     </>;
   },
@@ -307,6 +343,7 @@ let initialize = editor => {
         ~inquireQuery,
         ~interceptAndInsertKey,
         ~inputMethodHandle,
+        ~settingsViewHandle,
         [||],
       ),
     ),

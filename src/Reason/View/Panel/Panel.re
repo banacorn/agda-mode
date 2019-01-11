@@ -5,7 +5,6 @@ open Type.Interaction;
 type state = {
   maxHeight: int,
   isPending: bool,
-  settingsViewOn: bool,
   inputMethodActivated: bool,
 };
 
@@ -18,7 +17,6 @@ type action =
 let initialState = () => {
   maxHeight: 170,
   isPending: false,
-  settingsViewOn: false,
   inputMethodActivated: false,
 };
 
@@ -29,11 +27,9 @@ let reducer = (action, state) =>
   | UpdateInputMethodActivation(activated) =>
     Update({...state, inputMethodActivated: activated})
   | MouseEvent(JumpToRange(range)) =>
-    SideEffects(((_) => Js.log("JumpToRange")))
-  | MouseEvent(MouseOver(range)) =>
-    SideEffects(((_) => Js.log("MouseOver")))
-  | MouseEvent(MouseOut(range)) =>
-    SideEffects(((_) => Js.log("MouseOut")))
+    SideEffects(_ => Js.log("JumpToRange"))
+  | MouseEvent(MouseOver(range)) => SideEffects(_ => Js.log("MouseOver"))
+  | MouseEvent(MouseOut(range)) => SideEffects(_ => Js.log("MouseOut"))
   };
 
 let component = reducerComponent("Panel");
@@ -56,6 +52,8 @@ let make =
       ~editorValue: string,
       ~interceptAndInsertKey: (string => unit) => unit,
       ~inputMethodHandle: (bool => unit) => unit,
+      ~settingsViewHandle: (bool => unit) => unit,
+      ~onSettingsViewToggle: bool => unit,
       /* ~onGeneralEditorChange: Editors.miniEditor => unit,
          ~onGeneralEditorConfirm: string => unit,
          ~generalEditor: Editors.miniEditor, */
@@ -65,7 +63,7 @@ let make =
          ~updateEmacsBody: (jsEmacsBodyState => unit) => unit,
          ~updateIsPending: (jsState => unit) => unit,
          ~onMountChange: string => unit,
-         ~onSettingsViewToggle: bool => unit,
+         /**/
          ~emit, */
       _children,
     ) => {
@@ -73,8 +71,7 @@ let make =
   initialState,
   reducer,
   render: self => {
-    let {isPending, settingsViewOn, inputMethodActivated} = self.state;
-    let onSettingsViewToggle = (_) => ();
+    let {isPending, inputMethodActivated} = self.state;
     let mountAtBottom =
       switch (mountAt) {
       | Bottom(_) => true
@@ -84,35 +81,33 @@ let make =
     | None => null
     | Some(elem) =>
       ReactDOMRe.createPortal(
-        <MouseEmitter.Provider value=(ev => self.send(MouseEvent(ev)))>
+        <MouseEmitter.Provider value={ev => self.send(MouseEvent(ev))}>
           <section>
             <section className="panel-heading agda-header-container">
               <SizingHandle
-                onResizeStart=(height => self.send(UpdateMaxHeight(height)))
-                onResizeEnd=(
-                  height =>
-                    Js.Global.setTimeout(
-                      () => {
-                        self.send(UpdateMaxHeight(height));
-                        Atom.Environment.Config.set(
-                          "agda-mode.maxBodyHeight",
-                          string_of_int(height),
-                        );
-                      },
-                      0,
-                    )
-                    |> ignore
-                )
+                onResizeStart={height => self.send(UpdateMaxHeight(height))}
+                onResizeEnd={height =>
+                  Js.Global.setTimeout(
+                    () => {
+                      self.send(UpdateMaxHeight(height));
+                      Atom.Environment.Config.set(
+                        "agda-mode.maxBodyHeight",
+                        string_of_int(height),
+                      );
+                    },
+                    0,
+                  )
+                  |> ignore
+                }
                 mountAtBottom
               />
               <InputMethod
                 editor
                 interceptAndInsertKey
                 activationHandle=inputMethodHandle
-                onActivationChange=(
-                  activated =>
-                    self.send(UpdateInputMethodActivation(activated))
-                )
+                onActivationChange={activated =>
+                  self.send(UpdateInputMethodActivation(activated))
+                }
               />
               <Dashboard
                 header
@@ -120,20 +115,20 @@ let make =
                 isPending
                 mountAt
                 onMountAtChange
-                settingsViewOn
                 onSettingsViewToggle
+                settingsViewHandle
               />
             </section>
             <section className="agda-body-container">
-              <Body body hidden=(mode != Display) mountAtBottom />
+              <Body body hidden={mode != Display} mountAtBottom />
               <MiniEditor
-                hidden=(mode != Query)
+                hidden={mode != Query}
                 value=editorValue
                 placeholder=editorPlaceholder
                 grammar="agda"
                 editorRef=onEditorRef
-                onFocus=((.) => onEditorFocused(true))
-                onBlur=((.) => onEditorFocused(false))
+                onFocus={(.) => onEditorFocused(true)}
+                onBlur={(.) => onEditorFocused(false)}
                 onConfirm=onEditorConfirm
                 onCancel=onEditorCancel
                 /* onConfirm=(

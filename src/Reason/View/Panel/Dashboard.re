@@ -3,9 +3,24 @@ open ReasonReact;
 type state = {
   settingsButtonRef: ref(option(Dom.element)),
   dockingButtonRef: ref(option(Dom.element)),
+  settingsView: bool,
 };
 
-type action;
+let initialState = () => {
+  settingsButtonRef: ref(None),
+  dockingButtonRef: ref(None),
+  settingsView: false,
+};
+
+type action =
+  | SettingsViewOn
+  | SettingsViewOff;
+
+let reducer = (action, state) =>
+  switch (action) {
+  | SettingsViewOn => Update({...state, settingsView: true})
+  | SettingsViewOff => Update({...state, settingsView: false})
+  };
 
 let setSettingsButtonRef = (r, {state}) =>
   state.settingsButtonRef := Js.Nullable.toOption(r);
@@ -22,17 +37,17 @@ let make =
       ~isPending: bool,
       ~mountAt: Type.Interaction.mountAt,
       ~onMountAtChange: Type.Interaction.mountTo => unit,
-      ~settingsViewOn: bool,
       ~onSettingsViewToggle: bool => unit,
+      ~settingsViewHandle: (bool => unit) => unit,
       _children,
     ) => {
   ...component,
-  initialState: () => {
-    settingsButtonRef: ref(None),
-    dockingButtonRef: ref(None),
-  },
-  reducer: (_: action, _) => NoUpdate,
+  initialState,
+  reducer,
   didMount: self => {
+    settingsViewHandle(open_ =>
+      self.send(open_ ? SettingsViewOn : SettingsViewOff)
+    );
     switch (self.state.settingsButtonRef^) {
     | None => ()
     | Some(settingsButton) =>
@@ -81,7 +96,7 @@ let make =
       |> Util.React.toClassName;
     let settingsViewClassList =
       ["no-btn"]
-      |> Util.React.addClass("activated", settingsViewOn)
+      |> Util.React.addClass("activated", self.state.settingsView)
       |> Util.React.toClassName;
     let toggleMountingPosition =
       ["no-btn"]
@@ -94,28 +109,37 @@ let make =
          )
       |> Util.React.toClassName;
     <div className=classList>
-      <h1 className=headerClassList> (string(header.text)) </h1>
+      <h1 className=headerClassList> {string(header.text)} </h1>
       <ul className="agda-dashboard">
         <li> <span id="spinner" className=spinnerClassList /> </li>
         <li>
           <button
             className=settingsViewClassList
-            onClick=((_) => onSettingsViewToggle(! settingsViewOn))
-            ref=(self.handle(setSettingsButtonRef))>
+            onClick={
+              self.handle((_, self) =>
+                if (self.state.settingsView) {
+                  onSettingsViewToggle(false);
+                  self.send(SettingsViewOff);
+                } else {
+                  onSettingsViewToggle(true);
+                  self.send(SettingsViewOn);
+                }
+              )
+            }
+            ref={self.handle(setSettingsButtonRef)}>
             <span className="icon icon-settings" />
           </button>
         </li>
         <li>
           <button
             className=toggleMountingPosition
-            onClick=(
-              (_) =>
-                switch (mountAt) {
-                | Pane(_) => onMountAtChange(Type.Interaction.ToBottom)
-                | _ => onMountAtChange(Type.Interaction.ToPane)
-                }
-            )
-            ref=(self.handle(setDockingButtonRef))>
+            onClick={_ =>
+              switch (mountAt) {
+              | Pane(_) => onMountAtChange(Type.Interaction.ToBottom)
+              | _ => onMountAtChange(Type.Interaction.ToPane)
+              }
+            }
+            ref={self.handle(setDockingButtonRef)}>
             <span className="icon icon-versions" />
           </button>
         </li>
