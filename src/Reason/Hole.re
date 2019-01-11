@@ -18,6 +18,11 @@ let restoreBoundary = (self, range) => {
   |> ignore;
 };
 
+let string_of_index =
+  fun
+  | Some(i) => string_of_int(i)
+  | None => "*";
+
 let removeBoundary = self => {
   let range =
     self.range |> Range.translate(Point.make(0, 2), Point.make(0, -2));
@@ -131,6 +136,7 @@ let writeLambda = (self, contents: array(string)) => {
 };
 
 let destroy = self => {
+  Js.log(self);
   self.marker |> DisplayMarker.destroy;
   self.disposables |> CompositeDisposable.dispose;
 };

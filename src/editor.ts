@@ -8,6 +8,7 @@ import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
 // import Goal from './editor/goal';
 const HoleRE = require('./Reason/Hole.bs');
+const EditorRE = require('./Reason/Editor.bs');
 
 import { Point, Range } from 'atom';
 import * as Atom from 'atom';
@@ -84,7 +85,7 @@ export default class Editor {
     private textEditor: Atom.TextEditor;
     private mouseHighlighting: MouseHighlightManager;
     public highlighting: HighlightManager;
-    public holes: HoleManager;
+    public goals: any;
 
     public runningInfo: RunningInfoManager;
 
@@ -92,7 +93,7 @@ export default class Editor {
     constructor(core: Core, textEditor: Atom.TextEditor) {
         this.core = core;
         this.textEditor = textEditor;
-        this.holes = new HoleManager(textEditor);
+        this.goals = [];
         this.highlighting = new HighlightManager(this);
         this.mouseHighlighting = new MouseHighlightManager(this);
 
@@ -153,27 +154,39 @@ export default class Editor {
     //  Cursor Management  //
     /////////////////////////
 
+    // TODO: temporary
+    pointing(cursor = this.textEditor.getCursorBufferPosition()): Promise<any> {
+        const holes = this.goals.filter((hole) => {
+            return HoleRE.range(hole).containsPoint(cursor, false);
+        });
+
+        if (_.isEmpty(holes))
+            return Promise.reject(new OutOfGoalError('out of goal'));
+        else
+            return Promise.resolve(holes[0]);
+    }
+
     // shift cursor if in certain goal
     protectCursor<T>(callback: () => T): Promise<T> {
         const position = this.textEditor.getCursorBufferPosition();
         const result = callback();
-        return this.holes.pointing(position)
-            .then((hole) => {
-                // reposition the cursor in the goal only if it's a fresh hole (coming from '?')
-                const isFreshHole = HoleRE.isEmpty(hole);
-                if (isFreshHole) {
-                    const newPosition = this.translate(Point.fromObject(HoleRE.range(hole).start), 3);
-                    setTimeout(() => {
-                        this.textEditor.setCursorBufferPosition(newPosition);
-                    });
-                } else {
-                    this.textEditor.setCursorBufferPosition(position);
-                }
-                return result;
-            }).catch(OutOfGoalError, () => {
+
+        const goal = EditorRE.jsGoalsPointingAt(position, this.goals);
+        if (goal) {
+            // reposition the cursor in the goal only if it's a fresh hole (coming from '?')
+            const isFreshHole = HoleRE.isEmpty(goal);
+            if (isFreshHole) {
+                const newPosition = this.translate(Point.fromObject(HoleRE.range(goal).start), 3);
+                setTimeout(() => {
+                    this.textEditor.setCursorBufferPosition(newPosition);
+                });
+            } else {
                 this.textEditor.setCursorBufferPosition(position);
-                return result;
-            })
+            }
+        } else {
+            this.textEditor.setCursorBufferPosition(position);
+        }
+        return Promise.resolve(result);
     }
 
     focus() {
@@ -184,8 +197,8 @@ export default class Editor {
     jumpToNextGoal(): Promise<{}> {
         const cursor = this.textEditor.getCursorBufferPosition();
         let nextGoal = null;
-        const positions = this.holes.getAll().map((hole) => {
-            return this.translate(Point.fromObject(HoleRE.range(hole).start), 3);
+        const positions = this.goals.map((goal) => {
+            return this.translate(Point.fromObject(HoleRE.range(goal).start), 3);
         });
 
         positions.forEach((position) => {
@@ -209,8 +222,8 @@ export default class Editor {
         const cursor = this.textEditor.getCursorBufferPosition();
         let previousGoal = null;
 
-        const positions = this.holes.getAll().map((hole) => {
-            return this.translate(Point.fromObject(HoleRE.range(hole).start), 3);
+        const positions = this.goals.map((goal) => {
+            return this.translate(Point.fromObject(HoleRE.range(goal).start), 3);
         });
 
         positions.forEach((position) => {
@@ -231,9 +244,9 @@ export default class Editor {
     }
 
     jumpToGoal(index: number) {
-        const hole = this.holes.find(index);
-        if (hole) {
-            const position = this.translate(Point.fromObject(HoleRE.range(hole).start), 3);
+        const goal = EditorRE.jsGoalsFind(index, this.goals);
+        if (goal) {
+            const position = this.translate(Point.fromObject(HoleRE.range(goal).start), 3);
             this.textEditor.setCursorBufferPosition(position);
             this.focus();
         }
@@ -253,21 +266,24 @@ export default class Editor {
                 })
         } else {
             // goal-specific
-            this.holes.pointing()
-                .then((hole) => {
-                    let tempRange;
-                    if (range.start.row === 0) {
-                        tempRange = range
-                            .translate(HoleRE.range(hole).start)
-                            .translate([0, 3]);  // hole boundary
-                    } else {
-                        tempRange = range
-                            .translate([HoleRE.range(hole).start.row, 0]);
-                    }
-                    this.textEditor.setSelectedBufferRange(tempRange, {
-                        reversed: true
-                    });
-                }).catch(() => this.warnOutOfGoal());
+            const cursor = this.textEditor.getCursorBufferPosition();
+            const goal = EditorRE.jsGoalsPointingAt(cursor, this.goals);
+            if (goal) {
+                let tempRange;
+                if (range.start.row === 0) {
+                    tempRange = range
+                        .translate(HoleRE.range(goal).start)
+                        .translate([0, 3]);  // hole boundary
+                } else {
+                    tempRange = range
+                        .translate([HoleRE.range(goal).start.row, 0]);
+                }
+                this.textEditor.setSelectedBufferRange(tempRange, {
+                    reversed: true
+                });
+            } else {
+                this.warnOutOfGoal()
+            }
         }
     }
 
@@ -286,21 +302,20 @@ export default class Editor {
     onInteractionPoints(indices: number[], fileType: Agda.FileType): Promise<void> {
         return this.protectCursor(() => {
             const textRaw = this.textEditor.getText();
-            this.holes.removeAll();
-            const holes = parseHole(textRaw, indices, fileType).map((hole) => {
-                const range = this.fromIndexRange(hole.originalRange);
-                this.textEditor.setTextInBufferRange(range, hole.content);
-                return HoleRE.make(this.textEditor, hole.index, hole.modifiedRange.start, hole.modifiedRange.end);
+            EditorRE.jsGoalsDestroyAll(this.goals);
+            this.goals = parseHole(textRaw, indices, fileType).map((goal) => {
+                const range = this.fromIndexRange(goal.originalRange);
+                this.textEditor.setTextInBufferRange(range, goal.content);
+                return HoleRE.make(this.textEditor, goal.index, goal.modifiedRange.start, goal.modifiedRange.end);
             });
-            this.holes.setAll(holes);
         });
     }
 
     onSolveAll(index: number, content: string): Promise<any> {
         return this.protectCursor(() => {
-            const hole = this.holes.find(index);
-            HoleRE.setContent(hole, content);
-            return hole;
+            const goal = EditorRE.jsGoalsFind(index, this.goals);
+            HoleRE.setContent(goal, content);
+            return goal;
         });
     }
 
@@ -310,38 +325,42 @@ export default class Editor {
     // Give_String : ["agda2-give-action", 0, ...]
     onGiveAction(index: number, giveResult: 'Paren' | 'NoParen' | 'String', result: string): Promise<void> {
         return this.protectCursor(() => {
-            const hole = this.holes.find(index);
+            const goal = EditorRE.jsGoalsFind(index, this.goals);
 
             switch (giveResult) {
                 case 'Paren':
-                    result = HoleRE.getContent(hole);
-                    HoleRE.setContent(hole, `(${result})`);
+                    result = HoleRE.getContent(goal);
+                    HoleRE.setContent(goal, `(${result})`);
                     break;
                 case 'NoParen':
                     // do nothing
                     break;
                 case 'String':
                     result = result.replace(/\\n/g, '\n');
-                    HoleRE.setContent(hole, result);
+                    HoleRE.setContent(goal, result);
                     break;
             }
-            HoleRE.removeBoundary(hole);
-            this.holes.remove(index);
+            HoleRE.removeBoundary(goal);
+            EditorRE.jsGoalsDestroy(index, this.goals);
         });
     }
 
     onMakeCase(variant: 'Function' | 'ExtendedLambda', result: string[]): Promise<void> {
         return this.protectCursor(() => {
-            this.holes.pointing().then((hole) => {
+            const cursor = this.textEditor.getCursorBufferPosition();
+            const goal = EditorRE.jsGoalsPointingAt(cursor, this.goals);
+            if (goal) {
                 switch (variant) {
                     case 'Function':
-                        HoleRE.writeLines(hole, result);
+                        HoleRE.writeLines(goal, result);
                         break;
                     case 'ExtendedLambda':
-                        HoleRE.writeLambda(hole, result);
+                        HoleRE.writeLambda(goal, result);
                         break;
                 }
-            }).catch(() => this.warnOutOfGoal());
+            } else {
+                this.warnOutOfGoal()
+            }
         });
     }
 
@@ -363,64 +382,64 @@ export default class Editor {
 
 }
 
-class HoleManager {
-    private holes: any[];
-
-    constructor(private textEditor: Atom.TextEditor) {
-        this.holes = [];
-    }
-
-    getAll(): any[] {
-        return this.holes;
-    }
-
-    setAll(goals: any[]) {
-        this.holes = goals;
-    }
-
-    remove(index: number) {
-        this.holes
-            .filter((hole) => { return HoleRE.index(hole) === index; })
-            .forEach((hole) => { HoleRE.destroy(hole); });
-        this.holes = this.holes
-                .filter((hole) => { return HoleRE.index(hole) !== index; })
-    }
-
-    removeAll() {
-        this.holes.forEach((hole) => {
-            HoleRE.destroy(hole);
-        });
-        this.holes = [];
-    }
-
-    find(index: number): any {
-        const holes = this.holes.filter((hole) => { return HoleRE.index(hole) === index; })
-        return holes[0];
-    }
-
-    // the goal where the cursor is positioned
-    pointing(cursor = this.textEditor.getCursorBufferPosition()): Promise<any> {
-        const holes = this.holes.filter((hole) => {
-            return HoleRE.range(hole).containsPoint(cursor, false);
-        });
-
-        if (_.isEmpty(holes))
-            return Promise.reject(new OutOfGoalError('out of goal'));
-        else
-            return Promise.resolve(holes[0]);
-    }
-
-    // reject if goal is empty
-    guardGoalHasContent(hole): Promise<any> {
-        if (HoleRE.getContent(hole)) {
-            return Promise.resolve(hole);
-        } else {
-            return Promise.reject(new EmptyGoalError('goal is empty', hole));
-        }
-    }
-
-
-}
+// class HoleManager {
+//     private holes: any[];
+//
+//     constructor(private textEditor: Atom.TextEditor) {
+//         this.holes = [];
+//     }
+//
+//     getAll(): any[] {
+//         return this.holes;
+//     }
+//
+//     setAll(goals: any[]) {
+//         this.holes = goals;
+//     }
+//
+//     remove(index: number) {
+//         this.holes
+//             .filter((hole) => { return HoleRE.index(hole) === index; })
+//             .forEach((hole) => { HoleRE.destroy(hole); });
+//         this.holes = this.holes
+//                 .filter((hole) => { return HoleRE.index(hole) !== index; })
+//     }
+//
+//     removeAll() {
+//         this.holes.forEach((hole) => {
+//             HoleRE.destroy(hole);
+//         });
+//         this.holes = [];
+//     }
+//
+//     find(index: number): any {
+//         const holes = this.holes.filter((hole) => { return HoleRE.index(hole) === index; })
+//         return holes[0];
+//     }
+//
+//     // the goal where the cursor is positioned
+//     pointing(cursor = this.textEditor.getCursorBufferPosition()): Promise<any> {
+//         const holes = this.holes.filter((hole) => {
+//             return HoleRE.range(hole).containsPoint(cursor, false);
+//         });
+//
+//         if (_.isEmpty(holes))
+//             return Promise.reject(new OutOfGoalError('out of goal'));
+//         else
+//             return Promise.resolve(holes[0]);
+//     }
+//
+//     // reject if goal is empty
+//     guardGoalHasContent(hole): Promise<any> {
+//         if (HoleRE.getContent(hole)) {
+//             return Promise.resolve(hole);
+//         } else {
+//             return Promise.reject(new EmptyGoalError('goal is empty', hole));
+//         }
+//     }
+//
+//
+// }
 
 class HighlightManager {
     private markers: any[];

@@ -12,6 +12,7 @@ import Table from './asset/query';
 
 const HoleRE = require('./Reason/Hole.bs');
 const AgdaModeRE = require('./Reason/AgdaMode.bs');
+const EditorRE = require('./Reason/Editor.bs');
 
 function toDescription(normalization: Agda.Normalization): string {
     switch(normalization) {
@@ -262,7 +263,7 @@ export default class Commander {
         AgdaModeRE.deactivate(this.core.editor);
         if (this.loaded) {
             this.loaded = false;
-            this.core.editor.holes.removeAll();
+            this.core.editor.goals = EditorRE.jsGoalsDestroyAll(this.core.editor.goals);
             this.core.editor.highlighting.destroyAll();
             this.core.connection.disconnect();
         }
@@ -314,7 +315,7 @@ export default class Commander {
         } else {
             return this.core.view.query('Scope info', [], 'name:')
                 .then((expr) => {
-                    return this.core.editor.holes.pointing()
+                    return this.core.editor.pointing()
                         .then(goal => [Req.whyInScope(expr, goal)(command, connection)])
                         .catch(Err.OutOfGoalError, () => [Req.whyInScopeGlobal(expr)(command, connection)])
                 });
@@ -322,7 +323,7 @@ export default class Commander {
     }
 
     private inferType = (normalization: Agda.Normalization) => (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.editor.holes.pointing()
+        return this.core.editor.pointing()
             .then(hole => {
                 // goal-specific
                 if (HoleRE.isEmpty(hole)) {
@@ -343,7 +344,7 @@ export default class Commander {
     private moduleContents = (normalization: Agda.Normalization) => (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
         return this.core.view.query(`Module contents ${toDescription(normalization)}`, [], 'module name:')
             .then(expr => {
-                return this.core.editor.holes.pointing()
+                return this.core.editor.pointing()
                     .then(goal => [Req.moduleContents(normalization, expr, goal)(command, connection)])
                     .catch(() => [Req.moduleContentsGlobal(normalization, expr)(command, connection)])
             });
@@ -351,7 +352,7 @@ export default class Commander {
 
 
     private computeNormalForm = (computeMode: Agda.ComputeMode) => (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.editor.holes.pointing()
+        return this.core.editor.pointing()
             .then((hole) => {
                 if (HoleRE.isEmpty(hole)) {
                     return this.core.view.query(`Compute normal form`, [], 'expression to normalize:')
@@ -372,7 +373,7 @@ export default class Commander {
     //
 
     private give = (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.editor.holes.pointing()
+        return this.core.editor.pointing()
             .then((hole) => {
                 if (HoleRE.isEmpty(hole)) {
                     return this.core.view.query('Give', [], 'expression to give:')
@@ -389,7 +390,7 @@ export default class Commander {
     }
 
     private refine = (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.editor.holes.pointing()
+        return this.core.editor.pointing()
             .then(goal => [Req.refine(goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.setPlainText('Out of goal', '`Refine` is a goal-specific command, please place the cursor in a goal', 'error');
@@ -398,7 +399,7 @@ export default class Commander {
     }
 
     private auto = (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.editor.holes.pointing()
+        return this.core.editor.pointing()
             .then(goal => [Req.auto(goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.setPlainText('Out of goal', '`Auto` is a goal-specific command, please place the cursor in a goal', 'error');
@@ -407,7 +408,7 @@ export default class Commander {
     }
 
     private case = (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.editor.holes.pointing()
+        return this.core.editor.pointing()
             .then((hole) => {
                 if (HoleRE.isEmpty(hole)) {
                     return this.core.view.query('Case', [], 'the argument to case:')
@@ -424,7 +425,7 @@ export default class Commander {
     }
 
     private goalType = (normalization: Agda.Normalization) => (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.editor.holes.pointing()
+        return this.core.editor.pointing()
             .then(goal => [Req.goalType(normalization, goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.setPlainText('Out of goal', '"Goal Type" is a goal-specific command, please place the cursor in a goal', 'error');
@@ -433,7 +434,7 @@ export default class Commander {
     }
 
     private context = (normalization: Agda.Normalization) => (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.editor.holes.pointing()
+        return this.core.editor.pointing()
             .then(goal => [Req.context(normalization, goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.setPlainText('Out of goal', '"Context" is a goal-specific command, please place the cursor in a goal', 'error');
@@ -442,7 +443,7 @@ export default class Commander {
     }
 
     private goalTypeAndContext = (normalization: Agda.Normalization) => (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.editor.holes.pointing()
+        return this.core.editor.pointing()
             .then(goal => [Req.goalTypeAndContext(normalization, goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.setPlainText('Out of goal', '"Goal Type & Context" is a goal-specific command, please place the cursor in a goal', 'error');
@@ -451,7 +452,7 @@ export default class Commander {
     }
 
     private goalTypeAndInferredType = (normalization: Agda.Normalization) => (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
-        return this.core.editor.holes.pointing()
+        return this.core.editor.pointing()
             .then(goal => [Req.goalTypeAndInferredType(normalization, goal)(command, connection)])
             .catch(Err.OutOfGoalError, () => {
                 this.core.view.setPlainText('Out of goal', '"Goal Type & Inferred Type" is a goal-specific command, please place the cursor in a goal', 'error');
@@ -514,7 +515,7 @@ export default class Commander {
                 }
 
             }
-            return this.core.editor.holes.pointing()
+            return this.core.editor.pointing()
                 .then(goal => [Req.gotoDefinition(name, goal)(command, connection)])
                 .catch(Err.OutOfGoalError, () => [Req.gotoDefinitionGlobal(name)(command, connection)])
         } else {
