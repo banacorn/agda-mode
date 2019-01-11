@@ -1,7 +1,7 @@
 module Instance = {
   type t = {
     textEditor: Atom.TextEditor.t,
-    view: View.t,
+    view: View.Handle.t,
   };
   /* let initialize = (textEditor: TextEditor.t) => {}; */
 
@@ -44,6 +44,8 @@ module Instance = {
     self.view.inquireQuery^(placeholder, value);
   };
 };
+
+exception InstanceNotFound;
 
 let instances: Js.Dict.t(Instance.t) = Js.Dict.empty();
 
@@ -194,12 +196,11 @@ let jsUpdateHeader = (textEditor, raw) => {
 
 let jsInquireQuery = (textEditor, placeholder, value) => {
   switch (lookup(textEditor)) {
-  | Some(instance) =>
-    Instance.inquireQuery(instance, placeholder, value) |> ignore
-  | None =>
-    Js.log(
-      "cannot jsInquireQuery, does not exist: "
-      ++ Atom.TextEditor.getPath(textEditor),
-    )
+  | Some(instance) => Instance.inquireQuery(instance, placeholder, value)
+  | None => Js.Promise.reject(InstanceNotFound)
+  /* Js.log(
+       "cannot jsInquireQuery, does not exist: "
+       ++ Atom.TextEditor.getPath(textEditor),
+     ); */
   };
 };

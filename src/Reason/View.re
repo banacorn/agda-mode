@@ -6,6 +6,52 @@ open Webapi.Dom;
 
 exception EditorNotSet;
 
+module Handle = {
+  type t = {
+    updateHeader: ref(header => unit),
+    updateRawBody: ref(rawBody => unit),
+    updateMode: ref(mode => unit),
+    updateMountTo: ref(mountTo => unit),
+    inquireQuery: ref((string, string) => Js.Promise.t(string)),
+    interceptAndInsertKey: ref(string => unit),
+    inputMethodHandle: ref(bool => unit),
+  };
+  let updateHeader = ref(_ => ());
+
+  let updateRawBody = ref(_ => ());
+
+  let updateMode = ref(_ => ());
+
+  let updateMountTo = ref(_ => ());
+  let inquireQuery =
+    ref((_, _) => Js.Promise.reject(Util.TelePromise.Uninitialized));
+
+  let interceptAndInsertKey = ref(_ => ());
+
+  let inputMethodHandle = ref(_ => ());
+
+  let collection = {
+    updateHeader,
+    updateRawBody,
+    updateMode,
+    updateMountTo,
+    inquireQuery,
+    interceptAndInsertKey,
+    inputMethodHandle,
+  };
+
+  /* these "Hooked" callbacks sets the refs */
+  module Hooked = {
+    let updateHeader = handle => updateHeader := handle;
+    let updateRawBody = handle => updateRawBody := handle;
+    let updateMode = handle => updateMode := handle;
+    let updateMountTo = handle => updateMountTo := handle;
+    let inquireQuery = handle => inquireQuery := handle;
+    let interceptAndInsertKey = handle => interceptAndInsertKey := handle;
+    let inputMethodHandle = handle => inputMethodHandle := handle;
+  };
+};
+
 type state = {
   header,
   body,
@@ -206,15 +252,13 @@ let make =
         }
         onEditorConfirm={result => {
           Editor.(editor->(Query.answer(result)));
-          /* TODO */
-          /* jsDeactivateInputMethod(); */
+          Handle.inputMethodHandle^(false);
           self.send(FocusSource);
           self.send(UpdateMode(Display));
         }}
         onEditorCancel={(.) => {
           Editor.(editor->(Query.reject(QueryCancelled)));
-          /* TODO */
-          /* jsDeactivateInputMethod(); */
+          Handle.inputMethodHandle^(false);
           self.send(FocusSource);
           self.send(UpdateMode(Display));
         }}
@@ -249,58 +293,25 @@ type jsJSONBodyState = {
   "rawString": string,
 };
 
-type t = {
-  updateHeader: ref(header => unit),
-  updateRawBody: ref(rawBody => unit),
-  updateMode: ref(mode => unit),
-  updateMountTo: ref(mountTo => unit),
-  inquireQuery: ref((string, string) => Js.Promise.t(string)),
-  interceptAndInsertKey: ref(string => unit),
-  inputMethodHandle: ref(bool => unit),
-};
-
 let initialize = editor => {
-  let updateHeader = ref(_ => ());
-
-  let updateRawBody = ref(_ => ());
-
-  let updateMode = ref(_ => ());
-
-  let updateMountTo = ref(_ => ());
-
-  let inquireQuery =
-    ref((_, _) => Js.Promise.reject(Util.TelePromise.Uninitialized));
-
-  let interceptAndInsertKey = ref(_ => ());
-
-  let inputMethodHandle = ref(_ => ());
-
   let element = document |> Document.createElement("article");
-
+  open Handle.Hooked;
   ReactDOMRe.render(
     ReasonReact.element(
       make(
         ~editor,
-        ~updateRawBody=handle => updateRawBody := handle,
-        ~updateHeader=handle => updateHeader := handle,
-        ~updateMode=handle => updateMode := handle,
-        ~updateMountTo=handle => updateMountTo := handle,
-        ~inquireQuery=handle => inquireQuery := handle,
-        ~interceptAndInsertKey=handle => interceptAndInsertKey := handle,
-        ~inputMethodHandle=handle => inputMethodHandle := handle,
+        ~updateRawBody,
+        ~updateHeader,
+        ~updateMode,
+        ~updateMountTo,
+        ~inquireQuery,
+        ~interceptAndInsertKey,
+        ~inputMethodHandle,
         [||],
       ),
     ),
     element,
   );
 
-  {
-    updateHeader,
-    updateRawBody,
-    updateMode,
-    updateMountTo,
-    inquireQuery,
-    interceptAndInsertKey,
-    inputMethodHandle,
-  };
+  Handle.collection;
 };
