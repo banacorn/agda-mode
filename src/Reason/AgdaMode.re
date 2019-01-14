@@ -1,20 +1,18 @@
 module Instance = {
   type t = {
     textEditor: Atom.TextEditor.t,
-    view: View.Handle.t,
+    view: View.Handles.t,
   };
-  /* let initialize = (textEditor: TextEditor.t) => {}; */
-
   let make = (textEditor: Atom.TextEditor.t) => {
     {textEditor, view: View.initialize(textEditor)};
   };
 
   let activate = self => {
-    self.view.updateMountTo^(Type.Interaction.ToBottom);
+    self.view.updateActivation^(true);
   };
 
   let deactivate = self => {
-    /* self.view.updateMountTo^(Type.Interaction.ToNowhere); */
+    self.view.updateActivation^(false);
   };
 
   let modeDisplay = self => {
@@ -29,7 +27,7 @@ module Instance = {
   };
 
   let inputMethodHandle = (self, activate) => {
-    self.view.inputMethodHandle^(activate);
+    self.view.activateInputMethod^(activate);
   };
 
   let updateRawBody = (self, raw) => {

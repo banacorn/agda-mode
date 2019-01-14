@@ -43,6 +43,7 @@ let make =
       ~header: header,
       ~mountAt: mountAt,
       ~mode: mode,
+      ~hidden: bool,
       /* Editors */
       ~onEditorConfirm: string => unit,
       ~onEditorFocused: bool => unit,
@@ -51,8 +52,8 @@ let make =
       ~editorPlaceholder: string,
       ~editorValue: string,
       ~interceptAndInsertKey: (string => unit) => unit,
-      ~inputMethodHandle: (bool => unit) => unit,
-      ~settingsViewHandle: (bool => unit) => unit,
+      ~activateInputMethod: (bool => unit) => unit,
+      ~activateSettingsView: (bool => unit) => unit,
       ~onSettingsViewToggle: bool => unit,
       /* ~onGeneralEditorChange: Editors.miniEditor => unit,
          ~onGeneralEditorConfirm: string => unit,
@@ -80,9 +81,11 @@ let make =
     switch (element) {
     | None => null
     | Some(elem) =>
+      let className =
+        [] |> Util.React.addClass("hidden", hidden) |> Util.React.toClassName;
       ReactDOMRe.createPortal(
         <MouseEmitter.Provider value={ev => self.send(MouseEvent(ev))}>
-          <section>
+          <section className>
             <section className="panel-heading agda-header-container">
               <SizingHandle
                 onResizeStart={height => self.send(UpdateMaxHeight(height))}
@@ -104,7 +107,7 @@ let make =
               <InputMethod
                 editor
                 interceptAndInsertKey
-                activationHandle=inputMethodHandle
+                activationHandle=activateInputMethod
                 onActivationChange={activated =>
                   self.send(UpdateInputMethodActivation(activated))
                 }
@@ -116,7 +119,7 @@ let make =
                 mountAt
                 onMountAtChange
                 onSettingsViewToggle
-                settingsViewHandle
+                activateSettingsView
               />
             </section>
             <section className="agda-body-container">
@@ -154,7 +157,7 @@ let make =
           </section>
         </MouseEmitter.Provider>,
         elem,
-      )
+      );
     };
   },
 };

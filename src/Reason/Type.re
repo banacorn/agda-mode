@@ -724,13 +724,11 @@ module Interaction = {
   /* action  */
   type mountTo =
     | ToBottom
-    | ToPane
-    | ToNowhere;
+    | ToPane;
   /* state */
   type mountAt =
     | Bottom(Webapi.Dom.Element.t)
-    | Pane(Tab.t)
-    | Nowhere;
+    | Pane(Tab.t);
   type mode =
     | Display
     | Query;

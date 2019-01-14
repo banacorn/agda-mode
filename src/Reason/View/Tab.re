@@ -55,7 +55,7 @@ let make =
   let itemResource = Util.Resource.make();
   let closedDeliberately = ref(false);
   let subscriptions = CompositeDisposable.make();
-  let previouslyActivatedItem =
+  let previousItem =
     Environment.Workspace.getActivePane() |> Pane.getActiveItem;
   /* mount the view onto the element */
   let itemURI = "agda-mode://" ++ TextEditor.getPath(editor);
@@ -72,7 +72,7 @@ let make =
        /* trigger the "onOpen" callback */
        switch (onOpen) {
        | Some(callback) =>
-         callback(itemOpener##element, newItem, previouslyActivatedItem)
+         callback(itemOpener##element, newItem, previousItem)
        | None => ()
        };
        /* onWillDestroyItem */

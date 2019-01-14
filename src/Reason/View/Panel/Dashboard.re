@@ -38,14 +38,14 @@ let make =
       ~mountAt: Type.Interaction.mountAt,
       ~onMountAtChange: Type.Interaction.mountTo => unit,
       ~onSettingsViewToggle: bool => unit,
-      ~settingsViewHandle: (bool => unit) => unit,
+      ~activateSettingsView: (bool => unit) => unit,
       _children,
     ) => {
   ...component,
   initialState,
   reducer,
   didMount: self => {
-    settingsViewHandle(open_ =>
+    activateSettingsView(open_ =>
       self.send(open_ ? SettingsViewOn : SettingsViewOff)
     );
     switch (self.state.settingsButtonRef^) {
