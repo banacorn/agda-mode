@@ -109,106 +109,106 @@ class EditorViewManager {
     }
 }
 
-class TabManager {
-    private panel: Tab;
-    private settings: Tab;
-
-    constructor(
-        private core: Core,
-        private store: Redux.Store<V.State>,
-        mainEditor: Atom.TextEditor
-    ) {
-        // Tab for <Panel>
-        // this.panel = new Tab(mainEditor, 'panel');
-        // this.panel.onOpen((tab, panes) => {
-        //     // activate the previous pane (which opened this pane item)
-        //     panes.previous.activate();
-        //     // render
-        //     // ViewRE.renderPanel(tab.getElement());
-        //     // this.core.view.renderPanel(tab.getElement());
-        // });
-        //
-        // // open <Panel> at the bottom when this tab got destroyed
-        // this.panel.onKill(tab => {
-        //     this.store.dispatch(Action.VIEW.mountAtBottom());
-        //     // this.core.view.unmountPanel(V.MountingPosition.Pane);
-        //     // this.core.view.mountPanel(V.MountingPosition.Bottom);
-        //     AgdaModeRE.activate(this.core.editor);
-        // });
-
-        // Tab for <Settings>
-        this.settings = new Tab(mainEditor, 'settings', () => {
-            const { name } = path.parse(mainEditor.getPath());
-            return `[Settings] ${name}`
-        });
-        this.settings.onOpen((_, panes) => {
-            // activate the previous pane (which opened this pane item)
-            panes.previous.activate();
-            // render the view
-            ReactDOM.render(
-                <Provider store={this.store}>
-                    <Settings
-                        core={this.core}
-                    />
-                </Provider>,
-                this.settings.getElement()
-            );
-        });
-
-        this.settings.onKill(() => {
-            this.store.dispatch(Action.VIEW.toggleSettings());
-        });
-
-    }
-
-    open(tab: 'panel' | 'settings'): Promise<Tab> {
-        switch(tab) {
-            case 'panel':
-                if (!this.panel.isActive()) {
-                    return this.panel.open();
-                } else {
-                    return Promise.resolve(this.panel);
-                }
-            case 'settings':
-                if (!this.settings.isActive()) {
-                    return this.settings.open();
-                } else {
-                    return Promise.resolve(this.settings);
-                }
-        }
-    }
-
-    close(tab: 'panel' | 'settings') {
-        switch(tab) {
-            case 'panel':
-                if (this.panel.isActive()) {
-                    ReactDOM.unmountComponentAtNode(this.panel.getElement());
-                    this.panel.close();
-                }
-                break;
-            case 'settings':
-                if (this.settings.isActive()) {
-                    ReactDOM.unmountComponentAtNode(this.settings.getElement());
-                    this.settings.close();
-                }
-                break;
-        }
-    }
-    activate(tab: 'panel' | 'settings') {
-        switch(tab) {
-            case 'panel':
-                this.panel.activate();
-                break;
-            case 'settings':
-                this.settings.activate();
-                break;
-        }
-    }
-    destroyAll() {
-        this.panel.destroy();
-        this.settings.destroy();
-    }
-}
+// class TabManager {
+//     private panel: Tab;
+//     private settings: Tab;
+//
+//     constructor(
+//         private core: Core,
+//         private store: Redux.Store<V.State>,
+//         mainEditor: Atom.TextEditor
+//     ) {
+//         // Tab for <Panel>
+//         // this.panel = new Tab(mainEditor, 'panel');
+//         // this.panel.onOpen((tab, panes) => {
+//         //     // activate the previous pane (which opened this pane item)
+//         //     panes.previous.activate();
+//         //     // render
+//         //     // ViewRE.renderPanel(tab.getElement());
+//         //     // this.core.view.renderPanel(tab.getElement());
+//         // });
+//         //
+//         // // open <Panel> at the bottom when this tab got destroyed
+//         // this.panel.onKill(tab => {
+//         //     this.store.dispatch(Action.VIEW.mountAtBottom());
+//         //     // this.core.view.unmountPanel(V.MountingPosition.Pane);
+//         //     // this.core.view.mountPanel(V.MountingPosition.Bottom);
+//         //     AgdaModeRE.activate(this.core.editor);
+//         // });
+//
+//         // Tab for <Settings>
+//         this.settings = new Tab(mainEditor, 'settings', () => {
+//             const { name } = path.parse(mainEditor.getPath());
+//             return `[Settings] ${name}`
+//         });
+//         this.settings.onOpen((_, panes) => {
+//             // activate the previous pane (which opened this pane item)
+//             panes.previous.activate();
+//             // render the view
+//             ReactDOM.render(
+//                 <Provider store={this.store}>
+//                     <Settings
+//                         core={this.core}
+//                     />
+//                 </Provider>,
+//                 this.settings.getElement()
+//             );
+//         });
+//
+//         this.settings.onKill(() => {
+//             this.store.dispatch(Action.VIEW.toggleSettings());
+//         });
+//
+//     }
+//
+//     open(tab: 'panel' | 'settings'): Promise<Tab> {
+//         switch(tab) {
+//             case 'panel':
+//                 if (!this.panel.isActive()) {
+//                     return this.panel.open();
+//                 } else {
+//                     return Promise.resolve(this.panel);
+//                 }
+//             case 'settings':
+//                 if (!this.settings.isActive()) {
+//                     return this.settings.open();
+//                 } else {
+//                     return Promise.resolve(this.settings);
+//                 }
+//         }
+//     }
+//
+//     close(tab: 'panel' | 'settings') {
+//         switch(tab) {
+//             case 'panel':
+//                 if (this.panel.isActive()) {
+//                     ReactDOM.unmountComponentAtNode(this.panel.getElement());
+//                     this.panel.close();
+//                 }
+//                 break;
+//             case 'settings':
+//                 if (this.settings.isActive()) {
+//                     ReactDOM.unmountComponentAtNode(this.settings.getElement());
+//                     this.settings.close();
+//                 }
+//                 break;
+//         }
+//     }
+//     activate(tab: 'panel' | 'settings') {
+//         switch(tab) {
+//             case 'panel':
+//                 this.panel.activate();
+//                 break;
+//             case 'settings':
+//                 this.settings.activate();
+//                 break;
+//         }
+//     }
+//     destroyAll() {
+//         this.panel.destroy();
+//         this.settings.destroy();
+//     }
+// }
 
 
 type Style = "plain-text" | "error" | "info" | "success" | "warning";
@@ -222,7 +222,7 @@ export default class View {
     public store: Redux.Store<V.State>;
     public editors: EditorViewManager;
     private bottomPanel: Atom.Panel;
-    public tabs: TabManager;
+    // public tabs: TabManager;
 
     private updateHeader: (state: {text: string; style: string}) => void;
     private updateJSONBody: (state: {kind: string; rawJSON: object; rawString: string}) => void;
@@ -263,7 +263,7 @@ export default class View {
         this.editors = new EditorViewManager(core.editor.getTextEditor());
 
         // the tab manager
-        this.tabs = new TabManager(this.core, this.store, core.editor.getTextEditor());
+        // this.tabs = new TabManager(this.core, this.store, core.editor.getTextEditor());
 
     }
 
@@ -276,7 +276,7 @@ export default class View {
     destroy() {
         // this.unmountPanel(this.state().mountAt.current);
         this.subscriptions.dispose();
-        this.tabs.destroyAll();
+        // this.tabs.destroyAll();
     }
 
     // for JSON
@@ -384,20 +384,20 @@ export default class View {
         return AgdaModeRE.jsInquireQuery(this.core.editor, placeholder, '');
     }
 
-    queryConnection(): Promise<string> {
-        return this.tabs.open('settings').then(() => {
-            this.store.dispatch(Action.VIEW.navigate({path: '/Connection'}));
-            return this.editors.connection.access()
-                .then(editor => {
-                    if (!this.editors.connectionIsFocused()) {
-                        let element = atom.views.getView(editor);
-                        element.focus();
-                        element.getModel().selectAll();
-                    }
-                    return this.editors.queryConnection();
-                });
-        });
-    }
+    // queryConnection(): Promise<string> {
+    //     return this.tabs.open('settings').then(() => {
+    //         this.store.dispatch(Action.VIEW.navigate({path: '/Connection'}));
+    //         return this.editors.connection.access()
+    //             .then(editor => {
+    //                 if (!this.editors.connectionIsFocused()) {
+    //                     let element = atom.views.getView(editor);
+    //                     element.focus();
+    //                     element.getModel().selectAll();
+    //                 }
+    //                 return this.editors.queryConnection();
+    //             });
+    //     });
+    // }
 
     toggleDocking(): Promise<{}> {
         switch (this.state().mountAt.current) {

@@ -1,33 +1,28 @@
-open ReasonReact;
-
 open Webapi.Dom;
 
 open Js.Promise;
 
-open Rebase;
-
 open Atom;
 
-type itemDescriptor = {
-  .
-  "element": ElementRe.t,
-  "getURI": unit => string,
-  "getTitle": unit => string,
-  "getDefaultLocation": unit => string,
-};
-
-let createItemDescriptor = (editor: TextEditor.t): itemDescriptor => {
+let makeOpener = (editor: TextEditor.t): Environment.Workspace.opener => {
   open DomTokenListRe;
   let element = document |> Document.createElement("article");
   element |> Element.classList |> add("agda-mode");
-  let uri = "agda-mode://" ++ TextEditor.getPath(editor);
-  let title = "[Agda Mode] " ++ TextEditor.getTitle(editor);
   {
     "element": element,
-    "getURI": () => uri,
-    "getTitle": () => title,
-    "getDefaultLocation": () => "right",
+    "getTitle": () => "[Agda Mode] " ++ TextEditor.getTitle(editor),
   };
+};
+
+let itemOptions = {
+  "initialLine": 0,
+  "initialColumn": 0,
+  "split": "right",
+  "activatePane": false,
+  "activateItem": false,
+  "pending": false,
+  "searchAllPanes": true,
+  "location": (None: option(string)),
 };
 
 let trigger = (callback: option(unit => unit)): unit =>
@@ -51,7 +46,7 @@ type t = {
 let make =
     (
       ~editor: TextEditor.t,
-      ~onOpen: option((Element.t, TextEditor.t) => unit)=?,
+      ~onOpen: option((Element.t, TextEditor.t, TextEditor.t) => unit)=?,
       ~onKill: option(unit => unit)=?,
       ~onClose: option(unit => unit)=?,
       ~onDidChangeActive: option(bool => unit)=?,
@@ -60,16 +55,24 @@ let make =
   let itemResource = Util.Resource.make();
   let closedDeliberately = ref(false);
   let subscriptions = CompositeDisposable.make();
+  let previouslyActivatedItem =
+    Environment.Workspace.getActivePane() |> Pane.getActiveItem;
   /* mount the view onto the element */
-  let itemDescriptor = createItemDescriptor(editor);
-  Environment.Workspace.open_(itemDescriptor)
+  let itemURI = "agda-mode://" ++ TextEditor.getPath(editor);
+  let itemOpener = makeOpener(editor);
+  /* rab opener */
+  Environment.Workspace.addOpener(_uri => itemOpener)
+  |> CompositeDisposable.add(subscriptions);
+  /* open the registered tab opener */
+  Environment.Workspace.open_(itemURI, itemOptions)
   |> then_(newItem => {
        itemResource.supply(newItem);
        /* this pane */
        let pane = Environment.Workspace.paneForItem(newItem);
        /* trigger the "onOpen" callback */
        switch (onOpen) {
-       | Some(callback) => callback(itemDescriptor##element, newItem)
+       | Some(callback) =>
+         callback(itemOpener##element, newItem, previouslyActivatedItem)
        | None => ()
        };
        /* onWillDestroyItem */
@@ -77,7 +80,7 @@ let make =
        |> Pane.onWillDestroyItem(event => {
             /* if the item that's going to be destroyed happens to be this tab */
             let destroyedTitle = Pane.getTitle(event##item);
-            let getTitle = itemDescriptor##getTitle;
+            let getTitle = itemOpener##getTitle;
             if (destroyedTitle === getTitle()) {
               /* invoke the onKill or onClose */
               if (closedDeliberately^) {
@@ -94,7 +97,7 @@ let make =
        pane
        |> Pane.onDidChangeActiveItem(item => {
             let activatedTitle = Pane.getTitle(item);
-            let getTitle = itemDescriptor##getTitle;
+            let getTitle = itemOpener##getTitle;
             if (activatedTitle == getTitle()) {
               triggerArg(onDidChangeActive, true);
             } else {
@@ -107,7 +110,7 @@ let make =
      })
   |> ignore;
   {
-    element: itemDescriptor##element,
+    element: itemOpener##element,
     kill: () =>
       itemResource.acquire()
       |> Js.Promise.then_(item => {

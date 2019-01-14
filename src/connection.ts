@@ -25,7 +25,7 @@ export default class ConnectionManager {
         this.disconnect = this.disconnect.bind(this);
         this.getConnection = this.getConnection.bind(this);
         this.wire = this.wire.bind(this);
-        this.queryPath = this.queryPath.bind(this);
+        // this.queryPath = this.queryPath.bind(this);
         this.handleAgdaError = this.handleAgdaError.bind(this);
         this.updateStore = this.updateStore.bind(this);
     }
@@ -36,7 +36,7 @@ export default class ConnectionManager {
                 return autoSearch('agda');
             })
             .then(validateAgda)
-            .catch(Err.Conn.Invalid, this.queryPath)
+            // .catch(Err.Conn.Invalid, this.queryPath)
             .then(setAgdaPath)
             .then(this.updateStore)
             .then(establishConnection(this.core.editor.getPath()))
@@ -139,18 +139,18 @@ export default class ConnectionManager {
         return Promise.resolve(connection);
     }
 
-    queryPath(error: Error): Promise<ValidPath> {
-        this.core.view.store.dispatch(Action.CONNECTION.startQuerying());
-        this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
-        this.core.view.setPlainText('Connection Error', '', 'error');
-        return this.core.view.queryConnection()
-            .then(validateAgda)
-            .then(result => {
-                this.core.view.store.dispatch(Action.CONNECTION.stopQuerying());
-                return result;
-            })
-            .catch(Err.Conn.Invalid, this.queryPath);
-    }
+    // queryPath(error: Error): Promise<ValidPath> {
+    //     this.core.view.store.dispatch(Action.CONNECTION.startQuerying());
+    //     this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
+    //     this.core.view.setPlainText('Connection Error', '', 'error');
+    //     return this.core.view.queryConnection()
+    //         .then(validateAgda)
+    //         .then(result => {
+    //             this.core.view.store.dispatch(Action.CONNECTION.stopQuerying());
+    //             return result;
+    //         })
+    //         .catch(Err.Conn.Invalid, this.queryPath);
+    // }
 
     handleAgdaError(error: Error) {
         // temp hack
@@ -169,10 +169,10 @@ export default class ConnectionManager {
             default:
                 this.disconnect();
                 console.warn(error);
-                return this.core.view.tabs.open('settings').then(() => {
-                    this.core.view.store.dispatch(Action.VIEW.navigate({path: '/Connection'}));
-                    this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
-                });
+                // return this.core.view.tabs.open('settings').then(() => {
+                //     this.core.view.store.dispatch(Action.VIEW.navigate({path: '/Connection'}));
+                //     this.core.view.store.dispatch(Action.CONNECTION.setAgdaMessage(error.message));
+                // });
         }
     }
 

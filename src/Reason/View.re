@@ -4,7 +4,7 @@ open Type.Interaction;
 
 open Webapi.Dom;
 
-exception EditorNotSet;
+/************************************************************************************************************/
 
 module Handle = {
   type t = {
@@ -56,6 +56,8 @@ module Handle = {
     let settingsViewHandle = handle => settingsViewHandle := handle;
   };
 };
+
+/************************************************************************************************************/
 
 type state = {
   header,
@@ -110,9 +112,12 @@ let mountPanel = (self, mountTo) => {
   let createTab = () =>
     Tab.make(
       ~editor=self.state.editor.source,
-      /* tab closed */
       ~onClose=() => self.send(MountTo(ToBottom)),
+      ~onOpen=(_, _, previousItem) => (),
       (),
+      /* activate the previous pane (which opened this pane item) */
+      /* Atom.Environment.Workspace.paneForItem(previousItem)
+         |> Atom.Pane.activateItem(previousItem), */
     );
   switch (self.state.mountAt, mountTo) {
   | (Bottom(_), ToBottom) => ()
@@ -132,7 +137,7 @@ let mountPanel = (self, mountTo) => {
   };
 };
 
-let reducer = (action, state) =>
+let reducer = (action, state) => {
   switch (action) {
   | SetGeneralRef(ref) =>
     Update({
@@ -220,6 +225,7 @@ let reducer = (action, state) =>
                           })
   | UpdateMode(mode) => Update({...state, mode})
   };
+};
 
 let component = reducerComponent("View");
 

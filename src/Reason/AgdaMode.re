@@ -14,7 +14,7 @@ module Instance = {
   };
 
   let deactivate = self => {
-    self.view.updateMountTo^(Type.Interaction.ToNowhere);
+    /* self.view.updateMountTo^(Type.Interaction.ToNowhere); */
   };
 
   let modeDisplay = self => {
