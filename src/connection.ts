@@ -13,7 +13,7 @@ import EmacsRectifier from './parser/emacs/stream/rectifier';
 import JSONRectifier from './parser/json/rectifier';
 import * as Emacs from './parser/emacs';
 import * as J from './parser/json';
-import { parseFilepath, parseFileType }  from './parser';
+import { parseFilepath, parseFileType, parseAgdaInput }  from './parser';
 
 import * as Action from "./view/actions";
 
@@ -110,10 +110,11 @@ export default class ConnectionManager {
             connection.stream
                 .pipe(new EmacsRectifier)
                 .on('data', (data) => {
+                    const sanitizedData = parseAgdaInput(data.toString());
                     const promise = this.connection && this.connection.queue.pop();
                     if (promise) {
-                        const lines = data.toString().trim().split('\n');
-                        Emacs.parseResponses(data.toString(), parseFileType(connection.filepath))
+                        const lines = sanitizedData.split('\n');
+                        Emacs.parseResponses(sanitizedData, parseFileType(connection.filepath))
                             .then(responses => {
                                 const resps: View.Parsed<Agda.Response>[] = responses
                                     .map((response, i) => ({

@@ -1,5 +1,5 @@
 import * as Promise from 'bluebird';
-import { parseFilepath, parseInputContent } from './parser/util';
+import { parseFilepath, parseUserInput } from './parser/util';
 import { Agda, Conn } from './type';
 import * as semver from 'semver';
 import Goal from './editor/goal';
@@ -80,10 +80,10 @@ export const searchAbout = (normalization: Agda.Normalization, expr: string) =>
     buildRequest('None', `Cmd_search_about_toplevel ${normalization} \"${expr}\"`);
 
 export const whyInScope = (expr: string, goal: Goal) =>
-    buildRequest('NonInteractive', `Cmd_why_in_scope ${goal.index} noRange \"${parseInputContent(expr)}\"`);
+    buildRequest('NonInteractive', `Cmd_why_in_scope ${goal.index} noRange \"${parseUserInput(expr)}\"`);
 
 export const whyInScopeGlobal = (expr: string) =>
-    buildRequest('None', `Cmd_why_in_scope_toplevel \"${parseInputContent(expr)}\"`)
+    buildRequest('None', `Cmd_why_in_scope_toplevel \"${parseUserInput(expr)}\"`)
 
 export const inferType = (normalization: Agda.Normalization, expr: string, goal: Goal) =>
     buildRequest('NonInteractive', `Cmd_infer ${normalization} ${goal.index} noRange \"${expr}\"`);
@@ -159,4 +159,4 @@ export const gotoDefinition = (expr: string, goal: Goal) =>
     buildRequest('NonInteractive', `Cmd_why_in_scope ${goal.index} noRange \"${expr}\"`);
 
 export const gotoDefinitionGlobal = (expr: string) =>
-    buildRequest('None', `Cmd_why_in_scope_toplevel \"${parseInputContent(expr)}\"`)
+    buildRequest('None', `Cmd_why_in_scope_toplevel \"${parseUserInput(expr)}\"`)

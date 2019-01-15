@@ -1,4 +1,5 @@
 import { Transform } from "stream";
+import { parseAgdaInput } from "../util";
 
 export default class Rectifier extends Transform {
     private buffer: string;
@@ -16,7 +17,7 @@ export default class Rectifier extends Transform {
             this.buffer += string.substring(0, string.length - 7);
             // push and clear the buffer
 
-            const parsedResponses = this.buffer.toString().split('\n')
+            const parsedResponses = parseAgdaInput(this.buffer.toString()).split('\n')
                 .filter(line => line.length > 0)
                 .map(line => JSON.parse(line));
             this.push(parsedResponses);

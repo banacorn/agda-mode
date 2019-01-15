@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { parseInputContent } from './../parser/util';
+import { parseUserInput } from './../parser/util';
 
 import { Point, Range } from 'atom';
 import * as Atom from 'atom';
@@ -174,7 +174,7 @@ export default class Goal {
             new Point(0, -2)
         );
         const rawContent = this.textEditor.getTextInBufferRange(range);
-        return parseInputContent(rawContent);
+        return parseUserInput(rawContent);
     }
 
     setContent = (text: string): Goal => {

@@ -31,7 +31,7 @@ function parseFileType(filepath: string): FileType {
     }
 }
 
-function parseInputContent(data: string): string {
+function parseUserInput(data: string): string {
     let expr = data.toString()
         .replace(/\\/g, '\\\\')
         .replace(/\\/g, '\\\\')      // \           => \\
@@ -45,8 +45,14 @@ function parseInputContent(data: string): string {
         return expr;
 }
 
+
+function parseAgdaInput(data: string): string {
+    return data.replace('\r\n', '\n').trim();
+}
+
 export {
     parseFileType,
     parseFilepath,
-    parseInputContent,
+    parseUserInput,
+    parseAgdaInput,
 }
