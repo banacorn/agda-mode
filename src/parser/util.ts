@@ -12,7 +12,10 @@ function parseFilepath(s: string): string {
         // fuck Windows Bidi control character
         if (joined.charCodeAt(0) === 8234)
             joined = joined.substr(1);
-
+        // a hack to solve #75, quote the path if it contains spaces and is on Windows
+        if (path.win32 && joined.indexOf(' ') >= 0)
+            joined = `"${joined}"`;
+        
         return joined.trim();
     } else {
         return '';
