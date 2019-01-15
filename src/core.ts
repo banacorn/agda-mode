@@ -48,18 +48,12 @@ export class Core {
     }
 
     // Editor Events
-
     activate() {
         AgdaModeRE.activate(this.editor);
-
-        // ViewRE.jsMountPanel("bottom");
-        // this.view.activatePanel();
     }
 
     deactivate() {
         AgdaModeRE.deactivate(this.editor);
-        // ViewRE.jsMountPanel("nowhere");
-        // this.view.deactivatePanel();
     }
 
     destroy() {

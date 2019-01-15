@@ -4,14 +4,11 @@ open Js.Promise;
 
 open Atom;
 
-let makeOpener = (editor: TextEditor.t): Environment.Workspace.opener => {
+let makeTabElement = () => {
   open DomTokenListRe;
   let element = document |> Document.createElement("article");
   element |> Element.classList |> add("agda-mode");
-  {
-    "element": element,
-    "getTitle": () => "[Agda Mode] " ++ TextEditor.getTitle(editor),
-  };
+  element;
 };
 
 let itemOptions = {
@@ -46,6 +43,7 @@ type t = {
 let make =
     (
       ~editor: TextEditor.t,
+      ~getTitle: unit => string,
       ~onOpen: option((Element.t, TextEditor.t, TextEditor.t) => unit)=?,
       ~onKill: option(unit => unit)=?,
       ~onClose: option(unit => unit)=?,
@@ -59,7 +57,7 @@ let make =
     Environment.Workspace.getActivePane() |> Pane.getActiveItem;
   /* mount the view onto the element */
   let itemURI = "agda-mode://" ++ TextEditor.getPath(editor);
-  let itemOpener = makeOpener(editor);
+  let itemOpener = {"element": makeTabElement(), "getTitle": getTitle};
   /* add tab opener */
   Environment.Workspace.addOpener(givenURI =>
     givenURI == itemURI ? Some(itemOpener) : None
@@ -90,7 +88,7 @@ let make =
               } else {
                 trigger(onClose);
               };
-              /* dispose */
+              /* dispose subscriptions */
               CompositeDisposable.dispose(subscriptions);
             };
           })
@@ -116,6 +114,8 @@ let make =
     kill: () =>
       itemResource.acquire()
       |> Js.Promise.then_(item => {
+           /* dispose subscriptions */
+           CompositeDisposable.dispose(subscriptions);
            /* set the "closedDeliberately" to true to trigger "onKill" */
            closedDeliberately := true;
            Environment.Workspace.paneForItem(item)

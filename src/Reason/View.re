@@ -116,6 +116,9 @@ let mountPanel = (self, mountTo) => {
   let createTab = () =>
     Tab.make(
       ~editor=self.state.editor.source,
+      ~getTitle=
+        () =>
+          "[Agda Mode] " ++ Atom.TextEditor.getTitle(self.state.editor.source),
       ~onClose=() => self.send(MountTo(ToBottom)),
       ~onOpen=
         (_, _, previousItem) => {
@@ -203,6 +206,13 @@ let reducer = (handles: Handles.t, action, state) => {
             let tab =
               Tab.make(
                 ~editor=self.state.editor.source,
+                ~getTitle=
+                  () =>
+                    "[Settings] "
+                    ++ Atom.TextEditor.getTitle(self.state.editor.source),
+                ~onOpen=
+                  (element, _, _) =>
+                    ReactDOMRe.render(<Settings />, element),
                 ~onClose=
                   () => {
                     self.send(ToggleSettingsTab(false));
@@ -276,10 +286,10 @@ let make = (~editor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
   },
   render: self => {
     let {header, body, mountAt, mode, activated, editor} = self.state;
-    let element: option(Element.t) =
+    let element: Element.t =
       switch (mountAt) {
-      | Bottom(element) => Some(element)
-      | Pane(tab) => Some(tab.element)
+      | Bottom(element) => element
+      | Pane(tab) => tab.element
       };
     let hidden =
       switch (mountAt) {

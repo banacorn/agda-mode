@@ -40,11 +40,11 @@ let make =
       ~placeholder="",
       ~hidden,
       ~grammar="",
-      ~onConfirm=(_) => (),
+      ~onConfirm=_ => (),
       ~onCancel=(.) => (),
       ~onFocus=(.) => (),
       ~onBlur=(.) => (),
-      ~editorRef=(_) => (),
+      ~editorRef=_ => (),
       _children,
     ) => {
   let observeFocus = (self, editor) => {
@@ -136,9 +136,9 @@ let make =
       },
     render: self => {
       let className =
-        ["mini-editor"]
-        |> Util.React.addClass("hidden", hidden)
-        |> Util.React.toClassName;
+        Util.ClassName.(
+          ["mini-editor"] |> addWhen("hidden", hidden) |> serialize
+        );
       ReactDOMRe.createElement(
         "atom-text-editor",
         ~props=

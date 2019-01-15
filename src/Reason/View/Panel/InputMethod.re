@@ -442,14 +442,13 @@ let make =
   },
   render: self => {
     let {activated, buffer, translation} = self.state;
+    open Util.ClassName;
     let className =
-      ["input-method"]
-      |> Util.React.addClass("hidden", !activated)
-      |> Util.React.toClassName;
+      ["input-method"] |> addWhen("hidden", !activated) |> serialize;
     let bufferClassName =
       ["inline-block", "buffer"]
-      |> Util.React.addClass("hidden", String.isEmpty(buffer.underlying))
-      |> Util.React.toClassName;
+      |> addWhen("hidden", String.isEmpty(buffer.underlying))
+      |> serialize;
     <section className>
       <div className="keyboard">
         <div className=bufferClassName> {string(buffer.underlying)} </div>

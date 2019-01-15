@@ -29,25 +29,25 @@ let make =
       let newIndex = max(0, index - 10);
       UpdateWithSideEffects(
         {index: newIndex},
-        ((_) => updateTranslation(candidateSymbols[newIndex])),
+        _ => updateTranslation(candidateSymbols[newIndex]),
       );
     | MoveRight =>
       let newIndex = min(Array.length(candidateSymbols) - 1, index + 1);
       UpdateWithSideEffects(
         {index: newIndex},
-        ((_) => updateTranslation(candidateSymbols[newIndex])),
+        _ => updateTranslation(candidateSymbols[newIndex]),
       );
     | MoveDown =>
       let newIndex = min(Array.length(candidateSymbols) - 1, index + 10);
       UpdateWithSideEffects(
         {index: newIndex},
-        ((_) => updateTranslation(candidateSymbols[newIndex])),
+        _ => updateTranslation(candidateSymbols[newIndex]),
       );
     | MoveLeft =>
       let newIndex = max(0, index - 1);
       UpdateWithSideEffects(
         {index: newIndex},
-        ((_) => updateTranslation(candidateSymbols[newIndex])),
+        _ => updateTranslation(candidateSymbols[newIndex]),
       );
     },
   didMount: self => {
@@ -103,11 +103,11 @@ let make =
         |> Array.mapi((key, i) => {
              let isSelected = rowStart + i === self.state.index;
              let className =
-               ["btn"]
-               |> Util.React.addClass("selected", isSelected)
-               |> Util.React.toClassName;
-             <button className onClick=((_) => chooseSymbol(key)) key>
-               (string(key))
+               Util.ClassName.(
+                 ["btn"] |> addWhen("selected", isSelected) |> serialize
+               );
+             <button className onClick={_ => chooseSymbol(key)} key>
+               {string(key)}
              </button>;
            });
       <div className="candidates btn-group btn-group-sm"> ...keys </div>;

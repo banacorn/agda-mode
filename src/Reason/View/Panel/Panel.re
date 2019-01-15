@@ -37,7 +37,7 @@ let component = reducerComponent("Panel");
 let make =
     (
       ~editor: Editor.t,
-      ~element: option(Webapi.Dom.Element.t),
+      ~element: Webapi.Dom.Element.t,
       ~onMountAtChange: mountTo => unit,
       ~body: body,
       ~header: header,
@@ -78,86 +78,82 @@ let make =
       | Bottom(_) => true
       | _ => false
       };
-    switch (element) {
-    | None => null
-    | Some(elem) =>
-      let className =
-        [] |> Util.React.addClass("hidden", hidden) |> Util.React.toClassName;
-      ReactDOMRe.createPortal(
-        <MouseEmitter.Provider value={ev => self.send(MouseEvent(ev))}>
-          <section className>
-            <section className="panel-heading agda-header-container">
-              <SizingHandle
-                onResizeStart={height => self.send(UpdateMaxHeight(height))}
-                onResizeEnd={height =>
-                  Js.Global.setTimeout(
-                    () => {
-                      self.send(UpdateMaxHeight(height));
-                      Atom.Environment.Config.set(
-                        "agda-mode.maxBodyHeight",
-                        string_of_int(height),
-                      );
-                    },
-                    0,
-                  )
-                  |> ignore
-                }
-                mountAtBottom
-              />
-              <InputMethod
-                editor
-                interceptAndInsertKey
-                activationHandle=activateInputMethod
-                onActivationChange={activated =>
-                  self.send(UpdateInputMethodActivation(activated))
-                }
-              />
-              <Dashboard
-                header
-                hidden=inputMethodActivated
-                isPending
-                mountAt
-                onMountAtChange
-                onSettingsViewToggle
-                activateSettingsView
-              />
-            </section>
-            <section className="agda-body-container">
-              <Body body hidden={mode != Display} mountAtBottom />
-              <MiniEditor
-                hidden={mode != Query}
-                value=editorValue
-                placeholder=editorPlaceholder
-                grammar="agda"
-                editorRef=onEditorRef
-                onFocus={(.) => onEditorFocused(true)}
-                onBlur={(.) => onEditorFocused(false)}
-                onConfirm=onEditorConfirm
-                onCancel=onEditorCancel
-                /* onConfirm=(
-                     result => {
-                       onQueryConfirm(result);
-                       /* core.view.editors.answerGeneral(result);
-                          this.props.handelQueryValueChange(result);
-                          core.view.editors.focusMain();
-                          this.props.deactivateMiniEditor();
-                          core.inputMethod.confirm(); */
-                     }
-                   )
-                   onCancel=(
-                     () => {
-                       /* core.view.editors.rejectGeneral();
-                          core.view.editors.focusMain()
-                          this.props.deactivateMiniEditor();
-                          core.inputMethod.cancel(); */
-                     }
-                   ) */
-              />
-            </section>
+    let className =
+      Util.ClassName.([] |> addWhen("hidden", hidden) |> serialize);
+    ReactDOMRe.createPortal(
+      <MouseEmitter.Provider value={ev => self.send(MouseEvent(ev))}>
+        <section className>
+          <section className="panel-heading agda-header-container">
+            <SizingHandle
+              onResizeStart={height => self.send(UpdateMaxHeight(height))}
+              onResizeEnd={height =>
+                Js.Global.setTimeout(
+                  () => {
+                    self.send(UpdateMaxHeight(height));
+                    Atom.Environment.Config.set(
+                      "agda-mode.maxBodyHeight",
+                      string_of_int(height),
+                    );
+                  },
+                  0,
+                )
+                |> ignore
+              }
+              mountAtBottom
+            />
+            <InputMethod
+              editor
+              interceptAndInsertKey
+              activationHandle=activateInputMethod
+              onActivationChange={activated =>
+                self.send(UpdateInputMethodActivation(activated))
+              }
+            />
+            <Dashboard
+              header
+              hidden=inputMethodActivated
+              isPending
+              mountAt
+              onMountAtChange
+              onSettingsViewToggle
+              activateSettingsView
+            />
           </section>
-        </MouseEmitter.Provider>,
-        elem,
-      );
-    };
+          <section className="agda-body-container">
+            <Body body hidden={mode != Display} mountAtBottom />
+            <MiniEditor
+              hidden={mode != Query}
+              value=editorValue
+              placeholder=editorPlaceholder
+              grammar="agda"
+              editorRef=onEditorRef
+              onFocus={(.) => onEditorFocused(true)}
+              onBlur={(.) => onEditorFocused(false)}
+              onConfirm=onEditorConfirm
+              onCancel=onEditorCancel
+              /* onConfirm=(
+                   result => {
+                     onQueryConfirm(result);
+                     /* core.view.editors.answerGeneral(result);
+                        this.props.handelQueryValueChange(result);
+                        core.view.editors.focusMain();
+                        this.props.deactivateMiniEditor();
+                        core.inputMethod.confirm(); */
+                   }
+                 )
+                 onCancel=(
+                   () => {
+                     /* core.view.editors.rejectGeneral();
+                        core.view.editors.focusMain()
+                        this.props.deactivateMiniEditor();
+                        core.inputMethod.cancel(); */
+                   }
+                 ) */
+            />
+          </section>
+        </section>
+      </MouseEmitter.Provider>,
+      element,
+    );
   },
 };

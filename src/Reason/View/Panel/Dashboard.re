@@ -85,29 +85,28 @@ let make =
     };
   },
   render: self => {
+    open Util.ClassName;
     let classList =
-      ["agda-header"]
-      |> Util.React.addClass("hidden", hidden)
-      |> Util.React.toClassName;
+      ["agda-header"] |> addWhen("hidden", hidden) |> serialize;
     let headerClassList = "text-" ++ header.style;
     let spinnerClassList =
       ["loading", "loading-spinner-tiny", "inline-block"]
-      |> Util.React.addClass("pending", isPending)
-      |> Util.React.toClassName;
+      |> addWhen("pending", isPending)
+      |> serialize;
     let settingsViewClassList =
       ["no-btn"]
-      |> Util.React.addClass("activated", self.state.settingsView)
-      |> Util.React.toClassName;
+      |> addWhen("activated", self.state.settingsView)
+      |> serialize;
     let toggleMountingPosition =
       ["no-btn"]
-      |> Util.React.addClass(
+      |> addWhen(
            "activated",
            switch (mountAt) {
            | Pane(_) => true
            | _ => false
            },
          )
-      |> Util.React.toClassName;
+      |> serialize;
     <div className=classList>
       <h1 className=headerClassList> {string(header.text)} </h1>
       <ul className="agda-dashboard">
