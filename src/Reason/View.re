@@ -75,11 +75,11 @@ type state = {
   mountAt,
   activated: bool,
   settingsView: option(Tab.t),
-  editor: Editor.t,
+  editors: Editors.t,
   mode,
 };
 
-let initialState = (editor, _) => {
+let initialState = (textEditor, _) => {
   {
     header: {
       text: "",
@@ -92,33 +92,39 @@ let initialState = (editor, _) => {
     mountAt: Bottom(createElement()),
     activated: false,
     settingsView: None,
-    editor: Editor.make(editor),
+    editors: Editors.make(textEditor),
     mode: Display,
   };
 };
 
 type action =
-  | SetGeneralRef(Atom.TextEditor.t)
-  | FocusQuery
+  | Focus(Editors.sort)
+  /* Connection Editor related */
+  | SetConnectionRef(Atom.TextEditor.t)
+  /* Query Editor related */
+  | SetQueryRef(Atom.TextEditor.t)
   | InquireQuery(string, string)
-  | FocusSource
+  /* Settings Tab related */
   | ToggleSettingsTab(bool)
   | UpdateSettingsView(option(Tab.t))
+  /*  */
   | UpdateMountAt(mountAt)
-  | UpdateHeader(header)
-  | UpdateRawBody(rawBody)
-  | UpdateMode(mode)
   | MountTo(mountTo)
   | Activate
-  | Deactivate;
+  | Deactivate
+  /*  */
+  | UpdateHeader(header)
+  | UpdateRawBody(rawBody)
+  | UpdateMode(mode);
 
 let mountPanel = (self, mountTo) => {
   let createTab = () =>
     Tab.make(
-      ~editor=self.state.editor.source,
+      ~editor=self.state.editors.source,
       ~getTitle=
         () =>
-          "[Agda Mode] " ++ Atom.TextEditor.getTitle(self.state.editor.source),
+          "[Agda Mode] "
+          ++ Atom.TextEditor.getTitle(self.state.editors.source),
       ~onClose=() => self.send(MountTo(ToBottom)),
       ~onOpen=
         (_, _, previousItem) => {
@@ -148,53 +154,53 @@ let reducer = (handles: Handles.t, action, state) => {
       UpdateWithSideEffects({...state, activated: true}, _ => tab.activate())
     }
   | Deactivate => Update({...state, activated: false})
-  | SetGeneralRef(ref) =>
+  | SetQueryRef(ref) =>
     Update({
       ...state,
-      editor: {
-        ...state.editor,
+      editors: {
+        ...state.editors,
         query: {
-          ...state.editor.query,
+          ...state.editors.query,
           ref: Some(ref),
         },
       },
     })
-  | FocusQuery =>
+  | SetConnectionRef(ref) =>
+    Update({
+      ...state,
+      editors: {
+        ...state.editors,
+        connection: {
+          ...state.editors.connection,
+          ref: Some(ref),
+        },
+      },
+    })
+  | Focus(sort) =>
     UpdateWithSideEffects(
       {
         ...state,
-        editor: {
-          ...state.editor,
-          focused: Editor.Query,
+        editors: {
+          ...state.editors,
+          focused: sort,
         },
       },
-      self => Editor.Focus.onQuery(self.state.editor),
-    )
-  | FocusSource =>
-    UpdateWithSideEffects(
-      {
-        ...state,
-        editor: {
-          ...state.editor,
-          focused: Editor.Source,
-        },
-      },
-      self => Editor.Focus.onSource(self.state.editor),
+      self => self.state.editors |> Editors.Focus.on(sort),
     )
   | InquireQuery(placeholder, value) =>
     UpdateWithSideEffects(
       {
         ...state,
-        editor: {
-          ...state.editor,
+        editors: {
+          ...state.editors,
           query: {
-            ...state.editor.query,
+            ...state.editors.query,
             placeholder,
             value,
           },
         },
       },
-      self => Editor.Focus.onQuery(self.state.editor),
+      self => self.state.editors |> Editors.Focus.on(Editors.Query),
     )
   | MountTo(mountTo) => SideEffects(self => mountPanel(self, mountTo))
   | ToggleSettingsTab(open_) =>
@@ -205,14 +211,22 @@ let reducer = (handles: Handles.t, action, state) => {
           if (open_) {
             let tab =
               Tab.make(
-                ~editor=self.state.editor.source,
+                ~editor=self.state.editors.source,
                 ~getTitle=
                   () =>
                     "[Settings] "
-                    ++ Atom.TextEditor.getTitle(self.state.editor.source),
+                    ++ Atom.TextEditor.getTitle(self.state.editors.source),
                 ~onOpen=
                   (element, _, _) =>
-                    ReactDOMRe.render(<Settings />, element),
+                    ReactDOMRe.render(
+                      <Settings
+                        editors={self.state.editors}
+                        onConnectionEditorRef={ref =>
+                          self.send(SetConnectionRef(ref))
+                        }
+                      />,
+                      element,
+                    ),
                 ~onClose=
                   () => {
                     self.send(ToggleSettingsTab(false));
@@ -245,9 +259,9 @@ let reducer = (handles: Handles.t, action, state) => {
 
 let component = reducerComponent("View");
 
-let make = (~editor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
+let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
   ...component,
-  initialState: initialState(editor),
+  initialState: initialState(textEditor),
   reducer: reducer(handles),
   didMount: self => {
     Handles.hook(handles.updateMountTo, mountTo =>
@@ -271,7 +285,7 @@ let make = (~editor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
         self.handle(
           (_, newSelf) =>
             Js.Promise.(
-              Editor.Query.inquire(newSelf.state.editor)
+              Editors.Query.inquire(newSelf.state.editors)
               |> then_(answer => promise.resolve(answer) |> resolve)
               |> catch(error =>
                    promise.reject(Util.JSPromiseError(error)) |> resolve
@@ -285,7 +299,7 @@ let make = (~editor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
     );
   },
   render: self => {
-    let {header, body, mountAt, mode, activated, editor} = self.state;
+    let {header, body, mountAt, mode, activated, editors} = self.state;
     let element: Element.t =
       switch (mountAt) {
       | Bottom(element) => element
@@ -298,7 +312,7 @@ let make = (~editor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
       };
     <>
       <Panel
-        editor
+        editors
         element
         header
         body
@@ -308,23 +322,23 @@ let make = (~editor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
         mode
         /* editors */
         onEditorFocused={focused =>
-          self.send(focused ? FocusQuery : FocusSource)
+          self.send(focused ? Focus(Query) : Focus(Source))
         }
         onEditorConfirm={result => {
-          Editor.(editor->(Query.answer(result)));
+          Editors.(editors->Query.answer(result));
           handles.activateInputMethod^(false);
-          self.send(FocusSource);
+          self.send(Focus(Source));
           self.send(UpdateMode(Display));
         }}
         onEditorCancel={(.) => {
-          Editor.(editor->(Query.reject(QueryCancelled)));
+          Editors.(editors->(Query.reject(QueryCancelled)));
           handles.activateInputMethod^(false);
-          self.send(FocusSource);
+          self.send(Focus(Source));
           self.send(UpdateMode(Display));
         }}
-        onEditorRef={ref => self.send(SetGeneralRef(ref))}
-        editorValue={editor.query.value}
-        editorPlaceholder={editor.query.placeholder}
+        onEditorRef={ref => self.send(SetQueryRef(ref))}
+        editorValue={editors.query.value}
+        editorPlaceholder={editors.query.placeholder}
         interceptAndInsertKey={Handles.hook(handles.interceptAndInsertKey)}
         activateInputMethod={Handles.hook(handles.activateInputMethod)}
         activateSettingsView={Handles.hook(handles.activateSettingsView)}
@@ -334,11 +348,11 @@ let make = (~editor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
   },
 };
 
-let initialize = editor => {
+let initialize = textEditor => {
   let element = document |> Document.createElement("article");
   let handles = Handles.make();
   ReactDOMRe.render(
-    ReasonReact.element(make(~editor, ~handles, [||])),
+    ReasonReact.element(make(~textEditor, ~handles, [||])),
     element,
   );
   handles;

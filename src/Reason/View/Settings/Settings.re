@@ -21,7 +21,7 @@ let at = (x, y, classNames) => {
   Util.ClassName.(classNames |> addWhen("hidden", x != y) |> serialize);
 };
 
-let make = _children => {
+let make = (~editors, ~onConnectionEditorRef, _children) => {
   ...component,
   initialState,
   reducer,
@@ -40,6 +40,18 @@ let make = _children => {
             </span>
           </li>
         </ul>
+        <Connection
+          editors
+          onConnectionEditorRef
+          hidden={uri != URI.Connection}
+          querying=true
+          checked=false
+          toggleAgdaConnection=Js.log
+          agdaConnected=true
+          agdaPath="asdf"
+          agdaVersion="???.???"
+          supportedProtocol="Emacs"
+        />
       </div>
     </section>;
   },

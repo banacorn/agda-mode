@@ -4,18 +4,20 @@ open Rebase;
 
 open Webapi.Dom;
 
-type model = {
-  value: string,
-  placeholder: string,
-  ref: option(Atom.TextEditor.t),
-  telePromise: Util.TelePromise.t(string),
-};
+module Model = {
+  type t = {
+    value: string,
+    placeholder: string,
+    ref: option(Atom.TextEditor.t),
+    telePromise: Util.TelePromise.t(string),
+  };
 
-let makeModel = () => {
-  value: "",
-  placeholder: "",
-  ref: None,
-  telePromise: Util.TelePromise.make(),
+  let make = () => {
+    value: "",
+    placeholder: "",
+    ref: None,
+    telePromise: Util.TelePromise.make(),
+  };
 };
 
 type state = {

@@ -135,7 +135,7 @@ type action =
   | InsertSurfaceAndUnderlying(string)
   | RewriteSurface(string);
 
-let markerOnDidChange = (editor, event, self) => {
+let markerOnDidChange = (editors, event, self) => {
   open Atom;
   let rangeOld =
     Atom.Range.make(
@@ -148,7 +148,7 @@ let markerOnDidChange = (editor, event, self) => {
       event##newHeadBufferPosition,
     );
   let comparison = Atom.Range.compare(rangeOld, rangeNew);
-  let textBuffer = Editor.Focus.get(editor) |> TextEditor.getBuffer;
+  let textBuffer = Editors.Focus.get(editors) |> TextEditor.getBuffer;
   if (Atom.Range.isEmpty(rangeNew)) {
     self.send(Deactivate);
   } else {
@@ -173,7 +173,7 @@ let markerOnDidChange = (editor, event, self) => {
 
 let insertActualBuffer = (editors, char, _self) => {
   open Atom;
-  let editor = Editor.Focus.get(editors);
+  let editor = Editors.Focus.get(editors);
   let textBuffer = editor |> TextEditor.getBuffer;
   /* get all selections and sort them */
   let getCharIndex = selection => {
@@ -195,7 +195,7 @@ let insertActualBuffer = (editors, char, _self) => {
      });
 };
 
-let reducer = (editor, onActivationChange, action, state) =>
+let reducer = (editors, onActivationChange, action, state) =>
   switch (action) {
   | Activate =>
     onActivationChange(true);
@@ -220,7 +220,7 @@ let reducer = (editor, onActivationChange, action, state) =>
         {...state, activated: true},
         self => {
           open Atom;
-          let focusedEditor = Editor.Focus.get(editor);
+          let focusedEditor = Editors.Focus.get(editors);
           /* add class 'agda-mode-input-method-activated' */
           Views.getView(focusedEditor)
           |> HtmlElement.classList
@@ -239,7 +239,7 @@ let reducer = (editor, onActivationChange, action, state) =>
             |> Option.map(marker =>
                  marker
                  |> DisplayMarker.onDidChange(
-                      self.handle(markerOnDidChange(editor)),
+                      self.handle(markerOnDidChange(editors)),
                     )
                );
           /* decorate the editor with these markers */
@@ -275,8 +275,8 @@ let reducer = (editor, onActivationChange, action, state) =>
         _self => {
           open Atom;
           /* remove class 'agda-mode-input-method-activated' */
-          editor
-          |> Editor.Focus.get
+          editors
+          |> Editors.Focus.get
           |> Views.getView
           |> HtmlElement.classList
           |> DomTokenListRe.remove("agda-mode-input-method-activated");
@@ -353,7 +353,7 @@ let reducer = (editor, onActivationChange, action, state) =>
           surface: state.buffer.surface ++ char,
         },
       },
-      insertActualBuffer(editor, char),
+      insertActualBuffer(editors, char),
     )
   | InsertSurfaceAndUnderlying(char) =>
     UpdateWithSideEffects(
@@ -365,7 +365,7 @@ let reducer = (editor, onActivationChange, action, state) =>
         },
       },
       self => {
-        insertActualBuffer(editor, char, self);
+        insertActualBuffer(editors, char, self);
         self.send(InsertUnderlying(char));
       },
     )
@@ -382,8 +382,8 @@ let reducer = (editor, onActivationChange, action, state) =>
         state.markers
         |> Array.forEach(marker =>
              Atom.(
-               editor
-               |> Editor.Focus.get
+               editors
+               |> Editors.Focus.get
                |> TextEditor.getBuffer
                |> TextBuffer.setTextInRange(
                     DisplayMarker.getBufferRange(marker),
@@ -399,7 +399,7 @@ let component = reducerComponent("InputMethod");
 
 let make =
     (
-      ~editor: Editor.t,
+      ~editors: Editors.t,
       /*
        Issue #34: https://github.com/banacorn/agda-mode/issues/34
        Intercept some keys that Bracket Matcher autocompletes
@@ -418,7 +418,7 @@ let make =
     ) => {
   ...component,
   initialState,
-  reducer: reducer(editor, onActivationChange),
+  reducer: reducer(editors, onActivationChange),
   didMount: self => {
     /* binding for the JS */
     interceptAndInsertKey(char =>

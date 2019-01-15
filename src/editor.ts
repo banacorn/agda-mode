@@ -8,7 +8,7 @@ import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
 // import Goal from './editor/goal';
 const HoleRE = require('./Reason/Hole.bs');
-const EditorRE = require('./Reason/Editor.bs');
+const EditorRE = require('./Reason/Editors.bs');
 
 import { Point, Range } from 'atom';
 import * as Atom from 'atom';

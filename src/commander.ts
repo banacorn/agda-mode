@@ -12,7 +12,7 @@ import Table from './asset/query';
 
 const HoleRE = require('./Reason/Hole.bs');
 const AgdaModeRE = require('./Reason/AgdaMode.bs');
-const EditorRE = require('./Reason/Editor.bs');
+const EditorRE = require('./Reason/Editors.bs');
 
 function toDescription(normalization: Agda.Normalization): string {
     switch(normalization) {
