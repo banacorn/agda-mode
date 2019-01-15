@@ -102,13 +102,13 @@ type action =
   | FocusQuery
   | InquireQuery(string, string)
   | FocusSource
-  | MountTo(mountTo)
   | ToggleSettingsTab(bool)
   | UpdateSettingsView(option(Tab.t))
   | UpdateMountAt(mountAt)
   | UpdateHeader(header)
   | UpdateRawBody(rawBody)
   | UpdateMode(mode)
+  | MountTo(mountTo)
   | Activate
   | Deactivate;
 
@@ -140,16 +140,11 @@ let reducer = (handles: Handles.t, action, state) => {
   switch (action) {
   | Activate =>
     switch (state.mountAt) {
-    | Bottom(_) =>
-      UpdateWithSideEffects({...state, activated: true}, _self => ())
-    | Pane(_) => NoUpdate
+    | Bottom(_) => Update({...state, activated: true})
+    | Pane(tab) =>
+      UpdateWithSideEffects({...state, activated: true}, _ => tab.activate())
     }
-  | Deactivate =>
-    switch (state.mountAt) {
-    | Bottom(_) =>
-      UpdateWithSideEffects({...state, activated: false}, _self => ())
-    | Pane(_) => NoUpdate
-    }
+  | Deactivate => Update({...state, activated: false})
   | SetGeneralRef(ref) =>
     Update({
       ...state,
@@ -327,27 +322,6 @@ let make = (~editor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
       />
     </>;
   },
-};
-
-/* exposed to the JS counterpart */
-type jsHeaderState = {
-  .
-  "text": string,
-  "style": string,
-};
-
-type jsEmacsBodyState = {
-  .
-  "kind": string,
-  "header": string,
-  "body": string,
-};
-
-type jsJSONBodyState = {
-  .
-  "kind": string,
-  "rawJSON": Js.Json.t,
-  "rawString": string,
 };
 
 let initialize = editor => {

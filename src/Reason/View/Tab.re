@@ -18,8 +18,8 @@ let itemOptions = {
   "initialLine": 0,
   "initialColumn": 0,
   "split": "right",
-  "activatePane": false,
-  "activateItem": false,
+  "activatePane": true,
+  "activateItem": true,
   "pending": false,
   "searchAllPanes": true,
   "location": (None: option(string)),
@@ -60,8 +60,10 @@ let make =
   /* mount the view onto the element */
   let itemURI = "agda-mode://" ++ TextEditor.getPath(editor);
   let itemOpener = makeOpener(editor);
-  /* rab opener */
-  Environment.Workspace.addOpener(_uri => itemOpener)
+  /* add tab opener */
+  Environment.Workspace.addOpener(givenURI =>
+    givenURI == itemURI ? Some(itemOpener) : None
+  )
   |> CompositeDisposable.add(subscriptions);
   /* open the registered tab opener */
   Environment.Workspace.open_(itemURI, itemOptions)
