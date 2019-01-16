@@ -17,6 +17,7 @@ module Handles = {
     interceptAndInsertKey: ref(string => unit),
     activateInputMethod: ref(bool => unit),
     activateSettingsView: ref(bool => unit),
+    destroy: ref(unit => unit),
   };
 
   let hook = (f, handle) => f := handle;
@@ -40,6 +41,7 @@ module Handles = {
     let activateInputMethod = ref(_ => ());
 
     let activateSettingsView = ref(_ => ());
+    let destroy = ref(_ => ());
 
     {
       updateHeader,
@@ -51,6 +53,7 @@ module Handles = {
       interceptAndInsertKey,
       activateInputMethod,
       activateSettingsView,
+      destroy,
     };
   };
 };
@@ -297,6 +300,8 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
         promise.wire();
       },
     );
+
+    Handles.hook(handles.destroy, _ => Js.log("destroy!"));
   },
   render: self => {
     let {header, body, mountAt, mode, activated, editors} = self.state;

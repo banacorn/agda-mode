@@ -78,7 +78,6 @@ let writeLines = (self, contents: array(string)) => {
 /* https://github.com/agda/agda/blob/f46ecaf729c00217efad7a77e5d9932bfdd030e5/src/data/emacs-mode/agda2-mode.el#L950 */
 
 let writeLambda = (self, contents: array(string)) => {
-  Js.log(contents);
   /* range to scan */
   let scanRow = self.range |> Range.start |> Point.row;
   let scanRowText =
@@ -136,7 +135,6 @@ let writeLambda = (self, contents: array(string)) => {
 };
 
 let destroy = self => {
-  Js.log(self);
   self.marker |> DisplayMarker.destroy;
   self.disposables |> CompositeDisposable.dispose;
 };

@@ -20,6 +20,7 @@ export class Core {
     public commander: Commander;
     public view: View;
     public connection: ConnectionManager;
+    public agdaModeRE: any;
 
     constructor(textEditor: Atom.TextEditor) {
         // initialize all components
@@ -34,7 +35,6 @@ export class Core {
         this.view               = new View(this);
 
         AgdaModeRE.initialize(textEditor);
-        // ViewRE.initialize(textEditor);
         // dispatch config related data to the store on initialization
         // this.view.store.dispatch(Action.updateMaxBodyHeight(atom.config.get('agda-mode.maxBodyHeight')));
 
@@ -58,8 +58,9 @@ export class Core {
 
     destroy() {
         this.commander.dispatch({ kind: "Quit" }).then(() => {
-            this.view.destroy();
-            this.disposables.dispose();
+            AgdaModeRE.destroy(this.editor);
+            // this.view.destroy();
+            // this.disposables.dispose();
         });
     }
 }

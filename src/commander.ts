@@ -260,10 +260,11 @@ export default class Commander {
         // this.core.view.deactivatePanel();
         // const currentMountingPosition = this.core.view.store.getState().view.mountAt.current;
         // this.core.view.unmountPanel(currentMountingPosition);
-        AgdaModeRE.deactivate(this.core.editor);
+        AgdaModeRE.destroy(this.core.editor);
+
         if (this.loaded) {
             this.loaded = false;
-            this.core.editor.goals = EditorRE.jsGoalsDestroyAll(this.core.editor.goals);
+            // this.core.editor.goals = EditorRE.jsGoalsDestroyAll(this.core.editor.goals);
             this.core.editor.highlighting.destroyAll();
             this.core.connection.disconnect();
         }

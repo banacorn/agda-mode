@@ -15,9 +15,15 @@ module Instance = {
     self.view.updateActivation^(false);
   };
 
+  let destroy = self => {
+    deactivate(self);
+    self.view.destroy^();
+  };
+
   let modeDisplay = self => {
     self.view.updateMode^(Type.Interaction.Display);
   };
+
   let modeQuery = self => {
     self.view.updateMode^(Type.Interaction.Query);
   };
@@ -73,6 +79,16 @@ let activate = textEditor => {
   };
 };
 
+let destroy = textEditor => {
+  switch (lookup(textEditor)) {
+  | Some(instance) => Instance.destroy(instance) |> ignore
+  | None =>
+    Js.log(
+      "cannot destroy, does not exist: "
+      ++ Atom.TextEditor.getPath(textEditor),
+    )
+  };
+};
 let deactivate = textEditor => {
   switch (lookup(textEditor)) {
   | Some(instance) => Instance.deactivate(instance) |> ignore

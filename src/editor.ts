@@ -324,9 +324,9 @@ export default class Editor {
     // Give_NoParen: ["agda2-give-action", 1, "no-paren"]
     // Give_String : ["agda2-give-action", 0, ...]
     onGiveAction(index: number, giveResult: 'Paren' | 'NoParen' | 'String', result: string): Promise<void> {
+        console.log("onGiveAction", index, giveResult, result);
         return this.protectCursor(() => {
             const goal = EditorRE.jsGoalsFind(index, this.goals);
-
             switch (giveResult) {
                 case 'Paren':
                     result = HoleRE.getContent(goal);
