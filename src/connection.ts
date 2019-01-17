@@ -245,6 +245,7 @@ export function validateProcess(path: Path, validator: (msg: string, resolve, re
 }
 
 export function validateAgda(path: Path): Promise<ValidPath> {
+    path = parseFilepath(path);
     return validateProcess(path, (message, resolve, reject) => {
         const result = message.match(/Agda version (.*)/);
         if (result) {

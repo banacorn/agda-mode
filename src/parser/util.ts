@@ -1,5 +1,10 @@
 import { FileType } from '../type/agda';
 import * as path from 'path';
+import * as os from 'os';
+
+function quoted(s: string): boolean {
+  return (s.length > 2 && s[0] === "\"" && s[s.length - 1] === "\"");
+}
 
 function parseFilepath(s: string): string {
     if (s) {
@@ -13,9 +18,8 @@ function parseFilepath(s: string): string {
         if (joined.charCodeAt(0) === 8234)
             joined = joined.substr(1);
         // a hack to solve #75, quote the path if it contains spaces and is on Windows
-        if (path.win32 && joined.indexOf(' ') >= 0)
+        if (os.type() === "Windows_NT" && joined.indexOf(' ') >= 0 && !quoted(joined))
             joined = `"${joined}"`;
-        
         return joined.trim();
     } else {
         return '';
