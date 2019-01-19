@@ -13,9 +13,7 @@
 
     // so that .agda-body will overflow and be scrollable
     height: 100%;
-    > section { // pane item
-        height: 100%;
-    }
+    > section { height: 100% }
 
     //////////////////////////////////////////////////////
     // Header Container
@@ -79,7 +77,9 @@
     .agda-body-container {
         @height: 30px;
 
-        // height: 100%;
+        // so that <Body> will overflow and be scrollable
+        height: calc(~"100% - 51px");
+        overflow-y: scroll;
 
         // texts
         font-family: Menlo, inconsolata, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
@@ -89,8 +89,6 @@
         // <EmacsBody>
         .agda-body {
 
-            // so that <Body> will overflow and be scrollable
-            overflow-y: scroll;
             padding: 0px @component-padding;
 
             li, p, section {
