@@ -1,16 +1,12 @@
 open ReasonReact;
 
-open Rebase;
-
-open Type.Interaction;
-
 type state = {connected: bool};
 type action =
   | Connect
   | Disconnect;
 
 let initialState = () => {connected: false};
-let reducer = (action: action, state: state) =>
+let reducer = (action: action, _state: state) =>
   switch (action) {
   | Connect => NoUpdate
   | Disconnect => NoUpdate
@@ -89,14 +85,34 @@ let make =
                   onBlur={(.) => ()} /* this.props.core.view.editors.setFocus('main'); */
                   onConfirm={result => {
                     Atom.Environment.Config.set("agda-mode.agdaPath", result);
-                    editors->Editors.Connection.answer(result);
-                    /* atom.config.set('agda-mode.agdaPath', result);
-                       if (!querying) {
-                           this.reconnectAgda();
-                       }
-                       */
-                    ();
+                    editors |> Editors.Connection.answer(result);
+                    Js.Promise.(
+                      Connection.validateAndMake(result)
+                      |> then_(Connection.connect)
+                      |> then_(Connection.wire)
+                      |> then_((conn: Connection.t) => {
+                           Js.log(conn);
+                           switch (conn.connection) {
+                           | None => ()
+                           | Some(connection) =>
+                             connection.stdin
+                             |> Connection.Stream.Writable.write(
+                                  {j|IOTCM "/Users/banacorn/agda/test/A.agda" NonInteractive Direct ( Cmd_load "/Users/banacorn/agda/test/A.agda" [])\n|j}
+                                  |> Node.Buffer.fromString,
+                                )
+                             |> ignore
+                           };
+                           resolve((): unit);
+                         })
+                      |> catch(err => Js.log(err) |> resolve)
+                    )
+                    |> ignore;
                   }}
+                  /* atom.config.set('agda-mode.agdaPath', result);
+                     if (!querying) {
+                         this.reconnectAgda();
+                     }
+                     */
                   /* this.props.core.view.editors.rejectConnection();
                      this.props.core.view.editors.focusMain(); */
                   onCancel={(.) => ()}

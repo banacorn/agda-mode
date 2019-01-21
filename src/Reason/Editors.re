@@ -68,15 +68,15 @@ module Focus = {
 /* Query */
 module Query = {
   let inquire = editors => editors.query.telePromise.wire();
-  let answer = editors => editors.query.telePromise.resolve;
-  let reject = editors => editors.query.telePromise.reject;
+  let answer = (x, editors) => editors.query.telePromise.resolve(x);
+  let reject = (exn, editors) => editors.query.telePromise.reject(exn);
 };
 
 /* Connection */
 module Connection = {
   let inquire = editors => editors.connection.telePromise.wire();
-  let answer = editors => editors.connection.telePromise.resolve;
-  let reject = editors => editors.connection.telePromise.reject;
+  let answer = (x, editors) => editors.connection.telePromise.resolve(x);
+  let reject = (exn, editors) => editors.connection.telePromise.reject(exn);
 };
 
 module Goals = {

@@ -330,13 +330,13 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
           self.send(focused ? Focus(Query) : Focus(Source))
         }
         onEditorConfirm={result => {
-          Editors.(editors->Query.answer(result));
+          Editors.(editors |> Query.answer(result));
           handles.activateInputMethod^(false);
           self.send(Focus(Source));
           self.send(UpdateMode(Display));
         }}
         onEditorCancel={(.) => {
-          Editors.(editors->(Query.reject(QueryCancelled)));
+          Editors.(editors |> Query.reject(QueryCancelled));
           handles.activateInputMethod^(false);
           self.send(Focus(Source));
           self.send(UpdateMode(Display));

@@ -1,8 +1,6 @@
 open ReasonReact;
 
-open Type.Interaction;
-
-module URI = Breadcrumb;
+module URI = Settings__Breadcrumb;
 
 type state = {uri: URI.uri};
 
@@ -10,9 +8,9 @@ type action =
   | Navigate(URI.uri);
 
 let initialState = () => {uri: URI.Root};
-let reducer = (action: action, state: state) =>
+let reducer = (action: action, _state: state) =>
   switch (action) {
-  | Navigate(uri) => Update({...state, uri})
+  | Navigate(uri) => Update({uri: uri})
   };
 
 let component = reducerComponent("Settings");
@@ -28,7 +26,10 @@ let make = (~editors, ~onConnectionEditorRef, _children) => {
   render: self => {
     let {uri} = self.state;
     <section className="agda-settings" tabIndex=(-1)>
-      <Breadcrumb uri onNavigate={uri => self.send(Navigate(uri))} />
+      <Settings__Breadcrumb
+        uri
+        onNavigate={uri => self.send(Navigate(uri))}
+      />
       <div className="agda-settings-pages">
         <ul className={at(URI.Root, uri, ["agda-settings-menu"])}>
           <li onClick={_ => self.send(Navigate(URI.Connection))}>
@@ -40,7 +41,7 @@ let make = (~editors, ~onConnectionEditorRef, _children) => {
             </span>
           </li>
         </ul>
-        <Connection
+        <Settings__Connection
           editors
           onConnectionEditorRef
           hidden={uri != URI.Connection}
