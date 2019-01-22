@@ -54,7 +54,7 @@ function parseUserInput(data: string): string {
 
 
 function parseAgdaInput(data: string): string {
-    return data.replace('\r\n', '\n').trim();
+    return data.replace(/\r\n/g, '\n').trim();
 }
 
 export {
