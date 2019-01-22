@@ -4,6 +4,9 @@ module OCamlString = String;
 
 open Rebase;
 
+exception UnhandledPromise;
+
+
 module React = {
   let sepBy = (sep: reactElement, item: list(reactElement)) =>
     switch (item) {

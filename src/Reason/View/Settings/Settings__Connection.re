@@ -86,7 +86,7 @@ let make =
                   onConfirm={result => {
                     Atom.Environment.Config.set("agda-mode.agdaPath", result);
                     editors |> Editors.Connection.answer(result);
-                    Js.Promise.(
+                    /* Js.Promise.(
                       Connection.validateAndMake(result)
                       |> then_(Connection.connect)
                       |> then_(Connection.wire)
@@ -106,7 +106,7 @@ let make =
                          })
                       |> catch(err => Js.log(err) |> resolve)
                     )
-                    |> ignore;
+                    |> ignore; */
                   }}
                   /* atom.config.set('agda-mode.agdaPath', result);
                      if (!querying) {

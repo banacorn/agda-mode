@@ -148,7 +148,7 @@ type connection = {
 
 type t = {
   metadata,
-  connection: option(connection),
+  sockets: connection,
 };
 
 type autoSearchError =
@@ -177,7 +177,7 @@ exception ValidationExn(validationError);
 exception ConnectionExn(connectionError);
 
 /* a more sophiscated "make" */
-let autoSearch = (): Js.Promise.t(string) =>
+let autoSearch = path: Js.Promise.t(string) =>
   Js.Promise.make((~resolve, ~reject) =>
     switch (OS.type_()) {
     | "Linux"
@@ -188,7 +188,7 @@ let autoSearch = (): Js.Promise.t(string) =>
           () => reject(. ValidationExn(ProcessHanging)),
           1000,
         );
-      ChildProcess.exec("which agda", (error, stdout, stderr) => {
+      ChildProcess.exec("which " ++ path, (error, stdout, stderr) => {
         /* clear timeout as the process has responded */
         Js.Global.clearTimeout(hangTimeout);
 
@@ -329,12 +329,11 @@ let connect = (metadata): Js.Promise.t(t) => {
            _ =>
              resolve(. {
                metadata,
-               connection:
-                 Some({
-                   stdin: process |> ChildProcess.stdin,
-                   stdout: process |> ChildProcess.stdout,
-                   queue: [||],
-                 }),
+               sockets: {
+                 stdin: process |> ChildProcess.stdin,
+                 stdout: process |> ChildProcess.stdout,
+                 queue: [||],
+               },
              }),
          ),
        )
@@ -344,58 +343,58 @@ let connect = (metadata): Js.Promise.t(t) => {
 
 let disconnect = self => {
   /* end the stdin stream of Agda */
-  switch (self.connection) {
-  | None => ()
-  | Some(connection) => connection.stdin |> Stream.Writable.end_ |> ignore
-  };
-  {metadata: self.metadata, connection: None};
+  self.sockets.stdin |> Stream.Writable.end_ |> ignore;
 };
 
 let wire = (self): Js.Promise.t(t) => {
-  switch (self.connection) {
-  | None => ()
-  | Some(connection) =>
-    /* resolves the requests in the queue */
-    let response = data => {
-      Js.log(data);
-      switch (connection.queue[0]) {
-      | None => Js.log("WTF!!")
-      | Some(req) =>
-        req.resolve(data);
-        /* should updates the queue */
-        connection.queue |> Js.Array.pop |> ignore;
-      };
+  /* resolves the requests in the queue */
+  let response = data => {
+    Js.log(data);
+    switch (self.sockets.queue[0]) {
+    | None => Js.log("WTF!!")
+    | Some(req) =>
+      req.resolve(data);
+      /* should updates the queue */
+      self.sockets.queue |> Js.Array.pop |> ignore;
     };
-
-    let buffer = ref("");
-    /* listens to the "data" event on the stdout */
-    let onData = chunk => {
-      let string = chunk |> Node.Buffer.toString;
-
-      /* the prompt "Agda2> " should appear at the end of the response */
-      let endOfResponse = string |> String.endsWith("Agda2> ");
-      if (endOfResponse) {
-        let withoutSuffix =
-          Js.String.substring(
-            ~from=0,
-            ~to_=String.length(string) - 7,
-            string,
-          );
-        /* append it to the accumulated buffer (without for the "Agda2> " suffix) */
-        let data = buffer^ ++ withoutSuffix;
-        if (data |> String.isEmpty |> (!)) {
-          response(data);
-        };
-        /* empty the buffer */
-        buffer := "";
-      } else {
-        /* append to the buffer and wait until the end of the response */
-        buffer := buffer^ ++ string;
-      };
-    };
-
-    connection.stdout |> Stream.Readable.on(`data(onData)) |> ignore;
   };
 
+  let buffer = ref("");
+  /* listens to the "data" event on the stdout */
+  let onData = chunk => {
+    let string = chunk |> Node.Buffer.toString;
+
+    /* the prompt "Agda2> " should appear at the end of the response */
+    let endOfResponse = string |> String.endsWith("Agda2> ");
+    if (endOfResponse) {
+      let withoutSuffix =
+        Js.String.substring(~from=0, ~to_=String.length(string) - 7, string);
+      /* append it to the accumulated buffer (without for the "Agda2> " suffix) */
+      let data = buffer^ ++ withoutSuffix;
+      if (data |> String.isEmpty |> (!)) {
+        response(data);
+      };
+      /* empty the buffer */
+      buffer := "";
+    } else {
+      /* append to the buffer and wait until the end of the response */
+      buffer := buffer^ ++ string;
+    };
+  };
+
+  self.sockets.stdout |> Stream.Readable.on(`data(onData)) |> ignore;
+
   Js.Promise.resolve(self);
+};
+
+let send = (request, self): Js.Promise.t(string) => {
+  let reqPromise = Util.TelePromise.make();
+  self.sockets.queue |> Js.Array.push(reqPromise) |> ignore;
+
+  /* write */
+  self.sockets.stdin
+  |> Stream.Writable.write(request |> Node.Buffer.fromString)
+  |> ignore;
+
+  reqPromise.wire();
 };

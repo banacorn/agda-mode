@@ -302,6 +302,14 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
     );
 
     Handles.hook(handles.destroy, _ => Js.log("destroy!"));
+    Handles.hook(
+      handles.activateSettingsView,
+      activate => {
+        Js.log("settings tab: ");
+        Js.log(activate);
+        self.send(ToggleSettingsTab(activate));
+      },
+    );
   },
   render: self => {
     let {header, body, mountAt, mode, activated, editors} = self.state;
