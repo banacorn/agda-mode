@@ -13,6 +13,7 @@ module Handles = {
     updateMode: ref(mode => unit),
     updateMountTo: ref(mountTo => unit),
     updateActivation: ref(bool => unit),
+    inquireConnection: ref(string => Js.Promise.t(string)),
     inquireQuery: ref((string, string) => Js.Promise.t(string)),
     interceptAndInsertKey: ref(string => unit),
     activateInputMethod: ref(bool => unit),
@@ -33,6 +34,10 @@ module Handles = {
     let updateActivation = ref(_ => ());
 
     let updateMountTo = ref(_ => ());
+
+    let inquireConnection =
+      ref(_ => Js.Promise.reject(Util.TelePromise.Uninitialized));
+
     let inquireQuery =
       ref((_, _) => Js.Promise.reject(Util.TelePromise.Uninitialized));
 
@@ -49,6 +54,7 @@ module Handles = {
       updateMode,
       updateActivation,
       updateMountTo,
+      inquireConnection,
       inquireQuery,
       interceptAndInsertKey,
       activateInputMethod,
@@ -106,6 +112,7 @@ type action =
   | SetConnectionRef(Atom.TextEditor.t)
   /* Query Editor related */
   | SetQueryRef(Atom.TextEditor.t)
+  | InquireConnection(string)
   | InquireQuery(string, string)
   /* Settings Tab related */
   | ToggleSettingsTab(bool)
@@ -189,6 +196,20 @@ let reducer = (handles: Handles.t, action, state) => {
         },
       },
       self => self.state.editors |> Editors.Focus.on(sort),
+    )
+  | InquireConnection(value) =>
+    UpdateWithSideEffects(
+      {
+        ...state,
+        editors: {
+          ...state.editors,
+          connection: {
+            ...state.editors.connection,
+            value,
+          },
+        },
+      },
+      self => self.state.editors |> Editors.Focus.on(Editors.Query),
     )
   | InquireQuery(placeholder, value) =>
     UpdateWithSideEffects(
@@ -279,6 +300,26 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
     );
     Handles.hook(handles.updateRawBody, rawBody =>
       self.send(UpdateRawBody(rawBody))
+    );
+    Handles.hook(
+      handles.inquireConnection,
+      value => {
+        self.send(InquireConnection(value));
+        let promise = Util.TelePromise.make();
+        self.handle(
+          (_, newSelf) =>
+            Js.Promise.(
+              Editors.Connection.inquire(newSelf.state.editors)
+              |> then_(answer => promise.resolve(answer) |> resolve)
+              |> catch(error =>
+                   promise.reject(Util.JSPromiseError(error)) |> resolve
+                 )
+              |> ignore
+            ),
+          (),
+        );
+        promise.wire();
+      },
     );
     Handles.hook(
       handles.inquireQuery,
