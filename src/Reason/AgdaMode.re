@@ -1,5 +1,7 @@
 open Rebase;
 
+module Handle = Util.Handle;
+
 module Instance = {
   type t = {
     textEditor: Atom.TextEditor.t,
@@ -40,7 +42,15 @@ module Instance = {
   };
 
   let queryConnection = self => {
-    self.view.activateSettingsView^(true);
+    Js.Promise.(
+      self.view.activateSettingsView
+      |> Handle.trigger(true)
+      |> then_(success => {
+           Js.log("success");
+           Js.log(success);
+           self.view.navigateSettingsView^(Settings.URI.Connection) |> resolve;
+         })
+    );
   };
 
   let connect = (self): Js.Promise.t(Connection.t) => {

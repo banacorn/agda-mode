@@ -6,7 +6,6 @@ open Rebase;
 
 exception UnhandledPromise;
 
-
 module React = {
   let sepBy = (sep: reactElement, item: list(reactElement)) =>
     switch (item) {
@@ -315,5 +314,30 @@ module TelePromise = {
       | None => ()
       };
     {wire, resolve, reject};
+  };
+};
+
+module Handle = {
+  open Js.Promise;
+  type t('i, 'o) = {
+    ref: ref(list('i => unit)),
+    promise: TelePromise.t('o),
+  };
+  let make = () => {ref: ref([]), promise: TelePromise.make()};
+
+  let resolve = (x, self) => self.promise.resolve(x);
+  let reject = (x, self) => self.promise.reject(x);
+
+  let trigger = (x, self) => {
+    self.ref^ |> List.forEach(handler => handler(x));
+    self.promise.wire();
+  };
+
+  let onTrigger = (handler, self) => {
+    self.ref := [handler, ...self.ref^];
+  };
+
+  let listen = (f, self) => {
+    self.ref := f;
   };
 };

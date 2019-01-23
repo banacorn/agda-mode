@@ -6,6 +6,8 @@ open Webapi.Dom;
 
 /************************************************************************************************************/
 
+module Handle = Util.Handle;
+
 module Handles = {
   type t = {
     updateHeader: ref(header => unit),
@@ -17,7 +19,8 @@ module Handles = {
     inquireQuery: ref((string, string) => Js.Promise.t(string)),
     interceptAndInsertKey: ref(string => unit),
     activateInputMethod: ref(bool => unit),
-    activateSettingsView: ref(bool => unit),
+    activateSettingsView: Handle.t(bool, unit),
+    navigateSettingsView: ref(Settings.uri => unit),
     destroy: ref(unit => unit),
   };
 
@@ -45,7 +48,10 @@ module Handles = {
 
     let activateInputMethod = ref(_ => ());
 
-    let activateSettingsView = ref(_ => ());
+    let activateSettingsView = Handle.make();
+
+    let navigateSettingsView = ref(_ => ());
+
     let destroy = ref(_ => ());
 
     {
@@ -59,6 +65,7 @@ module Handles = {
       interceptAndInsertKey,
       activateInputMethod,
       activateSettingsView,
+      navigateSettingsView,
       destroy,
     };
   };
@@ -241,20 +248,25 @@ let reducer = (handles: Handles.t, action, state) => {
                     "[Settings] "
                     ++ Atom.TextEditor.getTitle(self.state.editors.source),
                 ~onOpen=
-                  (element, _, _) =>
+                  (element, _, _) => {
                     ReactDOMRe.render(
                       <Settings
                         editors={self.state.editors}
                         onConnectionEditorRef={ref =>
                           self.send(SetConnectionRef(ref))
                         }
+                        navigate={Handles.hook(handles.navigateSettingsView)}
                       />,
                       element,
-                    ),
+                    );
+                    handles.activateSettingsView |> Handle.resolve();
+                  },
                 ~onClose=
                   () => {
                     self.send(ToggleSettingsTab(false));
-                    handles.activateSettingsView^(false);
+                    handles.activateSettingsView
+                    |> Handle.trigger(false)
+                    |> ignore;
                   },
                 (),
               );
@@ -343,14 +355,9 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
     );
 
     Handles.hook(handles.destroy, _ => Js.log("destroy!"));
-    Handles.hook(
-      handles.activateSettingsView,
-      activate => {
-        Js.log("settings tab: ");
-        Js.log(activate);
-        self.send(ToggleSettingsTab(activate));
-      },
-    );
+
+    handles.activateSettingsView
+    |> Handle.onTrigger(activate => self.send(ToggleSettingsTab(activate)));
   },
   render: self => {
     let {header, body, mountAt, mode, activated, editors} = self.state;
@@ -395,7 +402,9 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
         editorPlaceholder={editors.query.placeholder}
         interceptAndInsertKey={Handles.hook(handles.interceptAndInsertKey)}
         activateInputMethod={Handles.hook(handles.activateInputMethod)}
-        activateSettingsView={Handles.hook(handles.activateSettingsView)}
+        activateSettingsView={__x =>
+          Handle.onTrigger(__x, handles.activateSettingsView)
+        }
         onSettingsViewToggle={status => self.send(ToggleSettingsTab(status))}
       />
     </>;
