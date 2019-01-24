@@ -1,6 +1,6 @@
 open Rebase;
 
-module Handle = Util.Handle;
+module Msg = Util.Msg;
 
 module Instance = {
   type t = {
@@ -12,59 +12,71 @@ module Instance = {
     {textEditor, view: View.initialize(textEditor), connection: None};
   };
 
-  let handleAutoSearchExn =
-    [@bs.open]
-    (
-      fun
-      | Connection.AutoSearchExn(err) => {
-          Js.log("AutoSearchExn");
-          Js.Promise.resolve(err);
-        }
-    );
-
-  let getConnectionMetadata = (self): Js.Promise.t(unit) => {
-    /* see if there the Agda path stored in the Configs works */
-    let storedPath = Atom.Environment.Config.get("agda-mode.agdaPath");
-    Js.Promise.(
-      Connection.validateAndMake(storedPath)
-      |> then_(_ => resolve())
-      |> catch(err =>
-           switch (handleAutoSearchExn(err)) {
-           | Some(x) => Js.log(x) |> resolve
-           | None => raise(Util.UnhandledPromise)
-           }
-         )
-    );
-  };
-
   let activate = self => {
     self.view.updateActivation^(true);
   };
 
-  let queryConnection = self => {
+  let queryConnection = (message, self): Js.Promise.t(string) => {
+    activate(self);
     Js.Promise.(
       self.view.activateSettingsView
-      |> Handle.trigger(true)
-      |> then_(success => {
-           Js.log("success");
-           Js.log(success);
-           self.view.navigateSettingsView^(Settings.URI.Connection) |> resolve;
+      |> Msg.send(true)
+      |> then_(() => {
+           self.view.navigateSettingsView |> Msg.send(Settings.URI.Connection);
+           self.view.inquireConnection |> Msg.send((message, ""));
          })
     );
   };
 
   let connect = (self): Js.Promise.t(Connection.t) => {
-    activate(self);
-    queryConnection(self);
+    /* activate(self);
+       queryConnection(self); */
+
+    let handleAutoSearchExn =
+      [@bs.open]
+      (
+        fun
+        | Connection.AutoSearchExn(err) => err
+      );
+
+    let getAgdaPath = (): Js.Promise.t(string) => {
+      let storedPath =
+        Atom.Environment.Config.get("agda-mode.agdaPath") |> Parser.filepath;
+      if (storedPath |> String.isEmpty) {
+        Connection.autoSearch("agda");
+      } else {
+        Js.Promise.resolve(storedPath);
+      };
+    };
 
     Js.Promise.(
       switch (self.connection) {
       | Some(connection) => resolve(connection)
       | None =>
-        /* getConnectionMetadata(self); */
-
-        Connection.autoSearch("agda-2.5.4.1")
+        getAgdaPath()
+        |> catch(err =>
+             switch (handleAutoSearchExn(err)) {
+             | None => raise(Util.UnhandledPromise)
+             | Some(Connection.NotSupported(os)) =>
+               queryConnection(
+                 {j|Failed to search the path of Agda, as it's currently not supported on $os|j},
+                 self,
+               )
+             | Some(Connection.NotFound(msg)) =>
+               queryConnection(
+                 {j|Agda not found!
+                   $msg
+                |j},
+                 self,
+               )
+             }
+           )
+        |> then_(x => {
+             Js.log(x);
+             resolve(x);
+           })
         |> then_(Connection.validateAndMake)
+        /* |> catch(err => {}) */
         |> then_(Connection.connect)
         |> then_(Connection.wire)
         |> then_(connection => {
@@ -115,7 +127,7 @@ module Instance = {
   let dispatch = (command, self) => {
     Js.Promise.(connect(self) |> then_(Command.dispatch(command)));
   };
-  let dispatchUndo = self => {
+  let dispatchUndo = _self => {
     Js.log("Undo");
   };
 };

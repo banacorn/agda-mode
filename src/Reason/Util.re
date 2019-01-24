@@ -284,6 +284,7 @@ module TelePromise = {
   exception Expired;
   type t('a) = {
     wire: unit => Js.Promise.t('a),
+    handlePromise: Js.Promise.t('a) => unit,
     resolve: 'a => unit,
     reject: exn => unit,
   };
@@ -313,12 +314,21 @@ module TelePromise = {
       | Some(f) => f(. exn)
       | None => ()
       };
-    {wire, resolve, reject};
+
+    /* resolves or rejects some promise */
+    let handlePromise = p =>
+      p
+      |> Js.Promise.then_(x => resolve(x) |> Js.Promise.resolve)
+      |> Js.Promise.catch(err => {
+           reject(JSPromiseError(err));
+           Js.Promise.resolve();
+         })
+      |> ignore;
+    {wire, handlePromise, resolve, reject};
   };
 };
 
-module Handle = {
-  open Js.Promise;
+module Msg = {
   type t('i, 'o) = {
     ref: ref(list('i => unit)),
     promise: TelePromise.t('o),
@@ -327,17 +337,13 @@ module Handle = {
 
   let resolve = (x, self) => self.promise.resolve(x);
   let reject = (x, self) => self.promise.reject(x);
+  let handlePromise = (x, self) => self.promise.handlePromise(x);
 
-  let trigger = (x, self) => {
+  let send = (x, self) => {
     self.ref^ |> List.forEach(handler => handler(x));
     self.promise.wire();
   };
-
-  let onTrigger = (handler, self) => {
+  let recv = (handler, self) => {
     self.ref := [handler, ...self.ref^];
-  };
-
-  let listen = (f, self) => {
-    self.ref := f;
   };
 };

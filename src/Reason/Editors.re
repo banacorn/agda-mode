@@ -7,11 +7,16 @@ type sort =
   | Connection;
 
 /* collection of TextEditor or MiniEditor */
+/* type connection = {
+     model: MiniEditor.Model.t,
+     message: string,
+   }; */
+
 type t = {
   focused: sort,
   source: TextEditor.t,
   query: MiniEditor.Model.t,
-  connection: MiniEditor.Model.t,
+  /* connection, */
 };
 
 exception QueryCancelled;
@@ -20,7 +25,10 @@ let make = editor => {
   focused: Source,
   source: editor,
   query: MiniEditor.Model.make(),
-  connection: MiniEditor.Model.make(),
+  /* connection: {
+       model: MiniEditor.Model.make(),
+       message: "",
+     }, */
 };
 
 module Focus = {
@@ -33,11 +41,11 @@ module Focus = {
       | Some(editor) => editor
       | None => editors.source
       }
-    | Connection =>
-      switch (editors.connection.ref) {
-      | Some(editor) => editor
-      | None => editors.source
-      }
+    /* | Connection =>
+       switch (editors.connection.model.ref) {
+       | Some(editor) => editor
+       | None => editors.source
+       } */
     };
 
   let on = (sort, editors) =>
@@ -48,35 +56,13 @@ module Focus = {
       }
     | Query =>
       if (editors.focused != Query) {
-        switch (editors.query.ref) {
-        | Some(editor) =>
-          Environment.Views.getView(editor) |> HtmlElement.focus
-        | None => ()
-        };
+        editors.query |> MiniEditor.Model.focus;
       }
-    | Connection =>
-      if (editors.focused != Connection) {
-        switch (editors.connection.ref) {
-        | Some(editor) =>
-          Environment.Views.getView(editor) |> HtmlElement.focus
-        | None => ()
-        };
-      }
+    /* | Connection =>
+       if (editors.focused != Connection) {
+         editors.connection.model |> MiniEditor.Model.focus;
+       } */
     };
-};
-
-/* Query */
-module Query = {
-  let inquire = editors => editors.query.telePromise.wire();
-  let answer = (x, editors) => editors.query.telePromise.resolve(x);
-  let reject = (exn, editors) => editors.query.telePromise.reject(exn);
-};
-
-/* Connection */
-module Connection = {
-  let inquire = editors => editors.connection.telePromise.wire();
-  let answer = (x, editors) => editors.connection.telePromise.resolve(x);
-  let reject = (exn, editors) => editors.connection.telePromise.reject(exn);
 };
 
 module Goals = {

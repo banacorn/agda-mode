@@ -6,7 +6,7 @@ open Webapi.Dom;
 
 /************************************************************************************************************/
 
-module Handle = Util.Handle;
+module Msg = Util.Msg;
 
 module Handles = {
   type t = {
@@ -15,12 +15,12 @@ module Handles = {
     updateMode: ref(mode => unit),
     updateMountTo: ref(mountTo => unit),
     updateActivation: ref(bool => unit),
-    inquireConnection: ref(string => Js.Promise.t(string)),
-    inquireQuery: ref((string, string) => Js.Promise.t(string)),
+    inquireConnection: Msg.t((string, string), string),
+    inquireQuery: Msg.t((string, string), string),
     interceptAndInsertKey: ref(string => unit),
     activateInputMethod: ref(bool => unit),
-    activateSettingsView: Handle.t(bool, unit),
-    navigateSettingsView: ref(Settings.uri => unit),
+    activateSettingsView: Msg.t(bool, unit),
+    navigateSettingsView: Msg.t(Settings.uri, unit),
     destroy: ref(unit => unit),
   };
 
@@ -38,19 +38,17 @@ module Handles = {
 
     let updateMountTo = ref(_ => ());
 
-    let inquireConnection =
-      ref(_ => Js.Promise.reject(Util.TelePromise.Uninitialized));
+    let inquireConnection = Msg.make();
 
-    let inquireQuery =
-      ref((_, _) => Js.Promise.reject(Util.TelePromise.Uninitialized));
+    let inquireQuery = Msg.make();
 
     let interceptAndInsertKey = ref(_ => ());
 
     let activateInputMethod = ref(_ => ());
 
-    let activateSettingsView = Handle.make();
+    let activateSettingsView = Msg.make();
 
-    let navigateSettingsView = ref(_ => ());
+    let navigateSettingsView = Msg.make();
 
     let destroy = ref(_ => ());
 
@@ -92,6 +90,9 @@ type state = {
   activated: bool,
   settingsView: option(Tab.t),
   editors: Editors.t,
+  connectionEditorModel: MiniEditor.Model.t,
+  connectionEditorMessage: string,
+  connectionEditorRef: option(Atom.TextEditor.t),
   mode,
 };
 
@@ -109,17 +110,19 @@ let initialState = (textEditor, _) => {
     activated: false,
     settingsView: None,
     editors: Editors.make(textEditor),
+    connectionEditorModel: MiniEditor.Model.make(),
+    connectionEditorMessage: "",
+    connectionEditorRef: None,
     mode: Display,
   };
 };
 
 type action =
-  | Focus(Editors.sort)
-  /* Connection Editor related */
   | SetConnectionRef(Atom.TextEditor.t)
+  | InquireConnection(string, string)
+  | Focus(Editors.sort)
   /* Query Editor related */
   | SetQueryRef(Atom.TextEditor.t)
-  | InquireConnection(string)
   | InquireQuery(string, string)
   /* Settings Tab related */
   | ToggleSettingsTab(bool)
@@ -171,6 +174,8 @@ let reducer = (handles: Handles.t, action, state) => {
       UpdateWithSideEffects({...state, activated: true}, _ => tab.activate())
     }
   | Deactivate => Update({...state, activated: false})
+  | SetConnectionRef(ref) =>
+    Update({...state, connectionEditorRef: Some(ref)})
   | SetQueryRef(ref) =>
     Update({
       ...state,
@@ -178,17 +183,6 @@ let reducer = (handles: Handles.t, action, state) => {
         ...state.editors,
         query: {
           ...state.editors.query,
-          ref: Some(ref),
-        },
-      },
-    })
-  | SetConnectionRef(ref) =>
-    Update({
-      ...state,
-      editors: {
-        ...state.editors,
-        connection: {
-          ...state.editors.connection,
           ref: Some(ref),
         },
       },
@@ -204,18 +198,9 @@ let reducer = (handles: Handles.t, action, state) => {
       },
       self => self.state.editors |> Editors.Focus.on(sort),
     )
-  | InquireConnection(value) =>
+  | InquireConnection(message, value) =>
     UpdateWithSideEffects(
-      {
-        ...state,
-        editors: {
-          ...state.editors,
-          connection: {
-            ...state.editors.connection,
-            value,
-          },
-        },
-      },
+      {...state, connectionEditorMessage: message},
       self => self.state.editors |> Editors.Focus.on(Editors.Query),
     )
   | InquireQuery(placeholder, value) =>
@@ -249,24 +234,27 @@ let reducer = (handles: Handles.t, action, state) => {
                     ++ Atom.TextEditor.getTitle(self.state.editors.source),
                 ~onOpen=
                   (element, _, _) => {
+                    let {connectionEditorModel, connectionEditorMessage} =
+                      self.state;
                     ReactDOMRe.render(
                       <Settings
-                        editors={self.state.editors}
+                        connectionEditorModel
+                        connectionEditorMessage
                         onConnectionEditorRef={ref =>
                           self.send(SetConnectionRef(ref))
                         }
-                        navigate={Handles.hook(handles.navigateSettingsView)}
+                        navigate={__x =>
+                          Msg.recv(__x, handles.navigateSettingsView)
+                        }
                       />,
                       element,
                     );
-                    handles.activateSettingsView |> Handle.resolve();
+                    handles.activateSettingsView |> Msg.resolve();
                   },
                 ~onClose=
                   () => {
                     self.send(ToggleSettingsTab(false));
-                    handles.activateSettingsView
-                    |> Handle.trigger(false)
-                    |> ignore;
+                    handles.activateSettingsView |> Msg.send(false) |> ignore;
                   },
                 (),
               );
@@ -313,51 +301,29 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
     Handles.hook(handles.updateRawBody, rawBody =>
       self.send(UpdateRawBody(rawBody))
     );
-    Handles.hook(
-      handles.inquireConnection,
-      value => {
-        self.send(InquireConnection(value));
-        let promise = Util.TelePromise.make();
-        self.handle(
-          (_, newSelf) =>
-            Js.Promise.(
-              Editors.Connection.inquire(newSelf.state.editors)
-              |> then_(answer => promise.resolve(answer) |> resolve)
-              |> catch(error =>
-                   promise.reject(Util.JSPromiseError(error)) |> resolve
-                 )
-              |> ignore
-            ),
-          (),
-        );
-        promise.wire();
-      },
-    );
-    Handles.hook(
-      handles.inquireQuery,
-      (placeholder, value) => {
-        self.send(InquireQuery(placeholder, value));
-        let promise = Util.TelePromise.make();
-        self.handle(
-          (_, newSelf) =>
-            Js.Promise.(
-              Editors.Query.inquire(newSelf.state.editors)
-              |> then_(answer => promise.resolve(answer) |> resolve)
-              |> catch(error =>
-                   promise.reject(Util.JSPromiseError(error)) |> resolve
-                 )
-              |> ignore
-            ),
-          (),
-        );
-        promise.wire();
-      },
-    );
+
+    handles.inquireConnection
+    |> Msg.recv(((message, value)) => {
+         self.send(InquireConnection(message, value));
+         handles.inquireConnection
+         |> Msg.handlePromise(
+              MiniEditor.Model.inquire(self.state.connectionEditorModel),
+            );
+       });
+
+    handles.inquireQuery
+    |> Msg.recv(((placeholder, value)) => {
+         self.send(InquireQuery(placeholder, value));
+         handles.inquireQuery
+         |> Msg.handlePromise(
+              MiniEditor.Model.inquire(self.state.editors.query),
+            );
+       });
 
     Handles.hook(handles.destroy, _ => Js.log("destroy!"));
 
     handles.activateSettingsView
-    |> Handle.onTrigger(activate => self.send(ToggleSettingsTab(activate)));
+    |> Msg.recv(activate => self.send(ToggleSettingsTab(activate)));
   },
   render: self => {
     let {header, body, mountAt, mode, activated, editors} = self.state;
@@ -386,13 +352,13 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
           self.send(focused ? Focus(Query) : Focus(Source))
         }
         onEditorConfirm={result => {
-          Editors.(editors |> Query.answer(result));
+          editors.query |> MiniEditor.Model.answer(result);
           handles.activateInputMethod^(false);
           self.send(Focus(Source));
           self.send(UpdateMode(Display));
         }}
         onEditorCancel={(.) => {
-          Editors.(editors |> Query.reject(QueryCancelled));
+          editors.query |> MiniEditor.Model.reject(Editors.QueryCancelled);
           handles.activateInputMethod^(false);
           self.send(Focus(Source));
           self.send(UpdateMode(Display));
@@ -403,7 +369,7 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
         interceptAndInsertKey={Handles.hook(handles.interceptAndInsertKey)}
         activateInputMethod={Handles.hook(handles.activateInputMethod)}
         activateSettingsView={__x =>
-          Handle.onTrigger(__x, handles.activateSettingsView)
+          Msg.recv(__x, handles.activateSettingsView)
         }
         onSettingsViewToggle={status => self.send(ToggleSettingsTab(status))}
       />

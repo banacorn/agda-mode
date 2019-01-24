@@ -18,6 +18,17 @@ module Model = {
     ref: None,
     telePromise: Util.TelePromise.make(),
   };
+  let inquire = self => {
+    self.telePromise.wire();
+  };
+  let answer = (x, self) => self.telePromise.resolve(x);
+  let reject = (x, self) => self.telePromise.reject(x);
+  let focus = self =>
+    switch (self.ref) {
+    | Some(editor) =>
+      Atom.Environment.Views.getView(editor) |> HtmlElement.focus
+    | None => ()
+    };
 };
 
 type state = {

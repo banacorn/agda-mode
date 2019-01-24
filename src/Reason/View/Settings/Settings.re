@@ -22,7 +22,8 @@ let at = (x, y, classNames) => {
 
 let make =
     (
-      ~editors,
+      ~connectionEditorModel: MiniEditor.Model.t,
+      ~connectionEditorMessage: string,
       ~onConnectionEditorRef,
       ~navigate: (uri => unit) => unit,
       _children,
@@ -52,7 +53,8 @@ let make =
           </li>
         </ul>
         <Settings__Connection
-          editors
+          editor=connectionEditorModel
+          message=connectionEditorMessage
           onConnectionEditorRef
           hidden={uri != URI.Connection}
           querying=true
