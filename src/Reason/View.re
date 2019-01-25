@@ -272,6 +272,7 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
   initialState: initialState(textEditor),
   reducer: reducer(handles),
   didMount: self => {
+    open Util.Promise;
     Handles.hook(handles.updateMountTo, mountTo =>
       self.send(MountTo(mountTo))
     );
@@ -286,36 +287,21 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
       self.send(UpdateRawBody(rawBody))
     );
 
-    handles.inquireConnection
-    |> Msg.recv(self.onUnmount, ((message, value)) =>
-         Js.log(
-           "inquiring at View.re",
-           /* self.send(InquireConnection(message, value)); */
-           /* handles.inquireConnection
-              |> Msg.handlePromise(
-                   MiniEditor.Model.inquire(self.state.connectionEditorModel),
-                 ); */
-         )
-       );
-
     handles.inquireQuery
-    |> Msg.recv(
-         self.onUnmount,
-         ((placeholder, value)) => {
-           self.send(InquireQuery(placeholder, value));
-           handles.inquireQuery
-           |> Msg.handlePromise(
-                MiniEditor.Model.inquire(self.state.editors.query),
-              );
-         },
-       );
+    |> Msg.recv(self.onUnmount)
+    |> thenDrop(((placeholder, value)) => {
+         self.send(InquireQuery(placeholder, value));
+         handles.inquireQuery
+         |> Msg.handlePromise(
+              MiniEditor.Model.inquire(self.state.editors.query),
+            );
+       });
 
     Handles.hook(handles.destroy, _ => Js.log("destroy!"));
 
     handles.activateSettingsView
-    |> Msg.recv(self.onUnmount, activate =>
-         self.send(ToggleSettingsTab(activate))
-       );
+    |> Msg.recv(self.onUnmount)
+    |> thenDrop(activate => self.send(ToggleSettingsTab(activate)));
   },
   render: self => {
     let {header, body, mountAt, mode, activated, editors} = self.state;

@@ -45,10 +45,10 @@ let make =
   initialState,
   reducer,
   didMount: self => {
+    open Util.Promise;
     activateSettingsView
-    |> Util.Msg.recv(self.onUnmount, open_ =>
-         self.send(open_ ? SettingsViewOn : SettingsViewOff)
-       );
+    |> Util.Msg.recv(self.onUnmount)
+    |> thenDrop(open_ => self.send(open_ ? SettingsViewOn : SettingsViewOff));
     switch (self.state.settingsButtonRef^) {
     | None => ()
     | Some(settingsButton) =>

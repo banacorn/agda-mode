@@ -100,17 +100,17 @@ let make =
   initialState,
   reducer,
   didMount: self => {
-    inquireConnection
-    |> Util.Msg.recv(
-         self.onUnmount,
-         ((message, value)) => {
+    Util.Promise.(
+      inquireConnection
+      |> Util.Msg.recv(self.onUnmount)
+      |> thenDrop(((message, value)) => {
            self.send(Inquire(message, value));
            inquireConnection
            |> Util.Msg.handlePromise(
                 self.state.editorModel^ |> MiniEditor.Model.inquire,
               );
-         },
-       );
+         })
+    );
   },
   render: self => {
     let className =

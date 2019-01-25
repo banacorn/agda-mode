@@ -30,15 +30,14 @@ let make =
   initialState,
   reducer,
   didMount: self => {
-    navigate
-    |> Util.Msg.recv(
-         self.onUnmount,
-         uri => {
-           Js.log("recv navigate");
+    Util.Promise.(
+      navigate
+      |> Util.Msg.recv(self.onUnmount)
+      |> thenDrop(uri => {
            self.send(Navigate(uri));
            navigate |> Util.Msg.resolve();
-         },
-       );
+         })
+    );
   },
   render: self => {
     let {uri} = self.state;

@@ -265,7 +265,9 @@ module Resource = {
     let acquire = () =>
       switch (resource^) {
       | None =>
-        Js.Promise.make((~resolve, ~reject) => queue := [resolve, ...queue^])
+        Js.Promise.make((~resolve, ~reject as _) =>
+          queue := [resolve, ...queue^]
+        )
       | Some(x) => Js.Promise.resolve(x)
       };
     /* iterate through the list of waiting callbacks and resolve them  */
@@ -278,9 +280,25 @@ module Resource = {
 };
 
 module Promise = {
-  open Js.Promise;
+  type t('a) = Js.Promise.t('a);
   let map: ('a => 'b, t('a)) => t('b) =
-    (f, p) => p |> then_(x => x |> f |> resolve);
+    (f, p) => p |> Js.Promise.then_(x => x |> f |> Js.Promise.resolve);
+
+  let resolve = Js.Promise.resolve;
+  let reject = Js.Promise.reject;
+  let race = Js.Promise.race;
+  let all = Js.Promise.all;
+  let make = Js.Promise.make;
+  let then_ = Js.Promise.then_;
+  let catch = Js.Promise.catch;
+  let thenDrop: ('a => 'b, t('a)) => unit =
+    (f, x) =>
+      x
+      |> then_(x' => {
+           f(x');
+           Js.Promise.resolve();
+         })
+      |> ignore;
 };
 
 exception JSPromiseError(Js.Promise.error);
@@ -329,7 +347,7 @@ module TelePromise = {
 
 module Msg = {
   type t('i, 'o) = {
-    ref: ref(list('i => unit)),
+    ref: ref(list((. 'i) => unit)),
     promise: TelePromise.t('o),
   };
   let make = () => {ref: ref([]), promise: TelePromise.make()};
@@ -340,11 +358,13 @@ module Msg = {
 
   let send = (x, self) => {
     let promise = self.promise.wire();
-    self.ref^ |> List.forEach(handler => handler(x));
+    self.ref^ |> List.forEach(handler => handler(. x));
     promise;
   };
-  let recv = (onUnmount: (unit => unit) => unit, handler, self) => {
-    self.ref := [handler, ...self.ref^];
+  let recv = (onUnmount: (unit => unit) => unit, self) => {
     onUnmount(() => self.ref := []);
+    Js.Promise.make((~resolve, ~reject as _) =>
+      self.ref := [resolve, ...self.ref^]
+    );
   };
 };
