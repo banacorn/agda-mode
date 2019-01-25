@@ -6,7 +6,8 @@
   "scripts": {
     "start": "bsb -make-world -w",
     "build": "tsc && bsb -make-world && npx webpack --mode=production",
-    "rebuild": "rm -rf lib && npm run build"
+    "rebuild": "rm -rf lib && npm run build",
+    "rebuild2": "rm -rf lib && tsc && bsb -make-world"
   },
   "activationCommands": {
     "atom-text-editor": [

@@ -45,8 +45,8 @@ let make =
       ~editor: TextEditor.t,
       ~getTitle: unit => string,
       ~onOpen: option((Element.t, TextEditor.t, TextEditor.t) => unit)=?,
-      ~onKill: option(unit => unit)=?,
-      ~onClose: option(unit => unit)=?,
+      ~onKill: option(Element.t => unit)=?,
+      ~onClose: option(Element.t => unit)=?,
       ~onDidChangeActive: option(bool => unit)=?,
       (),
     ) => {
@@ -84,9 +84,9 @@ let make =
             if (destroyedTitle === getTitle()) {
               /* invoke the onKill or onClose */
               if (closedDeliberately^) {
-                trigger(onKill);
+                triggerArg(onKill, itemOpener##element);
               } else {
-                trigger(onClose);
+                triggerArg(onClose, itemOpener##element);
               };
               /* dispose subscriptions */
               CompositeDisposable.dispose(subscriptions);

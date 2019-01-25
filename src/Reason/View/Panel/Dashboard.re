@@ -38,16 +38,17 @@ let make =
       ~mountAt: Type.Interaction.mountAt,
       ~onMountAtChange: Type.Interaction.mountTo => unit,
       ~onSettingsViewToggle: bool => unit,
-      ~activateSettingsView: (bool => unit) => unit,
+      ~activateSettingsView: Util.Msg.t(bool, unit),
       _children,
     ) => {
   ...component,
   initialState,
   reducer,
   didMount: self => {
-    activateSettingsView(open_ =>
-      self.send(open_ ? SettingsViewOn : SettingsViewOff)
-    );
+    activateSettingsView
+    |> Util.Msg.recv(self.onUnmount, open_ =>
+         self.send(open_ ? SettingsViewOn : SettingsViewOff)
+       );
     switch (self.state.settingsButtonRef^) {
     | None => ()
     | Some(settingsButton) =>

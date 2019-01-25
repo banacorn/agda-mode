@@ -3,8 +3,7 @@ open Atom;
 
 type sort =
   | Source
-  | Query
-  | Connection;
+  | Query;
 
 /* collection of TextEditor or MiniEditor */
 /* type connection = {
@@ -56,7 +55,7 @@ module Focus = {
       }
     | Query =>
       if (editors.focused != Query) {
-        editors.query |> MiniEditor.Model.focus;
+        editors.query.ref |> Option.forEach(MiniEditor.focus);
       }
     /* | Connection =>
        if (editors.focused != Connection) {

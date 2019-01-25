@@ -176,8 +176,59 @@ exception AutoSearchExn(autoSearchError);
 exception ValidationExn(validationError);
 exception ConnectionExn(connectionError);
 
+let toAutoSearchError: Js.Promise.error => option(autoSearchError) =
+  [@bs.open]
+  (
+    fun
+    | AutoSearchExn(err) => err
+  );
+
+let convertError =
+    (
+      convertError: Js.Promise.error => option('e),
+      f: 'e => Js.Promise.t('a),
+      error: Js.Promise.error,
+    )
+    : Js.Promise.t('a) =>
+  switch (convertError(error)) {
+  | Some(e) => f(e)
+  | None => raise(Util.UnhandledPromise)
+  };
+
+let handleAutoSearchError = (f, error) =>
+  switch (toAutoSearchError(error)) {
+  | Some(e) => f(e)
+  | None => raise(Util.UnhandledPromise)
+  };
+
+let toValidationError: Js.Promise.error => option(validationError) =
+  [@bs.open]
+  (
+    fun
+    | ValidationExn(err) => err
+  );
+
+let handleValidationError = (f, error) =>
+  switch (toValidationError(error)) {
+  | Some(e) => f(e)
+  | None => raise(Util.UnhandledPromise)
+  };
+
+let toConnectionError: Js.Promise.error => option(connectionError) =
+  [@bs.open]
+  (
+    fun
+    | ConnectionExn(err) => err
+  );
+
+let handleConnectionError = (f, error) =>
+  switch (toConnectionError(error)) {
+  | Some(e) => f(e)
+  | None => raise(Util.UnhandledPromise)
+  };
+
 /* a more sophiscated "make" */
-let autoSearch = path: Js.Promise.t(string) =>
+let autoSearch = (path): Js.Promise.t(string) =>
   Js.Promise.make((~resolve, ~reject) =>
     switch (OS.type_()) {
     | "Linux"
@@ -188,35 +239,38 @@ let autoSearch = path: Js.Promise.t(string) =>
           () => reject(. ValidationExn(ProcessHanging)),
           1000,
         );
-      ChildProcess.exec("which " ++ path, (error, stdout, stderr) => {
-        /* clear timeout as the process has responded */
-        Js.Global.clearTimeout(hangTimeout);
+      ChildProcess.exec(
+        "which " ++ path,
+        (error, stdout, stderr) => {
+          /* clear timeout as the process has responded */
+          Js.Global.clearTimeout(hangTimeout);
 
-        /* error */
-        switch (error |> Js.Nullable.toOption) {
-        | None => ()
-        | Some(err) =>
-          reject(.
-            AutoSearchExn(
-              NotFound(err |> Js.Exn.message |> Option.getOr("")),
-            ),
-          )
-        };
+          /* error */
+          switch (error |> Js.Nullable.toOption) {
+          | None => ()
+          | Some(err) =>
+            reject(.
+              AutoSearchExn(
+                NotFound(err |> Js.Exn.message |> Option.getOr("")),
+              ),
+            )
+          };
 
-        /* stderr */
-        let stderr' = stderr |> Node.Buffer.toString;
-        if (stderr' |> String.isEmpty |> (!)) {
-          reject(. AutoSearchExn(NotFound(stderr')));
-        };
+          /* stderr */
+          let stderr' = stderr |> Node.Buffer.toString;
+          if (stderr' |> String.isEmpty |> (!)) {
+            reject(. AutoSearchExn(NotFound(stderr')));
+          };
 
-        /* stdout */
-        let stdout' = stdout |> Node.Buffer.toString;
-        if (stdout' |> String.isEmpty) {
-          reject(. AutoSearchExn(NotFound("")));
-        } else {
-          resolve(. Parser.filepath(stdout'));
-        };
-      })
+          /* stdout */
+          let stdout' = stdout |> Node.Buffer.toString;
+          if (stdout' |> String.isEmpty) {
+            reject(. AutoSearchExn(NotFound("")));
+          } else {
+            resolve(. Parser.filepath(stdout'));
+          };
+        },
+      )
       |> ignore;
     | "Windows_NT" => reject(. AutoSearchExn(NotSupported("Windows_NT")))
     | os => reject(. AutoSearchExn(NotSupported(os)))

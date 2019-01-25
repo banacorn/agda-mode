@@ -22,17 +22,23 @@ let at = (x, y, classNames) => {
 
 let make =
     (
-      ~connectionEditorModel: MiniEditor.Model.t,
-      ~connectionEditorMessage: string,
-      ~onConnectionEditorRef,
-      ~navigate: (uri => unit) => unit,
+      ~inquireConnection: Util.Msg.t((string, string), string),
+      ~navigate: Util.Msg.t(uri, unit),
       _children,
     ) => {
   ...component,
   initialState,
   reducer,
   didMount: self => {
-    navigate(uri => self.send(Navigate(uri)));
+    navigate
+    |> Util.Msg.recv(
+         self.onUnmount,
+         uri => {
+           Js.log("recv navigate");
+           self.send(Navigate(uri));
+           navigate |> Util.Msg.resolve();
+         },
+       );
   },
   render: self => {
     let {uri} = self.state;
@@ -53,9 +59,7 @@ let make =
           </li>
         </ul>
         <Settings__Connection
-          editor=connectionEditorModel
-          message=connectionEditorMessage
-          onConnectionEditorRef
+          inquireConnection
           hidden={uri != URI.Connection}
           querying=true
           checked=false

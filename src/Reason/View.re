@@ -90,9 +90,6 @@ type state = {
   activated: bool,
   settingsView: option(Tab.t),
   editors: Editors.t,
-  connectionEditorModel: MiniEditor.Model.t,
-  connectionEditorMessage: string,
-  connectionEditorRef: option(Atom.TextEditor.t),
   mode,
 };
 
@@ -110,16 +107,12 @@ let initialState = (textEditor, _) => {
     activated: false,
     settingsView: None,
     editors: Editors.make(textEditor),
-    connectionEditorModel: MiniEditor.Model.make(),
-    connectionEditorMessage: "",
-    connectionEditorRef: None,
     mode: Display,
   };
 };
 
 type action =
-  | SetConnectionRef(Atom.TextEditor.t)
-  | InquireConnection(string, string)
+  /* | InquireConnection(string, string) */
   | Focus(Editors.sort)
   /* Query Editor related */
   | SetQueryRef(Atom.TextEditor.t)
@@ -145,7 +138,7 @@ let mountPanel = (self, mountTo) => {
         () =>
           "[Agda Mode] "
           ++ Atom.TextEditor.getTitle(self.state.editors.source),
-      ~onClose=() => self.send(MountTo(ToBottom)),
+      ~onClose=_ => self.send(MountTo(ToBottom)),
       ~onOpen=
         (_, _, previousItem) => {
           /* activate the previous pane (which opened this pane item) */
@@ -174,8 +167,6 @@ let reducer = (handles: Handles.t, action, state) => {
       UpdateWithSideEffects({...state, activated: true}, _ => tab.activate())
     }
   | Deactivate => Update({...state, activated: false})
-  | SetConnectionRef(ref) =>
-    Update({...state, connectionEditorRef: Some(ref)})
   | SetQueryRef(ref) =>
     Update({
       ...state,
@@ -198,11 +189,11 @@ let reducer = (handles: Handles.t, action, state) => {
       },
       self => self.state.editors |> Editors.Focus.on(sort),
     )
-  | InquireConnection(message, value) =>
-    UpdateWithSideEffects(
-      {...state, connectionEditorMessage: message},
-      self => self.state.editors |> Editors.Focus.on(Editors.Query),
-    )
+  /* | InquireConnection(message, value) =>
+     UpdateWithSideEffects(
+       {...state, connectionEditorMessage: message},
+       self => self.state.editors |> Editors.Focus.on(Editors.Query),
+     ) */
   | InquireQuery(placeholder, value) =>
     UpdateWithSideEffects(
       {
@@ -234,26 +225,19 @@ let reducer = (handles: Handles.t, action, state) => {
                     ++ Atom.TextEditor.getTitle(self.state.editors.source),
                 ~onOpen=
                   (element, _, _) => {
-                    let {connectionEditorModel, connectionEditorMessage} =
-                      self.state;
                     ReactDOMRe.render(
                       <Settings
-                        connectionEditorModel
-                        connectionEditorMessage
-                        onConnectionEditorRef={ref =>
-                          self.send(SetConnectionRef(ref))
-                        }
-                        navigate={__x =>
-                          Msg.recv(__x, handles.navigateSettingsView)
-                        }
+                        inquireConnection={handles.inquireConnection}
+                        navigate={handles.navigateSettingsView}
                       />,
                       element,
                     );
                     handles.activateSettingsView |> Msg.resolve();
                   },
                 ~onClose=
-                  () => {
+                  element => {
                     self.send(ToggleSettingsTab(false));
+                    ReactDOMRe.unmountComponentAtNode(element);
                     handles.activateSettingsView |> Msg.send(false) |> ignore;
                   },
                 (),
@@ -303,27 +287,35 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
     );
 
     handles.inquireConnection
-    |> Msg.recv(((message, value)) => {
-         self.send(InquireConnection(message, value));
-         handles.inquireConnection
-         |> Msg.handlePromise(
-              MiniEditor.Model.inquire(self.state.connectionEditorModel),
-            );
-       });
+    |> Msg.recv(self.onUnmount, ((message, value)) =>
+         Js.log(
+           "inquiring at View.re",
+           /* self.send(InquireConnection(message, value)); */
+           /* handles.inquireConnection
+              |> Msg.handlePromise(
+                   MiniEditor.Model.inquire(self.state.connectionEditorModel),
+                 ); */
+         )
+       );
 
     handles.inquireQuery
-    |> Msg.recv(((placeholder, value)) => {
-         self.send(InquireQuery(placeholder, value));
-         handles.inquireQuery
-         |> Msg.handlePromise(
-              MiniEditor.Model.inquire(self.state.editors.query),
-            );
-       });
+    |> Msg.recv(
+         self.onUnmount,
+         ((placeholder, value)) => {
+           self.send(InquireQuery(placeholder, value));
+           handles.inquireQuery
+           |> Msg.handlePromise(
+                MiniEditor.Model.inquire(self.state.editors.query),
+              );
+         },
+       );
 
     Handles.hook(handles.destroy, _ => Js.log("destroy!"));
 
     handles.activateSettingsView
-    |> Msg.recv(activate => self.send(ToggleSettingsTab(activate)));
+    |> Msg.recv(self.onUnmount, activate =>
+         self.send(ToggleSettingsTab(activate))
+       );
   },
   render: self => {
     let {header, body, mountAt, mode, activated, editors} = self.state;
@@ -368,9 +360,7 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
         editorPlaceholder={editors.query.placeholder}
         interceptAndInsertKey={Handles.hook(handles.interceptAndInsertKey)}
         activateInputMethod={Handles.hook(handles.activateInputMethod)}
-        activateSettingsView={__x =>
-          Msg.recv(__x, handles.activateSettingsView)
-        }
+        activateSettingsView={handles.activateSettingsView}
         onSettingsViewToggle={status => self.send(ToggleSettingsTab(status))}
       />
     </>;

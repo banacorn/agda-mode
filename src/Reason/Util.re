@@ -277,11 +277,15 @@ module Resource = {
   };
 };
 
+module Promise = {
+  open Js.Promise;
+  let map: ('a => 'b, t('a)) => t('b) =
+    (f, p) => p |> then_(x => x |> f |> resolve);
+};
+
 exception JSPromiseError(Js.Promise.error);
 
 module TelePromise = {
-  exception Uninitialized;
-  exception Expired;
   type t('a) = {
     wire: unit => Js.Promise.t('a),
     handlePromise: Js.Promise.t('a) => unit,
@@ -289,32 +293,27 @@ module TelePromise = {
     reject: exn => unit,
   };
   let make = () => {
-    let resolver = ref(None);
-    let rejecter = ref(None);
+    let resolvers = ref([]);
+    let rejecters = ref([]);
     let wire = () => {
-      /* reject the old wired TelePromise */
-      switch (rejecter^) {
-      | Some(_) => ()
-      /* | Some(f) => f(. Expired) */
-      | None => ()
-      };
-      /* make a new Promise and update the resolver and the rejecter */
+      /* make a new Promise and enlist the new resolver and rejecter */
       Js.Promise.make((~resolve, ~reject) => {
-        resolver := Some(resolve);
-        rejecter := Some(reject);
+        resolvers := [resolve, ...resolvers^];
+        rejecters := [reject, ...rejecters^];
       });
     };
-    let resolve = value =>
-      switch (resolver^) {
-      | Some(f) => f(. value)
-      | None => ()
-      };
-    let reject = exn =>
-      switch (rejecter^) {
-      | Some(f) => f(. exn)
-      | None => ()
-      };
-
+    let cleanup = () => {
+      resolvers := [];
+      rejecters := [];
+    };
+    let resolve = value => {
+      resolvers^ |> List.forEach(resolver => resolver(. value));
+      cleanup();
+    };
+    let reject = exn => {
+      rejecters^ |> List.forEach(rejecter => rejecter(. exn));
+      cleanup();
+    };
     /* resolves or rejects some promise */
     let handlePromise = p =>
       p
@@ -340,10 +339,12 @@ module Msg = {
   let handlePromise = (x, self) => self.promise.handlePromise(x);
 
   let send = (x, self) => {
+    let promise = self.promise.wire();
     self.ref^ |> List.forEach(handler => handler(x));
-    self.promise.wire();
+    promise;
   };
-  let recv = (handler, self) => {
+  let recv = (onUnmount: (unit => unit) => unit, handler, self) => {
     self.ref := [handler, ...self.ref^];
+    onUnmount(() => self.ref := []);
   };
 };

@@ -23,12 +23,10 @@ module Model = {
   };
   let answer = (x, self) => self.telePromise.resolve(x);
   let reject = (x, self) => self.telePromise.reject(x);
-  let focus = self =>
-    switch (self.ref) {
-    | Some(editor) =>
-      Atom.Environment.Views.getView(editor) |> HtmlElement.focus
-    | None => ()
-    };
+};
+
+let focus = editor => {
+  Atom.Environment.Views.getView(editor) |> HtmlElement.focus;
 };
 
 type state = {
