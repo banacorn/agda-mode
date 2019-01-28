@@ -1,10 +1,26 @@
 import * as _ from 'lodash';
-import Keymap from './asset/keymap';
+import DefaultKeymap from './asset/keymap';
 import { Core } from './core';
 import { INPUT_METHOD } from './view/actions';
 
 import { Range, CompositeDisposable } from 'atom';
 import * as Atom from 'atom';
+
+let Keymap = DefaultKeymap
+
+let inputTriePath = atom.config.get('agda-mode.inputTriePath')
+if (inputTriePath) {
+  try {
+    const file = new Atom.File(inputTriePath + 'keymap.json')
+    file.read()
+      .then(str => Keymap = JSON.parse(str))
+      .then(_ => console.log('successful keymap change yay!!'))
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+// TODO: onchange thing for inputTriePath
 
 function getKeySuggestions(trie: any): string[] {
     return Object.keys(_.omit(trie, '>>')).sort();
