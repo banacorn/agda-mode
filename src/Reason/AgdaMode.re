@@ -1,6 +1,7 @@
 open Rebase;
 
 module Msg = Util.Msg;
+module Event = Util.Event;
 
 module Instance = {
   type t = {
@@ -18,18 +19,41 @@ module Instance = {
 
   let queryConnection = (message, self): Js.Promise.t(string) => {
     activate(self);
+    open Util.Promise;
+    Js.log("queryConnection");
 
-    Js.Promise.(
-      self.view.activateSettingsView
-      |> Msg.send(true)
-      |> then_(() =>
-           self.view.navigateSettingsView
-           |> Msg.send(Settings.URI.Connection)
-           |> then_(() =>
-                self.view.inquireConnection |> Msg.send((message, ""))
-              )
-         )
-    );
+    self.view.onInquireConnection
+    |> Event.on
+    |> snd
+    |> thenDrop(x => {
+         Js.log("!!!!");
+         Js.log(x);
+       });
+    self.view.activateSettingsView |> Msg.send(true);
+    self.view.onSettingsView
+    |> Msg.once
+    |> then_(_ => {
+         self.view.navigateSettingsView |> Msg.send(Settings.URI.Connection);
+         self.view.inquireConnection |> Msg.send((message, ""));
+
+         resolve("haha");
+       });
+    /*
+     Js.Promise.
+       (
+         {
+           self.view.activateSettingsView |> Msg.send(true);
+           resolve("haha");
+         }
+       ); */
+    /* |> then_(()
+       => {
+         self.view.navigateSettingsView
+         |> Msg.send(Settings.URI.Connection);
+         resolve("haha");
+       }) */
+    /* |> then_(() => resolve("haha")) */
+    /* self.view.inquireConnection |> Msg.send((message, "")) */
   };
 
   /* let connect = (self): Js.Promise.t(Connection.t) => { */

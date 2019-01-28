@@ -7,6 +7,7 @@ open Webapi.Dom;
 /************************************************************************************************************/
 
 module Msg = Util.Msg;
+module Event = Util.Event;
 
 module Handles = {
   type t = {
@@ -15,12 +16,14 @@ module Handles = {
     updateMode: ref(mode => unit),
     updateMountTo: ref(mountTo => unit),
     updateActivation: ref(bool => unit),
-    inquireConnection: Msg.t((string, string), string),
-    inquireQuery: Msg.t((string, string), string),
+    inquireConnection: Msg.t((string, string)),
+    onInquireConnection: Event.t(string),
+    inquireQuery: Msg.t((string, string)),
     interceptAndInsertKey: ref(string => unit),
     activateInputMethod: ref(bool => unit),
-    activateSettingsView: Msg.t(bool, unit),
-    navigateSettingsView: Msg.t(Settings.uri, unit),
+    activateSettingsView: Msg.t(bool),
+    onSettingsView: Msg.t(bool),
+    navigateSettingsView: Msg.t(Settings.uri),
     destroy: ref(unit => unit),
   };
 
@@ -39,6 +42,7 @@ module Handles = {
     let updateMountTo = ref(_ => ());
 
     let inquireConnection = Msg.make();
+    let onInquireConnection = Event.make();
 
     let inquireQuery = Msg.make();
 
@@ -47,6 +51,8 @@ module Handles = {
     let activateInputMethod = ref(_ => ());
 
     let activateSettingsView = Msg.make();
+
+    let onSettingsView = Msg.make();
 
     let navigateSettingsView = Msg.make();
 
@@ -59,10 +65,12 @@ module Handles = {
       updateActivation,
       updateMountTo,
       inquireConnection,
+      onInquireConnection,
       inquireQuery,
       interceptAndInsertKey,
       activateInputMethod,
       activateSettingsView,
+      onSettingsView,
       navigateSettingsView,
       destroy,
     };
@@ -228,18 +236,23 @@ let reducer = (handles: Handles.t, action, state) => {
                     ReactDOMRe.render(
                       <Settings
                         inquireConnection={handles.inquireConnection}
+                        onInquireConnection={handles.onInquireConnection}
                         navigate={handles.navigateSettingsView}
                       />,
                       element,
                     );
-                    handles.activateSettingsView |> Msg.resolve();
+                    /* <Settings> is opened */
+                    handles.onSettingsView |> Msg.send(true);
                   },
                 ~onClose=
                   element => {
                     self.send(ToggleSettingsTab(false));
                     ReactDOMRe.unmountComponentAtNode(element);
-                    handles.activateSettingsView |> Msg.send(false) |> ignore;
+
+                    /* <Settings> is closed */
+                    handles.onSettingsView |> Msg.send(false);
                   },
+                /* handles.activateSettingsView |> Msg.send(false); */
                 (),
               );
             self.send(UpdateSettingsView(Some(tab)));
@@ -289,16 +302,19 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
 
     handles.inquireQuery
     |> Msg.recv(self.onUnmount)
-    |> thenDrop(((placeholder, value)) => {
-         self.send(InquireQuery(placeholder, value));
-         handles.inquireQuery
-         |> Msg.handlePromise(
-              MiniEditor.Model.inquire(self.state.editors.query),
-            );
-       });
+    |> thenDrop(((placeholder, value)) =>
+         self.send(
+           InquireQuery(placeholder, value),
+           /* handles.inquireQuery
+              |> Msg.handlePromise(
+                   MiniEditor.Model.inquire(self.state.editors.query),
+                 ); */
+         )
+       );
 
     Handles.hook(handles.destroy, _ => Js.log("destroy!"));
 
+    /* opening/closing <Settings> */
     handles.activateSettingsView
     |> Msg.recv(self.onUnmount)
     |> thenDrop(activate => self.send(ToggleSettingsTab(activate)));

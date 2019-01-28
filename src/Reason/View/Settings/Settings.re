@@ -22,8 +22,9 @@ let at = (x, y, classNames) => {
 
 let make =
     (
-      ~inquireConnection: Util.Msg.t((string, string), string),
-      ~navigate: Util.Msg.t(uri, unit),
+      ~inquireConnection: Util.Msg.t((string, string)),
+      ~onInquireConnection: Util.Event.t(string),
+      ~navigate: Util.Msg.t(uri),
       _children,
     ) => {
   ...component,
@@ -33,10 +34,12 @@ let make =
     Util.Promise.(
       navigate
       |> Util.Msg.recv(self.onUnmount)
-      |> thenDrop(uri => {
-           self.send(Navigate(uri));
-           navigate |> Util.Msg.resolve();
-         })
+      |> thenDrop(uri =>
+           self.send(
+             Navigate(uri),
+             /* navigate |> Util.Msg.resolve(); */
+           )
+         )
     );
   },
   render: self => {
@@ -59,6 +62,7 @@ let make =
         </ul>
         <Settings__Connection
           inquireConnection
+          onInquireConnection
           hidden={uri != URI.Connection}
           querying=true
           checked=false

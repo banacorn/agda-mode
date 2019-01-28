@@ -346,25 +346,129 @@ module TelePromise = {
 };
 
 module Msg = {
-  type t('i, 'o) = {
-    ref: ref(list((. 'i) => unit)),
-    promise: TelePromise.t('o),
-  };
-  let make = () => {ref: ref([]), promise: TelePromise.make()};
+  type t('i) = ref(list((. 'i) => unit));
+  let make = () => ref([]);
+  /* {ref: ref([]), promise: TelePromise.make()}; */
 
-  let resolve = (x, self) => self.promise.resolve(x);
-  let reject = (x, self) => self.promise.reject(x);
-  let handlePromise = (x, self) => self.promise.handlePromise(x);
+  /* let resolve = (x, self) => self.promise.resolve(x);
+     let reject = (x, self) => self.promise.reject(x);
+     let handlePromise = (x, self) => self.promise.handlePromise(x); */
 
   let send = (x, self) => {
-    let promise = self.promise.wire();
-    self.ref^ |> List.forEach(handler => handler(. x));
-    promise;
+    self^ |> List.forEach(handler => handler(. x));
   };
+
   let recv = (onUnmount: (unit => unit) => unit, self) => {
-    onUnmount(() => self.ref := []);
-    Js.Promise.make((~resolve, ~reject as _) =>
-      self.ref := [resolve, ...self.ref^]
-    );
+    onUnmount(() => self := []);
+    Js.Promise.make((~resolve, ~reject as _) => self := [resolve, ...self^]);
+  };
+
+  let once = self => {
+    /* onUnmount(() => self := []); */
+    let promise =
+      Js.Promise.make((~resolve, ~reject as _) =>
+        self := [resolve, ...self^]
+      );
+    promise
+    |> Js.Promise.then_(x => {
+         /* cleanup */
+         self := [];
+
+         Js.Promise.resolve(x);
+       });
+  };
+};
+
+module Event = {
+  module Listener = {
+    type t('a) = {
+      resolve: (. 'a) => unit,
+      reject: (. exn) => unit,
+      id: int,
+    };
+    let make = (resolve, reject, id): t('a) => {resolve, reject, id};
+  };
+
+  type t('a) = {
+    counter: ref(int),
+    listeners: Js.Dict.t(Listener.t('a)),
+  };
+
+  let make = () => {counter: ref(0), listeners: Js.Dict.empty()};
+
+  let removeListener = (_id: int, _self: t('a)) => {
+    %raw
+    "delete _self[1][string_of_int(_id)]";
+  };
+
+  let removeListener' = (_id: string, _self: t('a)) => {
+    %raw
+    "delete _self[1][_id]";
+  };
+  let removeAllListeners = (self: t('a)) => {
+    self.listeners
+    |> Js.Dict.keys
+    |> Array.forEach(id => removeListener'(id, self));
+  };
+
+  /* returns the id and a promise */
+  let listen = (self: t('a)): (int, Js.Promise.t('a)) => {
+    /* get and update the ID counter  */
+    let id: int = self.counter^ + 1;
+    self.counter := id;
+    /* makes a new promise */
+    let promise =
+      Js.Promise.make((~resolve, ~reject) => {
+        let listener = Listener.make(resolve, reject, id);
+        Js.Dict.set(self.listeners, string_of_int(id), listener);
+      });
+    (id, promise);
+  };
+  /* the alias of `listen` */
+  let on = listen;
+
+  let once = (self: t('a)): Js.Promise.t('a) => {
+    /* get and update the ID counter  */
+    let id: int = self.counter^ + 1;
+    self.counter := id;
+    /* makes a new promise */
+    Js.Promise.make((~resolve, ~reject) => {
+      let resolve' =
+        (. x) => {
+          resolve(. x);
+          removeListener(id, self);
+        };
+      let reject' =
+        (. x) => {
+          reject(. x);
+          removeListener(id, self);
+        };
+      let listener = Listener.make(resolve', reject', id);
+      Js.Dict.set(self.listeners, string_of_int(id), listener);
+    });
+  };
+
+  /* successful emit */
+  let resolve = (x: 'a, self: t('a)): unit => {
+    self.listeners
+    |> Js.Dict.values
+    |> Array.forEach((listener: Listener.t('a)) => listener.resolve(. x));
+  };
+
+  /* failed emit */
+  let reject = (x: exn, self: t('a)): unit => {
+    self.listeners
+    |> Js.Dict.values
+    |> Array.forEach((listener: Listener.t('a)) => listener.reject(. x));
+  };
+
+  let handlePromise = (p: Js.Promise.t('a), self: t('a)): unit => {
+    p
+    |> Js.Promise.then_(x => self |> resolve(x) |> Js.Promise.resolve)
+    |> Js.Promise.catch(err => {
+         self |> reject(JSPromiseError(err));
+         Js.Promise.resolve();
+       })
+    |> ignore;
   };
 };

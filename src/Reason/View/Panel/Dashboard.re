@@ -38,7 +38,7 @@ let make =
       ~mountAt: Type.Interaction.mountAt,
       ~onMountAtChange: Type.Interaction.mountTo => unit,
       ~onSettingsViewToggle: bool => unit,
-      ~activateSettingsView: Util.Msg.t(bool, unit),
+      ~activateSettingsView: Util.Msg.t(bool),
       _children,
     ) => {
   ...component,

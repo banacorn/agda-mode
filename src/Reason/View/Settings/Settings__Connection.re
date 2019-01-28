@@ -84,7 +84,8 @@ let setEditorRef = (theRef, {ReasonReact.state}) => {
 };
 let make =
     (
-      ~inquireConnection: Util.Msg.t((string, string), string),
+      ~inquireConnection: Util.Msg.t((string, string)),
+      ~onInquireConnection: Util.Event.t(string),
       /* ~onMetadataMade: Connection.metadata => unit, */
       ~hidden,
       ~querying,
@@ -105,10 +106,9 @@ let make =
       |> Util.Msg.recv(self.onUnmount)
       |> thenDrop(((message, value)) => {
            self.send(Inquire(message, value));
-           inquireConnection
-           |> Util.Msg.handlePromise(
-                self.state.editorModel^ |> MiniEditor.Model.inquire,
-              );
+           /* onInquireConnection */
+           let promise = self.state.editorModel^ |> MiniEditor.Model.inquire;
+           onInquireConnection |> Util.Event.handlePromise(promise);
          })
     );
   },
