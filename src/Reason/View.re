@@ -15,6 +15,7 @@ module Handles = {
     updateMode: ref(mode => unit),
     updateMountTo: ref(mountTo => unit),
     updateActivation: ref(bool => unit),
+    updateConnection: Event.t(option(Connection.t)),
     inquireConnection: Event.t((string, string)),
     onInquireConnection: Event.t(string),
     inquireQuery: Event.t((string, string)),
@@ -40,6 +41,7 @@ module Handles = {
 
     let updateMountTo = ref(_ => ());
 
+    let updateConnection = Event.make();
     let inquireConnection = Event.make();
     let onInquireConnection = Event.make();
 
@@ -63,6 +65,7 @@ module Handles = {
       updateMode,
       updateActivation,
       updateMountTo,
+      updateConnection,
       inquireConnection,
       onInquireConnection,
       inquireQuery,
@@ -232,10 +235,17 @@ let reducer = (handles: Handles.t, action, state) => {
                     ++ Atom.TextEditor.getTitle(self.state.editors.source),
                 ~onOpen=
                   (element, _, _) => {
+                    open Handles;
+                    let {
+                      inquireConnection,
+                      onInquireConnection,
+                      navigateSettingsView,
+                    } = handles;
                     ReactDOMRe.render(
                       <Settings
                         inquireConnection={handles.inquireConnection}
                         onInquireConnection={handles.onInquireConnection}
+                        updateConnection={handles.updateConnection}
                         navigate={handles.navigateSettingsView}
                       />,
                       element,
@@ -257,9 +267,14 @@ let reducer = (handles: Handles.t, action, state) => {
             self.send(UpdateSettingsView(Some(tab)));
           }
         | Some(tab) =>
-          if (!open_) {
+          if (open_) {
+            /* <Settings> is opened */
+            handles.onSettingsView |> Event.resolve(true);
+          } else {
             tab.kill();
             self.send(UpdateSettingsView(None));
+            /* <Settings> is closed */
+            handles.onSettingsView |> Event.resolve(false);
           }
         },
     )

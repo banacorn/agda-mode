@@ -3,6 +3,7 @@ open Rebase;
 module Event = Util.Event;
 
 module Instance = {
+  open Util.Promise;
   type t = {
     textEditor: Atom.TextEditor.t,
     view: View.Handles.t,
@@ -16,32 +17,27 @@ module Instance = {
     self.view.updateActivation^(true);
   };
 
-  let queryConnection = (message, self): Js.Promise.t(string) => {
-    activate(self);
-    open Util.Promise;
-    Js.log("queryConnection");
-
-    self.view.activateSettingsView |> Event.resolve(true);
-    self.view.onSettingsView
-    |> Event.once
-    |> then_(_ => {
-         self.view.navigateSettingsView
-         |> Event.resolve(Settings.URI.Connection);
-         self.view.inquireConnection |> Event.resolve((message, ""));
-
-         self.view.onInquireConnection
-         |> Event.once
-         |> then_(x => {
-              Js.log("!!!!");
-              Js.log(x);
-              resolve(x);
-            });
-       });
-  };
-
-  /* let connect = (self): Js.Promise.t(Connection.t) => { */
   let connect = self => {
-    open Js.Promise;
+    let queryConnection = (message, self): Js.Promise.t(string) => {
+      activate(self);
+
+      let p =
+        self.view.onSettingsView
+        |> Event.once
+        |> then_(_ => {
+             self.view.navigateSettingsView
+             |> Event.resolve(Settings.URI.Connection);
+
+             let promise = self.view.onInquireConnection |> Event.once;
+             self.view.inquireConnection |> Event.resolve((message, ""));
+
+             promise;
+           });
+
+      self.view.activateSettingsView |> Event.resolve(true);
+
+      p;
+    };
     let getAgdaPath = (): Js.Promise.t(string) => {
       let storedPath =
         Atom.Environment.Config.get("agda-mode.agdaPath") |> Parser.filepath;
@@ -50,6 +46,57 @@ module Instance = {
       } else {
         Js.Promise.resolve(storedPath);
       };
+    };
+
+    let rec getMetadata = (self, path) => {
+      Connection.validateAndMake(path)
+      |> catch(err =>
+           err
+           |> Connection.handleValidationError(
+                fun
+                /* the path is empty */
+                | PathMalformed(_path, msg) =>
+                  self |> queryConnection({j|Path malformed:
+$(msg)|j})
+                /* the process is not responding */
+                | ProcessHanging(_path) =>
+                  self |> queryConnection({j|The process is not responding|j})
+                /* from the shell */
+                | NotFound(path, error) =>
+                  self
+                  |> queryConnection(
+                       {j|Program at $(path) not found:
+$(error)|j},
+                     )
+                | ShellError(_path, error) =>
+                  self |> queryConnection({j|$(error)|j})
+                /* from its stderr */
+                | ProcessError(_path, msg) =>
+                  self |> queryConnection({j|Error from the stderr:
+$(msg)|j})
+                /* the process is not Agda */
+                | IsNotAgda(_path, msg) =>
+                  self
+                  |> queryConnection(
+                       {j|The given program is not agda:
+$(msg)|j},
+                     ),
+              )
+           |> then_(getMetadata(self))
+         );
+    };
+
+    let persistConnection = (self, connection: Connection.t) => {
+      self.connection = Some(connection);
+      /* store the path in the config */
+      Atom.Environment.Config.set(
+        "agda-mode.agdaPath",
+        connection.metadata.path,
+      );
+      /* update the view */
+      self.view.updateConnection |> Event.resolve(Some(connection));
+      /* pass it on */
+      resolve(connection);
     };
 
     switch (self.connection) {
@@ -67,20 +114,16 @@ module Instance = {
              | Connection.NotFound(msg) =>
                queryConnection(
                  {j|Agda not found!
-                 $msg
+$msg
               |j},
                  self,
                ),
            ),
          )
-      |> then_(Connection.validateAndMake)
-      /* |> catch(err => {}) */
+      |> then_(getMetadata(self))
       |> then_(Connection.connect)
+      |> then_(persistConnection(self))
       |> then_(Connection.wire)
-      |> then_(connection => {
-           self.connection = Some(connection);
-           resolve(connection);
-         })
     };
   };
 

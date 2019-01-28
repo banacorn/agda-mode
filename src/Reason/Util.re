@@ -444,3 +444,10 @@ module Event = {
     |> ignore;
   };
 };
+
+module JSError = {
+  let toString = (_e: Js.Exn.t) => {
+    %raw
+    "_e.toString()";
+  };
+};

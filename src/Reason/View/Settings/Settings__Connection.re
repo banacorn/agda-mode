@@ -8,45 +8,25 @@ type state = {
   editorRef: ref(option(Atom.TextEditor.t)),
   editorModel: ref(MiniEditor.Model.t),
   message: string,
+  value: string,
 };
 type action =
   | Inquire(string, string)
-  | Search
-  /* | ValidatePath(string)
-     | DisplayError(string) */
   | Connect
   | Disconnect;
-
-/* let displayMessage = (self, error) => {
-     error
-     |> Connection.handleValidationError(
-          fun
-          /* the path is empty */
-          | PathMalformed(msg) =>
-            self.send(DisplayError("Path malformed: " ++ msg))
-          /* the process is not responding */
-          | ProcessHanging =>
-            self.send(DisplayError("The given process is not responding"))
-          /* from the shell */
-          | NotFound(err) => ()
-          | ShellError(err) => ()
-          /* from its stderr */
-          | ProcessError(string) => ()
-          | IsNotAgda(string) => (),
-        );
-   }; */
 
 let initialState = () => {
   connected: false,
   editorRef: ref(None),
   editorModel: ref(MiniEditor.Model.make()),
   message: "",
+  value: "",
 };
 let reducer = (action: action, state: state) =>
   switch (action) {
   | Inquire(message, value) =>
     UpdateWithSideEffects(
-      {...state, message},
+      {...state, message, value},
       _self =>
         Webapi.Dom.(
           state.editorRef^
@@ -56,23 +36,6 @@ let reducer = (action: action, state: state) =>
              })
         ),
     )
-  | Search => SideEffects(self => ())
-  /* | ValidatePath(path) => */
-  /* SideEffects(
-       self =>
-         Js.Promise.(
-           Connection.validateAndMake(path)
-           |> then_(x => editor |> MiniEditor.Model.answer(x) |> resolve)
-           |> catch(error => {
-                displayMessage(self, error);
-                editor |> MiniEditor.Model.focus;
-                editor |> MiniEditor.Model.select;
-                resolve();
-              })
-           |> ignore
-         ),
-     ) */
-  /* | DisplayError(message) => Update({...state, message}) */
   | Connect => NoUpdate
   | Disconnect => NoUpdate
   };
@@ -86,15 +49,8 @@ let make =
     (
       ~inquireConnection: Util.Event.t((string, string)),
       ~onInquireConnection: Util.Event.t(string),
-      /* ~onMetadataMade: Connection.metadata => unit, */
+      ~connection: option(Connection.t),
       ~hidden,
-      ~querying,
-      ~checked,
-      ~toggleAgdaConnection,
-      ~agdaConnected,
-      ~agdaPath,
-      ~agdaVersion,
-      ~supportedProtocol,
       _children,
     ) => {
   ...component,
@@ -113,14 +69,15 @@ let make =
     );
   },
   render: self => {
+    let connected = connection |> Option.isSome;
     let className =
       Util.ClassName.(
         ["agda-settings-connection"]
         |> addWhen("hidden", hidden)
-        |> addWhen("querying", querying)
+        |> addWhen("inquiring", !connected)
         |> serialize
       );
-    let {message} = self.state;
+    let {message, value} = self.state;
 
     <section className>
       <form>
@@ -131,84 +88,63 @@ let make =
                 <span> {string("Connection to Agda")} </span>
                 <input
                   className="input-toggle"
-                  checked
+                  checked=connected
                   type_="checkbox"
-                  onChange=toggleAgdaConnection
+                  onChange={_ => ()}
                 />
               </label>
             </h2>
             <div>
-              <p>
-                {string(
-                   "Connection: "
-                   ++ (agdaConnected ? "established" : "not established"),
-                 )}
-              </p>
-              <p>
-                {string(
-                   "Established path: "
-                   ++ (agdaConnected ? agdaPath : "unknown"),
-                 )}
-              </p>
-              <p>
-                {string(
-                   "Established path: "
-                   ++ (agdaConnected ? agdaVersion : "unknown"),
-                 )}
-              </p>
-              <p> {string("Supported protocol: " ++ supportedProtocol)} </p>
+              {switch (connection) {
+               | None =>
+                 <>
+                   <p> {string("Connection: not established")} </p>
+                   <p> {string("Path: unknown")} </p>
+                   <p> {string("Version: unknown")} </p>
+                   <p> {string("Supported protocol: unknown")} </p>
+                 </>
+               | Some(conn) =>
+                 <>
+                   <p> {string("Connection: established")} </p>
+                   <p> {string("Path: " ++ conn.metadata.path)} </p>
+                   <p> {string("Version: " ++ conn.metadata.version)} </p>
+                   <p>
+                     {string(
+                        "Supported protocol: "
+                        ++ (
+                          switch (conn.metadata.protocol) {
+                          | Connection.EmacsOnly => "Emacs"
+                          | Connection.EmacsAndJSON => "Emacs / JSON"
+                          }
+                        ),
+                      )}
+                   </p>
+                 </>
+               }}
               <p>
                 <MiniEditor
                   hidden=false
-                  value=""
+                  value
                   placeholder="path to Agda"
                   editorRef={self.handle(setEditorRef)}
                   onConfirm={result =>
                     self.state.editorModel^ |> MiniEditor.Model.answer(result)
                   }
-                  /* Js.Promise.(
-                       Connection.validateAndMake(result)
-                       |> then_(Connection.connect)
-                       |> then_(Connection.wire)
-                       |> then_((conn: Connection.t) => {
-                            Js.log(conn);
-                            switch (conn.connection) {
-                            | None => ()
-                            | Some(connection) =>
-                              connection.stdin
-                              |> Connection.Stream.Writable.write(
-                                   {j|IOTCM "/Users/banacorn/agda/test/A.agda" NonInteractive Direct ( Cmd_load "/Users/banacorn/agda/test/A.agda" [])\n|j}
-                                   |> Node.Buffer.fromString,
-                                 )
-                              |> ignore
-                            };
-                            resolve((): unit);
-                          })
-                       |> catch(err => Js.log(err) |> resolve)
-                     )
-                     |> ignore; */
-                  /* atom.config.set('agda-mode.agdaPath', result);
-                     if (!querying) {
-                         this.reconnectAgda();
-                     }
-                     */
-                  /* this.props.core.view.editors.rejectConnection();
-                     this.props.core.view.editors.focusMain(); */
                   onCancel={(.) => ()}
                 />
               </p>
               <p>
                 <button
                   className="btn icon icon-search inline-block-tight"
-                  onClick={_ => self.send(Search)}>
+                  onClick={_ => ()}>
                   {string("auto search")}
                 </button>
               </p>
-              {String.isEmpty(message) ?
+              {String.isEmpty(message) || connected ?
                  null :
-                 <p className="inset-panel padded text-warning error">
+                 <pre className="inset-panel padded text-warning error">
                    {string(message)}
-                 </p>}
+                 </pre>}
             </div>
           </li>
         </ul>

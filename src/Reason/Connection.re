@@ -155,18 +155,19 @@ type autoSearchError =
   | NotSupported(string)
   | NotFound(string);
 
+type filepath = string;
 type validationError =
   /* the path is empty */
-  | PathMalformed(string)
+  | PathMalformed(filepath, string)
   /* the process is not responding */
-  | ProcessHanging
+  | ProcessHanging(filepath)
   /* from the shell */
-  | NotFound(Js.Exn.t)
-  | ShellError(Js.Exn.t)
+  | NotFound(filepath, Js.Exn.t)
+  | ShellError(filepath, Js.Exn.t)
   /* from its stderr */
-  | ProcessError(string)
+  | ProcessError(filepath, string)
   /* the process is not Agda */
-  | IsNotAgda(string);
+  | IsNotAgda(filepath, string);
 
 type connectionError =
   | ShellError(Js.Exn.t)
@@ -236,7 +237,7 @@ let autoSearch = (path): Js.Promise.t(string) =>
       /* reject if the process hasn't responded for more than 1 second */
       let hangTimeout =
         Js.Global.setTimeout(
-          () => reject(. ValidationExn(ProcessHanging)),
+          () => reject(. ValidationExn(ProcessHanging(path))),
           1000,
         );
       ChildProcess.exec(
@@ -286,11 +287,11 @@ let validateAndMake = (path): Js.Promise.t(metadata) => {
     | Some(err) =>
       let message = err |> Js.Exn.message |> Option.getOr("");
       if (message |> Js.Re.test(_, [%re "/No such file or directory/"])) {
-        Some(NotFound(err));
+        Some(NotFound(path, err));
       } else if (message |> Js.Re.test(_, [%re "/command not found/"])) {
-        Some(NotFound(err));
+        Some(NotFound(path, err));
       } else {
-        Some(ShellError(err));
+        Some(ShellError(path, err));
       };
     };
   };
@@ -298,10 +299,10 @@ let validateAndMake = (path): Js.Promise.t(metadata) => {
       (stdout: Node.Buffer.t): result(metadata, validationError) => {
     let message = stdout |> Node.Buffer.toString;
     switch (Js.String.match([%re "/Agda version (.*)/"], message)) {
-    | None => Error(IsNotAgda(message))
+    | None => Error(IsNotAgda(path, message))
     | Some(match) =>
       switch (match[1]) {
-      | None => Error(IsNotAgda(message))
+      | None => Error(IsNotAgda(path, message))
       | Some(version) =>
         Ok({
           path: parsedPath,
@@ -316,13 +317,15 @@ let validateAndMake = (path): Js.Promise.t(metadata) => {
 
   Js.Promise.make((~resolve, ~reject) => {
     if (path |> String.isEmpty) {
-      reject(. ValidationExn(PathMalformed("the path must not be empty")));
+      reject(.
+        ValidationExn(PathMalformed(path, "the path must not be empty")),
+      );
     };
 
     /* reject if the process hasn't responded for more than 1 second */
     let hangTimeout =
       Js.Global.setTimeout(
-        () => reject(. ValidationExn(ProcessHanging)),
+        () => reject(. ValidationExn(ProcessHanging(path))),
         1000,
       );
 
@@ -341,7 +344,7 @@ let validateAndMake = (path): Js.Promise.t(metadata) => {
         /* stderr */
         let stderr' = stderr |> Node.Buffer.toString;
         if (stderr' |> String.isEmpty |> (!)) {
-          reject(. ValidationExn(ProcessError(stderr')));
+          reject(. ValidationExn(ProcessError(path, stderr')));
         };
 
         /* stdout */

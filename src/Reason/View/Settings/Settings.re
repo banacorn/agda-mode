@@ -1,17 +1,23 @@
 open ReasonReact;
+open Rebase;
 
 module URI = Settings__Breadcrumb;
 type uri = URI.uri;
 
-type state = {uri};
+type state = {
+  uri,
+  connection: option(Connection.t),
+};
 
 type action =
+  | UpdateConnection(option(Connection.t))
   | Navigate(uri);
 
-let initialState = () => {uri: URI.Root};
-let reducer = (action: action, _state: state) =>
+let initialState = () => {uri: URI.Root, connection: None};
+let reducer = (action: action, state: state) =>
   switch (action) {
-  | Navigate(uri) => Update({uri: uri})
+  | UpdateConnection(connection) => Update({...state, connection})
+  | Navigate(uri) => Update({...state, uri})
   };
 
 let component = reducerComponent("Settings");
@@ -24,6 +30,7 @@ let make =
     (
       ~inquireConnection: Util.Event.t((string, string)),
       ~onInquireConnection: Util.Event.t(string),
+      ~updateConnection: Util.Event.t(option(Connection.t)),
       ~navigate: Util.Event.t(uri),
       _children,
     ) => {
@@ -31,14 +38,18 @@ let make =
   initialState,
   reducer,
   didMount: self => {
-    Util.Event.(
-      navigate
-      |> on(uri => self.send(Navigate(uri)))
-      |> destroyWhen(self.onUnmount)
-    );
+    open Util.Event;
+    /* navigation */
+    navigate
+    |> on(uri => self.send(Navigate(uri)))
+    |> destroyWhen(self.onUnmount);
+    /* updates Connection.t */
+    updateConnection
+    |> on(connection => self.send(UpdateConnection(connection)))
+    |> destroyWhen(self.onUnmount);
   },
   render: self => {
-    let {uri} = self.state;
+    let {uri, connection} = self.state;
     <section className="agda-settings" tabIndex=(-1)>
       <Settings__Breadcrumb
         uri
@@ -58,14 +69,8 @@ let make =
         <Settings__Connection
           inquireConnection
           onInquireConnection
+          connection
           hidden={uri != URI.Connection}
-          querying=true
-          checked=false
-          toggleAgdaConnection=Js.log
-          agdaConnected=true
-          agdaPath="asdf"
-          agdaVersion="???.???"
-          supportedProtocol="Emacs"
         />
       </div>
     </section>;
