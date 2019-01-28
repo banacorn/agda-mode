@@ -21,13 +21,6 @@ module Instance = {
     open Util.Promise;
     Js.log("queryConnection");
 
-    self.view.onInquireConnection
-    |> Event.on
-    |> snd
-    |> thenDrop(x => {
-         Js.log("!!!!");
-         Js.log(x);
-       });
     self.view.activateSettingsView |> Event.resolve(true);
     self.view.onSettingsView
     |> Event.once
@@ -36,28 +29,19 @@ module Instance = {
          |> Event.resolve(Settings.URI.Connection);
          self.view.inquireConnection |> Event.resolve((message, ""));
 
-         resolve("haha");
+         self.view.onInquireConnection
+         |> Event.once
+         |> then_(x => {
+              Js.log("!!!!");
+              Js.log(x);
+              resolve(x);
+            });
        });
-    /*
-     Js.Promise.
-       (
-         {
-           self.view.activateSettingsView |> Event.send(true);
-           resolve("haha");
-         }
-       ); */
-    /* |> then_(()
-       => {
-         self.view.navigateSettingsView
-         |> Event.send(Settings.URI.Connection);
-         resolve("haha");
-       }) */
-    /* |> then_(() => resolve("haha")) */
-    /* self.view.inquireConnection |> Event.send((message, "")) */
   };
 
   /* let connect = (self): Js.Promise.t(Connection.t) => { */
   let connect = self => {
+    open Js.Promise;
     let getAgdaPath = (): Js.Promise.t(string) => {
       let storedPath =
         Atom.Environment.Config.get("agda-mode.agdaPath") |> Parser.filepath;
@@ -67,46 +51,37 @@ module Instance = {
         Js.Promise.resolve(storedPath);
       };
     };
-    self |> queryConnection("hey");
-    ();
-    /*
-     Js.Promise.(
-       switch (self.connection) {
-       | Some(connection) => resolve(connection)
-       | None =>
-         getAgdaPath()
-         |> catch(
-              Connection.handleAutoSearchError(
-                fun
-                | Connection.NotSupported(os) =>
-                  queryConnection(
-                    {j|Failed to search the path of Agda, as it's currently not supported on $os|j},
-                    self,
-                  )
-                | Connection.NotFound(msg) =>
-                  queryConnection(
-                    {j|Agda not found!
+
+    switch (self.connection) {
+    | Some(connection) => resolve(connection)
+    | None =>
+      getAgdaPath()
+      |> catch(
+           Connection.handleAutoSearchError(
+             fun
+             | Connection.NotSupported(os) =>
+               queryConnection(
+                 {j|Failed to search the path of Agda, as it's currently not supported on $os|j},
+                 self,
+               )
+             | Connection.NotFound(msg) =>
+               queryConnection(
+                 {j|Agda not found!
                  $msg
               |j},
-                    self,
-                  ),
-              ),
-            )
-         |> then_(x => {
-              Js.log("!!!!");
-              Js.log(x);
-              resolve(x);
-            })
-         |> then_(Connection.validateAndMake)
-         /* |> catch(err => {}) */
-         |> then_(Connection.connect)
-         |> then_(Connection.wire)
-         |> then_(connection => {
-              self.connection = Some(connection);
-              resolve(connection);
-            })
-       }
-     ); */
+                 self,
+               ),
+           ),
+         )
+      |> then_(Connection.validateAndMake)
+      /* |> catch(err => {}) */
+      |> then_(Connection.connect)
+      |> then_(Connection.wire)
+      |> then_(connection => {
+           self.connection = Some(connection);
+           resolve(connection);
+         })
+    };
   };
 
   let deactivate = self => {

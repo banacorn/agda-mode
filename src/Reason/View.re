@@ -284,7 +284,7 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
   initialState: initialState(textEditor),
   reducer: reducer(handles),
   didMount: self => {
-    open Util.Promise;
+    open Util.Event;
     Handles.hook(handles.updateMountTo, mountTo =>
       self.send(MountTo(mountTo))
     );
@@ -315,9 +315,8 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
 
     /* opening/closing <Settings> */
     handles.activateSettingsView
-    |> Event.on
-    |> Event.destroyWhen(self.onUnmount)
-    |> thenDrop(activate => self.send(ToggleSettingsTab(activate)));
+    |> on(activate => self.send(ToggleSettingsTab(activate)))
+    |> destroyWhen(self.onUnmount);
   },
   render: self => {
     let {header, body, mountAt, mode, activated, editors} = self.state;

@@ -364,7 +364,7 @@ module Event = {
 
   let removeListener = (_id: int, _self: t('a)) => {
     %raw
-    "delete _self[1][string_of_int(_id)]";
+    "delete _self[1][String(_id)]";
   };
 
   let removeListener' = (_id: string, _self: t('a)) => {
@@ -377,31 +377,23 @@ module Event = {
     |> Array.forEach(id => removeListener'(id, self));
   };
 
-  /* returns the id and a promise */
-  let listen = (self: t('a)): (unit => unit, Js.Promise.t('a)) => {
+  let listen = (resolve: 'a => unit, self: t('a)): (unit => unit) => {
     /* get and update the ID counter  */
     let id: int = self.counter^ + 1;
     self.counter := id;
-    /* makes a new promise */
-    let promise =
-      Js.Promise.make((~resolve, ~reject) => {
-        let listener = Listener.make(resolve, reject, id);
-        Js.Dict.set(self.listeners, string_of_int(id), listener);
-      });
+    /* store the callback */
+    let listener = Listener.make((. x) => resolve(x), (. _) => (), id);
+    Js.Dict.set(self.listeners, string_of_int(id), listener);
+
     let destructor = () => {
       removeListener(id, self);
     };
 
-    (destructor, promise);
+    destructor;
   };
   let destroyWhen =
-      (
-        trigger: (unit => unit) => unit,
-        pair: (unit => unit, Js.Promise.t('a)),
-      )
-      : Js.Promise.t('a) => {
-    trigger(fst(pair));
-    snd(pair);
+      (trigger: (unit => unit) => unit, destructor: unit => unit): unit => {
+    trigger(destructor);
   };
 
   /* the alias of `listen` */

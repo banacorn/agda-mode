@@ -101,16 +101,15 @@ let make =
   initialState,
   reducer,
   didMount: self => {
-    Util.Promise.(
+    Util.Event.(
       inquireConnection
-      |> Util.Event.on
-      |> Util.Event.destroyWhen(self.onUnmount)
-      |> thenDrop(((message, value)) => {
+      |> on(((message, value)) => {
            self.send(Inquire(message, value));
            /* onInquireConnection */
            let promise = self.state.editorModel^ |> MiniEditor.Model.inquire;
-           onInquireConnection |> Util.Event.handlePromise(promise);
+           onInquireConnection |> handlePromise(promise);
          })
+      |> destroyWhen(self.onUnmount)
     );
   },
   render: self => {

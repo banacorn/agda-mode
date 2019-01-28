@@ -31,16 +31,10 @@ let make =
   initialState,
   reducer,
   didMount: self => {
-    Util.Promise.(
+    Util.Event.(
       navigate
-      |> Util.Event.on
-      |> Util.Event.destroyWhen(self.onUnmount)
-      |> thenDrop(uri =>
-           self.send(
-             Navigate(uri),
-             /* navigate |> Util.Event.resolve(); */
-           )
-         )
+      |> on(uri => self.send(Navigate(uri)))
+      |> destroyWhen(self.onUnmount)
     );
   },
   render: self => {
