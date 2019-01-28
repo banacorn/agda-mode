@@ -345,40 +345,6 @@ module TelePromise = {
   };
 };
 
-module Msg = {
-  type t('i) = ref(list((. 'i) => unit));
-  let make = () => ref([]);
-  /* {ref: ref([]), promise: TelePromise.make()}; */
-
-  /* let resolve = (x, self) => self.promise.resolve(x);
-     let reject = (x, self) => self.promise.reject(x);
-     let handlePromise = (x, self) => self.promise.handlePromise(x); */
-
-  let send = (x, self) => {
-    self^ |> List.forEach(handler => handler(. x));
-  };
-
-  let recv = (onUnmount: (unit => unit) => unit, self) => {
-    onUnmount(() => self := []);
-    Js.Promise.make((~resolve, ~reject as _) => self := [resolve, ...self^]);
-  };
-
-  let once = self => {
-    /* onUnmount(() => self := []); */
-    let promise =
-      Js.Promise.make((~resolve, ~reject as _) =>
-        self := [resolve, ...self^]
-      );
-    promise
-    |> Js.Promise.then_(x => {
-         /* cleanup */
-         self := [];
-
-         Js.Promise.resolve(x);
-       });
-  };
-};
-
 module Event = {
   module Listener = {
     type t('a) = {
@@ -412,7 +378,7 @@ module Event = {
   };
 
   /* returns the id and a promise */
-  let listen = (self: t('a)): (int, Js.Promise.t('a)) => {
+  let listen = (self: t('a)): (unit => unit, Js.Promise.t('a)) => {
     /* get and update the ID counter  */
     let id: int = self.counter^ + 1;
     self.counter := id;
@@ -422,8 +388,22 @@ module Event = {
         let listener = Listener.make(resolve, reject, id);
         Js.Dict.set(self.listeners, string_of_int(id), listener);
       });
-    (id, promise);
+    let destructor = () => {
+      removeListener(id, self);
+    };
+
+    (destructor, promise);
   };
+  let destroyWhen =
+      (
+        trigger: (unit => unit) => unit,
+        pair: (unit => unit, Js.Promise.t('a)),
+      )
+      : Js.Promise.t('a) => {
+    trigger(fst(pair));
+    snd(pair);
+  };
+
   /* the alias of `listen` */
   let on = listen;
 

@@ -84,7 +84,7 @@ let setEditorRef = (theRef, {ReasonReact.state}) => {
 };
 let make =
     (
-      ~inquireConnection: Util.Msg.t((string, string)),
+      ~inquireConnection: Util.Event.t((string, string)),
       ~onInquireConnection: Util.Event.t(string),
       /* ~onMetadataMade: Connection.metadata => unit, */
       ~hidden,
@@ -103,7 +103,8 @@ let make =
   didMount: self => {
     Util.Promise.(
       inquireConnection
-      |> Util.Msg.recv(self.onUnmount)
+      |> Util.Event.on
+      |> Util.Event.destroyWhen(self.onUnmount)
       |> thenDrop(((message, value)) => {
            self.send(Inquire(message, value));
            /* onInquireConnection */

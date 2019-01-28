@@ -6,7 +6,6 @@ open Webapi.Dom;
 
 /************************************************************************************************************/
 
-module Msg = Util.Msg;
 module Event = Util.Event;
 
 module Handles = {
@@ -16,14 +15,14 @@ module Handles = {
     updateMode: ref(mode => unit),
     updateMountTo: ref(mountTo => unit),
     updateActivation: ref(bool => unit),
-    inquireConnection: Msg.t((string, string)),
+    inquireConnection: Event.t((string, string)),
     onInquireConnection: Event.t(string),
-    inquireQuery: Msg.t((string, string)),
+    inquireQuery: Event.t((string, string)),
     interceptAndInsertKey: ref(string => unit),
     activateInputMethod: ref(bool => unit),
-    activateSettingsView: Msg.t(bool),
-    onSettingsView: Msg.t(bool),
-    navigateSettingsView: Msg.t(Settings.uri),
+    activateSettingsView: Event.t(bool),
+    onSettingsView: Event.t(bool),
+    navigateSettingsView: Event.t(Settings.uri),
     destroy: ref(unit => unit),
   };
 
@@ -41,20 +40,20 @@ module Handles = {
 
     let updateMountTo = ref(_ => ());
 
-    let inquireConnection = Msg.make();
+    let inquireConnection = Event.make();
     let onInquireConnection = Event.make();
 
-    let inquireQuery = Msg.make();
+    let inquireQuery = Event.make();
 
     let interceptAndInsertKey = ref(_ => ());
 
     let activateInputMethod = ref(_ => ());
 
-    let activateSettingsView = Msg.make();
+    let activateSettingsView = Event.make();
 
-    let onSettingsView = Msg.make();
+    let onSettingsView = Event.make();
 
-    let navigateSettingsView = Msg.make();
+    let navigateSettingsView = Event.make();
 
     let destroy = ref(_ => ());
 
@@ -242,7 +241,7 @@ let reducer = (handles: Handles.t, action, state) => {
                       element,
                     );
                     /* <Settings> is opened */
-                    handles.onSettingsView |> Msg.send(true);
+                    handles.onSettingsView |> Event.resolve(true);
                   },
                 ~onClose=
                   element => {
@@ -250,9 +249,9 @@ let reducer = (handles: Handles.t, action, state) => {
                     ReactDOMRe.unmountComponentAtNode(element);
 
                     /* <Settings> is closed */
-                    handles.onSettingsView |> Msg.send(false);
+                    handles.onSettingsView |> Event.resolve(false);
                   },
-                /* handles.activateSettingsView |> Msg.send(false); */
+                /* handles.activateSettingsView |> Event.send(false); */
                 (),
               );
             self.send(UpdateSettingsView(Some(tab)));
@@ -300,23 +299,24 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
       self.send(UpdateRawBody(rawBody))
     );
 
-    handles.inquireQuery
-    |> Msg.recv(self.onUnmount)
-    |> thenDrop(((placeholder, value)) =>
-         self.send(
-           InquireQuery(placeholder, value),
-           /* handles.inquireQuery
-              |> Msg.handlePromise(
-                   MiniEditor.Model.inquire(self.state.editors.query),
-                 ); */
-         )
-       );
+    /* handles.inquireQuery
+       |> Event.recv(self.onUnmount)
+       |> thenDrop(((placeholder, value)) =>
+            self.send(
+              InquireQuery(placeholder, value),
+              /* handles.inquireQuery
+                 |> Event.handlePromise(
+                      MiniEditor.Model.inquire(self.state.editors.query),
+                    ); */
+            )
+          ); */
 
     Handles.hook(handles.destroy, _ => Js.log("destroy!"));
 
     /* opening/closing <Settings> */
     handles.activateSettingsView
-    |> Msg.recv(self.onUnmount)
+    |> Event.on
+    |> Event.destroyWhen(self.onUnmount)
     |> thenDrop(activate => self.send(ToggleSettingsTab(activate)));
   },
   render: self => {

@@ -22,9 +22,9 @@ let at = (x, y, classNames) => {
 
 let make =
     (
-      ~inquireConnection: Util.Msg.t((string, string)),
+      ~inquireConnection: Util.Event.t((string, string)),
       ~onInquireConnection: Util.Event.t(string),
-      ~navigate: Util.Msg.t(uri),
+      ~navigate: Util.Event.t(uri),
       _children,
     ) => {
   ...component,
@@ -33,11 +33,12 @@ let make =
   didMount: self => {
     Util.Promise.(
       navigate
-      |> Util.Msg.recv(self.onUnmount)
+      |> Util.Event.on
+      |> Util.Event.destroyWhen(self.onUnmount)
       |> thenDrop(uri =>
            self.send(
              Navigate(uri),
-             /* navigate |> Util.Msg.resolve(); */
+             /* navigate |> Util.Event.resolve(); */
            )
          )
     );

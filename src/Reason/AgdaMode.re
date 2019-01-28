@@ -1,6 +1,5 @@
 open Rebase;
 
-module Msg = Util.Msg;
 module Event = Util.Event;
 
 module Instance = {
@@ -29,12 +28,13 @@ module Instance = {
          Js.log("!!!!");
          Js.log(x);
        });
-    self.view.activateSettingsView |> Msg.send(true);
+    self.view.activateSettingsView |> Event.resolve(true);
     self.view.onSettingsView
-    |> Msg.once
+    |> Event.once
     |> then_(_ => {
-         self.view.navigateSettingsView |> Msg.send(Settings.URI.Connection);
-         self.view.inquireConnection |> Msg.send((message, ""));
+         self.view.navigateSettingsView
+         |> Event.resolve(Settings.URI.Connection);
+         self.view.inquireConnection |> Event.resolve((message, ""));
 
          resolve("haha");
        });
@@ -42,18 +42,18 @@ module Instance = {
      Js.Promise.
        (
          {
-           self.view.activateSettingsView |> Msg.send(true);
+           self.view.activateSettingsView |> Event.send(true);
            resolve("haha");
          }
        ); */
     /* |> then_(()
        => {
          self.view.navigateSettingsView
-         |> Msg.send(Settings.URI.Connection);
+         |> Event.send(Settings.URI.Connection);
          resolve("haha");
        }) */
     /* |> then_(() => resolve("haha")) */
-    /* self.view.inquireConnection |> Msg.send((message, "")) */
+    /* self.view.inquireConnection |> Event.send((message, "")) */
   };
 
   /* let connect = (self): Js.Promise.t(Connection.t) => { */

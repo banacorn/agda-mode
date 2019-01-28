@@ -38,7 +38,7 @@ let make =
       ~mountAt: Type.Interaction.mountAt,
       ~onMountAtChange: Type.Interaction.mountTo => unit,
       ~onSettingsViewToggle: bool => unit,
-      ~activateSettingsView: Util.Msg.t(bool),
+      ~activateSettingsView: Util.Event.t(bool),
       _children,
     ) => {
   ...component,
@@ -47,7 +47,8 @@ let make =
   didMount: self => {
     open Util.Promise;
     activateSettingsView
-    |> Util.Msg.recv(self.onUnmount)
+    |> Util.Event.on
+    |> Util.Event.destroyWhen(self.onUnmount)
     |> thenDrop(open_ => self.send(open_ ? SettingsViewOn : SettingsViewOff));
     switch (self.state.settingsButtonRef^) {
     | None => ()

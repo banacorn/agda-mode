@@ -53,7 +53,7 @@ let make =
       ~editorValue: string,
       ~interceptAndInsertKey: (string => unit) => unit,
       ~activateInputMethod: (bool => unit) => unit,
-      ~activateSettingsView: Util.Msg.t(bool),
+      ~activateSettingsView: Util.Event.t(bool),
       ~onSettingsViewToggle: bool => unit,
       /* ~onGeneralEditorChange: Editors.miniEditor => unit,
          ~onGeneralEditorConfirm: string => unit,
