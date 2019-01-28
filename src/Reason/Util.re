@@ -445,7 +445,7 @@ module Event = {
   };
 };
 
-module JSError = {
+module JsError = {
   let toString = (_e: Js.Exn.t) => {
     %raw
     "_e.toString()";

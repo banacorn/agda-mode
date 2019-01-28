@@ -18,7 +18,8 @@ module Instance = {
   };
 
   let connect = self => {
-    let queryConnection = (message, self): Js.Promise.t(string) => {
+    let queryConnection =
+        (error: option(Connection.error), self): Js.Promise.t(string) => {
       activate(self);
 
       let p =
@@ -29,7 +30,7 @@ module Instance = {
              |> Event.resolve(Settings.URI.Connection);
 
              let promise = self.view.onInquireConnection |> Event.once;
-             self.view.inquireConnection |> Event.resolve((message, ""));
+             self.view.inquireConnection |> Event.resolve((error, ""));
 
              promise;
            });
@@ -50,39 +51,12 @@ module Instance = {
 
     let rec getMetadata = (self, path) => {
       Connection.validateAndMake(path)
-      |> catch(err =>
-           err
-           |> Connection.handleValidationError(
-                fun
-                /* the path is empty */
-                | PathMalformed(_path, msg) =>
-                  self |> queryConnection({j|Path malformed:
-$(msg)|j})
-                /* the process is not responding */
-                | ProcessHanging(_path) =>
-                  self |> queryConnection({j|The process is not responding|j})
-                /* from the shell */
-                | NotFound(path, error) =>
-                  self
-                  |> queryConnection(
-                       {j|Program at $(path) not found:
-$(error)|j},
-                     )
-                | ShellError(_path, error) =>
-                  self |> queryConnection({j|$(error)|j})
-                /* from its stderr */
-                | ProcessError(_path, msg) =>
-                  self |> queryConnection({j|Error from the stderr:
-$(msg)|j})
-                /* the process is not Agda */
-                | IsNotAgda(_path, msg) =>
-                  self
-                  |> queryConnection(
-                       {j|The given program is not agda:
-$(msg)|j},
-                     ),
-              )
-           |> then_(getMetadata(self))
+      |> catch(
+           Connection.handleValidationError(err =>
+             self
+             |> queryConnection(Some(Connection.Validation(path, err)))
+             |> then_(getMetadata(self))
+           ),
          );
     };
 
@@ -104,20 +78,8 @@ $(msg)|j},
     | None =>
       getAgdaPath()
       |> catch(
-           Connection.handleAutoSearchError(
-             fun
-             | Connection.NotSupported(os) =>
-               queryConnection(
-                 {j|Failed to search the path of Agda, as it's currently not supported on $os|j},
-                 self,
-               )
-             | Connection.NotFound(msg) =>
-               queryConnection(
-                 {j|Agda not found!
-$msg
-              |j},
-                 self,
-               ),
+           Connection.handleAutoSearchError(err =>
+             self |> queryConnection(Some(Connection.AutoSearch(err)))
            ),
          )
       |> then_(getMetadata(self))

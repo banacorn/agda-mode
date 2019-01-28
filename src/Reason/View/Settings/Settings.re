@@ -28,7 +28,7 @@ let at = (x, y, classNames) => {
 
 let make =
     (
-      ~inquireConnection: Util.Event.t((string, string)),
+      ~inquireConnection: Util.Event.t((option(Connection.error), string)),
       ~onInquireConnection: Util.Event.t(string),
       ~updateConnection: Util.Event.t(option(Connection.t)),
       ~navigate: Util.Event.t(uri),

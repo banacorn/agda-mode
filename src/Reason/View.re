@@ -16,7 +16,7 @@ module Handles = {
     updateMountTo: ref(mountTo => unit),
     updateActivation: ref(bool => unit),
     updateConnection: Event.t(option(Connection.t)),
-    inquireConnection: Event.t((string, string)),
+    inquireConnection: Event.t((option(Connection.error), string)),
     onInquireConnection: Event.t(string),
     inquireQuery: Event.t((string, string)),
     interceptAndInsertKey: ref(string => unit),

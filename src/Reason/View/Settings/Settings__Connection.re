@@ -7,11 +7,11 @@ type state = {
   connected: bool,
   editorRef: ref(option(Atom.TextEditor.t)),
   editorModel: ref(MiniEditor.Model.t),
-  message: string,
+  error: option(Connection.error),
   value: string,
 };
 type action =
-  | Inquire(string, string)
+  | Inquire(option(Connection.error), string)
   | Connect
   | Disconnect;
 
@@ -19,14 +19,14 @@ let initialState = () => {
   connected: false,
   editorRef: ref(None),
   editorModel: ref(MiniEditor.Model.make()),
-  message: "",
+  error: None,
   value: "",
 };
 let reducer = (action: action, state: state) =>
   switch (action) {
-  | Inquire(message, value) =>
+  | Inquire(error, value) =>
     UpdateWithSideEffects(
-      {...state, message, value},
+      {...state, error, value},
       _self =>
         Webapi.Dom.(
           state.editorRef^
@@ -45,9 +45,10 @@ let component = reducerComponent("Connection");
 let setEditorRef = (theRef, {ReasonReact.state}) => {
   state.editorRef := Some(theRef);
 };
+
 let make =
     (
-      ~inquireConnection: Util.Event.t((string, string)),
+      ~inquireConnection: Util.Event.t((option(Connection.error), string)),
       ~onInquireConnection: Util.Event.t(string),
       ~connection: option(Connection.t),
       ~hidden,
@@ -59,8 +60,8 @@ let make =
   didMount: self => {
     Util.Event.(
       inquireConnection
-      |> on(((message, value)) => {
-           self.send(Inquire(message, value));
+      |> on(((error, value)) => {
+           self.send(Inquire(error, value));
            /* onInquireConnection */
            let promise = self.state.editorModel^ |> MiniEditor.Model.inquire;
            onInquireConnection |> handlePromise(promise);
@@ -77,7 +78,7 @@ let make =
         |> addWhen("inquiring", !connected)
         |> serialize
       );
-    let {message, value} = self.state;
+    let {error, value} = self.state;
 
     <section className>
       <form>
@@ -140,11 +141,7 @@ let make =
                   {string("auto search")}
                 </button>
               </p>
-              {String.isEmpty(message) || connected ?
-                 null :
-                 <pre className="inset-panel padded text-warning error">
-                   {string(message)}
-                 </pre>}
+              {connected ? null : <Settings__Connection__Error error />}
             </div>
           </li>
         </ul>
