@@ -8,7 +8,21 @@ import { handleResponses } from './response-handler';
 import { Core } from './core';
 import * as Req from './request';
 import * as Action from './view/actions';
-import Table from './asset/query';
+import TableDefault from './asset/query';
+import * as Atom from 'atom';
+
+let Table = TableDefault
+let inputTriePath = atom.config.get('agda-mode.inputTriePath')
+if (inputTriePath) {
+  try {
+    const file = new Atom.File(inputTriePath + 'query.json')
+    file.read()
+      .then(str => Table = JSON.parse(str))
+      .then(_ => console.log('successful query change yay!!'))
+  } catch (err) {
+    console.log(err)
+  }
+}
 
 function toDescription(normalization: Agda.Normalization): string {
     switch(normalization) {
@@ -470,9 +484,12 @@ export default class Commander {
 
     private querySymbol = (): Promise<Agda.Request[]> => {
         const selectedText = this.core.editor.getTextEditor().getSelectedText();
+        console.log('selectedText', selectedText)
         if (selectedText.length > 0) {
             const symbol = selectedText[0];
+            console.log('symbol', symbol)
             const sequences = Table[symbol.codePointAt(0)] || [];
+            console.log('sequences', sequences)
             this.core.view.setPlainText(
                 `Input sequence for ${symbol}`,
                 sequences,
