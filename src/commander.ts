@@ -488,20 +488,20 @@ export default class Commander {
         if (selectedText.length > 0) {
             const symbol = selectedText[0];
             console.log('symbol', symbol)
-            const sequences = Table[symbol.codePointAt(0)] || [];
+            const sequences: string[] = Table[symbol.codePointAt(0)] || [];
             console.log('sequences', sequences)
             this.core.view.setPlainText(
                 `Input sequence for ${symbol}`,
-                sequences,
+                sequences.toString(),
                 View.Style.PlainText);
             return Promise.resolve([]);
         } else {
             return this.core.view.query(`Query Unicode symbol input sequences`, [], View.Style.PlainText, 'symbol:')
                 .then(symbol => {
-                    const sequences = Table[symbol.codePointAt(0)] || [];
+                    const sequences: string[] = Table[symbol.codePointAt(0)] || [];
                     this.core.view.setPlainText(
                         `Input sequence for ${symbol}`,
-                        sequences,
+                        sequences.toString(),
                         View.Style.PlainText);
                     return [];
                 });
