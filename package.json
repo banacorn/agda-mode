@@ -1,7 +1,7 @@
 {
   "name": "agda-mode",
   "main": "./lib/js/bundled",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "description": "agda-mode on Atom",
   "scripts": {
     "start": "bsb -make-world -w",
