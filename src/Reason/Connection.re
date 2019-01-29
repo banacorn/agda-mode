@@ -99,6 +99,7 @@ module ChildProcess = {
 
   [@bs.get] external stdout: t => Stream.Readable.t = "";
   [@bs.get] external stdin: t => Stream.Writable.t = "";
+  [@bs.val] external disconnect: t => unit = "";
 
   [@bs.send.pipe: t]
   external on:
@@ -140,15 +141,15 @@ type metadata = {
   protocol,
 };
 
-type connection = {
-  stdout: Stream.Readable.t,
-  stdin: Stream.Writable.t,
-  mutable queue: array(Util.TelePromise.t(string)),
-};
+/* type connection = {
+   stdout: Stream.Readable.t,
+   stdin: Stream.Writable.t, */
+/* }; */
 
 type t = {
   metadata,
-  sockets: connection,
+  process: ChildProcess.t,
+  mutable queue: array(Util.TelePromise.t(string)),
 };
 
 type autoSearchError =
@@ -175,7 +176,7 @@ type connectionError =
 type error =
   | AutoSearch(autoSearchError)
   | Validation(string, validationError)
-  | Connection(connection, connectionError);
+  | Connection(t, connectionError);
 
 exception AutoSearchExn(autoSearchError);
 exception ValidationExn(validationError);
@@ -384,37 +385,26 @@ let connect = (metadata): Js.Promise.t(t) => {
     process
     |> ChildProcess.stdout
     |> Stream.Readable.once(
-         `data(
-           _ =>
-             resolve(. {
-               metadata,
-               sockets: {
-                 stdin: process |> ChildProcess.stdin,
-                 stdout: process |> ChildProcess.stdout,
-                 queue: [||],
-               },
-             }),
-         ),
+         `data(_ => resolve(. {metadata, process, queue: [||]})),
        )
     |> ignore;
   });
 };
 
 let disconnect = self => {
-  /* end the stdin stream of Agda */
-  self.sockets.stdin |> Stream.Writable.end_ |> ignore;
+  self.process |> ChildProcess.disconnect;
 };
 
 let wire = (self): Js.Promise.t(t) => {
   /* resolves the requests in the queue */
   let response = data => {
     Js.log(data);
-    switch (self.sockets.queue[0]) {
+    switch (self.queue[0]) {
     | None => Js.log("WTF!!")
     | Some(req) =>
       req.resolve(data);
       /* should updates the queue */
-      self.sockets.queue |> Js.Array.pop |> ignore;
+      self.queue |> Js.Array.pop |> ignore;
     };
   };
 
@@ -441,18 +431,22 @@ let wire = (self): Js.Promise.t(t) => {
     };
   };
 
-  self.sockets.stdout |> Stream.Readable.on(`data(onData)) |> ignore;
+  self.process
+  |> ChildProcess.stdout
+  |> Stream.Readable.on(`data(onData))
+  |> ignore;
 
   Js.Promise.resolve(self);
 };
 
 let send = (request, self): Js.Promise.t(string) => {
   let reqPromise = Util.TelePromise.make();
-  self.sockets.queue |> Js.Array.push(reqPromise) |> ignore;
+  self.queue |> Js.Array.push(reqPromise) |> ignore;
 
   /* write */
-  self.sockets.stdin
-  |> Stream.Writable.write(request |> Node.Buffer.fromString)
+  self.process
+  |> ChildProcess.stdin
+  |> Stream.Writable.write(request ++ "\n" |> Node.Buffer.fromString)
   |> ignore;
 
   reqPromise.wire();

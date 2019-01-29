@@ -89,6 +89,20 @@ module Instance = {
     };
   };
 
+  let disconnect = self => {
+    switch (self.connection) {
+    | Some(connection) => Connection.disconnect(connection)
+    | None => ()
+    };
+  };
+
+  let getConnection = self => {
+    switch (self.connection) {
+    | Some(connection) => resolve(connection)
+    | None => connect(self)
+    };
+  };
+
   let deactivate = self => {
     self.view.updateActivation^(false);
   };
@@ -98,42 +112,55 @@ module Instance = {
     self.view.destroy^();
   };
 
-  /* let modeDisplay = self => {
-       self.view.updateMode^(Type.Interaction.Display);
-     };
-
-     let modeQuery = self => {
-       self.view.updateMode^(Type.Interaction.Query);
-     };
-
-     let interceptAndInsertKey = (self, key) => {
-       self.view.interceptAndInsertKey^(key);
-     };
-
-     let inputMethodHandle = (self, activate) => {
-       self.view.activateInputMethod^(activate);
-     };
-
-     let updateRawBody = (self, raw) => {
-       self.view.updateRawBody^(raw);
-     };
-
-     let updateHeader = (self, raw) => {
-       self.view.updateHeader^(raw);
-     };
-
-     let inquireQuery = (self, placeholder, value) => {
-       self.view.inquireQuery^(placeholder, value);
-     }; */
+  let prepareCommand =
+      (command: Command.Bare.t, self)
+      : Js.Promise.t(option(Command.Packed.t)) => {
+    let prepare = (command, self) => {
+      getConnection(self)
+      |> then_(connection =>
+           Some(
+             {
+               connection,
+               filepath: self.textEditor |> Atom.TextEditor.getPath,
+               command,
+             }: Command.Packed.t,
+           )
+           |> resolve
+         );
+    };
+    switch (command) {
+    | Load => self |> prepare(Load)
+    | Quit =>
+      disconnect(self);
+      resolve(None);
+    | Restart =>
+      disconnect(self);
+      self |> prepare(Load);
+    | InputSymbol(Ordinary) =>
+      let enabled = Atom.Environment.Config.get("agda-mode.inputMethod");
+      if (enabled) {
+        {};
+      } else {
+        {};
+      };
+      resolve(None);
+    | _ => self |> prepare(Load)
+    };
+  };
 
   let dispatch = (command, self) => {
-    connect(self);
-    Js.Promise.resolve(
-      "",
-      /* Js.Promise.(connect(self) |> then_(Command.dispatch(command))); */
-      /* Js.Promise.(connect(self) |> then_(Command.dispatch(command))); */
-    );
+    self
+    |> prepareCommand(command)
+    |> then_(prepared =>
+         switch (prepared) {
+         | None => resolve(None)
+         | Some(cmd) =>
+           let s = Command.Packed.serialize(cmd);
+           cmd.connection |> Connection.send(s) |> Option.some |> resolve;
+         }
+       );
   };
+
   let dispatchUndo = _self => {
     Js.log("Undo");
   };
@@ -217,7 +244,7 @@ let onTriggerCommand = () => {
          |> Option.forEach(self => {
               Js.log("triggering: " ++ command);
               self
-              |> Instance.dispatch(Command.parse(command))
+              |> Instance.dispatch(Command.Bare.parse(command))
               |> Js.Promise.then_(result =>
                    Js.log(result) |> Js.Promise.resolve
                  )

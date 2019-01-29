@@ -10,6 +10,8 @@ module Event = Util.Event;
 
 module Handles = {
   type t = {
+    onEditorsUpdate: Event.t(Editors.t),
+    getEditors: Event.t(unit),
     updateHeader: ref(header => unit),
     updateRawBody: ref(rawBody => unit),
     updateMode: ref(mode => unit),
@@ -31,6 +33,9 @@ module Handles = {
 
   /* creates all refs and return them */
   let make = () => {
+    let onEditorsUpdate = Event.make();
+    let getEditors = Event.make();
+
     let updateHeader = ref(_ => ());
 
     let updateRawBody = ref(_ => ());
@@ -60,6 +65,8 @@ module Handles = {
     let destroy = ref(_ => ());
 
     {
+      onEditorsUpdate,
+      getEditors,
       updateHeader,
       updateRawBody,
       updateMode,
@@ -178,16 +185,19 @@ let reducer = (handles: Handles.t, action, state) => {
     }
   | Deactivate => Update({...state, activated: false})
   | SetQueryRef(ref) =>
-    Update({
-      ...state,
-      editors: {
-        ...state.editors,
-        query: {
-          ...state.editors.query,
-          ref: Some(ref),
+    UpdateWithSideEffects(
+      {
+        ...state,
+        editors: {
+          ...state.editors,
+          query: {
+            ...state.editors.query,
+            ref: Some(ref),
+          },
         },
       },
-    })
+      self => handles.onEditorsUpdate |> Event.resolve(self.state.editors),
+    )
   | Focus(sort) =>
     UpdateWithSideEffects(
       {
@@ -197,7 +207,10 @@ let reducer = (handles: Handles.t, action, state) => {
           focused: sort,
         },
       },
-      self => self.state.editors |> Editors.Focus.on(sort),
+      self => {
+        handles.onEditorsUpdate |> Event.resolve(self.state.editors);
+        self.state.editors |> Editors.Focus.on(sort);
+      },
     )
   /* | InquireConnection(message, value) =>
      UpdateWithSideEffects(
@@ -217,7 +230,10 @@ let reducer = (handles: Handles.t, action, state) => {
           },
         },
       },
-      self => self.state.editors |> Editors.Focus.on(Editors.Query),
+      self => {
+        handles.onEditorsUpdate |> Event.resolve(self.state.editors);
+        self.state.editors |> Editors.Focus.on(Editors.Query);
+      },
     )
   | MountTo(mountTo) => SideEffects(self => mountPanel(self, mountTo))
   | ToggleSettingsTab(open_) =>
@@ -386,9 +402,8 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
 let initialize = textEditor => {
   let element = document |> Document.createElement("article");
   let handles = Handles.make();
-  ReactDOMRe.render(
-    ReasonReact.element(make(~textEditor, ~handles, [||])),
-    element,
-  );
+  let component = ReasonReact.element(make(~textEditor, ~handles, [||]));
+  ReactDOMRe.render(component, element);
+  Js.log(component);
   handles;
 };
