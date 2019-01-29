@@ -5,16 +5,17 @@ module Event = Util.Event;
 module Instance = {
   open Util.Promise;
   type t = {
-    textEditor: Atom.TextEditor.t,
+    editors: Editors.t,
     view: View.Handles.t,
     mutable connection: option(Connection.t),
   };
   let make = (textEditor: Atom.TextEditor.t) => {
-    {textEditor, view: View.initialize(textEditor), connection: None};
+    let editors = Editors.make(textEditor);
+    {editors, view: View.initialize(editors), connection: None};
   };
 
   let activate = self => {
-    self.view.updateActivation^(true);
+    self.view.activatePanel |> Event.resolve(true);
   };
 
   let connect = self => {
@@ -104,7 +105,7 @@ module Instance = {
   };
 
   let deactivate = self => {
-    self.view.updateActivation^(false);
+    self.view.activatePanel |> Event.resolve(false);
   };
 
   let destroy = self => {
@@ -121,7 +122,7 @@ module Instance = {
            Some(
              {
                connection,
-               filepath: self.textEditor |> Atom.TextEditor.getPath,
+               filepath: self.editors.source |> Atom.TextEditor.getPath,
                command,
              }: Command.Packed.t,
            )
@@ -136,12 +137,28 @@ module Instance = {
     | Restart =>
       disconnect(self);
       self |> prepare(Load);
-    | InputSymbol(Ordinary) =>
+    | InputSymbol(symbol) =>
       let enabled = Atom.Environment.Config.get("agda-mode.inputMethod");
       if (enabled) {
-        {};
+        switch (symbol) {
+        | Ordinary =>
+          self.view.activatePanel |> Event.resolve(true);
+          self.view.activateInputMethod |> Event.resolve(true);
+        | CurlyBracket =>
+          self.view.interceptAndInsertKey |> Event.resolve("{")
+        | Bracket => self.view.interceptAndInsertKey |> Event.resolve("[")
+        | Parenthesis => self.view.interceptAndInsertKey |> Event.resolve("(")
+        | DoubleQuote =>
+          self.view.interceptAndInsertKey |> Event.resolve("\"")
+        | SingleQuote => self.view.interceptAndInsertKey |> Event.resolve("'")
+        | BackQuote => self.view.interceptAndInsertKey |> Event.resolve("`")
+        };
+        ();
       } else {
-        {};
+        self.editors
+        |> Editors.Focus.get
+        |> Atom.TextEditor.insertText("\\")
+        |> ignore;
       };
       resolve(None);
     | _ => self |> prepare(Load)

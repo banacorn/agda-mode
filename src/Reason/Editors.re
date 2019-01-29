@@ -12,7 +12,7 @@ type sort =
    }; */
 
 type t = {
-  focused: sort,
+  mutable focused: sort,
   source: TextEditor.t,
   query: MiniEditor.Model.t,
   /* connection, */

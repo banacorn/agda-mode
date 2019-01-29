@@ -10,39 +10,35 @@ module Event = Util.Event;
 
 module Handles = {
   type t = {
-    onEditorsUpdate: Event.t(Editors.t),
-    getEditors: Event.t(unit),
     updateHeader: ref(header => unit),
     updateRawBody: ref(rawBody => unit),
     updateMode: ref(mode => unit),
     updateMountTo: ref(mountTo => unit),
-    updateActivation: ref(bool => unit),
+    activatePanel: Event.t(bool),
     updateConnection: Event.t(option(Connection.t)),
     inquireConnection: Event.t((option(Connection.error), string)),
     onInquireConnection: Event.t(string),
     inquireQuery: Event.t((string, string)),
-    interceptAndInsertKey: ref(string => unit),
-    activateInputMethod: ref(bool => unit),
     activateSettingsView: Event.t(bool),
     onSettingsView: Event.t(bool),
     navigateSettingsView: Event.t(Settings.uri),
     destroy: ref(unit => unit),
+    /* Input Method */
+    activateInputMethod: Event.t(bool),
+    interceptAndInsertKey: Event.t(string),
   };
 
   let hook = (f, handle) => f := handle;
 
   /* creates all refs and return them */
   let make = () => {
-    let onEditorsUpdate = Event.make();
-    let getEditors = Event.make();
+    let activatePanel = Event.make();
 
     let updateHeader = ref(_ => ());
 
     let updateRawBody = ref(_ => ());
 
     let updateMode = ref(_ => ());
-
-    let updateActivation = ref(_ => ());
 
     let updateMountTo = ref(_ => ());
 
@@ -52,10 +48,6 @@ module Handles = {
 
     let inquireQuery = Event.make();
 
-    let interceptAndInsertKey = ref(_ => ());
-
-    let activateInputMethod = ref(_ => ());
-
     let activateSettingsView = Event.make();
 
     let onSettingsView = Event.make();
@@ -64,24 +56,26 @@ module Handles = {
 
     let destroy = ref(_ => ());
 
+    let interceptAndInsertKey = Event.make();
+
+    let activateInputMethod = Event.make();
+
     {
-      onEditorsUpdate,
-      getEditors,
+      activatePanel,
       updateHeader,
       updateRawBody,
       updateMode,
-      updateActivation,
       updateMountTo,
       updateConnection,
       inquireConnection,
       onInquireConnection,
       inquireQuery,
-      interceptAndInsertKey,
-      activateInputMethod,
       activateSettingsView,
       onSettingsView,
       navigateSettingsView,
       destroy,
+      activateInputMethod,
+      interceptAndInsertKey,
     };
   };
 };
@@ -106,11 +100,10 @@ type state = {
   mountAt,
   activated: bool,
   settingsView: option(Tab.t),
-  editors: Editors.t,
   mode,
 };
 
-let initialState = (textEditor, _) => {
+let initialState = () => {
   {
     header: {
       text: "",
@@ -123,7 +116,6 @@ let initialState = (textEditor, _) => {
     mountAt: Bottom(createElement()),
     activated: false,
     settingsView: None,
-    editors: Editors.make(textEditor),
     mode: Display,
   };
 };
@@ -133,7 +125,7 @@ type action =
   | Focus(Editors.sort)
   /* Query Editor related */
   | SetQueryRef(Atom.TextEditor.t)
-  | InquireQuery(string, string)
+  /* | InquireQuery(string, string) */
   /* Settings Tab related */
   | ToggleSettingsTab(bool)
   | UpdateSettingsView(option(Tab.t))
@@ -147,14 +139,12 @@ type action =
   | UpdateRawBody(rawBody)
   | UpdateMode(mode);
 
-let mountPanel = (self, mountTo) => {
+let mountPanel = (editors: Editors.t, self, mountTo) => {
   let createTab = () =>
     Tab.make(
-      ~editor=self.state.editors.source,
+      ~editor=editors.source,
       ~getTitle=
-        () =>
-          "[Agda Mode] "
-          ++ Atom.TextEditor.getTitle(self.state.editors.source),
+        () => "[Agda Mode] " ++ Atom.TextEditor.getTitle(editors.source),
       ~onClose=_ => self.send(MountTo(ToBottom)),
       ~onOpen=
         (_, _, previousItem) => {
@@ -175,7 +165,7 @@ let mountPanel = (self, mountTo) => {
   };
 };
 
-let reducer = (handles: Handles.t, action, state) => {
+let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
   switch (action) {
   | Activate =>
     switch (state.mountAt) {
@@ -185,57 +175,33 @@ let reducer = (handles: Handles.t, action, state) => {
     }
   | Deactivate => Update({...state, activated: false})
   | SetQueryRef(ref) =>
-    UpdateWithSideEffects(
-      {
-        ...state,
-        editors: {
-          ...state.editors,
-          query: {
-            ...state.editors.query,
-            ref: Some(ref),
-          },
-        },
-      },
-      self => handles.onEditorsUpdate |> Event.resolve(self.state.editors),
-    )
-  | Focus(sort) =>
-    UpdateWithSideEffects(
-      {
-        ...state,
-        editors: {
-          ...state.editors,
-          focused: sort,
-        },
-      },
-      self => {
-        handles.onEditorsUpdate |> Event.resolve(self.state.editors);
-        self.state.editors |> Editors.Focus.on(sort);
-      },
-    )
+    SideEffects(_self => editors.query |> MiniEditor.Model.setRef(ref))
+  | Focus(sort) => SideEffects(_self => editors |> Editors.Focus.on(sort))
   /* | InquireConnection(message, value) =>
      UpdateWithSideEffects(
        {...state, connectionEditorMessage: message},
        self => self.state.editors |> Editors.Focus.on(Editors.Query),
      ) */
-  | InquireQuery(placeholder, value) =>
-    UpdateWithSideEffects(
-      {
-        ...state,
-        editors: {
-          ...state.editors,
-          query: {
-            ...state.editors.query,
-            placeholder,
-            value,
-          },
-        },
-      },
-      self => {
-        handles.onEditorsUpdate |> Event.resolve(self.state.editors);
-        self.state.editors |> Editors.Focus.on(Editors.Query);
-      },
-    )
-  | MountTo(mountTo) => SideEffects(self => mountPanel(self, mountTo))
+  /* | InquireQuery(placeholder, value) =>
+     UpdateWithSideEffects(
+       {
+         ...state,
+         editors: {
+           ...state.editors,
+           query: {
+             ...state.editors.query,
+             placeholder,
+             value,
+           },
+         },
+       },
+       self => {
+         handles.onEditorsUpdate |> Event.resolve(self.state.editors);
+         self.state.editors |> Editors.Focus.on(Editors.Query);
+       },
+     ) */
+  | MountTo(mountTo) =>
+    SideEffects(self => mountPanel(editors, self, mountTo))
   | ToggleSettingsTab(open_) =>
     SideEffects(
       self =>
@@ -244,24 +210,23 @@ let reducer = (handles: Handles.t, action, state) => {
           if (open_) {
             let tab =
               Tab.make(
-                ~editor=self.state.editors.source,
+                ~editor=editors.source,
                 ~getTitle=
                   () =>
-                    "[Settings] "
-                    ++ Atom.TextEditor.getTitle(self.state.editors.source),
+                    "[Settings] " ++ Atom.TextEditor.getTitle(editors.source),
                 ~onOpen=
                   (element, _, _) => {
                     open Handles;
                     let {
                       inquireConnection,
                       onInquireConnection,
-                      navigateSettingsView,
+                      updateConnection,
                     } = handles;
                     ReactDOMRe.render(
                       <Settings
-                        inquireConnection={handles.inquireConnection}
-                        onInquireConnection={handles.onInquireConnection}
-                        updateConnection={handles.updateConnection}
+                        inquireConnection
+                        onInquireConnection
+                        updateConnection
                         navigate={handles.navigateSettingsView}
                       />,
                       element,
@@ -310,19 +275,22 @@ let reducer = (handles: Handles.t, action, state) => {
 
 let component = reducerComponent("View");
 
-let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
+let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
   ...component,
-  initialState: initialState(textEditor),
-  reducer: reducer(handles),
+  initialState,
+  reducer: reducer(editors, handles),
   didMount: self => {
     open Util.Event;
+
+    /* activate/deactivate <Panel> */
+    handles.activatePanel
+    |> on(activate => self.send(activate ? Activate : Deactivate))
+    |> destroyWhen(self.onUnmount);
+
     Handles.hook(handles.updateMountTo, mountTo =>
       self.send(MountTo(mountTo))
     );
     Handles.hook(handles.updateMode, mode => self.send(UpdateMode(mode)));
-    Handles.hook(handles.updateActivation, activate =>
-      self.send(activate ? Activate : Deactivate)
-    );
     Handles.hook(handles.updateHeader, header =>
       self.send(UpdateHeader(header))
     );
@@ -350,7 +318,7 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
     |> destroyWhen(self.onUnmount);
   },
   render: self => {
-    let {header, body, mountAt, mode, activated, editors} = self.state;
+    let {header, body, mountAt, mode, activated} = self.state;
     let element: Element.t =
       switch (mountAt) {
       | Bottom(element) => element
@@ -377,21 +345,21 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
         }
         onEditorConfirm={result => {
           editors.query |> MiniEditor.Model.answer(result);
-          handles.activateInputMethod^(false);
+          handles.activateInputMethod |> Event.resolve(false);
           self.send(Focus(Source));
           self.send(UpdateMode(Display));
         }}
         onEditorCancel={(.) => {
           editors.query |> MiniEditor.Model.reject(Editors.QueryCancelled);
-          handles.activateInputMethod^(false);
+          handles.activateInputMethod |> Event.resolve(false);
           self.send(Focus(Source));
           self.send(UpdateMode(Display));
         }}
         onEditorRef={ref => self.send(SetQueryRef(ref))}
         editorValue={editors.query.value}
         editorPlaceholder={editors.query.placeholder}
-        interceptAndInsertKey={Handles.hook(handles.interceptAndInsertKey)}
-        activateInputMethod={Handles.hook(handles.activateInputMethod)}
+        interceptAndInsertKey={handles.interceptAndInsertKey}
+        activateInputMethod={handles.activateInputMethod}
         activateSettingsView={handles.activateSettingsView}
         onSettingsViewToggle={status => self.send(ToggleSettingsTab(status))}
       />
@@ -399,11 +367,11 @@ let make = (~textEditor: Atom.TextEditor.t, ~handles: Handles.t, _children) => {
   },
 };
 
-let initialize = textEditor => {
+let initialize = editors => {
   let element = document |> Document.createElement("article");
   let handles = Handles.make();
-  let component = ReasonReact.element(make(~textEditor, ~handles, [||]));
+  let component = ReasonReact.element(make(~editors, ~handles, [||]));
   ReactDOMRe.render(component, element);
-  Js.log(component);
+  /* return the handles for drilling */
   handles;
 };

@@ -8,7 +8,7 @@ module Model = {
   type t = {
     value: string,
     placeholder: string,
-    ref: option(Atom.TextEditor.t),
+    mutable ref: option(Atom.TextEditor.t),
     telePromise: Util.TelePromise.t(string),
   };
 
@@ -23,6 +23,10 @@ module Model = {
   };
   let answer = (x, self) => self.telePromise.resolve(x);
   let reject = (x, self) => self.telePromise.reject(x);
+
+  let setRef = (ref, self) => {
+    self.ref = Some(ref);
+  };
 };
 
 let focus = editor => {

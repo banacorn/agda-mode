@@ -411,8 +411,8 @@ let make =
         we cannot simply detect which key was pressed, so we can only hardwire
         the keys we wanna intercept from the Keymaps
          */
-      ~interceptAndInsertKey: (string => unit) => unit,
-      ~activationHandle: (bool => unit) => unit,
+      ~interceptAndInsertKey: Util.Event.t(string),
+      ~activateInputMethod: Util.Event.t(bool),
       ~onActivationChange: bool => unit,
       _children,
     ) => {
@@ -420,11 +420,13 @@ let make =
   initialState,
   reducer: reducer(editors, onActivationChange),
   didMount: self => {
-    /* binding for the JS */
-    interceptAndInsertKey(char =>
-      self.send(InsertSurfaceAndUnderlying(char))
-    );
-    activationHandle(activate => self.send(activate ? Activate : Deactivate));
+    interceptAndInsertKey
+    |> Util.Event.on(char => self.send(InsertSurfaceAndUnderlying(char)))
+    |> Util.Event.destroyWhen(self.onUnmount);
+
+    activateInputMethod
+    |> Util.Event.on(activate => self.send(activate ? Activate : Deactivate))
+    |> Util.Event.destroyWhen(self.onUnmount);
     /* listening some events */
     let garbages = Garbages.make();
     /* intercept newline `\n` as confirm */

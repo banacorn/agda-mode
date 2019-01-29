@@ -51,8 +51,8 @@ let make =
       ~onEditorRef: Atom.TextEditor.t => unit,
       ~editorPlaceholder: string,
       ~editorValue: string,
-      ~interceptAndInsertKey: (string => unit) => unit,
-      ~activateInputMethod: (bool => unit) => unit,
+      ~interceptAndInsertKey: Util.Event.t(string),
+      ~activateInputMethod: Util.Event.t(bool),
       ~activateSettingsView: Util.Event.t(bool),
       ~onSettingsViewToggle: bool => unit,
       /* ~onGeneralEditorChange: Editors.miniEditor => unit,
@@ -104,7 +104,7 @@ let make =
             <InputMethod
               editors
               interceptAndInsertKey
-              activationHandle=activateInputMethod
+              activateInputMethod
               onActivationChange={activated =>
                 self.send(UpdateInputMethodActivation(activated))
               }
