@@ -254,33 +254,35 @@ let onEditorActivationChange = () => {
 
 /* register keymap bindings and emit commands */
 let onTriggerCommand = () => {
-  Command.names
-  |> Array.forEach(command =>
-       Environment.Commands.add(
-         `CSSSelector("atom-text-editor"), "agda-mode:" ++ command, _event =>
-         Environment.Workspace.getActiveTextEditor()
-         |> Option.flatMap(Instances.get)
-         |> Option.forEach(self => {
-              Js.log("triggering: " ++ command);
-              self
-              |> Instance.dispatch(Command.Bare.parse(command))
-              |> Js.Promise.then_(result =>
-                   result
-                   |> Option.forEach(x =>
-                        x
-                        |> Js.String.split("\n")
-                        |> Array.map(x => Js.String.trim(x))
-                        |> Array.map(Emacs.Parser.SExpression.parse)
-                        |> Js.log
-                      )
-                   |> Js.Promise.resolve
-                 )
-              /* Js.log(result) |> Js.Promise.resolve; */
-              |> ignore;
-            })
+  Util.Promise.(
+    Command.names
+    |> Array.forEach(command =>
+         Environment.Commands.add(
+           `CSSSelector("atom-text-editor"), "agda-mode:" ++ command, _event =>
+           Environment.Workspace.getActiveTextEditor()
+           |> Option.flatMap(Instances.get)
+           |> Option.forEach(self => {
+                Js.log("triggering: " ++ command);
+                self
+                |> Instance.dispatch(Command.Bare.parse(command))
+                |> thenDrop(
+                     Option.forEach(x =>
+                       x
+                       |> Js.String.splitByRe([%re "/\\r\\n|\\n/"])
+                       |> Array.forEach(line =>
+                            line
+                            |> Js.String.trim
+                            |> Emacs.Parser.SExpression.parse
+                            |> Result.flatMap(Response.parse)
+                            |> Result.forEach(Js.log)
+                          )
+                     ),
+                   );
+              })
+         )
+         |> CompositeDisposable.add(subscriptions)
        )
-       |> CompositeDisposable.add(subscriptions)
-     );
+  );
 };
 
 /* hijack UNDO */

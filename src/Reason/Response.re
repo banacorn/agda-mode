@@ -89,7 +89,9 @@ module Info = {
 
   let parse = (xs: array(Token.t)): option(t) => {
     switch (xs[1]) {
-    | Some(A(payload)) =>
+    | Some(A(rawPayload)) =>
+      let payload =
+        rawPayload |> Js.String.replaceByRe([%re "/\\\\r\\\\n|\\\\n/g"], "\n");
       switch (xs[0]) {
       | Some(A("*Compilation result*")) => Some(CompilationOk)
       | Some(A("*Constraints*")) =>
@@ -118,7 +120,7 @@ module Info = {
           ),
         )
       | _ => None
-      }
+      };
     | _ => None
     };
   };
@@ -277,7 +279,7 @@ let parse = (tokens: Token.t): result(t, string) => {
         | _ => Ok(ClearRunningInfo)
         }
       | _ =>
-        switch (Info.parse(xs |> Js.Array.sliceFrom(2))) {
+        switch (Info.parse(xs |> Js.Array.sliceFrom(1))) {
         | Some(info) => Ok(DisplayInfo(info))
         | None => err
         }

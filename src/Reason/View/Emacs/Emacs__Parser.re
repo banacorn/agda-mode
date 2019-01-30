@@ -524,7 +524,8 @@ module SExpression = {
 
   let preprocess = (string: string): result(string, string) => {
     /* Replace window's \\ in paths with /, so that \n doesn't get treated as newline. */
-    let result = ref(string |> Js.String.replaceByRe([%re "/\\\\/g"], "/"));
+    let result =
+      ref(string |> Js.String.replaceByRe([%re "/\\\\\\\\/g"], "/"));
 
     /* handles Agda parse error */
     if (result^ |> Js.String.substring(~from=0, ~to_=13) === "cannot read: ") {
@@ -612,7 +613,15 @@ module SExpression = {
     };
     switch (stack[0]) {
     | None => Error(string)
-    | Some(v) => Ok(v^)
+    | Some(v) =>
+      switch (v^) {
+      | L(xs) =>
+        switch (xs[0]) {
+        | None => Error(string)
+        | Some(w) => Ok(w)
+        }
+      | _ => Error(string)
+      }
     };
   };
 
