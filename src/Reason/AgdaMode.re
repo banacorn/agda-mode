@@ -165,7 +165,7 @@ module Instance = {
     };
   };
 
-  let dispatch = (command, self) => {
+  let dispatch = (command, self): Js.Promise.t(option(string)) => {
     self
     |> prepareCommand(command)
     |> then_(prepared =>
@@ -173,7 +173,9 @@ module Instance = {
          | None => resolve(None)
          | Some(cmd) =>
            let s = Command.Packed.serialize(cmd);
-           cmd.connection |> Connection.send(s) |> Option.some |> resolve;
+           cmd.connection
+           |> Connection.send(s)
+           |> Util.Promise.map(Option.some);
          }
        );
   };
@@ -263,8 +265,17 @@ let onTriggerCommand = () => {
               self
               |> Instance.dispatch(Command.Bare.parse(command))
               |> Js.Promise.then_(result =>
-                   Js.log(result) |> Js.Promise.resolve
+                   result
+                   |> Option.forEach(x =>
+                        x
+                        |> Js.String.split("\n")
+                        |> Array.map(x => Js.String.trim(x))
+                        |> Array.map(Emacs.Parser.SExpression.parse)
+                        |> Js.log
+                      )
+                   |> Js.Promise.resolve
                  )
+              /* Js.log(result) |> Js.Promise.resolve; */
               |> ignore;
             })
        )

@@ -4,7 +4,7 @@ open Rebase.Option;
 
 open Util.Parser;
 
-open Type.Interaction.Emacs;
+/* open Type.Interaction.Emacs; */
 
 let unindent: array(string) => array(string) =
   lines => {
@@ -49,25 +49,25 @@ let unindent: array(string) => array(string) =
        );
   };
 
-let filepath =
-  String(
-    raw => {
-      open Js.String;
-      /* remove newlines and sanitize with path.parse  */
-      let parsed = raw |> replace("\n", "") |> Node.Path.parse;
-      /* join it back and replace Windows' stupid backslash with slash */
-      let joined =
-        Node.Path.join2(parsed##dir, parsed##base)
-        |> split(Node.Path.sep)
-        |> List.fromArray
-        |> String.joinWith("/");
-      if (charCodeAt(0, joined) === 8234.0) {
-        joined |> sliceToEnd(~from=1) |> trim |> some;
-      } else {
-        joined |> trim |> some;
-      };
-    },
-  );
+/* let filepath =
+   String(
+     raw => {
+       open Js.String;
+       /* remove newlines and sanitize with path.parse  */
+       let parsed = raw |> replace("\n", "") |> Node.Path.parse;
+       /* join it back and replace Windows' stupid backslash with slash */
+       let joined =
+         Node.Path.join2(parsed##dir, parsed##base)
+         |> split(Node.Path.sep)
+         |> List.fromArray
+         |> String.joinWith("/");
+       if (charCodeAt(0, joined) === 8234.0) {
+         joined |> sliceToEnd(~from=1) |> trim |> some;
+       } else {
+         joined |> trim |> some;
+       };
+     },
+   ); */
 
 let range =
   Regex(
@@ -144,24 +144,28 @@ let range =
     },
   );
 
-let expr =
-  String(
-    raw =>
-      raw
-      |> String.trim
-      /*                            1         2                        */
-      |> Js.String.splitByRe([%re "/(\\?\\d+)|(\\_\\d+[^\\}\\)\\s]*)/"])
-      |> Array.mapi((token, i) =>
-           switch (i mod 3) {
-           | 1 => QuestionMark(token)
-           | 2 => Underscore(token)
-           | _ => Plain(token)
-           }
-         )
-      |> some,
+let expr = {
+  Type.Interaction.Emacs.(
+    String(
+      raw =>
+        raw
+        |> String.trim
+        /*                            1         2                        */
+        |> Js.String.splitByRe([%re "/(\\?\\d+)|(\\_\\d+[^\\}\\)\\s]*)/"])
+        |> Array.mapi((token, i) =>
+             switch (i mod 3) {
+             | 1 => QuestionMark(token)
+             | 2 => Underscore(token)
+             | _ => Plain(token)
+             }
+           )
+        |> some,
+    )
   );
+};
 
 module OutputConstraint = {
+  open Type.Interaction.Emacs;
   let ofType =
     Regex(
       [%re "/^([^\\:]*) \\: ((?:\\n|.)+)/"],
@@ -188,7 +192,7 @@ module OutputConstraint = {
     String(raw => raw |> parse(expr) |> map(raw' => Others(raw')));
 };
 
-let outputConstraint: parser(outputConstraint) =
+let outputConstraint: parser(Type.Interaction.Emacs.outputConstraint) =
   choice([|
     OutputConstraint.ofType,
     OutputConstraint.justType,
@@ -197,6 +201,7 @@ let outputConstraint: parser(outputConstraint) =
   |]);
 
 module Output = {
+  open Type.Interaction.Emacs;
   let outputWithoutRange: parser(output) =
     String(
       raw => raw |> parse(outputConstraint) |> map(x => Output(x, None)),
@@ -214,7 +219,7 @@ module Output = {
     );
 };
 
-let output: parser(output) =
+let output: parser(Type.Interaction.Emacs.output) =
   String(
     raw => {
       let rangeRe = [%re
@@ -229,7 +234,7 @@ let output: parser(output) =
     },
   );
 
-let plainText: parser(plainText) =
+let plainText: parser(Type.Interaction.Emacs.plainText) =
   String(
     raw =>
       Type.(
@@ -251,13 +256,17 @@ let plainText: parser(plainText) =
   );
 
 /* warnings or errors */
-let warningOrErrors: bool => parser(warningError) =
+let warningOrErrors: bool => parser(Type.Interaction.Emacs.warningError) =
   isWarning =>
     String(
       raw =>
         raw
         |> parse(plainText)
-        |> map(body => isWarning ? WarningMessage(body) : ErrorMessage(body)),
+        |> map(body =>
+             isWarning ?
+               Type.Interaction.Emacs.WarningMessage(body) :
+               Type.Interaction.Emacs.ErrorMessage(body)
+           ),
     );
 
 let warning = warningOrErrors(true);
@@ -294,6 +303,7 @@ let partiteMetas =
   });
 
 module Response = {
+  open Type.Interaction.Emacs;
   let partiteWarningsOrErrors = key =>
     Util.Dict.update(
       key,
@@ -313,7 +323,7 @@ module Response = {
         |> Array.map(xs => xs |> List.fromArray |> String.joinWith("\n"));
       },
     );
-  let allGoalsWarnings = (title, body) : allGoalsWarnings => {
+  let allGoalsWarnings = (title, body): allGoalsWarnings => {
     let partiteAllGoalsWarnings: (string, string) => Js.Dict.t(array(string)) =
       (title, body) => {
         let lines = body |> Js.String.split("\n");
@@ -332,7 +342,7 @@ module Response = {
               line
               |> Js.String.slice(~from=5, ~to_=13)
               |> Js.String.match([%re "/Warnings/"])
-              |> map((_) => "warnings") :
+              |> map(_ => "warnings") :
               /* Has only warnings */
               i === 0 ? Some("warnings") : None :
             /* Has no warnings */
@@ -344,7 +354,7 @@ module Response = {
               line
               |> Js.String.slice(~from=5, ~to_=11)
               |> Js.String.match([%re "/Errors/"])
-              |> map((_) => "errors") :
+              |> map(_ => "errors") :
               /* Has only errors */
               i === 0 ? Some("errors") : None :
             None;
@@ -383,13 +393,11 @@ module Response = {
   let goalTypeContext: string => goalTypeContext =
     raw => {
       let markGoal = ((line, _)) =>
-        line |> Js.String.match([%re "/^Goal:/"]) |> map((_) => "goal");
+        line |> Js.String.match([%re "/^Goal:/"]) |> map(_ => "goal");
       let markHave = ((line, _)) =>
-        line |> Js.String.match([%re "/^Have:/"]) |> map((_) => "have");
+        line |> Js.String.match([%re "/^Have:/"]) |> map(_ => "have");
       let markMetas = ((line, _)) =>
-        line
-        |> Js.String.match([%re "/\\u2014{60}/g"])
-        |> map((_) => "metas");
+        line |> Js.String.match([%re "/\\u2014{60}/g"]) |> map(_ => "metas");
       let partiteGoalTypeContext =
         Util.Dict.partite(line =>
           or_(or_(markGoal(line), markHave(line)), markMetas(line))
@@ -505,4 +513,110 @@ let parseWhyInScope = raw => {
          Component.Range.toAtomFilepath(range),
        )
      );
+};
+
+/* Parsing S-Expressions */
+/* Courtesy of @NightRa */
+module SExpression = {
+  type t =
+    | A(string)
+    | L(array(t));
+
+  let preprocess = (string: string): result(string, string) => {
+    /* Replace window's \\ in paths with /, so that \n doesn't get treated as newline. */
+    let result = ref(string |> Js.String.replaceByRe([%re "/\\\\/g"], "/"));
+
+    /* handles Agda parse error */
+    if (result^ |> Js.String.substring(~from=0, ~to_=13) === "cannot read: ") {
+      Error(Js.String.sliceToEnd(~from=12, result^));
+    } else if
+      /* drop priority prefixes like ((last . 1)) as they are all constants with respect to responses
+
+         the following text from agda-mode.el explains what are those
+         "last . n" prefixes for:
+             Every command is run by this function, unless it has the form
+             "(('last . priority) . cmd)", in which case it is run by
+             `agda2-run-last-commands' at the end, after the Agda2 prompt
+             has reappeared, after all non-last commands, and after all
+             interactive highlighting is complete. The last commands can have
+             different integer priorities; those with the lowest priority are
+             executed first. */
+      (result^ |> String.startsWith("((last")) {
+      let index = result^ |> Js.String.indexOf("(agda");
+      Ok(
+        result^
+        |> Js.String.substring(~from=index, ~to_=String.length(string) - 1),
+      );
+    } else {
+      Ok(result^);
+    };
+  };
+
+  let rec toString =
+    fun
+    | A(s) => "\"" ++ s ++ "\""
+    | L(xs) =>
+      "[" ++ (Array.map(toString, xs) |> Js.Array.joinWith(", ")) ++ "]";
+
+  let rec flatten: t => array(string) =
+    fun
+    | A(s) => [|s|]
+    | L(xs) => xs |> Array.flatMap(flatten);
+
+  let postprocess = (string: string): result(t, string) => {
+    let stack: array(ref(t)) = [|ref(L([||]))|];
+    let word = ref("");
+    let in_str = ref(false);
+
+    let pushToTheTop = (elem: t) => {
+      let index = Array.length(stack) - 1;
+
+      switch (stack[index]) {
+      | Some(expr) =>
+        switch (expr^) {
+        | A(_) => expr := L([|expr^, elem|])
+        | L(xs) => xs |> Js.Array.push(elem) |> ignore
+        }
+      | None => ()
+      };
+    };
+    /* iterates through the string */
+    let totalLength = String.length(string);
+    for (i in 0 to totalLength - 1) {
+      let char = string |> Js.String.charAt(i);
+
+      /* drop all single quotes: 'param => param */
+      if (char == "\'" && ! in_str^) {
+        ();
+      } else if (char == "(" && ! in_str^) {
+        stack |> Js.Array.push(ref(L([||]))) |> ignore;
+      } else if (char == ")" && ! in_str^) {
+        pushToTheTop(A(word^));
+        word := "";
+        switch (stack |> Js.Array.pop) {
+        | Some(expr) => pushToTheTop(expr^)
+        | None => ()
+        };
+      } else if (char == " " && ! in_str^) {
+        pushToTheTop(A(word^));
+        word := "";
+      } else if (char == "\"") {
+        in_str := ! in_str^;
+      } else {
+        word := word^ ++ char;
+      };
+
+      if (stack |> Array.length === 0) {
+        Js.log(string);
+      };
+    };
+    switch (stack[0]) {
+    | None => Error(string)
+    | Some(v) => Ok(v^)
+    };
+  };
+
+  let parse = (string: string): result(t, string) => {
+    string |> preprocess |> Result.flatMap(postprocess);
+  };
 };
