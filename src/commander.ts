@@ -10,7 +10,7 @@ import * as Req from './request';
 import * as Action from './view/actions';
 import Table from './asset/query';
 
-const HoleRE = require('./Reason/Hole.bs');
+const GoalRE = require('./Reason/Goal.bs');
 const AgdaModeRE = require('./Reason/AgdaMode.bs');
 const EditorRE = require('./Reason/Editors.bs');
 
@@ -327,11 +327,11 @@ export default class Commander {
         return this.core.editor.pointing()
             .then(hole => {
                 // goal-specific
-                if (HoleRE.isEmpty(hole)) {
+                if (GoalRE.isEmpty(hole)) {
                     return this.core.view.query(`Infer type ${toDescription(normalization)}`, [], 'expression to infer:')
                         .then(expr => [Req.inferType(normalization, expr, hole)(command, connection)])
                 } else {
-                    return [Req.inferType(normalization, HoleRE.getContent(hole), hole)(command, connection)];
+                    return [Req.inferType(normalization, GoalRE.getContent(hole), hole)(command, connection)];
                 }
             })
             .catch(() => {
@@ -355,11 +355,11 @@ export default class Commander {
     private computeNormalForm = (computeMode: Agda.ComputeMode) => (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
         return this.core.editor.pointing()
             .then((hole) => {
-                if (HoleRE.isEmpty(hole)) {
+                if (GoalRE.isEmpty(hole)) {
                     return this.core.view.query(`Compute normal form`, [], 'expression to normalize:')
                         .then(expr => [Req.computeNormalForm(computeMode, expr, hole)(command, connection)])
                 } else {
-                    return [Req.computeNormalForm(computeMode, HoleRE.getContent(hole), hole)(command, connection)]
+                    return [Req.computeNormalForm(computeMode, GoalRE.getContent(hole), hole)(command, connection)]
                 }
             })
             .catch(Err.OutOfGoalError, () => {
@@ -376,9 +376,9 @@ export default class Commander {
     private give = (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
         return this.core.editor.pointing()
             .then((hole) => {
-                if (HoleRE.isEmpty(hole)) {
+                if (GoalRE.isEmpty(hole)) {
                     return this.core.view.query('Give', [], 'expression to give:')
-                        .then(s => HoleRE.setContent(hole, s));
+                        .then(s => GoalRE.setContent(hole, s));
                 } else {
                     return hole;
                 }
@@ -411,9 +411,9 @@ export default class Commander {
     private case = (command: Agda.Command, connection: Connection): Promise<Agda.Request[]> => {
         return this.core.editor.pointing()
             .then((hole) => {
-                if (HoleRE.isEmpty(hole)) {
+                if (GoalRE.isEmpty(hole)) {
                     return this.core.view.query('Case', [], 'the argument to case:')
-                        .then(s => HoleRE.setContent(hole, s));
+                        .then(s => GoalRE.setContent(hole, s));
                 } else {
                     return hole;
                 }

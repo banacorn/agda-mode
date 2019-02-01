@@ -7,7 +7,7 @@ import { parseHole, parseFilepath } from './parser';
 import { Core } from './core';
 import { OutOfGoalError, EmptyGoalError } from './error';
 // import Goal from './editor/goal';
-const HoleRE = require('./Reason/Hole.bs');
+const GoalRE = require('./Reason/Goal.bs');
 const EditorRE = require('./Reason/Editors.bs');
 
 import { Point, Range } from 'atom';
@@ -157,7 +157,7 @@ export default class Editor {
     // TODO: temporary
     pointing(cursor = this.textEditor.getCursorBufferPosition()): Promise<any> {
         const holes = this.goals.filter((hole) => {
-            return HoleRE.range(hole).containsPoint(cursor, false);
+            return GoalRE.range(hole).containsPoint(cursor, false);
         });
 
         if (_.isEmpty(holes))
@@ -174,9 +174,9 @@ export default class Editor {
         const goal = EditorRE.jsGoalsPointingAt(position, this.goals);
         if (goal) {
             // reposition the cursor in the goal only if it's a fresh hole (coming from '?')
-            const isFreshHole = HoleRE.isEmpty(goal);
+            const isFreshHole = GoalRE.isEmpty(goal);
             if (isFreshHole) {
-                const newPosition = this.translate(Point.fromObject(HoleRE.range(goal).start), 3);
+                const newPosition = this.translate(Point.fromObject(GoalRE.range(goal).start), 3);
                 setTimeout(() => {
                     this.textEditor.setCursorBufferPosition(newPosition);
                 });
@@ -198,7 +198,7 @@ export default class Editor {
         const cursor = this.textEditor.getCursorBufferPosition();
         let nextGoal = null;
         const positions = this.goals.map((goal) => {
-            return this.translate(Point.fromObject(HoleRE.range(goal).start), 3);
+            return this.translate(Point.fromObject(GoalRE.range(goal).start), 3);
         });
 
         positions.forEach((position) => {
@@ -223,7 +223,7 @@ export default class Editor {
         let previousGoal = null;
 
         const positions = this.goals.map((goal) => {
-            return this.translate(Point.fromObject(HoleRE.range(goal).start), 3);
+            return this.translate(Point.fromObject(GoalRE.range(goal).start), 3);
         });
 
         positions.forEach((position) => {
@@ -246,7 +246,7 @@ export default class Editor {
     jumpToGoal(index: number) {
         const goal = EditorRE.jsGoalsFind(index, this.goals);
         if (goal) {
-            const position = this.translate(Point.fromObject(HoleRE.range(goal).start), 3);
+            const position = this.translate(Point.fromObject(GoalRE.range(goal).start), 3);
             this.textEditor.setCursorBufferPosition(position);
             this.focus();
         }
@@ -272,11 +272,11 @@ export default class Editor {
                 let tempRange;
                 if (range.start.row === 0) {
                     tempRange = range
-                        .translate(HoleRE.range(goal).start)
+                        .translate(GoalRE.range(goal).start)
                         .translate([0, 3]);  // hole boundary
                 } else {
                     tempRange = range
-                        .translate([HoleRE.range(goal).start.row, 0]);
+                        .translate([GoalRE.range(goal).start.row, 0]);
                 }
                 this.textEditor.setSelectedBufferRange(tempRange, {
                     reversed: true
@@ -306,7 +306,7 @@ export default class Editor {
             this.goals = parseHole(textRaw, indices, fileType).map((goal) => {
                 const range = this.fromIndexRange(goal.originalRange);
                 this.textEditor.setTextInBufferRange(range, goal.content);
-                return HoleRE.make(this.textEditor, goal.index, goal.modifiedRange.start, goal.modifiedRange.end);
+                return GoalRE.make(this.textEditor, goal.index, goal.modifiedRange.start, goal.modifiedRange.end);
             });
         });
     }
@@ -314,7 +314,7 @@ export default class Editor {
     onSolveAll(index: number, content: string): Promise<any> {
         return this.protectCursor(() => {
             const goal = EditorRE.jsGoalsFind(index, this.goals);
-            HoleRE.setContent(goal, content);
+            GoalRE.setContent(goal, content);
             return goal;
         });
     }
@@ -329,18 +329,18 @@ export default class Editor {
             const goal = EditorRE.jsGoalsFind(index, this.goals);
             switch (giveResult) {
                 case 'Paren':
-                    result = HoleRE.getContent(goal);
-                    HoleRE.setContent(goal, `(${result})`);
+                    result = GoalRE.getContent(goal);
+                    GoalRE.setContent(goal, `(${result})`);
                     break;
                 case 'NoParen':
                     // do nothing
                     break;
                 case 'String':
                     result = result.replace(/\\n/g, '\n');
-                    HoleRE.setContent(goal, result);
+                    GoalRE.setContent(goal, result);
                     break;
             }
-            HoleRE.removeBoundary(goal);
+            GoalRE.removeBoundary(goal);
             EditorRE.jsGoalsDestroy(index, this.goals);
         });
     }
@@ -352,10 +352,10 @@ export default class Editor {
             if (goal) {
                 switch (variant) {
                     case 'Function':
-                        HoleRE.writeLines(goal, result);
+                        GoalRE.writeLines(goal, result);
                         break;
                     case 'ExtendedLambda':
-                        HoleRE.writeLambda(goal, result);
+                        GoalRE.writeLambda(goal, result);
                         break;
                 }
             } else {
@@ -399,28 +399,28 @@ export default class Editor {
 //
 //     remove(index: number) {
 //         this.holes
-//             .filter((hole) => { return HoleRE.index(hole) === index; })
-//             .forEach((hole) => { HoleRE.destroy(hole); });
+//             .filter((hole) => { return GoalRE.index(hole) === index; })
+//             .forEach((hole) => { GoalRE.destroy(hole); });
 //         this.holes = this.holes
-//                 .filter((hole) => { return HoleRE.index(hole) !== index; })
+//                 .filter((hole) => { return GoalRE.index(hole) !== index; })
 //     }
 //
 //     removeAll() {
 //         this.holes.forEach((hole) => {
-//             HoleRE.destroy(hole);
+//             GoalRE.destroy(hole);
 //         });
 //         this.holes = [];
 //     }
 //
 //     find(index: number): any {
-//         const holes = this.holes.filter((hole) => { return HoleRE.index(hole) === index; })
+//         const holes = this.holes.filter((hole) => { return GoalRE.index(hole) === index; })
 //         return holes[0];
 //     }
 //
 //     // the goal where the cursor is positioned
 //     pointing(cursor = this.textEditor.getCursorBufferPosition()): Promise<any> {
 //         const holes = this.holes.filter((hole) => {
-//             return HoleRE.range(hole).containsPoint(cursor, false);
+//             return GoalRE.range(hole).containsPoint(cursor, false);
 //         });
 //
 //         if (_.isEmpty(holes))
@@ -431,7 +431,7 @@ export default class Editor {
 //
 //     // reject if goal is empty
 //     guardGoalHasContent(hole): Promise<any> {
-//         if (HoleRE.getContent(hole)) {
+//         if (GoalRE.getContent(hole)) {
 //             return Promise.resolve(hole);
 //         } else {
 //             return Promise.reject(new EmptyGoalError('goal is empty', hole));

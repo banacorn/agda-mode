@@ -3,7 +3,7 @@ import { parseFilepath, parseInputContent } from './parser/util';
 import { Agda, Conn } from './type';
 import * as semver from 'semver';
 // import Goal from './editor/goal';
-const HoleRE = require('./Reason/Hole.bs');
+const GoalRE = require('./Reason/Goal.bs');
 
 Promise.longStackTraces();  // for debugging
 
@@ -36,10 +36,10 @@ const buildRequest = (highlightingLevel: string, interaction: string | ((conn: C
 
 function buildRange(conn: Conn.Connection, hole): string {
     if (semver.gte(conn.version.sem, '2.5.1')) {
-        return HoleRE.buildHaskellRange(false, conn.filepath, hole);
+        return GoalRE.buildHaskellRange(false, conn.filepath, hole);
         // return `(intervalsToRange (Just (mkAbsolute \"${conn.filepath}\")) [Interval (Pn () ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn () ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
     } else {
-        return HoleRE.buildHaskellRange(true, conn.filepath, hole);
+        return GoalRE.buildHaskellRange(true, conn.filepath, hole);
         // return `(Range [Interval (Pn (Just (mkAbsolute \"${conn.filepath}\")) ${startIndex + 3} ${start.row + 1} ${start.column + 3}) (Pn (Just (mkAbsolute \"${conn.filepath}\")) ${endIndex - 1} ${end.row + 1} ${end.column - 1})])`
     }
 }
@@ -79,29 +79,29 @@ export const searchAbout = (normalization: Agda.Normalization, expr: string) =>
     buildRequest('None', `Cmd_search_about_toplevel ${normalization} \"${expr}\"`);
 
 export const whyInScope = (expr: string, hole) =>
-    buildRequest('NonInteractive', `Cmd_why_in_scope ${HoleRE.index(hole)} noRange \"${parseInputContent(expr)}\"`);
+    buildRequest('NonInteractive', `Cmd_why_in_scope ${GoalRE.index(hole)} noRange \"${parseInputContent(expr)}\"`);
 
 export const whyInScopeGlobal = (expr: string) =>
     buildRequest('None', `Cmd_why_in_scope_toplevel \"${parseInputContent(expr)}\"`)
 
 export const inferType = (normalization: Agda.Normalization, expr: string, hole) =>
-    buildRequest('NonInteractive', `Cmd_infer ${normalization} ${HoleRE.index(hole)} noRange \"${expr}\"`);
+    buildRequest('NonInteractive', `Cmd_infer ${normalization} ${GoalRE.index(hole)} noRange \"${expr}\"`);
 
 export const inferTypeGlobal = (normalization: Agda.Normalization, expr: string) =>
     buildRequest('None', `Cmd_infer_toplevel ${normalization} \"${expr}\"`);
 
 export const moduleContents = (normalization: Agda.Normalization, expr: string, hole) =>
-    buildRequest('NonInteractive', `Cmd_show_module_contents ${normalization} ${HoleRE.index(hole)} noRange \"${expr}\"`);
+    buildRequest('NonInteractive', `Cmd_show_module_contents ${normalization} ${GoalRE.index(hole)} noRange \"${expr}\"`);
 export const moduleContentsGlobal = (normalization: Agda.Normalization, expr: string) =>
     buildRequest('None', `Cmd_show_module_contents_toplevel ${normalization} \"${expr}\"`);
 
 export const computeNormalForm = (computeMode: Agda.ComputeMode, expr: string, hole) =>
     buildRequest('NonInteractive', conn => {
         if (semver.gte(conn.version.sem, '2.5.2')) {
-            return `Cmd_compute ${computeMode} ${HoleRE.index(hole)} noRange \"${expr}\"`;
+            return `Cmd_compute ${computeMode} ${GoalRE.index(hole)} noRange \"${expr}\"`;
         } else {
             const ignoreAbstract = computeMode === 'DefaultCompute' ? 'False' : 'True';
-            return `Cmd_compute ${ignoreAbstract} ${HoleRE.index(hole)} noRange \"${expr}\"`
+            return `Cmd_compute ${ignoreAbstract} ${GoalRE.index(hole)} noRange \"${expr}\"`
         }
     });
 
@@ -120,42 +120,42 @@ export const computeNormalFormGlobal = (computeMode: Agda.ComputeMode, expr: str
 // https://github.com/agda/agda/commit/021e6d24f47bac462d8bc88e2ea685d6156197c4
 export const give = (hole) => buildRequest('NonInteractive', conn =>{
     if (semver.gte(conn.version.sem, '2.5.3')) {
-        return `Cmd_give WithoutForce ${HoleRE.index(hole)} ${buildRange(conn, hole)} \"${HoleRE.getContent(hole)}\"`;
+        return `Cmd_give WithoutForce ${GoalRE.index(hole)} ${buildRange(conn, hole)} \"${GoalRE.getContent(hole)}\"`;
     } else {
-        return `Cmd_give ${HoleRE.index(hole)} ${buildRange(conn, hole)} \"${HoleRE.getContent(hole)}\"`;
+        return `Cmd_give ${GoalRE.index(hole)} ${buildRange(conn, hole)} \"${GoalRE.getContent(hole)}\"`;
     }
 });
 
 export const refine = (hole) => buildRequest('NonInteractive', conn =>
-    (`Cmd_refine_or_intro False ${HoleRE.index(hole)} ${buildRange(conn, hole)} \"${HoleRE.getContent(hole)}\"`)
+    (`Cmd_refine_or_intro False ${GoalRE.index(hole)} ${buildRange(conn, hole)} \"${GoalRE.getContent(hole)}\"`)
 );
 
 export const auto = (hole) => buildRequest('NonInteractive', conn =>
-    (`Cmd_auto ${HoleRE.index(hole)} ${buildRange(conn, hole)} \"${HoleRE.getContent(hole)}\"`)
+    (`Cmd_auto ${GoalRE.index(hole)} ${buildRange(conn, hole)} \"${GoalRE.getContent(hole)}\"`)
 );
 
 export const makeCase = (hole) => buildRequest('NonInteractive', conn =>
-    (`Cmd_make_case ${HoleRE.index(hole)} ${buildRange(conn, hole)} \"${HoleRE.getContent(hole)}\"`)
+    (`Cmd_make_case ${GoalRE.index(hole)} ${buildRange(conn, hole)} \"${GoalRE.getContent(hole)}\"`)
 );
 
 export const goalType = (normalization: Agda.Normalization, hole) => buildRequest('NonInteractive', () =>
-    (`Cmd_goal_type ${normalization} ${HoleRE.index(hole)} noRange \"\"`)
+    (`Cmd_goal_type ${normalization} ${GoalRE.index(hole)} noRange \"\"`)
 );
 
 export const context = (normalization: Agda.Normalization, hole) => buildRequest('NonInteractive', () =>
-    (`Cmd_context ${normalization} ${HoleRE.index(hole)} noRange \"\"`)
+    (`Cmd_context ${normalization} ${GoalRE.index(hole)} noRange \"\"`)
 );
 
 export const goalTypeAndContext = (normalization: Agda.Normalization, hole) => buildRequest('NonInteractive', () =>
-    (`Cmd_goal_type_context ${normalization} ${HoleRE.index(hole)} noRange \"\"`)
+    (`Cmd_goal_type_context ${normalization} ${GoalRE.index(hole)} noRange \"\"`)
 );
 
 export const goalTypeAndInferredType = (normalization: Agda.Normalization, hole) => buildRequest('NonInteractive', () =>
-    (`Cmd_goal_type_context_infer ${normalization} ${HoleRE.index(hole)} noRange \"${HoleRE.getContent(hole)}\"`)
+    (`Cmd_goal_type_context_infer ${normalization} ${GoalRE.index(hole)} noRange \"${GoalRE.getContent(hole)}\"`)
 );
 
 export const gotoDefinition = (expr: string, hole) =>
-    buildRequest('NonInteractive', `Cmd_why_in_scope ${HoleRE.index(hole)} noRange \"${expr}\"`);
+    buildRequest('NonInteractive', `Cmd_why_in_scope ${GoalRE.index(hole)} noRange \"${expr}\"`);
 
 export const gotoDefinitionGlobal = (expr: string) =>
     buildRequest('None', `Cmd_why_in_scope_toplevel \"${parseInputContent(expr)}\"`)
