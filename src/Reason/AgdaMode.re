@@ -7,11 +7,17 @@ module Instance = {
   type t = {
     editors: Editors.t,
     view: View.Handles.t,
+    mutable goals: array(Goal.t),
     mutable connection: option(Connection.t),
   };
   let make = (textEditor: Atom.TextEditor.t) => {
+    /* adds "agda" to the class-list */
+    Atom.Environment.Views.getView(textEditor)
+    |> Webapi.Dom.HtmlElement.classList
+    |> Webapi.Dom.DomTokenList.add("agda");
+    /*  */
     let editors = Editors.make(textEditor);
-    {editors, view: View.initialize(editors), connection: None};
+    {editors, view: View.initialize(editors), goals: [||], connection: None};
   };
 
   let activate = self => {
@@ -252,6 +258,50 @@ let onEditorActivationChange = () => {
   |> CompositeDisposable.add(subscriptions);
 };
 
+let handleResponse = (response: Response.t, self: Instance.t) => {
+  Response.(
+    switch (response) {
+    | InteractionPoints(indices) =>
+      /* destroy all goals */
+      self.goals |> Array.forEach(Goal.destroy);
+      self.goals = [||];
+
+      let filePath = self.editors.source |> Atom.TextEditor.getPath;
+      let source = self.editors.source |> Atom.TextEditor.getText;
+      let textBuffer = self.editors.source |> Atom.TextEditor.getBuffer;
+      let fileType = Goal.FileType.parse(filePath);
+      let result = Goal.Hole.parse(source, indices, fileType);
+      self.goals =
+        result
+        |> Array.map((result: Goal.Hole.result) => {
+             let start =
+               textBuffer
+               |> Atom.TextBuffer.positionForCharacterIndex(
+                    fst(result.originalRange),
+                  );
+             let end_ =
+               textBuffer
+               |> Atom.TextBuffer.positionForCharacterIndex(
+                    snd(result.originalRange),
+                  );
+             let range = Atom.Range.make(start, end_);
+             /* modified the hole */
+             self.editors.source
+             |> Atom.TextEditor.setTextInBufferRange(range, result.content)
+             |> ignore;
+             /* make it a goal */
+             Goal.make(
+               self.editors.source,
+               Some(result.index),
+               result.modifiedRange,
+             );
+           });
+      ();
+    | _ => Js.log(response)
+    }
+  );
+};
+
 /* register keymap bindings and emit commands */
 let onTriggerCommand = () => {
   Util.Promise.(
@@ -268,13 +318,16 @@ let onTriggerCommand = () => {
                 |> thenDrop(
                      Option.forEach(x =>
                        x
-                       |> Js.String.splitByRe([%re "/\\r\\n|\\n/"])
+                       |> Util.safeSplitByRe([%re "/\\r\\n|\\n/"])
+                       |> Array.filterMap(x => x)
                        |> Array.forEach(line =>
                             line
                             |> Js.String.trim
                             |> Emacs.Parser.SExpression.parse
                             |> Result.flatMap(Response.parse)
-                            |> Result.forEach(Js.log)
+                            |> Result.forEach(res =>
+                                 self |> handleResponse(res)
+                               )
                           )
                      ),
                    );

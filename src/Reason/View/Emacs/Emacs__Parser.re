@@ -151,7 +151,8 @@ let expr = {
         raw
         |> String.trim
         /*                            1         2                        */
-        |> Js.String.splitByRe([%re "/(\\?\\d+)|(\\_\\d+[^\\}\\)\\s]*)/"])
+        |> Util.safeSplitByRe([%re "/(\\?\\d+)|(\\_\\d+[^\\}\\)\\s]*)/"])
+        |> Array.filterMap(x => x)
         |> Array.mapi((token, i) =>
              switch (i mod 3) {
              | 1 => QuestionMark(token)
@@ -239,11 +240,12 @@ let plainText: parser(Type.Interaction.Emacs.plainText) =
     raw =>
       Type.(
         raw
-        |> Js.String.splitByRe(
+        |> Util.safeSplitByRe(
              [%re
                "/(\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/"
              ],
            )
+        |> Array.filterMap(x => x)
         |> Array.mapi((token, i) =>
              switch (i mod 2) {
              | 1 =>
@@ -460,11 +462,12 @@ module Response = {
     raw => {
       let ranges =
         raw
-        |> Js.String.splitByRe(
+        |> Util.safeSplitByRe(
              [%re
                "/its definition at (\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/g"
              ],
            )
+        |> Array.filterMap(x => x)
         |> Array.mapi((token, i) =>
              switch (i mod 2) {
              | 1 => token |> parse(range)

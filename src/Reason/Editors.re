@@ -65,21 +65,21 @@ module Focus = {
 };
 
 module Goals = {
-  type t = list(Hole.t);
+  type t = list(Goal.t);
   let destroy = (index, self) => {
     self
-    |> Array.filter(x => Hole.(x.index) == index)
-    |> Array.forEach(x => Hole.destroy(x));
-    self |> Array.filter(x => Hole.(x.index) != index);
+    |> Array.filter(x => Goal.(x.index) == index)
+    |> Array.forEach(x => Goal.destroy(x));
+    self |> Array.filter(x => Goal.(x.index) != index);
   };
 
   let destroyAll = self => {
-    self |> Array.forEach(x => Hole.destroy(x));
+    self |> Array.forEach(x => Goal.destroy(x));
     [];
   };
 
   let find = (index, self) => {
-    let result = self |> Array.filter(x => Hole.(x.index) == index);
+    let result = self |> Array.filter(x => Goal.(x.index) == index);
     result[0];
   };
   /* returns the goal where the cursor is positioned */
@@ -87,7 +87,7 @@ module Goals = {
     let result =
       self
       |> Array.filter(x =>
-           Hole.(x.range) |> Range.containsPoint_(cursor, false)
+           Goal.(x.range) |> Range.containsPoint_(cursor, false)
          );
     result[0];
   };

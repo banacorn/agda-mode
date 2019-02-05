@@ -451,3 +451,7 @@ module JsError = {
     "_e.toString()";
   };
 };
+
+/* TODO: https://github.com/BuckleScript/bucklescript/pull/3123 */
+[@bs.send.pipe: Js.String.t]
+external safeSplitByRe: Js_re.t => array(option(Js.String.t)) = "split";

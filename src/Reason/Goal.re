@@ -11,11 +11,24 @@ type t = {
   mutable disposables: CompositeDisposable.t,
 };
 type goal = t;
-type fileType =
-  | Agda
-  | LiterateTeX
-  | LiterateReStructuredText
-  | LiterateMarkdown;
+module FileType = {
+  type t =
+    | Agda
+    | LiterateTeX
+    | LiterateReStructuredText
+    | LiterateMarkdown;
+  let parse = filepath =>
+    if ([%re "/\\.lagda.rst$/i"] |> Js.Re.test(filepath)) {
+      LiterateReStructuredText;
+    } else if ([%re "/\\.lagda.md$/i"] |> Js.Re.test(filepath)) {
+      LiterateMarkdown;
+    } else if ([%re "/\\.lagda.tex$|\\.lagda$/i"] |> Js.Re.test(filepath)) {
+      LiterateTeX;
+    } else {
+      Agda;
+    };
+};
+
 /* restore the content of the hole in the range */
 let restoreBoundary = (self, range) => {
   /* asasdasd */
@@ -146,9 +159,9 @@ let destroy = self => {
 };
 
 /* lots of side effects! */
-let make =
-    (textEditor: TextEditor.t, index: option(int), start: int, end_: int) => {
+let make = (textEditor: TextEditor.t, index: option(int), range: (int, int)) => {
   /* range */
+  let (start, end_) = range;
   let textBuffer = textEditor |> TextEditor.getBuffer;
   let startPoint = textBuffer |> TextBuffer.positionForCharacterIndex(start);
   let endPoint = textBuffer |> TextBuffer.positionForCharacterIndex(end_);
@@ -310,7 +323,7 @@ let buildHaskellRange = (old, filepath, self) => {
   };
 };
 
-module Parser = {
+module Hole = {
   type tokenType =
     | AgdaRaw
     | Literate
@@ -325,10 +338,11 @@ module Parser = {
     range: (int, int),
     type_: tokenType,
   };
-  /* type hol = {
+  /* type hole = {
+       index: int,
+       modifiedRange: (int, int),
+       originalRange: (int, int),
        content: string,
-       range: (int, int),
-       type_: tokenType,
      }; */
   module Lexer = {
     type t = array(token);
@@ -346,14 +360,17 @@ module Parser = {
       let f = token =>
         if (token.type_ === source) {
           let cursor = ref(token.range |> fst);
-          token.content
-          |> Js.String.splitByRe(regex)
-          |> Array.map(content => {
-               let type_ = regex |> Js.Re.test(content) ? target : source;
-               let cursorOld = cursor^;
-               cursor := cursor^ + String.length(content);
-               {content, range: (cursorOld, cursor^), type_};
-             });
+          let result =
+            token.content
+            |> Util.safeSplitByRe(regex)
+            |> Array.filterMap(x => x)
+            |> Array.map(content => {
+                 let type_ = regex |> Js.Re.test(content) ? target : source;
+                 let cursorOld = cursor^;
+                 cursor := cursor^ + String.length(content);
+                 {content, range: (cursorOld, cursor^), type_};
+               });
+          result;
         } else {
           [|token|];
         };
@@ -395,6 +412,12 @@ module Parser = {
     let goalBracketContent = [%re "/\\{\\!((?:(?!\\!\\})(?:.|\\s))*)\\!\\}/"];
   };
 
+  type result = {
+    index: int,
+    modifiedRange: (int, int),
+    originalRange: (int, int),
+    content: string,
+  };
   let isHole = token =>
     switch (token.type_) {
     | GoalBracket
@@ -461,94 +484,105 @@ module Parser = {
          {content, type_, range};
        });
   };
-  /* let parse =
-         (raw: string, indices: array(int), fileType: fileType): array(hole) => {
-       /* counter for indices */
-       let i = ref(0);
-       let preprocessed =
-         switch (fileType) {
-         | LiterateTeX => filterOutTex(raw)
-         | LiterateMarkdown => filterOutMarkdown(raw)
-         | _ => Lexer.make(raw)
-         };
-       /* just lexing, doesn't mess around with raw text, preserves positions */
-       let original =
-         preprocessed
-         |> Lexer.lex(Regex.comment, AgdaRaw, Comment)
-         |> Lexer.lex(Regex.goalBracket, AgdaRaw, GoalBracket)
-         |> Lexer.lex(Regex.goalQuestionMarkRaw, AgdaRaw, GoalQMRaw)
-         |> Lexer.lex(Regex.goalQuestionMark, GoalQMRaw, GoalQM);
-       let questionMark2GoalBracket = token => {
-         /* ? => {!  !} */
+  let parse =
+      (raw: string, indices: array(int), fileType: FileType.t)
+      : array(result) => {
+    /* counter for indices */
+    let i = ref(0);
+    let preprocessed =
+      switch (fileType) {
+      | LiterateTeX => filterOutTex(raw)
+      | LiterateMarkdown => filterOutMarkdown(raw)
+      | _ => Lexer.make(raw)
+      };
+    /* just lexing, doesn't mess around with raw text, preserves positions */
+    let original =
+      preprocessed
+      |> Lexer.lex(Regex.comment, AgdaRaw, Comment)
+      |> Lexer.lex(Regex.goalBracket, AgdaRaw, GoalBracket)
+      |> Lexer.lex(Regex.goalQuestionMarkRaw, AgdaRaw, GoalQMRaw)
+      |> Lexer.lex(Regex.goalQuestionMark, GoalQMRaw, GoalQM);
+    let questionMark2GoalBracket = token => {
+      /* ? => {!  !} */
 
-         content: "{!   !}",
-         range: token.range,
-         type_: GoalBracket,
-       };
-       let adjustGoalBracket = token => {
-         /* {!!} => {!   !} */
+      content: "{!   !}",
+      range: token.range,
+      type_: GoalBracket,
+    };
+    let adjustGoalBracket = (token: token) => {
+      /* {!!} => {!   !} */
 
-         /* in case that the goal index wasn't given, make it '*' */
-         /* this happens when splitting case, agda2-goals-action is one index short */
-         let goalIndex =
-           switch (indices[i^]) {
-           | Some(idx) => string_of_int(idx)
-           | None => "*"
-           };
+      /* in case that the goal index wasn't given, make it '*' */
+      /* this happens when splitting case, agda2-goals-action is one index short */
+      let goalIndex =
+        switch (indices[i^]) {
+        | Some(idx) => string_of_int(idx)
+        | None => "*"
+        };
 
-         /* {! zero 42!}
-              <------>    hole content
-                    <>    index
-                   <->    space for index
-            */
+      /* {! zero 42!}
+           <------>    hole content
+                 <>    index
+                <->    space for index
+         */
 
-         /* calculate how much space the index would take */
-         let requiredSpaces = String.length(goalIndex);
+      /* calculate how much space the index would take */
+      let requiredSpaces = String.length(goalIndex);
 
-         /* calculate how much space we have */
-         let content: string =
-           Regex.goalBracketContent
-           |> Js.Re.exec(token.content)
-           |> Option.flatMap(result =>
-                Js.Re.captures(result)[1]
-                |> Option.map(Js.Nullable.toOption)
-                |> Option.flatten
-              )
-           |> Option.getOr("");
-         let actualSpaces =
-           content
-           |> Js.String.match([%re "/\\s*$/"])
-           |> Option.flatMap(matches => matches[0] |> Option.map(String.length))
-           |> Option.getOr(0);
+      /* calculate how much space we have */
+      let content: string =
+        Regex.goalBracketContent
+        |> Js.Re.exec(token.content)
+        |> Option.flatMap(result =>
+             Js.Re.captures(result)[1]
+             |> Option.map(Js.Nullable.toOption)
+             |> Option.flatten
+           )
+        |> Option.getOr("");
+      let actualSpaces =
+        content
+        |> Js.String.match([%re "/\\s*$/"])
+        |> Option.flatMap(matches => matches[0] |> Option.map(String.length))
+        |> Option.getOr(0);
 
-         /* make room for the index, if there's not enough space */
-         let newContent =
-           if (actualSpaces < requiredSpaces) {
-             let padding = Js.String.repeat(requiredSpaces - actualSpaces, "");
-             token.content
-             |> Js.String.replaceByRe(
-                  [%re "/\\{!.*!\\}/"],
-                  "{!" ++ content ++ padding ++ "!}",
-                );
-           } else {
-             token.content;
-           };
+      /* make room for the index, if there's not enough space */
+      let newContent =
+        if (actualSpaces < requiredSpaces) {
+          let padding = Js.String.repeat(requiredSpaces - actualSpaces, "");
+          token.content
+          |> Js.String.replaceByRe(
+               [%re "/\\{!.*!\\}/"],
+               "{!" ++ content ++ padding ++ "!}",
+             );
+        } else {
+          token.content;
+        };
 
-         /* update the index */
-         i := i^ + 1;
-         {content: newContent, type_: GoalBracket, range: (1, 2)};
-       };
-       let modified =
-         original
-         |> Lexer.mapOnly(GoalQM, questionMark2GoalBracket)
-         |> Lexer.mapOnly(GoalBracket, adjustGoalBracket);
-       let originalHoles = original |> Array.filter(isHole);
-       let modifiedHoles = modified |> Array.filter(isHole);
+      /* update the index */
+      i := i^ + 1;
+      {content: newContent, type_: GoalBracket, range: (1, 2)};
+    };
+    let modified =
+      original
+      |> Lexer.mapOnly(GoalQM, questionMark2GoalBracket)
+      |> Lexer.mapOnly(GoalBracket, adjustGoalBracket);
+    let originalHoles = original |> Array.filter(isHole);
+    let modifiedHoles = modified |> Array.filter(isHole);
 
-         originalHoles |> Array.mapi((token, idx) => {
-           let modifiedHole = modifiedHoles[idx];
-
-
-         });
-     }; */
+    originalHoles
+    |> Array.mapi((token: token, idx) =>
+         switch (modifiedHoles[idx], indices[idx]) {
+         | (Some(modifiedHole), Some(index)) =>
+           let (start, _) = modifiedHole.range;
+           Some({
+             index,
+             originalRange: (start, start + String.length(token.content)),
+             modifiedRange: modifiedHole.range,
+             content: modifiedHole.content,
+           });
+         | _ => None
+         }
+       )
+    |> Array.filterMap(x => x);
+  };
 };

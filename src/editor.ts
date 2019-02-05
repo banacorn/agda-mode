@@ -306,7 +306,7 @@ export default class Editor {
             this.goals = parseHole(textRaw, indices, fileType).map((goal) => {
                 const range = this.fromIndexRange(goal.originalRange);
                 this.textEditor.setTextInBufferRange(range, goal.content);
-                return GoalRE.make(this.textEditor, goal.index, goal.modifiedRange.start, goal.modifiedRange.end);
+                return GoalRE.make(this.textEditor, goal.index, (goal.modifiedRange.start, goal.modifiedRange.end));
             });
         });
     }
