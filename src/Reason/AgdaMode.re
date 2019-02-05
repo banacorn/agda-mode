@@ -79,10 +79,10 @@ let handleResponse = (response: Response.t, self: Instance.t) => {
       let source = self.editors.source |> Atom.TextEditor.getText;
       let textBuffer = self.editors.source |> Atom.TextEditor.getBuffer;
       let fileType = Goal.FileType.parse(filePath);
-      let result = Goal.Hole.parse(source, indices, fileType);
+      let result = Hole.parse(source, indices, fileType);
       self.goals =
         result
-        |> Array.map((result: Goal.Hole.result) => {
+        |> Array.map((result: Hole.result) => {
              let start =
                textBuffer
                |> Atom.TextBuffer.positionForCharacterIndex(
