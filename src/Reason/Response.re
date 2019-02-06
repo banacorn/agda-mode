@@ -72,7 +72,7 @@ module Info = {
   type t =
     | CompilationOk
     | Constraints(option(string))
-    | AllGoalsWarnings(Type.Interaction.Emacs.allGoalsWarnings)
+    | AllGoalsWarnings(Type.View.Emacs.allGoalsWarnings)
     | Time(string)
     | Error(string)
     | Intro(string)
@@ -127,7 +127,7 @@ module Info = {
   };
 
   let handle = (instance: Instance.t, info: t) => {
-    open Type.Interaction;
+    open Type.View;
 
     let update = (header, body) => {
       instance.view.updateHeader |> Event.resolve(header);
@@ -135,33 +135,89 @@ module Info = {
     };
     switch (info) {
     | CompilationOk =>
-      update({text: "Compilation Done!", style: Success}, Nothing)
+      update({text: "Compilation Done!", style: Header.Success}, Nothing)
     | Constraints(None) =>
-      update({text: "No Constraints", style: Success}, Nothing)
+      update({text: "No Constraints", style: Header.Success}, Nothing)
     | Constraints(Some(payload)) =>
       update(
-        {text: "Constraints", style: Info},
-        RawEmacs(PlainText(payload)),
+        {text: "Constraints", style: Header.Info},
+        RawEmacs(Constraints(payload)),
       )
     | AllGoalsWarnings(payload) =>
       update(
-        {text: payload.title, style: Info},
+        {text: payload.title, style: Header.Info},
         RawEmacs(AllGoalsWarnings(payload)),
       )
-    | Time(payload) => ()
-    | Error(payload) => ()
-    | Intro(payload) => ()
-    | Auto(payload) => ()
-    | ModuleContents(payload) => ()
-    | SearchAbout(payload) => ()
-    | WhyInScope(payload) => ()
-    | NormalForm(payload) => ()
-    | GoalType(payload) => ()
-    | CurrentGoal(payload) => ()
-    | InferredType(payload) => ()
-    | Context(payload) => ()
-    | HelperFunction(payload) => ()
-    | Version(payload) => ()
+    | Time(payload) =>
+      update(
+        {text: "Time", style: Header.PlainText},
+        RawEmacs(PlainText(payload)),
+      )
+    | Error(payload) =>
+      update(
+        {text: "Error", style: Header.Error},
+        RawEmacs(Error(payload)),
+      )
+    | Intro(payload) =>
+      update(
+        {text: "Intro", style: Header.PlainText},
+        RawEmacs(PlainText(payload)),
+      )
+    | Auto(payload) =>
+      update(
+        {text: "Auto", style: Header.PlainText},
+        RawEmacs(PlainText(payload)),
+      )
+    | ModuleContents(payload) =>
+      update(
+        {text: "Module Contents", style: Header.Info},
+        RawEmacs(PlainText(payload)),
+      )
+    | SearchAbout(payload) =>
+      update(
+        {text: "Searching about ...", style: Header.PlainText},
+        RawEmacs(SearchAbout(payload)),
+      )
+    | WhyInScope(payload) =>
+      update(
+        {text: "Scope info", style: Header.Info},
+        RawEmacs(WhyInScope(payload)),
+      )
+    | NormalForm(payload) =>
+      update(
+        {text: "Normal form", style: Header.Info},
+        RawEmacs(PlainText(payload)),
+      )
+    | GoalType(payload) =>
+      update(
+        {text: "Goal type", style: Header.Info},
+        RawEmacs(GoalTypeContext(payload)),
+      )
+    | CurrentGoal(payload) =>
+      update(
+        {text: "Current goal", style: Header.Info},
+        RawEmacs(PlainText(payload)),
+      )
+    | InferredType(payload) =>
+      update(
+        {text: "Inferred type", style: Header.Info},
+        RawEmacs(PlainText(payload)),
+      )
+    | Context(payload) =>
+      update(
+        {text: "Context", style: Header.Info},
+        RawEmacs(Context(payload)),
+      )
+    | HelperFunction(payload) =>
+      update(
+        {text: "Helper function", style: Header.Info},
+        RawEmacs(PlainText(payload)),
+      )
+    | Version(payload) =>
+      update(
+        {text: "Version", style: Header.Info},
+        RawEmacs(PlainText(payload)),
+      )
     };
   };
 };

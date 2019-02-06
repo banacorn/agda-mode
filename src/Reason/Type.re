@@ -618,7 +618,7 @@ module TypeChecking = {
   };
 };
 
-module Interaction = {
+module View = {
   module JSON = {
     type rawBody = {
       kind: string,
@@ -699,16 +699,6 @@ module Interaction = {
       | SearchAbout(string)
       | Error(string)
       | PlainText(string);
-    /* type rawBody = {
-         kind: string,
-         header: string,
-         body: string,
-       };
-       type body = {
-         kind: bodyKind,
-         header: string,
-         body: string,
-       }; */
   };
   type rawBody =
     | Nothing
@@ -718,15 +708,17 @@ module Interaction = {
     maxHeight: int,
     raw: rawBody,
   };
-  type headerStyle =
-    | PlainText
-    | Error
-    | Info
-    | Success
-    | Warning;
-  type header = {
-    text: string,
-    style: headerStyle,
+  module Header = {
+    type style =
+      | PlainText
+      | Error
+      | Info
+      | Success
+      | Warning;
+    type t = {
+      text: string,
+      style,
+    };
   };
   /* action  */
   type mountTo =

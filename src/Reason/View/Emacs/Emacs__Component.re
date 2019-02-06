@@ -2,7 +2,7 @@ open ReasonReact;
 
 open Rebase;
 
-open Type.Interaction.Emacs;
+open Type.View.Emacs;
 
 open Component;
 

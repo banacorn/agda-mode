@@ -1,6 +1,6 @@
 open ReasonReact;
 
-open Type.Interaction;
+open Type.View;
 
 type state = {
   maxHeight: int,
@@ -40,7 +40,7 @@ let make =
       ~element: Webapi.Dom.Element.t,
       ~onMountAtChange: mountTo => unit,
       ~body: body,
-      ~header: header,
+      ~header: Header.t,
       ~mountAt: mountAt,
       ~mode: mode,
       ~hidden: bool,

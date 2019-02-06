@@ -2,7 +2,7 @@ open ReasonReact;
 
 open Rebase;
 
-open Type.Interaction;
+open Type.View;
 
 let component = statelessComponent("Breadcrumb");
 

@@ -1,6 +1,6 @@
 open ReasonReact;
 
-open Type.Interaction.JSON;
+open Type.View.JSON;
 
 open Syntax.Concrete;
 

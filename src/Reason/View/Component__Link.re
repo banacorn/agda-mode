@@ -1,6 +1,6 @@
 let noRange: Type.Syntax.Position.range = NoRange;
 
-open Type.Interaction;
+open Type.View;
 
 let component = ReasonReact.statelessComponent("Link");
 

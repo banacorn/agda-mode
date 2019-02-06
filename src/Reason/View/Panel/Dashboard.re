@@ -32,11 +32,11 @@ let component = reducerComponent("Dashboard");
 
 let make =
     (
-      ~header: Type.Interaction.header,
+      ~header: Type.View.Header.t,
       ~hidden: bool,
       ~isPending: bool,
-      ~mountAt: Type.Interaction.mountAt,
-      ~onMountAtChange: Type.Interaction.mountTo => unit,
+      ~mountAt: Type.View.mountAt,
+      ~onMountAtChange: Type.View.mountTo => unit,
       ~onSettingsViewToggle: bool => unit,
       ~activateSettingsView: Util.Event.t(bool),
       _children,
@@ -144,8 +144,8 @@ let make =
             className=toggleMountingPosition
             onClick={_ =>
               switch (mountAt) {
-              | Pane(_) => onMountAtChange(Type.Interaction.ToBottom)
-              | _ => onMountAtChange(Type.Interaction.ToPane)
+              | Pane(_) => onMountAtChange(Type.View.ToBottom)
+              | _ => onMountAtChange(Type.View.ToPane)
               }
             }
             ref={self.handle(setDockingButtonRef)}>

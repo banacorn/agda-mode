@@ -1,6 +1,6 @@
 open ReasonReact;
 
-open Type.Interaction.Emacs;
+open Type.View.Emacs;
 
 open Emacs.Component;
 

@@ -1,6 +1,6 @@
 open ReasonReact;
 
-open Type.Interaction;
+open Type.View;
 
 open Webapi.Dom;
 
@@ -10,7 +10,7 @@ module Event = Util.Event;
 
 module Handles = {
   type t = {
-    updateHeader: Event.t(header),
+    updateHeader: Event.t(Header.t),
     updateRawBody: Event.t(rawBody),
     updateMode: ref(mode => unit),
     updateMountTo: ref(mountTo => unit),
@@ -95,7 +95,7 @@ let createElement = (): Element.t => {
 };
 
 type state = {
-  header,
+  header: Header.t,
   body,
   mountAt,
   activated: bool,
@@ -135,7 +135,7 @@ type action =
   | Activate
   | Deactivate
   /*  */
-  | UpdateHeader(header)
+  | UpdateHeader(Header.t)
   | UpdateRawBody(rawBody)
   | UpdateMode(mode);
 

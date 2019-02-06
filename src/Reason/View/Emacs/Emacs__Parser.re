@@ -4,7 +4,7 @@ open Rebase.Option;
 
 open Util.Parser;
 
-/* open Type.Interaction.Emacs; */
+/* open Type.View.Emacs; */
 
 let unindent: array(string) => array(string) =
   lines => {
@@ -145,7 +145,7 @@ let range =
   );
 
 let expr = {
-  Type.Interaction.Emacs.(
+  Type.View.Emacs.(
     String(
       raw =>
         raw
@@ -166,7 +166,7 @@ let expr = {
 };
 
 module OutputConstraint = {
-  open Type.Interaction.Emacs;
+  open Type.View.Emacs;
   let ofType =
     Regex(
       [%re "/^([^\\:]*) \\: ((?:\\n|.)+)/"],
@@ -193,7 +193,7 @@ module OutputConstraint = {
     String(raw => raw |> parse(expr) |> map(raw' => Others(raw')));
 };
 
-let outputConstraint: parser(Type.Interaction.Emacs.outputConstraint) =
+let outputConstraint: parser(Type.View.Emacs.outputConstraint) =
   choice([|
     OutputConstraint.ofType,
     OutputConstraint.justType,
@@ -202,7 +202,7 @@ let outputConstraint: parser(Type.Interaction.Emacs.outputConstraint) =
   |]);
 
 module Output = {
-  open Type.Interaction.Emacs;
+  open Type.View.Emacs;
   let outputWithoutRange: parser(output) =
     String(
       raw => raw |> parse(outputConstraint) |> map(x => Output(x, None)),
@@ -220,7 +220,7 @@ module Output = {
     );
 };
 
-let output: parser(Type.Interaction.Emacs.output) =
+let output: parser(Type.View.Emacs.output) =
   String(
     raw => {
       let rangeRe = [%re
@@ -235,7 +235,7 @@ let output: parser(Type.Interaction.Emacs.output) =
     },
   );
 
-let plainText: parser(Type.Interaction.Emacs.plainText) =
+let plainText: parser(Type.View.Emacs.plainText) =
   String(
     raw =>
       Type.(
@@ -258,7 +258,7 @@ let plainText: parser(Type.Interaction.Emacs.plainText) =
   );
 
 /* warnings or errors */
-let warningOrErrors: bool => parser(Type.Interaction.Emacs.warningError) =
+let warningOrErrors: bool => parser(Type.View.Emacs.warningError) =
   isWarning =>
     String(
       raw =>
@@ -266,8 +266,8 @@ let warningOrErrors: bool => parser(Type.Interaction.Emacs.warningError) =
         |> parse(plainText)
         |> map(body =>
              isWarning ?
-               Type.Interaction.Emacs.WarningMessage(body) :
-               Type.Interaction.Emacs.ErrorMessage(body)
+               Type.View.Emacs.WarningMessage(body) :
+               Type.View.Emacs.ErrorMessage(body)
            ),
     );
 
@@ -305,7 +305,7 @@ let partiteMetas =
   });
 
 module Response = {
-  open Type.Interaction.Emacs;
+  open Type.View.Emacs;
   let partiteWarningsOrErrors = key =>
     Util.Dict.update(
       key,
