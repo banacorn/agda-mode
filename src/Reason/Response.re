@@ -131,7 +131,7 @@ module Info = {
 
     let update = (header, body) => {
       instance.view.updateHeader |> Event.resolve(header);
-      instance.view.updateRawBody |> Event.resolve(body);
+      instance.view.updateBody |> Event.resolve(body);
     };
     switch (info) {
     | CompilationOk =>
@@ -141,82 +141,79 @@ module Info = {
     | Constraints(Some(payload)) =>
       update(
         {text: "Constraints", style: Header.Info},
-        RawEmacs(Constraints(payload)),
+        Emacs(Constraints(payload)),
       )
     | AllGoalsWarnings(payload) =>
       update(
         {text: payload.title, style: Header.Info},
-        RawEmacs(AllGoalsWarnings(payload)),
+        Emacs(AllGoalsWarnings(payload)),
       )
     | Time(payload) =>
       update(
         {text: "Time", style: Header.PlainText},
-        RawEmacs(PlainText(payload)),
+        Emacs(PlainText(payload)),
       )
     | Error(payload) =>
-      update(
-        {text: "Error", style: Header.Error},
-        RawEmacs(Error(payload)),
-      )
+      update({text: "Error", style: Header.Error}, Emacs(Error(payload)))
     | Intro(payload) =>
       update(
         {text: "Intro", style: Header.PlainText},
-        RawEmacs(PlainText(payload)),
+        Emacs(PlainText(payload)),
       )
     | Auto(payload) =>
       update(
         {text: "Auto", style: Header.PlainText},
-        RawEmacs(PlainText(payload)),
+        Emacs(PlainText(payload)),
       )
     | ModuleContents(payload) =>
       update(
         {text: "Module Contents", style: Header.Info},
-        RawEmacs(PlainText(payload)),
+        Emacs(PlainText(payload)),
       )
     | SearchAbout(payload) =>
       update(
         {text: "Searching about ...", style: Header.PlainText},
-        RawEmacs(SearchAbout(payload)),
+        Emacs(SearchAbout(payload)),
       )
     | WhyInScope(payload) =>
       update(
         {text: "Scope info", style: Header.Info},
-        RawEmacs(WhyInScope(payload)),
+        Emacs(WhyInScope(payload)),
       )
     | NormalForm(payload) =>
       update(
         {text: "Normal form", style: Header.Info},
-        RawEmacs(PlainText(payload)),
+        Emacs(PlainText(payload)),
       )
     | GoalType(payload) =>
       update(
         {text: "Goal type", style: Header.Info},
-        RawEmacs(GoalTypeContext(payload)),
+        Emacs(GoalTypeContext(payload)),
       )
     | CurrentGoal(payload) =>
       update(
         {text: "Current goal", style: Header.Info},
-        RawEmacs(PlainText(payload)),
+        Emacs(PlainText(payload)),
       )
     | InferredType(payload) =>
       update(
         {text: "Inferred type", style: Header.Info},
-        RawEmacs(PlainText(payload)),
+        Emacs(PlainText(payload)),
       )
     | Context(payload) =>
       update(
         {text: "Context", style: Header.Info},
-        RawEmacs(Context(payload)),
+        Emacs(Context(payload)),
       )
     | HelperFunction(payload) =>
       update(
         {text: "Helper function", style: Header.Info},
-        RawEmacs(PlainText(payload)),
+        Emacs(PlainText(payload)),
       )
     | Version(payload) =>
       update(
         {text: "Version", style: Header.Info},
-        RawEmacs(PlainText(payload)),
+        Emacs(PlainText(payload)),
       )
     };
   };

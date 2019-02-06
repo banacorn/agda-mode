@@ -700,14 +700,10 @@ module View = {
       | Error(string)
       | PlainText(string);
   };
-  type rawBody =
+  type body =
     | Nothing
-    | RawEmacs(Emacs.body)
-    | RawJSON(JSON.rawBody);
-  type body = {
-    maxHeight: int,
-    raw: rawBody,
-  };
+    | Emacs(Emacs.body)
+    | JSON(JSON.rawBody);
   module Header = {
     type style =
       | PlainText

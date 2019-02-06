@@ -11,7 +11,7 @@ module Event = Util.Event;
 module Handles = {
   type t = {
     updateHeader: Event.t(Header.t),
-    updateRawBody: Event.t(rawBody),
+    updateBody: Event.t(body),
     updateMode: ref(mode => unit),
     updateMountTo: ref(mountTo => unit),
     activatePanel: Event.t(bool),
@@ -36,7 +36,7 @@ module Handles = {
 
     let updateHeader = Event.make();
 
-    let updateRawBody = Event.make();
+    let updateBody = Event.make();
 
     let updateMode = ref(_ => ());
 
@@ -63,7 +63,7 @@ module Handles = {
     {
       activatePanel,
       updateHeader,
-      updateRawBody,
+      updateBody,
       updateMode,
       updateMountTo,
       updateConnection,
@@ -97,6 +97,7 @@ let createElement = (): Element.t => {
 type state = {
   header: Header.t,
   body,
+  maxHeight: int,
   mountAt,
   activated: bool,
   settingsView: option(Tab.t),
@@ -109,10 +110,8 @@ let initialState = () => {
       text: "",
       style: PlainText,
     },
-    body: {
-      maxHeight: 170,
-      raw: Nothing,
-    },
+    body: Nothing,
+    maxHeight: 170,
     mountAt: Bottom(createElement()),
     activated: false,
     settingsView: None,
@@ -136,7 +135,7 @@ type action =
   | Deactivate
   /*  */
   | UpdateHeader(Header.t)
-  | UpdateRawBody(rawBody)
+  | UpdateBody(body)
   | UpdateMode(mode);
 
 let mountPanel = (editors: Editors.t, self, mountTo) => {
@@ -262,13 +261,7 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
   | UpdateSettingsView(settingsView) => Update({...state, settingsView})
   | UpdateMountAt(mountAt) => Update({...state, mountAt})
   | UpdateHeader(header) => Update({...state, header})
-  | UpdateRawBody(raw) => Update({
-                            ...state,
-                            body: {
-                              ...state.body,
-                              raw,
-                            },
-                          })
+  | UpdateBody(body) => Update({...state, body})
   | UpdateMode(mode) => Update({...state, mode})
   };
 };
@@ -296,8 +289,8 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     |> destroyWhen(self.onUnmount);
 
     /* update <Body> */
-    handles.updateRawBody
-    |> on(body => self.send(UpdateRawBody(body)))
+    handles.updateBody
+    |> on(body => self.send(UpdateBody(body)))
     |> destroyWhen(self.onUnmount);
 
     Handles.hook(handles.updateMountTo, mountTo =>

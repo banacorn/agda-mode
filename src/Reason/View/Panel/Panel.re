@@ -72,7 +72,7 @@ let make =
   initialState,
   reducer,
   render: self => {
-    let {isPending, inputMethodActivated} = self.state;
+    let {isPending, inputMethodActivated, maxHeight} = self.state;
     let mountAtBottom =
       switch (mountAt) {
       | Bottom(_) => true
@@ -120,7 +120,7 @@ let make =
             />
           </section>
           <section className="agda-body-container">
-            <Body body hidden={mode != Display} mountAtBottom />
+            <Body body maxHeight hidden={mode != Display} mountAtBottom />
             <MiniEditor
               hidden={mode != Query}
               value=editorValue

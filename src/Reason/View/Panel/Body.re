@@ -6,21 +6,20 @@ open Type.View;
 
 let component = statelessComponent("JSONBody");
 
-let make = (~body: body, ~hidden, ~mountAtBottom, _children) => {
+let make = (~body: body, ~maxHeight: int, ~hidden, ~mountAtBottom, _children) => {
   ...component,
   render: _self => {
-    let {raw, maxHeight} = body;
     let comp =
-      switch (raw) {
+      switch (body) {
       | Nothing => null
       /* | Unloaded => <Emacs__Error body="not loaded yet" /> */
-      | RawJSON(raw) =>
+      | JSON(raw) =>
         switch (Decoder.parseBody(raw)) {
         | AllGoalsWarnings(value) => <JSON__AllGoalsWarnings value />
         | ErrorMessage(value, rawString) => <JSON__Error value rawString />
         | PlainText(s) => <p> {string(s)} </p>
         }
-      | RawEmacs(data) =>
+      | Emacs(data) =>
         switch (data) {
         | AllGoalsWarnings(value) => <Emacs__AllGoalsWarnings value />
         | GoalTypeContext(body) => <Emacs__GoalTypeContext body />
