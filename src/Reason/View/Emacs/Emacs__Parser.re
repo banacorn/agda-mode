@@ -390,7 +390,7 @@ module Response = {
       "errors"
       |> Js.Dict.get(dictionary)
       |> mapOr(entries => entries |> parseArray(error), [||]);
-    {interactionMetas, hiddenMetas, warnings, errors};
+    {title, interactionMetas, hiddenMetas, warnings, errors};
   };
   let goalTypeContext: string => goalTypeContext =
     raw => {
@@ -489,20 +489,6 @@ module Response = {
         |> unindent
         |> parseArray(output);
       (target, outputs);
-    };
-  let body: rawBody => body =
-    raw => {
-      let kind =
-        switch (raw.kind) {
-        | "AllGoalsWarnings" => AllGoalsWarnings
-        | "GoalTypeContext" => GoalTypeContext
-        | "Context" => Context
-        | "WhyInScope" => WhyInScope
-        | "SearchAbout" => SearchAbout
-        | "Error" => Error
-        | _ => PlainText
-        };
-      {kind, header: raw.header, body: raw.body};
     };
 };
 

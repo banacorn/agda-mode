@@ -678,6 +678,7 @@ module Interaction = {
       | WarningMessage(plainText)
       | ErrorMessage(plainText);
     type allGoalsWarnings = {
+      title: string,
       interactionMetas: array(output),
       hiddenMetas: array(output),
       warnings: array(warningError),
@@ -689,37 +690,43 @@ module Interaction = {
       interactionMetas: array(output),
       hiddenMetas: array(output),
     };
-    type bodyKind =
-      | AllGoalsWarnings
-      | GoalTypeContext
-      | Context
-      | Constraints
-      | WhyInScope
-      | SearchAbout
-      | Error
-      | PlainText;
-    type rawBody = {
-      kind: string,
-      header: string,
-      body: string,
-    };
-    type body = {
-      kind: bodyKind,
-      header: string,
-      body: string,
-    };
+    type body =
+      | AllGoalsWarnings(allGoalsWarnings)
+      | GoalTypeContext(string)
+      | Context(string)
+      | Constraints(string)
+      | WhyInScope(string)
+      | SearchAbout(string)
+      | Error(string)
+      | PlainText(string);
+    /* type rawBody = {
+         kind: string,
+         header: string,
+         body: string,
+       };
+       type body = {
+         kind: bodyKind,
+         header: string,
+         body: string,
+       }; */
   };
   type rawBody =
-    | Unloaded
-    | RawEmacs(Emacs.rawBody)
+    | Nothing
+    | RawEmacs(Emacs.body)
     | RawJSON(JSON.rawBody);
   type body = {
     maxHeight: int,
     raw: rawBody,
   };
+  type headerStyle =
+    | PlainText
+    | Error
+    | Info
+    | Success
+    | Warning;
   type header = {
     text: string,
-    style: string,
+    style: headerStyle,
   };
   /* action  */
   type mountTo =

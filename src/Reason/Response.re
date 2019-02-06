@@ -5,6 +5,7 @@ open Rebase;
 type filepath = string;
 type index = int;
 
+module Event = Util.Event;
 module Token = Emacs.Parser.SExpression;
 
 module Highlighting = {
@@ -122,6 +123,45 @@ module Info = {
       | _ => None
       };
     | _ => None
+    };
+  };
+
+  let handle = (instance: Instance.t, info: t) => {
+    open Type.Interaction;
+
+    let update = (header, body) => {
+      instance.view.updateHeader |> Event.resolve(header);
+      instance.view.updateRawBody |> Event.resolve(body);
+    };
+    switch (info) {
+    | CompilationOk =>
+      update({text: "Compilation Done!", style: Success}, Nothing)
+    | Constraints(None) =>
+      update({text: "No Constraints", style: Success}, Nothing)
+    | Constraints(Some(payload)) =>
+      update(
+        {text: "Constraints", style: Info},
+        RawEmacs(PlainText(payload)),
+      )
+    | AllGoalsWarnings(payload) =>
+      update(
+        {text: payload.title, style: Info},
+        RawEmacs(AllGoalsWarnings(payload)),
+      )
+    | Time(payload) => ()
+    | Error(payload) => ()
+    | Intro(payload) => ()
+    | Auto(payload) => ()
+    | ModuleContents(payload) => ()
+    | SearchAbout(payload) => ()
+    | WhyInScope(payload) => ()
+    | NormalForm(payload) => ()
+    | GoalType(payload) => ()
+    | CurrentGoal(payload) => ()
+    | InferredType(payload) => ()
+    | Context(payload) => ()
+    | HelperFunction(payload) => ()
+    | Version(payload) => ()
     };
   };
 };
@@ -293,5 +333,50 @@ let parse = (tokens: Token.t): result(t, string) => {
     | Some(A("agda2-abort-done")) => Ok(DoneAborting)
     | _ => err
     }
+  };
+};
+
+let handle = (instance: Instance.t, response: t) => {
+  switch (response) {
+  | InteractionPoints(indices) =>
+    /* destroy all goals */
+    instance.goals |> Array.forEach(Goal.destroy);
+    instance.goals = [||];
+
+    let filePath = instance.editors.source |> Atom.TextEditor.getPath;
+    let source = instance.editors.source |> Atom.TextEditor.getText;
+    let textBuffer = instance.editors.source |> Atom.TextEditor.getBuffer;
+    let fileType = Goal.FileType.parse(filePath);
+    let result = Hole.parse(source, indices, fileType);
+    instance.goals =
+      result
+      |> Array.map((result: Hole.result) => {
+           let start =
+             textBuffer
+             |> Atom.TextBuffer.positionForCharacterIndex(
+                  fst(result.originalRange),
+                );
+           let end_ =
+             textBuffer
+             |> Atom.TextBuffer.positionForCharacterIndex(
+                  snd(result.originalRange),
+                );
+           let range = Atom.Range.make(start, end_);
+           /* modified the hole */
+           instance.editors.source
+           |> Atom.TextEditor.setTextInBufferRange(range, result.content)
+           |> ignore;
+           /* make it a goal */
+           Goal.make(
+             instance.editors.source,
+             Some(result.index),
+             result.modifiedRange,
+           );
+         });
+    ();
+  | DisplayInfo(info) =>
+    instance.view.activatePanel |> Event.resolve(true);
+    Info.handle(instance, info);
+  | _ => Js.log(response)
   };
 };

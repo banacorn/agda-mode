@@ -67,50 +67,6 @@ let onEditorActivationChange = () => {
   |> CompositeDisposable.add(subscriptions);
 };
 
-let handleResponse = (response: Response.t, self: Instance.t) => {
-  Response.(
-    switch (response) {
-    | InteractionPoints(indices) =>
-      /* destroy all goals */
-      self.goals |> Array.forEach(Goal.destroy);
-      self.goals = [||];
-
-      let filePath = self.editors.source |> Atom.TextEditor.getPath;
-      let source = self.editors.source |> Atom.TextEditor.getText;
-      let textBuffer = self.editors.source |> Atom.TextEditor.getBuffer;
-      let fileType = Goal.FileType.parse(filePath);
-      let result = Hole.parse(source, indices, fileType);
-      self.goals =
-        result
-        |> Array.map((result: Hole.result) => {
-             let start =
-               textBuffer
-               |> Atom.TextBuffer.positionForCharacterIndex(
-                    fst(result.originalRange),
-                  );
-             let end_ =
-               textBuffer
-               |> Atom.TextBuffer.positionForCharacterIndex(
-                    snd(result.originalRange),
-                  );
-             let range = Atom.Range.make(start, end_);
-             /* modified the hole */
-             self.editors.source
-             |> Atom.TextEditor.setTextInBufferRange(range, result.content)
-             |> ignore;
-             /* make it a goal */
-             Goal.make(
-               self.editors.source,
-               Some(result.index),
-               result.modifiedRange,
-             );
-           });
-      ();
-    | _ => Js.log(response)
-    }
-  );
-};
-
 /* register keymap bindings and emit commands */
 let onTriggerCommand = () => {
   Util.Promise.(
@@ -120,9 +76,9 @@ let onTriggerCommand = () => {
            `CSSSelector("atom-text-editor"), "agda-mode:" ++ command, _event =>
            Environment.Workspace.getActiveTextEditor()
            |> Option.flatMap(Instances.get)
-           |> Option.forEach(self => {
+           |> Option.forEach(instance => {
                 Js.log("triggering: " ++ command);
-                self
+                instance
                 |> Instance.dispatch(Command.Bare.parse(command))
                 |> thenDrop(
                      Option.forEach(x =>
@@ -135,7 +91,7 @@ let onTriggerCommand = () => {
                             |> Emacs.Parser.SExpression.parse
                             |> Result.flatMap(Response.parse)
                             |> Result.forEach(res =>
-                                 self |> handleResponse(res)
+                                 res |> Response.handle(instance)
                                )
                           )
                      ),

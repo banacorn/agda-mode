@@ -10,8 +10,8 @@ module Event = Util.Event;
 
 module Handles = {
   type t = {
-    updateHeader: ref(header => unit),
-    updateRawBody: ref(rawBody => unit),
+    updateHeader: Event.t(header),
+    updateRawBody: Event.t(rawBody),
     updateMode: ref(mode => unit),
     updateMountTo: ref(mountTo => unit),
     activatePanel: Event.t(bool),
@@ -34,9 +34,9 @@ module Handles = {
   let make = () => {
     let activatePanel = Event.make();
 
-    let updateHeader = ref(_ => ());
+    let updateHeader = Event.make();
 
-    let updateRawBody = ref(_ => ());
+    let updateRawBody = Event.make();
 
     let updateMode = ref(_ => ());
 
@@ -107,11 +107,11 @@ let initialState = () => {
   {
     header: {
       text: "",
-      style: "",
+      style: PlainText,
     },
     body: {
       maxHeight: 170,
-      raw: Unloaded,
+      raw: Nothing,
     },
     mountAt: Bottom(createElement()),
     activated: false,
@@ -287,16 +287,23 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     |> on(activate => self.send(activate ? Activate : Deactivate))
     |> destroyWhen(self.onUnmount);
 
+    /* update <Header> */
+    handles.updateHeader
+    |> on(header => {
+         Js.log(header);
+         self.send(UpdateHeader(header));
+       })
+    |> destroyWhen(self.onUnmount);
+
+    /* update <Body> */
+    handles.updateRawBody
+    |> on(body => self.send(UpdateRawBody(body)))
+    |> destroyWhen(self.onUnmount);
+
     Handles.hook(handles.updateMountTo, mountTo =>
       self.send(MountTo(mountTo))
     );
     Handles.hook(handles.updateMode, mode => self.send(UpdateMode(mode)));
-    Handles.hook(handles.updateHeader, header =>
-      self.send(UpdateHeader(header))
-    );
-    Handles.hook(handles.updateRawBody, rawBody =>
-      self.send(UpdateRawBody(rawBody))
-    );
 
     /* handles.inquireQuery
        |> Event.recv(self.onUnmount)

@@ -91,7 +91,14 @@ let make =
     open Util.ClassName;
     let classList =
       ["agda-header"] |> addWhen("hidden", hidden) |> serialize;
-    let headerClassList = "text-" ++ header.style;
+    let headerClassList =
+      switch (header.style) {
+      | PlainText => ""
+      | Error => "text-error"
+      | Info => "text-info"
+      | Success => "text-success"
+      | Warning => "text-warning"
+      };
     let spinnerClassList =
       ["loading", "loading-spinner-tiny", "inline-block"]
       |> addWhen("pending", isPending)

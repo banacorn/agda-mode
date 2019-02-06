@@ -6,23 +6,15 @@ open Emacs.Component;
 
 let component = statelessComponent("EmacsAllGoalsWarnings");
 
-let make = (~header: string, ~body: string, _children) => {
+let make = (~value: allGoalsWarnings, _children) => {
   ...component,
   render: _self => {
-    let parsed = Emacs.Parser.Response.allGoalsWarnings(header, body);
+    let {interactionMetas, hiddenMetas, warnings, errors} = value;
     <>
-      <ul>
-        ...(parsed.interactionMetas |> Array.map(value => <Output value />))
-      </ul>
-      <ul>
-        ...(parsed.hiddenMetas |> Array.map(value => <Output value />))
-      </ul>
-      <ul>
-        ...(parsed.warnings |> Array.map(value => <WarningError value />))
-      </ul>
-      <ul>
-        ...(parsed.errors |> Array.map(value => <WarningError value />))
-      </ul>
+      <ul> ...{interactionMetas |> Array.map(value => <Output value />)} </ul>
+      <ul> ...{hiddenMetas |> Array.map(value => <Output value />)} </ul>
+      <ul> ...{warnings |> Array.map(value => <WarningError value />)} </ul>
+      <ul> ...{errors |> Array.map(value => <WarningError value />)} </ul>
     </>;
   },
 };

@@ -134,7 +134,11 @@ let prepareCommand =
        );
   };
   switch (command) {
-  | Load => self |> prepare(Load)
+  | Load =>
+    /* force save before load */
+    self.editors.source
+    |> Atom.TextEditor.save
+    |> Util.Promise.then_(() => self |> prepare(Load))
   | Quit =>
     disconnect(self);
     resolve(None);

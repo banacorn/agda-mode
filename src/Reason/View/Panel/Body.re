@@ -12,27 +12,26 @@ let make = (~body: body, ~hidden, ~mountAtBottom, _children) => {
     let {raw, maxHeight} = body;
     let comp =
       switch (raw) {
-      | Unloaded => <Emacs__Error body="not loaded yet" />
+      | Nothing => null
+      /* | Unloaded => <Emacs__Error body="not loaded yet" /> */
       | RawJSON(raw) =>
         switch (Decoder.parseBody(raw)) {
         | AllGoalsWarnings(value) => <JSON__AllGoalsWarnings value />
         | ErrorMessage(value, rawString) => <JSON__Error value rawString />
-        | PlainText(s) => <p> (string(s)) </p>
+        | PlainText(s) => <p> {string(s)} </p>
         }
-      | RawEmacs(raw) =>
-        let parsed = Emacs__Parser.Response.body(raw);
-        let header = parsed.header;
-        let body = parsed.body;
-        switch (parsed.kind) {
-        | AllGoalsWarnings => <Emacs__AllGoalsWarnings header body />
-        | GoalTypeContext => <Emacs__GoalTypeContext body />
-        | Context => <Emacs__Context body />
-        | Constraints => <Emacs__Context body />
-        | WhyInScope => <Emacs__WhyInScope body />
-        | SearchAbout => <Emacs__SearchAbout body />
-        | Error => <Emacs__Error body />
-        | PlainText => String.isEmpty(body) ? null : <p> (string(body)) </p>
-        };
+      | RawEmacs(data) =>
+        switch (data) {
+        | AllGoalsWarnings(value) => <Emacs__AllGoalsWarnings value />
+        | GoalTypeContext(body) => <Emacs__GoalTypeContext body />
+        | Context(body) => <Emacs__Context body />
+        | Constraints(body) => <Emacs__Context body />
+        | WhyInScope(body) => <Emacs__WhyInScope body />
+        | SearchAbout(body) => <Emacs__SearchAbout body />
+        | Error(body) => <Emacs__Error body />
+        | PlainText(body) =>
+          String.isEmpty(body) ? null : <p> {string(body)} </p>
+        }
       };
     let className =
       hidden ?
