@@ -390,15 +390,16 @@ let parse = (tokens: Token.t): result(t, string) => {
 };
 
 let handle = (instance: Instance.t, response: t) => {
+  let textEditor = instance.editors.source;
+  let filePath = textEditor |> Atom.TextEditor.getPath;
+  let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
   switch (response) {
   | InteractionPoints(indices) =>
     /* destroy all goals */
     instance.goals |> Array.forEach(Goal.destroy);
     instance.goals = [||];
 
-    let filePath = instance.editors.source |> Atom.TextEditor.getPath;
-    let source = instance.editors.source |> Atom.TextEditor.getText;
-    let textBuffer = instance.editors.source |> Atom.TextEditor.getBuffer;
+    let source = textEditor |> Atom.TextEditor.getText;
     let fileType = Goal.FileType.parse(filePath);
     let result = Hole.parse(source, indices, fileType);
     instance.goals =
@@ -416,7 +417,7 @@ let handle = (instance: Instance.t, response: t) => {
                 );
            let range = Atom.Range.make(start, end_);
            /* modified the hole */
-           instance.editors.source
+           textEditor
            |> Atom.TextEditor.setTextInBufferRange(range, result.content)
            |> ignore;
            /* make it a goal */
@@ -430,6 +431,12 @@ let handle = (instance: Instance.t, response: t) => {
   | DisplayInfo(info) =>
     instance.view.activatePanel |> Event.resolve(true);
     Info.handle(instance, info);
+  | JumpToError(targetFilePath, index) =>
+    if (targetFilePath == filePath) {
+      let point =
+        textBuffer |> Atom.TextBuffer.positionForCharacterIndex(index - 1);
+      textEditor |> Atom.TextEditor.setCursorBufferPosition(point);
+    }
   | _ => Js.log(response)
   };
 };
