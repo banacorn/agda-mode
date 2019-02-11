@@ -38,7 +38,7 @@ module Instances = {
 let isAgdaFile = (textEditor): bool => {
   let filepath = textEditor |> Atom.TextEditor.getPath;
   /* filenames are case insensitive on Windows */
-  let onWindows = Connection.OS.type_() == "Windows_NT";
+  let onWindows = N.OS.type_() == "Windows_NT";
   if (onWindows) {
     Js.Re.test(filepath, [%re "/\\.agda$|\\.lagda$/i"]);
   } else {
