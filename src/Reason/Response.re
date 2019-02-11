@@ -8,51 +8,6 @@ type index = int;
 module Event = Util.Event;
 module Token = Emacs.Parser.SExpression;
 
-module Highlighting = {
-  type removeTokenBasedHighlighting =
-    | Remove
-    | Keep;
-
-  module Annotation = {
-    open Token;
-    type t =
-      | WithSource(int, int, array(string), filepath, int)
-      | WithoutSource(int, int, array(string));
-    let parse =
-      fun
-      | A(s) => Error(toString(A(s)))
-      | L(xs) =>
-        switch (xs) {
-        | [|
-            A(start),
-            A(end_),
-            type_,
-            _,
-            _,
-            L([|A(filepath), _, A(index)|]),
-          |] =>
-          Ok(
-            WithSource(
-              int_of_string(start),
-              int_of_string(end_),
-              flatten(type_),
-              filepath,
-              int_of_string(index),
-            ),
-          )
-        | [|A(start), A(end_), type_, _|] =>
-          Ok(
-            WithoutSource(
-              int_of_string(start),
-              int_of_string(end_),
-              flatten(type_),
-            ),
-          )
-        | _ => Error(toString(L(xs)))
-        };
-  };
-};
-
 /* type fileType =
    | Agda
    | LiterateTeX
@@ -395,39 +350,7 @@ let handle = (instance: Instance.t, response: t) => {
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
   switch (response) {
   | InteractionPoints(indices) =>
-    /* destroy all goals */
-    instance.goals |> Array.forEach(Goal.destroy);
-    instance.goals = [||];
-
-    let source = textEditor |> Atom.TextEditor.getText;
-    let fileType = Goal.FileType.parse(filePath);
-    let result = Hole.parse(source, indices, fileType);
-    instance.goals =
-      result
-      |> Array.map((result: Hole.result) => {
-           let start =
-             textBuffer
-             |> Atom.TextBuffer.positionForCharacterIndex(
-                  fst(result.originalRange),
-                );
-           let end_ =
-             textBuffer
-             |> Atom.TextBuffer.positionForCharacterIndex(
-                  snd(result.originalRange),
-                );
-           let range = Atom.Range.make(start, end_);
-           /* modified the hole */
-           textEditor
-           |> Atom.TextEditor.setTextInBufferRange(range, result.content)
-           |> ignore;
-           /* make it a goal */
-           Goal.make(
-             instance.editors.source,
-             Some(result.index),
-             result.modifiedRange,
-           );
-         });
-    ();
+    instance |> Instance.Goals.instantiateAll(indices)
   | DisplayInfo(info) =>
     instance.view.activatePanel |> Event.resolve(true);
     Info.handle(instance, info);
@@ -437,6 +360,23 @@ let handle = (instance: Instance.t, response: t) => {
         textBuffer |> Atom.TextBuffer.positionForCharacterIndex(index - 1);
       textEditor |> Atom.TextEditor.setCursorBufferPosition(point);
     }
-  | _ => Js.log(response)
+  | HighlightingInfoDirect(_remove, annotations) =>
+    instance |> Instance.Highlightings.destroyAll;
+
+    Highlighting.Annotation.(
+      annotations
+      |> Array.filter(annotation =>
+           annotation.types
+           |> Js.Array.includes("unsolvedmeta")
+           || annotation.types
+           |> Js.Array.includes("terminationproblem")
+         )
+      |> Array.forEach(annotation =>
+           instance |> Instance.Highlightings.add(annotation)
+         )
+    );
+  | ClearHighlighting => instance |> Instance.Highlightings.destroyAll
+  | _ => ()
+  /* Js.log(response) */
   };
 };

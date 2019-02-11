@@ -99,7 +99,8 @@ module ChildProcess = {
 
   [@bs.get] external stdout: t => Stream.Readable.t = "";
   [@bs.get] external stdin: t => Stream.Writable.t = "";
-  [@bs.val] external disconnect: t => unit = "";
+  /* [@bs.send.pipe: t] external disconnect: unit = ""; */
+  [@bs.send.pipe: t] external kill: string => unit = "";
 
   [@bs.send.pipe: t]
   external on:
@@ -392,7 +393,7 @@ let connect = (metadata): Js.Promise.t(t) => {
 };
 
 let disconnect = self => {
-  self.process |> ChildProcess.disconnect;
+  self.process |> ChildProcess.kill("SIGTERM");
 };
 
 let wire = (self): Js.Promise.t(t) => {

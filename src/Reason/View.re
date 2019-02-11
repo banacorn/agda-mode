@@ -282,10 +282,7 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
 
     /* update <Header> */
     handles.updateHeader
-    |> on(header => {
-         Js.log(header);
-         self.send(UpdateHeader(header));
-       })
+    |> on(header => self.send(UpdateHeader(header)))
     |> destroyWhen(self.onUnmount);
 
     /* update <Body> */
