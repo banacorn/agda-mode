@@ -79,7 +79,6 @@ module Goals = {
 module Highlightings = {
   /* lots of side effects! */
   let add = (annotation: Highlighting.Annotation.t, instance: t) => {
-    Js.log(annotation);
     let textEditor = instance.editors.source;
     let textBuffer = textEditor |> TextEditor.getBuffer;
     let startPoint =
@@ -87,8 +86,6 @@ module Highlightings = {
     let endPoint =
       textBuffer |> TextBuffer.positionForCharacterIndex(annotation.end_ - 1);
     let range = Range.make(startPoint, endPoint);
-    Js.log(range);
-
     let marker = textEditor |> TextEditor.markBufferRange(range);
     /* update the state */
     instance.highlightings |> Js.Array.push(marker) |> ignore;
@@ -104,6 +101,38 @@ module Highlightings = {
          ),
        )
     |> ignore;
+  };
+
+  let addFromFile = (filepath, instance): Js.Promise.t(unit) => {
+    let readFile = N.Fs.readFile |> N.Util.promisify;
+    /* read and parse and add */
+    readFile(. filepath)
+    |> then_(content => {
+         open Emacs.Parser.SExpression;
+         content
+         |> Node.Buffer.toString
+         |> Emacs.Parser.SExpression.parse
+         |> Result.map(tokens =>
+              switch (tokens) {
+              | L(xs) =>
+                xs |> Highlighting.Annotation.parseIndirectHighlighting
+              | _ => [||]
+              }
+            )
+         |> Result.forEach(annotations =>
+              annotations
+              |> Array.filter(Highlighting.Annotation.shouldHighlight)
+              |> Array.forEach(annotation => instance |> add(annotation))
+            );
+         resolve();
+       })
+    /* print on error */
+    |> catch(err => {
+         Js.log(err);
+         Js.log("cannot read the indirect highlighting file: " ++ filepath);
+
+         resolve();
+       });
   };
 
   let destroyAll = instance => {

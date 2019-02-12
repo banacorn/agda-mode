@@ -217,10 +217,7 @@ let parse = (tokens: Token.t): result(t, string) => {
   | L(xs) =>
     switch (xs[0]) {
     | Some(A("agda2-highlight-add-annotations")) =>
-      let annotations =
-        Js.Array.sliceFrom(2, xs)
-        |> Array.map(Highlighting.Annotation.parse)
-        |> Array.filterMap(Option.fromResult);
+      let annotations = Highlighting.Annotation.parseDirectHighlighting(xs);
       switch (xs[1]) {
       | Some(A("remove")) =>
         Ok(HighlightingInfoDirect(Highlighting.Remove, annotations))
@@ -345,6 +342,7 @@ let parse = (tokens: Token.t): result(t, string) => {
 };
 
 let handle = (instance: Instance.t, response: t) => {
+  open Util.Promise;
   let textEditor = instance.editors.source;
   let filePath = textEditor |> Atom.TextEditor.getPath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
@@ -361,22 +359,17 @@ let handle = (instance: Instance.t, response: t) => {
       textEditor |> Atom.TextEditor.setCursorBufferPosition(point);
     }
   | HighlightingInfoDirect(_remove, annotations) =>
-    instance |> Instance.Highlightings.destroyAll;
+    annotations
+    |> Array.filter(Highlighting.Annotation.shouldHighlight)
+    |> Array.forEach(annotation =>
+         instance |> Instance.Highlightings.add(annotation)
+       )
+  | HighlightingInfoIndirect(filepath) =>
+    instance
+    |> Instance.Highlightings.addFromFile(filepath)
+    |> finally(() => N.Fs.unlink(filepath, _ => ()) |> ignore)
 
-    Highlighting.Annotation.(
-      annotations
-      |> Array.filter(annotation =>
-           annotation.types
-           |> Js.Array.includes("unsolvedmeta")
-           || annotation.types
-           |> Js.Array.includes("terminationproblem")
-         )
-      |> Array.forEach(annotation =>
-           instance |> Instance.Highlightings.add(annotation)
-         )
-    );
   | ClearHighlighting => instance |> Instance.Highlightings.destroyAll
-  | _ => ()
-  /* Js.log(response) */
+  | _ => Js.log(response)
   };
 };

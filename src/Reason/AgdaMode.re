@@ -81,14 +81,11 @@ let onTriggerCommand = () => {
                 instance
                 |> Instance.dispatch(Command.Bare.parse(command))
                 |> thenDrop(
-                     Option.forEach(x =>
-                       x
-                       |> Util.safeSplitByRe([%re "/\\r\\n|\\n/"])
-                       |> Array.filterMap(x => x)
-                       |> Array.forEach(line =>
-                            line
-                            |> Js.String.trim
-                            |> Emacs.Parser.SExpression.parse
+                     Option.forEach(raw =>
+                       raw
+                       |> Emacs.Parser.SExpression.parseFile
+                       |> Array.forEach(tokens =>
+                            tokens
                             |> Result.flatMap(Response.parse)
                             |> Result.forEach(res =>
                                  res |> Response.handle(instance)

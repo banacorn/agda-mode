@@ -299,6 +299,18 @@ module Promise = {
            Js.Promise.resolve();
          })
       |> ignore;
+  let finally: (unit => unit, t('a)) => unit =
+    (f, p) =>
+      p
+      |> then_(_ => {
+           f();
+           Js.Promise.resolve();
+         })
+      |> catch(_ => {
+           f();
+           Js.Promise.resolve();
+         })
+      |> ignore;
 };
 
 exception JSPromiseError(Js.Promise.error);

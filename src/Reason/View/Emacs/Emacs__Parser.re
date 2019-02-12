@@ -581,15 +581,19 @@ module SExpression = {
       } else if (char == "(" && ! in_str^) {
         stack |> Js.Array.push(ref(L([||]))) |> ignore;
       } else if (char == ")" && ! in_str^) {
-        pushToTheTop(A(word^));
-        word := "";
+        if (word^ != "") {
+          pushToTheTop(A(word^));
+          word := "";
+        };
         switch (stack |> Js.Array.pop) {
         | Some(expr) => pushToTheTop(expr^)
         | None => ()
         };
       } else if (char == " " && ! in_str^) {
-        pushToTheTop(A(word^));
-        word := "";
+        if (word^ != "") {
+          pushToTheTop(A(word^));
+          word := "";
+        };
       } else if (char == "\"") {
         in_str := ! in_str^;
       } else {
@@ -616,5 +620,12 @@ module SExpression = {
 
   let parse = (string: string): result(t, string) => {
     string |> preprocess |> Result.flatMap(postprocess);
+  };
+
+  let parseFile = (content: string): array(result(t, string)) => {
+    content
+    |> Util.safeSplitByRe([%re "/\\r\\n|\\n/"])
+    |> Array.filterMap(x => x)
+    |> Array.map(line => line |> Js.String.trim |> parse);
   };
 };

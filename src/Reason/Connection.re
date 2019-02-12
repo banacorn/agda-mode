@@ -1,5 +1,4 @@
 open Rebase;
-open N;
 
 /* supported protocol */
 type protocol =
@@ -19,7 +18,7 @@ type metadata = {
 
 type t = {
   metadata,
-  process: ChildProcess.t,
+  process: N.ChildProcess.t,
   mutable queue: array(Util.TelePromise.t(string)),
 };
 
@@ -107,7 +106,7 @@ let handleConnectionError = (f, error) =>
 /* a more sophiscated "make" */
 let autoSearch = (path): Js.Promise.t(string) =>
   Js.Promise.make((~resolve, ~reject) =>
-    switch (OS.type_()) {
+    switch (N.OS.type_()) {
     | "Linux"
     | "Darwin" =>
       /* reject if the process hasn't responded for more than 1 second */
@@ -116,7 +115,7 @@ let autoSearch = (path): Js.Promise.t(string) =>
           () => reject(. ValidationExn(ProcessHanging)),
           1000,
         );
-      ChildProcess.exec(
+      N.ChildProcess.exec(
         "which " ++ path,
         (error, stdout, stderr) => {
           /* clear timeout as the process has responded */
@@ -203,7 +202,7 @@ let validateAndMake = (path): Js.Promise.t(metadata) => {
         1000,
       );
 
-    ChildProcess.exec(
+    N.ChildProcess.exec(
       parsedPath,
       (error, stdout, stderr) => {
         /* clear timeout as the process has responded */
@@ -238,38 +237,40 @@ let useJSON = metadata => {
 };
 
 let connect = (metadata): Js.Promise.t(t) => {
-  Js.Promise.make((~resolve, ~reject) => {
-    let args =
-      useJSON(metadata) ? [|"--interaction-json"|] : [|"--interaction"|];
-    let process = ChildProcess.spawn(metadata.path, args, {"shell": true});
-    /* Handles errors and anomalies */
-    process
-    |> ChildProcess.on(
-         `error(exn => reject(. ConnectionExn(ShellError(exn)))),
-       )
-    |> ChildProcess.on(
-         `close(
-           (code, signal) => reject(. ConnectionExn(Close(code, signal))),
-         ),
-       )
-    |> ignore;
-    process
-    |> ChildProcess.stdout
-    |> N.Stream.Readable.once(
-         `data(_ => resolve(. {metadata, process, queue: [||]})),
-       )
-    |> ignore;
-  });
+  N.(
+    Js.Promise.make((~resolve, ~reject) => {
+      let args =
+        useJSON(metadata) ? [|"--interaction-json"|] : [|"--interaction"|];
+      let process = ChildProcess.spawn(metadata.path, args, {"shell": true});
+      /* Handles errors and anomalies */
+      process
+      |> ChildProcess.on(
+           `error(exn => reject(. ConnectionExn(ShellError(exn)))),
+         )
+      |> ChildProcess.on(
+           `close(
+             (code, signal) =>
+               reject(. ConnectionExn(Close(code, signal))),
+           ),
+         )
+      |> ignore;
+      process
+      |> ChildProcess.stdout
+      |> Stream.Readable.once(
+           `data(_ => resolve(. {metadata, process, queue: [||]})),
+         )
+      |> ignore;
+    })
+  );
 };
 
 let disconnect = self => {
-  self.process |> ChildProcess.kill("SIGTERM");
+  self.process |> N.ChildProcess.kill("SIGTERM");
 };
 
 let wire = (self): Js.Promise.t(t) => {
   /* resolves the requests in the queue */
   let response = data => {
-    Js.log(data);
     switch (self.queue[0]) {
     | None => Js.log("WTF!!")
     | Some(req) =>
@@ -303,8 +304,8 @@ let wire = (self): Js.Promise.t(t) => {
   };
 
   self.process
-  |> ChildProcess.stdout
-  |> Stream.Readable.on(`data(onData))
+  |> N.ChildProcess.stdout
+  |> N.Stream.Readable.on(`data(onData))
   |> ignore;
 
   Js.Promise.resolve(self);
@@ -316,8 +317,8 @@ let send = (request, self): Js.Promise.t(string) => {
 
   /* write */
   self.process
-  |> ChildProcess.stdin
-  |> Stream.Writable.write(request ++ "\n" |> Node.Buffer.fromString)
+  |> N.ChildProcess.stdin
+  |> N.Stream.Writable.write(request ++ "\n" |> Node.Buffer.fromString)
   |> ignore;
 
   reqPromise.wire();
