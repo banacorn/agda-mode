@@ -84,89 +84,92 @@ module Info = {
   let handle = (instance: Instance.t, info: t) => {
     open Type.View;
 
-    let update = (header, body) => {
+    let updateView = (header, body) => {
       instance.view.updateHeader |> Event.resolve(header);
       instance.view.updateBody |> Event.resolve(body);
     };
     switch (info) {
     | CompilationOk =>
-      update({text: "Compilation Done!", style: Header.Success}, Nothing)
+      updateView({text: "Compilation Done!", style: Header.Success}, Nothing)
     | Constraints(None) =>
-      update({text: "No Constraints", style: Header.Success}, Nothing)
+      updateView({text: "No Constraints", style: Header.Success}, Nothing)
     | Constraints(Some(payload)) =>
-      update(
+      updateView(
         {text: "Constraints", style: Header.Info},
         Emacs(Constraints(payload)),
       )
     | AllGoalsWarnings(payload) =>
-      update(
+      updateView(
         {text: payload.title, style: Header.Info},
         Emacs(AllGoalsWarnings(payload)),
       )
     | Time(payload) =>
-      update(
+      updateView(
         {text: "Time", style: Header.PlainText},
         Emacs(PlainText(payload)),
       )
     | Error(payload) =>
-      update({text: "Error", style: Header.Error}, Emacs(Error(payload)))
+      updateView(
+        {text: "Error", style: Header.Error},
+        Emacs(Error(payload)),
+      )
     | Intro(payload) =>
-      update(
+      updateView(
         {text: "Intro", style: Header.PlainText},
         Emacs(PlainText(payload)),
       )
     | Auto(payload) =>
-      update(
+      updateView(
         {text: "Auto", style: Header.PlainText},
         Emacs(PlainText(payload)),
       )
     | ModuleContents(payload) =>
-      update(
+      updateView(
         {text: "Module Contents", style: Header.Info},
         Emacs(PlainText(payload)),
       )
     | SearchAbout(payload) =>
-      update(
+      updateView(
         {text: "Searching about ...", style: Header.PlainText},
         Emacs(SearchAbout(payload)),
       )
     | WhyInScope(payload) =>
-      update(
+      updateView(
         {text: "Scope info", style: Header.Info},
         Emacs(WhyInScope(payload)),
       )
     | NormalForm(payload) =>
-      update(
+      updateView(
         {text: "Normal form", style: Header.Info},
         Emacs(PlainText(payload)),
       )
     | GoalType(payload) =>
-      update(
+      updateView(
         {text: "Goal type", style: Header.Info},
         Emacs(GoalTypeContext(payload)),
       )
     | CurrentGoal(payload) =>
-      update(
+      updateView(
         {text: "Current goal", style: Header.Info},
         Emacs(PlainText(payload)),
       )
     | InferredType(payload) =>
-      update(
+      updateView(
         {text: "Inferred type", style: Header.Info},
         Emacs(PlainText(payload)),
       )
     | Context(payload) =>
-      update(
+      updateView(
         {text: "Context", style: Header.Info},
         Emacs(Context(payload)),
       )
     | HelperFunction(payload) =>
-      update(
+      updateView(
         {text: "Helper function", style: Header.Info},
         Emacs(PlainText(payload)),
       )
     | Version(payload) =>
-      update(
+      updateView(
         {text: "Version", style: Header.Info},
         Emacs(PlainText(payload)),
       )
@@ -346,7 +349,35 @@ let handle = (instance: Instance.t, response: t) => {
   let textEditor = instance.editors.source;
   let filePath = textEditor |> Atom.TextEditor.getPath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
+  let updateView = (header, body) => {
+    instance.view.updateHeader |> Event.resolve(header);
+    instance.view.updateBody |> Event.resolve(body);
+  };
   switch (response) {
+  | HighlightingInfoDirect(_remove, annotations) =>
+    annotations
+    |> Array.filter(Highlighting.Annotation.shouldHighlight)
+    |> Array.forEach(annotation =>
+         instance |> Instance.Highlightings.add(annotation)
+       )
+  | HighlightingInfoIndirect(filepath) =>
+    instance
+    |> Instance.Highlightings.addFromFile(filepath)
+    |> finally(() => N.Fs.unlink(filepath, _ => ()) |> ignore)
+  | Status(displayImplicit, checked) =>
+    if (displayImplicit || checked) {
+      updateView(
+        {text: "Status", style: Type.View.Header.PlainText},
+        Emacs(
+          PlainText(
+            "Typechecked: "
+            ++ string_of_bool(checked)
+            ++ "\nDisplay implicit arguments: "
+            ++ string_of_bool(displayImplicit),
+          ),
+        ),
+      );
+    }
   | InteractionPoints(indices) =>
     instance |> Instance.Goals.instantiateAll(indices)
   | DisplayInfo(info) =>
@@ -358,18 +389,43 @@ let handle = (instance: Instance.t, response: t) => {
         textBuffer |> Atom.TextBuffer.positionForCharacterIndex(index - 1);
       textEditor |> Atom.TextEditor.setCursorBufferPosition(point);
     }
-  | HighlightingInfoDirect(_remove, annotations) =>
-    annotations
-    |> Array.filter(Highlighting.Annotation.shouldHighlight)
-    |> Array.forEach(annotation =>
-         instance |> Instance.Highlightings.add(annotation)
-       )
-  | HighlightingInfoIndirect(filepath) =>
-    instance
-    |> Instance.Highlightings.addFromFile(filepath)
-    |> finally(() => N.Fs.unlink(filepath, _ => ()) |> ignore)
-
   | ClearHighlighting => instance |> Instance.Highlightings.destroyAll
   | _ => Js.log(response)
   };
 };
+
+/* type t =
+   /* agda2-highlight-add-annotations */
+   | HighlightingInfoDirect(
+       Highlighting.removeTokenBasedHighlighting,
+       array(Highlighting.Annotation.t),
+     )
+   /* agda2-highlight-load-and-delete-action */
+   | HighlightingInfoIndirect(filepath)
+   /* agda2-status-action */
+   | Status(
+       bool, /*  Are implicit arguments displayed? */
+       /* Has the module been successfully type checked? */
+       bool,
+     )
+   /* agda2-maybe-goto */
+   | JumpToError(filepath, int)
+   /* agda2-goals-action */
+   | InteractionPoints(array(index))
+   /* agda2-give-action */
+   | GiveAction(index, giveResult)
+   /* agda2-make-case-action */
+   /* agda2-make-case-action-extendlam */
+   | MakeCase(makeCaseType, array(string))
+   /* agda2-solveAll-action */
+   | SolveAll(array((index, string)))
+   /* agda2-info-action */
+   /* agda2-info-action-and-copy */
+   | DisplayInfo(Info.t)
+   | ClearRunningInfo
+   /* agda2-verbose */
+   | RunningInfo(int, string)
+   /* agda2-highlight-clear */
+   | ClearHighlighting
+   /* agda2-abort-done */
+   | DoneAborting; */
