@@ -79,7 +79,7 @@ let onTriggerCommand = () => {
            |> Option.forEach(instance => {
                 Js.log("triggering: " ++ command);
                 instance
-                |> Instance.dispatch(Command.Bare.parse(command))
+                |> Instance.dispatch(Command.Primitive.parse(command))
                 |> thenDrop(
                      Option.forEach(raw =>
                        raw

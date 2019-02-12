@@ -170,7 +170,7 @@ module Connections = {
       if (storedPath |> String.isEmpty) {
         Connection.autoSearch("agda");
       } else {
-        Js.Promise.resolve(storedPath);
+        resolve(storedPath);
       };
     };
 
@@ -236,10 +236,11 @@ let destroy = instance => {
   instance.view.destroy^();
 };
 
-let prepareCommand =
-    (command: Command.Bare.t, instance)
-    : Js.Promise.t(option(Command.Packed.t)) => {
-  let prepare = (command, instance) => {
+/* Primitive Command => Cultivated Command */
+let cultivateCommand =
+    (command: Command.Primitive.t, instance)
+    : Js.Promise.t(option(Command.Cultivated.t)) => {
+  let cultivate = (command, instance) => {
     Connections.get(instance)
     |> then_(connection =>
          Some(
@@ -247,7 +248,7 @@ let prepareCommand =
              connection,
              filepath: instance.editors.source |> TextEditor.getPath,
              command,
-           }: Command.Packed.t,
+           }: Command.Cultivated.t,
          )
          |> resolve
        );
@@ -257,16 +258,15 @@ let prepareCommand =
     /* force save before load */
     instance.editors.source
     |> TextEditor.save
-    |> Util.Promise.then_(() => instance |> prepare(Load))
+    |> then_(() => instance |> cultivate(Load))
   | Quit =>
     Connections.disconnect(instance);
     instance |> Goals.destroyAll;
     instance |> Highlightings.destroyAll;
-
     resolve(None);
   | Restart =>
     Connections.disconnect(instance);
-    instance |> prepare(Load);
+    instance |> cultivate(Load);
   | InputSymbol(symbol) =>
     let enabled = Environment.Config.get("agda-mode.inputMethod");
     if (enabled) {
@@ -293,21 +293,19 @@ let prepareCommand =
       |> ignore;
     };
     resolve(None);
-  | _ => instance |> prepare(Load)
+  | _ => instance |> cultivate(Load)
   };
 };
 
 let dispatch = (command, instance): Js.Promise.t(option(string)) => {
   instance
-  |> prepareCommand(command)
-  |> then_(prepared =>
-       switch (prepared) {
+  |> cultivateCommand(command)
+  |> then_(cultivated =>
+       switch (cultivated) {
        | None => resolve(None)
        | Some(cmd) =>
-         let s = Command.Packed.serialize(cmd);
-         cmd.connection
-         |> Connection.send(s)
-         |> Util.Promise.map(Option.some);
+         let s = Command.Cultivated.serialize(cmd);
+         cmd.connection |> Connection.send(s) |> map(Option.some);
        }
      );
 };

@@ -18,7 +18,7 @@ type inputSymbolType =
   | SingleQuote
   | BackQuote;
 
-module Bare = {
+module Primitive = {
   type t =
     | Load
     | Quit
@@ -123,7 +123,7 @@ module Bare = {
     | _ => true;
 };
 
-module Packed = {
+module Cultivated = {
   type command =
     | Load;
   type t = {
@@ -132,7 +132,7 @@ module Packed = {
     command,
   };
 
-  /* serializes Packed Command into strings that can be sent to Agda */
+  /* serializes Cultivated Command into strings that can be sent to Agda */
   let serialize = self => {
     let {filepath, command} = self;
     /* highlighting method */
@@ -152,16 +152,6 @@ module Packed = {
   };
 };
 
-/* let dispatch = (command, connection: Connection.t): Js.Promise.t(string) => {
-     switch (command) {
-     | Load =>
-       connection
-       |> Connection.send(
-            {j|IOTCM "/Users/banacorn/agda/test/A.agda" NonInteractive Direct ( Cmd_load "/Users/banacorn/agda/test/A.agda" [])\n|j},
-          )
-     | _ => Js.Promise.resolve("")
-     };
-   }; */
 let names = [|
   "load",
   "quit",

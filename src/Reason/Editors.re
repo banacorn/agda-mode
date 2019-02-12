@@ -64,36 +64,31 @@ module Focus = {
     };
 };
 
-module Goals = {
-  type t = list(Goal.t);
-  let destroy = (index, self) => {
-    self
-    |> Array.filter(x => Goal.(x.index) == index)
-    |> Array.forEach(x => Goal.destroy(x));
-    self |> Array.filter(x => Goal.(x.index) != index);
-  };
+/* module Goals = {
+     type t = list(Goal.t);
+     let destroy = (index, self) => {
+       self
+       |> Array.filter(x => Goal.(x.index) == index)
+       |> Array.forEach(x => Goal.destroy(x));
+       self |> Array.filter(x => Goal.(x.index) != index);
+     };
 
-  let destroyAll = self => {
-    self |> Array.forEach(x => Goal.destroy(x));
-    [];
-  };
+     let destroyAll = self => {
+       self |> Array.forEach(x => Goal.destroy(x));
+       [];
+     };
 
-  let find = (index, self) => {
-    let result = self |> Array.filter(x => Goal.(x.index) == index);
-    result[0];
-  };
-  /* returns the goal where the cursor is positioned */
-  let pointingAt = (cursor, self) => {
-    let result =
-      self
-      |> Array.filter(x =>
-           Goal.(x.range) |> Range.containsPoint_(cursor, false)
-         );
-    result[0];
-  };
-};
-/* TODO: remove this */
-let jsGoalsDestroy = Goals.destroy;
-let jsGoalsDestroyAll = Goals.destroyAll;
-let jsGoalsFind = Goals.find;
-let jsGoalsPointingAt = Goals.pointingAt;
+     let find = (index, self) => {
+       let result = self |> Array.filter(x => Goal.(x.index) == index);
+       result[0];
+     };
+     /* returns the goal where the cursor is positioned */
+     let pointingAt = (cursor, self) => {
+       let result =
+         self
+         |> Array.filter(x =>
+              Goal.(x.range) |> Range.containsPoint_(cursor, false)
+            );
+       result[0];
+     };
+   }; */
