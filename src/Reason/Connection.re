@@ -124,7 +124,7 @@ let validateAndMake =
       | Some(version) =>
         Ok({
           path: parsedPath,
-          version,
+          version: Util.Semver.coerce(version),
           protocol:
             Js.Re.test(message, [%re "/--interaction-json/"]) ?
               EmacsAndJSON : EmacsOnly,
@@ -207,9 +207,10 @@ let disconnect = self => {
   self.process |> N.ChildProcess.kill("SIGTERM");
 };
 
-let wire = (self): Js.Promise.t(t) => {
+let wire = (self): t => {
   /* resolves the requests in the queue */
   let response = data => {
+    Js.log("receiving <<< " ++ data);
     switch (self.queue[0]) {
     | None => Js.log("WTF!!")
     | Some(req) =>
@@ -247,18 +248,21 @@ let wire = (self): Js.Promise.t(t) => {
   |> N.Stream.Readable.on(`data(onData))
   |> ignore;
 
-  Js.Promise.resolve(self);
+  self;
 };
 
 let send = (request, self): Js.Promise.t(string) => {
+  Js.log("sending >>> " ++ request);
   let reqPromise = Util.Event.make();
   self.queue |> Js.Array.push(reqPromise) |> ignore;
 
+  /* listen */
+  let promise = reqPromise |> Util.Event.once;
   /* write */
   self.process
   |> N.ChildProcess.stdin
   |> N.Stream.Writable.write(request ++ "\n" |> Node.Buffer.fromString)
   |> ignore;
 
-  reqPromise |> Util.Event.once;
+  promise;
 };

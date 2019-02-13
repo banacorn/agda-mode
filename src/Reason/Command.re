@@ -2,6 +2,7 @@
 
 type error =
   | Cancelled
+  | GoalNotIndexed
   | OutOfGoal;
 
 type highlightingLevel =
@@ -130,7 +131,7 @@ module Primitive = {
 module Cultivated = {
   type command =
     | Load
-    | Give(Goal.t);
+    | Give(Goal.t, int);
 
   type t = {
     connection: Connection.t,
@@ -140,7 +141,7 @@ module Cultivated = {
 
   /* serializes Cultivated Command into strings that can be sent to Agda */
   let serialize = self => {
-    let {filepath, command} = self;
+    let {filepath, command, connection} = self;
     /* highlighting method */
     let highlightingMethod =
       switch (Atom.Environment.Config.get("agda-mode.highlightingMethod")) {
@@ -149,11 +150,33 @@ module Cultivated = {
       };
     let commonPart =
       fun
-      | NonInteractive => {j|IOTCM "$(filepath)" NonInteractive $(highlightingMethod)|j}
-      | None => {j|IOTCM "$(filepath)" None $(highlightingMethod)|j};
+      | NonInteractive => {j|IOTCM "$(filepath)" NonInteractive $(highlightingMethod) |j}
+      | None => {j|IOTCM "$(filepath)" None $(highlightingMethod) |j};
+
+    let buildRange = goal =>
+      if (Util.Semver.gte(connection.metadata.version, "2.5.1")) {
+        goal |> Goal.buildHaskellRange(false, filepath);
+      } else {
+        goal |> Goal.buildHaskellRange(true, filepath);
+      };
+
     /* serialization */
     switch (command) {
     | Load => commonPart(NonInteractive) ++ {j|( Cmd_load "$(filepath)" [])|j}
+
+    /* Related issue and commit of agda/agda */
+    /* https://github.com/agda/agda/issues/2730 */
+    /* https://github.com/agda/agda/commit/021e6d24f47bac462d8bc88e2ea685d6156197c4 */
+    | Give(goal, index) =>
+      let content = Goal.getContent(goal);
+      let range = buildRange(goal);
+      if (Util.Semver.gte(connection.metadata.version, "2.5.3")) {
+        commonPart(NonInteractive)
+        ++ {j|( Cmd_give WithoutForce $(index) $(range) "$(content)")|j};
+      } else {
+        commonPart(NonInteractive)
+        ++ {j|( Cmd_give $(index) $(range) "$(content)")|j};
+      };
     };
   };
 };

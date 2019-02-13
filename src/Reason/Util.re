@@ -491,3 +491,8 @@ module JsError = {
 /* TODO: https://github.com/BuckleScript/bucklescript/pull/3123 */
 [@bs.send.pipe: Js.String.t]
 external safeSplitByRe: Js_re.t => array(option(Js.String.t)) = "split";
+
+module Semver = {
+  [@bs.module "semver"] external gte: (string, string) => bool = "";
+  [@bs.module "semver"] external coerce: string => string = "";
+};

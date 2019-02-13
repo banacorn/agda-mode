@@ -230,6 +230,7 @@ module Connections = {
       |> thenOk(getMetadata(instance))
       |> thenOk(getConnection(instance))
       |> mapOk(persistConnection(instance))
+      |> mapOk(Connection.wire)
     };
   };
 
@@ -305,16 +306,26 @@ let cultivateCommand =
     let pointed = Editors.pointingAt(instance.goals, instance.editors);
     switch (pointed) {
     | Some(goal) =>
-      if (Goal.isEmpty(goal)) {
+      switch (goal.index) {
+      | Some(index) =>
+        if (Goal.isEmpty(goal)) {
+          instance
+          |> inquire("expression to give:", "")
+          |> mapError(_ => Command.Cancelled)
+          |> thenOk(result => {
+               goal |> Goal.setContent(result) |> ignore;
+               instance |> cultivate(Give(goal, index));
+             });
+        } else {
+          instance |> cultivate(Give(goal, index));
+        }
+      | None =>
         instance
-        |> inquire("expression to give:", "")
-        |> mapError(_ => Command.Cancelled)
-        |> thenOk(result => {
-             goal |> Goal.setContent(result) |> ignore;
-             instance |> cultivate(Give(goal));
-           });
-      } else {
-        instance |> cultivate(Give(goal));
+        |> updateView(
+             {text: "Goal not indexed", style: Header.Error},
+             Emacs(PlainText("Please reload to re-index the goal")),
+           );
+        resolve(Error(Command.GoalNotIndexed));
       }
     | None =>
       instance
@@ -363,7 +374,9 @@ let dispatch = (command, instance): Js.Promise.t(option(string)) => {
   |> cultivateCommand(command)
   |> then_(cultivated =>
        switch (cultivated) {
-       | Error(_) => resolve(None)
+       | Error(err) =>
+         Js.log(err);
+         resolve(None);
        | Ok(None) => resolve(None)
        | Ok(Some(cmd)) =>
          let s = Command.Cultivated.serialize(cmd);
