@@ -1,5 +1,16 @@
 /* Command Dispatcher */
 
+type commandError =
+  | Cancelled;
+exception Exn(commandError);
+
+let toCommandError: Js.Promise.error => option(commandError) =
+  [@bs.open]
+  (
+    fun
+    | Exn(err) => err
+  );
+
 type highlightingLevel =
   | None
   | NonInteractive;
@@ -125,7 +136,8 @@ module Primitive = {
 
 module Cultivated = {
   type command =
-    | Load;
+    | Load
+    | Give(Goal.t);
   type t = {
     connection: Connection.t,
     filepath: string,

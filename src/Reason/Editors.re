@@ -5,12 +5,6 @@ type sort =
   | Source
   | Query;
 
-/* collection of TextEditor or MiniEditor */
-/* type connection = {
-     model: MiniEditor.Model.t,
-     message: string,
-   }; */
-
 type t = {
   mutable focused: sort,
   source: TextEditor.t,
@@ -64,31 +58,11 @@ module Focus = {
     };
 };
 
-/* module Goals = {
-     type t = list(Goal.t);
-     let destroy = (index, self) => {
-       self
-       |> Array.filter(x => Goal.(x.index) == index)
-       |> Array.forEach(x => Goal.destroy(x));
-       self |> Array.filter(x => Goal.(x.index) != index);
-     };
-
-     let destroyAll = self => {
-       self |> Array.forEach(x => Goal.destroy(x));
-       [];
-     };
-
-     let find = (index, self) => {
-       let result = self |> Array.filter(x => Goal.(x.index) == index);
-       result[0];
-     };
-     /* returns the goal where the cursor is positioned */
-     let pointingAt = (cursor, self) => {
-       let result =
-         self
-         |> Array.filter(x =>
-              Goal.(x.range) |> Range.containsPoint_(cursor, false)
-            );
-       result[0];
-     };
-   }; */
+let pointingAt = (goals, editors): option(Goal.t) => {
+  let cursor = editors.source |> TextEditor.getCursorBufferPosition;
+  let pointedGoals =
+    goals
+    |> Array.filter(goal => goal.Goal.range |> Range.containsPoint(cursor));
+  /* return the first pointed goal */
+  pointedGoals[0];
+};

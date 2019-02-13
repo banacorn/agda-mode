@@ -252,7 +252,7 @@ let getContent = self => {
   |> Parser.userInput;
 };
 
-let setContent = (self, text) => {
+let setContent = (text, self) => {
   let range =
     self.range |> Range.translate(Point.make(0, 2), Point.make(0, -2));
 

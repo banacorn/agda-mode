@@ -378,41 +378,23 @@ let handle = (instance: Instance.t, response: t) => {
         ),
       );
     }
-  | InteractionPoints(indices) =>
-    instance |> Instance.Goals.instantiateAll(indices)
-  | DisplayInfo(info) =>
-    instance.view.activatePanel |> Event.resolve(true);
-    Info.handle(instance, info);
   | JumpToError(targetFilePath, index) =>
     if (targetFilePath == filePath) {
       let point =
         textBuffer |> Atom.TextBuffer.positionForCharacterIndex(index - 1);
       textEditor |> Atom.TextEditor.setCursorBufferPosition(point);
     }
+  | InteractionPoints(indices) =>
+    instance |> Instance.Goals.instantiateAll(indices)
+  | DisplayInfo(info) =>
+    instance.view.activatePanel |> Event.resolve(true);
+    Info.handle(instance, info);
   | ClearHighlighting => instance |> Instance.Highlightings.destroyAll
   | _ => Js.log(response)
   };
 };
 
 /* type t =
-   /* agda2-highlight-add-annotations */
-   | HighlightingInfoDirect(
-       Highlighting.removeTokenBasedHighlighting,
-       array(Highlighting.Annotation.t),
-     )
-   /* agda2-highlight-load-and-delete-action */
-   | HighlightingInfoIndirect(filepath)
-   /* agda2-status-action */
-   | Status(
-       bool, /*  Are implicit arguments displayed? */
-       /* Has the module been successfully type checked? */
-       bool,
-     )
-   /* agda2-maybe-goto */
-   | JumpToError(filepath, int)
-   /* agda2-goals-action */
-   | InteractionPoints(array(index))
-   /* agda2-give-action */
    | GiveAction(index, giveResult)
    /* agda2-make-case-action */
    /* agda2-make-case-action-extendlam */

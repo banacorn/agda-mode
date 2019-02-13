@@ -4,6 +4,15 @@ open Rebase;
 
 open Webapi.Dom;
 
+exception Cancelled;
+
+let toError: Js.Promise.error => option(unit) =
+  [@bs.open]
+  (
+    fun
+    | Cancelled => ()
+  );
+
 module Model = {
   type t = {
     value: string,

@@ -12,17 +12,18 @@ module Handles = {
   type t = {
     updateHeader: Event.t(Header.t),
     updateBody: Event.t(body),
-    updateMode: ref(mode => unit),
-    updateMountTo: ref(mountTo => unit),
+    updateMode: Event.t(mode),
+    updateMountTo: Event.t(mountTo),
     activatePanel: Event.t(bool),
     updateConnection: Event.t(option(Connection.t)),
     inquireConnection: Event.t((option(Connection.error), string)),
     onInquireConnection: Event.t(string),
+    onInquireQuery: Event.t(string),
     inquireQuery: Event.t((string, string)),
     activateSettingsView: Event.t(bool),
     onSettingsView: Event.t(bool),
     navigateSettingsView: Event.t(Settings.uri),
-    destroy: ref(unit => unit),
+    destroy: Event.t(unit),
     /* Input Method */
     activateInputMethod: Event.t(bool),
     interceptAndInsertKey: Event.t(string),
@@ -33,31 +34,20 @@ module Handles = {
   /* creates all refs and return them */
   let make = () => {
     let activatePanel = Event.make();
-
     let updateHeader = Event.make();
-
     let updateBody = Event.make();
-
-    let updateMode = ref(_ => ());
-
-    let updateMountTo = ref(_ => ());
-
+    let updateMode = Event.make();
+    let updateMountTo = Event.make();
     let updateConnection = Event.make();
     let inquireConnection = Event.make();
     let onInquireConnection = Event.make();
-
+    let onInquireQuery = Event.make();
     let inquireQuery = Event.make();
-
     let activateSettingsView = Event.make();
-
     let onSettingsView = Event.make();
-
     let navigateSettingsView = Event.make();
-
-    let destroy = ref(_ => ());
-
+    let destroy = Event.make();
     let interceptAndInsertKey = Event.make();
-
     let activateInputMethod = Event.make();
 
     {
@@ -69,6 +59,7 @@ module Handles = {
       updateConnection,
       inquireConnection,
       onInquireConnection,
+      onInquireQuery,
       inquireQuery,
       activateSettingsView,
       onSettingsView,
@@ -176,29 +167,6 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
   | SetQueryRef(ref) =>
     SideEffects(_self => editors.query |> MiniEditor.Model.setRef(ref))
   | Focus(sort) => SideEffects(_self => editors |> Editors.Focus.on(sort))
-  /* | InquireConnection(message, value) =>
-     UpdateWithSideEffects(
-       {...state, connectionEditorMessage: message},
-       self => self.state.editors |> Editors.Focus.on(Editors.Query),
-     ) */
-  /* | InquireQuery(placeholder, value) =>
-     UpdateWithSideEffects(
-       {
-         ...state,
-         editors: {
-           ...state.editors,
-           query: {
-             ...state.editors.query,
-             placeholder,
-             value,
-           },
-         },
-       },
-       self => {
-         handles.onEditorsUpdate |> Event.resolve(self.state.editors);
-         self.state.editors |> Editors.Focus.on(Editors.Query);
-       },
-     ) */
   | MountTo(mountTo) =>
     SideEffects(self => mountPanel(editors, self, mountTo))
   | ToggleSettingsTab(open_) =>
@@ -290,10 +258,31 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     |> on(body => self.send(UpdateBody(body)))
     |> destroyWhen(self.onUnmount);
 
-    Handles.hook(handles.updateMountTo, mountTo =>
-      self.send(MountTo(mountTo))
-    );
-    Handles.hook(handles.updateMode, mode => self.send(UpdateMode(mode)));
+    /* update MountTo */
+    handles.updateMountTo
+    |> on(where => self.send(MountTo(where)))
+    |> destroyWhen(self.onUnmount);
+
+    /* update the mode of <Panel> */
+    handles.updateMode
+    |> on(mode => self.send(UpdateMode(mode)))
+    |> destroyWhen(self.onUnmount);
+
+    handles.inquireQuery
+    |> on(payload => {
+         Js.log(payload);
+
+         self.send(UpdateMode(Query));
+         self.send(Focus(Query));
+       });
+
+    handles.onInquireQuery
+    |> on(result => {
+         Js.log(result);
+
+         self.send(UpdateMode(Display));
+         self.send(Focus(Source));
+       });
 
     /* handles.inquireQuery
        |> Event.recv(self.onUnmount)
@@ -307,7 +296,10 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
             )
           ); */
 
-    Handles.hook(handles.destroy, _ => Js.log("destroy!"));
+    /* destroy everything */
+    handles.destroy
+    |> on(_ => Js.log("destroy!"))
+    |> destroyWhen(self.onUnmount);
 
     /* opening/closing <Settings> */
     handles.activateSettingsView
@@ -336,22 +328,11 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
         hidden
         onMountAtChange={mountTo => self.send(MountTo(mountTo))}
         mode
+        onInquireQuery={handles.onInquireQuery}
         /* editors */
         onEditorFocused={focused =>
           self.send(focused ? Focus(Query) : Focus(Source))
         }
-        onEditorConfirm={result => {
-          editors.query |> MiniEditor.Model.answer(result);
-          handles.activateInputMethod |> Event.resolve(false);
-          self.send(Focus(Source));
-          self.send(UpdateMode(Display));
-        }}
-        onEditorCancel={(.) => {
-          editors.query |> MiniEditor.Model.reject(Editors.QueryCancelled);
-          handles.activateInputMethod |> Event.resolve(false);
-          self.send(Focus(Source));
-          self.send(UpdateMode(Display));
-        }}
         onEditorRef={ref => self.send(SetQueryRef(ref))}
         editorValue={editors.query.value}
         editorPlaceholder={editors.query.placeholder}

@@ -1,8 +1,7 @@
 open Rebase;
-open Atom;
+open Util.Promise;
 module Event = Util.Event;
 
-open Util.Promise;
 type t = {
   editors: Editors.t,
   view: View.Handles.t,
@@ -10,9 +9,9 @@ type t = {
   mutable goals: array(Goal.t),
   mutable connection: option(Connection.t),
 };
-let make = (textEditor: TextEditor.t) => {
+let make = (textEditor: Atom.TextEditor.t) => {
   /* adds "agda" to the class-list */
-  Environment.Views.getView(textEditor)
+  Atom.Environment.Views.getView(textEditor)
   |> Webapi.Dom.HtmlElement.classList
   |> Webapi.Dom.DomTokenList.add("agda");
   /*  */
@@ -24,6 +23,11 @@ let make = (textEditor: TextEditor.t) => {
     highlightings: [||],
     connection: None,
   };
+};
+
+let updateView = (header, body, instance) => {
+  instance.view.updateHeader |> Event.resolve(header);
+  instance.view.updateBody |> Event.resolve(body);
 };
 
 let activate = instance => {
@@ -38,6 +42,8 @@ module Goals = {
   };
   /* instantiate all goals */
   let instantiateAll = (indices, instance) => {
+    open Atom;
+
     instance |> destroyAll;
 
     let textEditor = instance.editors.source;
@@ -77,6 +83,7 @@ module Goals = {
 };
 
 module Highlightings = {
+  open Atom;
   /* lots of side effects! */
   let add = (annotation: Highlighting.Annotation.t, instance: t) => {
     let textEditor = instance.editors.source;
@@ -142,6 +149,7 @@ module Highlightings = {
 };
 
 module Connections = {
+  open Atom;
   let connect = instance => {
     let inquireConnection =
         (error: option(Connection.error), instance): Js.Promise.t(string) => {
@@ -233,7 +241,16 @@ let deactivate = instance => {
 
 let destroy = instance => {
   deactivate(instance);
-  instance.view.destroy^();
+  instance.view.destroy |> Event.resolve();
+};
+
+let inquire = (placeholder, value, instance): Js.Promise.t(string) => {
+  activate(instance);
+
+  let promise = instance.view.onInquireQuery |> Event.once;
+  instance.view.inquireQuery |> Event.resolve((placeholder, value));
+
+  promise;
 };
 
 /* Primitive Command => Cultivated Command */
@@ -246,7 +263,7 @@ let cultivateCommand =
          Some(
            {
              connection,
-             filepath: instance.editors.source |> TextEditor.getPath,
+             filepath: instance.editors.source |> Atom.TextEditor.getPath,
              command,
            }: Command.Cultivated.t,
          )
@@ -257,7 +274,7 @@ let cultivateCommand =
   | Load =>
     /* force save before load */
     instance.editors.source
-    |> TextEditor.save
+    |> Atom.TextEditor.save
     |> then_(() => instance |> cultivate(Load))
   | Quit =>
     Connections.disconnect(instance);
@@ -267,8 +284,35 @@ let cultivateCommand =
   | Restart =>
     Connections.disconnect(instance);
     instance |> cultivate(Load);
+  | Give =>
+    open Type.View;
+    let pointed = Editors.pointingAt(instance.goals, instance.editors);
+    switch (pointed) {
+    | Some(goal) =>
+      if (Goal.isEmpty(goal)) {
+        instance
+        |> inquire("expression to give:", "")
+        |> then_(result => {
+             goal |> Goal.setContent(result) |> ignore;
+             instance |> cultivate(Give(goal));
+           });
+      } else {
+        instance |> cultivate(Give(goal));
+      }
+    | None =>
+      instance
+      |> updateView(
+           {text: "Out of goal", style: Header.Error},
+           Emacs(
+             PlainText(
+               "`Give` is a goal-specific command, please place the cursor in a goal",
+             ),
+           ),
+         );
+      reject(Command.Exn(Cancelled));
+    };
   | InputSymbol(symbol) =>
-    let enabled = Environment.Config.get("agda-mode.inputMethod");
+    let enabled = Atom.Environment.Config.get("agda-mode.inputMethod");
     if (enabled) {
       switch (symbol) {
       | Ordinary =>
@@ -289,7 +333,7 @@ let cultivateCommand =
     } else {
       instance.editors
       |> Editors.Focus.get
-      |> TextEditor.insertText("\\")
+      |> Atom.TextEditor.insertText("\\")
       |> ignore;
     };
     resolve(None);
@@ -307,7 +351,11 @@ let dispatch = (command, instance): Js.Promise.t(option(string)) => {
          let s = Command.Cultivated.serialize(cmd);
          cmd.connection |> Connection.send(s) |> map(Option.some);
        }
-     );
+     )
+  |> catch(error => {
+       Js.log(error);
+       resolve(None);
+     });
 };
 
 let dispatchUndo = _instance => {
