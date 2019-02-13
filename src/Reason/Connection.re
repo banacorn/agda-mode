@@ -19,10 +19,11 @@ type metadata = {
 type t = {
   metadata,
   process: N.ChildProcess.t,
-  mutable queue: array(Util.TelePromise.t(string)),
+  mutable queue: array(Util.Event.t(string)),
 };
 
 type autoSearchError =
+  | ProcessHanging
   | NotSupported(string)
   | NotFound(string);
 
@@ -46,75 +47,18 @@ type connectionError =
 type error =
   | AutoSearch(autoSearchError)
   | Validation(string, validationError)
-  | Connection(t, connectionError);
-
-exception AutoSearchExn(autoSearchError);
-exception ValidationExn(validationError);
-exception ConnectionExn(connectionError);
-
-let toAutoSearchError: Js.Promise.error => option(autoSearchError) =
-  [@bs.open]
-  (
-    fun
-    | AutoSearchExn(err) => err
-  );
-
-let convertError =
-    (
-      convertError: Js.Promise.error => option('e),
-      f: 'e => Js.Promise.t('a),
-      error: Js.Promise.error,
-    )
-    : Js.Promise.t('a) =>
-  switch (convertError(error)) {
-  | Some(e) => f(e)
-  | None => raise(Util.UnhandledPromise)
-  };
-
-let handleAutoSearchError = (f, error) =>
-  switch (toAutoSearchError(error)) {
-  | Some(e) => f(e)
-  | None => raise(Util.UnhandledPromise)
-  };
-
-let toValidationError: Js.Promise.error => option(validationError) =
-  [@bs.open]
-  (
-    fun
-    | ValidationExn(err) => err
-  );
-
-let handleValidationError = (f, error) =>
-  switch (toValidationError(error)) {
-  | Some(e) => f(e)
-  | None => raise(Util.UnhandledPromise)
-  };
-
-let toConnectionError: Js.Promise.error => option(connectionError) =
-  [@bs.open]
-  (
-    fun
-    | ConnectionExn(err) => err
-  );
-
-let handleConnectionError = (f, error) =>
-  switch (toConnectionError(error)) {
-  | Some(e) => f(e)
-  | None => raise(Util.UnhandledPromise)
-  };
+  | Connection(connectionError);
 
 /* a more sophiscated "make" */
-let autoSearch = (path): Js.Promise.t(string) =>
-  Js.Promise.make((~resolve, ~reject) =>
+let autoSearch = (path): Js.Promise.t(result(string, autoSearchError)) =>
+  Js.Promise.make(
+    (~resolve: (. result(string, autoSearchError)) => unit, ~reject as _) =>
     switch (N.OS.type_()) {
     | "Linux"
     | "Darwin" =>
       /* reject if the process hasn't responded for more than 1 second */
       let hangTimeout =
-        Js.Global.setTimeout(
-          () => reject(. ValidationExn(ProcessHanging)),
-          1000,
-        );
+        Js.Global.setTimeout(() => resolve(. Error(ProcessHanging)), 1000);
       N.ChildProcess.exec(
         "which " ++ path,
         (error, stdout, stderr) => {
@@ -125,36 +69,35 @@ let autoSearch = (path): Js.Promise.t(string) =>
           switch (error |> Js.Nullable.toOption) {
           | None => ()
           | Some(err) =>
-            reject(.
-              AutoSearchExn(
-                NotFound(err |> Js.Exn.message |> Option.getOr("")),
-              ),
+            resolve(.
+              Error(NotFound(err |> Js.Exn.message |> Option.getOr(""))),
             )
           };
 
           /* stderr */
           let stderr' = stderr |> Node.Buffer.toString;
           if (stderr' |> String.isEmpty |> (!)) {
-            reject(. AutoSearchExn(NotFound(stderr')));
+            resolve(. Error(NotFound(stderr')));
           };
 
           /* stdout */
           let stdout' = stdout |> Node.Buffer.toString;
           if (stdout' |> String.isEmpty) {
-            reject(. AutoSearchExn(NotFound("")));
+            resolve(. Error(NotFound("")));
           } else {
-            resolve(. Parser.filepath(stdout'));
+            resolve(. Ok(Parser.filepath(stdout')));
           };
         },
       )
       |> ignore;
-    | "Windows_NT" => reject(. AutoSearchExn(NotSupported("Windows_NT")))
-    | os => reject(. AutoSearchExn(NotSupported(os)))
+    | "Windows_NT" => resolve(. Error(NotSupported("Windows_NT")))
+    | os => resolve(. Error(NotSupported(os)))
     }
   );
 
 /* a more sophiscated "make" */
-let validateAndMake = (path): Js.Promise.t(metadata) => {
+let validateAndMake =
+    (path): Js.Promise.t(result(metadata, validationError)) => {
   let parsedPath = Parser.filepath(path);
   let parseError = (error: Js.Nullable.t(Js.Exn.t)): option(validationError) => {
     switch (error |> Js.Nullable.toOption) {
@@ -190,17 +133,14 @@ let validateAndMake = (path): Js.Promise.t(metadata) => {
     };
   };
 
-  Js.Promise.make((~resolve, ~reject) => {
+  Js.Promise.make((~resolve, ~reject as _) => {
     if (path |> String.isEmpty) {
-      reject(. ValidationExn(PathMalformed("the path must not be empty")));
+      resolve(. Error(PathMalformed("the path must not be empty")));
     };
 
     /* reject if the process hasn't responded for more than 1 second */
     let hangTimeout =
-      Js.Global.setTimeout(
-        () => reject(. ValidationExn(ProcessHanging)),
-        1000,
-      );
+      Js.Global.setTimeout(() => resolve(. Error(ProcessHanging)), 1000);
 
     N.ChildProcess.exec(
       parsedPath,
@@ -211,19 +151,19 @@ let validateAndMake = (path): Js.Promise.t(metadata) => {
         /* parses `error` and rejects it if there's any  */
         switch (parseError(error)) {
         | None => ()
-        | Some(err) => reject(. ValidationExn(err))
+        | Some(err) => resolve(. Error(err))
         };
 
         /* stderr */
         let stderr' = stderr |> Node.Buffer.toString;
         if (stderr' |> String.isEmpty |> (!)) {
-          reject(. ValidationExn(ProcessError(stderr')));
+          resolve(. Error(ProcessError(stderr')));
         };
 
         /* stdout */
         switch (parseStdout(stdout)) {
-        | Error(err) => reject(. ValidationExn(err))
-        | Ok(self) => resolve(. self)
+        | Error(err) => resolve(. Error(err))
+        | Ok(self) => resolve(. Ok(self))
         };
       },
     )
@@ -236,28 +176,27 @@ let useJSON = metadata => {
   && metadata.protocol == EmacsAndJSON;
 };
 
-let connect = (metadata): Js.Promise.t(t) => {
+let connect = (metadata): Js.Promise.t(result(t, connectionError)) => {
   N.(
-    Js.Promise.make((~resolve, ~reject) => {
+    Js.Promise.make((~resolve, ~reject as _) => {
       let args =
         useJSON(metadata) ? [|"--interaction-json"|] : [|"--interaction"|];
       let process = ChildProcess.spawn(metadata.path, args, {"shell": true});
       /* Handles errors and anomalies */
       process
       |> ChildProcess.on(
-           `error(exn => reject(. ConnectionExn(ShellError(exn)))),
+           `error(exn => resolve(. Error(ShellError(exn)))),
          )
       |> ChildProcess.on(
            `close(
-             (code, signal) =>
-               reject(. ConnectionExn(Close(code, signal))),
+             (code, signal) => resolve(. Error(Close(code, signal))),
            ),
          )
       |> ignore;
       process
       |> ChildProcess.stdout
       |> Stream.Readable.once(
-           `data(_ => resolve(. {metadata, process, queue: [||]})),
+           `data(_ => resolve(. Ok({metadata, process, queue: [||]}))),
          )
       |> ignore;
     })
@@ -274,7 +213,7 @@ let wire = (self): Js.Promise.t(t) => {
     switch (self.queue[0]) {
     | None => Js.log("WTF!!")
     | Some(req) =>
-      req.resolve(data);
+      req |> Util.Event.resolve(data);
       /* should updates the queue */
       self.queue |> Js.Array.pop |> ignore;
     };
@@ -312,7 +251,7 @@ let wire = (self): Js.Promise.t(t) => {
 };
 
 let send = (request, self): Js.Promise.t(string) => {
-  let reqPromise = Util.TelePromise.make();
+  let reqPromise = Util.Event.make();
   self.queue |> Js.Array.push(reqPromise) |> ignore;
 
   /* write */
@@ -321,5 +260,5 @@ let send = (request, self): Js.Promise.t(string) => {
   |> N.Stream.Writable.write(request ++ "\n" |> Node.Buffer.fromString)
   |> ignore;
 
-  reqPromise.wire();
+  reqPromise |> Util.Event.once;
 };

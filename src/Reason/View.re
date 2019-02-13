@@ -1,4 +1,5 @@
 open ReasonReact;
+open Rebase;
 
 open Type.View;
 
@@ -17,8 +18,8 @@ module Handles = {
     activatePanel: Event.t(bool),
     updateConnection: Event.t(option(Connection.t)),
     inquireConnection: Event.t((option(Connection.error), string)),
-    onInquireConnection: Event.t(string),
-    onInquireQuery: Event.t(string),
+    onInquireConnection: Event.t(result(string, MiniEditor.error)),
+    onInquireQuery: Event.t(result(string, MiniEditor.error)),
     inquireQuery: Event.t((string, string)),
     activateSettingsView: Event.t(bool),
     onSettingsView: Event.t(bool),
@@ -274,7 +275,8 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
 
          self.send(UpdateMode(Query));
          self.send(Focus(Query));
-       });
+       })
+    |> destroyWhen(self.onUnmount);
 
     handles.onInquireQuery
     |> on(result => {
@@ -282,7 +284,8 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
 
          self.send(UpdateMode(Display));
          self.send(Focus(Source));
-       });
+       })
+    |> destroyWhen(self.onUnmount);
 
     /* handles.inquireQuery
        |> Event.recv(self.onUnmount)

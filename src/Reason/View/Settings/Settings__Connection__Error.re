@@ -26,11 +26,11 @@ let toString =
     )
   | Validation(_path, ProcessError(msg)) => ("Error from the stderr", msg)
   | Validation(_path, IsNotAgda(msg)) => ("This is not agda", msg)
-  | Connection(_connection, ShellError(error)) => (
+  | Connection(ShellError(error)) => (
       "Socket error",
       Util.JsError.toString(error),
     )
-  | Connection(_connection, Close(code, signal)) => (
+  | Connection(Close(code, signal)) => (
       "Socket closed",
       {j|code: $code
 signal: $signal|j},

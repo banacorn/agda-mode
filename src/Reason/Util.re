@@ -311,60 +311,83 @@ module Promise = {
            Js.Promise.resolve();
          })
       |> ignore;
+
+  let mapOk = f => map(Result.map(f));
+  let thenOk = f =>
+    then_(
+      fun
+      | Ok(v) => f(v)
+      | Error(e) => resolve(Error(e)),
+    );
+
+  let mapError = f => map(Result.map2(x => x, f));
+  let thenError = f =>
+    then_(
+      fun
+      | Ok(v) => resolve(Ok(v))
+      | Error(e) => f(e),
+    );
+
+  let recover = (handler: 'e => t('a), promise: t(result('a, 'e))): t('a) =>
+    promise
+    |> then_(
+         fun
+         | Ok(value) => resolve(value)
+         | Error(err) => handler(err),
+       );
 };
 
 exception JSPromiseError(Js.Promise.error);
 
-module TelePromise = {
-  type t('a) = {
-    wire: unit => Js.Promise.t('a),
-    handlePromise: Js.Promise.t('a) => unit,
-    resolve: 'a => unit,
-    reject: exn => unit,
-  };
-  let make = () => {
-    let resolvers = ref([]);
-    let rejecters = ref([]);
-    let wire = () => {
-      /* make a new Promise and enlist the new resolver and rejecter */
-      Js.Promise.make((~resolve, ~reject) => {
-        resolvers := [resolve, ...resolvers^];
-        rejecters := [reject, ...rejecters^];
-      });
-    };
-    let cleanup = () => {
-      resolvers := [];
-      rejecters := [];
-    };
-    let resolve = value => {
-      resolvers^ |> List.forEach(resolver => resolver(. value));
-      cleanup();
-    };
-    let reject = exn => {
-      rejecters^ |> List.forEach(rejecter => rejecter(. exn));
-      cleanup();
-    };
-    /* resolves or rejects some promise */
-    let handlePromise = p =>
-      p
-      |> Js.Promise.then_(x => resolve(x) |> Js.Promise.resolve)
-      |> Js.Promise.catch(err => {
-           reject(JSPromiseError(err));
-           Js.Promise.resolve();
-         })
-      |> ignore;
-    {wire, handlePromise, resolve, reject};
-  };
-};
+/* module TelePromise = {
+     type t('a) = {
+       wire: unit => Js.Promise.t('a),
+       handlePromise: Js.Promise.t('a) => unit,
+       resolve: 'a => unit,
+       reject: exn => unit,
+     };
+     let make = () => {
+       let resolvers = ref([]);
+       let rejecters = ref([]);
+       let wire = () => {
+         /* make a new Promise and enlist the new resolver and rejecter */
+         Js.Promise.make((~resolve, ~reject) => {
+           resolvers := [resolve, ...resolvers^];
+           rejecters := [reject, ...rejecters^];
+         });
+       };
+       let cleanup = () => {
+         resolvers := [];
+         rejecters := [];
+       };
+       let resolve = value => {
+         resolvers^ |> List.forEach(resolver => resolver(. value));
+         cleanup();
+       };
+       let reject = exn => {
+         rejecters^ |> List.forEach(rejecter => rejecter(. exn));
+         cleanup();
+       };
+       /* resolves or rejects some promise */
+       let handlePromise = p =>
+         p
+         |> Js.Promise.then_(x => resolve(x) |> Js.Promise.resolve)
+         |> Js.Promise.catch(err => {
+              reject(JSPromiseError(err));
+              Js.Promise.resolve();
+            })
+         |> ignore;
+       {wire, handlePromise, resolve, reject};
+     };
+   }; */
 
 module Event = {
   module Listener = {
     type t('a) = {
       resolve: (. 'a) => unit,
-      reject: (. exn) => unit,
       id: int,
     };
-    let make = (resolve, reject, id): t('a) => {resolve, reject, id};
+    let make = (resolve, id): t('a) => {resolve, id};
   };
 
   type t('a) = {
@@ -394,7 +417,7 @@ module Event = {
     let id: int = self.counter^ + 1;
     self.counter := id;
     /* store the callback */
-    let listener = Listener.make((. x) => resolve(x), (. _) => (), id);
+    let listener = Listener.make((. x) => resolve(x), id);
     Js.Dict.set(self.listeners, string_of_int(id), listener);
 
     let destructor = () => {
@@ -416,18 +439,18 @@ module Event = {
     let id: int = self.counter^ + 1;
     self.counter := id;
     /* makes a new promise */
-    Js.Promise.make((~resolve, ~reject) => {
+    Js.Promise.make((~resolve, ~reject as _) => {
       let resolve' =
         (. x) => {
           resolve(. x);
           removeListener(id, self);
         };
-      let reject' =
-        (. x) => {
-          reject(. x);
-          removeListener(id, self);
-        };
-      let listener = Listener.make(resolve', reject', id);
+      /* let reject' =
+         (. x) => {
+           reject(. x);
+           removeListener(id, self);
+         }; */
+      let listener = Listener.make(resolve', id);
       Js.Dict.set(self.listeners, string_of_int(id), listener);
     });
   };
@@ -438,23 +461,24 @@ module Event = {
     |> Js.Dict.values
     |> Array.forEach((listener: Listener.t('a)) => listener.resolve(. x));
   };
-
   /* failed emit */
-  let reject = (x: exn, self: t('a)): unit => {
-    self.listeners
-    |> Js.Dict.values
-    |> Array.forEach((listener: Listener.t('a)) => listener.reject(. x));
-  };
-
-  let handlePromise = (p: Js.Promise.t('a), self: t('a)): unit => {
-    p
-    |> Js.Promise.then_(x => self |> resolve(x) |> Js.Promise.resolve)
-    |> Js.Promise.catch(err => {
-         self |> reject(JSPromiseError(err));
-         Js.Promise.resolve();
-       })
-    |> ignore;
-  };
+  /* let reject = (x: exn, self: t('a)): unit => {
+       self.listeners
+       |> Js.Dict.values
+       |> Array.forEach((listener: Listener.t('a)) =>
+            listener.resolve(. Error(x))
+          );
+     }; */
+  /* let handlePromise =
+         (p: Js.Promise.t(result('a, 'e)), self: t(result('a, 'e))): unit => {
+       p
+       |> Js.Promise.then_(x => self |> resolve(x) |> Js.Promise.resolve)
+       /* |> Js.Promise.catch(err => {
+            self |> resolve(Error(err));
+            Js.Promise.resolve();
+          }) */
+       |> ignore;
+     }; */
 };
 
 module JsError = {

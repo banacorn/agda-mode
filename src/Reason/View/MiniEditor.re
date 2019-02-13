@@ -4,34 +4,28 @@ open Rebase;
 
 open Webapi.Dom;
 
-exception Cancelled;
-
-let toError: Js.Promise.error => option(unit) =
-  [@bs.open]
-  (
-    fun
-    | Cancelled => ()
-  );
+type error =
+  | Cancelled;
 
 module Model = {
   type t = {
     value: string,
     placeholder: string,
     mutable ref: option(Atom.TextEditor.t),
-    telePromise: Util.TelePromise.t(string),
+    result: Util.Event.t(result(string, error)),
   };
 
   let make = () => {
     value: "",
     placeholder: "",
     ref: None,
-    telePromise: Util.TelePromise.make(),
+    result: Util.Event.make(),
   };
   let inquire = self => {
-    self.telePromise.wire();
+    self.result |> Util.Event.once;
   };
-  let answer = (x, self) => self.telePromise.resolve(x);
-  let reject = (x, self) => self.telePromise.reject(x);
+  let answer = (x, self) => self.result |> Util.Event.resolve(Ok(x));
+  let reject = (x, self) => self.result |> Util.Event.resolve(Error(x));
 
   let setRef = (ref, self) => {
     self.ref = Some(ref);

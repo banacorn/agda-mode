@@ -150,46 +150,51 @@ module Highlightings = {
 
 module Connections = {
   open Atom;
-  let connect = instance => {
+  let connect =
+      (instance: t): Util.Promise.t(result(Connection.t, MiniEditor.error)) => {
     let inquireConnection =
-        (error: option(Connection.error), instance): Js.Promise.t(string) => {
+        (error: option(Connection.error), instance)
+        : Js.Promise.t(result(string, MiniEditor.error)) => {
       activate(instance);
 
-      let p =
+      /* listen to `onSettingsView` before triggering `activateSettingsView` */
+      let promise =
         instance.view.onSettingsView
         |> Event.once
         |> then_(_ => {
              instance.view.navigateSettingsView
              |> Event.resolve(Settings.URI.Connection);
-
+             /* listen to `onInquireConnection` before triggering `inquireConnection` */
              let promise = instance.view.onInquireConnection |> Event.once;
              instance.view.inquireConnection |> Event.resolve((error, ""));
 
              promise;
            });
-
       instance.view.activateSettingsView |> Event.resolve(true);
 
-      p;
+      promise;
     };
-    let getAgdaPath = (): Js.Promise.t(string) => {
+
+    let getAgdaPath =
+        (): Js.Promise.t(result(string, Connection.autoSearchError)) => {
       let storedPath =
         Environment.Config.get("agda-mode.agdaPath") |> Parser.filepath;
       if (storedPath |> String.isEmpty) {
         Connection.autoSearch("agda");
       } else {
-        resolve(storedPath);
+        resolve(Ok(storedPath));
       };
     };
 
-    let rec getMetadata = (instance, path) => {
+    /* validate the given path */
+    let rec getMetadata =
+            (instance, path)
+            : Util.Promise.t(result(Connection.metadata, MiniEditor.error)) => {
       Connection.validateAndMake(path)
-      |> catch(
-           Connection.handleValidationError(err =>
-             instance
-             |> inquireConnection(Some(Connection.Validation(path, err)))
-             |> then_(getMetadata(instance))
-           ),
+      |> thenError(err =>
+           instance
+           |> inquireConnection(Some(Connection.Validation(path, err)))
+           |> thenOk(getMetadata(instance))
          );
     };
 
@@ -200,22 +205,31 @@ module Connections = {
       /* update the view */
       instance.view.updateConnection |> Event.resolve(Some(connection));
       /* pass it on */
-      resolve(connection);
+      connection;
+    };
+
+    let rec getConnection =
+            (instance, metadata)
+            : Util.Promise.t(result(Connection.t, MiniEditor.error)) => {
+      Connection.connect(metadata)
+      |> thenError(err =>
+           instance
+           |> inquireConnection(Some(Connection.Connection(err)))
+           |> thenOk(getMetadata(instance))
+           |> thenOk(getConnection(instance))
+         );
     };
 
     switch (instance.connection) {
-    | Some(connection) => resolve(connection)
+    | Some(connection) => resolve(Ok(connection))
     | None =>
       getAgdaPath()
-      |> catch(
-           Connection.handleAutoSearchError(err =>
-             instance |> inquireConnection(Some(Connection.AutoSearch(err)))
-           ),
+      |> thenError(err =>
+           instance |> inquireConnection(Some(Connection.AutoSearch(err)))
          )
-      |> then_(getMetadata(instance))
-      |> then_(Connection.connect)
-      |> then_(persistConnection(instance))
-      |> then_(Connection.wire)
+      |> thenOk(getMetadata(instance))
+      |> thenOk(getConnection(instance))
+      |> mapOk(persistConnection(instance))
     };
   };
 
@@ -230,7 +244,7 @@ module Connections = {
 
   let get = instance => {
     switch (instance.connection) {
-    | Some(connection) => resolve(connection)
+    | Some(connection) => resolve(Ok(connection))
     | None => connect(instance)
     };
   };
@@ -244,7 +258,9 @@ let destroy = instance => {
   instance.view.destroy |> Event.resolve();
 };
 
-let inquire = (placeholder, value, instance): Js.Promise.t(string) => {
+let inquire =
+    (placeholder, value, instance)
+    : Js.Promise.t(result(string, MiniEditor.error)) => {
   activate(instance);
 
   let promise = instance.view.onInquireQuery |> Event.once;
@@ -256,10 +272,10 @@ let inquire = (placeholder, value, instance): Js.Promise.t(string) => {
 /* Primitive Command => Cultivated Command */
 let cultivateCommand =
     (command: Command.Primitive.t, instance)
-    : Js.Promise.t(option(Command.Cultivated.t)) => {
+    : Js.Promise.t(result(option(Command.Cultivated.t), Command.error)) => {
   let cultivate = (command, instance) => {
     Connections.get(instance)
-    |> then_(connection =>
+    |> mapOk(connection =>
          Some(
            {
              connection,
@@ -267,8 +283,8 @@ let cultivateCommand =
              command,
            }: Command.Cultivated.t,
          )
-         |> resolve
-       );
+       )
+    |> mapError(_ => Command.Cancelled);
   };
   switch (command) {
   | Load =>
@@ -280,7 +296,7 @@ let cultivateCommand =
     Connections.disconnect(instance);
     instance |> Goals.destroyAll;
     instance |> Highlightings.destroyAll;
-    resolve(None);
+    resolve(Ok(None));
   | Restart =>
     Connections.disconnect(instance);
     instance |> cultivate(Load);
@@ -292,7 +308,8 @@ let cultivateCommand =
       if (Goal.isEmpty(goal)) {
         instance
         |> inquire("expression to give:", "")
-        |> then_(result => {
+        |> mapError(_ => Command.Cancelled)
+        |> thenOk(result => {
              goal |> Goal.setContent(result) |> ignore;
              instance |> cultivate(Give(goal));
            });
@@ -309,7 +326,7 @@ let cultivateCommand =
              ),
            ),
          );
-      reject(Command.Exn(Cancelled));
+      resolve(Error(Command.OutOfGoal));
     };
   | InputSymbol(symbol) =>
     let enabled = Atom.Environment.Config.get("agda-mode.inputMethod");
@@ -336,7 +353,7 @@ let cultivateCommand =
       |> Atom.TextEditor.insertText("\\")
       |> ignore;
     };
-    resolve(None);
+    resolve(Ok(None));
   | _ => instance |> cultivate(Load)
   };
 };
@@ -346,16 +363,13 @@ let dispatch = (command, instance): Js.Promise.t(option(string)) => {
   |> cultivateCommand(command)
   |> then_(cultivated =>
        switch (cultivated) {
-       | None => resolve(None)
-       | Some(cmd) =>
+       | Error(_) => resolve(None)
+       | Ok(None) => resolve(None)
+       | Ok(Some(cmd)) =>
          let s = Command.Cultivated.serialize(cmd);
          cmd.connection |> Connection.send(s) |> map(Option.some);
        }
-     )
-  |> catch(error => {
-       Js.log(error);
-       resolve(None);
-     });
+     );
 };
 
 let dispatchUndo = _instance => {

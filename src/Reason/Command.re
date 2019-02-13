@@ -1,15 +1,8 @@
 /* Command Dispatcher */
 
-type commandError =
-  | Cancelled;
-exception Exn(commandError);
-
-let toCommandError: Js.Promise.error => option(commandError) =
-  [@bs.open]
-  (
-    fun
-    | Exn(err) => err
-  );
+type error =
+  | Cancelled
+  | OutOfGoal;
 
 type highlightingLevel =
   | None
@@ -138,6 +131,7 @@ module Cultivated = {
   type command =
     | Load
     | Give(Goal.t);
+
   type t = {
     connection: Connection.t,
     filepath: string,

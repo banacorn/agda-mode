@@ -1,4 +1,5 @@
 open ReasonReact;
+open Rebase;
 
 open Type.View;
 
@@ -45,7 +46,7 @@ let make =
       ~mode: mode,
       ~hidden: bool,
       /* Editors */
-      ~onInquireQuery: Util.Event.t(string),
+      ~onInquireQuery: Util.Event.t(result(string, MiniEditor.error)),
       ~onEditorFocused: bool => unit,
       ~onEditorRef: Atom.TextEditor.t => unit,
       ~editorPlaceholder: string,
@@ -129,11 +130,11 @@ let make =
               onFocus={(.) => onEditorFocused(true)}
               onBlur={(.) => onEditorFocused(false)}
               onConfirm={result =>
-                onInquireQuery |> Util.Event.resolve(result)
+                onInquireQuery |> Util.Event.resolve(Ok(result))
               }
               onCancel={(.) =>
                 onInquireQuery
-                |> Util.Event.reject(MiniEditor.Cancelled)
+                |> Util.Event.resolve(Error(MiniEditor.Cancelled))
                 |> ignore
               }
               /* onConfirm=(
