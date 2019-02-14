@@ -386,6 +386,25 @@ let handle = (instance: Instance.t, response: t) => {
     }
   | InteractionPoints(indices) =>
     instance |> Instance.Goals.instantiateAll(indices)
+  | GiveAction(index, give) =>
+    switch (Instance.Goals.find(index, instance)) {
+    | None => ()
+    | Some(goal) =>
+      switch (give) {
+      | Paren =>
+        let content = Goal.getContent(goal);
+        Goal.setContent("(" ++ content ++ ")", goal) |> ignore;
+      | NoParen => () /* do nothing */
+      | String(content) =>
+        Goal.setContent(
+          content |> Js.String.replaceByRe([%re "/\\\\n/g"], "\n"),
+          goal,
+        )
+        |> ignore
+      };
+      Goal.removeBoundary(goal);
+      Goal.destroy(goal);
+    }
   | DisplayInfo(info) =>
     instance.view.activatePanel |> Event.resolve(true);
     Info.handle(instance, info);

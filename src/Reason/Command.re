@@ -131,7 +131,9 @@ module Primitive = {
 module Cultivated = {
   type command =
     | Load
-    | Give(Goal.t, int);
+    | Give(Goal.t, int)
+    | Refine(Goal.t, int)
+    | Auto(Goal.t, int);
 
   type t = {
     connection: Connection.t,
@@ -177,6 +179,18 @@ module Cultivated = {
         commonPart(NonInteractive)
         ++ {j|( Cmd_give $(index) $(range) "$(content)")|j};
       };
+
+    | Refine(goal, index) =>
+      let content = Goal.getContent(goal);
+      let range = buildRange(goal);
+      commonPart(NonInteractive)
+      ++ {j|( Cmd_refine_or_intro False $(index) $(range) "$(content)")|j};
+
+    | Auto(goal, index) =>
+      let content = Goal.getContent(goal);
+      let range = buildRange(goal);
+      commonPart(NonInteractive)
+      ++ {j|( Cmd_auto $(index) $(range) "$(content)")|j};
     };
   };
 };

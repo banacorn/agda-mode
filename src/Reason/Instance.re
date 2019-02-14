@@ -40,6 +40,8 @@ module Goals = {
     instance.goals |> Array.forEach(Goal.destroy);
     instance.goals = [||];
   };
+  let find = (index, instance) => instance.goals[index];
+
   /* instantiate all goals */
   let instantiateAll = (indices, instance) => {
     open Atom;
@@ -334,6 +336,60 @@ let cultivateCommand =
            Emacs(
              PlainText(
                "`Give` is a goal-specific command, please place the cursor in a goal",
+             ),
+           ),
+         );
+      resolve(Error(Command.OutOfGoal));
+    };
+  | Refine =>
+    open Type.View;
+    let pointed = Editors.pointingAt(instance.goals, instance.editors);
+    switch (pointed) {
+    | Some(goal) =>
+      switch (goal.index) {
+      | Some(index) => instance |> cultivate(Refine(goal, index))
+      | None =>
+        instance
+        |> updateView(
+             {text: "Goal not indexed", style: Header.Error},
+             Emacs(PlainText("Please reload to re-index the goal")),
+           );
+        resolve(Error(Command.GoalNotIndexed));
+      }
+    | None =>
+      instance
+      |> updateView(
+           {text: "Out of goal", style: Header.Error},
+           Emacs(
+             PlainText(
+               "`Refine` is a goal-specific command, please place the cursor in a goal",
+             ),
+           ),
+         );
+      resolve(Error(Command.OutOfGoal));
+    };
+  | Auto =>
+    open Type.View;
+    let pointed = Editors.pointingAt(instance.goals, instance.editors);
+    switch (pointed) {
+    | Some(goal) =>
+      switch (goal.index) {
+      | Some(index) => instance |> cultivate(Auto(goal, index))
+      | None =>
+        instance
+        |> updateView(
+             {text: "Goal not indexed", style: Header.Error},
+             Emacs(PlainText("Please reload to re-index the goal")),
+           );
+        resolve(Error(Command.GoalNotIndexed));
+      }
+    | None =>
+      instance
+      |> updateView(
+           {text: "Out of goal", style: Header.Error},
+           Emacs(
+             PlainText(
+               "`Auto` is a goal-specific command, please place the cursor in a goal",
              ),
            ),
          );
