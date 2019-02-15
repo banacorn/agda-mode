@@ -1,5 +1,5 @@
 open Rebase;
-open Util.Promise;
+open Promise;
 module Event = Util.Event;
 
 type t = {
@@ -153,7 +153,7 @@ module Highlightings = {
 module Connections = {
   open Atom;
   let connect =
-      (instance: t): Util.Promise.t(result(Connection.t, MiniEditor.error)) => {
+      (instance: t): Promise.t(result(Connection.t, MiniEditor.error)) => {
     let inquireConnection =
         (error: option(Connection.error), instance)
         : Js.Promise.t(result(string, MiniEditor.error)) => {
@@ -191,7 +191,7 @@ module Connections = {
     /* validate the given path */
     let rec getMetadata =
             (instance, path)
-            : Util.Promise.t(result(Connection.metadata, MiniEditor.error)) => {
+            : Promise.t(result(Connection.metadata, MiniEditor.error)) => {
       Connection.validateAndMake(path)
       |> thenError(err =>
            instance
@@ -212,7 +212,7 @@ module Connections = {
 
     let rec getConnection =
             (instance, metadata)
-            : Util.Promise.t(result(Connection.t, MiniEditor.error)) => {
+            : Promise.t(result(Connection.t, MiniEditor.error)) => {
       Connection.connect(metadata)
       |> thenError(err =>
            instance

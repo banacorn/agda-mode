@@ -69,7 +69,7 @@ let onEditorActivationChange = () => {
 
 /* register keymap bindings and emit commands */
 let onTriggerCommand = () => {
-  Util.Promise.(
+  Promise.(
     Command.names
     |> Array.forEach(command =>
          Environment.Commands.add(

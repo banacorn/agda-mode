@@ -345,7 +345,7 @@ let parse = (tokens: Token.t): result(t, string) => {
 };
 
 let handle = (instance: Instance.t, response: t) => {
-  open Util.Promise;
+  open Promise;
   let textEditor = instance.editors.source;
   let filePath = textEditor |> Atom.TextEditor.getPath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;

@@ -1,12 +1,7 @@
-open ReasonReact;
-
-module OCamlString = String;
-
 open Rebase;
 
-exception UnhandledPromise;
-
 module React = {
+  open ReasonReact;
   let sepBy = (sep: reactElement, item: list(reactElement)) =>
     switch (item) {
     | [] => <> </>
@@ -278,108 +273,6 @@ module Resource = {
     {acquire, supply};
   };
 };
-
-module Promise = {
-  type t('a) = Js.Promise.t('a);
-  let map: ('a => 'b, t('a)) => t('b) =
-    (f, p) => p |> Js.Promise.then_(x => x |> f |> Js.Promise.resolve);
-
-  let resolve = Js.Promise.resolve;
-  let reject = Js.Promise.reject;
-  let race = Js.Promise.race;
-  let all = Js.Promise.all;
-  let make = Js.Promise.make;
-  let then_ = Js.Promise.then_;
-  let catch = Js.Promise.catch;
-  let thenDrop: ('a => 'b, t('a)) => unit =
-    (f, x) =>
-      x
-      |> then_(x' => {
-           f(x');
-           Js.Promise.resolve();
-         })
-      |> ignore;
-  let finally: (unit => unit, t('a)) => unit =
-    (f, p) =>
-      p
-      |> then_(_ => {
-           f();
-           Js.Promise.resolve();
-         })
-      |> catch(_ => {
-           f();
-           Js.Promise.resolve();
-         })
-      |> ignore;
-
-  let mapOk = f => map(Result.map(f));
-  let thenOk = f =>
-    then_(
-      fun
-      | Ok(v) => f(v)
-      | Error(e) => resolve(Error(e)),
-    );
-
-  let mapError = f => map(Result.map2(x => x, f));
-  let thenError = f =>
-    then_(
-      fun
-      | Ok(v) => resolve(Ok(v))
-      | Error(e) => f(e),
-    );
-
-  let recover = (handler: 'e => t('a), promise: t(result('a, 'e))): t('a) =>
-    promise
-    |> then_(
-         fun
-         | Ok(value) => resolve(value)
-         | Error(err) => handler(err),
-       );
-};
-
-exception JSPromiseError(Js.Promise.error);
-
-/* module TelePromise = {
-     type t('a) = {
-       wire: unit => Js.Promise.t('a),
-       handlePromise: Js.Promise.t('a) => unit,
-       resolve: 'a => unit,
-       reject: exn => unit,
-     };
-     let make = () => {
-       let resolvers = ref([]);
-       let rejecters = ref([]);
-       let wire = () => {
-         /* make a new Promise and enlist the new resolver and rejecter */
-         Js.Promise.make((~resolve, ~reject) => {
-           resolvers := [resolve, ...resolvers^];
-           rejecters := [reject, ...rejecters^];
-         });
-       };
-       let cleanup = () => {
-         resolvers := [];
-         rejecters := [];
-       };
-       let resolve = value => {
-         resolvers^ |> List.forEach(resolver => resolver(. value));
-         cleanup();
-       };
-       let reject = exn => {
-         rejecters^ |> List.forEach(rejecter => rejecter(. exn));
-         cleanup();
-       };
-       /* resolves or rejects some promise */
-       let handlePromise = p =>
-         p
-         |> Js.Promise.then_(x => resolve(x) |> Js.Promise.resolve)
-         |> Js.Promise.catch(err => {
-              reject(JSPromiseError(err));
-              Js.Promise.resolve();
-            })
-         |> ignore;
-       {wire, handlePromise, resolve, reject};
-     };
-   }; */
 
 module Event = {
   module Listener = {

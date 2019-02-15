@@ -65,7 +65,7 @@ let make =
            /* onInquireConnection */
            self.state.editorModel^
            |> MiniEditor.Model.inquire
-           |> Util.Promise.thenDrop(value =>
+           |> Promise.thenDrop(value =>
                 onInquireConnection |> resolve(value)
               );
          })
