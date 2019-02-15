@@ -54,7 +54,7 @@ let removeBoundary = self => {
 
 /* replace and insert one or more lines of content at the goal
    usage: splitting case */
-let writeLines = (self, contents: array(string)) => {
+let writeLines = (contents: array(string), self) => {
   let textBuffer = self.textEditor |> TextEditor.getBuffer;
   let rowNumbers = self.range |> Range.getRows;
   switch (rowNumbers[0]) {
@@ -96,7 +96,7 @@ let writeLines = (self, contents: array(string)) => {
    aside from the goal itself, its clauses also need to be rewritten */
 /* https://github.com/agda/agda/blob/f46ecaf729c00217efad7a77e5d9932bfdd030e5/src/data/emacs-mode/agda2-mode.el#L950 */
 
-let writeLambda = (self, contents: array(string)) => {
+let writeLambda = (contents: array(string), self) => {
   /* range to scan */
   let scanRow = self.range |> Range.start |> Point.row;
   let scanRowText =

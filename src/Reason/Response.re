@@ -405,6 +405,28 @@ let handle = (instance: Instance.t, response: t) => {
       Goal.removeBoundary(goal);
       Goal.destroy(goal);
     }
+  | MakeCase(makeCaseType, lines) =>
+    let pointed = Editors.pointingAt(instance.goals, instance.editors);
+    switch (pointed) {
+    | Some(goal) =>
+      switch (makeCaseType) {
+      | Function => Goal.writeLines(lines, goal)
+      | ExtendedLambda => Goal.writeLambda(lines, goal)
+      }
+    /* instance |> Instance.dispatch(Load); */
+    | None =>
+      Type.View.(
+        updateView(
+          {text: "Out of goal", style: Header.Error},
+          Emacs(
+            PlainText(
+              "`Case` is a goal-specific command, please place the cursor in a goal",
+            ),
+          ),
+        )
+      )
+      |> ignore
+    };
   | DisplayInfo(info) =>
     instance.view.activatePanel |> Event.resolve(true);
     Info.handle(instance, info);
@@ -414,7 +436,6 @@ let handle = (instance: Instance.t, response: t) => {
 };
 
 /* type t =
-   | GiveAction(index, giveResult)
    /* agda2-make-case-action */
    /* agda2-make-case-action-extendlam */
    | MakeCase(makeCaseType, array(string))

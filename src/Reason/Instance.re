@@ -395,6 +395,44 @@ let cultivateCommand =
          );
       resolve(Error(Command.OutOfGoal));
     };
+  | Case =>
+    open Type.View;
+    let pointed = Editors.pointingAt(instance.goals, instance.editors);
+    switch (pointed) {
+    | Some(goal) =>
+      switch (goal.index) {
+      | Some(index) =>
+        if (Goal.isEmpty(goal)) {
+          instance
+          |> inquire("expression to case:", "")
+          |> mapError(_ => Command.Cancelled)
+          |> thenOk(result => {
+               goal |> Goal.setContent(result) |> ignore;
+               instance |> cultivate(Case(goal, index));
+             });
+        } else {
+          instance |> cultivate(Case(goal, index));
+        }
+      | None =>
+        instance
+        |> updateView(
+             {text: "Goal not indexed", style: Header.Error},
+             Emacs(PlainText("Please reload to re-index the goal")),
+           );
+        resolve(Error(Command.GoalNotIndexed));
+      }
+    | None =>
+      instance
+      |> updateView(
+           {text: "Out of goal", style: Header.Error},
+           Emacs(
+             PlainText(
+               "`Case` is a goal-specific command, please place the cursor in a goal",
+             ),
+           ),
+         );
+      resolve(Error(Command.OutOfGoal));
+    };
   | InputSymbol(symbol) =>
     let enabled = Atom.Environment.Config.get("agda-mode.inputMethod");
     if (enabled) {

@@ -133,7 +133,8 @@ module Cultivated = {
     | Load
     | Give(Goal.t, int)
     | Refine(Goal.t, int)
-    | Auto(Goal.t, int);
+    | Auto(Goal.t, int)
+    | Case(Goal.t, int);
 
   type t = {
     connection: Connection.t,
@@ -191,6 +192,12 @@ module Cultivated = {
       let range = buildRange(goal);
       commonPart(NonInteractive)
       ++ {j|( Cmd_auto $(index) $(range) "$(content)")|j};
+
+    | Case(goal, index) =>
+      let content = Goal.getContent(goal);
+      let range = buildRange(goal);
+      commonPart(NonInteractive)
+      ++ {j|( Cmd_make_case $(index) $(range) "$(content)")|j};
     };
   };
 };
