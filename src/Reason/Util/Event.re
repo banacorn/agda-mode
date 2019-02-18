@@ -90,13 +90,3 @@ let reject = (x: 'e, self: t('a, 'e)): unit => {
   |> Js.Dict.values
   |> Array.forEach((listener: Listener.t('a, 'e)) => listener.reject(x));
 };
-/* let handlePromise =
-       (p: Js.Promise.t(result('a)), self: t(result('a))): unit => {
-     p
-     |> Js.Promise.then_(x => self |> resolve(x) |> Js.Promise.resolve)
-     /* |> Js.Promise.catch(err => {
-          self |> resolve(Error(err));
-          Js.Promise.resolve();
-        }) */
-     |> ignore;
-   }; */

@@ -69,35 +69,21 @@ let onEditorActivationChange = () => {
 
 /* register keymap bindings and emit commands */
 let onTriggerCommand = () => {
-  Async.(
-    Command.names
-    |> Array.forEach(command =>
-         Environment.Commands.add(
-           `CSSSelector("atom-text-editor"), "agda-mode:" ++ command, _event =>
-           Environment.Workspace.getActiveTextEditor()
-           |> Option.flatMap(Instances.get)
-           |> Option.forEach(instance => {
-                Js.log("triggering: " ++ command);
-                instance
-                |> Instance.dispatch(Command.Primitive.parse(command))
-                |> finalOk(
-                     Option.forEach(raw =>
-                       raw
-                       |> Emacs.Parser.SExpression.parseFile
-                       |> Array.forEach(tokens =>
-                            tokens
-                            |> Result.flatMap(Response.parse)
-                            |> Result.forEach(res =>
-                                 res |> Response.handle(instance)
-                               )
-                          )
-                     ),
-                   );
-              })
-         )
-         |> CompositeDisposable.add(subscriptions)
+  Command.names
+  |> Array.forEach(command =>
+       Environment.Commands.add(
+         `CSSSelector("atom-text-editor"), "agda-mode:" ++ command, _event =>
+         Environment.Workspace.getActiveTextEditor()
+         |> Option.flatMap(Instances.get)
+         |> Option.forEach(instance => {
+              Js.log("triggering: " ++ command);
+              instance
+              |> Instance.dispatch(Command.Primitive.parse(command))
+              |> ignore;
+            })
        )
-  );
+       |> CompositeDisposable.add(subscriptions)
+     );
 };
 
 /* hijack UNDO */

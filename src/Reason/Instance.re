@@ -268,11 +268,11 @@ let inquire =
   promise;
 };
 
-/* Primitive Command => Cultivated Command */
-let cultivateCommand =
+/* Primitive Command => Remote Command */
+let handleLocalCommand =
     (command: Command.Primitive.t, instance)
-    : Js.Promise.t(result(option(Command.Cultivated.t), Command.error)) => {
-  let cultivate = (command, instance) => {
+    : Async.t(option(Command.Remote.t), Command.error) => {
+  let buff = (command, instance) => {
     Connections.get(instance)
     |> mapOk(connection =>
          Some(
@@ -280,7 +280,7 @@ let cultivateCommand =
              connection,
              filepath: instance.editors.source |> Atom.TextEditor.getPath,
              command,
-           }: Command.Cultivated.t,
+           }: Command.Remote.t,
          )
        )
     |> mapError(_ => Command.Cancelled);
@@ -292,7 +292,7 @@ let cultivateCommand =
     |> Atom.TextEditor.save
     |> fromPromise
     |> mapError(_ => Command.Cancelled)
-    |> thenOk(() => instance |> cultivate(Load))
+    |> thenOk(() => instance |> buff(Load))
   | Quit =>
     Connections.disconnect(instance);
     instance |> Goals.destroyAll;
@@ -300,9 +300,8 @@ let cultivateCommand =
     resolve(None);
   | Restart =>
     Connections.disconnect(instance);
-    instance |> cultivate(Load);
+    instance |> buff(Load);
   | Give =>
-    open Type.View;
     let pointed = Editors.pointingAt(instance.goals, instance.editors);
     switch (pointed) {
     | Some(goal) =>
@@ -314,87 +313,52 @@ let cultivateCommand =
           |> mapError(_ => Command.Cancelled)
           |> thenOk(result => {
                goal |> Goal.setContent(result) |> ignore;
-               instance |> cultivate(Give(goal, index));
+               instance |> buff(Give(goal, index));
              });
         } else {
-          instance |> cultivate(Give(goal, index));
+          instance |> buff(Give(goal, index));
         }
       | None =>
-        instance
-        |> updateView(
-             {text: "Goal not indexed", style: Header.Error},
-             Emacs(PlainText("Please reload to re-index the goal")),
-           );
-        reject(Command.GoalNotIndexed);
+        /* instance
+           |> updateView(
+                {text: "Goal not indexed", style: Header.Error},
+                Emacs(PlainText("Please reload to re-index the goal")),
+              ); */
+        reject(Command.GoalNotIndexed)
       }
     | None =>
-      instance
-      |> updateView(
-           {text: "Out of goal", style: Header.Error},
-           Emacs(
-             PlainText(
-               "`Give` is a goal-specific command, please place the cursor in a goal",
-             ),
-           ),
-         );
-      reject(Command.OutOfGoal);
+      /* instance
+         |> updateView(
+              {text: "Out of goal", style: Header.Error},
+              Emacs(
+                PlainText(
+                  "`Give` is a goal-specific command, please place the cursor in a goal",
+                ),
+              ),
+            ); */
+      reject(Command.OutOfGoal)
     };
   | Refine =>
-    open Type.View;
     let pointed = Editors.pointingAt(instance.goals, instance.editors);
     switch (pointed) {
     | Some(goal) =>
       switch (goal.index) {
-      | Some(index) => instance |> cultivate(Refine(goal, index))
-      | None =>
-        instance
-        |> updateView(
-             {text: "Goal not indexed", style: Header.Error},
-             Emacs(PlainText("Please reload to re-index the goal")),
-           );
-        reject(Command.GoalNotIndexed);
+      | Some(index) => instance |> buff(Refine(goal, index))
+      | None => reject(Command.GoalNotIndexed)
       }
-    | None =>
-      instance
-      |> updateView(
-           {text: "Out of goal", style: Header.Error},
-           Emacs(
-             PlainText(
-               "`Refine` is a goal-specific command, please place the cursor in a goal",
-             ),
-           ),
-         );
-      reject(Command.OutOfGoal);
+    | None => reject(Command.OutOfGoal)
     };
   | Auto =>
-    open Type.View;
     let pointed = Editors.pointingAt(instance.goals, instance.editors);
     switch (pointed) {
     | Some(goal) =>
       switch (goal.index) {
-      | Some(index) => instance |> cultivate(Auto(goal, index))
-      | None =>
-        instance
-        |> updateView(
-             {text: "Goal not indexed", style: Header.Error},
-             Emacs(PlainText("Please reload to re-index the goal")),
-           );
-        reject(Command.GoalNotIndexed);
+      | Some(index) => instance |> buff(Auto(goal, index))
+      | None => reject(Command.GoalNotIndexed)
       }
-    | None =>
-      instance
-      |> updateView(
-           {text: "Out of goal", style: Header.Error},
-           Emacs(
-             PlainText(
-               "`Auto` is a goal-specific command, please place the cursor in a goal",
-             ),
-           ),
-         );
-      reject(Command.OutOfGoal);
+    | None => reject(Command.OutOfGoal)
     };
   | Case =>
-    open Type.View;
     let pointed = Editors.pointingAt(instance.goals, instance.editors);
     switch (pointed) {
     | Some(goal) =>
@@ -406,30 +370,14 @@ let cultivateCommand =
           |> mapError(_ => Command.Cancelled)
           |> thenOk(result => {
                goal |> Goal.setContent(result) |> ignore;
-               instance |> cultivate(Case(goal, index));
+               instance |> buff(Case(goal, index));
              });
         } else {
-          instance |> cultivate(Case(goal, index));
+          instance |> buff(Case(goal, index));
         }
-      | None =>
-        instance
-        |> updateView(
-             {text: "Goal not indexed", style: Header.Error},
-             Emacs(PlainText("Please reload to re-index the goal")),
-           );
-        reject(Command.GoalNotIndexed);
+      | None => reject(Command.GoalNotIndexed)
       }
-    | None =>
-      instance
-      |> updateView(
-           {text: "Out of goal", style: Header.Error},
-           Emacs(
-             PlainText(
-               "`Case` is a goal-specific command, please place the cursor in a goal",
-             ),
-           ),
-         );
-      reject(Command.OutOfGoal);
+    | None => reject(Command.OutOfGoal)
     };
   | InputSymbol(symbol) =>
     let enabled = Atom.Environment.Config.get("agda-mode.inputMethod");
@@ -457,34 +405,219 @@ let cultivateCommand =
       |> ignore;
     };
     resolve(None);
-  | _ => instance |> cultivate(Load)
+  | _ => instance |> buff(Load)
   };
 };
 
-let dispatch = (command, instance): Async.t(option(string), Command.error) => {
+let handleResponseInfo =
+    (info: Response.Info.t, instance: t): Async.t(unit, Command.error) => {
+  /* open Response.Info; */
+
+  open Type.View;
+
+  let updateView = (header, body) => {
+    instance.view.updateHeader |> Event.resolve(header);
+    instance.view.updateBody |> Event.resolve(body);
+    resolve();
+  };
+  switch (info) {
+  | CompilationOk =>
+    updateView({text: "Compilation Done!", style: Header.Success}, Nothing)
+  | Constraints(None) =>
+    updateView({text: "No Constraints", style: Header.Success}, Nothing)
+  | Constraints(Some(payload)) =>
+    updateView(
+      {text: "Constraints", style: Header.Info},
+      Emacs(Constraints(payload)),
+    )
+  | AllGoalsWarnings(payload) =>
+    updateView(
+      {text: payload.title, style: Header.Info},
+      Emacs(AllGoalsWarnings(payload)),
+    )
+  | Time(payload) =>
+    updateView(
+      {text: "Time", style: Header.PlainText},
+      Emacs(PlainText(payload)),
+    )
+  | Error(payload) =>
+    updateView({text: "Error", style: Header.Error}, Emacs(Error(payload)))
+  | Intro(payload) =>
+    updateView(
+      {text: "Intro", style: Header.PlainText},
+      Emacs(PlainText(payload)),
+    )
+  | Auto(payload) =>
+    updateView(
+      {text: "Auto", style: Header.PlainText},
+      Emacs(PlainText(payload)),
+    )
+  | ModuleContents(payload) =>
+    updateView(
+      {text: "Module Contents", style: Header.Info},
+      Emacs(PlainText(payload)),
+    )
+  | SearchAbout(payload) =>
+    updateView(
+      {text: "Searching about ...", style: Header.PlainText},
+      Emacs(SearchAbout(payload)),
+    )
+  | WhyInScope(payload) =>
+    updateView(
+      {text: "Scope info", style: Header.Info},
+      Emacs(WhyInScope(payload)),
+    )
+  | NormalForm(payload) =>
+    updateView(
+      {text: "Normal form", style: Header.Info},
+      Emacs(PlainText(payload)),
+    )
+  | GoalType(payload) =>
+    updateView(
+      {text: "Goal type", style: Header.Info},
+      Emacs(GoalTypeContext(payload)),
+    )
+  | CurrentGoal(payload) =>
+    updateView(
+      {text: "Current goal", style: Header.Info},
+      Emacs(PlainText(payload)),
+    )
+  | InferredType(payload) =>
+    updateView(
+      {text: "Inferred type", style: Header.Info},
+      Emacs(PlainText(payload)),
+    )
+  | Context(payload) =>
+    updateView(
+      {text: "Context", style: Header.Info},
+      Emacs(Context(payload)),
+    )
+  | HelperFunction(payload) =>
+    updateView(
+      {text: "Helper function", style: Header.Info},
+      Emacs(PlainText(payload)),
+    )
+  | Version(payload) =>
+    updateView(
+      {text: "Version", style: Header.Info},
+      Emacs(PlainText(payload)),
+    )
+  };
+};
+
+let handleResponse =
+    (instance: t, response: Response.t): Async.t(unit, Command.error) => {
+  let textEditor = instance.editors.source;
+  let filePath = textEditor |> Atom.TextEditor.getPath;
+  let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
+  let updateView = (header, body) => {
+    instance.view.updateHeader |> Event.resolve(header);
+    instance.view.updateBody |> Event.resolve(body);
+  };
+  switch (response) {
+  | HighlightingInfoDirect(_remove, annotations) =>
+    annotations
+    |> Array.filter(Highlighting.Annotation.shouldHighlight)
+    |> Array.forEach(annotation => instance |> Highlightings.add(annotation));
+    resolve();
+  | HighlightingInfoIndirect(filepath) =>
+    instance
+    |> Highlightings.addFromFile(filepath)
+    |> mapOk(() => N.Fs.unlink(filepath, _ => ()))
+    |> mapError(_ => Command.Cancelled)
+  | Status(displayImplicit, checked) =>
+    if (displayImplicit || checked) {
+      updateView(
+        {text: "Status", style: Type.View.Header.PlainText},
+        Emacs(
+          PlainText(
+            "Typechecked: "
+            ++ string_of_bool(checked)
+            ++ "\nDisplay implicit arguments: "
+            ++ string_of_bool(displayImplicit),
+          ),
+        ),
+      );
+    };
+    resolve();
+  | JumpToError(targetFilePath, index) =>
+    if (targetFilePath == filePath) {
+      let point =
+        textBuffer |> Atom.TextBuffer.positionForCharacterIndex(index - 1);
+      textEditor |> Atom.TextEditor.setCursorBufferPosition(point);
+    };
+    resolve();
+  | InteractionPoints(indices) =>
+    instance |> Goals.instantiateAll(indices);
+    resolve();
+  | GiveAction(index, give) =>
+    switch (Goals.find(index, instance)) {
+    | None => resolve()
+    | Some(goal) =>
+      switch (give) {
+      | Paren =>
+        let content = Goal.getContent(goal);
+        Goal.setContent("(" ++ content ++ ")", goal) |> ignore;
+      | NoParen => () /* do nothing */
+      | String(content) =>
+        Goal.setContent(
+          content |> Js.String.replaceByRe([%re "/\\\\n/g"], "\n"),
+          goal,
+        )
+        |> ignore
+      };
+      Goal.removeBoundary(goal);
+      Goal.destroy(goal);
+      resolve();
+    }
+  | MakeCase(makeCaseType, lines) =>
+    let pointed = Editors.pointingAt(instance.goals, instance.editors);
+    switch (pointed) {
+    | Some(goal) =>
+      switch (makeCaseType) {
+      | Function => Goal.writeLines(lines, goal)
+      | ExtendedLambda => Goal.writeLambda(lines, goal)
+      };
+      resolve();
+    /* instance |> Instance.dispatch(Load); */
+    | None => reject(Command.OutOfGoal)
+    };
+  | DisplayInfo(info) =>
+    instance.view.activatePanel |> Event.resolve(true);
+    handleResponseInfo(info, instance);
+  | ClearHighlighting =>
+    instance |> Highlightings.destroyAll;
+    resolve();
+  | _ =>
+    Js.log(response);
+    resolve();
+  };
+};
+
+let dispatch = (command, instance): Async.t(int, Command.error) => {
   instance
-  |> cultivateCommand(command)
-  |> thenOk(cultivated =>
-       switch (cultivated) {
-       | None => resolve(None)
+  |> handleLocalCommand(command)
+  |> thenOk(remote =>
+       switch (remote) {
+       | None => resolve(0)
        | Some(cmd) =>
-         let s = Command.Cultivated.serialize(cmd);
+         let serialized = Command.Remote.serialize(cmd);
+         /* send the serialized command */
          cmd.connection
-         |> Connection.send(s)
-         |> Async.map(Option.some, e =>
-              Command.Connection(Connection.Connection(e))
-            );
+         |> Connection.send(serialized)
+         |> mapOk(Emacs.Parser.SExpression.parseFile)
+         |> mapOk(
+              Array.map(tokens =>
+                tokens
+                |> Result.flatMap(Response.parse)
+                |> Result.map(handleResponse(instance))
+              ),
+            )
+         |> mapError(_ => Command.Cancelled)
+         |> ignore;
+         resolve(0);
        }
      );
-      /* switch (cultivated) {
-         | Error(err) =>
-           Js.log(err);
-           resolve(None);
-         | Ok(None) => resolve(None)
-         | Ok(Some(cmd)) =>
-           let s = Command.Cultivated.serialize(cmd);
-           cmd.connection |> Connection.send(s) |> mapOk(Option.some);
-         } */
 };
 
 let dispatchUndo = _instance => {

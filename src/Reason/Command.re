@@ -131,7 +131,8 @@ module Primitive = {
     | _ => true;
 };
 
-module Cultivated = {
+/* Commands that needed to be sent to Agda */
+module Remote = {
   type command =
     | Load
     | Give(Goal.t, int)
@@ -145,7 +146,7 @@ module Cultivated = {
     command,
   };
 
-  /* serializes Cultivated Command into strings that can be sent to Agda */
+  /* serializes Buffed Command into strings that can be sent to Agda */
   let serialize = self => {
     let {filepath, command, connection} = self;
     /* highlighting method */

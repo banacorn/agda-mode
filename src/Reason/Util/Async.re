@@ -17,6 +17,7 @@ let reject = x => P.resolve(Error(x));
 let fromPromise = (promise: P.t('a)): t('a, Js.Exn.t) => {
   promise |> P.then_(x => resolve(x));
 };
+let all = P.all;
 
 let map: ('a => 'b, 'e => 'f, t('a, 'e)) => t('b, 'f) =
   (f, g) =>
