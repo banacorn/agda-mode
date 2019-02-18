@@ -5,7 +5,7 @@ open Rebase;
 type filepath = string;
 type index = int;
 
-module Event = Util.Event;
+module Event = Event;
 module Token = Emacs.Parser.SExpression;
 
 /* type fileType =
@@ -345,7 +345,7 @@ let parse = (tokens: Token.t): result(t, string) => {
 };
 
 let handle = (instance: Instance.t, response: t) => {
-  open Promise;
+  open Async;
   let textEditor = instance.editors.source;
   let filePath = textEditor |> Atom.TextEditor.getPath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
@@ -363,7 +363,7 @@ let handle = (instance: Instance.t, response: t) => {
   | HighlightingInfoIndirect(filepath) =>
     instance
     |> Instance.Highlightings.addFromFile(filepath)
-    |> finally(() => N.Fs.unlink(filepath, _ => ()) |> ignore)
+    |> finalOk(() => N.Fs.unlink(filepath, _ => ()) |> ignore)
   | Status(displayImplicit, checked) =>
     if (displayImplicit || checked) {
       updateView(

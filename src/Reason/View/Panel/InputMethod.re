@@ -4,8 +4,6 @@ let sort = Array.sort;
 
 open Rebase;
 
-open Webapi.Dom;
-
 [@bs.module "./../../../asset/keymap"]
 external rawKeymap: Js.t({.}) = "default";
 
@@ -219,6 +217,7 @@ let reducer = (editors, onActivationChange, action, state) =>
       UpdateWithSideEffects(
         {...state, activated: true},
         self => {
+          open Webapi.Dom;
           open Atom;
           let focusedEditor = Editors.Focus.get(editors);
           /* add class 'agda-mode-input-method-activated' */
@@ -273,6 +272,7 @@ let reducer = (editors, onActivationChange, action, state) =>
           translation: initialTranslation,
         },
         _self => {
+          open Webapi.Dom;
           open Atom;
           /* remove class 'agda-mode-input-method-activated' */
           editors
@@ -411,8 +411,8 @@ let make =
         we cannot simply detect which key was pressed, so we can only hardwire
         the keys we wanna intercept from the Keymaps
          */
-      ~interceptAndInsertKey: Util.Event.t(string),
-      ~activateInputMethod: Util.Event.t(bool),
+      ~interceptAndInsertKey: Event.t(string, unit),
+      ~activateInputMethod: Event.t(bool, unit),
       ~onActivationChange: bool => unit,
       _children,
     ) => {
@@ -421,12 +421,12 @@ let make =
   reducer: reducer(editors, onActivationChange),
   didMount: self => {
     interceptAndInsertKey
-    |> Util.Event.on(char => self.send(InsertSurfaceAndUnderlying(char)))
-    |> Util.Event.destroyWhen(self.onUnmount);
+    |> Event.onOk(char => self.send(InsertSurfaceAndUnderlying(char)))
+    |> Event.destroyWhen(self.onUnmount);
 
     activateInputMethod
-    |> Util.Event.on(activate => self.send(activate ? Activate : Deactivate))
-    |> Util.Event.destroyWhen(self.onUnmount);
+    |> Event.onOk(activate => self.send(activate ? Activate : Deactivate))
+    |> Event.destroyWhen(self.onUnmount);
     /* listening some events */
     let garbages = Garbages.make();
     /* intercept newline `\n` as confirm */
@@ -436,7 +436,7 @@ let make =
       event =>
       if (self.state.activated) {
         self.send(Deactivate);
-        event |> Event.stopImmediatePropagation;
+        event |> Webapi.Dom.Event.stopImmediatePropagation;
       }
     )
     |> Garbages.add(garbages);

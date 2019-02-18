@@ -46,14 +46,14 @@ let make =
       ~mode: mode,
       ~hidden: bool,
       /* Editors */
-      ~onInquireQuery: Util.Event.t(result(string, MiniEditor.error)),
+      ~onInquireQuery: Event.t(string, MiniEditor.error),
       ~onEditorFocused: bool => unit,
       ~onEditorRef: Atom.TextEditor.t => unit,
       ~editorPlaceholder: string,
       ~editorValue: string,
-      ~interceptAndInsertKey: Util.Event.t(string),
-      ~activateInputMethod: Util.Event.t(bool),
-      ~activateSettingsView: Util.Event.t(bool),
+      ~interceptAndInsertKey: Event.t(string, unit),
+      ~activateInputMethod: Event.t(bool, unit),
+      ~activateSettingsView: Event.t(bool, unit),
       ~onSettingsViewToggle: bool => unit,
       /* ~onGeneralEditorChange: Editors.miniEditor => unit,
          ~onGeneralEditorConfirm: string => unit,
@@ -129,13 +129,9 @@ let make =
               editorRef=onEditorRef
               onFocus={(.) => onEditorFocused(true)}
               onBlur={(.) => onEditorFocused(false)}
-              onConfirm={result =>
-                onInquireQuery |> Util.Event.resolve(Ok(result))
-              }
+              onConfirm={result => onInquireQuery |> Event.resolve(result)}
               onCancel={(.) =>
-                onInquireQuery
-                |> Util.Event.resolve(Error(MiniEditor.Cancelled))
-                |> ignore
+                onInquireQuery |> Event.reject(MiniEditor.Cancelled) |> ignore
               }
               /* onConfirm=(
                    result => {

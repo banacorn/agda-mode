@@ -11,17 +11,6 @@ type metadata = {
   protocol,
 };
 
-/* type connection = {
-   stdout: Stream.Readable.t,
-   stdin: Stream.Writable.t, */
-/* }; */
-
-type t = {
-  metadata,
-  process: N.ChildProcess.t,
-  mutable queue: array(Util.Event.t(string)),
-};
-
 type autoSearchError =
   | ProcessHanging
   | NotSupported(string)
@@ -42,23 +31,33 @@ type validationError =
 
 type connectionError =
   | ShellError(Js.Exn.t)
-  | Close(int, string);
+  | Close(int, string)
+  /* Aborted: command sent to Agda, but got aborted by the following aborting commands */
+  | Aborted;
 
 type error =
   | AutoSearch(autoSearchError)
   | Validation(string, validationError)
   | Connection(connectionError);
 
+type t = {
+  metadata,
+  process: N.ChildProcess.t,
+  mutable queue: array(Event.t(string, connectionError)),
+};
+
 /* a more sophiscated "make" */
-let autoSearch = (path): Js.Promise.t(result(string, autoSearchError)) =>
-  Js.Promise.make(
-    (~resolve: (. result(string, autoSearchError)) => unit, ~reject as _) =>
+let autoSearch = (path): Async.t(string, autoSearchError) =>
+  Async.make((resolve, reject) =>
     switch (N.OS.type_()) {
     | "Linux"
     | "Darwin" =>
       /* reject if the process hasn't responded for more than 1 second */
       let hangTimeout =
-        Js.Global.setTimeout(() => resolve(. Error(ProcessHanging)), 1000);
+        Js.Global.setTimeout(
+          () => reject(ProcessHanging: autoSearchError),
+          1000,
+        );
       N.ChildProcess.exec(
         "which " ++ path,
         (error, stdout, stderr) => {
@@ -69,35 +68,32 @@ let autoSearch = (path): Js.Promise.t(result(string, autoSearchError)) =>
           switch (error |> Js.Nullable.toOption) {
           | None => ()
           | Some(err) =>
-            resolve(.
-              Error(NotFound(err |> Js.Exn.message |> Option.getOr(""))),
-            )
+            reject(NotFound(err |> Js.Exn.message |> Option.getOr("")))
           };
 
           /* stderr */
           let stderr' = stderr |> Node.Buffer.toString;
           if (stderr' |> String.isEmpty |> (!)) {
-            resolve(. Error(NotFound(stderr')));
+            reject(NotFound(stderr'));
           };
 
           /* stdout */
           let stdout' = stdout |> Node.Buffer.toString;
           if (stdout' |> String.isEmpty) {
-            resolve(. Error(NotFound("")));
+            reject(NotFound(""));
           } else {
-            resolve(. Ok(Parser.filepath(stdout')));
+            resolve(Parser.filepath(stdout'));
           };
         },
       )
       |> ignore;
-    | "Windows_NT" => resolve(. Error(NotSupported("Windows_NT")))
-    | os => resolve(. Error(NotSupported(os)))
+    | "Windows_NT" => reject(NotSupported("Windows_NT"))
+    | os => reject(NotSupported(os))
     }
   );
 
 /* a more sophiscated "make" */
-let validateAndMake =
-    (path): Js.Promise.t(result(metadata, validationError)) => {
+let validateAndMake = (path): Async.t(metadata, validationError) => {
   let parsedPath = Parser.filepath(path);
   let parseError = (error: Js.Nullable.t(Js.Exn.t)): option(validationError) => {
     switch (error |> Js.Nullable.toOption) {
@@ -133,14 +129,14 @@ let validateAndMake =
     };
   };
 
-  Js.Promise.make((~resolve, ~reject as _) => {
+  Async.make((resolve, reject) => {
     if (path |> String.isEmpty) {
-      resolve(. Error(PathMalformed("the path must not be empty")));
+      reject(PathMalformed("the path must not be empty"));
     };
 
     /* reject if the process hasn't responded for more than 1 second */
     let hangTimeout =
-      Js.Global.setTimeout(() => resolve(. Error(ProcessHanging)), 1000);
+      Js.Global.setTimeout(() => reject(ProcessHanging), 1000);
 
     N.ChildProcess.exec(
       parsedPath,
@@ -151,19 +147,19 @@ let validateAndMake =
         /* parses `error` and rejects it if there's any  */
         switch (parseError(error)) {
         | None => ()
-        | Some(err) => resolve(. Error(err))
+        | Some(err) => reject(err)
         };
 
         /* stderr */
         let stderr' = stderr |> Node.Buffer.toString;
         if (stderr' |> String.isEmpty |> (!)) {
-          resolve(. Error(ProcessError(stderr')));
+          reject(ProcessError(stderr'));
         };
 
         /* stdout */
         switch (parseStdout(stdout)) {
-        | Error(err) => resolve(. Error(err))
-        | Ok(self) => resolve(. Ok(self))
+        | Error(err) => reject(err)
+        | Ok(self) => resolve(self)
         };
       },
     )
@@ -176,27 +172,23 @@ let useJSON = metadata => {
   && metadata.protocol == EmacsAndJSON;
 };
 
-let connect = (metadata): Js.Promise.t(result(t, connectionError)) => {
+let connect = (metadata): Async.t(t, connectionError) => {
   N.(
-    Js.Promise.make((~resolve, ~reject as _) => {
+    Async.make((resolve, reject) => {
       let args =
         useJSON(metadata) ? [|"--interaction-json"|] : [|"--interaction"|];
       let process = ChildProcess.spawn(metadata.path, args, {"shell": true});
       /* Handles errors and anomalies */
       process
+      |> ChildProcess.on(`error(exn => reject(ShellError(exn))))
       |> ChildProcess.on(
-           `error(exn => resolve(. Error(ShellError(exn)))),
-         )
-      |> ChildProcess.on(
-           `close(
-             (code, signal) => resolve(. Error(Close(code, signal))),
-           ),
+           `close((code, signal) => reject(Close(code, signal))),
          )
       |> ignore;
       process
       |> ChildProcess.stdout
       |> Stream.Readable.once(
-           `data(_ => resolve(. Ok({metadata, process, queue: [||]}))),
+           `data(_ => resolve({metadata, process, queue: [||]})),
          )
       |> ignore;
     })
@@ -214,7 +206,7 @@ let wire = (self): t => {
     switch (self.queue[0]) {
     | None => Js.log("WTF!!")
     | Some(req) =>
-      req |> Util.Event.resolve(data);
+      req |> Event.resolve(data);
       /* should updates the queue */
       self.queue |> Js.Array.pop |> ignore;
     };
@@ -251,13 +243,13 @@ let wire = (self): t => {
   self;
 };
 
-let send = (request, self): Js.Promise.t(string) => {
+let send = (request, self): Async.t(string, connectionError) => {
   Js.log("sending >>> " ++ request);
-  let reqPromise = Util.Event.make();
+  let reqPromise = Event.make();
   self.queue |> Js.Array.push(reqPromise) |> ignore;
 
   /* listen */
-  let promise = reqPromise |> Util.Event.once;
+  let promise = reqPromise |> Event.once;
   /* write */
   self.process
   |> N.ChildProcess.stdin

@@ -48,8 +48,8 @@ let setEditorRef = (theRef, {ReasonReact.state}) => {
 
 let make =
     (
-      ~inquireConnection: Util.Event.t((option(Connection.error), string)),
-      ~onInquireConnection: Util.Event.t(result(string, MiniEditor.error)),
+      ~inquireConnection: Event.t((option(Connection.error), string), unit),
+      ~onInquireConnection: Event.t(string, MiniEditor.error),
       ~connection: option(Connection.t),
       ~hidden,
       _children,
@@ -58,15 +58,15 @@ let make =
   initialState,
   reducer,
   didMount: self => {
-    Util.Event.(
+    Event.(
       inquireConnection
-      |> on(((error, value)) => {
+      |> onOk(((error, value)) => {
            self.send(Inquire(error, value));
            /* onInquireConnection */
            self.state.editorModel^
            |> MiniEditor.Model.inquire
-           |> Promise.thenDrop(value =>
-                onInquireConnection |> resolve(value)
+           |> Async.finalOk(value =>
+                onInquireConnection |> Event.resolve(value)
               );
          })
       |> destroyWhen(self.onUnmount)

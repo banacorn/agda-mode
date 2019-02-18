@@ -1,6 +1,6 @@
 open Rebase;
-open Promise;
-module Event = Util.Event;
+open Async;
+module Event = Event;
 
 type t = {
   editors: Editors.t,
@@ -112,11 +112,12 @@ module Highlightings = {
     |> ignore;
   };
 
-  let addFromFile = (filepath, instance): Js.Promise.t(unit) => {
+  let addFromFile = (filepath, instance): Async.t(unit, unit) => {
     let readFile = N.Fs.readFile |> N.Util.promisify;
     /* read and parse and add */
     readFile(. filepath)
-    |> then_(content => {
+    |> fromPromise
+    |> thenOk(content => {
          open Emacs.Parser.SExpression;
          content
          |> Node.Buffer.toString
@@ -136,11 +137,9 @@ module Highlightings = {
          resolve();
        })
     /* print on error */
-    |> catch(err => {
+    |> mapError(err => {
          Js.log(err);
          Js.log("cannot read the indirect highlighting file: " ++ filepath);
-
-         resolve();
        });
   };
 
@@ -152,22 +151,23 @@ module Highlightings = {
 
 module Connections = {
   open Atom;
-  let connect =
-      (instance: t): Promise.t(result(Connection.t, MiniEditor.error)) => {
+  let connect = (instance: t): Async.t(Connection.t, MiniEditor.error) => {
     let inquireConnection =
         (error: option(Connection.error), instance)
-        : Js.Promise.t(result(string, MiniEditor.error)) => {
+        : Async.t(string, MiniEditor.error) => {
       activate(instance);
 
       /* listen to `onSettingsView` before triggering `activateSettingsView` */
-      let promise =
+      let promise: Async.t(string, MiniEditor.error) =
         instance.view.onSettingsView
         |> Event.once
-        |> then_(_ => {
+        |> mapError(_ => MiniEditor.Cancelled)
+        |> thenOk(_ => {
              instance.view.navigateSettingsView
              |> Event.resolve(Settings.URI.Connection);
              /* listen to `onInquireConnection` before triggering `inquireConnection` */
-             let promise = instance.view.onInquireConnection |> Event.once;
+             let promise: Async.t(string, MiniEditor.error) =
+               instance.view.onInquireConnection |> Event.once;
              instance.view.inquireConnection |> Event.resolve((error, ""));
 
              promise;
@@ -177,21 +177,19 @@ module Connections = {
       promise;
     };
 
-    let getAgdaPath =
-        (): Js.Promise.t(result(string, Connection.autoSearchError)) => {
+    let getAgdaPath = (): Async.t(string, Connection.autoSearchError) => {
       let storedPath =
         Environment.Config.get("agda-mode.agdaPath") |> Parser.filepath;
       if (storedPath |> String.isEmpty) {
         Connection.autoSearch("agda");
       } else {
-        resolve(Ok(storedPath));
+        resolve(storedPath);
       };
     };
 
     /* validate the given path */
     let rec getMetadata =
-            (instance, path)
-            : Promise.t(result(Connection.metadata, MiniEditor.error)) => {
+            (instance, path): Async.t(Connection.metadata, MiniEditor.error) => {
       Connection.validateAndMake(path)
       |> thenError(err =>
            instance
@@ -211,8 +209,7 @@ module Connections = {
     };
 
     let rec getConnection =
-            (instance, metadata)
-            : Promise.t(result(Connection.t, MiniEditor.error)) => {
+            (instance, metadata): Async.t(Connection.t, MiniEditor.error) => {
       Connection.connect(metadata)
       |> thenError(err =>
            instance
@@ -223,7 +220,7 @@ module Connections = {
     };
 
     switch (instance.connection) {
-    | Some(connection) => resolve(Ok(connection))
+    | Some(connection) => resolve(connection)
     | None =>
       getAgdaPath()
       |> thenError(err =>
@@ -247,7 +244,7 @@ module Connections = {
 
   let get = instance => {
     switch (instance.connection) {
-    | Some(connection) => resolve(Ok(connection))
+    | Some(connection) => resolve(connection)
     | None => connect(instance)
     };
   };
@@ -262,8 +259,7 @@ let destroy = instance => {
 };
 
 let inquire =
-    (placeholder, value, instance)
-    : Js.Promise.t(result(string, MiniEditor.error)) => {
+    (placeholder, value, instance): Async.t(string, MiniEditor.error) => {
   activate(instance);
 
   let promise = instance.view.onInquireQuery |> Event.once;
@@ -294,12 +290,14 @@ let cultivateCommand =
     /* force save before load */
     instance.editors.source
     |> Atom.TextEditor.save
-    |> then_(() => instance |> cultivate(Load))
+    |> fromPromise
+    |> mapError(_ => Command.Cancelled)
+    |> thenOk(() => instance |> cultivate(Load))
   | Quit =>
     Connections.disconnect(instance);
     instance |> Goals.destroyAll;
     instance |> Highlightings.destroyAll;
-    resolve(Ok(None));
+    resolve(None);
   | Restart =>
     Connections.disconnect(instance);
     instance |> cultivate(Load);
@@ -327,7 +325,7 @@ let cultivateCommand =
              {text: "Goal not indexed", style: Header.Error},
              Emacs(PlainText("Please reload to re-index the goal")),
            );
-        resolve(Error(Command.GoalNotIndexed));
+        reject(Command.GoalNotIndexed);
       }
     | None =>
       instance
@@ -339,7 +337,7 @@ let cultivateCommand =
              ),
            ),
          );
-      resolve(Error(Command.OutOfGoal));
+      reject(Command.OutOfGoal);
     };
   | Refine =>
     open Type.View;
@@ -354,7 +352,7 @@ let cultivateCommand =
              {text: "Goal not indexed", style: Header.Error},
              Emacs(PlainText("Please reload to re-index the goal")),
            );
-        resolve(Error(Command.GoalNotIndexed));
+        reject(Command.GoalNotIndexed);
       }
     | None =>
       instance
@@ -366,7 +364,7 @@ let cultivateCommand =
              ),
            ),
          );
-      resolve(Error(Command.OutOfGoal));
+      reject(Command.OutOfGoal);
     };
   | Auto =>
     open Type.View;
@@ -381,7 +379,7 @@ let cultivateCommand =
              {text: "Goal not indexed", style: Header.Error},
              Emacs(PlainText("Please reload to re-index the goal")),
            );
-        resolve(Error(Command.GoalNotIndexed));
+        reject(Command.GoalNotIndexed);
       }
     | None =>
       instance
@@ -393,7 +391,7 @@ let cultivateCommand =
              ),
            ),
          );
-      resolve(Error(Command.OutOfGoal));
+      reject(Command.OutOfGoal);
     };
   | Case =>
     open Type.View;
@@ -419,7 +417,7 @@ let cultivateCommand =
              {text: "Goal not indexed", style: Header.Error},
              Emacs(PlainText("Please reload to re-index the goal")),
            );
-        resolve(Error(Command.GoalNotIndexed));
+        reject(Command.GoalNotIndexed);
       }
     | None =>
       instance
@@ -431,7 +429,7 @@ let cultivateCommand =
              ),
            ),
          );
-      resolve(Error(Command.OutOfGoal));
+      reject(Command.OutOfGoal);
     };
   | InputSymbol(symbol) =>
     let enabled = Atom.Environment.Config.get("agda-mode.inputMethod");
@@ -458,25 +456,35 @@ let cultivateCommand =
       |> Atom.TextEditor.insertText("\\")
       |> ignore;
     };
-    resolve(Ok(None));
+    resolve(None);
   | _ => instance |> cultivate(Load)
   };
 };
 
-let dispatch = (command, instance): Js.Promise.t(option(string)) => {
+let dispatch = (command, instance): Async.t(option(string), Command.error) => {
   instance
   |> cultivateCommand(command)
-  |> then_(cultivated =>
+  |> thenOk(cultivated =>
        switch (cultivated) {
-       | Error(err) =>
-         Js.log(err);
-         resolve(None);
-       | Ok(None) => resolve(None)
-       | Ok(Some(cmd)) =>
+       | None => resolve(None)
+       | Some(cmd) =>
          let s = Command.Cultivated.serialize(cmd);
-         cmd.connection |> Connection.send(s) |> map(Option.some);
+         cmd.connection
+         |> Connection.send(s)
+         |> Async.map(Option.some, e =>
+              Command.Connection(Connection.Connection(e))
+            );
        }
      );
+      /* switch (cultivated) {
+         | Error(err) =>
+           Js.log(err);
+           resolve(None);
+         | Ok(None) => resolve(None)
+         | Ok(Some(cmd)) =>
+           let s = Command.Cultivated.serialize(cmd);
+           cmd.connection |> Connection.send(s) |> mapOk(Option.some);
+         } */
 };
 
 let dispatchUndo = _instance => {

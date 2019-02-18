@@ -3,31 +3,29 @@ open Rebase;
 
 open Type.View;
 
-open Webapi.Dom;
+module Event = Event;
 
 /************************************************************************************************************/
 
-module Event = Util.Event;
-
 module Handles = {
   type t = {
-    updateHeader: Event.t(Header.t),
-    updateBody: Event.t(body),
-    updateMode: Event.t(mode),
-    updateMountTo: Event.t(mountTo),
-    activatePanel: Event.t(bool),
-    updateConnection: Event.t(option(Connection.t)),
-    inquireConnection: Event.t((option(Connection.error), string)),
-    onInquireConnection: Event.t(result(string, MiniEditor.error)),
-    onInquireQuery: Event.t(result(string, MiniEditor.error)),
-    inquireQuery: Event.t((string, string)),
-    activateSettingsView: Event.t(bool),
-    onSettingsView: Event.t(bool),
-    navigateSettingsView: Event.t(Settings.uri),
-    destroy: Event.t(unit),
+    updateHeader: Event.t(Header.t, unit),
+    updateBody: Event.t(body, unit),
+    updateMode: Event.t(mode, unit),
+    updateMountTo: Event.t(mountTo, unit),
+    activatePanel: Event.t(bool, unit),
+    updateConnection: Event.t(option(Connection.t), unit),
+    inquireConnection: Event.t((option(Connection.error), string), unit),
+    onInquireConnection: Event.t(string, MiniEditor.error),
+    onInquireQuery: Event.t(string, MiniEditor.error),
+    inquireQuery: Event.t((string, string), unit),
+    activateSettingsView: Event.t(bool, unit),
+    onSettingsView: Event.t(bool, unit),
+    navigateSettingsView: Event.t(Settings.uri, unit),
+    destroy: Event.t(unit, unit),
     /* Input Method */
-    activateInputMethod: Event.t(bool),
-    interceptAndInsertKey: Event.t(string),
+    activateInputMethod: Event.t(bool, unit),
+    interceptAndInsertKey: Event.t(string, unit),
   };
 
   let hook = (f, handle) => f := handle;
@@ -74,7 +72,8 @@ module Handles = {
 
 /************************************************************************************************************/
 
-let createElement = (): Element.t => {
+let createElement = (): Webapi.Dom.Element.t => {
+  open Webapi.Dom;
   open DomTokenListRe;
   let element = document |> Document.createElement("article");
   element |> Element.classList |> add("agda-mode");
@@ -242,35 +241,35 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
   initialState,
   reducer: reducer(editors, handles),
   didMount: self => {
-    open Util.Event;
+    open Event;
 
     /* activate/deactivate <Panel> */
     handles.activatePanel
-    |> on(activate => self.send(activate ? Activate : Deactivate))
+    |> onOk(activate => self.send(activate ? Activate : Deactivate))
     |> destroyWhen(self.onUnmount);
 
     /* update <Header> */
     handles.updateHeader
-    |> on(header => self.send(UpdateHeader(header)))
+    |> onOk(header => self.send(UpdateHeader(header)))
     |> destroyWhen(self.onUnmount);
 
     /* update <Body> */
     handles.updateBody
-    |> on(body => self.send(UpdateBody(body)))
+    |> onOk(body => self.send(UpdateBody(body)))
     |> destroyWhen(self.onUnmount);
 
     /* update MountTo */
     handles.updateMountTo
-    |> on(where => self.send(MountTo(where)))
+    |> onOk(where => self.send(MountTo(where)))
     |> destroyWhen(self.onUnmount);
 
     /* update the mode of <Panel> */
     handles.updateMode
-    |> on(mode => self.send(UpdateMode(mode)))
+    |> onOk(mode => self.send(UpdateMode(mode)))
     |> destroyWhen(self.onUnmount);
 
     handles.inquireQuery
-    |> on(payload => {
+    |> onOk(payload => {
          Js.log(payload);
 
          self.send(UpdateMode(Query));
@@ -279,9 +278,7 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     |> destroyWhen(self.onUnmount);
 
     handles.onInquireQuery
-    |> on(result => {
-         Js.log(result);
-
+    |> onOk(result => {
          self.send(UpdateMode(Display));
          self.send(Focus(Source));
        })
@@ -301,17 +298,17 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
 
     /* destroy everything */
     handles.destroy
-    |> on(_ => Js.log("destroy!"))
+    |> onOk(_ => Js.log("destroy!"))
     |> destroyWhen(self.onUnmount);
 
     /* opening/closing <Settings> */
     handles.activateSettingsView
-    |> on(activate => self.send(ToggleSettingsTab(activate)))
+    |> onOk(activate => self.send(ToggleSettingsTab(activate)))
     |> destroyWhen(self.onUnmount);
   },
   render: self => {
     let {header, body, mountAt, mode, activated} = self.state;
-    let element: Element.t =
+    let element: Webapi.Dom.Element.t =
       switch (mountAt) {
       | Bottom(element) => element
       | Pane(tab) => tab.element
@@ -349,6 +346,7 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
 };
 
 let initialize = editors => {
+  open Webapi.Dom;
   let element = document |> Document.createElement("article");
   let handles = Handles.make();
   let component = ReasonReact.element(make(~editors, ~handles, [||]));

@@ -2,8 +2,6 @@ open ReasonReact;
 
 open Rebase;
 
-open Webapi.Dom;
-
 type error =
   | Cancelled;
 
@@ -12,20 +10,20 @@ module Model = {
     value: string,
     placeholder: string,
     mutable ref: option(Atom.TextEditor.t),
-    result: Util.Event.t(result(string, error)),
+    result: Event.t(string, error),
   };
 
   let make = () => {
     value: "",
     placeholder: "",
     ref: None,
-    result: Util.Event.make(),
+    result: Event.make(),
   };
   let inquire = self => {
-    self.result |> Util.Event.once;
+    self.result |> Event.once;
   };
-  let answer = (x, self) => self.result |> Util.Event.resolve(Ok(x));
-  let reject = (x, self) => self.result |> Util.Event.resolve(Error(x));
+  let answer = (x, self) => self.result |> Event.resolve(x);
+  let reject = (x, self) => self.result |> Event.reject(x);
 
   let setRef = (ref, self) => {
     self.ref = Some(ref);
@@ -33,7 +31,7 @@ module Model = {
 };
 
 let focus = editor => {
-  Atom.Environment.Views.getView(editor) |> HtmlElement.focus;
+  Webapi.Dom.(Atom.Environment.Views.getView(editor) |> HtmlElement.focus);
 };
 
 type state = {
@@ -66,6 +64,8 @@ let make =
       _children,
     ) => {
   let observeFocus = (self, editor) => {
+    open Webapi.Dom;
+
     /* monitoring the "is-focus" class in the classList  */
     let observer =
       MutationObserver.make((mutations, _) => {

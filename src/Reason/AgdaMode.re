@@ -69,7 +69,7 @@ let onEditorActivationChange = () => {
 
 /* register keymap bindings and emit commands */
 let onTriggerCommand = () => {
-  Promise.(
+  Async.(
     Command.names
     |> Array.forEach(command =>
          Environment.Commands.add(
@@ -80,7 +80,7 @@ let onTriggerCommand = () => {
                 Js.log("triggering: " ++ command);
                 instance
                 |> Instance.dispatch(Command.Primitive.parse(command))
-                |> thenDrop(
+                |> finalOk(
                      Option.forEach(raw =>
                        raw
                        |> Emacs.Parser.SExpression.parseFile

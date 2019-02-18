@@ -38,16 +38,16 @@ let make =
       ~mountAt: Type.View.mountAt,
       ~onMountAtChange: Type.View.mountTo => unit,
       ~onSettingsViewToggle: bool => unit,
-      ~activateSettingsView: Util.Event.t(bool),
+      ~activateSettingsView: Event.t(bool, unit),
       _children,
     ) => {
   ...component,
   initialState,
   reducer,
   didMount: self => {
-    Util.Event.(
+    Event.(
       activateSettingsView
-      |> on(open_ => self.send(open_ ? SettingsViewOn : SettingsViewOff))
+      |> onOk(open_ => self.send(open_ ? SettingsViewOn : SettingsViewOff))
       |> destroyWhen(self.onUnmount)
     );
 

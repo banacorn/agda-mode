@@ -28,24 +28,24 @@ let at = (x, y, classNames) => {
 
 let make =
     (
-      ~inquireConnection: Util.Event.t((option(Connection.error), string)),
-      ~onInquireConnection: Util.Event.t(result(string, MiniEditor.error)),
-      ~updateConnection: Util.Event.t(option(Connection.t)),
-      ~navigate: Util.Event.t(uri),
+      ~inquireConnection: Event.t((option(Connection.error), string), unit),
+      ~onInquireConnection: Event.t(string, MiniEditor.error),
+      ~updateConnection: Event.t(option(Connection.t), unit),
+      ~navigate: Event.t(uri, unit),
       _children,
     ) => {
   ...component,
   initialState,
   reducer,
   didMount: self => {
-    open Util.Event;
+    open Event;
     /* navigation */
     navigate
-    |> on(uri => self.send(Navigate(uri)))
+    |> onOk(uri => self.send(Navigate(uri)))
     |> destroyWhen(self.onUnmount);
     /* updates Connection.t */
     updateConnection
-    |> on(connection => self.send(UpdateConnection(connection)))
+    |> onOk(connection => self.send(UpdateConnection(connection)))
     |> destroyWhen(self.onUnmount);
   },
   render: self => {
