@@ -490,6 +490,7 @@ let recoverCursor = (callback, instance) => {
   let cursor =
     instance.editors.source |> Atom.TextEditor.getCursorBufferPosition;
   let result = callback();
+
   let pointed = Editors.pointingAt(~cursor, instance.goals, instance.editors);
   /* reposition the cursor in the goal only if it's a fresh hole (coming from '?') */
   switch (pointed) {
@@ -519,7 +520,7 @@ let recoverCursor = (callback, instance) => {
 };
 
 let rec handleResponse =
-        (response: Response.t, instance: t): Async.t(unit, Command.error) => {
+        (instance: t, response: Response.t): Async.t(unit, Command.error) => {
   let textEditor = instance.editors.source;
   let filePath = textEditor |> Atom.TextEditor.getPath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
@@ -625,10 +626,9 @@ and dispatch = (command, instance): Async.t(unit, Command.error) => {
        /* array of parsed responses */
        let responses = result |> Array.filterMap(Option.fromResult);
        /* handle the responses and collect the errors if there's any */
-       responses
-       |> Array.map(response =>
-            instance
-            |> recoverCursor(() => handleResponse(response, instance))
+       instance
+       |> recoverCursor(() =>
+            responses |> Array.map(handleResponse(instance))
           )
        |> all
        |> mapOk(_ => ());
