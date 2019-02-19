@@ -1,5 +1,5 @@
 open ReasonReact;
-open Rebase;
+/* open Rebase; */
 
 open Type.View;
 
@@ -278,7 +278,7 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     |> destroyWhen(self.onUnmount);
 
     handles.onInquireQuery
-    |> onOk(result => {
+    |> onOk(_result => {
          self.send(UpdateMode(Display));
          self.send(Focus(Source));
        })
@@ -353,4 +353,24 @@ let initialize = editors => {
   ReactDOMRe.render(component, element);
   /* return the handles for drilling */
   handles;
+};
+
+/* handy stuff */
+
+let update = (text, style, body, handles) => {
+  open Handles;
+  handles.updateHeader |> Event.resolve(Header.{text, style});
+  handles.updateBody |> Event.resolve(body);
+  Async.resolve();
+};
+
+let inquire =
+    (placeholder, value, handles): Async.t(string, MiniEditor.error) => {
+  open Handles;
+  handles.activatePanel |> Event.resolve(true);
+
+  let promise = handles.onInquireQuery |> Event.once;
+  handles.inquireQuery |> Event.resolve((placeholder, value));
+
+  promise;
 };

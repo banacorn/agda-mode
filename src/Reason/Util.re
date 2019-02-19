@@ -24,6 +24,36 @@ module ClassName = {
   let serialize = String.joinWith(" ");
 };
 
+module Result = {
+  type t('a, 'e) = result('a, 'e);
+  let every = (xs: array(t('a, 'e))): t(array('a), 'e) =>
+    Array.reduce(
+      (acc, x) =>
+        switch (acc, x) {
+        | (Ok(xs), Ok(v)) =>
+          xs |> Js.Array.push(v) |> ignore;
+          Ok(xs);
+        | (_, Error(e)) => Error(e)
+        | (Error(e), _) => Error(e)
+        },
+      Ok([||]),
+      xs,
+    );
+  /* let some = (xs: array(t('a, 'e))): t(array('a), 'e) =>
+     Array.reduce(
+       (acc, x) =>
+         switch (acc, x) {
+         | (Ok(xs), Ok(v)) =>
+           xs |> Js.Array.push(v) |> ignore;
+           Ok(xs);
+         | (Ok(xs), Error(_)) => Ok(xs)
+         | (Error(_), Ok(v)) => Ok([|v|])
+         | (Error(e), Error(_)) => Error(e)
+         },
+       Ok([||]),
+       xs,
+     ); */
+};
 module Array_ = {
   let catMaybes = xs =>
     Array.reduceRight(

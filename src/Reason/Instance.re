@@ -25,13 +25,17 @@ let make = (textEditor: Atom.TextEditor.t) => {
   };
 };
 
-let updateView = (header, body, instance) => {
-  instance.view.updateHeader |> Event.resolve(header);
-  instance.view.updateBody |> Event.resolve(body);
-};
-
 let activate = instance => {
   instance.view.activatePanel |> Event.resolve(true);
+};
+
+let deactivate = instance => {
+  instance.view.activatePanel |> Event.resolve(false);
+};
+
+let destroy = instance => {
+  deactivate(instance);
+  instance.view.destroy |> Event.resolve();
 };
 
 module Goals = {
@@ -249,24 +253,6 @@ module Connections = {
     };
   };
 };
-let deactivate = instance => {
-  instance.view.activatePanel |> Event.resolve(false);
-};
-
-let destroy = instance => {
-  deactivate(instance);
-  instance.view.destroy |> Event.resolve();
-};
-
-let inquire =
-    (placeholder, value, instance): Async.t(string, MiniEditor.error) => {
-  activate(instance);
-
-  let promise = instance.view.onInquireQuery |> Event.once;
-  instance.view.inquireQuery |> Event.resolve((placeholder, value));
-
-  promise;
-};
 
 /* Primitive Command => Remote Command */
 let handleLocalCommand =
@@ -308,8 +294,8 @@ let handleLocalCommand =
       switch (goal.index) {
       | Some(index) =>
         if (Goal.isEmpty(goal)) {
-          instance
-          |> inquire("expression to give:", "")
+          instance.view
+          |> View.inquire("expression to give:", "")
           |> mapError(_ => Command.Cancelled)
           |> thenOk(result => {
                goal |> Goal.setContent(result) |> ignore;
@@ -365,8 +351,8 @@ let handleLocalCommand =
       switch (goal.index) {
       | Some(index) =>
         if (Goal.isEmpty(goal)) {
-          instance
-          |> inquire("expression to case:", "")
+          instance.view
+          |> View.inquire("expression to case:", "")
           |> mapError(_ => Command.Cancelled)
           |> thenOk(result => {
                goal |> Goal.setContent(result) |> ignore;
@@ -412,108 +398,131 @@ let handleLocalCommand =
 let handleResponseInfo =
     (info: Response.Info.t, instance: t): Async.t(unit, Command.error) => {
   /* open Response.Info; */
-
-  open Type.View;
-
-  let updateView = (header, body) => {
-    instance.view.updateHeader |> Event.resolve(header);
-    instance.view.updateBody |> Event.resolve(body);
-    resolve();
-  };
-  switch (info) {
-  | CompilationOk =>
-    updateView({text: "Compilation Done!", style: Header.Success}, Nothing)
-  | Constraints(None) =>
-    updateView({text: "No Constraints", style: Header.Success}, Nothing)
-  | Constraints(Some(payload)) =>
-    updateView(
-      {text: "Constraints", style: Header.Info},
-      Emacs(Constraints(payload)),
-    )
-  | AllGoalsWarnings(payload) =>
-    updateView(
-      {text: payload.title, style: Header.Info},
-      Emacs(AllGoalsWarnings(payload)),
-    )
-  | Time(payload) =>
-    updateView(
-      {text: "Time", style: Header.PlainText},
-      Emacs(PlainText(payload)),
-    )
-  | Error(payload) =>
-    updateView({text: "Error", style: Header.Error}, Emacs(Error(payload)))
-  | Intro(payload) =>
-    updateView(
-      {text: "Intro", style: Header.PlainText},
-      Emacs(PlainText(payload)),
-    )
-  | Auto(payload) =>
-    updateView(
-      {text: "Auto", style: Header.PlainText},
-      Emacs(PlainText(payload)),
-    )
-  | ModuleContents(payload) =>
-    updateView(
-      {text: "Module Contents", style: Header.Info},
-      Emacs(PlainText(payload)),
-    )
-  | SearchAbout(payload) =>
-    updateView(
-      {text: "Searching about ...", style: Header.PlainText},
-      Emacs(SearchAbout(payload)),
-    )
-  | WhyInScope(payload) =>
-    updateView(
-      {text: "Scope info", style: Header.Info},
-      Emacs(WhyInScope(payload)),
-    )
-  | NormalForm(payload) =>
-    updateView(
-      {text: "Normal form", style: Header.Info},
-      Emacs(PlainText(payload)),
-    )
-  | GoalType(payload) =>
-    updateView(
-      {text: "Goal type", style: Header.Info},
-      Emacs(GoalTypeContext(payload)),
-    )
-  | CurrentGoal(payload) =>
-    updateView(
-      {text: "Current goal", style: Header.Info},
-      Emacs(PlainText(payload)),
-    )
-  | InferredType(payload) =>
-    updateView(
-      {text: "Inferred type", style: Header.Info},
-      Emacs(PlainText(payload)),
-    )
-  | Context(payload) =>
-    updateView(
-      {text: "Context", style: Header.Info},
-      Emacs(Context(payload)),
-    )
-  | HelperFunction(payload) =>
-    updateView(
-      {text: "Helper function", style: Header.Info},
-      Emacs(PlainText(payload)),
-    )
-  | Version(payload) =>
-    updateView(
-      {text: "Version", style: Header.Info},
-      Emacs(PlainText(payload)),
-    )
-  };
+  Type.View.(
+    switch (info) {
+    | CompilationOk =>
+      instance.view
+      |> View.update("Compilation Done!", Header.Success, Nothing)
+    | Constraints(None) =>
+      instance.view |> View.update("No Constraints", Header.Success, Nothing)
+    | Constraints(Some(payload)) =>
+      instance.view
+      |> View.update(
+           "Constraints",
+           Header.Info,
+           Emacs(Constraints(payload)),
+         )
+    | AllGoalsWarnings(payload) =>
+      instance.view
+      |> View.update(
+           payload.title,
+           Header.Info,
+           Emacs(AllGoalsWarnings(payload)),
+         )
+    | Time(payload) =>
+      instance.view
+      |> View.update("Time", Header.PlainText, Emacs(PlainText(payload)))
+    | Error(payload) =>
+      instance.view
+      |> View.update("Error", Header.Error, Emacs(Error(payload)))
+    | Intro(payload) =>
+      instance.view
+      |> View.update("Intro", Header.PlainText, Emacs(PlainText(payload)))
+    | Auto(payload) =>
+      instance.view
+      |> View.update("Auto", Header.PlainText, Emacs(PlainText(payload)))
+    | ModuleContents(payload) =>
+      instance.view
+      |> View.update(
+           "Module Contents",
+           Header.Info,
+           Emacs(PlainText(payload)),
+         )
+    | SearchAbout(payload) =>
+      instance.view
+      |> View.update(
+           "Searching about ...",
+           Header.PlainText,
+           Emacs(SearchAbout(payload)),
+         )
+    | WhyInScope(payload) =>
+      instance.view
+      |> View.update("Scope info", Header.Info, Emacs(WhyInScope(payload)))
+    | NormalForm(payload) =>
+      instance.view
+      |> View.update("Normal form", Header.Info, Emacs(PlainText(payload)))
+    | GoalType(payload) =>
+      instance.view
+      |> View.update(
+           "Goal type",
+           Header.Info,
+           Emacs(GoalTypeContext(payload)),
+         )
+    | CurrentGoal(payload) =>
+      instance.view
+      |> View.update("Current goal", Header.Info, Emacs(PlainText(payload)))
+    | InferredType(payload) =>
+      instance.view
+      |> View.update(
+           "Inferred type",
+           Header.Info,
+           Emacs(PlainText(payload)),
+         )
+    | Context(payload) =>
+      instance.view
+      |> View.update("Context", Header.Info, Emacs(Context(payload)))
+    | HelperFunction(payload) =>
+      instance.view
+      |> View.update(
+           "Helper function",
+           Header.Info,
+           Emacs(PlainText(payload)),
+         )
+    | Version(payload) =>
+      instance.view
+      |> View.update("Version", Header.Info, Emacs(PlainText(payload)))
+    }
+  );
 };
 
-let handleResponse =
-    (instance: t, response: Response.t): Async.t(unit, Command.error) => {
+/* shift cursor if in certain goal */
+let recoverCursor = (callback, instance) => {
+  let cursor =
+    instance.editors.source |> Atom.TextEditor.getCursorBufferPosition;
+  let result = callback();
+  let pointed = Editors.pointingAt(~cursor, instance.goals, instance.editors);
+  /* reposition the cursor in the goal only if it's a fresh hole (coming from '?') */
+  switch (pointed) {
+  | Some(goal) =>
+    let fresh = Goal.isEmpty(goal);
+    if (fresh) {
+      let delta = Atom.Point.make(0, 3);
+      let newPosition =
+        Atom.Point.translate(delta, goal.range |> Atom.Range.start);
+      Js.Global.setTimeout(
+        () =>
+          instance.editors.source
+          |> Atom.TextEditor.setCursorBufferPosition(newPosition),
+        0,
+      )
+      |> ignore;
+    } else {
+      instance.editors.source
+      |> Atom.TextEditor.setCursorBufferPosition(cursor);
+    };
+
+  | None =>
+    instance.editors.source |> Atom.TextEditor.setCursorBufferPosition(cursor)
+  };
+
+  result;
+};
+
+let rec handleResponse =
+        (response: Response.t, instance: t): Async.t(unit, Command.error) => {
   let textEditor = instance.editors.source;
   let filePath = textEditor |> Atom.TextEditor.getPath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
-  let updateView = (header, body) => {
-    instance.view.updateHeader |> Event.resolve(header);
-    instance.view.updateBody |> Event.resolve(body);
-  };
   switch (response) {
   | HighlightingInfoDirect(_remove, annotations) =>
     annotations
@@ -527,17 +536,20 @@ let handleResponse =
     |> mapError(_ => Command.Cancelled)
   | Status(displayImplicit, checked) =>
     if (displayImplicit || checked) {
-      updateView(
-        {text: "Status", style: Type.View.Header.PlainText},
-        Emacs(
-          PlainText(
-            "Typechecked: "
-            ++ string_of_bool(checked)
-            ++ "\nDisplay implicit arguments: "
-            ++ string_of_bool(displayImplicit),
-          ),
-        ),
-      );
+      instance.view
+      |> View.update(
+           "Status",
+           Type.View.Header.PlainText,
+           Emacs(
+             PlainText(
+               "Typechecked: "
+               ++ string_of_bool(checked)
+               ++ "\nDisplay implicit arguments: "
+               ++ string_of_bool(displayImplicit),
+             ),
+           ),
+         )
+      |> ignore;
     };
     resolve();
   | JumpToError(targetFilePath, index) =>
@@ -578,8 +590,7 @@ let handleResponse =
       | Function => Goal.writeLines(lines, goal)
       | ExtendedLambda => Goal.writeLambda(lines, goal)
       };
-      resolve();
-    /* instance |> Instance.dispatch(Load); */
+      instance |> dispatch(Command.Primitive.Load);
     | None => reject(Command.OutOfGoal)
     };
   | DisplayInfo(info) =>
@@ -592,32 +603,36 @@ let handleResponse =
     Js.log(response);
     resolve();
   };
-};
-
-let dispatch = (command, instance): Async.t(int, Command.error) => {
+}
+and dispatch = (command, instance): Async.t(unit, Command.error) => {
   instance
   |> handleLocalCommand(command)
   |> thenOk(remote =>
        switch (remote) {
-       | None => resolve(0)
+       | None => resolve([||])
        | Some(cmd) =>
          let serialized = Command.Remote.serialize(cmd);
          /* send the serialized command */
          cmd.connection
          |> Connection.send(serialized)
+         /* parse the returned response */
          |> mapOk(Emacs.Parser.SExpression.parseFile)
-         |> mapOk(
-              Array.map(tokens =>
-                tokens
-                |> Result.flatMap(Response.parse)
-                |> Result.map(handleResponse(instance))
-              ),
-            )
-         |> mapError(_ => Command.Cancelled)
-         |> ignore;
-         resolve(0);
+         |> mapOk(Array.map(Result.flatMap(Response.parse)))
+         |> mapError(_ => Command.Cancelled);
        }
-     );
+     )
+  |> thenOk((result: array(result(Response.t, string))) => {
+       /* array of parsed responses */
+       let responses = result |> Array.filterMap(Option.fromResult);
+       /* handle the responses and collect the errors if there's any */
+       responses
+       |> Array.map(response =>
+            instance
+            |> recoverCursor(() => handleResponse(response, instance))
+          )
+       |> all
+       |> mapOk(_ => ());
+     });
 };
 
 let dispatchUndo = _instance => {

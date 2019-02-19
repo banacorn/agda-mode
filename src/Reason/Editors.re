@@ -58,11 +58,16 @@ module Focus = {
     };
 };
 
-let pointingAt = (goals, editors): option(Goal.t) => {
-  let cursor = editors.source |> TextEditor.getCursorBufferPosition;
+let pointingAt = (~cursor=?, goals, editors): option(Goal.t) => {
+  let cursor_ =
+    switch (cursor) {
+    | None => editors.source |> TextEditor.getCursorBufferPosition
+    | Some(x) => x
+    };
+
   let pointedGoals =
     goals
-    |> Array.filter(goal => goal.Goal.range |> Range.containsPoint(cursor));
+    |> Array.filter(goal => goal.Goal.range |> Range.containsPoint(cursor_));
   /* return the first pointed goal */
   pointedGoals[0];
 };

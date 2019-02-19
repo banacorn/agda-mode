@@ -17,7 +17,10 @@ let reject = x => P.resolve(Error(x));
 let fromPromise = (promise: P.t('a)): t('a, Js.Exn.t) => {
   promise |> P.then_(x => resolve(x));
 };
-let all = P.all;
+let all: array(t('a, 'e)) => t(array('a), 'e) =
+  xs => {
+    xs |> P.all |> P.then_(xs => xs |> Util.Result.every |> P.resolve);
+  };
 
 let map: ('a => 'b, 'e => 'f, t('a, 'e)) => t('b, 'f) =
   (f, g) =>
