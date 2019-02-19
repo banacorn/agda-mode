@@ -287,6 +287,11 @@ let handleLocalCommand =
   | Restart =>
     Connections.disconnect(instance);
     instance |> buff(Load);
+  | Compile => instance |> buff(Compile)
+  | ToggleDisplayOfImplicitArguments =>
+    instance |> buff(ToggleDisplayOfImplicitArguments)
+  | SolveConstraints => instance |> buff(SolveConstraints)
+
   | Give =>
     let pointed = Editors.pointingAt(instance.goals, instance.editors);
     switch (pointed) {
@@ -393,96 +398,6 @@ let handleLocalCommand =
     resolve(None);
   | _ => instance |> buff(Load)
   };
-};
-
-let handleResponseInfo =
-    (info: Response.Info.t, instance: t): Async.t(unit, Command.error) => {
-  /* open Response.Info; */
-  Type.View.(
-    switch (info) {
-    | CompilationOk =>
-      instance.view
-      |> View.update("Compilation Done!", Header.Success, Nothing)
-    | Constraints(None) =>
-      instance.view |> View.update("No Constraints", Header.Success, Nothing)
-    | Constraints(Some(payload)) =>
-      instance.view
-      |> View.update(
-           "Constraints",
-           Header.Info,
-           Emacs(Constraints(payload)),
-         )
-    | AllGoalsWarnings(payload) =>
-      instance.view
-      |> View.update(
-           payload.title,
-           Header.Info,
-           Emacs(AllGoalsWarnings(payload)),
-         )
-    | Time(payload) =>
-      instance.view
-      |> View.update("Time", Header.PlainText, Emacs(PlainText(payload)))
-    | Error(payload) =>
-      instance.view
-      |> View.update("Error", Header.Error, Emacs(Error(payload)))
-    | Intro(payload) =>
-      instance.view
-      |> View.update("Intro", Header.PlainText, Emacs(PlainText(payload)))
-    | Auto(payload) =>
-      instance.view
-      |> View.update("Auto", Header.PlainText, Emacs(PlainText(payload)))
-    | ModuleContents(payload) =>
-      instance.view
-      |> View.update(
-           "Module Contents",
-           Header.Info,
-           Emacs(PlainText(payload)),
-         )
-    | SearchAbout(payload) =>
-      instance.view
-      |> View.update(
-           "Searching about ...",
-           Header.PlainText,
-           Emacs(SearchAbout(payload)),
-         )
-    | WhyInScope(payload) =>
-      instance.view
-      |> View.update("Scope info", Header.Info, Emacs(WhyInScope(payload)))
-    | NormalForm(payload) =>
-      instance.view
-      |> View.update("Normal form", Header.Info, Emacs(PlainText(payload)))
-    | GoalType(payload) =>
-      instance.view
-      |> View.update(
-           "Goal type",
-           Header.Info,
-           Emacs(GoalTypeContext(payload)),
-         )
-    | CurrentGoal(payload) =>
-      instance.view
-      |> View.update("Current goal", Header.Info, Emacs(PlainText(payload)))
-    | InferredType(payload) =>
-      instance.view
-      |> View.update(
-           "Inferred type",
-           Header.Info,
-           Emacs(PlainText(payload)),
-         )
-    | Context(payload) =>
-      instance.view
-      |> View.update("Context", Header.Info, Emacs(Context(payload)))
-    | HelperFunction(payload) =>
-      instance.view
-      |> View.update(
-           "Helper function",
-           Header.Info,
-           Emacs(PlainText(payload)),
-         )
-    | Version(payload) =>
-      instance.view
-      |> View.update("Version", Header.Info, Emacs(PlainText(payload)))
-    }
-  );
 };
 
 /* shift cursor if in certain goal */
@@ -596,7 +511,9 @@ let rec handleResponse =
     };
   | DisplayInfo(info) =>
     instance.view.activatePanel |> Event.resolve(true);
-    handleResponseInfo(info, instance);
+    Response.Info.handle(info, (x, y, z) =>
+      View.update(x, y, z, instance.view)
+    );
   | ClearHighlighting =>
     instance |> Highlightings.destroyAll;
     resolve();

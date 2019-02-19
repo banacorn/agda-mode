@@ -1,3 +1,5 @@
+open Rebase;
+
 /* Command Dispatcher */
 
 type error =
@@ -135,6 +137,9 @@ module Primitive = {
 module Remote = {
   type command =
     | Load
+    | Compile
+    | ToggleDisplayOfImplicitArguments
+    | SolveConstraints
     | Give(Goal.t, int)
     | Refine(Goal.t, int)
     | Auto(Goal.t, int)
@@ -149,6 +154,15 @@ module Remote = {
   /* serializes Buffed Command into strings that can be sent to Agda */
   let serialize = self => {
     let {filepath, command, connection} = self;
+    let libraryPath: string = {
+      let path = Atom.Environment.Config.get("agda-mode.libraryPath");
+      path |> Js.Array.unshift(".") |> ignore;
+      path
+      |> Array.map(x => "\"" ++ Parser.filepath(x) ++ "\"")
+      |> List.fromArray
+      |> String.joinWith(", ");
+    };
+    Js.log(libraryPath);
     /* highlighting method */
     let highlightingMethod =
       switch (Atom.Environment.Config.get("agda-mode.highlightingMethod")) {
@@ -169,8 +183,30 @@ module Remote = {
 
     /* serialization */
     switch (command) {
-    | Load => commonPart(NonInteractive) ++ {j|( Cmd_load "$(filepath)" [])|j}
+    | Load =>
+      if (Util.Semver.gte(connection.metadata.version, "2.5.0")) {
+        commonPart(NonInteractive) ++ {j|( Cmd_load "$(filepath)" [])|j};
+      } else {
+        commonPart(NonInteractive)
+        ++ {j|( Cmd_load "$(filepath)" [$(libraryPath)])|j};
+      }
 
+    | Compile =>
+      let backend: string = Atom.Environment.Config.get("agda-mode.backend");
+
+      if (Util.Semver.gte(connection.metadata.version, "2.5.0")) {
+        commonPart(NonInteractive)
+        ++ {j|( Cmd_compile $(backend) "$(filepath)" [])|j};
+      } else {
+        commonPart(NonInteractive)
+        ++ {j|( Cmd_compile $(backend) "$(filepath)" [$(libraryPath)])|j};
+      };
+
+    | ToggleDisplayOfImplicitArguments =>
+      commonPart(NonInteractive) ++ {j|( ToggleImplicitArgs )|j}
+
+    | SolveConstraints =>
+      commonPart(NonInteractive) ++ {j|( Cmd_solveAll Instantiated )|j}
     /* Related issue and commit of agda/agda */
     /* https://github.com/agda/agda/issues/2730 */
     /* https://github.com/agda/agda/commit/021e6d24f47bac462d8bc88e2ea685d6156197c4 */

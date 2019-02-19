@@ -80,6 +80,64 @@ module Info = {
     | _ => None
     };
   };
+
+  let handle =
+      (
+        info: t,
+        handler:
+          (string, Type.View.Header.style, Type.View.body) =>
+          Async.t(unit, Command.error),
+      )
+      : Async.t(unit, Command.error) => {
+    /* open Response.Info; */
+    Type.View.(
+      switch (info) {
+      | CompilationOk => handler("Compilation Done!", Header.Success, Nothing)
+      | Constraints(None) =>
+        handler("No Constraints", Header.Success, Nothing)
+      | Constraints(Some(payload)) =>
+        handler("Constraints", Header.Info, Emacs(Constraints(payload)))
+      | AllGoalsWarnings(payload) =>
+        handler(
+          payload.title,
+          Header.Info,
+          Emacs(AllGoalsWarnings(payload)),
+        )
+      | Time(payload) =>
+        handler("Time", Header.PlainText, Emacs(PlainText(payload)))
+      | Error(payload) =>
+        handler("Error", Header.Error, Emacs(Error(payload)))
+      | Intro(payload) =>
+        handler("Intro", Header.PlainText, Emacs(PlainText(payload)))
+      | Auto(payload) =>
+        handler("Auto", Header.PlainText, Emacs(PlainText(payload)))
+      | ModuleContents(payload) =>
+        handler("Module Contents", Header.Info, Emacs(PlainText(payload)))
+      | SearchAbout(payload) =>
+        handler(
+          "Searching about ...",
+          Header.PlainText,
+          Emacs(SearchAbout(payload)),
+        )
+      | WhyInScope(payload) =>
+        handler("Scope info", Header.Info, Emacs(WhyInScope(payload)))
+      | NormalForm(payload) =>
+        handler("Normal form", Header.Info, Emacs(PlainText(payload)))
+      | GoalType(payload) =>
+        handler("Goal type", Header.Info, Emacs(GoalTypeContext(payload)))
+      | CurrentGoal(payload) =>
+        handler("Current goal", Header.Info, Emacs(PlainText(payload)))
+      | InferredType(payload) =>
+        handler("Inferred type", Header.Info, Emacs(PlainText(payload)))
+      | Context(payload) =>
+        handler("Context", Header.Info, Emacs(Context(payload)))
+      | HelperFunction(payload) =>
+        handler("Helper function", Header.Info, Emacs(PlainText(payload)))
+      | Version(payload) =>
+        handler("Version", Header.Info, Emacs(PlainText(payload)))
+      }
+    );
+  };
 };
 
 type t =
