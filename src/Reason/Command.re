@@ -117,20 +117,18 @@ module Primitive = {
     | "query-symbol" => QuerySymbol
     | "go-to-definition" => GotoDefinition
     | _ => Load;
-
-  let triggersConnection =
-    fun
-    | Load
-    | GotoDefinition => true
-    | _ => false;
-
-  let needsConnection =
-    fun
-    | Quit
-    | ToggleDocking
-    | InputSymbol(_)
-    | QuerySymbol => false
-    | _ => true;
+  /* let triggersConnection =
+     fun
+     | Load
+     | GotoDefinition => true
+     | _ => false; */
+  /* let needsConnection =
+     fun
+     | Quit
+     | ToggleDocking
+     | InputSymbol(_)
+     | QuerySymbol => false
+     | _ => true; */
 };
 
 /* Commands that needed to be sent to Agda */

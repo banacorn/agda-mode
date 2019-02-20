@@ -359,6 +359,9 @@ let handleLocalCommand =
        );
     resolve(None);
 
+  | ToggleDocking =>
+    instance.view |> View.toggleDocking |> ignore;
+    resolve(None);
   | Give =>
     let pointed = Editors.pointingAt(instance.goals, instance.editors);
     switch (pointed) {

@@ -12,6 +12,7 @@ module Handles = {
     updateHeader: Event.t(Header.t, unit),
     updateBody: Event.t(body, unit),
     updateMode: Event.t(mode, unit),
+    toggleDocking: Event.t(unit, unit),
     updateMountTo: Event.t(mountTo, unit),
     activatePanel: Event.t(bool, unit),
     updateConnection: Event.t(option(Connection.t), unit),
@@ -37,6 +38,7 @@ module Handles = {
     let updateBody = Event.make();
     let updateMode = Event.make();
     let updateMountTo = Event.make();
+    let toggleDocking = Event.make();
     let updateConnection = Event.make();
     let inquireConnection = Event.make();
     let onInquireConnection = Event.make();
@@ -55,6 +57,7 @@ module Handles = {
       updateBody,
       updateMode,
       updateMountTo,
+      toggleDocking,
       updateConnection,
       inquireConnection,
       onInquireConnection,
@@ -115,13 +118,13 @@ type action =
   | Focus(Editors.sort)
   /* Query Editor related */
   | SetQueryRef(Atom.TextEditor.t)
-  /* | InquireQuery(string, string) */
   /* Settings Tab related */
   | ToggleSettingsTab(bool)
   | UpdateSettingsView(option(Tab.t))
   /*  */
   | UpdateMountAt(mountAt)
   | MountTo(mountTo)
+  | ToggleDocking
   | Activate
   | Deactivate
   /*  */
@@ -169,6 +172,12 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
   | Focus(sort) => SideEffects(_self => editors |> Editors.Focus.on(sort))
   | MountTo(mountTo) =>
     SideEffects(self => mountPanel(editors, self, mountTo))
+  | ToggleDocking =>
+    switch (state.mountAt) {
+    | Bottom(_) => SideEffects(self => self.send(MountTo(ToPane)))
+    | Pane(_) => SideEffects(self => self.send(MountTo(ToBottom)))
+    }
+  /* UpdateWithSideEffects() */
   | ToggleSettingsTab(open_) =>
     SideEffects(
       self =>
@@ -261,6 +270,11 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     /* update MountTo */
     handles.updateMountTo
     |> onOk(where => self.send(MountTo(where)))
+    |> destroyWhen(self.onUnmount);
+
+    /* toggle docking */
+    handles.toggleDocking
+    |> onOk(() => self.send(ToggleDocking))
     |> destroyWhen(self.onUnmount);
 
     /* update the mode of <Panel> */
@@ -373,4 +387,9 @@ let inquire =
   handles.inquireQuery |> Event.resolve((placeholder, value));
 
   promise;
+};
+
+let toggleDocking = (handles): Async.t(unit, unit) => {
+  Handles.(handles.toggleDocking |> Event.resolve());
+  Async.resolve();
 };
