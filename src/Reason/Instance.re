@@ -440,6 +440,51 @@ let handleLocalCommand =
       }
     | None => reject(Command.OutOfGoal)
     };
+  | GoalType(normalization) =>
+    let pointed = Editors.pointingAt(instance.goals, instance.editors);
+    switch (pointed) {
+    | Some(goal) =>
+      switch (goal.index) {
+      | Some(index) => instance |> buff(GoalType(normalization, index))
+      | None => reject(Command.GoalNotIndexed)
+      }
+    | None => reject(Command.OutOfGoal)
+    };
+
+  | Context(normalization) =>
+    let pointed = Editors.pointingAt(instance.goals, instance.editors);
+    switch (pointed) {
+    | Some(goal) =>
+      switch (goal.index) {
+      | Some(index) => instance |> buff(Context(normalization, index))
+      | None => reject(Command.GoalNotIndexed)
+      }
+    | None => reject(Command.OutOfGoal)
+    };
+
+  | GoalTypeAndContext(normalization) =>
+    let pointed = Editors.pointingAt(instance.goals, instance.editors);
+    switch (pointed) {
+    | Some(goal) =>
+      switch (goal.index) {
+      | Some(index) =>
+        instance |> buff(GoalTypeAndContext(normalization, index))
+      | None => reject(Command.GoalNotIndexed)
+      }
+    | None => reject(Command.OutOfGoal)
+    };
+
+  | GoalTypeAndInferredType(normalization) =>
+    let pointed = Editors.pointingAt(instance.goals, instance.editors);
+    switch (pointed) {
+    | Some(goal) =>
+      switch (goal.index) {
+      | Some(index) =>
+        instance |> buff(GoalTypeAndInferredType(normalization, goal, index))
+      | None => reject(Command.GoalNotIndexed)
+      }
+    | None => reject(Command.OutOfGoal)
+    };
   | InputSymbol(symbol) =>
     let enabled = Atom.Environment.Config.get("agda-mode.inputMethod");
     if (enabled) {

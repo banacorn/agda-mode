@@ -14,10 +14,18 @@ type highlightingLevel =
   | None
   | NonInteractive;
 
-type normalization =
-  | Simplified
-  | Instantiated
-  | Normalised;
+module Normalization = {
+  type t =
+    | Simplified
+    | Instantiated
+    | Normalised;
+
+  let of_string =
+    fun
+    | Simplified => "Simplified"
+    | Instantiated => "Instantiated"
+    | Normalised => "Normalised";
+};
 
 type inputSymbolType =
   | Ordinary
@@ -43,18 +51,18 @@ module Primitive = {
     | PreviousGoal
     | ToggleDocking
     | WhyInScope
-    | SearchAbout(normalization)
-    | InferType(normalization)
-    | ModuleContents(normalization)
-    | ComputeNormalForm(normalization)
+    | SearchAbout(Normalization.t)
+    | InferType(Normalization.t)
+    | ModuleContents(Normalization.t)
+    | ComputeNormalForm(Normalization.t)
     | Give
     | Refine
     | Auto
     | Case
-    | GoalType(normalization)
-    | Context(normalization)
-    | GoalTypeAndContext(normalization)
-    | GoalTypeAndInferredType(normalization)
+    | GoalType(Normalization.t)
+    | Context(Normalization.t)
+    | GoalTypeAndContext(Normalization.t)
+    | GoalTypeAndInferredType(Normalization.t)
     | InputSymbol(inputSymbolType)
     | QuerySymbol
     | GotoDefinition;
@@ -140,10 +148,16 @@ module Remote = {
     | SolveConstraints
     | ShowConstraints
     | ShowGoals
+    /* | WhyInScope(string, Goal.t, int)
+       | WhyInScopeGlobal(string) */
     | Give(Goal.t, int)
     | Refine(Goal.t, int)
     | Auto(Goal.t, int)
-    | Case(Goal.t, int);
+    | Case(Goal.t, int)
+    | GoalType(Normalization.t, int)
+    | Context(Normalization.t, int)
+    | GoalTypeAndContext(Normalization.t, int)
+    | GoalTypeAndInferredType(Normalization.t, Goal.t, int);
 
   type t = {
     connection: Connection.t,
@@ -185,10 +199,10 @@ module Remote = {
     switch (command) {
     | Load =>
       if (Util.Semver.gte(connection.metadata.version, "2.5.0")) {
-        commonPart(NonInteractive) ++ {j|( Cmd_load "$(filepath)" [])|j};
+        commonPart(NonInteractive) ++ {j|( Cmd_load "$(filepath)" [] )|j};
       } else {
         commonPart(NonInteractive)
-        ++ {j|( Cmd_load "$(filepath)" [$(libraryPath)])|j};
+        ++ {j|( Cmd_load "$(filepath)" [$(libraryPath)] )|j};
       }
 
     | Compile =>
@@ -196,10 +210,10 @@ module Remote = {
 
       if (Util.Semver.gte(connection.metadata.version, "2.5.0")) {
         commonPart(NonInteractive)
-        ++ {j|( Cmd_compile $(backend) "$(filepath)" [])|j};
+        ++ {j|( Cmd_compile $(backend) "$(filepath)" [] )|j};
       } else {
         commonPart(NonInteractive)
-        ++ {j|( Cmd_compile $(backend) "$(filepath)" [$(libraryPath)])|j};
+        ++ {j|( Cmd_compile $(backend) "$(filepath)" [$(libraryPath)] )|j};
       };
 
     | ToggleDisplayOfImplicitArguments =>
@@ -212,6 +226,7 @@ module Remote = {
       commonPart(NonInteractive) ++ {j|( Cmd_constraints )|j}
 
     | ShowGoals => commonPart(NonInteractive) ++ {j|( Cmd_metas )|j}
+
     /* Related issue and commit of agda/agda */
     /* https://github.com/agda/agda/issues/2730 */
     /* https://github.com/agda/agda/commit/021e6d24f47bac462d8bc88e2ea685d6156197c4 */
@@ -220,29 +235,50 @@ module Remote = {
       let range = buildRange(goal);
       if (Util.Semver.gte(connection.metadata.version, "2.5.3")) {
         commonPart(NonInteractive)
-        ++ {j|( Cmd_give WithoutForce $(index) $(range) "$(content)")|j};
+        ++ {j|( Cmd_give WithoutForce $(index) $(range) "$(content)" )|j};
       } else {
         commonPart(NonInteractive)
-        ++ {j|( Cmd_give $(index) $(range) "$(content)")|j};
+        ++ {j|( Cmd_give $(index) $(range) "$(content)" )|j};
       };
 
     | Refine(goal, index) =>
       let content = Goal.getContent(goal);
       let range = buildRange(goal);
       commonPart(NonInteractive)
-      ++ {j|( Cmd_refine_or_intro False $(index) $(range) "$(content)")|j};
+      ++ {j|( Cmd_refine_or_intro False $(index) $(range) "$(content)" )|j};
 
     | Auto(goal, index) =>
       let content = Goal.getContent(goal);
       let range = buildRange(goal);
       commonPart(NonInteractive)
-      ++ {j|( Cmd_auto $(index) $(range) "$(content)")|j};
+      ++ {j|( Cmd_auto $(index) $(range) "$(content)" )|j};
 
     | Case(goal, index) =>
       let content = Goal.getContent(goal);
       let range = buildRange(goal);
       commonPart(NonInteractive)
-      ++ {j|( Cmd_make_case $(index) $(range) "$(content)")|j};
+      ++ {j|( Cmd_make_case $(index) $(range) "$(content)" )|j};
+
+    | GoalType(normalization, index) =>
+      let normalization' = Normalization.of_string(normalization);
+      commonPart(NonInteractive)
+      ++ {j|( Cmd_goal_type $(normalization') $(index) noRange "" )|j};
+
+    | Context(normalization, index) =>
+      let normalization' = Normalization.of_string(normalization);
+      commonPart(NonInteractive)
+      ++ {j|( Cmd_context $(normalization') $(index) noRange "" )|j};
+
+    | GoalTypeAndContext(normalization, index) =>
+      let normalization' = Normalization.of_string(normalization);
+      commonPart(NonInteractive)
+      ++ {j|( Cmd_goal_type_context $(normalization') $(index) noRange "" )|j};
+
+    | GoalTypeAndInferredType(normalization, goal, index) =>
+      let content = Goal.getContent(goal);
+      let normalization' = Normalization.of_string(normalization);
+      commonPart(NonInteractive)
+      ++ {j|( Cmd_goal_type_context_infer $(normalization') $(index) noRange "$(content)" )|j};
     };
   };
 };
