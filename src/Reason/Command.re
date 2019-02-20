@@ -140,6 +140,8 @@ module Remote = {
     | Compile
     | ToggleDisplayOfImplicitArguments
     | SolveConstraints
+    | ShowConstraints
+    | ShowGoals
     | Give(Goal.t, int)
     | Refine(Goal.t, int)
     | Auto(Goal.t, int)
@@ -207,6 +209,11 @@ module Remote = {
 
     | SolveConstraints =>
       commonPart(NonInteractive) ++ {j|( Cmd_solveAll Instantiated )|j}
+
+    | ShowConstraints =>
+      commonPart(NonInteractive) ++ {j|( Cmd_constraints )|j}
+
+    | ShowGoals => commonPart(NonInteractive) ++ {j|( Cmd_metas )|j}
     /* Related issue and commit of agda/agda */
     /* https://github.com/agda/agda/issues/2730 */
     /* https://github.com/agda/agda/commit/021e6d24f47bac462d8bc88e2ea685d6156197c4 */

@@ -291,6 +291,73 @@ let handleLocalCommand =
   | ToggleDisplayOfImplicitArguments =>
     instance |> buff(ToggleDisplayOfImplicitArguments)
   | SolveConstraints => instance |> buff(SolveConstraints)
+  | ShowConstraints => instance |> buff(ShowConstraints)
+  | ShowGoals => instance |> buff(ShowGoals)
+  | NextGoal =>
+    let nextGoal = ref(None);
+    let cursor =
+      instance.editors.source |> Atom.TextEditor.getCursorBufferPosition;
+    let positions =
+      instance.goals
+      |> Array.map(goal =>
+           Atom.Point.translate(
+             Atom.Point.make(0, 3),
+             Atom.Range.start(goal.Goal.range),
+           )
+         );
+    /* assign the next goal position */
+    positions
+    |> Array.forEach(position =>
+         if (Atom.Point.isGreaterThan(cursor, position) && nextGoal^ === None) {
+           nextGoal := Some(position);
+         }
+       );
+
+    /* if no goal ahead of cursor, then loop back */
+    if (nextGoal^ === None) {
+      nextGoal := positions[0];
+    };
+
+    /* jump */
+    nextGoal^
+    |> Option.forEach(position =>
+         instance.editors.source
+         |> Atom.TextEditor.setCursorBufferPosition(position)
+       );
+    resolve(None);
+  | PreviousGoal =>
+    let previousGoal = ref(None);
+    let cursor =
+      instance.editors.source |> Atom.TextEditor.getCursorBufferPosition;
+    let positions =
+      instance.goals
+      |> Array.map(goal =>
+           Atom.Point.translate(
+             Atom.Point.make(0, 3),
+             Atom.Range.start(goal.Goal.range),
+           )
+         );
+
+    /* assign the previous goal position */
+    positions
+    |> Array.forEach(position =>
+         if (Atom.Point.isLessThan(cursor, position) && previousGoal^ === None) {
+           previousGoal := Some(position);
+         }
+       );
+
+    /* loop back if this is already the first goal */
+    if (previousGoal^ === None) {
+      previousGoal := positions[Array.length(positions) - 1];
+    };
+
+    /* jump */
+    previousGoal^
+    |> Option.forEach(position =>
+         instance.editors.source
+         |> Atom.TextEditor.setCursorBufferPosition(position)
+       );
+    resolve(None);
 
   | Give =>
     let pointed = Editors.pointingAt(instance.goals, instance.editors);
