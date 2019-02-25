@@ -148,8 +148,8 @@ module Remote = {
     | SolveConstraints
     | ShowConstraints
     | ShowGoals
-    /* | WhyInScope(string, Goal.t, int)
-       | WhyInScopeGlobal(string) */
+    | WhyInScope(string, int)
+    | WhyInScopeGlobal(string)
     | Give(Goal.t, int)
     | Refine(Goal.t, int)
     | Auto(Goal.t, int)
@@ -225,6 +225,16 @@ module Remote = {
       commonPart(NonInteractive) ++ {j|( Cmd_constraints )|j}
 
     | ShowGoals => commonPart(NonInteractive) ++ {j|( Cmd_metas )|j}
+
+    | WhyInScope(expr, index) =>
+      let content = Parser.userInput(expr);
+
+      commonPart(NonInteractive)
+      ++ {j|( Cmd_why_in_scope $(index) noRange "$(content)" )|j};
+
+    | WhyInScopeGlobal(expr) =>
+      let content = Parser.userInput(expr);
+      commonPart(None) ++ {j|( Cmd_why_in_scope_toplevel "$(content)" )|j};
 
     /* Related issue and commit of agda/agda */
     /* https://github.com/agda/agda/issues/2730 */

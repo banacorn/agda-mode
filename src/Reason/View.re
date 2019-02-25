@@ -379,9 +379,11 @@ let update = (text, style, body, handles) => {
 };
 
 let inquire =
-    (placeholder, value, handles): Async.t(string, MiniEditor.error) => {
+    (text, placeholder, value, handles): Async.t(string, MiniEditor.error) => {
   open Handles;
   handles.activatePanel |> Event.resolve(true);
+  handles.updateHeader
+  |> Event.resolve(Header.{text, style: Header.PlainText});
 
   let promise = handles.onInquireQuery |> Event.once;
   handles.inquireQuery |> Event.resolve((placeholder, value));

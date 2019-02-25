@@ -379,7 +379,7 @@ let handleLocalCommand =
       | Some(index) =>
         if (Goal.isEmpty(goal)) {
           instance.view
-          |> View.inquire("expression to give:", "")
+          |> View.inquire("Give", "expression to give:", "")
           |> mapError(_ => Command.Cancelled)
           |> thenOk(result => {
                goal |> Goal.setContent(result) |> ignore;
@@ -408,6 +408,30 @@ let handleLocalCommand =
             ); */
       reject(Command.OutOfGoal)
     };
+
+  | WhyInScope =>
+    let selectedText =
+      instance.editors.source |> Atom.TextEditor.getSelectedText;
+    if (String.isEmpty(selectedText)) {
+      instance.view
+      |> View.inquire("Scope info", "name:", "")
+      |> mapError(_ => Command.Cancelled)
+      |> thenOk(expr => {
+           let pointed = Editors.pointingAt(instance.goals, instance.editors);
+           switch (pointed) {
+           | Some(goal) =>
+             switch (goal.index) {
+             | Some(index) => instance |> buff(WhyInScope(expr, index))
+             | None => reject(Command.GoalNotIndexed)
+             }
+           | None => reject(Command.OutOfGoal)
+           };
+         });
+    } else {
+      /* global */
+      instance |> buff(WhyInScopeGlobal(selectedText));
+    };
+
   | Refine =>
     let pointed = Editors.pointingAt(instance.goals, instance.editors);
     switch (pointed) {
@@ -436,7 +460,7 @@ let handleLocalCommand =
       | Some(index) =>
         if (Goal.isEmpty(goal)) {
           instance.view
-          |> View.inquire("expression to case:", "")
+          |> View.inquire("Case", "expression to case:", "")
           |> mapError(_ => Command.Cancelled)
           |> thenOk(result => {
                goal |> Goal.setContent(result) |> ignore;
