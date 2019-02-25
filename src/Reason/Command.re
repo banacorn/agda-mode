@@ -36,6 +36,25 @@ type inputSymbolType =
   | SingleQuote
   | BackQuote;
 
+module ComputeMode = {
+  type t =
+    | DefaultCompute
+    | IgnoreAbstract
+    | UseShowInstance;
+
+  let of_string =
+    fun
+    | DefaultCompute => "DefaultCompute"
+    | IgnoreAbstract => "IgnoreAbstract"
+    | UseShowInstance => "UseShowInstance";
+
+  let ignoreAbstract =
+    fun
+    | DefaultCompute => false
+    | IgnoreAbstract => true
+    | UseShowInstance => true;
+};
+
 module Primitive = {
   type t =
     | Load
@@ -54,7 +73,7 @@ module Primitive = {
     | SearchAbout(Normalization.t)
     | InferType(Normalization.t)
     | ModuleContents(Normalization.t)
-    | ComputeNormalForm(Normalization.t)
+    | ComputeNormalForm(ComputeMode.t)
     | Give
     | Refine
     | Auto
@@ -92,9 +111,12 @@ module Primitive = {
     | "module-contents[Simplified]" => ModuleContents(Simplified)
     | "module-contents[Instantiated]" => ModuleContents(Instantiated)
     | "module-contents[Normalised]" => ModuleContents(Normalised)
-    | "compute-normal-form[DefaultCompute]" => ComputeNormalForm(Simplified)
-    | "compute-normal-form[IgnoreAbstract]" => ComputeNormalForm(Instantiated)
-    | "compute-normal-form[UseShowInstance]" => ComputeNormalForm(Normalised)
+    | "compute-normal-form[DefaultCompute]" =>
+      ComputeNormalForm(DefaultCompute)
+    | "compute-normal-form[IgnoreAbstract]" =>
+      ComputeNormalForm(IgnoreAbstract)
+    | "compute-normal-form[UseShowInstance]" =>
+      ComputeNormalForm(UseShowInstance)
     | "give" => Give
     | "refine" => Refine
     | "auto" => Auto
@@ -153,6 +175,10 @@ module Remote = {
     | SearchAbout(Normalization.t, string)
     | InferType(Normalization.t, string, int)
     | InferTypeGlobal(Normalization.t, string)
+    | ModuleContents(Normalization.t, string, int)
+    | ModuleContentsGlobal(Normalization.t, string)
+    | ComputeNormalForm(ComputeMode.t, string, int)
+    | ComputeNormalFormGlobal(ComputeMode.t, string)
     | Give(Goal.t, int)
     | Refine(Goal.t, int)
     | Auto(Goal.t, int)
@@ -250,7 +276,7 @@ module Remote = {
       let content = Parser.userInput(expr);
 
       commonPart(NonInteractive)
-      ++ {j|( Cmd_infer  $(normalization') $(index) noRange "$(content)" )|j};
+      ++ {j|( Cmd_infer $(normalization') $(index) noRange "$(content)" )|j};
 
     | InferTypeGlobal(normalization, expr) =>
       let normalization' = Normalization.of_string(normalization);
@@ -258,6 +284,46 @@ module Remote = {
 
       commonPart(None)
       ++ {j|( Cmd_infer_toplevel $(normalization') "$(content)" )|j};
+
+    | ModuleContents(normalization, expr, index) =>
+      let normalization' = Normalization.of_string(normalization);
+      let content = Parser.userInput(expr);
+
+      commonPart(NonInteractive)
+      ++ {j|( Cmd_show_module_contents $(normalization') $(index) noRange "$(content)" )|j};
+
+    | ModuleContentsGlobal(normalization, expr) =>
+      let normalization' = Normalization.of_string(normalization);
+      let content = Parser.userInput(expr);
+
+      commonPart(None)
+      ++ {j|( Cmd_show_module_contents_toplevel $(normalization') "$(content)" )|j};
+
+    | ComputeNormalForm(computeMode, expr, index) =>
+      let computeMode' = ComputeMode.of_string(computeMode);
+      let ignoreAbstract = ComputeMode.ignoreAbstract(computeMode);
+      let content = Parser.userInput(expr);
+
+      if (Util.Semver.gte(connection.metadata.version, "2.5.2")) {
+        commonPart(NonInteractive)
+        ++ {j|( Cmd_compute $(computeMode') $(index) noRange "$(content)" )|j};
+      } else {
+        commonPart(NonInteractive)
+        ++ {j|( Cmd_compute $(ignoreAbstract) $(index) noRange "$(content)" )|j};
+      };
+
+    | ComputeNormalFormGlobal(computeMode, expr) =>
+      let computeMode' = ComputeMode.of_string(computeMode);
+      let ignoreAbstract = ComputeMode.ignoreAbstract(computeMode);
+      let content = Parser.userInput(expr);
+
+      if (Util.Semver.gte(connection.metadata.version, "2.5.2")) {
+        commonPart(NonInteractive)
+        ++ {j|( Cmd_compute_toplevel $(computeMode') "$(content)" )|j};
+      } else {
+        commonPart(NonInteractive)
+        ++ {j|( Cmd_compute_toplevel $(ignoreAbstract) "$(content)" )|j};
+      };
 
     /* Related issue and commit of agda/agda */
     /* https://github.com/agda/agda/issues/2730 */

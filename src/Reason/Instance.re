@@ -468,8 +468,9 @@ let handleLocalCommand =
   | SearchAbout(normalization) =>
     instance.view
     |> Views.inquire(
-         "Searching through definitions "
-         ++ Command.Normalization.of_string(normalization),
+         "Searching through definitions ["
+         ++ Command.Normalization.of_string(normalization)
+         ++ "]",
          "expression to infer:",
          "",
        )
@@ -484,8 +485,9 @@ let handleLocalCommand =
          if (Goal.isEmpty(goal)) {
            instance.view
            |> Views.inquire(
-                "Infer type "
-                ++ Command.Normalization.of_string(normalization),
+                "Infer type ["
+                ++ Command.Normalization.of_string(normalization)
+                ++ "]",
                 "expression to infer:",
                 "",
               )
@@ -500,7 +502,9 @@ let handleLocalCommand =
     |> handleOutOfGoal(_ =>
          instance.view
          |> Views.inquire(
-              "Infer type " ++ Command.Normalization.of_string(normalization),
+              "Infer type ["
+              ++ Command.Normalization.of_string(normalization)
+              ++ "]",
               "expression to infer:",
               "",
             )
@@ -508,6 +512,60 @@ let handleLocalCommand =
               instance |> buff(InferTypeGlobal(normalization, expr))
             )
        )
+
+  | ModuleContents(normalization) =>
+    instance.view
+    |> Views.inquire(
+         "Module contents ["
+         ++ Command.Normalization.of_string(normalization)
+         ++ "]",
+         "module name:",
+         "",
+       )
+    |> thenOk(expr =>
+         instance
+         |> getPointedGoal
+         |> thenOk(getGoalIndex)
+         |> thenOk(((_, index)) =>
+              instance |> buff(ModuleContents(normalization, expr, index))
+            )
+         |> handleOutOfGoal(_ =>
+              instance |> buff(ModuleContentsGlobal(normalization, expr))
+            )
+       )
+
+  | ComputeNormalForm(computeMode) =>
+    instance
+    |> getPointedGoal
+    |> thenOk(getGoalIndex)
+    |> thenOk(((goal, index)) =>
+         if (Goal.isEmpty(goal)) {
+           instance.view
+           |> Views.inquire(
+                "Compute normal form",
+                "expression to normalize:",
+                "",
+              )
+           |> thenOk(expr =>
+                instance |> buff(ComputeNormalForm(computeMode, expr, index))
+              );
+         } else {
+           let expr = Goal.getContent(goal);
+           instance |> buff(ComputeNormalForm(computeMode, expr, index));
+         }
+       )
+    |> handleOutOfGoal(_ =>
+         instance.view
+         |> Views.inquire(
+              "Compute normal form",
+              "expression to normalize:",
+              "",
+            )
+         |> thenOk(expr =>
+              instance |> buff(ComputeNormalFormGlobal(computeMode, expr))
+            )
+       )
+
   | Refine =>
     instance
     |> getPointedGoal
