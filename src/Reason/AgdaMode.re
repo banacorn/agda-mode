@@ -79,7 +79,8 @@ let onTriggerCommand = () => {
               Js.log("triggering: " ++ command);
               instance
               |> Instance.dispatch(Command.Primitive.parse(command))
-              |> Instance.handleCommandError(instance);
+              |> Instance.handleCommandError(instance)
+              |> ignore;
             })
        )
        |> CompositeDisposable.add(subscriptions)

@@ -147,18 +147,6 @@ module Primitive = {
     | "query-symbol" => QuerySymbol
     | "go-to-definition" => GotoDefinition
     | _ => Load;
-  /* let triggersConnection =
-     fun
-     | Load
-     | GotoDefinition => true
-     | _ => false; */
-  /* let needsConnection =
-     fun
-     | Quit
-     | ToggleDocking
-     | InputSymbol(_)
-     | QuerySymbol => false
-     | _ => true; */
 };
 
 /* Commands that needed to be sent to Agda */
@@ -186,7 +174,9 @@ module Remote = {
     | GoalType(Normalization.t, int)
     | Context(Normalization.t, int)
     | GoalTypeAndContext(Normalization.t, int)
-    | GoalTypeAndInferredType(Normalization.t, Goal.t, int);
+    | GoalTypeAndInferredType(Normalization.t, Goal.t, int)
+    | GotoDefinition(string, int)
+    | GotoDefinitionGlobal(string);
 
   type t = {
     connection: Connection.t,
@@ -377,6 +367,15 @@ module Remote = {
       let normalization' = Normalization.of_string(normalization);
       commonPart(NonInteractive)
       ++ {j|( Cmd_goal_type_context_infer $(normalization') $(index) noRange "$(content)" )|j};
+
+    | GotoDefinition(name, index) =>
+      let content = Parser.userInput(name);
+      commonPart(NonInteractive)
+      ++ {j|( Cmd_why_in_scope $(index) noRange "$(content)" )|j};
+
+    | GotoDefinitionGlobal(name) =>
+      let content = Parser.userInput(name);
+      commonPart(None) ++ {j|( Cmd_why_in_scope_toplevel "$(content)" )|j};
     };
   };
 };

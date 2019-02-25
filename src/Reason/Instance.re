@@ -3,6 +3,7 @@ open Async;
 module Event = Event;
 
 type t = {
+  mutable loaded: bool,
   editors: Editors.t,
   view: View.Handles.t,
   mutable highlightings: array(Highlighting.t),
@@ -18,6 +19,7 @@ let make = (textEditor: Atom.TextEditor.t) => {
   /*  */
   let editors = Editors.make(textEditor);
   {
+    loaded: false,
     editors,
     view: View.initialize(editors),
     goals: [||],
@@ -321,10 +323,125 @@ let getGoalIndex = (goal: Goal.t): Async.t((Goal.t, int), Command.error) => {
   };
 };
 
+/* shift cursor if in certain goal */
+let recoverCursor = (callback, instance) => {
+  let cursor =
+    instance.editors.source |> Atom.TextEditor.getCursorBufferPosition;
+  let result = callback();
+
+  instance
+  |> getPointedGoalAt(cursor)
+  /* reposition the cursor in the goal only if it's a fresh hole (coming from '?') */
+  |> thenOk(goal => {
+       let fresh = Goal.isEmpty(goal);
+       if (fresh) {
+         let delta = Atom.Point.make(0, 3);
+         let newPosition =
+           Atom.Point.translate(delta, goal.range |> Atom.Range.start);
+         Js.Global.setTimeout(
+           () =>
+             instance.editors.source
+             |> Atom.TextEditor.setCursorBufferPosition(newPosition),
+           0,
+         )
+         |> ignore;
+         resolve();
+       } else {
+         instance.editors.source
+         |> Atom.TextEditor.setCursorBufferPosition(cursor);
+         resolve();
+       };
+     })
+  |> handleOutOfGoal(_ => {
+       instance.editors.source
+       |> Atom.TextEditor.setCursorBufferPosition(cursor);
+       resolve();
+     })
+  |> ignore;
+
+  /* return the result of the callbak */
+  result;
+};
+
+let handleCommandError = instance =>
+  thenError((error: Command.error) => {
+    Command.
+      /*  */
+      (
+        switch (error) {
+        | Connection(_connErr) =>
+          instance.view
+          |> Views.display(
+               "Connection-related Error",
+               Type.View.Header.Error,
+               Emacs(PlainText("")),
+             )
+        | Cancelled =>
+          instance.view
+          |> Views.display(
+               "Query Cancelled",
+               Type.View.Header.Error,
+               Emacs(PlainText("")),
+             )
+        | GoalNotIndexed =>
+          instance.view
+          |> Views.display(
+               "Goal not indexed",
+               Type.View.Header.Error,
+               Emacs(PlainText("Please reload to re-index the goal")),
+             )
+        | OutOfGoal =>
+          instance.view
+          |> Views.display(
+               "Out of goal",
+               Type.View.Header.Error,
+               Emacs(PlainText("Please place the cursor in a goal")),
+             )
+        }
+      )
+    |> ignore;
+    resolve();
+  });
+
+let getSelectedTextNode = instance => {
+  let getSelectedText = () => {
+    instance.editors.source |> Atom.TextEditor.getSelectedText;
+  };
+  let getLargerSyntaxNode = () => {
+    instance.editors.source |> Atom.TextEditor.selectLargerSyntaxNode;
+    instance.editors.source |> Atom.TextEditor.getSelectedText;
+  };
+  let getPointedWord = () => {
+    instance.editors.source |> Atom.TextEditor.selectWordsContainingCursors;
+    instance.editors.source |> Atom.TextEditor.getSelectedText;
+  };
+
+  let selectedText = getSelectedText();
+
+  /* if the user didn't select anything */
+  if (String.isEmpty(selectedText)) {
+    let largerNode = getLargerSyntaxNode();
+    /* this happens when language-agda is not installed */
+    if (String.isEmpty(largerNode)) {
+      getPointedWord();
+    } else {
+      let pointedText = getPointedWord();
+      /* this happens when the user is hovering on a mixfix/infix operator like _+_ */
+      if (pointedText == "_") {
+        getLargerSyntaxNode();
+      } else {
+        pointedText;
+      };
+    };
+  } else {
+    selectedText;
+  };
+};
+
 /* Primitive Command => Remote Command */
-let handleLocalCommand =
-    (command: Command.Primitive.t, instance)
-    : Async.t(option(Command.Remote.t), Command.error) => {
+let rec handleLocalCommand =
+        (command: Command.Primitive.t, instance)
+        : Async.t(option(Command.Remote.t), Command.error) => {
   let buff = (command, instance) => {
     Connections.get(instance)
     |> mapOk(connection =>
@@ -345,11 +462,15 @@ let handleLocalCommand =
     |> Atom.TextEditor.save
     |> fromPromise
     |> mapError(_ => Command.Cancelled)
-    |> thenOk(() => instance |> buff(Load))
+    |> thenOk(() => {
+         instance.loaded = true;
+         instance |> buff(Load);
+       })
   | Quit =>
     Connections.disconnect(instance);
     instance |> Goals.destroyAll;
     instance |> Highlightings.destroyAll;
+    instance.loaded = false;
     resolve(None);
   | Restart =>
     Connections.disconnect(instance);
@@ -652,52 +773,33 @@ let handleLocalCommand =
       |> ignore;
     };
     resolve(None);
+
+  | GotoDefinition =>
+    if (instance.loaded) {
+      let name =
+        instance |> recoverCursor(() => getSelectedTextNode(instance));
+
+      instance
+      |> getPointedGoal
+      |> thenOk(getGoalIndex)
+      |> thenOk(((_, index)) =>
+           instance |> buff(GotoDefinition(name, index))
+         )
+      |> handleOutOfGoal(_ => instance |> buff(GotoDefinitionGlobal(name)));
+    } else {
+      /* dispatch again if not already loaded  */
+      instance
+      |> dispatch(Command.Primitive.Load)
+      |> handleCommandError(instance)
+      |> thenOk(_ =>
+           instance |> handleLocalCommand(Command.Primitive.GotoDefinition)
+         );
+    }
   | _ => instance |> buff(Load)
   };
-};
-
-/* shift cursor if in certain goal */
-let recoverCursor = (callback, instance) => {
-  let cursor =
-    instance.editors.source |> Atom.TextEditor.getCursorBufferPosition;
-  let result = callback();
-
-  instance
-  |> getPointedGoalAt(cursor)
-  /* reposition the cursor in the goal only if it's a fresh hole (coming from '?') */
-  |> thenOk(goal => {
-       let fresh = Goal.isEmpty(goal);
-       if (fresh) {
-         let delta = Atom.Point.make(0, 3);
-         let newPosition =
-           Atom.Point.translate(delta, goal.range |> Atom.Range.start);
-         Js.Global.setTimeout(
-           () =>
-             instance.editors.source
-             |> Atom.TextEditor.setCursorBufferPosition(newPosition),
-           0,
-         )
-         |> ignore;
-         resolve();
-       } else {
-         instance.editors.source
-         |> Atom.TextEditor.setCursorBufferPosition(cursor);
-         resolve();
-       };
-     })
-  |> handleOutOfGoal(_ => {
-       instance.editors.source
-       |> Atom.TextEditor.setCursorBufferPosition(cursor);
-       resolve();
-     })
-  |> ignore;
-
-  /* return the result of the callbak */
-  result;
-};
-
-let rec handleResponse =
-        (instance: t, response: Response.t): Async.t(unit, Command.error) => {
+}
+and handleResponse =
+    (instance: t, response: Response.t): Async.t(unit, Command.error) => {
   let textEditor = instance.editors.source;
   let filePath = textEditor |> Atom.TextEditor.getPath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
@@ -815,48 +917,6 @@ and dispatch = (command, instance): Async.t(unit, Command.error) => {
        |> mapOk(_ => ());
      });
 };
-
-let handleCommandError = instance =>
-  finalError((error: Command.error) =>
-    Command.
-      /*  */
-      (
-        switch (error) {
-        | Connection(_connErr) =>
-          instance.view
-          |> Views.display(
-               "Connection-related Error",
-               Type.View.Header.Error,
-               Emacs(PlainText("")),
-             )
-          |> ignore
-        | Cancelled =>
-          instance.view
-          |> Views.display(
-               "Query Cancelled",
-               Type.View.Header.Error,
-               Emacs(PlainText("")),
-             )
-          |> ignore
-        | GoalNotIndexed =>
-          instance.view
-          |> Views.display(
-               "Goal not indexed",
-               Type.View.Header.Error,
-               Emacs(PlainText("Please reload to re-index the goal")),
-             )
-          |> ignore
-        | OutOfGoal =>
-          instance.view
-          |> Views.display(
-               "Out of goal",
-               Type.View.Header.Error,
-               Emacs(PlainText("Please place the cursor in a goal")),
-             )
-          |> ignore
-        }
-      )
-  );
 
 let dispatchUndo = _instance => {
   Js.log("Undo");
