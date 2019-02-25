@@ -44,8 +44,17 @@ module Goals = {
     instance.goals |> Array.forEach(Goal.destroy);
     instance.goals = [||];
   };
-  let find = (index, instance) => instance.goals[index];
-
+  let find = (index: int, instance) => {
+    let found =
+      instance.goals
+      |> Array.filter(goal =>
+           switch (goal.Goal.index) {
+           | None => false
+           | Some(i) => i == index
+           }
+         );
+    found[0];
+  };
   /* instantiate all goals */
   let instantiateAll = (indices, instance) => {
     open Atom;
@@ -595,7 +604,9 @@ let rec handleResponse =
     resolve();
   | GiveAction(index, give) =>
     switch (Goals.find(index, instance)) {
-    | None => resolve()
+    | None =>
+      Js.log("error: cannot find goal #" ++ string_of_int(index));
+      resolve();
     | Some(goal) =>
       switch (give) {
       | Paren =>

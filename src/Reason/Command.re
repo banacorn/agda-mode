@@ -176,7 +176,6 @@ module Remote = {
       |> List.fromArray
       |> String.joinWith(", ");
     };
-    Js.log(libraryPath);
     /* highlighting method */
     let highlightingMethod =
       switch (Atom.Environment.Config.get("agda-mode.highlightingMethod")) {
