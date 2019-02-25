@@ -27,16 +27,16 @@ let make = (textEditor: Atom.TextEditor.t) => {
 };
 
 let activate = instance => {
-  instance.view.activatePanel |> Event.resolve(true);
+  instance.view.activatePanel |> Event.emitOk(true);
 };
 
 let deactivate = instance => {
-  instance.view.activatePanel |> Event.resolve(false);
+  instance.view.activatePanel |> Event.emitOk(false);
 };
 
 let destroy = instance => {
   deactivate(instance);
-  instance.view.destroy |> Event.resolve();
+  instance.view.destroy |> Event.emitOk();
 };
 
 module Goals = {
@@ -178,15 +178,15 @@ module Connections = {
         |> mapError(_ => MiniEditor.Cancelled)
         |> thenOk(_ => {
              instance.view.navigateSettingsView
-             |> Event.resolve(Settings.URI.Connection);
+             |> Event.emitOk(Settings.URI.Connection);
              /* listen to `onInquireConnection` before triggering `inquireConnection` */
              let promise: Async.t(string, MiniEditor.error) =
                instance.view.onInquireConnection |> Event.once;
-             instance.view.inquireConnection |> Event.resolve((error, ""));
+             instance.view.inquireConnection |> Event.emitOk((error, ""));
 
              promise;
            });
-      instance.view.activateSettingsView |> Event.resolve(true);
+      instance.view.activateSettingsView |> Event.emitOk(true);
 
       promise;
     };
@@ -217,7 +217,7 @@ module Connections = {
       /* store the path in the config */
       Environment.Config.set("agda-mode.agdaPath", connection.metadata.path);
       /* update the view */
-      instance.view.updateConnection |> Event.resolve(Some(connection));
+      instance.view.updateConnection |> Event.emitOk(Some(connection));
       /* pass it on */
       connection;
     };
@@ -268,7 +268,7 @@ module Views = {
   let display = (text, style, body, handles) => {
     open View.Handles;
     open Type.View.Header;
-    handles.display |> Event.resolve(({text, style}, body));
+    handles.display |> Event.emitOk(({text, style}, body));
     Async.resolve();
   };
 
@@ -279,13 +279,13 @@ module Views = {
 
     let promise = handles.onInquireQuery |> Event.once;
     handles.inquire
-    |> Event.resolve(({text, style: PlainText}, placeholder, value));
+    |> Event.emitOk(({text, style: PlainText}, placeholder, value));
 
     promise |> mapError(_ => Command.Cancelled);
   };
 
   let toggleDocking = (handles): Async.t(unit, unit) => {
-    View.Handles.(handles.toggleDocking |> Event.resolve());
+    View.Handles.(handles.toggleDocking |> Event.emitOk());
     Async.resolve();
   };
 };
@@ -573,18 +573,18 @@ let handleLocalCommand =
     if (enabled) {
       switch (symbol) {
       | Ordinary =>
-        instance.view.activatePanel |> Event.resolve(true);
-        instance.view.activateInputMethod |> Event.resolve(true);
+        instance.view.activatePanel |> Event.emitOk(true);
+        instance.view.activateInputMethod |> Event.emitOk(true);
       | CurlyBracket =>
-        instance.view.interceptAndInsertKey |> Event.resolve("{")
-      | Bracket => instance.view.interceptAndInsertKey |> Event.resolve("[")
+        instance.view.interceptAndInsertKey |> Event.emitOk("{")
+      | Bracket => instance.view.interceptAndInsertKey |> Event.emitOk("[")
       | Parenthesis =>
-        instance.view.interceptAndInsertKey |> Event.resolve("(")
+        instance.view.interceptAndInsertKey |> Event.emitOk("(")
       | DoubleQuote =>
-        instance.view.interceptAndInsertKey |> Event.resolve("\"")
+        instance.view.interceptAndInsertKey |> Event.emitOk("\"")
       | SingleQuote =>
-        instance.view.interceptAndInsertKey |> Event.resolve("'")
-      | BackQuote => instance.view.interceptAndInsertKey |> Event.resolve("`")
+        instance.view.interceptAndInsertKey |> Event.emitOk("'")
+      | BackQuote => instance.view.interceptAndInsertKey |> Event.emitOk("`")
       };
       ();
     } else {
@@ -716,7 +716,7 @@ let rec handleResponse =
     | None => reject(Command.OutOfGoal)
     };
   | DisplayInfo(info) =>
-    instance.view.activatePanel |> Event.resolve(true);
+    instance.view.activatePanel |> Event.emitOk(true);
     Response.Info.handle(info, (x, y, z) =>
       Views.display(x, y, z, instance.view)
     );

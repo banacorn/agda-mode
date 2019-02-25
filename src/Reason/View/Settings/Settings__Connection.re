@@ -66,7 +66,7 @@ let make =
            self.state.editorModel^
            |> MiniEditor.Model.inquire
            |> Async.finalOk(value =>
-                onInquireConnection |> Event.resolve(value)
+                onInquireConnection |> Event.emitOk(value)
               );
          })
       |> destroyWhen(self.onUnmount)

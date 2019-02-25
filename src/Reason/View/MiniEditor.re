@@ -22,8 +22,8 @@ module Model = {
   let inquire = self => {
     self.result |> Event.once;
   };
-  let answer = (x, self) => self.result |> Event.resolve(x);
-  let reject = (x, self) => self.result |> Event.reject(x);
+  let answer = (x, self) => self.result |> Event.emitOk(x);
+  let reject = (x, self) => self.result |> Event.emitError(x);
 
   let setRef = (ref, self) => {
     self.ref = Some(ref);

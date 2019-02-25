@@ -3,12 +3,10 @@ open Rebase;
 
 module Listener = {
   type t('a, 'e) = {
-    resolve: 'a => unit,
-    reject: 'e => unit,
+    resolve: result('a, 'e) => unit,
     id: int,
   };
-  /* let make = (resolve, id): t('a, 'e) => {resolve, id}; */
-  let make = (resolve, reject, id): t('a, 'e) => {resolve, reject, id};
+  let make = (resolve, id): t('a, 'e) => {resolve, id};
 };
 
 type t('a, 'e) = {
@@ -34,19 +32,18 @@ let removeAllListeners = (self: t('a, 'e)) => {
 };
 
 let listen =
-    (resolve: 'a => unit, reject: 'e => unit, self: t('a, 'e))
-    : (unit => unit) => {
+    (callback: result('a, 'e) => unit, self: t('a, 'e)): (unit => unit) => {
   /* get and update the ID counter  */
   let id: int = self.counter^ + 1;
   self.counter := id;
   /* store the callback */
-  let listener = Listener.make(resolve, reject, id);
+  let listener = Listener.make(callback, id);
   Js.Dict.set(self.listeners, string_of_int(id), listener);
 
+  /* returns the destructor */
   let destructor = () => {
     removeListener(id, self);
   };
-
   destructor;
 };
 
@@ -55,10 +52,24 @@ let destroyWhen =
   trigger(destructor);
 };
 
-/* the alias of `listen` */
+/* alias of `listen` */
 let on = listen;
 
-let onOk = resolve => on(resolve, _ => ());
+let onOk: ('a => unit, t('a, 'e), unit) => unit =
+  callback =>
+    on(
+      fun
+      | Ok(a) => callback(a)
+      | Error(_) => (),
+    );
+
+let onError: ('e => unit, t('a, 'e), unit) => unit =
+  callback =>
+    on(
+      fun
+      | Ok(_) => ()
+      | Error(e) => callback(e),
+    );
 
 let once = (self: t('a, 'e)): Async.t('a, 'e) => {
   /* get and update the ID counter  */
@@ -66,28 +77,35 @@ let once = (self: t('a, 'e)): Async.t('a, 'e) => {
   self.counter := id;
   /* makes a new promise */
   Async.make((resolve, reject) => {
-    let resolve' = x => {
-      resolve(x);
-      removeListener(id, self);
-    };
-    let reject' = x => {
-      reject(x);
-      removeListener(id, self);
-    };
-    let listener = Listener.make(resolve', reject', id);
+    let callback =
+      fun
+      | Ok(a) => {
+          resolve(a);
+          removeListener(id, self);
+        }
+      | Error(e) => {
+          reject(e);
+          removeListener(id, self);
+        };
+
+    let listener = Listener.make(callback, id);
     Js.Dict.set(self.listeners, string_of_int(id), listener);
   });
 };
 
 /* successful emit */
-let resolve = (x: 'a, self: t('a, 'e)): unit => {
+let emitOk = (x: 'a, self: t('a, 'e)): unit => {
   self.listeners
   |> Js.Dict.values
-  |> Array.forEach((listener: Listener.t('a, 'e)) => listener.resolve(x));
+  |> Array.forEach((listener: Listener.t('a, 'e)) =>
+       listener.resolve(Ok(x))
+     );
 };
 /* failed emit */
-let reject = (x: 'e, self: t('a, 'e)): unit => {
+let emitError = (x: 'e, self: t('a, 'e)): unit => {
   self.listeners
   |> Js.Dict.values
-  |> Array.forEach((listener: Listener.t('a, 'e)) => listener.reject(x));
+  |> Array.forEach((listener: Listener.t('a, 'e)) =>
+       listener.resolve(Error(x))
+     );
 };

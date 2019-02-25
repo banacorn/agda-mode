@@ -212,7 +212,7 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
                       element,
                     );
                     /* <Settings> is opened */
-                    handles.onSettingsView |> Event.resolve(true);
+                    handles.onSettingsView |> Event.emitOk(true);
                   },
                 ~onClose=
                   element => {
@@ -220,7 +220,7 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
                     ReactDOMRe.unmountComponentAtNode(element);
 
                     /* <Settings> is closed */
-                    handles.onSettingsView |> Event.resolve(false);
+                    handles.onSettingsView |> Event.emitOk(false);
                   },
                 /* handles.activateSettingsView |> Event.send(false); */
                 (),
@@ -230,12 +230,12 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
         | Some(tab) =>
           if (open_) {
             /* <Settings> is opened */
-            handles.onSettingsView |> Event.resolve(true);
+            handles.onSettingsView |> Event.emitOk(true);
           } else {
             tab.kill();
             self.send(UpdateSettingsView(None));
             /* <Settings> is closed */
-            handles.onSettingsView |> Event.resolve(false);
+            handles.onSettingsView |> Event.emitOk(false);
           }
         },
     )
@@ -279,7 +279,7 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
          self.send(Focus(Query));
          self.send(UpdateHeader(header));
          /* pass it on */
-         handles.inquireQuery |> resolve((placeholder, value));
+         handles.inquireQuery |> emitOk((placeholder, value));
        })
     |> destroyWhen(self.onUnmount);
 
@@ -289,16 +289,10 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     |> destroyWhen(self.onUnmount);
 
     handles.onInquireQuery
-    |> on(
-         _ => {
-           self.send(UpdateMode(Display));
-           self.send(Focus(Source));
-         },
-         _ => {
-           self.send(UpdateMode(Display));
-           self.send(Focus(Source));
-         },
-       )
+    |> on(_ => {
+         self.send(UpdateMode(Display));
+         self.send(Focus(Source));
+       })
     |> destroyWhen(self.onUnmount);
 
     /* destroy everything */

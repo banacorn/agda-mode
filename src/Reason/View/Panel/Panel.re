@@ -126,9 +126,11 @@ let make =
               placeholder=editorPlaceholder
               grammar="agda"
               editorRef=onEditorRef
-              onConfirm={result => onInquireQuery |> Event.resolve(result)}
+              onConfirm={result => onInquireQuery |> Event.emitOk(result)}
               onCancel={(.) =>
-                onInquireQuery |> Event.reject(MiniEditor.Cancelled) |> ignore
+                onInquireQuery
+                |> Event.emitError(MiniEditor.Cancelled)
+                |> ignore
               }
             />
           </section>

@@ -206,7 +206,7 @@ let wire = (self): t => {
     switch (self.queue[0]) {
     | None => Js.log("WTF!!")
     | Some(req) =>
-      req |> Event.resolve(data);
+      req |> Event.emitOk(data);
       /* should updates the queue */
       self.queue |> Js.Array.pop |> ignore;
     };
