@@ -263,6 +263,32 @@ module Connections = {
   };
 };
 
+let getPointedGoal = (instance): Async.t((Goal.t, int), Command.error) => {
+  let pointed = Editors.pointingAt(instance.goals, instance.editors);
+  switch (pointed) {
+  | Some(goal) =>
+    switch (goal.index) {
+    | Some(index) => resolve((goal, index))
+    | None => reject(Command.GoalNotIndexed)
+    }
+  | None => reject(Command.OutOfGoal)
+  };
+  /* instance
+     |> updateView(
+          {text: "Goal not indexed", style: Header.Error},
+          Emacs(PlainText("Please reload to re-index the goal")),
+        ); */
+  /* instance
+     |> updateView(
+          {text: "Out of goal", style: Header.Error},
+          Emacs(
+            PlainText(
+              "`Give` is a goal-specific command, please place the cursor in a goal",
+            ),
+          ),
+        ); */
+};
+
 /* Primitive Command => Remote Command */
 let handleLocalCommand =
     (command: Command.Primitive.t, instance)
@@ -372,42 +398,21 @@ let handleLocalCommand =
     instance.view |> View.toggleDocking |> ignore;
     resolve(None);
   | Give =>
-    let pointed = Editors.pointingAt(instance.goals, instance.editors);
-    switch (pointed) {
-    | Some(goal) =>
-      switch (goal.index) {
-      | Some(index) =>
-        if (Goal.isEmpty(goal)) {
-          instance.view
-          |> View.inquire("Give", "expression to give:", "")
-          |> mapError(_ => Command.Cancelled)
-          |> thenOk(result => {
-               goal |> Goal.setContent(result) |> ignore;
-               instance |> buff(Give(goal, index));
-             });
-        } else {
-          instance |> buff(Give(goal, index));
-        }
-      | None =>
-        /* instance
-           |> updateView(
-                {text: "Goal not indexed", style: Header.Error},
-                Emacs(PlainText("Please reload to re-index the goal")),
-              ); */
-        reject(Command.GoalNotIndexed)
-      }
-    | None =>
-      /* instance
-         |> updateView(
-              {text: "Out of goal", style: Header.Error},
-              Emacs(
-                PlainText(
-                  "`Give` is a goal-specific command, please place the cursor in a goal",
-                ),
-              ),
-            ); */
-      reject(Command.OutOfGoal)
-    };
+    instance
+    |> getPointedGoal
+    |> thenOk(((goal, index)) =>
+         if (Goal.isEmpty(goal)) {
+           instance.view
+           |> View.inquire("Give", "expression to give:", "")
+           |> mapError(_ => Command.Cancelled)
+           |> thenOk(result => {
+                goal |> Goal.setContent(result) |> ignore;
+                instance |> buff(Give(goal, index));
+              });
+         } else {
+           instance |> buff(Give(goal, index));
+         }
+       )
 
   | WhyInScope =>
     let selectedText =
@@ -416,108 +421,72 @@ let handleLocalCommand =
       instance.view
       |> View.inquire("Scope info", "name:", "")
       |> mapError(_ => Command.Cancelled)
-      |> thenOk(expr => {
-           let pointed = Editors.pointingAt(instance.goals, instance.editors);
-           switch (pointed) {
-           | Some(goal) =>
-             switch (goal.index) {
-             | Some(index) => instance |> buff(WhyInScope(expr, index))
-             | None => reject(Command.GoalNotIndexed)
-             }
-           | None => reject(Command.OutOfGoal)
-           };
-         });
+      |> thenOk(expr =>
+           instance
+           |> getPointedGoal
+           |> thenOk(((_, index)) =>
+                instance |> buff(WhyInScope(expr, index))
+              )
+         );
     } else {
       /* global */
       instance |> buff(WhyInScopeGlobal(selectedText));
     };
 
   | Refine =>
-    let pointed = Editors.pointingAt(instance.goals, instance.editors);
-    switch (pointed) {
-    | Some(goal) =>
-      switch (goal.index) {
-      | Some(index) => instance |> buff(Refine(goal, index))
-      | None => reject(Command.GoalNotIndexed)
-      }
-    | None => reject(Command.OutOfGoal)
-    };
+    instance
+    |> getPointedGoal
+    |> thenOk(((goal, index)) => instance |> buff(Refine(goal, index)))
+
   | Auto =>
-    let pointed = Editors.pointingAt(instance.goals, instance.editors);
-    switch (pointed) {
-    | Some(goal) =>
-      switch (goal.index) {
-      | Some(index) => instance |> buff(Auto(goal, index))
-      | None => reject(Command.GoalNotIndexed)
-      }
-    | None => reject(Command.OutOfGoal)
-    };
+    instance
+    |> getPointedGoal
+    |> thenOk(((goal, index)) => instance |> buff(Refine(goal, index)))
+
   | Case =>
-    let pointed = Editors.pointingAt(instance.goals, instance.editors);
-    switch (pointed) {
-    | Some(goal) =>
-      switch (goal.index) {
-      | Some(index) =>
-        if (Goal.isEmpty(goal)) {
-          instance.view
-          |> View.inquire("Case", "expression to case:", "")
-          |> mapError(_ => Command.Cancelled)
-          |> thenOk(result => {
-               goal |> Goal.setContent(result) |> ignore;
-               instance |> buff(Case(goal, index));
-             });
-        } else {
-          instance |> buff(Case(goal, index));
-        }
-      | None => reject(Command.GoalNotIndexed)
-      }
-    | None => reject(Command.OutOfGoal)
-    };
+    instance
+    |> getPointedGoal
+    |> thenOk(((goal, index)) =>
+         if (Goal.isEmpty(goal)) {
+           instance.view
+           |> View.inquire("Case", "expression to case:", "")
+           |> mapError(_ => Command.Cancelled)
+           |> thenOk(result => {
+                goal |> Goal.setContent(result) |> ignore;
+                instance |> buff(Case(goal, index));
+              });
+         } else {
+           instance |> buff(Case(goal, index));
+         }
+       )
+
   | GoalType(normalization) =>
-    let pointed = Editors.pointingAt(instance.goals, instance.editors);
-    switch (pointed) {
-    | Some(goal) =>
-      switch (goal.index) {
-      | Some(index) => instance |> buff(GoalType(normalization, index))
-      | None => reject(Command.GoalNotIndexed)
-      }
-    | None => reject(Command.OutOfGoal)
-    };
-
+    instance
+    |> getPointedGoal
+    |> thenOk(((_, index)) =>
+         instance |> buff(GoalType(normalization, index))
+       )
   | Context(normalization) =>
-    let pointed = Editors.pointingAt(instance.goals, instance.editors);
-    switch (pointed) {
-    | Some(goal) =>
-      switch (goal.index) {
-      | Some(index) => instance |> buff(Context(normalization, index))
-      | None => reject(Command.GoalNotIndexed)
-      }
-    | None => reject(Command.OutOfGoal)
-    };
-
+    instance
+    |> getPointedGoal
+    |> thenOk(((_, index)) =>
+         instance |> buff(Context(normalization, index))
+       )
   | GoalTypeAndContext(normalization) =>
-    let pointed = Editors.pointingAt(instance.goals, instance.editors);
-    switch (pointed) {
-    | Some(goal) =>
-      switch (goal.index) {
-      | Some(index) =>
-        instance |> buff(GoalTypeAndContext(normalization, index))
-      | None => reject(Command.GoalNotIndexed)
-      }
-    | None => reject(Command.OutOfGoal)
-    };
+    instance
+    |> getPointedGoal
+    |> thenOk(((_, index)) =>
+         instance |> buff(GoalTypeAndContext(normalization, index))
+       )
 
   | GoalTypeAndInferredType(normalization) =>
-    let pointed = Editors.pointingAt(instance.goals, instance.editors);
-    switch (pointed) {
-    | Some(goal) =>
-      switch (goal.index) {
-      | Some(index) =>
-        instance |> buff(GoalTypeAndInferredType(normalization, goal, index))
-      | None => reject(Command.GoalNotIndexed)
-      }
-    | None => reject(Command.OutOfGoal)
-    };
+    instance
+    |> getPointedGoal
+    |> thenOk(((goal, index)) =>
+         instance
+         |> buff(GoalTypeAndInferredType(normalization, goal, index))
+       )
+
   | InputSymbol(symbol) =>
     let enabled = Atom.Environment.Config.get("agda-mode.inputMethod");
     if (enabled) {
