@@ -293,30 +293,35 @@ module Views = {
   };
 };
 
-let getPointedGoal = (instance): Async.t((Goal.t, int), Command.error) => {
+let getPointedGoal = (instance): Async.t(Goal.t, Command.error) => {
   let pointed = Editors.pointingAt(instance.goals, instance.editors);
   switch (pointed) {
-  | Some(goal) =>
-    switch (goal.index) {
-    | Some(index) => resolve((goal, index))
-    | None => reject(Command.GoalNotIndexed)
-    }
+  | Some(goal) => resolve(goal)
   | None => reject(Command.OutOfGoal)
   };
-  /* instance
-     |> updateView(
-          {text: "Goal not indexed", style: Header.Error},
-          Emacs(PlainText("Please reload to re-index the goal")),
-        ); */
-  /* instance
-     |> updateView(
-          {text: "Out of goal", style: Header.Error},
-          Emacs(
-            PlainText(
-              "`Give` is a goal-specific command, please place the cursor in a goal",
-            ),
-          ),
-        ); */
+};
+
+let getPointedGoalAt = (cursor, instance): Async.t(Goal.t, Command.error) => {
+  let pointed = Editors.pointingAt(~cursor, instance.goals, instance.editors);
+  switch (pointed) {
+  | Some(goal) => resolve(goal)
+  | None => reject(Command.OutOfGoal)
+  };
+};
+
+let handleOutOfGoal = callback =>
+  thenError(error =>
+    switch (error) {
+    | Command.OutOfGoal => callback()
+    | _ => reject(error)
+    }
+  );
+
+let getGoalIndex = (goal: Goal.t): Async.t((Goal.t, int), Command.error) => {
+  switch (goal.index) {
+  | Some(index) => resolve((goal, index))
+  | None => reject(Command.GoalNotIndexed)
+  };
 };
 
 /* Primitive Command => Remote Command */
@@ -430,6 +435,7 @@ let handleLocalCommand =
   | Give =>
     instance
     |> getPointedGoal
+    |> thenOk(getGoalIndex)
     |> thenOk(((goal, index)) =>
          if (Goal.isEmpty(goal)) {
            instance.view
@@ -452,6 +458,7 @@ let handleLocalCommand =
       |> thenOk(expr =>
            instance
            |> getPointedGoal
+           |> thenOk(getGoalIndex)
            |> thenOk(((_, index)) =>
                 instance |> buff(WhyInScope(expr, index))
               )
@@ -474,6 +481,7 @@ let handleLocalCommand =
   | InferType(normalization) =>
     instance
     |> getPointedGoal
+    |> thenOk(getGoalIndex)
     /* goal-specific */
     |> thenOk(((goal, index)) =>
          if (Goal.isEmpty(goal)) {
@@ -492,35 +500,33 @@ let handleLocalCommand =
          }
        )
     /* global  */
-    |> thenError(error =>
-         switch (error) {
-         | Command.OutOfGoal =>
-           instance.view
-           |> Views.inquire(
-                "Infer type "
-                ++ Command.Normalization.of_string(normalization),
-                "expression to infer:",
-                "",
-              )
-           |> thenOk(expr =>
-                instance |> buff(InferTypeGlobal(normalization, expr))
-              )
-         | _ => reject(error)
-         }
+    |> handleOutOfGoal(_ =>
+         instance.view
+         |> Views.inquire(
+              "Infer type " ++ Command.Normalization.of_string(normalization),
+              "expression to infer:",
+              "",
+            )
+         |> thenOk(expr =>
+              instance |> buff(InferTypeGlobal(normalization, expr))
+            )
        )
   | Refine =>
     instance
     |> getPointedGoal
+    |> thenOk(getGoalIndex)
     |> thenOk(((goal, index)) => instance |> buff(Refine(goal, index)))
 
   | Auto =>
     instance
     |> getPointedGoal
+    |> thenOk(getGoalIndex)
     |> thenOk(((goal, index)) => instance |> buff(Refine(goal, index)))
 
   | Case =>
     instance
     |> getPointedGoal
+    |> thenOk(getGoalIndex)
     |> thenOk(((goal, index)) =>
          if (Goal.isEmpty(goal)) {
            instance.view
@@ -537,18 +543,21 @@ let handleLocalCommand =
   | GoalType(normalization) =>
     instance
     |> getPointedGoal
+    |> thenOk(getGoalIndex)
     |> thenOk(((_, index)) =>
          instance |> buff(GoalType(normalization, index))
        )
   | Context(normalization) =>
     instance
     |> getPointedGoal
+    |> thenOk(getGoalIndex)
     |> thenOk(((_, index)) =>
          instance |> buff(Context(normalization, index))
        )
   | GoalTypeAndContext(normalization) =>
     instance
     |> getPointedGoal
+    |> thenOk(getGoalIndex)
     |> thenOk(((_, index)) =>
          instance |> buff(GoalTypeAndContext(normalization, index))
        )
@@ -556,6 +565,7 @@ let handleLocalCommand =
   | GoalTypeAndInferredType(normalization) =>
     instance
     |> getPointedGoal
+    |> thenOk(getGoalIndex)
     |> thenOk(((goal, index)) =>
          instance
          |> buff(GoalTypeAndInferredType(normalization, goal, index))
@@ -597,31 +607,37 @@ let recoverCursor = (callback, instance) => {
     instance.editors.source |> Atom.TextEditor.getCursorBufferPosition;
   let result = callback();
 
-  let pointed = Editors.pointingAt(~cursor, instance.goals, instance.editors);
+  instance
+  |> getPointedGoalAt(cursor)
   /* reposition the cursor in the goal only if it's a fresh hole (coming from '?') */
-  switch (pointed) {
-  | Some(goal) =>
-    let fresh = Goal.isEmpty(goal);
-    if (fresh) {
-      let delta = Atom.Point.make(0, 3);
-      let newPosition =
-        Atom.Point.translate(delta, goal.range |> Atom.Range.start);
-      Js.Global.setTimeout(
-        () =>
-          instance.editors.source
-          |> Atom.TextEditor.setCursorBufferPosition(newPosition),
-        0,
-      )
-      |> ignore;
-    } else {
-      instance.editors.source
-      |> Atom.TextEditor.setCursorBufferPosition(cursor);
-    };
+  |> thenOk(goal => {
+       let fresh = Goal.isEmpty(goal);
+       if (fresh) {
+         let delta = Atom.Point.make(0, 3);
+         let newPosition =
+           Atom.Point.translate(delta, goal.range |> Atom.Range.start);
+         Js.Global.setTimeout(
+           () =>
+             instance.editors.source
+             |> Atom.TextEditor.setCursorBufferPosition(newPosition),
+           0,
+         )
+         |> ignore;
+         resolve();
+       } else {
+         instance.editors.source
+         |> Atom.TextEditor.setCursorBufferPosition(cursor);
+         resolve();
+       };
+     })
+  |> handleOutOfGoal(_ => {
+       instance.editors.source
+       |> Atom.TextEditor.setCursorBufferPosition(cursor);
+       resolve();
+     })
+  |> ignore;
 
-  | None =>
-    instance.editors.source |> Atom.TextEditor.setCursorBufferPosition(cursor)
-  };
-
+  /* return the result of the callbak */
   result;
 };
 
@@ -744,6 +760,48 @@ and dispatch = (command, instance): Async.t(unit, Command.error) => {
        |> mapOk(_ => ());
      });
 };
+
+let handleCommandError = instance =>
+  finalError((error: Command.error) =>
+    Command.
+      /*  */
+      (
+        switch (error) {
+        | Connection(_connErr) =>
+          instance.view
+          |> Views.update(
+               "Connection-related Error",
+               Type.View.Header.Error,
+               Emacs(PlainText("")),
+             )
+          |> ignore
+        | Cancelled =>
+          instance.view
+          |> Views.update(
+               "Query Cancelled",
+               Type.View.Header.Error,
+               Emacs(PlainText("")),
+             )
+          |> ignore
+        | GoalNotIndexed =>
+          instance.view
+          |> Views.update(
+               "Goal not indexed",
+               Type.View.Header.Error,
+               Emacs(PlainText("Please reload to re-index the goal")),
+             )
+          |> ignore
+        | OutOfGoal =>
+          instance.view
+          |> Views.update(
+               "Out of goal",
+               Type.View.Header.Error,
+               Emacs(PlainText("Please place the cursor in a goal")),
+             )
+          |> ignore
+        }
+      )
+  );
 
 let dispatchUndo = _instance => {
   Js.log("Undo");

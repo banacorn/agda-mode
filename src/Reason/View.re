@@ -283,32 +283,18 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     |> destroyWhen(self.onUnmount);
 
     handles.inquireQuery
-    |> onOk(payload => {
-         Js.log(payload);
-
+    |> onOk(_ => {
          self.send(UpdateMode(Query));
          self.send(Focus(Query));
        })
     |> destroyWhen(self.onUnmount);
 
     handles.onInquireQuery
-    |> onOk(_result => {
+    |> onOk(_ => {
          self.send(UpdateMode(Display));
          self.send(Focus(Source));
        })
     |> destroyWhen(self.onUnmount);
-
-    /* handles.inquireQuery
-       |> Event.recv(self.onUnmount)
-       |> thenDrop(((placeholder, value)) =>
-            self.send(
-              InquireQuery(placeholder, value),
-              /* handles.inquireQuery
-                 |> Event.handlePromise(
-                      MiniEditor.Model.inquire(self.state.editors.query),
-                    ); */
-            )
-          ); */
 
     /* destroy everything */
     handles.destroy
