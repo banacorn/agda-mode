@@ -49,6 +49,7 @@ let listen =
 
   destructor;
 };
+
 let destroyWhen =
     (trigger: (unit => unit) => unit, destructor: unit => unit): unit => {
   trigger(destructor);

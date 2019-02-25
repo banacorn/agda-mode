@@ -726,7 +726,7 @@ module View = {
     | Pane(Tab.t);
   type mode =
     | Display
-    | Query;
+    | Inquire;
   type mouseEvent =
     | JumpToRange(Syntax.Position.range)
     | MouseOver(Syntax.Position.range)

@@ -265,12 +265,10 @@ module Connections = {
 };
 
 module Views = {
-  let update = (text, style, body, handles) => {
+  let display = (text, style, body, handles) => {
     open View.Handles;
     open Type.View.Header;
-
-    handles.updateHeader |> Event.resolve({text, style});
-    handles.updateBody |> Event.resolve(body);
+    handles.display |> Event.resolve(({text, style}, body));
     Async.resolve();
   };
 
@@ -278,11 +276,10 @@ module Views = {
       (text, placeholder, value, handles): Async.t(string, Command.error) => {
     open View.Handles;
     open Type.View.Header;
-    handles.activatePanel |> Event.resolve(true);
-    handles.updateHeader |> Event.resolve({text, style: PlainText});
 
     let promise = handles.onInquireQuery |> Event.once;
-    handles.inquireQuery |> Event.resolve((placeholder, value));
+    handles.inquire
+    |> Event.resolve(({text, style: PlainText}, placeholder, value));
 
     promise |> mapError(_ => Command.Cancelled);
   };
@@ -660,7 +657,7 @@ let rec handleResponse =
   | Status(displayImplicit, checked) =>
     if (displayImplicit || checked) {
       instance.view
-      |> Views.update(
+      |> Views.display(
            "Status",
            Type.View.Header.PlainText,
            Emacs(
@@ -721,7 +718,7 @@ let rec handleResponse =
   | DisplayInfo(info) =>
     instance.view.activatePanel |> Event.resolve(true);
     Response.Info.handle(info, (x, y, z) =>
-      Views.update(x, y, z, instance.view)
+      Views.display(x, y, z, instance.view)
     );
   | ClearHighlighting =>
     instance |> Highlightings.destroyAll;
@@ -769,7 +766,7 @@ let handleCommandError = instance =>
         switch (error) {
         | Connection(_connErr) =>
           instance.view
-          |> Views.update(
+          |> Views.display(
                "Connection-related Error",
                Type.View.Header.Error,
                Emacs(PlainText("")),
@@ -777,7 +774,7 @@ let handleCommandError = instance =>
           |> ignore
         | Cancelled =>
           instance.view
-          |> Views.update(
+          |> Views.display(
                "Query Cancelled",
                Type.View.Header.Error,
                Emacs(PlainText("")),
@@ -785,7 +782,7 @@ let handleCommandError = instance =>
           |> ignore
         | GoalNotIndexed =>
           instance.view
-          |> Views.update(
+          |> Views.display(
                "Goal not indexed",
                Type.View.Header.Error,
                Emacs(PlainText("Please reload to re-index the goal")),
@@ -793,7 +790,7 @@ let handleCommandError = instance =>
           |> ignore
         | OutOfGoal =>
           instance.view
-          |> Views.update(
+          |> Views.display(
                "Out of goal",
                Type.View.Header.Error,
                Emacs(PlainText("Please place the cursor in a goal")),

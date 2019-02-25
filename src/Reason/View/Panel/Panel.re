@@ -47,7 +47,6 @@ let make =
       ~hidden: bool,
       /* Editors */
       ~onInquireQuery: Event.t(string, MiniEditor.error),
-      ~onEditorFocused: bool => unit,
       ~onEditorRef: Atom.TextEditor.t => unit,
       ~editorPlaceholder: string,
       ~editorValue: string,
@@ -122,35 +121,15 @@ let make =
           <section className="agda-body-container">
             <Body body maxHeight hidden={mode != Display} mountAtBottom />
             <MiniEditor
-              hidden={mode != Query}
+              hidden={mode != Inquire}
               value=editorValue
               placeholder=editorPlaceholder
               grammar="agda"
               editorRef=onEditorRef
-              onFocus={(.) => onEditorFocused(true)}
-              onBlur={(.) => onEditorFocused(false)}
               onConfirm={result => onInquireQuery |> Event.resolve(result)}
               onCancel={(.) =>
                 onInquireQuery |> Event.reject(MiniEditor.Cancelled) |> ignore
               }
-              /* onConfirm=(
-                   result => {
-                     onQueryConfirm(result);
-                     /* core.view.editors.answerGeneral(result);
-                        this.props.handelQueryValueChange(result);
-                        core.view.editors.focusMain();
-                        this.props.deactivateMiniEditor();
-                        core.inputMethod.confirm(); */
-                   }
-                 )
-                 onCancel=(
-                   () => {
-                     /* core.view.editors.rejectGeneral();
-                        core.view.editors.focusMain()
-                        this.props.deactivateMiniEditor();
-                        core.inputMethod.cancel(); */
-                   }
-                 ) */
             />
           </section>
         </section>

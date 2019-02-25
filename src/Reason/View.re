@@ -9,11 +9,9 @@ module Event = Event;
 
 module Handles = {
   type t = {
-    updateHeader: Event.t(Header.t, unit),
-    updateBody: Event.t(body, unit),
-    updateMode: Event.t(mode, unit),
+    display: Event.t((Header.t, body), unit),
+    inquire: Event.t((Header.t, string, string), unit),
     toggleDocking: Event.t(unit, unit),
-    updateMountTo: Event.t(mountTo, unit),
     activatePanel: Event.t(bool, unit),
     updateConnection: Event.t(option(Connection.t), unit),
     inquireConnection: Event.t((option(Connection.error), string), unit),
@@ -33,30 +31,37 @@ module Handles = {
 
   /* creates all refs and return them */
   let make = () => {
+    /* public */
     let activatePanel = Event.make();
-    let updateHeader = Event.make();
-    let updateBody = Event.make();
-    let updateMode = Event.make();
-    let updateMountTo = Event.make();
+    let display = Event.make();
+    let inquire = Event.make();
     let toggleDocking = Event.make();
+
+    /* private */
+
+    /* connection-related */
     let updateConnection = Event.make();
     let inquireConnection = Event.make();
     let onInquireConnection = Event.make();
+
+    /* query-related */
     let onInquireQuery = Event.make();
     let inquireQuery = Event.make();
+
+    /* <Settings> related */
     let activateSettingsView = Event.make();
     let onSettingsView = Event.make();
     let navigateSettingsView = Event.make();
-    let destroy = Event.make();
+
+    /* <InputMethod> related */
     let interceptAndInsertKey = Event.make();
     let activateInputMethod = Event.make();
 
+    let destroy = Event.make();
     {
+      display,
+      inquire,
       activatePanel,
-      updateHeader,
-      updateBody,
-      updateMode,
-      updateMountTo,
       toggleDocking,
       updateConnection,
       inquireConnection,
@@ -114,7 +119,6 @@ let initialState = () => {
 };
 
 type action =
-  /* | InquireConnection(string, string) */
   | Focus(Editors.sort)
   /* Query Editor related */
   | SetQueryRef(Atom.TextEditor.t)
@@ -257,19 +261,26 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     |> onOk(activate => self.send(activate ? Activate : Deactivate))
     |> destroyWhen(self.onUnmount);
 
-    /* update <Header> */
-    handles.updateHeader
-    |> onOk(header => self.send(UpdateHeader(header)))
+    /* display mode! */
+    handles.display
+    |> onOk(((header, body)) => {
+         self.send(Activate);
+         self.send(UpdateMode(Display));
+         self.send(UpdateHeader(header));
+         self.send(UpdateBody(body));
+       })
     |> destroyWhen(self.onUnmount);
 
-    /* update <Body> */
-    handles.updateBody
-    |> onOk(body => self.send(UpdateBody(body)))
-    |> destroyWhen(self.onUnmount);
-
-    /* update MountTo */
-    handles.updateMountTo
-    |> onOk(where => self.send(MountTo(where)))
+    /* inquire mode! */
+    handles.inquire
+    |> onOk(((header, placeholder, value)) => {
+         self.send(Activate);
+         self.send(UpdateMode(Inquire));
+         self.send(Focus(Query));
+         self.send(UpdateHeader(header));
+         /* pass it on */
+         handles.inquireQuery |> resolve((placeholder, value));
+       })
     |> destroyWhen(self.onUnmount);
 
     /* toggle docking */
@@ -277,23 +288,17 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     |> onOk(() => self.send(ToggleDocking))
     |> destroyWhen(self.onUnmount);
 
-    /* update the mode of <Panel> */
-    handles.updateMode
-    |> onOk(mode => self.send(UpdateMode(mode)))
-    |> destroyWhen(self.onUnmount);
-
-    handles.inquireQuery
-    |> onOk(_ => {
-         self.send(UpdateMode(Query));
-         self.send(Focus(Query));
-       })
-    |> destroyWhen(self.onUnmount);
-
     handles.onInquireQuery
-    |> onOk(_ => {
-         self.send(UpdateMode(Display));
-         self.send(Focus(Source));
-       })
+    |> on(
+         _ => {
+           self.send(UpdateMode(Display));
+           self.send(Focus(Source));
+         },
+         _ => {
+           self.send(UpdateMode(Display));
+           self.send(Focus(Source));
+         },
+       )
     |> destroyWhen(self.onUnmount);
 
     /* destroy everything */
@@ -330,9 +335,6 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
         mode
         onInquireQuery={handles.onInquireQuery}
         /* editors */
-        onEditorFocused={focused =>
-          self.send(focused ? Focus(Query) : Focus(Source))
-        }
         onEditorRef={ref => self.send(SetQueryRef(ref))}
         editorValue={editors.query.value}
         editorPlaceholder={editors.query.placeholder}
