@@ -9,6 +9,7 @@ type t = {
   mutable goals: array(Goal.t),
   mutable connection: option(Connection.t),
 };
+
 let make = (textEditor: Atom.TextEditor.t) => {
   /* adds "agda" to the class-list */
   Atom.Environment.Views.getView(textEditor)
@@ -263,6 +264,35 @@ module Connections = {
   };
 };
 
+module Views = {
+  let update = (text, style, body, handles) => {
+    open View.Handles;
+    open Type.View.Header;
+
+    handles.updateHeader |> Event.resolve({text, style});
+    handles.updateBody |> Event.resolve(body);
+    Async.resolve();
+  };
+
+  let inquire =
+      (text, placeholder, value, handles): Async.t(string, Command.error) => {
+    open View.Handles;
+    open Type.View.Header;
+    handles.activatePanel |> Event.resolve(true);
+    handles.updateHeader |> Event.resolve({text, style: PlainText});
+
+    let promise = handles.onInquireQuery |> Event.once;
+    handles.inquireQuery |> Event.resolve((placeholder, value));
+
+    promise |> mapError(_ => Command.Cancelled);
+  };
+
+  let toggleDocking = (handles): Async.t(unit, unit) => {
+    View.Handles.(handles.toggleDocking |> Event.resolve());
+    Async.resolve();
+  };
+};
+
 let getPointedGoal = (instance): Async.t((Goal.t, int), Command.error) => {
   let pointed = Editors.pointingAt(instance.goals, instance.editors);
   switch (pointed) {
@@ -395,7 +425,7 @@ let handleLocalCommand =
     resolve(None);
 
   | ToggleDocking =>
-    instance.view |> View.toggleDocking |> ignore;
+    instance.view |> Views.toggleDocking |> ignore;
     resolve(None);
   | Give =>
     instance
@@ -403,8 +433,7 @@ let handleLocalCommand =
     |> thenOk(((goal, index)) =>
          if (Goal.isEmpty(goal)) {
            instance.view
-           |> View.inquire("Give", "expression to give:", "")
-           |> mapError(_ => Command.Cancelled)
+           |> Views.inquire("Give", "expression to give:", "")
            |> thenOk(result => {
                 goal |> Goal.setContent(result) |> ignore;
                 instance |> buff(Give(goal, index));
@@ -419,8 +448,7 @@ let handleLocalCommand =
       instance.editors.source |> Atom.TextEditor.getSelectedText;
     if (String.isEmpty(selectedText)) {
       instance.view
-      |> View.inquire("Scope info", "name:", "")
-      |> mapError(_ => Command.Cancelled)
+      |> Views.inquire("Scope info", "name:", "")
       |> thenOk(expr =>
            instance
            |> getPointedGoal
@@ -433,6 +461,53 @@ let handleLocalCommand =
       instance |> buff(WhyInScopeGlobal(selectedText));
     };
 
+  | SearchAbout(normalization) =>
+    instance.view
+    |> Views.inquire(
+         "Searching through definitions "
+         ++ Command.Normalization.of_string(normalization),
+         "expression to infer:",
+         "",
+       )
+    |> thenOk(expr => instance |> buff(SearchAbout(normalization, expr)))
+
+  | InferType(normalization) =>
+    instance
+    |> getPointedGoal
+    /* goal-specific */
+    |> thenOk(((goal, index)) =>
+         if (Goal.isEmpty(goal)) {
+           instance.view
+           |> Views.inquire(
+                "Infer type "
+                ++ Command.Normalization.of_string(normalization),
+                "expression to infer:",
+                "",
+              )
+           |> thenOk(expr =>
+                instance |> buff(InferType(normalization, expr, index))
+              );
+         } else {
+           instance |> buff(Give(goal, index));
+         }
+       )
+    /* global  */
+    |> thenError(error =>
+         switch (error) {
+         | Command.OutOfGoal =>
+           instance.view
+           |> Views.inquire(
+                "Infer type "
+                ++ Command.Normalization.of_string(normalization),
+                "expression to infer:",
+                "",
+              )
+           |> thenOk(expr =>
+                instance |> buff(InferTypeGlobal(normalization, expr))
+              )
+         | _ => reject(error)
+         }
+       )
   | Refine =>
     instance
     |> getPointedGoal
@@ -449,8 +524,7 @@ let handleLocalCommand =
     |> thenOk(((goal, index)) =>
          if (Goal.isEmpty(goal)) {
            instance.view
-           |> View.inquire("Case", "expression to case:", "")
-           |> mapError(_ => Command.Cancelled)
+           |> Views.inquire("Case", "expression to case:", "")
            |> thenOk(result => {
                 goal |> Goal.setContent(result) |> ignore;
                 instance |> buff(Case(goal, index));
@@ -570,7 +644,7 @@ let rec handleResponse =
   | Status(displayImplicit, checked) =>
     if (displayImplicit || checked) {
       instance.view
-      |> View.update(
+      |> Views.update(
            "Status",
            Type.View.Header.PlainText,
            Emacs(
@@ -631,7 +705,7 @@ let rec handleResponse =
   | DisplayInfo(info) =>
     instance.view.activatePanel |> Event.resolve(true);
     Response.Info.handle(info, (x, y, z) =>
-      View.update(x, y, z, instance.view)
+      Views.update(x, y, z, instance.view)
     );
   | ClearHighlighting =>
     instance |> Highlightings.destroyAll;

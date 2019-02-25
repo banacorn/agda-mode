@@ -150,6 +150,9 @@ module Remote = {
     | ShowGoals
     | WhyInScope(string, int)
     | WhyInScopeGlobal(string)
+    | SearchAbout(Normalization.t, string)
+    | InferType(Normalization.t, string, int)
+    | InferTypeGlobal(Normalization.t, string)
     | Give(Goal.t, int)
     | Refine(Goal.t, int)
     | Auto(Goal.t, int)
@@ -235,6 +238,26 @@ module Remote = {
     | WhyInScopeGlobal(expr) =>
       let content = Parser.userInput(expr);
       commonPart(None) ++ {j|( Cmd_why_in_scope_toplevel "$(content)" )|j};
+
+    | SearchAbout(normalization, expr) =>
+      let normalization' = Normalization.of_string(normalization);
+      let content = Parser.userInput(expr);
+      commonPart(None)
+      ++ {j|( Cmd_search_about_toplevel $(normalization')  "$(content)" )|j};
+
+    | InferType(normalization, expr, index) =>
+      let normalization' = Normalization.of_string(normalization);
+      let content = Parser.userInput(expr);
+
+      commonPart(NonInteractive)
+      ++ {j|( Cmd_infer  $(normalization') $(index) noRange "$(content)" )|j};
+
+    | InferTypeGlobal(normalization, expr) =>
+      let normalization' = Normalization.of_string(normalization);
+      let content = Parser.userInput(expr);
+
+      commonPart(None)
+      ++ {j|( Cmd_infer_toplevel $(normalization') "$(content)" )|j};
 
     /* Related issue and commit of agda/agda */
     /* https://github.com/agda/agda/issues/2730 */

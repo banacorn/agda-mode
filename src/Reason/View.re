@@ -368,30 +368,3 @@ let initialize = editors => {
   /* return the handles for drilling */
   handles;
 };
-
-/* handy stuff */
-
-let update = (text, style, body, handles) => {
-  open Handles;
-  handles.updateHeader |> Event.resolve(Header.{text, style});
-  handles.updateBody |> Event.resolve(body);
-  Async.resolve();
-};
-
-let inquire =
-    (text, placeholder, value, handles): Async.t(string, MiniEditor.error) => {
-  open Handles;
-  handles.activatePanel |> Event.resolve(true);
-  handles.updateHeader
-  |> Event.resolve(Header.{text, style: Header.PlainText});
-
-  let promise = handles.onInquireQuery |> Event.once;
-  handles.inquireQuery |> Event.resolve((placeholder, value));
-
-  promise;
-};
-
-let toggleDocking = (handles): Async.t(unit, unit) => {
-  Handles.(handles.toggleDocking |> Event.resolve());
-  Async.resolve();
-};
