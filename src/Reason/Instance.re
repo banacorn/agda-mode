@@ -466,6 +466,7 @@ let rec handleLocalCommand =
          instance.loaded = true;
          instance |> buff(Load);
        })
+  | Abort => instance |> buff(Abort)
   | Quit =>
     Connections.disconnect(instance);
     instance |> Goals.destroyAll;

@@ -153,6 +153,7 @@ module Primitive = {
 module Remote = {
   type command =
     | Load
+    | Abort
     | Compile
     | ToggleDisplayOfImplicitArguments
     | SolveConstraints
@@ -222,6 +223,7 @@ module Remote = {
         commonPart(NonInteractive)
         ++ {j|( Cmd_load "$(filepath)" [$(libraryPath)] )|j};
       }
+    | Abort => commonPart(NonInteractive) ++ {j|( Cmd_abort )|j}
 
     | Compile =>
       let backend: string = Atom.Environment.Config.get("agda-mode.backend");
