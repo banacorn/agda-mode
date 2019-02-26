@@ -21,6 +21,18 @@ let filepath = s => {
   s'^ |> String.trim;
 };
 
+let commandLine = s => {
+  let parts =
+    s
+    |> Js.String.replaceByRe([%re "/\\s+/g"], " ")
+    |> Js.String.split(" ")
+    |> List.fromArray;
+  switch (parts) {
+  | [] => ("", [||])
+  | [path, ...args] => (filepath(path), Array.fromList(args))
+  };
+};
+
 let rectifyEmacs = s => {
   let s' = ref(s);
   /* remove the Windows Bidi control character */

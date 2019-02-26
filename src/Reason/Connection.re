@@ -7,6 +7,7 @@ type protocol =
 
 type metadata = {
   path: string,
+  args: array(string),
   version: string,
   protocol,
 };
@@ -31,9 +32,8 @@ type validationError =
 
 type connectionError =
   | ShellError(Js.Exn.t)
-  | Close(int, string)
-  /* Aborted: command sent to Agda, but got aborted by the following aborting commands */
-  | Aborted;
+  | ClosedByProcess(int, string)
+  | DisconnectedByUser;
 
 type error =
   | AutoSearch(autoSearchError)
@@ -44,6 +44,14 @@ type t = {
   metadata,
   process: N.ChildProcess.t,
   mutable queue: array(Event.t(string, connectionError)),
+  mutable connected: bool,
+};
+
+let disconnect = (error, self) => {
+  self.queue |> Array.forEach(ev => ev |> Event.emitError(error));
+  self.queue = [||];
+  self.connected = false;
+  self.process |> N.ChildProcess.kill("SIGTERM");
 };
 
 /* a more sophiscated "make" */
@@ -93,8 +101,7 @@ let autoSearch = (path): Async.t(string, autoSearchError) =>
   );
 
 /* a more sophiscated "make" */
-let validateAndMake = (path): Async.t(metadata, validationError) => {
-  let parsedPath = Parser.filepath(path);
+let validateAndMake = (path, args): Async.t(metadata, validationError) => {
   let parseError = (error: Js.Nullable.t(Js.Exn.t)): option(validationError) => {
     switch (error |> Js.Nullable.toOption) {
     | None => None
@@ -119,7 +126,8 @@ let validateAndMake = (path): Async.t(metadata, validationError) => {
       | None => Error(IsNotAgda(message))
       | Some(version) =>
         Ok({
-          path: parsedPath,
+          path,
+          args,
           version: Util.Semver.coerce(version),
           protocol:
             Js.Re.test(message, [%re "/--interaction-json/"]) ?
@@ -139,7 +147,7 @@ let validateAndMake = (path): Async.t(metadata, validationError) => {
       Js.Global.setTimeout(() => reject(ProcessHanging), 1000);
 
     N.ChildProcess.exec(
-      parsedPath,
+      path,
       (error, stdout, stderr) => {
         /* clear timeout as the process has responded */
         Js.Global.clearTimeout(hangTimeout);
@@ -176,27 +184,36 @@ let connect = (metadata): Async.t(t, connectionError) => {
   N.(
     Async.make((resolve, reject) => {
       let args =
-        useJSON(metadata) ? [|"--interaction-json"|] : [|"--interaction"|];
+        (useJSON(metadata) ? [|"--interaction-json"|] : [|"--interaction"|])
+        |> Array.concat(metadata.args);
       let process = ChildProcess.spawn(metadata.path, args, {"shell": true});
+
+      let connection = {metadata, process, connected: true, queue: [||]};
       /* Handles errors and anomalies */
       process
-      |> ChildProcess.on(`error(exn => reject(ShellError(exn))))
       |> ChildProcess.on(
-           `close((code, signal) => reject(Close(code, signal))),
+           `error(
+             exn => {
+               connection |> disconnect(ShellError(exn));
+               reject(ShellError(exn));
+             },
+           ),
+         )
+      |> ChildProcess.on(
+           `close(
+             (code, signal) => {
+               connection |> disconnect(ClosedByProcess(code, signal));
+               reject(ClosedByProcess(code, signal));
+             },
+           ),
          )
       |> ignore;
       process
       |> ChildProcess.stdout
-      |> Stream.Readable.once(
-           `data(_ => resolve({metadata, process, queue: [||]})),
-         )
+      |> Stream.Readable.once(`data(_ => resolve(connection)))
       |> ignore;
     })
   );
-};
-
-let disconnect = self => {
-  self.process |> N.ChildProcess.kill("SIGTERM");
 };
 
 let wire = (self): t => {

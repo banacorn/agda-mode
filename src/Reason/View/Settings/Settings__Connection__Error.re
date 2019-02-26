@@ -6,6 +6,10 @@ let component = statelessComponent("SettingsConnectionError");
 
 let toString =
   fun
+  | AutoSearch(ProcessHanging) => (
+      "Process not responding",
+      {j|Please restart the process|j},
+    )
   | AutoSearch(NotSupported(os)) => (
       "Auto search failed",
       {j|currently auto path searching is not supported on $(os)|j},
@@ -30,10 +34,14 @@ let toString =
       "Socket error",
       Util.JsError.toString(error),
     )
-  | Connection(Close(code, signal)) => (
+  | Connection(ClosedByProcess(code, signal)) => (
       "Socket closed",
       {j|code: $code
 signal: $signal|j},
+    )
+  | Connection(DisconnectedByUser) => (
+      "Disconnected",
+      "Connection disconnected by ourselves",
     );
 
 let make = (~error: option(error), _children) => {

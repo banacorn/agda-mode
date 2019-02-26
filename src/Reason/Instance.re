@@ -192,7 +192,6 @@ module Connections = {
 
       promise;
     };
-
     let getAgdaPath = (): Async.t(string, Connection.autoSearchError) => {
       let storedPath =
         Environment.Config.get("agda-mode.agdaPath") |> Parser.filepath;
@@ -205,11 +204,15 @@ module Connections = {
 
     /* validate the given path */
     let rec getMetadata =
-            (instance, path): Async.t(Connection.metadata, MiniEditor.error) => {
-      Connection.validateAndMake(path)
+            (instance, pathAndParams)
+            : Async.t(Connection.metadata, MiniEditor.error) => {
+      let (path, args) = Parser.commandLine(pathAndParams);
+      Connection.validateAndMake(path, args)
       |> thenError(err =>
            instance
-           |> inquireConnection(Some(Connection.Validation(path, err)))
+           |> inquireConnection(
+                Some(Connection.Validation(pathAndParams, err)),
+              )
            |> thenOk(getMetadata(instance))
          );
     };
@@ -217,7 +220,11 @@ module Connections = {
     let persistConnection = (instance, connection: Connection.t) => {
       instance.connection = Some(connection);
       /* store the path in the config */
-      Environment.Config.set("agda-mode.agdaPath", connection.metadata.path);
+      let path =
+        Array.concat(connection.metadata.args, [|connection.metadata.path|])
+        |> List.fromArray
+        |> String.joinWith(" ");
+      Environment.Config.set("agda-mode.agdaPath", path);
       /* update the view */
       instance.view.updateConnection |> Event.emitOk(Some(connection));
       /* pass it on */
@@ -227,12 +234,13 @@ module Connections = {
     let rec getConnection =
             (instance, metadata): Async.t(Connection.t, MiniEditor.error) => {
       Connection.connect(metadata)
-      |> thenError(err =>
+      |> thenError(err => {
+           Js.log(err);
            instance
            |> inquireConnection(Some(Connection.Connection(err)))
            |> thenOk(getMetadata(instance))
-           |> thenOk(getConnection(instance))
-         );
+           |> thenOk(getConnection(instance));
+         });
     };
 
     switch (instance.connection) {
@@ -252,7 +260,7 @@ module Connections = {
   let disconnect = instance => {
     switch (instance.connection) {
     | Some(connection) =>
-      Connection.disconnect(connection);
+      Connection.disconnect(Connection.DisconnectedByUser, connection);
       instance.connection = None;
     | None => ()
     };

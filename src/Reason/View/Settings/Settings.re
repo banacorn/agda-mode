@@ -1,5 +1,4 @@
 open ReasonReact;
-open Rebase;
 
 module URI = Settings__Breadcrumb;
 type uri = URI.uri;
