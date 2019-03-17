@@ -131,9 +131,13 @@ export const refine = (goal: Goal) => buildRequest('NonInteractive', conn =>
     (`Cmd_refine_or_intro False ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
 );
 
-export const auto = (goal: Goal) => buildRequest('NonInteractive', conn =>
-    (`Cmd_auto ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
-);
+export const auto = (goal: Goal) => buildRequest('NonInteractive', conn => {
+    if (semver.gte(conn.version.sem, '2.5.4')) {
+        return `Cmd_autoOne ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`;
+    } else {
+        return `Cmd_auto ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`;
+    }
+});
 
 export const makeCase = (goal: Goal) => buildRequest('NonInteractive', conn =>
     (`Cmd_make_case ${goal.index} ${buildRange(conn, goal)} \"${goal.getContent()}\"`)
