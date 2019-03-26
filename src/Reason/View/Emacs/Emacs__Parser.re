@@ -235,26 +235,27 @@ let output: parser(Type.View.Emacs.output) =
     },
   );
 
-let plainText: parser(Type.View.Emacs.plainText) =
+let plainText: parser(array(Type.View.Emacs.textOrRange)) =
   String(
     raw =>
-      Type.(
-        raw
-        |> Util.safeSplitByRe(
-             [%re
-               "/(\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/"
-             ],
-           )
-        |> Array.filterMap(x => x)
-        |> Array.mapi((token, i) =>
-             switch (i mod 2) {
-             | 1 =>
-               token |> parse(range) |> mapOr(x => Right(x), Left(token))
-             | _ => Left(token)
-             }
-           )
-        |> some
-      ),
+      raw
+      |> Util.safeSplitByRe(
+           [%re "/(\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/"],
+         )
+      |> Array.filterMap(x => x)
+      |> Array.mapi((token, i) =>
+           switch (i mod 2) {
+           | 1 =>
+             token
+             |> parse(range)
+             |> mapOr(
+                  x => Type.View.Emacs.Range(x),
+                  Type.View.Emacs.Text(token),
+                )
+           | _ => Type.View.Emacs.Text(token)
+           }
+         )
+      |> some,
   );
 
 /* warnings or errors */
@@ -458,7 +459,9 @@ module Response = {
       |> Js.Dict.get(_, "errors")
       |> mapOr(metas => metas |> parseArray(error), [||]);
     };
-  let whyInScope: string => (plainText, array(Type.Syntax.Position.range)) =
+  let whyInScope:
+    string =>
+    (array(Type.View.Emacs.textOrRange), array(Type.Syntax.Position.range)) =
     raw => {
       let ranges =
         raw

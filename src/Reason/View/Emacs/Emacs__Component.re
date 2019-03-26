@@ -14,13 +14,13 @@ module Term = {
     ...component,
     render: _self =>
       switch (term) {
-      | Plain(s) => <span className="expr"> (string(s)) </span>
+      | Plain(s) => <span className="expr"> {string(s)} </span>
       | QuestionMark(s) =>
         <Link className=["expr", "question-mark"] jump hover range=NoRange>
-          (string(s))
+          {string(s)}
         </Link>
       | Underscore(s) =>
-        <span className="expr underscore"> (string(s)) </span>
+        <span className="expr underscore"> {string(s)} </span>
       },
   };
 };
@@ -50,26 +50,26 @@ module OutputConstraint = {
       | OfType(e, t) =>
         <li className="output">
           <Expr expr=e />
-          (string(" : "))
+          {string(" : ")}
           <Expr expr=t />
-          (Option.mapOr(range => <Range range abbr=true />, null, range))
+          {Option.mapOr(range => <Range range abbr=true />, null, range)}
         </li>
       | JustType(e) =>
         <li className="output">
-          (string("Type "))
+          {string("Type ")}
           <Expr expr=e />
-          (Option.mapOr(range => <Range range abbr=true />, null, range))
+          {Option.mapOr(range => <Range range abbr=true />, null, range)}
         </li>
       | JustSort(e) =>
         <li className="output">
-          (string("Sort "))
+          {string("Sort ")}
           <Expr expr=e />
-          (Option.mapOr(range => <Range range abbr=true />, null, range))
+          {Option.mapOr(range => <Range range abbr=true />, null, range)}
         </li>
       | Others(e) =>
         <li className="output">
           <Expr expr=e />
-          (Option.mapOr(range => <Range range abbr=true />, null, range))
+          {Option.mapOr(range => <Range range abbr=true />, null, range)}
         </li>
       },
   };
@@ -81,7 +81,7 @@ module Labeled = {
     ...component,
     render: _self =>
       <li className="labeled">
-        <span className="label"> (string(label)) </span>
+        <span className="label"> {string(label)} </span>
         <Expr expr />
       </li>,
   };
@@ -99,21 +99,20 @@ module Output = {
 };
 
 module PlainText = {
-  open Type;
   let component = statelessComponent("PlainText");
-  let make = (~value: plainText, _children) => {
+  let make = (~value: array(textOrRange), _children) => {
     ...component,
     render: _self =>
       <span>
-        ...(
+        ...{
              value
              |> Array.map(token =>
                   switch (token) {
-                  | Left(plainText) => string(plainText)
-                  | Right(range) => <Range range />
+                  | Text(plainText) => string(plainText)
+                  | Range(range) => <Range range />
                   }
                 )
-           )
+           }
       </span>,
   };
 };
@@ -126,12 +125,12 @@ module WarningError = {
       switch (value) {
       | WarningMessage(body) =>
         <li className="warning-error">
-          <span className="warning-label"> (string("warning")) </span>
+          <span className="warning-label"> {string("warning")} </span>
           <PlainText value=body />
         </li>
       | ErrorMessage(body) =>
         <li className="warning-error">
-          <span className="error-label"> (string("error")) </span>
+          <span className="error-label"> {string("error")} </span>
           <PlainText value=body />
         </li>
       },

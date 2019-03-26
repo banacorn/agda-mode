@@ -1,5 +1,4 @@
 open ReasonReact;
-open Rebase;
 
 open Type.View;
 

@@ -1,15 +1,11 @@
 open ReasonReact;
 
-open Type;
-
 open Type.Syntax.Name;
-
-open Util.React;
 
 open Component;
 
 module NamePart = {
-  let toString: toString(namePart) =
+  let toString: namePart => string =
     part =>
       switch (part) {
       | Hole => "_"
@@ -18,13 +14,13 @@ module NamePart = {
 };
 
 module Name = {
-  let toString: toString(name) =
+  let toString: name => string =
     name =>
       switch (name) {
       | Name(_, xs) => String.concat("", List.map(NamePart.toString, xs))
       | NoName(_, _) => "_"
       };
-  let isUnderscore: underscore(name) =
+  let isUnderscore: name => bool =
     name =>
       switch (name) {
       | NoName(_, _) => true
@@ -40,18 +36,18 @@ module Name = {
   let make = (~value, _children) => {
     ...component,
     render: _self =>
-      <Link jump=true hover=true range=(getRange(value))>
-        (string(toString(value)))
+      <Link jump=true hover=true range={getRange(value)}>
+        {string(toString(value))}
       </Link>,
   };
 };
 
 module QName = {
-  let toString: toString(qname) =
+  let toString: qname => string =
     name => {
       let QName(xs, x) = name;
       List.append(xs, [x])
-      |> List.filter(x => ! Name.isUnderscore(x))
+      |> List.filter(x => !Name.isUnderscore(x))
       |> List.map(Name.toString)
       |> String.concat(".");
     };
@@ -79,7 +75,7 @@ module QName = {
       | QName([], x) => <Name value=x />
       | QName(xs, x) =>
         List.append(xs, [x])
-        |> List.filter(x => ! Name.isUnderscore(x))
+        |> List.filter(x => !Name.isUnderscore(x))
         |> List.map(n => <Name value=n />)
         |> Util.React.sepBy(string("."))
       },
@@ -88,7 +84,7 @@ module QName = {
 
 module BoundName = {
   let component = statelessComponent("BoundName");
-  let isUnderscore: underscore(boundName) =
+  let isUnderscore: boundName => bool =
     value =>
       if (Name.toString(value.name) === Name.toString(value.label)) {
         Name.isUnderscore(value.name);
@@ -99,12 +95,12 @@ module BoundName = {
     ...component,
     render: _self =>
       if (Name.toString(value.name) === Name.toString(value.label)) {
-        <Name value=value.name />;
+        <Name value={value.name} />;
       } else {
         <span>
-          <Name value=value.label />
-          (string("="))
-          <Name value=value.name />
+          <Name value={value.label} />
+          {string("=")}
+          <Name value={value.name} />
         </span>;
       },
   };

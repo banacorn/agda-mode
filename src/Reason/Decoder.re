@@ -1,11 +1,12 @@
 [%%debugger.chrome];
 
 open Util;
+open Rebase;
 
 module Decode = {
   open Json.Decode;
   module TypeCheckingPositivity = {
-    open Type.TypeCheckingPositivity;
+    open Type.Syntax.TypeCheckingPositivity;
     let occurrence =
       string
       |> andThen((kind, _json) =>
@@ -26,7 +27,11 @@ module Decode = {
       let position =
         array(int)
         |> andThen((tup, _) =>
-             {pos: Some(tup[2]), line: tup[0], col: tup[1]}
+             {
+               pos: tup[2],
+               line: tup[0] |> Option.getOr(0),
+               col: tup[1] |> Option.getOr(0),
+             }
            );
       let interval = json => {
         start: json |> field("start", position),
@@ -953,8 +958,14 @@ module Decode = {
       }
       and recordAssignment = () =>
         either(
-          json => Type.Left(json |> field("Left", fieldAssignmentExpr)),
-          json => Type.Right(json |> field("Right", moduleAssignment)),
+          json =>
+            Type.Syntax.Concrete.FieldAssignment(
+              json |> field("Left", fieldAssignmentExpr),
+            ),
+          json =>
+            Type.Syntax.Concrete.ModuleAssignment(
+              json |> field("Right", moduleAssignment),
+            ),
         )
       and whereClause_ = decoder =>
         field("kind", string)

@@ -4,12 +4,12 @@ open Type.Syntax.CommonPrim;
 
 let id = children => children;
 
-let braces = children => <span> (string("{")) children (string("}")) </span>;
+let braces = children => <span> {string("{")} children {string("}")} </span>;
 
 let dbraces = children =>
-  <span> (string("{{")) children (string("}}")) </span>;
+  <span> {string("{{")} children {string("}}")} </span>;
 
-let parens = children => <span> (string("(")) children (string(")")) </span>;
+let parens = children => <span> {string("(")} children {string(")")} </span>;
 
 module Relevance = {
   let component = statelessComponent("Relevance");
@@ -18,8 +18,8 @@ module Relevance = {
     render: _self =>
       switch (relevance) {
       | Relevant => <> </>
-      | Irrelevant => <span> (string(".")) </span>
-      | NonStrict => <span> (string("..")) </span>
+      | Irrelevant => <span> {string(".")} </span>
+      | NonStrict => <span> {string("..")} </span>
       },
   };
 };
@@ -92,8 +92,8 @@ module Arg = {
       let Arg(argInfo, value) = value;
       let p = ArgInfo.isVisible(argInfo) ? prec : 0;
       let localParens = argInfo.origin == Substitution ? parens : id;
-      <Hiding hiding=argInfo.hiding parens=localParens>
-        (children(p, value))
+      <Hiding hiding={argInfo.hiding} parens=localParens>
+        {children(p, value)}
       </Hiding>;
     },
   };
@@ -106,7 +106,7 @@ module NamedArg = {
     ...component,
     render: _self =>
       <Arg value>
-        ...((prec, value) => <Named prec value> ...children </Named>)
+        ...{(prec, value) => <Named prec value> ...children </Named>}
       </Arg>,
   };
 };

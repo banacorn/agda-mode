@@ -6,8 +6,6 @@ open Type.Syntax.Name;
 
 open Syntax__Name;
 
-open Type;
-
 open Component;
 
 let jump = true;
@@ -29,7 +27,7 @@ module Component = {
 module OpApp_ = {};
 
 module TypedBinding_ = {
-  let isUnderscore: underscore(typedBinding) =
+  let isUnderscore: typedBinding => bool =
     binding =>
       switch (binding) {
       | TBind(_, _, Underscore(_, None)) => true
@@ -88,19 +86,19 @@ module Element = {
       | Lit(value) => <Syntax__Literal value />
       | QuestionMark(range, None) =>
         <Link className=["expr", "question-mark"] jump hover range>
-          (string("?"))
+          {string("?")}
         </Link>
       | QuestionMark(range, Some(n)) =>
         <Link className=["expr", "question-mark"] jump hover range>
-          (string("?" ++ string_of_int(n)))
+          {string("?" ++ string_of_int(n))}
         </Link>
       | Underscore(range, None) =>
         <Link className=["expr", "underscore"] jump hover range>
-          (string("_"))
+          {string("_")}
         </Link>
       | Underscore(range, Some(s)) =>
         <Link className=["expr", "underscore"] jump hover range>
-          (string(s))
+          {string(s)}
         </Link>
       | App(_, _, _) =>
         let (e, args) = Expr_.appView(value);
@@ -109,7 +107,7 @@ module Element = {
           ...args
              |> List.map(value =>
                   <NamedArg value>
-                    ...((_, value) => <Expr value />)
+                    ...{(_, value) => <Expr value />}
                   </NamedArg>
                 ),
         ]
@@ -149,7 +147,7 @@ module Element = {
                   qualify(
                     ms,
                     <NamedArg value=e>
-                      ...((_, value) => <OpApp value />)
+                      ...{(_, value) => <OpApp value />}
                     </NamedArg>,
                   ),
                   Some(p),
@@ -159,7 +157,7 @@ module Element = {
             | _ => [
                 (
                   <NamedArg value=e>
-                    ...((_, value) => <OpApp value />)
+                    ...{(_, value) => <OpApp value />}
                   </NamedArg>,
                   None,
                 ),
@@ -169,7 +167,7 @@ module Element = {
           | ([Hole, ..._xs], []) => failwith("OpApp::prOp")
           | ([Id(x), ...xs], es) => [
               (
-                qualify(ms, <Name value=(Name(NoRange, [Id(x)])) />),
+                qualify(ms, <Name value={Name(NoRange, [Id(x)])} />),
                 None,
               ),
               ...prOp([], xs, es),
@@ -179,7 +177,7 @@ module Element = {
             |> List.map(value =>
                  (
                    <NamedArg value>
-                     ...((_, value) => <OpApp value />)
+                     ...{(_, value) => <OpApp value />}
                    </NamedArg>,
                    None,
                  )
@@ -223,11 +221,11 @@ module Element = {
         |> Util.React.sepBy(string(" | "))
       | HiddenArg(_, expr) =>
         Syntax__CommonPrim.braces(
-          <Named value=expr> ...((_, value) => <Expr value />) </Named>,
+          <Named value=expr> ...{(_, value) => <Expr value />} </Named>,
         )
       | InstanceArg(_, expr) =>
         Syntax__CommonPrim.dbraces(
-          <Named value=expr> ...((_, value) => <Expr value />) </Named>,
+          <Named value=expr> ...{(_, value) => <Expr value />} </Named>,
         )
       | Lam(_, bindings, AbsurdLam(_, hiding)) =>
         bindings
@@ -242,58 +240,54 @@ module Element = {
         |> List.append(_, [string({js|→|js}), <Expr value=expr />])
         |> Util.React.sepBy(string(" "))
       | AbsurdLam(_range, hiding) =>
-        <span> (string({js|λ |js})) <Hiding hiding /> </span>
+        <span> {string({js|λ |js})} <Hiding hiding /> </span>
       | ExtendedLam(_range, bindings) =>
         <span>
-          (string({js|λ |js}))
-          (
-            bindings
-            |> List.map(value => <LamBinding value />)
-            |> Util.React.sepBy(string(" "))
-            |> Util.React.enclosedBy(string("{"), string("}"))
-          )
+          {string({js|λ |js})}
+          {bindings
+           |> List.map(value => <LamBinding value />)
+           |> Util.React.sepBy(string(" "))
+           |> Util.React.enclosedBy(string("{"), string("}"))}
         </span>
       | Fun(_range, arg, expr) =>
         <span>
-          <Arg value=arg> ...((_, value) => <Expr value />) </Arg>
-          (string({js| → |js}))
+          <Arg value=arg> ...{(_, value) => <Expr value />} </Arg>
+          {string({js| → |js})}
           <Expr value=expr />
         </span>
       | Pi(telescope, expr) =>
         <span>
           <Tel telescope />
-          (string({js| → |js}))
+          {string({js| → |js})}
           <Expr value=expr />
         </span>
-      | Set(range) => <Link jump hover range> (string("Set")) </Link>
-      | Prop(range) => <Link jump hover range> (string("Prop")) </Link>
+      | Set(range) => <Link jump hover range> {string("Set")} </Link>
+      | Prop(range) => <Link jump hover range> {string("Prop")} </Link>
       | SetN(range, n) =>
         <Link jump hover range>
-          (string("Set" ++ Expr_.levelToString(n)))
+          {string("Set" ++ Expr_.levelToString(n))}
         </Link>
       | PropN(range, n) =>
         <Link jump hover range>
-          (string("Prop" ++ Expr_.levelToString(n)))
+          {string("Prop" ++ Expr_.levelToString(n))}
         </Link>
       | Let(_, declarations, expr) =>
         <span>
-          (string("let "))
+          {string("let ")}
           <ul>
-            ...(
+            ...{
                  declarations
                  |> List.map(value => <li> <Declaration value /> </li>)
                  |> Array.of_list
-               )
+               }
           </ul>
-          (
-            switch (expr) {
-            | Some(value) => <span> (string("in ")) <Expr value /> </span>
-            | None => null
-            }
-          )
+          {switch (expr) {
+           | Some(value) => <span> {string("in ")} <Expr value /> </span>
+           | None => null
+           }}
         </span>
       | Paren(_, value) => Syntax__CommonPrim.parens(<Expr value />)
-      | _ => <span> (string("unimplemented: <Expr>")) </span>
+      | _ => <span> {string("unimplemented: <Expr>")} </span>
       };
     },
   }
@@ -301,14 +295,14 @@ module Element = {
     ...Component.declaration,
     render: _self => {
       Js.log(value);
-      <span> (string("<Declaration> unimplemented")) </span>;
+      <span> {string("<Declaration> unimplemented")} </span>;
     },
   }
   and makePattern = (~pattern, _children) => {
     ...Component.pattern,
     render: _self => {
       Js.log(pattern);
-      <span> (string("<Pattern> unimplemented")) </span>;
+      <span> {string("<Pattern> unimplemented")} </span>;
     },
   }
   and makeTypedBinding = (~value, _children) => {
@@ -335,16 +329,16 @@ module Element = {
                  <Hiding hiding> <BoundName value /> </Hiding>
                )
             |> Util.React.sepBy(string(" "));
-          <span> names (string(" : ")) <Expr value=expr /> </span>;
+          <span> names {string(" : ")} <Expr value=expr /> </span>;
         | TLet(_, ds) =>
           <>
-            <span> (string("let")) </span>
+            <span> {string("let")} </span>
             <ul>
-              ...(
+              ...{
                    ds
                    |> List.map(value => <li> <Declaration value /> </li>)
                    |> Array.of_list
-                 )
+                 }
             </ul>
           </>
         }
@@ -362,8 +356,8 @@ module Element = {
         <TypedBinding value=binding />;
       } else {
         <span>
-          <Relevance relevance=argInfo.modality.relevance />
-          <Hiding hiding=argInfo.hiding parens>
+          <Relevance relevance={argInfo.modality.relevance} />
+          <Hiding hiding={argInfo.hiding} parens>
             <TypedBinding value=binding />
           </Hiding>
         </span>;
@@ -382,8 +376,8 @@ module Element = {
           <BoundName value=boundName />;
         } else {
           <span>
-            <Relevance relevance=argInfo.modality.relevance />
-            <Hiding hiding=argInfo.hiding>
+            <Relevance relevance={argInfo.modality.relevance} />
+            <Hiding hiding={argInfo.hiding}>
               <BoundName value=boundName />
             </Hiding>
           </span>;
@@ -402,19 +396,15 @@ module Element = {
         let make = makePattern;
       };
       <span>
-        <Pattern pattern=lhs.originalPattern />
-        (string("rewrite"))
-        (
-          lhs.rewriteEqn
-          |> List.map(value => <Expr value />)
-          |> Util.React.sepBy(string(" | "))
-        )
-        (string("with"))
-        (
-          lhs.rewriteEqn
-          |> List.map(value => <Expr value />)
-          |> Util.React.sepBy(string(" | "))
-        )
+        <Pattern pattern={lhs.originalPattern} />
+        {string("rewrite")}
+        {lhs.rewriteEqn
+         |> List.map(value => <Expr value />)
+         |> Util.React.sepBy(string(" | "))}
+        {string("with")}
+        {lhs.rewriteEqn
+         |> List.map(value => <Expr value />)
+         |> Util.React.sepBy(string(" | "))}
       </span>;
     },
   }
@@ -426,11 +416,9 @@ module Element = {
       };
       let Telescope(typedBindings) = telescope;
       <span>
-        (
-          typedBindings
-          |> List.map(value => <TypedBindings value />)
-          |> Util.React.sepBy(string(" "))
-        )
+        {typedBindings
+         |> List.map(value => <TypedBindings value />)
+         |> Util.React.sepBy(string(" "))}
       </span>;
     },
   }
@@ -448,7 +436,7 @@ module Element = {
         | _ => false
         };
       <span>
-        (List.exists(isMeta, typedBindings) ? string({js|∀ |js}) : null)
+        {List.exists(isMeta, typedBindings) ? string({js|∀ |js}) : null}
         <Telescope telescope />
       </span>;
     },
@@ -462,7 +450,7 @@ module Element = {
       switch (value) {
       | Placeholder(_) => string("_")
       | SyntaxBindingLambda(_, range, lamBindings, expr) =>
-        <Expr value=(Lam(range, lamBindings, expr)) />
+        <Expr value={Lam(range, lamBindings, expr)} />
       | Ordinary(_, value) => <Expr value />
       };
     },
