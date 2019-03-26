@@ -1,5 +1,7 @@
 /* open Rebase; */
 
+open Type__Location;
+
 module TypeCheckingPositivity = {
   type occurrence =
     | Mixed
@@ -10,38 +12,9 @@ module TypeCheckingPositivity = {
     | Unused;
 };
 
-module Position = {
-  type srcFile = option(string);
-  type position = {
-    pos: option(int),
-    line: int,
-    col: int,
-  };
-  type interval = {
-    start: position,
-    end_: position,
-  };
-  type range =
-    | NoRange
-    | Range(srcFile, list(interval));
-
-  let toAtomRange = interval => {
-    let start =
-      Atom.Point.make(interval.start.line - 1, interval.start.col - 1);
-    let end_ = Atom.Point.make(interval.end_.line - 1, interval.end_.col - 1);
-    Atom.Range.make(start, end_);
-  };
-  let toAtomRanges = range => {
-    switch (range) {
-    | NoRange => [||]
-    | Range(_, intervals) =>
-      intervals |> Rebase.Array.fromList |> Rebase.Array.map(toAtomRange)
-    };
-  };
-};
 module Parser = {
   type parseWarning =
-    | OverlappingTokensWarning(Position.range);
+    | OverlappingTokensWarning(Range.t);
 };
 module CommonPrim = {
   type positionInName =
@@ -54,13 +27,13 @@ module CommonPrim = {
   type renaming_('a, 'b) = {
     from: importedName_('a, 'b),
     to_: importedName_('a, 'b),
-    range: Position.range,
+    range: Range.t,
   };
   type using_('a, 'b) =
     | UseEverything
     | Using(list(importedName_('a, 'b)));
   type importDirective_('a, 'b) = {
-    range: Position.range,
+    range: Range.t,
     using: using_('a, 'b),
     hiding: list(importedName_('a, 'b)),
     impRenaming: list(renaming_('a, 'b)),
@@ -71,7 +44,7 @@ module CommonPrim = {
     | NoTerminationCheck
     | NonTerminating
     | Terminating
-    | TerminationMeasure(Position.range, 'a);
+    | TerminationMeasure(Range.t, 'a);
   type induction =
     | Inductive
     | CoInductive;
@@ -130,7 +103,7 @@ module CommonPrim = {
   type arg('a) =
     | Arg(argInfo, 'a);
   type ranged('a) =
-    | Ranged(Position.range, 'a);
+    | Ranged(Range.t, 'a);
   type named('a) =
     | Named(option(ranged(string)), 'a);
   type namedArg('a) = arg(named('a));
@@ -159,14 +132,14 @@ module Fixity = {
     | LeftAssoc
     | RightAssoc;
   type fixity = {
-    range: Position.range,
+    range: Range.t,
     level: precedenceLevel,
     assoc: associativity,
   };
   type fixity2 = {
     fixity,
     notation: Notation.notation,
-    range: Position.range,
+    range: Range.t,
   };
 };
 module Name = {
@@ -176,8 +149,8 @@ module Name = {
     | Hole
     | Id(string);
   type name =
-    | Name(Position.range, list(namePart))
-    | NoName(Position.range, nameId);
+    | Name(Range.t, list(namePart))
+    | NoName(Range.t, nameId);
   type qname =
     | QName(list(name), name);
   type boundName = {
@@ -189,91 +162,91 @@ module Name = {
 open Name;
 module Literal = {
   type literal =
-    | LitNat(Position.range, int)
-    | LitWord64(Position.range, int)
-    | LitFloat(Position.range, float)
-    | LitString(Position.range, string)
-    | LitChar(Position.range, char)
-    | LitQName(Position.range, string)
-    | LitMeta(Position.range, string, int);
+    | LitNat(Range.t, int)
+    | LitWord64(Range.t, int)
+    | LitFloat(Range.t, float)
+    | LitString(Range.t, string)
+    | LitChar(Range.t, char)
+    | LitQName(Range.t, string)
+    | LitMeta(Range.t, string, int);
 };
 module Concrete = {
   type declarationWarning =
-    | EmptyAbstract(Position.range)
-    | EmptyInstance(Position.range)
-    | EmptyMacro(Position.range)
-    | EmptyMutual(Position.range)
-    | EmptyPostulate(Position.range)
-    | EmptyPrivate(Position.range)
-    | InvalidCatchallPragma(Position.range)
-    | InvalidNoPositivityCheckPragma(Position.range)
-    | InvalidNoUniverseCheckPragma(Position.range)
-    | InvalidTerminationCheckPragma(Position.range)
+    | EmptyAbstract(Range.t)
+    | EmptyInstance(Range.t)
+    | EmptyMacro(Range.t)
+    | EmptyMutual(Range.t)
+    | EmptyPostulate(Range.t)
+    | EmptyPrivate(Range.t)
+    | InvalidCatchallPragma(Range.t)
+    | InvalidNoPositivityCheckPragma(Range.t)
+    | InvalidNoUniverseCheckPragma(Range.t)
+    | InvalidTerminationCheckPragma(Range.t)
     | MissingDefinitions(list(name))
-    | NotAllowedInMutual(Position.range, string)
+    | NotAllowedInMutual(Range.t, string)
     | PolarityPragmasButNotPostulates(list(name))
-    | PragmaNoTerminationCheck(Position.range)
+    | PragmaNoTerminationCheck(Range.t)
     | UnknownFixityInMixfixDecl(list(name))
     | UnknownNamesInFixityDecl(list(name))
     | UnknownNamesInPolarityPragmas(list(name))
-    | UselessAbstract(Position.range)
-    | UselessInstance(Position.range)
-    | UselessPrivate(Position.range);
+    | UselessAbstract(Range.t)
+    | UselessInstance(Range.t)
+    | UselessPrivate(Range.t);
   type importDirective = CommonPrim.importDirective_(name, name);
   type asName = {
     name,
-    range: Position.range,
+    range: Range.t,
   };
   type openShortHand =
     | DoOpen
     | DontOpen;
   type typedBinding =
-    | TBind(Position.range, list(CommonPrim.withHiding(boundName)), expr)
-    | TLet(Position.range, list(declaration))
+    | TBind(Range.t, list(CommonPrim.withHiding(boundName)), expr)
+    | TLet(Range.t, list(declaration))
   and typedBindings =
-    | TypedBindings(Position.range, CommonPrim.arg(typedBinding))
+    | TypedBindings(Range.t, CommonPrim.arg(typedBinding))
   and lamBinding =
     | DomainFree(CommonPrim.argInfo, boundName)
     | DomainFull(typedBindings)
   and expr =
     | Ident(qname)
     | Lit(Literal.literal)
-    | QuestionMark(Position.range, option(int))
-    | Underscore(Position.range, option(string))
-    | RawApp(Position.range, list(expr))
-    | App(Position.range, expr, CommonPrim.namedArg(expr))
-    | OpApp(Position.range, qname, list(CommonPrim.namedArg(opApp)))
-    | WithApp(Position.range, expr, list(expr))
-    | HiddenArg(Position.range, CommonPrim.named(expr))
-    | InstanceArg(Position.range, CommonPrim.named(expr))
-    | Lam(Position.range, list(lamBinding), expr)
-    | AbsurdLam(Position.range, CommonPrim.hiding)
-    | ExtendedLam(Position.range, list(lamBinding))
-    | Fun(Position.range, CommonPrim.arg(expr), expr)
+    | QuestionMark(Range.t, option(int))
+    | Underscore(Range.t, option(string))
+    | RawApp(Range.t, list(expr))
+    | App(Range.t, expr, CommonPrim.namedArg(expr))
+    | OpApp(Range.t, qname, list(CommonPrim.namedArg(opApp)))
+    | WithApp(Range.t, expr, list(expr))
+    | HiddenArg(Range.t, CommonPrim.named(expr))
+    | InstanceArg(Range.t, CommonPrim.named(expr))
+    | Lam(Range.t, list(lamBinding), expr)
+    | AbsurdLam(Range.t, CommonPrim.hiding)
+    | ExtendedLam(Range.t, list(lamBinding))
+    | Fun(Range.t, CommonPrim.arg(expr), expr)
     | Pi(telescope, expr)
-    | Set(Position.range)
-    | Prop(Position.range)
-    | SetN(Position.range, int)
-    | PropN(Position.range, int)
-    | Rec(Position.range, list(recordAssignment))
-    | RecUpdate(Position.range, expr, list(fieldAssignmentExpr))
-    | Let(Position.range, list(declaration), option(expr))
-    | Paren(Position.range, expr)
-    | IdiomBrackets(Position.range, expr)
-    | DoBlock(Position.range, list(doStmt))
-    | Absurd(Position.range)
-    | As(Position.range, name, expr)
-    | Dot(Position.range, expr)
+    | Set(Range.t)
+    | Prop(Range.t)
+    | SetN(Range.t, int)
+    | PropN(Range.t, int)
+    | Rec(Range.t, list(recordAssignment))
+    | RecUpdate(Range.t, expr, list(fieldAssignmentExpr))
+    | Let(Range.t, list(declaration), option(expr))
+    | Paren(Range.t, expr)
+    | IdiomBrackets(Range.t, expr)
+    | DoBlock(Range.t, list(doStmt))
+    | Absurd(Range.t)
+    | As(Range.t, name, expr)
+    | Dot(Range.t, expr)
     | ETel(telescope)
-    | QuoteGoal(Position.range, name, expr)
-    | QuoteContext(Position.range)
-    | Quote(Position.range)
-    | QuoteTerm(Position.range)
-    | Tactic(Position.range, expr, list(expr))
-    | Unquote(Position.range)
+    | QuoteGoal(Range.t, name, expr)
+    | QuoteContext(Range.t)
+    | Quote(Range.t)
+    | QuoteTerm(Range.t)
+    | Tactic(Range.t, expr, list(expr))
+    | Unquote(Range.t)
     | DontCare(expr)
-    | Equal(Position.range, expr, expr)
-    | Ellipsis(Position.range)
+    | Equal(Range.t, expr, expr)
+    | Ellipsis(Range.t)
     | Generalized(expr)
   and lhs = {
     originalPattern: pattern,
@@ -303,26 +276,26 @@ module Concrete = {
   and whereClause = whereClause_(list(declaration))
   and pattern =
     | IdentP(qname)
-    | QuoteP(Position.range)
+    | QuoteP(Range.t)
     | AppP(pattern, CommonPrim.namedArg(pattern))
-    | RawAppP(Position.range, list(pattern))
-    | OpAppP(Position.range, qname, list(CommonPrim.namedArg(pattern)))
-    | HiddenP(Position.range, CommonPrim.named(pattern))
-    | InstanceP(Position.range, CommonPrim.named(pattern))
-    | ParenP(Position.range, pattern)
-    | WildP(Position.range)
-    | AbsurdP(Position.range)
-    | AsP(Position.range, name, pattern)
-    | DotP(Position.range, expr)
+    | RawAppP(Range.t, list(pattern))
+    | OpAppP(Range.t, qname, list(CommonPrim.namedArg(pattern)))
+    | HiddenP(Range.t, CommonPrim.named(pattern))
+    | InstanceP(Range.t, CommonPrim.named(pattern))
+    | ParenP(Range.t, pattern)
+    | WildP(Range.t)
+    | AbsurdP(Range.t)
+    | AsP(Range.t, name, pattern)
+    | DotP(Range.t, expr)
     | LitP(Literal.literal)
-    | RecP(Position.range, list(fieldAssignmentPattern))
-    | EqualP(Position.range, list((expr, expr)))
-    | EllipsisP(Position.range)
-    | WithP(Position.range, pattern)
+    | RecP(Range.t, list(fieldAssignmentPattern))
+    | EqualP(Range.t, list((expr, expr)))
+    | EllipsisP(Range.t)
+    | WithP(Range.t, pattern)
   and doStmt =
-    | DoBind(Position.range, pattern, expr, list(lamClause))
+    | DoBind(Range.t, pattern, expr, list(lamClause))
     | DoThen(expr)
-    | DoLet(Position.range, list(declaration))
+    | DoLet(Range.t, list(declaration))
   and rhs_('e) =
     | AbsurdRHS
     | RHS('e)
@@ -338,24 +311,18 @@ module Concrete = {
     | Generalize(CommonPrim.argInfo, name, expr)
     | Field(CommonPrim.isInstance, name, CommonPrim.arg(expr))
     | FunClause(lhs, rhs, whereClause, bool)
-    | DataSig(
-        Position.range,
-        CommonPrim.induction,
-        name,
-        list(lamBinding),
-        expr,
-      )
+    | DataSig(Range.t, CommonPrim.induction, name, list(lamBinding), expr)
     | Data(
-        Position.range,
+        Range.t,
         CommonPrim.induction,
         name,
         list(lamBinding),
         option(expr),
         list(declaration),
       )
-    | RecordSig(Position.range, name, list(lamBinding), expr)
+    | RecordSig(Range.t, name, list(lamBinding), expr)
     | Record(
-        Position.range,
+        Range.t,
         name,
         option(CommonPrim.ranged(CommonPrim.induction)),
         option(CommonPrim.hasEta),
@@ -366,76 +333,63 @@ module Concrete = {
       )
     | Infix(Fixity.fixity, list(name))
     | Syntax(name, Notation.notation)
-    | PatternSyn(Position.range, name, list(CommonPrim.arg(name)), pattern)
-    | Mutual(Position.range, list(declaration))
-    | Abstract(Position.range, list(declaration))
-    | Private(Position.range, CommonPrim.origin, list(declaration))
-    | InstanceB(Position.range, list(declaration))
-    | Macro(Position.range, list(declaration))
-    | Postulate(Position.range, list(declaration))
-    | Primitive(Position.range, list(declaration))
-    | Open(Position.range, qname, importDirective)
-    | Import(
-        Position.range,
-        qname,
-        option(asName),
-        openShortHand,
-        importDirective,
-      )
+    | PatternSyn(Range.t, name, list(CommonPrim.arg(name)), pattern)
+    | Mutual(Range.t, list(declaration))
+    | Abstract(Range.t, list(declaration))
+    | Private(Range.t, CommonPrim.origin, list(declaration))
+    | InstanceB(Range.t, list(declaration))
+    | Macro(Range.t, list(declaration))
+    | Postulate(Range.t, list(declaration))
+    | Primitive(Range.t, list(declaration))
+    | Open(Range.t, qname, importDirective)
+    | Import(Range.t, qname, option(asName), openShortHand, importDirective)
     | ModuleMacro(
-        Position.range,
+        Range.t,
         name,
         moduleApplication,
         openShortHand,
         importDirective,
       )
-    | Module(Position.range, qname, telescope, list(declaration))
-    | UnquoteDecl(Position.range, list(name), expr)
-    | UnquoteUnquoteDefDecl(Position.range, list(name), expr)
+    | Module(Range.t, qname, telescope, list(declaration))
+    | UnquoteDecl(Range.t, list(name), expr)
+    | UnquoteUnquoteDefDecl(Range.t, list(name), expr)
     | Pragma(pragma)
   and pragma =
-    | OptionsPragma(Position.range, list(string))
-    | BuiltinPragma(Position.range, string, qname, Fixity.fixity2)
-    | RewritePragma(Position.range, list(qname))
-    | CompiledDataPragma(Position.range, qname, string, list(string))
-    | CompiledTypePragma(Position.range, qname, string)
-    | CompiledPragma(Position.range, qname, string)
-    | CompiledExportPragma(Position.range, qname, string)
-    | CompiledJSPragma(Position.range, qname, string)
-    | CompiledUHCPragma(Position.range, qname, string)
-    | CompiledDataUHCPragma(Position.range, qname, string, list(string))
-    | HaskellCodePragma(Position.range, string)
-    | ForeignPragma(Position.range, string, string)
-    | CompilePragma(Position.range, string, qname, string)
-    | StaticPragma(Position.range, qname)
-    | InjectivePragma(Position.range, qname)
-    | InlinePragma(Position.range, bool, qname)
-    | ImportPragma(Position.range, string)
-    | ImportUHCPragma(Position.range, string)
-    | ImpossiblePragma(Position.range)
-    | EtaPragma(Position.range, qname)
-    | TerminationCheckPragma(
-        Position.range,
-        CommonPrim.terminationCheck(name),
-      )
-    | WarningOnUsage(Position.range, qname, string)
-    | CatchallPragma(Position.range)
-    | DisplayPragma(Position.range, pattern, expr)
-    | NoPositivityCheckPragma(Position.range)
-    | PolarityPragma(
-        Position.range,
-        name,
-        list(TypeCheckingPositivity.occurrence),
-      )
-    | NoUniverseCheckPragma(Position.range)
+    | OptionsPragma(Range.t, list(string))
+    | BuiltinPragma(Range.t, string, qname, Fixity.fixity2)
+    | RewritePragma(Range.t, list(qname))
+    | CompiledDataPragma(Range.t, qname, string, list(string))
+    | CompiledTypePragma(Range.t, qname, string)
+    | CompiledPragma(Range.t, qname, string)
+    | CompiledExportPragma(Range.t, qname, string)
+    | CompiledJSPragma(Range.t, qname, string)
+    | CompiledUHCPragma(Range.t, qname, string)
+    | CompiledDataUHCPragma(Range.t, qname, string, list(string))
+    | HaskellCodePragma(Range.t, string)
+    | ForeignPragma(Range.t, string, string)
+    | CompilePragma(Range.t, string, qname, string)
+    | StaticPragma(Range.t, qname)
+    | InjectivePragma(Range.t, qname)
+    | InlinePragma(Range.t, bool, qname)
+    | ImportPragma(Range.t, string)
+    | ImportUHCPragma(Range.t, string)
+    | ImpossiblePragma(Range.t)
+    | EtaPragma(Range.t, qname)
+    | TerminationCheckPragma(Range.t, CommonPrim.terminationCheck(name))
+    | WarningOnUsage(Range.t, qname, string)
+    | CatchallPragma(Range.t)
+    | DisplayPragma(Range.t, pattern, expr)
+    | NoPositivityCheckPragma(Range.t)
+    | PolarityPragma(Range.t, name, list(TypeCheckingPositivity.occurrence))
+    | NoUniverseCheckPragma(Range.t)
   and moduleApplication =
-    | SectionApp(Position.range, telescope, expr)
-    | RecordModuleIFS(Position.range, qname)
+    | SectionApp(Range.t, telescope, expr)
+    | RecordModuleIFS(Range.t, qname)
   and opApp =
     | Placeholder(CommonPrim.positionInName)
     | SyntaxBindingLambda(
         option(CommonPrim.positionInName),
-        Position.range,
+        Range.t,
         list(lamBinding),
         expr,
       )

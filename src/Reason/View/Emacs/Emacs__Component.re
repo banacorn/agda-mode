@@ -41,7 +41,7 @@ module OutputConstraint = {
   let make =
       (
         ~value: outputConstraint,
-        ~range: option(Type.Syntax.Position.range),
+        ~range: option(Type.Location.Range.t),
         _children,
       ) => {
     ...component,

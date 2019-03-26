@@ -1,7 +1,7 @@
 open Rebase;
 
+open Type__Location;
 open Type__Syntax.Name;
-open Type__Syntax.Position;
 open Type__Syntax.Concrete;
 
 /* TODO: use hashmap */
@@ -18,33 +18,33 @@ type call =
   | CheckExprCall(comparison, expr, expr)
   | CheckDotPattern(expr, expr)
   | CheckPatternShadowing(list(declaration))
-  | CheckProjection(range, qname, expr)
+  | CheckProjection(Range.t, qname, expr)
   | IsTypeCall(expr, expr)
   | IsType_(expr)
   | InferVar(name)
   | InferDef(qname)
   | CheckArguments(
-      range,
+      Range.t,
       list(Type__Syntax.CommonPrim.namedArg(expr)),
       expr,
     )
-  | CheckTargetType(range, expr, expr)
-  | CheckDataDef(range, name)
-  | CheckRecDef(range, name)
+  | CheckTargetType(Range.t, expr, expr)
+  | CheckDataDef(Range.t, name)
+  | CheckRecDef(Range.t, name)
   | CheckConstructor(qname, qname)
-  | CheckFunDefCall(range, name)
-  | CheckPragma(range, pragma)
-  | CheckPrimitive(range, name, expr)
-  | CheckIsEmpty(range, expr)
+  | CheckFunDefCall(Range.t, name)
+  | CheckPragma(Range.t, pragma)
+  | CheckPrimitive(Range.t, name, expr)
+  | CheckIsEmpty(Range.t, expr)
   | CheckWithFunctionType(expr)
-  | CheckSectionApplication(range, qname, list(declaration))
+  | CheckSectionApplication(Range.t, qname, list(declaration))
   | CheckNamedWhere(qname)
   | ScopeCheckExpr(expr)
   | ScopeCheckDeclaration(list(declaration))
   | ScopeCheckLHS(qname, pattern)
   | NoHighlighting
   | ModuleContents
-  | SetRange(range);
+  | SetRange(Range.t);
 type typeError =
   | GenericDocError(string)
   | GenericError(string)
@@ -53,7 +53,7 @@ type typeError =
   | ShouldBePi(expr)
   | ShouldBeASort(expr)
   | UnequalTerms(comparison, expr, expr, expr, string)
-  | ClashingDefinition(qname, range)
+  | ClashingDefinition(qname, Range.t)
   | ModuleArityMismatch(qname, bool, option(telescope))
   | NoRHSRequiresAbsurdPattern(list(pattern))
   | NotInScope(map(qname, list(qname)))
@@ -61,10 +61,10 @@ type typeError =
   | AmbiguousName(qname, list(qname))
   | UnregisteredTypeError(Js.Json.t);
 type error =
-  | TypeError(range, option(call), typeError)
-  | Exception(range, string)
-  | IOException(range, string)
-  | PatternError(range);
+  | TypeError(Range.t, option(call), typeError)
+  | Exception(Range.t, string)
+  | IOException(Range.t, string)
+  | PatternError(Range.t);
 type polarity =
   | Covariant
   | Contravariant
@@ -87,7 +87,7 @@ type where =
   | InDefOf(string);
 type occursWhere =
   | Unknown
-  | Known(range, list(where));
+  | Known(Range.t, list(where));
 type isForced =
   | Forced
   | NotForced;
@@ -120,7 +120,7 @@ type constraint_ =
   | HasPTSRuleAbs(expr, expr)
   | UnBlock(int)
   | Guarded(constraint_, int)
-  | IsEmpty(range, expr)
+  | IsEmpty(Range.t, expr)
   | CheckSizeLtSat(expr)
   | FindInScope(int, option(int), option(list(candidate)))
   | CheckFunDef(qname, list(list(declaration)));
@@ -135,8 +135,8 @@ type warning =
   | CoverageIssue(qname, list(list(declaration)))
   | CoverageNoExactSplit(qname, list(list(declaration)))
   | NotStrictlyPositive(qname, occursWhere)
-  | UnsolvedMetaVariables(list(range))
-  | UnsolvedInteractionMetas(list(range))
+  | UnsolvedMetaVariables(list(Range.t))
+  | UnsolvedInteractionMetas(list(Range.t))
   | UnsolvedConstraints(list(problemConstraint))
   | AbsurdPatternRequiresNoRHS
   | OldBuiltin(string, string)
@@ -163,7 +163,7 @@ type warning =
     );
 type tcWarning = {
   cached: bool,
-  range,
+  range: Range.t,
   /* warning, */
   warning': string,
 };

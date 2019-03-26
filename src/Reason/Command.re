@@ -84,7 +84,7 @@ module Primitive = {
     | GoalTypeAndInferredType(Normalization.t)
     | InputSymbol(inputSymbolType)
     | QuerySymbol
-    | Jump(Type.Syntax.Position.range)
+    | Jump(Type.Location.Range.t)
     | GotoDefinition;
 
   let parse =

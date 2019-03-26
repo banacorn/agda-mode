@@ -1,5 +1,7 @@
 open Rebase;
 
+open Type__Location;
+
 /* open Type__Type__Syntax.Name;
    open Type__Type__Syntax.Position;
    open Type__Type__Syntax.Concrete; */
@@ -67,10 +69,10 @@ module Emacs = {
   type have =
     | Have(expr);
   type output =
-    | Output(outputConstraint, option(Type__Syntax.Position.range));
+    | Output(outputConstraint, option(Range.t));
   type textOrRange =
     | Text(string)
-    | Range(Type__Syntax.Position.range);
+    | Range(Range.t);
   /* array(result(string, )); */
   type warningError =
     | WarningMessage(array(textOrRange))
@@ -126,9 +128,9 @@ type mode =
   | Display
   | Inquire;
 type mouseEvent =
-  | JumpToRange(Type__Syntax.Position.range)
-  | MouseOver(Type__Syntax.Position.range)
-  | MouseOut(Type__Syntax.Position.range);
+  | JumpToRange(Range.t)
+  | MouseOver(Range.t)
+  | MouseOut(Range.t);
 module MouseEmitter =
   Context.MakePair({
     type t = mouseEvent => unit;

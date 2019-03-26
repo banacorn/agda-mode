@@ -76,8 +76,8 @@ let range =
       "/^(\\S+)\\:(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+))$/"
     ],
     captured => {
-      open Type.Syntax.Position;
-      let srcFile: srcFile = flatten(captured[1]);
+      open Type.Location;
+      let srcFile = flatten(captured[1]);
       let sameRow = flatten(captured[6]) |> isSome;
       if (sameRow) {
         flatten(captured[6])
@@ -87,7 +87,7 @@ let range =
                   flatten(captured[8])
                   |> flatMap(colEnd =>
                        Some(
-                         Range(
+                         Range.Range(
                            srcFile,
                            [
                              {
@@ -118,7 +118,7 @@ let range =
                        flatten(captured[5])
                        |> flatMap(colEnd =>
                             Some(
-                              Range(
+                              Range.Range(
                                 srcFile,
                                 [
                                   {
@@ -461,7 +461,7 @@ module Response = {
     };
   let whyInScope:
     string =>
-    (array(Type.View.Emacs.textOrRange), array(Type.Syntax.Position.range)) =
+    (array(Type.View.Emacs.textOrRange), array(Type.Location.Range.t)) =
     raw => {
       let ranges =
         raw
@@ -493,18 +493,6 @@ module Response = {
         |> parseArray(output);
       (target, outputs);
     };
-};
-
-/* extract the first range and convert it to Atom Range */
-let parseWhyInScope = raw => {
-  let (_, ranges) = Response.whyInScope(raw);
-  ranges[0]
-  |> map(range =>
-       (
-         Component.Range.toAtomRange(range),
-         Component.Range.toAtomFilepath(range),
-       )
-     );
 };
 
 /* Parsing S-Expressions */

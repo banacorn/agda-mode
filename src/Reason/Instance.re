@@ -775,7 +775,7 @@ let rec handleLocalCommand =
       };
     if (shouldJump) {
       /* Js.log(range); */
-      let ranges = Type.Syntax.Position.toAtomRanges(range);
+      let ranges = Type.Location.Range.toAtomRanges(range);
       if (ranges[0] |> Option.isSome) {
         Js.Global.setTimeout(
           _ =>
