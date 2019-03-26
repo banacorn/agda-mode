@@ -89,7 +89,7 @@ let range =
                        Some(
                          Range.Range(
                            srcFile,
-                           [
+                           [|
                              {
                                start: {
                                  pos: None,
@@ -102,7 +102,7 @@ let range =
                                  col: int_of_string(colEnd),
                                },
                              },
-                           ],
+                           |],
                          ),
                        )
                      )
@@ -120,7 +120,7 @@ let range =
                             Some(
                               Range.Range(
                                 srcFile,
-                                [
+                                [|
                                   {
                                     start: {
                                       pos: None,
@@ -133,7 +133,7 @@ let range =
                                       col: int_of_string(colEnd),
                                     },
                                   },
-                                ],
+                                |],
                               ),
                             )
                           )

@@ -10,7 +10,7 @@ let make =
   render: _self =>
     switch (range) {
     | NoRange
-    | Range(_, []) =>
+    | Range(_, [||]) =>
       <span className={String.concat(" ", ["link", ...className])}>
         ...children
       </span>
