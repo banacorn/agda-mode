@@ -6,7 +6,7 @@ open Type.View;
 
 let component = statelessComponent("JSONBody");
 
-let make = (~body: body, ~maxHeight: int, ~hidden, ~mountAtBottom, _children) => {
+let make = (~body: body, ~hidden, _children) => {
   ...component,
   render: _self => {
     let comp =
@@ -37,15 +37,6 @@ let make = (~body: body, ~maxHeight: int, ~hidden, ~mountAtBottom, _children) =>
         ["agda-body", "native-key-bindings", "hidden"]
         |> String.joinWith(" ") :
         ["agda-body", "native-key-bindings"] |> String.joinWith(" ");
-    let style =
-      mountAtBottom ?
-        Some(
-          ReactDOMRe.Style.make(
-            ~maxHeight=string_of_int(maxHeight) ++ "px",
-            (),
-          ),
-        ) :
-        None;
-    <section className ?style tabIndex=(-1)> comp </section>;
+    <section className tabIndex=(-1)> comp </section>;
   },
 };

@@ -77,6 +77,15 @@ let make =
       | Bottom(_) => true
       | _ => false
       };
+    let style =
+      mountAtBottom ?
+        Some(
+          ReactDOMRe.Style.make(
+            ~maxHeight=string_of_int(maxHeight) ++ "px",
+            (),
+          ),
+        ) :
+        None;
     let className =
       Util.ClassName.([] |> addWhen("hidden", hidden) |> serialize);
     ReactDOMRe.createPortal(
@@ -118,8 +127,8 @@ let make =
               activateSettingsView
             />
           </section>
-          <section className="agda-body-container">
-            <Body body maxHeight hidden={mode != Display} mountAtBottom />
+          <section ?style className="agda-body-container">
+            <Body body hidden={mode != Display} />
             <MiniEditor
               hidden={mode != Inquire}
               value=editorValue
