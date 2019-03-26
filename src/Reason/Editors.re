@@ -9,7 +9,6 @@ type t = {
   mutable focused: sort,
   source: TextEditor.t,
   query: MiniEditor.Model.t,
-  /* connection, */
 };
 
 exception QueryCancelled;
@@ -18,10 +17,6 @@ let make = editor => {
   focused: Source,
   source: editor,
   query: MiniEditor.Model.make(),
-  /* connection: {
-       model: MiniEditor.Model.make(),
-       message: "",
-     }, */
 };
 
 module Focus = {

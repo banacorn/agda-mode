@@ -30,6 +30,21 @@ module Syntax = {
     type range =
       | NoRange
       | Range(srcFile, list(interval));
+
+    let toAtomRange = interval => {
+      let start =
+        Atom.Point.make(interval.start.line - 1, interval.start.col - 1);
+      let end_ =
+        Atom.Point.make(interval.end_.line - 1, interval.end_.col - 1);
+      Atom.Range.make(start, end_);
+    };
+    let toAtomRanges = range => {
+      switch (range) {
+      | NoRange => [||]
+      | Range(_, intervals) =>
+        intervals |> Rebase.Array.fromList |> Rebase.Array.map(toAtomRange)
+      };
+    };
   };
   module Parser = {
     type parseWarning =

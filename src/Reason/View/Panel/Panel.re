@@ -12,8 +12,7 @@ type state = {
 type action =
   | UpdateMaxHeight(int)
   | UpdateIsPending(bool)
-  | UpdateInputMethodActivation(bool)
-  | MouseEvent(mouseEvent);
+  | UpdateInputMethodActivation(bool);
 
 let initialState = () => {
   maxHeight: 170,
@@ -27,10 +26,6 @@ let reducer = (action, state) =>
   | UpdateIsPending(isPending) => Update({...state, isPending})
   | UpdateInputMethodActivation(activated) =>
     Update({...state, inputMethodActivated: activated})
-  | MouseEvent(JumpToRange(range)) =>
-    SideEffects(_ => Js.log("JumpToRange"))
-  | MouseEvent(MouseOver(range)) => SideEffects(_ => Js.log("MouseOver"))
-  | MouseEvent(MouseOut(range)) => SideEffects(_ => Js.log("MouseOut"))
   };
 
 let component = reducerComponent("Panel");
@@ -89,62 +84,60 @@ let make =
     let className =
       Util.ClassName.([] |> addWhen("hidden", hidden) |> serialize);
     ReactDOMRe.createPortal(
-      <MouseEmitter.Provider value={ev => self.send(MouseEvent(ev))}>
-        <section className>
-          <section className="panel-heading agda-header-container">
-            <SizingHandle
-              onResizeStart={height => self.send(UpdateMaxHeight(height))}
-              onResizeEnd={height =>
-                Js.Global.setTimeout(
-                  () => {
-                    self.send(UpdateMaxHeight(height));
-                    Atom.Environment.Config.set(
-                      "agda-mode.maxBodyHeight",
-                      string_of_int(height),
-                    );
-                  },
-                  0,
-                )
-                |> ignore
-              }
-              mountAtBottom
-            />
-            <InputMethod
-              editors
-              interceptAndInsertKey
-              activateInputMethod
-              onActivationChange={activated =>
-                self.send(UpdateInputMethodActivation(activated))
-              }
-            />
-            <Dashboard
-              header
-              hidden=inputMethodActivated
-              isPending
-              mountAt
-              onMountAtChange
-              onSettingsViewToggle
-              activateSettingsView
-            />
-          </section>
-          <section ?style className="agda-body-container">
-            <Body body hidden={mode != Display} />
-            <MiniEditor
-              hidden={mode != Inquire}
-              value=editorValue
-              placeholder=editorPlaceholder
-              grammar="agda"
-              editorRef=onEditorRef
-              onConfirm={result => onInquireQuery |> Event.emitOk(result)}
-              onCancel={(.) =>
-                onInquireQuery
-                |> Event.emitError(MiniEditor.Cancelled)
-                |> ignore
-              }
-            />
-          </section>
+      <section className>
+        <section className="panel-heading agda-header-container">
+          <SizingHandle
+            onResizeStart={height => self.send(UpdateMaxHeight(height))}
+            onResizeEnd={height =>
+              Js.Global.setTimeout(
+                () => {
+                  self.send(UpdateMaxHeight(height));
+                  Atom.Environment.Config.set(
+                    "agda-mode.maxBodyHeight",
+                    string_of_int(height),
+                  );
+                },
+                0,
+              )
+              |> ignore
+            }
+            mountAtBottom
+          />
+          <InputMethod
+            editors
+            interceptAndInsertKey
+            activateInputMethod
+            onActivationChange={activated =>
+              self.send(UpdateInputMethodActivation(activated))
+            }
+          />
+          <Dashboard
+            header
+            hidden=inputMethodActivated
+            isPending
+            mountAt
+            onMountAtChange
+            onSettingsViewToggle
+            activateSettingsView
+          />
         </section>
-      </MouseEmitter.Provider>,
+        <section ?style className="agda-body-container">
+          <Body body hidden={mode != Display} />
+          <MiniEditor
+            hidden={mode != Inquire}
+            value=editorValue
+            placeholder=editorPlaceholder
+            grammar="agda"
+            editorRef=onEditorRef
+            onConfirm={result => onInquireQuery |> Event.emitOk(result)}
+            onCancel={(.) =>
+              onInquireQuery
+              |> Event.emitError(MiniEditor.Cancelled)
+              |> ignore
+            }
+          />
+        </section>
+      </section>,
       element,
     );
   },

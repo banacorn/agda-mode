@@ -25,6 +25,8 @@ module Handles = {
     /* Input Method */
     activateInputMethod: Event.t(bool, unit),
     interceptAndInsertKey: Event.t(string, unit),
+    /* Mouse Events */
+    onMouseEvent: Event.t(mouseEvent, unit),
   };
 
   let hook = (f, handle) => f := handle;
@@ -57,6 +59,8 @@ module Handles = {
     let interceptAndInsertKey = Event.make();
     let activateInputMethod = Event.make();
 
+    let onMouseEvent = Event.make();
+
     let destroy = Event.make();
     {
       display,
@@ -74,6 +78,7 @@ module Handles = {
       destroy,
       activateInputMethod,
       interceptAndInsertKey,
+      onMouseEvent,
     };
   };
 };
@@ -134,7 +139,9 @@ type action =
   /*  */
   | UpdateHeader(Header.t)
   | UpdateBody(body)
-  | UpdateMode(mode);
+  | UpdateMode(mode)
+  /*  */
+  | MouseEvent(mouseEvent);
 
 let mountPanel = (editors: Editors.t, self, mountTo) => {
   let createTab = () =>
@@ -244,6 +251,9 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
   | UpdateHeader(header) => Update({...state, header})
   | UpdateBody(body) => Update({...state, body})
   | UpdateMode(mode) => Update({...state, mode})
+
+  | MouseEvent(event) =>
+    SideEffects(_ => handles.onMouseEvent |> Event.emitOk(event))
   };
 };
 
@@ -318,25 +328,29 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
       | Pane(_) => false
       };
     <>
-      <Panel
-        editors
-        element
-        header
-        body
-        mountAt
-        hidden
-        onMountAtChange={mountTo => self.send(MountTo(mountTo))}
-        mode
-        onInquireQuery={handles.onInquireQuery}
-        /* editors */
-        onEditorRef={ref => self.send(SetQueryRef(ref))}
-        editorValue={editors.query.value}
-        editorPlaceholder={editors.query.placeholder}
-        interceptAndInsertKey={handles.interceptAndInsertKey}
-        activateInputMethod={handles.activateInputMethod}
-        activateSettingsView={handles.activateSettingsView}
-        onSettingsViewToggle={status => self.send(ToggleSettingsTab(status))}
-      />
+      <MouseEmitter.Provider value={ev => self.send(MouseEvent(ev))}>
+        <Panel
+          editors
+          element
+          header
+          body
+          mountAt
+          hidden
+          onMountAtChange={mountTo => self.send(MountTo(mountTo))}
+          mode
+          onInquireQuery={handles.onInquireQuery}
+          /* editors */
+          onEditorRef={ref => self.send(SetQueryRef(ref))}
+          editorValue={editors.query.value}
+          editorPlaceholder={editors.query.placeholder}
+          interceptAndInsertKey={handles.interceptAndInsertKey}
+          activateInputMethod={handles.activateInputMethod}
+          activateSettingsView={handles.activateSettingsView}
+          onSettingsViewToggle={status =>
+            self.send(ToggleSettingsTab(status))
+          }
+        />
+      </MouseEmitter.Provider>
     </>;
   },
 };

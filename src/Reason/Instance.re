@@ -11,23 +11,6 @@ type t = {
   mutable connection: option(Connection.t),
 };
 
-let make = (textEditor: Atom.TextEditor.t) => {
-  /* adds "agda" to the class-list */
-  Atom.Environment.Views.getView(textEditor)
-  |> Webapi.Dom.HtmlElement.classList
-  |> Webapi.Dom.DomTokenList.add("agda");
-  /*  */
-  let editors = Editors.make(textEditor);
-  {
-    loaded: false,
-    editors,
-    view: View.initialize(editors),
-    goals: [||],
-    highlightings: [||],
-    connection: None,
-  };
-};
-
 let activate = instance => {
   instance.view.activatePanel |> Event.emitOk(true);
 };
@@ -782,7 +765,28 @@ let rec handleLocalCommand =
       |> ignore;
     };
     resolve(None);
-
+  | Jump(range) =>
+    let filePath = instance.editors.source |> Atom.TextEditor.getPath;
+    let shouldJump =
+      switch (range) {
+      | NoRange => false
+      | Range(None, _) => true
+      | Range(Some(path), _) => path == filePath
+      };
+    if (shouldJump) {
+      /* Js.log(range); */
+      let ranges = Type.Syntax.Position.toAtomRanges(range);
+      if (ranges[0] |> Option.isSome) {
+        Js.Global.setTimeout(
+          _ =>
+            instance.editors.source
+            |> Atom.TextEditor.setSelectedBufferRanges(ranges),
+          0,
+        )
+        |> ignore;
+      };
+    };
+    resolve(None);
   | GotoDefinition =>
     if (instance.loaded) {
       let name =
@@ -845,7 +849,11 @@ and handleResponse =
     if (targetFilePath == filePath) {
       let point =
         textBuffer |> Atom.TextBuffer.positionForCharacterIndex(index - 1);
-      textEditor |> Atom.TextEditor.setCursorBufferPosition(point);
+      Js.Global.setTimeout(
+        _ => Atom.TextEditor.setCursorBufferPosition(point, textEditor),
+        0,
+      )
+      |> ignore;
     };
     resolve();
   | InteractionPoints(indices) =>
@@ -925,6 +933,38 @@ and dispatch = (command, instance): Async.t(unit, Command.error) => {
        |> all
        |> mapOk(_ => ());
      });
+};
+
+let make = (textEditor: Atom.TextEditor.t) => {
+  /* adds "agda" to the class-list */
+  Atom.Environment.Views.getView(textEditor)
+  |> Webapi.Dom.HtmlElement.classList
+  |> Webapi.Dom.DomTokenList.add("agda");
+
+  /*  */
+  let editors = Editors.make(textEditor);
+  let instsance = {
+    loaded: false,
+    editors,
+    view: View.initialize(editors),
+    goals: [||],
+    highlightings: [||],
+    connection: None,
+  };
+
+  /* listen to `onMouseEvent` */
+  let destructor =
+    instsance.view.onMouseEvent
+    |> Event.onOk(ev =>
+         switch (ev) {
+         | Type.View.JumpToRange(range) =>
+           instsance |> dispatch(Jump(range)) |> ignore
+         | _ => ()
+         }
+       );
+  instsance.view.destroy |> Event.once |> finalOk(_ => destructor());
+
+  instsance;
 };
 
 let dispatchUndo = _instance => {
