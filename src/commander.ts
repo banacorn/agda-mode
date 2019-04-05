@@ -140,9 +140,9 @@ export default class Commander {
                         this.core.view.activatePanel();
 
                         if (command.kind === 'Load') {
-                            this.core.view.setPlainText('Loading ...', '');
-                        } else {
                             this.core.view.setPlainText('Type Checking ...', '');
+                        } else {
+                            this.core.view.setPlainText('Loading ...', '');
                         }
                     }
                     // initialize connection

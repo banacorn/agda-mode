@@ -8,7 +8,6 @@ function parseResponses(raw: string, fileType: FileType): Promise<Agda.Response[
     const lines = raw.trim().split('\n');
     return Promise.map(lines, (line) => parseResponse(line, fileType))
         .then(prioritiseResponses)
-        .catch(Error, (e) => {throw new Error("Agda found but read failed. Please report this as a bug.");})
 }
 
 function prioritiseResponses(responses: Agda.Response[]): Agda.Response[] {
@@ -298,10 +297,6 @@ function parse_sexp(string: string): any {
                 pushInLast(word);
                 word = '';
             }
-        } else if (char == '\\' && in_str){
-          //Something is being escaped
-          word += string[i+1];
-          i++;
         } else if (char == '\"') {
             in_str = !in_str;
         } else {
