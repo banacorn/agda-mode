@@ -2,6 +2,7 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { spawn, exec } from 'child_process';
 var duplex = require('duplexer');
+import * as semver from 'semver';
 
 import { View, Agda } from './type';
 import { Path, ValidPath, Connection } from './type/connection';
@@ -249,12 +250,11 @@ export function validateAgda(path: Path): Promise<ValidPath> {
     return validateProcess(path, (message, resolve, reject) => {
         const result = message.match(/Agda version (.*)/);
         if (result) {
-            // normalize version number to valid semver
+            // remove the major version "2." so that we can fit 4 numbers
+            // into semver
             const raw = result[1];
-            const tokens = result[1].replace('-', '.').split('.');
-            const sem = tokens.length > 3
-                ? _.take(tokens, 3).join('.')
-                : tokens.join('.');
+            const sem = semver.coerce(result[1].substr(2)).version;
+
             const version = { raw, sem };
             resolve({
                 path,
