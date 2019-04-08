@@ -1,3 +1,10 @@
+## 0.8.10
+* Merge PRs from @mchristianl and @omega12345 👏
+* Fix #91
+
+## 0.8.9
+* Fix #80 and #81 with PRs by @jaywunder 👏
+
 ## 0.8.8
 * Fix #77 (#76)
 
