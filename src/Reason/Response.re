@@ -149,6 +149,7 @@ type t =
   /* agda2-highlight-load-and-delete-action */
   | HighlightingInfoIndirect(filepath)
   /* agda2-status-action */
+  | NoStatus
   | Status(
       bool, /*  Are implicit arguments displayed? */
       /* Has the module been successfully type checked? */
@@ -206,7 +207,7 @@ let parse = (tokens: Token.t): result(t, string) => {
             pulp |> Js.Array.includes("Checked"),
           ),
         );
-      | _ => err
+      | _ => Ok(NoStatus)
       }
     | Some(A("agda2-maybe-goto")) =>
       switch (xs[1]) {
