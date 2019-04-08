@@ -4,6 +4,8 @@ For people who don't wanna use Emacs for whatever reasons.
 
 **Feel free to open issues!!!!**
 
+Update: This repo is under the transition from TypeScript to Reasonml, see branch [ocaml](https://github.com/banacorn/agda-mode/tree/ocaml) for updates.
+
 ## Requirements
 
 * Binaries: [agda](https://agda.readthedocs.io/en/latest/getting-started/installation.html)
