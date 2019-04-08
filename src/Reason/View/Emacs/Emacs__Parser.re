@@ -547,6 +547,7 @@ module SExpression = {
   let postprocess = (string: string): result(t, string) => {
     let stack: array(ref(t)) = [|ref(L([||]))|];
     let word = ref("");
+    let escaped = ref(false);
     let in_str = ref(false);
 
     let pushToTheTop = (elem: t) => {
@@ -563,13 +564,21 @@ module SExpression = {
     };
     /* iterates through the string */
     let totalLength = String.length(string);
+
     for (i in 0 to totalLength - 1) {
       let char = string |> Js.String.charAt(i);
-      let escaped = ref(false);
 
-      /* drop all single quotes: 'param => param */
-      if (char == "\'" && ! in_str^) {
+      if (escaped^) {
+        /* something was being escaped */
+        /* put the backslash \ back in */
+        if (char == "n") {
+          word := word^ ++ "\\";
+        };
+        word := word^ ++ char;
+        escaped := false;
+      } else if (char == "\'" && ! in_str^) {
         ();
+          /* drop all single quotes: 'param => param */
       } else if (char == "(" && ! in_str^) {
         stack |> Js.Array.push(ref(L([||]))) |> ignore;
       } else if (char == ")" && ! in_str^) {
@@ -586,21 +595,12 @@ module SExpression = {
           pushToTheTop(A(word^));
           word := "";
         };
+      } else if (char == "\"") {
+        in_str := ! in_str^;
       } else if (char == "\\" && in_str^) {
         /* something is being escaped */
         escaped := true;
-      } else if (char == "\"") {
-        in_str := ! in_str^;
       } else {
-        if (escaped^) {
-          /* something was being escaped */
-          /* put the backslash \ back in */
-          if (char == "n") {
-            word := word^ ++ "\\";
-          };
-          escaped := false;
-        };
-
         word := word^ ++ char;
       };
     };

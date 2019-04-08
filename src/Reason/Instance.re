@@ -913,6 +913,7 @@ and handleResponse =
     instance |> Highlightings.destroyAll;
     resolve();
   | _ =>
+    Js.log("Unhandled response:");
     Js.log(response);
     resolve();
   };
