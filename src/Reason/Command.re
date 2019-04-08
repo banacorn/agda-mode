@@ -3,6 +3,7 @@ open Rebase;
 /* Command Dispatcher */
 
 type error =
+  | ParseError(array(string))
   | Connection(Connection.error)
   /* Cancelled: never makes its way to Agda */
   | Cancelled

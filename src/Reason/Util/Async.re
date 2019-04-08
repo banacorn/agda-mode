@@ -14,6 +14,14 @@ let make = (callback: ('a => unit, 'e => unit) => unit): t('a, 'e) => {
 
 let resolve = x => P.resolve(Ok(x));
 let reject = x => P.resolve(Error(x));
+
+let mapResult: Result.t('a, 'e) => t('a, 'e) =
+  x =>
+    switch (x) {
+    | Ok(x) => resolve(x)
+    | Error(x) => reject(x)
+    };
+
 let fromPromise = (promise: P.t('a)): t('a, Js.Exn.t) => {
   promise |> P.then_(x => resolve(x));
 };

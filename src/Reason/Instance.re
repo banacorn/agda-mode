@@ -360,6 +360,18 @@ let handleCommandError = instance =>
       /*  */
       (
         switch (error) {
+        | ParseError(errors) =>
+          let intro =
+            string_of_int(Array.length(errors))
+            ++ " parse errors, here are the original texts:\n\n";
+          let message = errors |> List.fromArray |> String.joinWith("\n\n");
+
+          instance.view
+          |> Views.display(
+               "Parse Errors",
+               Type.View.Header.Error,
+               Emacs(PlainText(intro ++ message)),
+             );
         | Connection(_connErr) =>
           instance.view
           |> Views.display(
@@ -924,14 +936,25 @@ and dispatch = (command, instance): Async.t(unit, Command.error) => {
      )
   |> thenOk((result: array(result(Response.t, string))) => {
        /* array of parsed responses */
-       let responses = result |> Array.filterMap(Option.fromResult);
-       /* handle the responses and collect the errors if there's any */
-       instance
-       |> recoverCursor(() =>
-            responses |> Array.map(handleResponse(instance))
-          )
-       |> all
-       |> mapOk(_ => ());
+       let parseErrors =
+         result
+         |> Array.filterMap(
+              fun
+              | Ok(_) => None
+              | Error(e) => Some(e),
+            );
+       if (Array.length(parseErrors) > 0) {
+         reject(Command.ParseError(parseErrors));
+       } else {
+         let responses = result |> Array.filterMap(Option.fromResult);
+         /* handle the responses and collect the errors if there's any */
+         instance
+         |> recoverCursor(() =>
+              responses |> Array.map(handleResponse(instance))
+            )
+         |> all
+         |> mapOk(_ => ());
+       };
      });
 };
 

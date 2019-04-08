@@ -565,6 +565,7 @@ module SExpression = {
     let totalLength = String.length(string);
     for (i in 0 to totalLength - 1) {
       let char = string |> Js.String.charAt(i);
+      let escaped = ref(false);
 
       /* drop all single quotes: 'param => param */
       if (char == "\'" && ! in_str^) {
@@ -585,14 +586,22 @@ module SExpression = {
           pushToTheTop(A(word^));
           word := "";
         };
+      } else if (char == "\\" && in_str^) {
+        /* something is being escaped */
+        escaped := true;
       } else if (char == "\"") {
         in_str := ! in_str^;
       } else {
-        word := word^ ++ char;
-      };
+        if (escaped^) {
+          /* something was being escaped */
+          /* put the backslash \ back in */
+          if (char == "n") {
+            word := word^ ++ "\\";
+          };
+          escaped := false;
+        };
 
-      if (stack |> Array.length === 0) {
-        Js.log(string);
+        word := word^ ++ char;
       };
     };
     switch (stack[0]) {
@@ -616,6 +625,13 @@ module SExpression = {
   let parseFile = (content: string): array(result(t, string)) => {
     content
     |> Util.safeSplitByRe([%re "/\\r\\n|\\n/"])
+    |> Array.map(result =>
+         switch (result) {
+         | None => None
+         | Some("") => None
+         | Some(chunk) => Some(chunk)
+         }
+       )
     |> Array.filterMap(x => x)
     |> Array.map(line => line |> Js.String.trim |> parse);
   };
