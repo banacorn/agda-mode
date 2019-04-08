@@ -44,12 +44,14 @@ type t = {
   metadata,
   process: N.ChildProcess.t,
   mutable queue: array(Event.t(string, connectionError)),
+  errorEmitter: Event.t(string, unit),
   mutable connected: bool,
 };
 
 let disconnect = (error, self) => {
   self.queue |> Array.forEach(ev => ev |> Event.emitError(error));
   self.queue = [||];
+  self.errorEmitter |> Event.removeAllListeners;
   self.connected = false;
   self.process |> N.ChildProcess.kill("SIGTERM");
 };
@@ -188,7 +190,13 @@ let connect = (metadata): Async.t(t, connectionError) => {
         |> Array.concat(metadata.args);
       let process = ChildProcess.spawn(metadata.path, args, {"shell": true});
 
-      let connection = {metadata, process, connected: true, queue: [||]};
+      let connection = {
+        metadata,
+        process,
+        connected: true,
+        queue: [||],
+        errorEmitter: Event.make(),
+      };
       /* Handles errors and anomalies */
       process
       |> ChildProcess.on(
@@ -221,7 +229,7 @@ let wire = (self): t => {
   let response = data => {
     Js.log("receiving <<< " ++ data);
     switch (self.queue[0]) {
-    | None => Js.log("WTF!!")
+    | None => self.errorEmitter |> Event.emitOk(data)
     | Some(req) =>
       req |> Event.emitOk(data);
       /* should updates the queue */

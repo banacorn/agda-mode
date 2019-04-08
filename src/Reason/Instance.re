@@ -148,6 +148,32 @@ module Highlightings = {
   };
 };
 
+module Views = {
+  let display = (text, style, body, handles) => {
+    open View.Handles;
+    open Type.View.Header;
+    handles.display |> Event.emitOk(({text, style}, body));
+    Async.resolve();
+  };
+
+  let inquire =
+      (text, placeholder, value, handles): Async.t(string, Command.error) => {
+    open View.Handles;
+    open Type.View.Header;
+
+    let promise = handles.onInquireQuery |> Event.once;
+    handles.inquire
+    |> Event.emitOk(({text, style: PlainText}, placeholder, value));
+
+    promise |> mapError(_ => Command.Cancelled);
+  };
+
+  let toggleDocking = (handles): Async.t(unit, unit) => {
+    View.Handles.(handles.toggleDocking |> Event.emitOk());
+    Async.resolve();
+  };
+};
+
 module Connections = {
   open Atom;
   let connect = (instance: t): Async.t(Connection.t, MiniEditor.error) => {
@@ -225,6 +251,20 @@ module Connections = {
            |> thenOk(getConnection(instance));
          });
     };
+    let reportUnboundedError = (instance, connection): Connection.t => {
+      let _ =
+        Connection.(connection.errorEmitter)
+        |> Event.onOk(error =>
+             instance.view
+             |> Views.display(
+                  "Error from Agda",
+                  Type__View.Header.Error,
+                  Emacs(Error(error)),
+                )
+             |> ignore
+           );
+      connection;
+    };
 
     switch (instance.connection) {
     | Some(connection) => resolve(connection)
@@ -236,6 +276,7 @@ module Connections = {
       |> thenOk(getMetadata(instance))
       |> thenOk(getConnection(instance))
       |> mapOk(persistConnection(instance))
+      |> mapOk(reportUnboundedError(instance))
       |> mapOk(Connection.wire)
     };
   };
@@ -254,32 +295,6 @@ module Connections = {
     | Some(connection) => resolve(connection)
     | None => connect(instance)
     };
-  };
-};
-
-module Views = {
-  let display = (text, style, body, handles) => {
-    open View.Handles;
-    open Type.View.Header;
-    handles.display |> Event.emitOk(({text, style}, body));
-    Async.resolve();
-  };
-
-  let inquire =
-      (text, placeholder, value, handles): Async.t(string, Command.error) => {
-    open View.Handles;
-    open Type.View.Header;
-
-    let promise = handles.onInquireQuery |> Event.once;
-    handles.inquire
-    |> Event.emitOk(({text, style: PlainText}, placeholder, value));
-
-    promise |> mapError(_ => Command.Cancelled);
-  };
-
-  let toggleDocking = (handles): Async.t(unit, unit) => {
-    View.Handles.(handles.toggleDocking |> Event.emitOk());
-    Async.resolve();
   };
 };
 
