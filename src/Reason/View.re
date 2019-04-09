@@ -81,6 +81,54 @@ module Handles = {
       onMouseEvent,
     };
   };
+
+  open Type.View.Header;
+  open Async;
+  let activate = handles => {
+    handles.activatePanel |> Event.emitOk(true);
+  };
+  let deactivate = handles => {
+    handles.activatePanel |> Event.emitOk(false);
+  };
+  let destroy = handles => {
+    deactivate(handles);
+    handles.destroy |> Event.emitOk();
+  };
+
+  let display = (text, style, body, handles) => {
+    handles.display |> Event.emitOk(({text, style}, body));
+    Async.resolve();
+  };
+
+  let inquire =
+      (text, placeholder, value, handles): Async.t(string, Command.error) => {
+    let promise = handles.onInquireQuery |> Event.once;
+    handles.inquire
+    |> Event.emitOk(({text, style: PlainText}, placeholder, value));
+
+    promise |> mapError(_ => Command.Cancelled);
+  };
+
+  let toggleDocking = (handles): Async.t(unit, unit) => {
+    handles.toggleDocking |> Event.emitOk();
+    Async.resolve();
+  };
+  let onOpenSettingsView = (handles): Async.t(bool, MiniEditor.error) => {
+    handles.onSettingsView |> Event.once |> mapError(_ => MiniEditor.Cancelled);
+  };
+  let navigateSettingsView = (where, handles) => {
+    handles.navigateSettingsView |> Event.emitOk(where);
+  };
+
+  let onInquireConnection = handles => {
+    handles.onInquireConnection |> Event.once;
+  };
+  let inquireConnection = (error, body, handles) => {
+    handles.inquireConnection |> Event.emitOk((error, body));
+  };
+  let activateSettingsView = handles => {
+    handles.activateSettingsView |> Event.emitOk(true);
+  };
 };
 
 /************************************************************************************************************/
