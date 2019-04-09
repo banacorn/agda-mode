@@ -29,7 +29,7 @@ let handleCommandError = instance =>
                Type.View.Header.Error,
                Emacs(PlainText(intro ++ message)),
              );
-        | Connection(_connErr) =>
+        | ConnectionError(_connErr) =>
           instance.view
           |> View.Handles.display(
                "Connection-related Error",
@@ -62,6 +62,24 @@ let handleCommandError = instance =>
     |> ignore;
     resolve();
   });
+
+let parseResponse = (raw: string): Async.t(array(Response.t), Command.error) => {
+  let results =
+    Emacs.Parser.SExpression.parseFile(raw)
+    |> Array.map(Result.flatMap(Response.parse));
+  let errors =
+    results
+    |> Array.filterMap(
+         fun
+         | Ok(_) => None
+         | Error(e) => Some(e),
+       );
+  if (Array.length(errors) > 0) {
+    reject(Command.ParseError(errors));
+  } else {
+    resolve(results |> Array.filterMap(Option.fromResult));
+  };
+};
 
 /* Primitive Command => Remote Command */
 let rec handleLocalCommand =
@@ -446,7 +464,8 @@ let rec handleLocalCommand =
   };
 }
 and handleResponse =
-    (instance: t, response: Response.t): Async.t(unit, Command.error) => {
+    (instance: Instance__Type.t, response: Response.t)
+    : Async.t(unit, Command.error) => {
   let textEditor = instance.editors.source;
   let filePath = textEditor |> Atom.TextEditor.getPath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
@@ -545,38 +564,25 @@ and dispatch = (command, instance): Async.t(unit, Command.error) => {
   |> handleLocalCommand(command)
   |> thenOk(remote =>
        switch (remote) {
-       | None => resolve([||])
+       | None => resolve()
        | Some(cmd) =>
          let serialized = Command.Remote.serialize(cmd);
          /* send the serialized command */
          cmd.connection
          |> Connection.send(serialized)
-         /* parse the returned response */
-         |> mapOk(Emacs.Parser.SExpression.parseFile)
-         |> mapOk(Array.map(Result.flatMap(Response.parse)))
-         |> mapError(_ => Command.Cancelled);
-       }
-     )
-  |> thenOk((result: array(result(Response.t, string))) => {
-       /* array of parsed responses */
-       let parseErrors =
-         result
-         |> Array.filterMap(
-              fun
-              | Ok(_) => None
-              | Error(e) => Some(e),
-            );
-       if (Array.length(parseErrors) > 0) {
-         reject(Command.ParseError(parseErrors));
-       } else {
-         let responses = result |> Array.filterMap(Option.fromResult);
-         /* handle the responses and collect the errors if there's any */
-         instance
-         |> recoverCursor(() =>
-              responses |> Array.map(handleResponse(instance))
+         |> mapError(err =>
+              Command.ConnectionError(Connection.Connection(err))
             )
-         |> all
-         |> mapOk(_ => ());
-       };
-     });
+         /* parse the returned response */
+         |> thenOk(parseResponse)
+         |> thenOk(responses =>
+              instance
+              |> recoverCursor(() =>
+                   responses |> Array.map(handleResponse(instance))
+                 )
+              |> all
+              |> mapOk(_ => ())
+            );
+       }
+     );
 };

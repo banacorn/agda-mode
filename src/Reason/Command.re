@@ -4,7 +4,7 @@ open Rebase;
 
 type error =
   | ParseError(array(string))
-  | Connection(Connection.error)
+  | ConnectionError(Connection.error)
   /* Cancelled: never makes its way to Agda */
   | Cancelled
   /* Other reasons, also never make their way to Agda */
