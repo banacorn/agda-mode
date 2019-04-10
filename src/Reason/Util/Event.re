@@ -7,6 +7,11 @@ module Listener = {
     id: int,
   };
   let make = (resolve, id): t('a, 'e) => {resolve, id};
+  let map = (f: 'a => 'b, g: 'e => 'f, listener: t('b, 'f)): t('a, 'e) => {
+    resolve: (x: result('a, 'e)) =>
+      x |> Result.map2(f, g) |> listener.resolve,
+    id: listener.id,
+  };
 };
 
 type t('a, 'e) = {
@@ -54,6 +59,11 @@ let destroyWhen =
 
 /* alias of `listen` */
 let on = listen;
+
+let map = (f: 'a => 'b, g: 'e => 'f, x: t('b, 'f)): t('a, 'e) => {
+  counter: x.counter,
+  listeners: x.listeners |> Js.Dict.map((. l) => l |> Listener.map(f, g)),
+};
 
 let onOk: ('a => unit, t('a, 'e), unit) => unit =
   callback =>
@@ -110,11 +120,19 @@ let emitError = (x: 'e, self: t('a, 'e)): unit => {
      );
 };
 
-// from |> pipe(to_)
+/* from |> pipe(to_) */
 let pipe = (to_: t('a, 'e), from: t('a, 'e)): (unit => unit) =>
   from
   |> on(
        fun
        | Ok(ok) => to_ |> emitOk(ok)
+       | Error(err) => to_ |> emitError(err),
+     );
+
+let pipeMap = (to_: t('b, 'e), f: 'a => 'b, from: t('a, 'e)): (unit => unit) =>
+  from
+  |> on(
+       fun
+       | Ok(ok) => to_ |> emitOk(f(ok))
        | Error(err) => to_ |> emitError(err),
      );

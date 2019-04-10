@@ -28,7 +28,7 @@ let at = (x, y, classNames) => {
 let make =
     (
       ~inquireConnection: Event.t((option(Connection.error), string), unit),
-      ~onInquireConnection: Event.t(string, MiniEditor.error),
+      ~onInquireConnection: Event.t(Connection.viewAction, MiniEditor.error),
       ~connection: option(Connection.t),
       ~navigate: Event.t(uri, unit),
       _children,

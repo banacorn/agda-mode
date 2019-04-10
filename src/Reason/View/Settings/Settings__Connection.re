@@ -49,7 +49,7 @@ let setEditorRef = (theRef, {ReasonReact.state}) => {
 let make =
     (
       ~inquireConnection: Event.t((option(Connection.error), string), unit),
-      ~onInquireConnection: Event.t(string, MiniEditor.error),
+      ~onInquireConnection: Event.t(Connection.viewAction, MiniEditor.error),
       ~connection: option(Connection.t),
       ~hidden,
       _children,
@@ -61,7 +61,7 @@ let make =
     open Event;
     /* pipe `editorModel` to `onInquireConnection` */
     self.state.editorModel^.result
-    |> pipe(onInquireConnection)
+    |> pipeMap(onInquireConnection, x => Connection.Connect(x))
     |> destroyWhen(self.onUnmount);
     /* listens to `inquireConnection` */
     inquireConnection

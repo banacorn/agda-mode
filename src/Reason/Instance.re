@@ -44,8 +44,10 @@ let make = (textEditor: Atom.TextEditor.t) => {
     handleResponses: Handler.handleResponses,
   };
 
+  /* listen to `onInquireConnection` */
+  let destructor0 = instance.view.onInquireConnection |> Event.onOk(Js.log);
   /* listen to `onMouseEvent` */
-  let destructor =
+  let destructor1 =
     instance.view.onMouseEvent
     |> Event.onOk(ev =>
          switch (ev) {
@@ -54,7 +56,12 @@ let make = (textEditor: Atom.TextEditor.t) => {
          | _ => ()
          }
        );
-  instance.view.destroy |> Event.once |> finalOk(_ => destructor());
+  instance.view.destroy
+  |> Event.once
+  |> finalOk(_ => {
+       destructor0();
+       destructor1();
+     });
 
   instance;
 };

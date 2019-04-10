@@ -4,13 +4,13 @@ open Async;
 open Instance__Type;
 open Atom;
 
-let inquireConnection =
-    (error: option(Connection.error), instance)
-    : Async.t(string, MiniEditor.error) => {
+let rec inquireAgdaPath =
+        (error: option(Connection.error), instance)
+        : Async.t(string, MiniEditor.error) => {
   open View.Handles;
   activate(instance.view);
   /* listen to `onSettingsView` before triggering `activateSettingsView` */
-  let promise: Async.t(string, MiniEditor.error) =
+  let promise: Async.t(Connection.viewAction, MiniEditor.error) =
     instance.view
     |> onOpenSettingsView
     |> thenOk(_ => {
@@ -21,8 +21,13 @@ let inquireConnection =
          promise;
        });
   instance.view |> activateSettingsView;
-
-  promise;
+  /*  */
+  promise
+  |> thenOk(
+       fun
+       | Connection.Connect(x) => resolve(x)
+       | Connection.Disconnect => instance |> inquireAgdaPath(error),
+     );
 };
 
 let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
@@ -37,7 +42,7 @@ let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
 
   searchedPath
   |> thenError(err =>
-       instance |> inquireConnection(Some(Connection.AutoSearch(err)))
+       instance |> inquireAgdaPath(Some(Connection.AutoSearch(err)))
      );
 };
 
@@ -50,7 +55,7 @@ let connectWithAgdaPath =
     Connection.validateAndMake(pathAndParams)
     |> thenError(err =>
          instance
-         |> inquireConnection(
+         |> inquireAgdaPath(
               Some(Connection.Validation(pathAndParams, err)),
             )
          |> thenOk(getMetadata(instance))
@@ -77,7 +82,7 @@ let connectWithAgdaPath =
     |> thenError(err => {
          Js.log(err);
          instance
-         |> inquireConnection(Some(Connection.Connection(err)))
+         |> inquireAgdaPath(Some(Connection.Connection(err)))
          |> thenOk(getMetadata(instance))
          |> thenOk(getConnection(instance));
        });
