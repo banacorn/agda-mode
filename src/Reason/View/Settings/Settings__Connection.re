@@ -58,6 +58,7 @@ let make =
   initialState,
   reducer,
   didMount: self => {
+    /* listens to `inquireConnection` */
     Event.(
       inquireConnection
       |> onOk(((error, value)) => {
@@ -81,7 +82,7 @@ let make =
         |> addWhen("inquiring", !connected)
         |> serialize
       );
-    let {error, value} = self.state;
+    let {error} = self.state;
 
     <section className>
       <form>
@@ -128,7 +129,12 @@ let make =
               <p>
                 <MiniEditor
                   hidden=false
-                  value
+                  value={
+                    switch (connection) {
+                    | None => self.state.value
+                    | Some(conn) => conn.metadata.path
+                    }
+                  }
                   placeholder="path to Agda"
                   editorRef={self.handle(setEditorRef)}
                   onConfirm={result =>
