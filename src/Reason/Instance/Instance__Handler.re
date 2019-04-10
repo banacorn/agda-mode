@@ -63,23 +63,108 @@ let handleCommandError = instance =>
     resolve();
   });
 
-let parseResponse = (raw: string): Async.t(array(Response.t), Command.error) => {
-  let results =
-    Emacs.Parser.SExpression.parseFile(raw)
-    |> Array.map(Result.flatMap(Response.parse));
-  let errors =
-    results
-    |> Array.filterMap(
-         fun
-         | Ok(_) => None
-         | Error(e) => Some(e),
-       );
-  if (Array.length(errors) > 0) {
-    reject(Command.ParseError(errors));
-  } else {
-    resolve(results |> Array.filterMap(Option.fromResult));
+let handleResponse =
+    (instance: Instance__Type.t, response: Response.t)
+    : Async.t(unit, Command.error) => {
+  let textEditor = instance.editors.source;
+  let filePath = textEditor |> Atom.TextEditor.getPath;
+  let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
+  switch (response) {
+  | HighlightingInfoDirect(_remove, annotations) =>
+    annotations
+    |> Array.filter(Highlighting.Annotation.shouldHighlight)
+    |> Array.forEach(annotation => instance |> Highlightings.add(annotation));
+    resolve();
+  | HighlightingInfoIndirect(filepath) =>
+    instance
+    |> Highlightings.addFromFile(filepath)
+    |> mapOk(() => N.Fs.unlink(filepath, _ => ()))
+    |> mapError(_ => Command.Cancelled)
+  | Status(displayImplicit, checked) =>
+    if (displayImplicit || checked) {
+      instance.view
+      |> View.Handles.display(
+           "Status",
+           Type.View.Header.PlainText,
+           Emacs(
+             PlainText(
+               "Typechecked: "
+               ++ string_of_bool(checked)
+               ++ "\nDisplay implicit arguments: "
+               ++ string_of_bool(displayImplicit),
+             ),
+           ),
+         )
+      |> ignore;
+    };
+    resolve();
+  | JumpToError(targetFilePath, index) =>
+    if (targetFilePath == filePath) {
+      let point =
+        textBuffer |> Atom.TextBuffer.positionForCharacterIndex(index - 1);
+      Js.Global.setTimeout(
+        _ => Atom.TextEditor.setCursorBufferPosition(point, textEditor),
+        0,
+      )
+      |> ignore;
+    };
+    resolve();
+  | InteractionPoints(indices) =>
+    instance |> Goals.instantiateAll(indices);
+    resolve();
+  | GiveAction(index, give) =>
+    switch (Goals.find(index, instance)) {
+    | None =>
+      Js.log("error: cannot find goal #" ++ string_of_int(index));
+      resolve();
+    | Some(goal) =>
+      switch (give) {
+      | Paren =>
+        let content = Goal.getContent(goal);
+        Goal.setContent("(" ++ content ++ ")", goal) |> ignore;
+      | NoParen => () /* do nothing */
+      | String(content) =>
+        Goal.setContent(
+          content |> Js.String.replaceByRe([%re "/\\\\n/g"], "\n"),
+          goal,
+        )
+        |> ignore
+      };
+      Goal.removeBoundary(goal);
+      Goal.destroy(goal);
+      resolve();
+    }
+  | MakeCase(makeCaseType, lines) =>
+    let pointed = Editors.pointingAt(instance.goals, instance.editors);
+    switch (pointed) {
+    | Some(goal) =>
+      switch (makeCaseType) {
+      | Function => Goal.writeLines(lines, goal)
+      | ExtendedLambda => Goal.writeLambda(lines, goal)
+      };
+      instance |> instance.dispatch(Command.Primitive.Load);
+    | None => reject(Command.OutOfGoal)
+    };
+  | DisplayInfo(info) =>
+    instance.view.activatePanel |> Event.emitOk(true);
+    Response.Info.handle(info, (x, y, z) =>
+      View.Handles.display(x, y, z, instance.view)
+    );
+  | ClearHighlighting =>
+    instance |> Highlightings.destroyAll;
+    resolve();
+  | _ =>
+    Js.log("Unhandled response:");
+    Js.log(response);
+    resolve();
   };
 };
+
+let handleResponses = (instance, responses) =>
+  instance
+  |> recoverCursor(() => responses |> Array.map(handleResponse(instance)))
+  |> all
+  |> mapOk(_ => ());
 
 /* Primitive Command => Remote Command */
 let rec handleLocalCommand =
@@ -454,7 +539,7 @@ let rec handleLocalCommand =
     } else {
       /* dispatch again if not already loaded  */
       instance
-      |> dispatch(Command.Primitive.Load)
+      |> instance.dispatch(Command.Primitive.Load)
       |> handleCommandError(instance)
       |> thenOk(_ =>
            instance |> handleLocalCommand(Command.Primitive.GotoDefinition)
@@ -462,127 +547,26 @@ let rec handleLocalCommand =
     }
   | _ => instance |> buff(Load)
   };
-}
-and handleResponse =
-    (instance: Instance__Type.t, response: Response.t)
-    : Async.t(unit, Command.error) => {
-  let textEditor = instance.editors.source;
-  let filePath = textEditor |> Atom.TextEditor.getPath;
-  let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
-  switch (response) {
-  | HighlightingInfoDirect(_remove, annotations) =>
-    annotations
-    |> Array.filter(Highlighting.Annotation.shouldHighlight)
-    |> Array.forEach(annotation => instance |> Highlightings.add(annotation));
-    resolve();
-  | HighlightingInfoIndirect(filepath) =>
-    instance
-    |> Highlightings.addFromFile(filepath)
-    |> mapOk(() => N.Fs.unlink(filepath, _ => ()))
-    |> mapError(_ => Command.Cancelled)
-  | Status(displayImplicit, checked) =>
-    if (displayImplicit || checked) {
-      instance.view
-      |> View.Handles.display(
-           "Status",
-           Type.View.Header.PlainText,
-           Emacs(
-             PlainText(
-               "Typechecked: "
-               ++ string_of_bool(checked)
-               ++ "\nDisplay implicit arguments: "
-               ++ string_of_bool(displayImplicit),
-             ),
-           ),
-         )
-      |> ignore;
-    };
-    resolve();
-  | JumpToError(targetFilePath, index) =>
-    if (targetFilePath == filePath) {
-      let point =
-        textBuffer |> Atom.TextBuffer.positionForCharacterIndex(index - 1);
-      Js.Global.setTimeout(
-        _ => Atom.TextEditor.setCursorBufferPosition(point, textEditor),
-        0,
-      )
-      |> ignore;
-    };
-    resolve();
-  | InteractionPoints(indices) =>
-    instance |> Goals.instantiateAll(indices);
-    resolve();
-  | GiveAction(index, give) =>
-    switch (Goals.find(index, instance)) {
-    | None =>
-      Js.log("error: cannot find goal #" ++ string_of_int(index));
-      resolve();
-    | Some(goal) =>
-      switch (give) {
-      | Paren =>
-        let content = Goal.getContent(goal);
-        Goal.setContent("(" ++ content ++ ")", goal) |> ignore;
-      | NoParen => () /* do nothing */
-      | String(content) =>
-        Goal.setContent(
-          content |> Js.String.replaceByRe([%re "/\\\\n/g"], "\n"),
-          goal,
-        )
-        |> ignore
-      };
-      Goal.removeBoundary(goal);
-      Goal.destroy(goal);
-      resolve();
-    }
-  | MakeCase(makeCaseType, lines) =>
-    let pointed = Editors.pointingAt(instance.goals, instance.editors);
-    switch (pointed) {
-    | Some(goal) =>
-      switch (makeCaseType) {
-      | Function => Goal.writeLines(lines, goal)
-      | ExtendedLambda => Goal.writeLambda(lines, goal)
-      };
-      instance |> dispatch(Command.Primitive.Load);
-    | None => reject(Command.OutOfGoal)
-    };
-  | DisplayInfo(info) =>
-    instance.view.activatePanel |> Event.emitOk(true);
-    Response.Info.handle(info, (x, y, z) =>
-      View.Handles.display(x, y, z, instance.view)
-    );
-  | ClearHighlighting =>
-    instance |> Highlightings.destroyAll;
-    resolve();
-  | _ =>
-    Js.log("Unhandled response:");
-    Js.log(response);
-    resolve();
+};
+
+/* Remote Command => Responses */
+let handleRemoteCommand = (instance: Instance__Type.t, remote) =>
+  switch (remote) {
+  | None => resolve()
+  | Some(cmd) =>
+    let serialized = Command.Remote.serialize(cmd);
+    /* send the serialized command */
+    cmd.connection
+    |> Connection.send(serialized)
+    |> mapError(err => Command.ConnectionError(Connection.Connection(err)))
+    /* parse the returned response */
+    |> thenOk(lift(Response.parse))
+    |> thenOk(handleResponses(instance));
   };
-}
-and dispatch = (command, instance): Async.t(unit, Command.error) => {
+
+let dispatch =
+    (command, instance: Instance__Type.t): Async.t(unit, Command.error) => {
   instance
   |> handleLocalCommand(command)
-  |> thenOk(remote =>
-       switch (remote) {
-       | None => resolve()
-       | Some(cmd) =>
-         let serialized = Command.Remote.serialize(cmd);
-         /* send the serialized command */
-         cmd.connection
-         |> Connection.send(serialized)
-         |> mapError(err =>
-              Command.ConnectionError(Connection.Connection(err))
-            )
-         /* parse the returned response */
-         |> thenOk(parseResponse)
-         |> thenOk(responses =>
-              instance
-              |> recoverCursor(() =>
-                   responses |> Array.map(handleResponse(instance))
-                 )
-              |> all
-              |> mapOk(_ => ())
-            );
-       }
-     );
+  |> thenOk(handleRemoteCommand(instance));
 };

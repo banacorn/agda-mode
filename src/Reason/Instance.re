@@ -40,6 +40,8 @@ let make = (textEditor: Atom.TextEditor.t) => {
     goals: [||],
     highlightings: [||],
     connection: None,
+    dispatch: Handler.dispatch,
+    handleResponses: Handler.handleResponses,
   };
 
   /* listen to `onMouseEvent` */

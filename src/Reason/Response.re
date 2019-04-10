@@ -177,7 +177,7 @@ type t =
   /* agda2-abort-done */
   | DoneAborting;
 
-let parse = (tokens: Token.t): result(t, string) => {
+let parseSExpression = (tokens: Token.t): result(t, string) => {
   let err = Error(tokens |> Token.toString);
   switch (tokens) {
   | A(_) => err
@@ -305,6 +305,24 @@ let parse = (tokens: Token.t): result(t, string) => {
     | Some(A("agda2-abort-done")) => Ok(DoneAborting)
     | _ => err
     }
+  };
+};
+
+let parse = (raw: string): result(array(t), Command.error) => {
+  let results =
+    Emacs.Parser.SExpression.parseFile(raw)
+    |> Array.map(Result.flatMap(parseSExpression));
+  let errors =
+    results
+    |> Array.filterMap(
+         fun
+         | Ok(_) => None
+         | Error(e) => Some(e),
+       );
+  if (Array.length(errors) > 0) {
+    Error(Command.ParseError(errors));
+  } else {
+    Ok(results |> Array.filterMap(Option.fromResult));
   };
 };
 

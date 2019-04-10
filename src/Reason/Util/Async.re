@@ -15,9 +15,10 @@ let make = (callback: ('a => unit, 'e => unit) => unit): t('a, 'e) => {
 let resolve = x => P.resolve(Ok(x));
 let reject = x => P.resolve(Error(x));
 
-let mapResult: Result.t('a, 'e) => t('a, 'e) =
-  x =>
-    switch (x) {
+/* (A -> Either B E) -> A -> Async B E */
+let lift: ('i => Result.t('o, 'e), 'i) => t('o, 'e) =
+  (f, x) =>
+    switch (f(x)) {
     | Ok(x) => resolve(x)
     | Error(x) => reject(x)
     };

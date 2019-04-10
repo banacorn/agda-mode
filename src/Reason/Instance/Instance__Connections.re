@@ -75,18 +75,15 @@ let connect =
          |> thenOk(getConnection(instance));
        });
   };
-  let reportUnboundedError = (instance, connection): Connection.t => {
-    let _ =
-      Connection.(connection.errorEmitter)
-      |> Event.onOk(error =>
-           instance.view
-           |> View.Handles.display(
-                "Error from Agda",
-                Type__View.Header.Error,
-                Emacs(Error(error)),
-              )
-           |> ignore
-         );
+  let handleUnboundError = (instance, connection): Connection.t => {
+    Connection.(connection.errorEmitter)
+    |> Event.onOk(responses =>
+         responses
+         |> lift(Response.parse)
+         |> thenOk(instance.handleResponses(instance))
+         |> ignore
+       )
+    |> ignore;
     connection;
   };
 
@@ -100,7 +97,7 @@ let connect =
     |> thenOk(getMetadata(instance))
     |> thenOk(getConnection(instance))
     |> mapOk(persistConnection(instance))
-    |> mapOk(reportUnboundedError(instance))
+    |> mapOk(handleUnboundError(instance))
     |> mapOk(Connection.wire)
   };
 };
