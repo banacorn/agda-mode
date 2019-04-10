@@ -118,7 +118,6 @@ module Handles = {
   let navigateSettingsView = (where, handles) => {
     handles.navigateSettingsView |> Event.emitOk(where);
   };
-
   let onInquireConnection = handles => {
     handles.onInquireConnection |> Event.once;
   };

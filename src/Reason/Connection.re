@@ -103,7 +103,8 @@ let autoSearch = (path): Async.t(string, autoSearchError) =>
   );
 
 /* a more sophiscated "make" */
-let validateAndMake = (path, args): Async.t(metadata, validationError) => {
+let validateAndMake = (pathAndParams): Async.t(metadata, validationError) => {
+  let (path, args) = Parser.commandLine(pathAndParams);
   let parseError = (error: Js.Nullable.t(Js.Exn.t)): option(validationError) => {
     switch (error |> Js.Nullable.toOption) {
     | None => None

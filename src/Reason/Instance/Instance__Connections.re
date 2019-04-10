@@ -3,43 +3,51 @@ open Async;
 
 open Instance__Type;
 open Atom;
-let connect = (instance): Async.t(Connection.t, MiniEditor.error) => {
-  let inquireConnection =
-      (error: option(Connection.error), instance)
-      : Async.t(string, MiniEditor.error) => {
-    open View.Handles;
-    activate(instance.view);
-    /* listen to `onSettingsView` before triggering `activateSettingsView` */
-    let promise: Async.t(string, MiniEditor.error) =
-      instance.view
-      |> onOpenSettingsView
-      |> thenOk(_ => {
-           instance.view |> navigateSettingsView(Settings.URI.Connection);
-           /* listen to `onInquireConnection` before triggering `inquireConnection` */
-           let promise = instance.view |> onInquireConnection;
-           instance.view |> inquireConnection(error, "");
-           promise;
-         });
-    instance.view |> activateSettingsView;
 
-    promise;
-  };
-  let getAgdaPath = (): Async.t(string, Connection.autoSearchError) => {
-    let storedPath =
-      Environment.Config.get("agda-mode.agdaPath") |> Parser.filepath;
+let inquireConnection =
+    (error: option(Connection.error), instance)
+    : Async.t(string, MiniEditor.error) => {
+  open View.Handles;
+  activate(instance.view);
+  /* listen to `onSettingsView` before triggering `activateSettingsView` */
+  let promise: Async.t(string, MiniEditor.error) =
+    instance.view
+    |> onOpenSettingsView
+    |> thenOk(_ => {
+         instance.view |> navigateSettingsView(Settings.URI.Connection);
+         /* listen to `onInquireConnection` before triggering `inquireConnection` */
+         let promise = instance.view |> onInquireConnection;
+         instance.view |> inquireConnection(error, "");
+         promise;
+       });
+  instance.view |> activateSettingsView;
+
+  promise;
+};
+
+let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
+  let storedPath =
+    Environment.Config.get("agda-mode.agdaPath") |> Parser.filepath;
+  let searchedPath =
     if (storedPath |> String.isEmpty) {
       Connection.autoSearch("agda");
     } else {
       resolve(storedPath);
     };
-  };
 
+  searchedPath
+  |> thenError(err =>
+       instance |> inquireConnection(Some(Connection.AutoSearch(err)))
+     );
+};
+
+let connectWithAgdaPath =
+    (instance, path): Async.t(Connection.t, MiniEditor.error) => {
   /* validate the given path */
   let rec getMetadata =
           (instance, pathAndParams)
           : Async.t(Connection.metadata, MiniEditor.error) => {
-    let (path, args) = Parser.commandLine(pathAndParams);
-    Connection.validateAndMake(path, args)
+    Connection.validateAndMake(pathAndParams)
     |> thenError(err =>
          instance
          |> inquireConnection(
@@ -90,16 +98,17 @@ let connect = (instance): Async.t(Connection.t, MiniEditor.error) => {
   switch (instance.connection) {
   | Some(connection) => resolve(connection)
   | None =>
-    getAgdaPath()
-    |> thenError(err =>
-         instance |> inquireConnection(Some(Connection.AutoSearch(err)))
-       )
-    |> thenOk(getMetadata(instance))
+    path
+    |> getMetadata(instance)
     |> thenOk(getConnection(instance))
     |> mapOk(persistConnection(instance))
     |> mapOk(handleUnboundError(instance))
     |> mapOk(Connection.wire)
   };
+};
+
+let connect = (instance): Async.t(Connection.t, MiniEditor.error) => {
+  instance |> getAgdaPath |> thenOk(connectWithAgdaPath(instance));
 };
 
 let disconnect = instance => {
