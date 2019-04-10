@@ -58,20 +58,15 @@ let make =
   initialState,
   reducer,
   didMount: self => {
+    open Event;
+    /* pipe `editorModel` to `onInquireConnection` */
+    self.state.editorModel^.result
+    |> pipe(onInquireConnection)
+    |> destroyWhen(self.onUnmount);
     /* listens to `inquireConnection` */
-    Event.(
-      inquireConnection
-      |> onOk(((error, value)) => {
-           self.send(Inquire(error, value));
-           /* onInquireConnection */
-           self.state.editorModel^
-           |> MiniEditor.Model.inquire
-           |> Async.finalOk(value =>
-                onInquireConnection |> Event.emitOk(value)
-              );
-         })
-      |> destroyWhen(self.onUnmount)
-    );
+    inquireConnection
+    |> onOk(((error, value)) => self.send(Inquire(error, value)))
+    |> destroyWhen(self.onUnmount);
   },
   render: self => {
     let connected = connection |> Option.isSome;

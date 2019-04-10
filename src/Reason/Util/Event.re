@@ -109,3 +109,12 @@ let emitError = (x: 'e, self: t('a, 'e)): unit => {
        listener.resolve(Error(x))
      );
 };
+
+// from |> pipe(to_)
+let pipe = (to_: t('a, 'e), from: t('a, 'e)): (unit => unit) =>
+  from
+  |> on(
+       fun
+       | Ok(ok) => to_ |> emitOk(ok)
+       | Error(err) => to_ |> emitError(err),
+     );
