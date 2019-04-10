@@ -6,7 +6,7 @@ open Instance__Type;
 open Atom;
 
 /* lots of side effects! */
-let add = (annotation: Highlighting.Annotation.t, instance: Instance__Type.t) => {
+let add = (annotation: Highlighting.Annotation.t, instance) => {
   let textEditor = instance.editors.source;
   let textBuffer = textEditor |> TextEditor.getBuffer;
   let startPoint =

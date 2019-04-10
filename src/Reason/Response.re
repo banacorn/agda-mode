@@ -81,60 +81,88 @@ module Info = {
     };
   };
 
-  let handle =
-      (
-        info: t,
-        handler:
-          (string, Type.View.Header.style, Type.View.body) =>
-          Async.t(unit, Command.error),
-      )
-      : Async.t(unit, Command.error) => {
+  let handle = (info: t): (string, Type.View.Header.style, Type.View.body) => {
     /* open Response.Info; */
     Type.View.(
       switch (info) {
-      | CompilationOk => handler("Compilation Done!", Header.Success, Nothing)
-      | Constraints(None) =>
-        handler("No Constraints", Header.Success, Nothing)
-      | Constraints(Some(payload)) =>
-        handler("Constraints", Header.Info, Emacs(Constraints(payload)))
-      | AllGoalsWarnings(payload) =>
-        handler(
+      | CompilationOk => ("Compilation Done!", Header.Success, Nothing)
+      | Constraints(None) => ("No Constraints", Header.Success, Nothing)
+      | Constraints(Some(payload)) => (
+          "Constraints",
+          Header.Info,
+          Emacs(Constraints(payload)),
+        )
+      | AllGoalsWarnings(payload) => (
           payload.title,
           Header.Info,
           Emacs(AllGoalsWarnings(payload)),
         )
-      | Time(payload) =>
-        handler("Time", Header.PlainText, Emacs(PlainText(payload)))
-      | Error(payload) =>
-        handler("Error", Header.Error, Emacs(Error(payload)))
-      | Intro(payload) =>
-        handler("Intro", Header.PlainText, Emacs(PlainText(payload)))
-      | Auto(payload) =>
-        handler("Auto", Header.PlainText, Emacs(PlainText(payload)))
-      | ModuleContents(payload) =>
-        handler("Module Contents", Header.Info, Emacs(PlainText(payload)))
-      | SearchAbout(payload) =>
-        handler(
+      | Time(payload) => (
+          "Time",
+          Header.PlainText,
+          Emacs(PlainText(payload)),
+        )
+      | Error(payload) => ("Error", Header.Error, Emacs(Error(payload)))
+      | Intro(payload) => (
+          "Intro",
+          Header.PlainText,
+          Emacs(PlainText(payload)),
+        )
+      | Auto(payload) => (
+          "Auto",
+          Header.PlainText,
+          Emacs(PlainText(payload)),
+        )
+      | ModuleContents(payload) => (
+          "Module Contents",
+          Header.Info,
+          Emacs(PlainText(payload)),
+        )
+      | SearchAbout(payload) => (
           "Searching about ...",
           Header.PlainText,
           Emacs(SearchAbout(payload)),
         )
-      | WhyInScope(payload) =>
-        handler("Scope info", Header.Info, Emacs(WhyInScope(payload)))
-      | NormalForm(payload) =>
-        handler("Normal form", Header.Info, Emacs(PlainText(payload)))
-      | GoalType(payload) =>
-        handler("Goal type", Header.Info, Emacs(GoalTypeContext(payload)))
-      | CurrentGoal(payload) =>
-        handler("Current goal", Header.Info, Emacs(PlainText(payload)))
-      | InferredType(payload) =>
-        handler("Inferred type", Header.Info, Emacs(PlainText(payload)))
-      | Context(payload) =>
-        handler("Context", Header.Info, Emacs(Context(payload)))
-      | HelperFunction(payload) =>
-        handler("Helper function", Header.Info, Emacs(PlainText(payload)))
-      | Version(payload) =>
-        handler("Version", Header.Info, Emacs(PlainText(payload)))
+      | WhyInScope(payload) => (
+          "Scope info",
+          Header.Info,
+          Emacs(WhyInScope(payload)),
+        )
+      | NormalForm(payload) => (
+          "Normal form",
+          Header.Info,
+          Emacs(PlainText(payload)),
+        )
+      | GoalType(payload) => (
+          "Goal type",
+          Header.Info,
+          Emacs(GoalTypeContext(payload)),
+        )
+      | CurrentGoal(payload) => (
+          "Current goal",
+          Header.Info,
+          Emacs(PlainText(payload)),
+        )
+      | InferredType(payload) => (
+          "Inferred type",
+          Header.Info,
+          Emacs(PlainText(payload)),
+        )
+      | Context(payload) => (
+          "Context",
+          Header.Info,
+          Emacs(Context(payload)),
+        )
+      | HelperFunction(payload) => (
+          "Helper function",
+          Header.Info,
+          Emacs(PlainText(payload)),
+        )
+      | Version(payload) => (
+          "Version",
+          Header.Info,
+          Emacs(PlainText(payload)),
+        )
       }
     );
   };
@@ -308,7 +336,7 @@ let parseSExpression = (tokens: Token.t): result(t, string) => {
   };
 };
 
-let parse = (raw: string): result(array(t), Command.error) => {
+let parse = (raw: string): result(array(t), Parser.error) => {
   let results =
     Emacs.Parser.SExpression.parseFile(raw)
     |> Array.map(Result.flatMap(parseSExpression));
@@ -320,7 +348,7 @@ let parse = (raw: string): result(array(t), Command.error) => {
          | Error(e) => Some(e),
        );
   if (Array.length(errors) > 0) {
-    Error(Command.ParseError(errors));
+    Error(Parser.Response(errors));
   } else {
     Ok(results |> Array.filterMap(Option.fromResult));
   };

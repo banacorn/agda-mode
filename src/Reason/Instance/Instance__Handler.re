@@ -12,60 +12,63 @@ module TextEditors = Instance__TextEditors;
 open TextEditors;
 
 let handleCommandError = instance =>
-  thenError((error: Command.error) => {
-    Command.
-      /*  */
-      (
-        switch (error) {
-        | ParseError(errors) =>
-          let intro =
-            string_of_int(Array.length(errors))
-            ++ " parse errors, here are the original texts:\n\n";
-          let message = errors |> List.fromArray |> String.joinWith("\n\n");
+  thenError((error: error) => {
+    let _ =
+      switch (error) {
+      | ParseError(Response(errors)) =>
+        let intro =
+          string_of_int(Array.length(errors))
+          ++ "when trying to parse the following text responses from agda:\n\n";
+        let message = errors |> List.fromArray |> String.joinWith("\n\n");
 
-          instance.view
-          |> View.Handles.display(
-               "Parse Errors",
-               Type.View.Header.Error,
-               Emacs(PlainText(intro ++ message)),
-             );
-        | ConnectionError(_connErr) =>
-          instance.view
-          |> View.Handles.display(
-               "Connection-related Error",
-               Type.View.Header.Error,
-               Emacs(PlainText("")),
-             )
-        | Cancelled =>
-          instance.view
-          |> View.Handles.display(
-               "Query Cancelled",
-               Type.View.Header.Error,
-               Emacs(PlainText("")),
-             )
-        | GoalNotIndexed =>
-          instance.view
-          |> View.Handles.display(
-               "Goal not indexed",
-               Type.View.Header.Error,
-               Emacs(PlainText("Please reload to re-index the goal")),
-             )
-        | OutOfGoal =>
-          instance.view
-          |> View.Handles.display(
-               "Out of goal",
-               Type.View.Header.Error,
-               Emacs(PlainText("Please place the cursor in a goal")),
-             )
-        }
-      )
-    |> ignore;
+        instance.view
+        |> View.Handles.display(
+             "Parse Error",
+             Type.View.Header.Error,
+             Emacs(PlainText(intro ++ message)),
+           );
+      | ParseError(Others(error)) =>
+        let message = "when trying to parse the following text:\n" ++ error;
+
+        instance.view
+        |> View.Handles.display(
+             "Parse Error",
+             Type.View.Header.Error,
+             Emacs(PlainText(message)),
+           );
+      | ConnectionError(_connErr) =>
+        instance.view
+        |> View.Handles.display(
+             "Connection-related Error",
+             Type.View.Header.Error,
+             Emacs(PlainText("")),
+           )
+      | Cancelled =>
+        instance.view
+        |> View.Handles.display(
+             "Query Cancelled",
+             Type.View.Header.Error,
+             Emacs(PlainText("")),
+           )
+      | GoalNotIndexed =>
+        instance.view
+        |> View.Handles.display(
+             "Goal not indexed",
+             Type.View.Header.Error,
+             Emacs(PlainText("Please reload to re-index the goal")),
+           )
+      | OutOfGoal =>
+        instance.view
+        |> View.Handles.display(
+             "Out of goal",
+             Type.View.Header.Error,
+             Emacs(PlainText("Please place the cursor in a goal")),
+           )
+      };
     resolve();
   });
 
-let handleResponse =
-    (instance: Instance__Type.t, response: Response.t)
-    : Async.t(unit, Command.error) => {
+let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
   let textEditor = instance.editors.source;
   let filePath = textEditor |> Atom.TextEditor.getPath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
@@ -79,7 +82,7 @@ let handleResponse =
     instance
     |> Highlightings.addFromFile(filepath)
     |> mapOk(() => N.Fs.unlink(filepath, _ => ()))
-    |> mapError(_ => Command.Cancelled)
+    |> mapError(_ => Cancelled)
   | Status(displayImplicit, checked) =>
     if (displayImplicit || checked) {
       instance.view
@@ -143,13 +146,12 @@ let handleResponse =
       | ExtendedLambda => Goal.writeLambda(lines, goal)
       };
       instance |> instance.dispatch(Command.Primitive.Load);
-    | None => reject(Command.OutOfGoal)
+    | None => reject(OutOfGoal)
     };
   | DisplayInfo(info) =>
     instance.view.activatePanel |> Event.emitOk(true);
-    Response.Info.handle(info, (x, y, z) =>
-      View.Handles.display(x, y, z, instance.view)
-    );
+    let (x, y, z) = Response.Info.handle(info);
+    View.Handles.display(x, y, z, instance.view);
   | ClearHighlighting =>
     instance |> Highlightings.destroyAll;
     resolve();
@@ -169,7 +171,7 @@ let handleResponses = (instance, responses) =>
 /* Primitive Command => Remote Command */
 let rec handleLocalCommand =
         (command: Command.Primitive.t, instance)
-        : Async.t(option(Command.Remote.t), Command.error) => {
+        : Async.t(option(Command.Remote.t), error) => {
   let buff = (command, instance) => {
     Connections.get(instance)
     |> mapOk(connection =>
@@ -181,7 +183,7 @@ let rec handleLocalCommand =
            }: Command.Remote.t,
          )
        )
-    |> mapError(_ => Command.Cancelled);
+    |> mapError(_ => Cancelled);
   };
   switch (command) {
   | Load =>
@@ -189,7 +191,7 @@ let rec handleLocalCommand =
     instance.editors.source
     |> Atom.TextEditor.save
     |> fromPromise
-    |> mapError(_ => Command.Cancelled)
+    |> mapError(_ => Cancelled)
     |> thenOk(() => {
          instance.loaded = true;
          instance |> buff(Load);
@@ -287,6 +289,7 @@ let rec handleLocalCommand =
          if (Goal.isEmpty(goal)) {
            instance.view
            |> View.Handles.inquire("Give", "expression to give:", "")
+           |> mapError(_ => Cancelled)
            |> thenOk(result => {
                 goal |> Goal.setContent(result) |> ignore;
                 instance |> buff(Give(goal, index));
@@ -302,6 +305,7 @@ let rec handleLocalCommand =
     if (String.isEmpty(selectedText)) {
       instance.view
       |> View.Handles.inquire("Scope info", "name:", "")
+      |> mapError(_ => Cancelled)
       |> thenOk(expr =>
            instance
            |> getPointedGoal
@@ -324,6 +328,7 @@ let rec handleLocalCommand =
          "expression to infer:",
          "",
        )
+    |> mapError(_ => Cancelled)
     |> thenOk(expr => instance |> buff(SearchAbout(normalization, expr)))
 
   | InferType(normalization) =>
@@ -341,6 +346,7 @@ let rec handleLocalCommand =
                 "expression to infer:",
                 "",
               )
+           |> mapError(_ => Cancelled)
            |> thenOk(expr =>
                 instance |> buff(InferType(normalization, expr, index))
               );
@@ -358,6 +364,7 @@ let rec handleLocalCommand =
               "expression to infer:",
               "",
             )
+         |> mapError(_ => Cancelled)
          |> thenOk(expr =>
               instance |> buff(InferTypeGlobal(normalization, expr))
             )
@@ -372,6 +379,7 @@ let rec handleLocalCommand =
          "module name:",
          "",
        )
+    |> mapError(_ => Cancelled)
     |> thenOk(expr =>
          instance
          |> getPointedGoal
@@ -396,6 +404,7 @@ let rec handleLocalCommand =
                 "expression to normalize:",
                 "",
               )
+           |> mapError(_ => Cancelled)
            |> thenOk(expr =>
                 instance |> buff(ComputeNormalForm(computeMode, expr, index))
               );
@@ -411,6 +420,7 @@ let rec handleLocalCommand =
               "expression to normalize:",
               "",
             )
+         |> mapError(_ => Cancelled)
          |> thenOk(expr =>
               instance |> buff(ComputeNormalFormGlobal(computeMode, expr))
             )
@@ -436,6 +446,7 @@ let rec handleLocalCommand =
          if (Goal.isEmpty(goal)) {
            instance.view
            |> View.Handles.inquire("Case", "expression to case:", "")
+           |> mapError(_ => Cancelled)
            |> thenOk(result => {
                 goal |> Goal.setContent(result) |> ignore;
                 instance |> buff(Case(goal, index));
@@ -550,7 +561,7 @@ let rec handleLocalCommand =
 };
 
 /* Remote Command => Responses */
-let handleRemoteCommand = (instance: Instance__Type.t, remote) =>
+let handleRemoteCommand = (instance, remote) =>
   switch (remote) {
   | None => resolve()
   | Some(cmd) =>
@@ -558,14 +569,15 @@ let handleRemoteCommand = (instance: Instance__Type.t, remote) =>
     /* send the serialized command */
     cmd.connection
     |> Connection.send(serialized)
-    |> mapError(err => Command.ConnectionError(Connection.Connection(err)))
+    |> mapError(err => ConnectionError(Connection.Connection(err)))
     /* parse the returned response */
-    |> thenOk(lift(Response.parse))
+    |> thenOk(responses =>
+         responses |> lift(Response.parse) |> mapError(e => ParseError(e))
+       )
     |> thenOk(handleResponses(instance));
   };
 
-let dispatch =
-    (command, instance: Instance__Type.t): Async.t(unit, Command.error) => {
+let dispatch = (command, instance): Async.t(unit, error) => {
   instance
   |> handleLocalCommand(command)
   |> thenOk(handleRemoteCommand(instance));

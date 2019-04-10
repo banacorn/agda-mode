@@ -101,12 +101,11 @@ module Handles = {
   };
 
   let inquire =
-      (text, placeholder, value, handles): Async.t(string, Command.error) => {
+      (text, placeholder, value, handles): Async.t(string, MiniEditor.error) => {
     let promise = handles.onInquireQuery |> Event.once;
     handles.inquire
     |> Event.emitOk(({text, style: PlainText}, placeholder, value));
-
-    promise |> mapError(_ => Command.Cancelled);
+    promise;
   };
 
   let toggleDocking = (handles): Async.t(unit, unit) => {

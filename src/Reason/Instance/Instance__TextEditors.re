@@ -3,34 +3,34 @@ open Async;
 
 open Instance__Type;
 
-let getPointedGoal = (instance): Async.t(Goal.t, Command.error) => {
+let getPointedGoal = (instance): Async.t(Goal.t, error) => {
   let pointed = Editors.pointingAt(instance.goals, instance.editors);
   switch (pointed) {
   | Some(goal) => resolve(goal)
-  | None => reject(Command.OutOfGoal)
+  | None => reject(OutOfGoal)
   };
 };
 
-let getPointedGoalAt = (cursor, instance): Async.t(Goal.t, Command.error) => {
+let getPointedGoalAt = (cursor, instance): Async.t(Goal.t, error) => {
   let pointed = Editors.pointingAt(~cursor, instance.goals, instance.editors);
   switch (pointed) {
   | Some(goal) => resolve(goal)
-  | None => reject(Command.OutOfGoal)
+  | None => reject(OutOfGoal)
   };
 };
 
 let handleOutOfGoal = callback =>
   thenError(error =>
     switch (error) {
-    | Command.OutOfGoal => callback()
+    | OutOfGoal => callback()
     | _ => reject(error)
     }
   );
 
-let getGoalIndex = (goal: Goal.t): Async.t((Goal.t, int), Command.error) => {
+let getGoalIndex = (goal: Goal.t): Async.t((Goal.t, int), error) => {
   switch (goal.index) {
   | Some(index) => resolve((goal, index))
-  | None => reject(Command.GoalNotIndexed)
+  | None => reject(GoalNotIndexed)
   };
 };
 

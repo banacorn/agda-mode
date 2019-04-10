@@ -3,8 +3,7 @@ open Async;
 
 open Instance__Type;
 open Atom;
-let connect =
-    (instance: Instance__Type.t): Async.t(Connection.t, MiniEditor.error) => {
+let connect = (instance): Async.t(Connection.t, MiniEditor.error) => {
   let inquireConnection =
       (error: option(Connection.error), instance)
       : Async.t(string, MiniEditor.error) => {
@@ -80,6 +79,7 @@ let connect =
     |> Event.onOk(responses =>
          responses
          |> lift(Response.parse)
+         |> mapError(e => Instance__Type.ParseError(e))
          |> thenOk(instance.handleResponses(instance))
          |> ignore
        )

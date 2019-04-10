@@ -2,15 +2,6 @@ open Rebase;
 
 /* Command Dispatcher */
 
-type error =
-  | ParseError(array(string))
-  | ConnectionError(Connection.error)
-  /* Cancelled: never makes its way to Agda */
-  | Cancelled
-  /* Other reasons, also never make their way to Agda */
-  | GoalNotIndexed
-  | OutOfGoal;
-
 type highlightingLevel =
   | None
   | NonInteractive;
