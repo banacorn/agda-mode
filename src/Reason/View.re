@@ -152,6 +152,7 @@ type state = {
   mountAt,
   activated: bool,
   settingsView: option(Tab.t),
+  connection: option(Connection.t),
   mode,
 };
 
@@ -166,6 +167,7 @@ let initialState = () => {
     mountAt: Bottom(createElement()),
     activated: false,
     settingsView: None,
+    connection: None,
     mode: Display,
   };
 };
@@ -184,6 +186,7 @@ type action =
   | Activate
   | Deactivate
   /*  */
+  | UpdateConnection(option(Connection.t))
   | UpdateHeader(Header.t)
   | UpdateBody(body)
   | UpdateMode(mode)
@@ -251,16 +254,13 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
                 ~onOpen=
                   (element, _, _) => {
                     open Handles;
-                    let {
-                      inquireConnection,
-                      onInquireConnection,
-                      updateConnection,
-                    } = handles;
+                    let connection = self.state.connection;
+                    let {inquireConnection, onInquireConnection} = handles;
                     ReactDOMRe.render(
                       <Settings
                         inquireConnection
                         onInquireConnection
-                        updateConnection
+                        connection
                         navigate={handles.navigateSettingsView}
                       />,
                       element,
@@ -295,6 +295,7 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
     )
   | UpdateSettingsView(settingsView) => Update({...state, settingsView})
   | UpdateMountAt(mountAt) => Update({...state, mountAt})
+  | UpdateConnection(connection) => Update({...state, connection})
   | UpdateHeader(header) => Update({...state, header})
   | UpdateBody(body) => Update({...state, body})
   | UpdateMode(mode) => Update({...state, mode})
@@ -360,6 +361,10 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     /* opening/closing <Settings> */
     handles.activateSettingsView
     |> onOk(activate => self.send(ToggleSettingsTab(activate)))
+    |> destroyWhen(self.onUnmount);
+
+    handles.updateConnection
+    |> onOk(connection => self.send(UpdateConnection(connection)))
     |> destroyWhen(self.onUnmount);
   },
   render: self => {

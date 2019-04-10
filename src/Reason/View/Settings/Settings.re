@@ -29,7 +29,7 @@ let make =
     (
       ~inquireConnection: Event.t((option(Connection.error), string), unit),
       ~onInquireConnection: Event.t(string, MiniEditor.error),
-      ~updateConnection: Event.t(option(Connection.t), unit),
+      ~connection: option(Connection.t),
       ~navigate: Event.t(uri, unit),
       _children,
     ) => {
@@ -37,18 +37,16 @@ let make =
   initialState,
   reducer,
   didMount: self => {
-    open Event;
-    /* navigation */
-    navigate
-    |> onOk(uri => self.send(Navigate(uri)))
-    |> destroyWhen(self.onUnmount);
-    /* updates Connection.t */
-    updateConnection
-    |> onOk(connection => self.send(UpdateConnection(connection)))
-    |> destroyWhen(self.onUnmount);
+    Event.
+      /* navigation */
+      (
+        navigate
+        |> onOk(uri => self.send(Navigate(uri)))
+        |> destroyWhen(self.onUnmount)
+      );
   },
   render: self => {
-    let {uri, connection} = self.state;
+    let {uri} = self.state;
     <section className="agda-settings" tabIndex=(-1)>
       <Settings__Breadcrumb
         uri
