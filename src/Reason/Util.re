@@ -157,7 +157,7 @@ module Dict = {
 module Parser = {
   /* open Option; */
   let captures = (re: Js.Re.t, x: string): option(array(option(string))) =>
-    Js.Re.exec(x, re)
+    Js.Re.exec_(re, x)
     |> Option.map(result =>
          result |> Js.Re.captures |> Array.map(Js.Nullable.toOption)
        );

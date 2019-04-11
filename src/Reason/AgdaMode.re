@@ -40,9 +40,9 @@ let isAgdaFile = (textEditor): bool => {
   /* filenames are case insensitive on Windows */
   let onWindows = N.OS.type_() == "Windows_NT";
   if (onWindows) {
-    Js.Re.test(filepath, [%re "/\\.agda$|\\.lagda$/i"]);
+    Js.Re.test_([%re "/\\.agda$|\\.lagda$/i"], filepath);
   } else {
-    Js.Re.test(filepath, [%re "/\\.agda$|\\.lagda$/"]);
+    Js.Re.test_([%re "/\\.agda$|\\.lagda$/"], filepath);
   };
 };
 

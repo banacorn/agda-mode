@@ -1,9 +1,5 @@
 open ReasonReact;
 
-open Rebase;
-
-open Type.View;
-
 let component = statelessComponent("Breadcrumb");
 
 type uri =

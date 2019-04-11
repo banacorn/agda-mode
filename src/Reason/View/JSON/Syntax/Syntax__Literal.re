@@ -15,7 +15,7 @@ let make = (~value, _children) => {
     | LitWord64(range, n) =>
       <Link jump=true hover=true range> {string(string_of_int(n))} </Link>
     | LitFloat(range, n) =>
-      <Link jump=true hover=true range> {string(string_of_float(n))} </Link>
+      <Link jump=true hover=true range> {string(Js.Float.toString(n))} </Link>
     | LitString(range, s) =>
       <Link jump=true hover=true range> {string("\"" ++ s ++ "\"")} </Link>
     | LitChar(range, c) =>

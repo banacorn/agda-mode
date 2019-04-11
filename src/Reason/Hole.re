@@ -41,7 +41,7 @@ module Lexer = {
           |> Util.safeSplitByRe(regex)
           |> Array.filterMap(x => x)
           |> Array.map(content => {
-               let type_ = regex |> Js.Re.test(content) ? target : source;
+               let type_ = Js.Re.test_(regex, content) ? target : source;
                let cursorOld = cursor^;
                cursor := cursor^ + String.length(content);
                {content, range: (cursorOld, cursor^), type_};
@@ -130,12 +130,12 @@ let filterOutTex = raw => {
   |> Array.map(token => {
        let {content, range} = token;
        /* flip `insideAgda` to `false` after "end{code}" */
-       if (Regex.texEnd |> Js.Re.test(content)) {
+       if (Js.Re.test_(Regex.texEnd, content)) {
          insideAgda := false;
        };
        let type_ = insideAgda^ ? AgdaRaw : Literate;
        /* flip `insideAgda` to `true` after "begin{code}" */
-       if (Regex.texBegin |> Js.Re.test(content)) {
+       if (Js.Re.test_(Regex.texBegin, content)) {
          insideAgda := true;
        };
        {content, type_, range};
@@ -149,12 +149,12 @@ let filterOutMarkdown = raw => {
   |> Array.map(token => {
        let {content, range} = token;
        /* leaving Agda code */
-       if (insideAgda^ && Regex.markdown |> Js.Re.test(content)) {
+       if (insideAgda^ && Js.Re.test_(Regex.markdown, content)) {
          insideAgda := false;
        };
        let type_ = insideAgda^ ? AgdaRaw : Literate;
        /* entering Agda code */
-       if (! insideAgda^ && Regex.markdown |> Js.Re.test(content)) {
+       if (! insideAgda^ && Js.Re.test_(Regex.markdown, content)) {
          insideAgda := true;
        };
        {content, type_, range};
@@ -207,8 +207,7 @@ let parse =
 
     /* calculate how much space we have */
     let content: string =
-      Regex.goalBracketContent
-      |> Js.Re.exec(token.content)
+      Js.Re.exec_(Regex.goalBracketContent, token.content)
       |> Option.flatMap(result =>
            Js.Re.captures(result)[1]
            |> Option.map(Js.Nullable.toOption)

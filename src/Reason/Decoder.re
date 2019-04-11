@@ -338,7 +338,7 @@ module Decode = {
              | "LitFloat" =>
                LitFloat(
                  json |> field("range", Range.decode),
-                 json |> field("value", float),
+                 json |> field("value", Json.Decode.float),
                )
              | "LitString" =>
                LitString(
@@ -1180,7 +1180,7 @@ module Decode = {
       let dom = (decoder, json) => {
         argInfo: json |> field("argInfo", CommonPrim.argInfo),
         finite: json |> field("finite", bool),
-        value: json |> field("value", decoder),
+        Type.Syntax.Common.value: json |> field("value", decoder),
       };
     };
   };

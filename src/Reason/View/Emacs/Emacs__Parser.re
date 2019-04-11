@@ -22,12 +22,12 @@ let unindent: array(string) => array(string) =
          */
       let reallyLongTermIdentifier = [%re "/^\\S+$/"];
       let restOfTheJudgement = [%re "/^\\s*\\:\\s* \\S*/"];
-      Js.Re.test(line, sort)
-      || Js.Re.test(line, delimeter)
-      || Js.Re.test(line, reallyLongTermIdentifier)
+      Js.Re.test_(sort, line)
+      || Js.Re.test_(delimeter, line)
+      || Js.Re.test_(reallyLongTermIdentifier, line)
       && nextLine
-      |> exists(line => Js.Re.test(line, restOfTheJudgement))
-      || Js.Re.test(line, completeJudgement);
+      |> exists(line => Js.Re.test_(restOfTheJudgement, line))
+      || Js.Re.test_(completeJudgement, line);
     };
     let newLineIndices: array(int) =
       lines
@@ -226,7 +226,7 @@ let output: parser(Type.View.Emacs.output) =
       let rangeRe = [%re
         "/\\[ at (\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+)) \\]$/"
       ];
-      let hasRange = Js.Re.test(raw, rangeRe);
+      let hasRange = Js.Re.test_(rangeRe, raw);
       if (hasRange) {
         raw |> parse(Output.outputWithRange);
       } else {
@@ -266,9 +266,9 @@ let warningOrErrors: bool => parser(Type.View.Emacs.warningError) =
         raw
         |> parse(plainText)
         |> map(body =>
-             isWarning ?
-               Type.View.Emacs.WarningMessage(body) :
-               Type.View.Emacs.ErrorMessage(body)
+             isWarning
+               ? Type.View.Emacs.WarningMessage(body)
+               : Type.View.Emacs.ErrorMessage(body)
            ),
     );
 
@@ -339,28 +339,28 @@ module Response = {
         let markMetas = ((_, i)) =>
           hasMetas && i === 0 ? Some("metas") : None;
         let markWarnings = ((line, i)) =>
-          hasWarnings ?
-            hasMetas ?
-              /* Has both warnings and metas */
-              line
-              |> Js.String.slice(~from=5, ~to_=13)
-              |> Js.String.match([%re "/Warnings/"])
-              |> map(_ => "warnings") :
-              /* Has only warnings */
-              i === 0 ? Some("warnings") : None :
+          hasWarnings
+            ? hasMetas
+                /* Has both warnings and metas */
+                ? line
+                  |> Js.String.slice(~from=5, ~to_=13)
+                  |> Js.String.match([%re "/Warnings/"])
+                  |> map(_ => "warnings")
+                /* Has only warnings */
+                : i === 0 ? Some("warnings") : None
             /* Has no warnings */
-            None;
+            : None;
         let markErrors = ((line, i)) =>
-          hasErrors ?
+          hasErrors
             /* Has both warnings or metas and errors */
-            hasMetas || hasWarnings ?
-              line
-              |> Js.String.slice(~from=5, ~to_=11)
-              |> Js.String.match([%re "/Errors/"])
-              |> map(_ => "errors") :
-              /* Has only errors */
-              i === 0 ? Some("errors") : None :
-            None;
+            ? hasMetas || hasWarnings
+                ? line
+                  |> Js.String.slice(~from=5, ~to_=11)
+                  |> Js.String.match([%re "/Errors/"])
+                  |> map(_ => "errors")
+                /* Has only errors */
+                : i === 0 ? Some("errors") : None
+            : None;
         lines
         |> Util.Dict.partite(line =>
              or_(

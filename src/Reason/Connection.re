@@ -110,9 +110,9 @@ let validateAndMake = (pathAndParams): Async.t(metadata, validationError) => {
     | None => None
     | Some(err) =>
       let message = err |> Js.Exn.message |> Option.getOr("");
-      if (message |> Js.Re.test(_, [%re "/No such file or directory/"])) {
+      if (message |> Js.Re.test_([%re "/No such file or directory/"], _)) {
         Some(NotFound(err));
-      } else if (message |> Js.Re.test(_, [%re "/command not found/"])) {
+      } else if (message |> Js.Re.test_([%re "/command not found/"], _)) {
         Some(NotFound(err));
       } else {
         Some(ShellError(err));
@@ -133,8 +133,8 @@ let validateAndMake = (pathAndParams): Async.t(metadata, validationError) => {
           args,
           version: Util.Semver.coerce(version),
           protocol:
-            Js.Re.test(message, [%re "/--interaction-json/"]) ?
-              EmacsAndJSON : EmacsOnly,
+            Js.Re.test_([%re "/--interaction-json/"], message)
+              ? EmacsAndJSON : EmacsOnly,
         })
       }
     };

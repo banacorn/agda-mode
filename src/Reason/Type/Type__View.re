@@ -1,5 +1,3 @@
-open Rebase;
-
 open Type__Location;
 
 /* open Type__Type__Syntax.Name;

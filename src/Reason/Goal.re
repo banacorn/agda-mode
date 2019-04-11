@@ -18,11 +18,11 @@ module FileType = {
     | LiterateReStructuredText
     | LiterateMarkdown;
   let parse = filepath =>
-    if ([%re "/\\.lagda.rst$/i"] |> Js.Re.test(filepath)) {
+    if (Js.Re.test_([%re "/\\.lagda.rst$/i"], filepath)) {
       LiterateReStructuredText;
-    } else if ([%re "/\\.lagda.md$/i"] |> Js.Re.test(filepath)) {
+    } else if (Js.Re.test_([%re "/\\.lagda.md$/i"], filepath)) {
       LiterateMarkdown;
-    } else if ([%re "/\\.lagda.tex$|\\.lagda$/i"] |> Js.Re.test(filepath)) {
+    } else if (Js.Re.test_([%re "/\\.lagda.tex$|\\.lagda$/i"], filepath)) {
       LiterateTeX;
     } else {
       Agda;
