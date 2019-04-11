@@ -4,8 +4,7 @@ let sort = Array.sort;
 
 open Rebase;
 
-[@bs.module "./../../../asset/keymap"]
-external rawKeymap: Js.t({.}) = "default";
+[@bs.module "./../../keymap"] external rawKeymap: Js.t({.}) = "default";
 
 type trie = {
   symbol: array(string),
@@ -197,96 +196,100 @@ let reducer = (editors, onActivationChange, action, state) =>
   switch (action) {
   | Activate =>
     onActivationChange(true);
-    state.activated ?
-      SideEffects(
-        self =>
-          /* already activated, it happens when we get the 2nd */
-          /* backslash '\' comes in */
-          if (state.buffer.underlying |> String.isEmpty) {
-            /* the user probably just want to type '\', we shall leave it as is */
+    state.activated
+      ? SideEffects(
+          self =>
+            /* already activated, it happens when we get the 2nd */
+            /* backslash '\' comes in */
+            if (state.buffer.underlying |> String.isEmpty) {
+              /* the user probably just want to type '\', we shall leave it as is */
+              self.send(
+                Deactivate,
+              );
+            } else {
+              /* keep going, see issue #34: https://github.com/banacorn/agda-mode/issues/34 */
+              self.send(
+                InsertSurface("\\"),
+              );
+            },
+        )
+      : UpdateWithSideEffects(
+          {...state, activated: true},
+          self => {
+            open Webapi.Dom;
+            open Atom;
+            let focusedEditor = Editors.Focus.get(editors);
+            /* add class 'agda-mode-input-method-activated' */
+            Views.getView(focusedEditor)
+            |> HtmlElement.classList
+            |> DomTokenListRe.add("agda-mode-input-method-activated");
+            /* monitors raw text buffer and figures out what happend */
+            let markers =
+              focusedEditor
+              |> TextEditor.getSelectedBufferRanges
+              |> Array.map(range =>
+                   focusedEditor
+                   |> TextEditor.markBufferRange(Atom.Range.copy(range))
+                 );
+            /* monitors only the first marker */
+            let markersDisposable =
+              markers[0]
+              |> Option.map(marker =>
+                   marker
+                   |> DisplayMarker.onDidChange(
+                        self.handle(markerOnDidChange(editors)),
+                      )
+                 );
+            /* decorate the editor with these markers */
+            let decorations =
+              markers
+              |> Array.map(marker =>
+                   focusedEditor
+                   |> TextEditor.decorateMarker(
+                        marker,
+                        TextEditor.decorationParams(
+                          ~type_="highlight",
+                          ~class_="input-method-decoration",
+                          (),
+                        ),
+                      )
+                 );
+            /* store these markers and stuff */
             self.send(
-              Deactivate,
+              UpdateMarkers(markers, decorations, markersDisposable),
             );
-          } else {
-            /* keep going, see issue #34: https://github.com/banacorn/agda-mode/issues/34 */
-            self.send(
-              InsertSurface("\\"),
-            );
+            /* insert '\' at the cursor to indicate the activation */
+            self.send(InsertSurface("\\"));
           },
-      ) :
-      UpdateWithSideEffects(
-        {...state, activated: true},
-        self => {
-          open Webapi.Dom;
-          open Atom;
-          let focusedEditor = Editors.Focus.get(editors);
-          /* add class 'agda-mode-input-method-activated' */
-          Views.getView(focusedEditor)
-          |> HtmlElement.classList
-          |> DomTokenListRe.add("agda-mode-input-method-activated");
-          /* monitors raw text buffer and figures out what happend */
-          let markers =
-            focusedEditor
-            |> TextEditor.getSelectedBufferRanges
-            |> Array.map(range =>
-                 focusedEditor
-                 |> TextEditor.markBufferRange(Atom.Range.copy(range))
-               );
-          /* monitors only the first marker */
-          let markersDisposable =
-            markers[0]
-            |> Option.map(marker =>
-                 marker
-                 |> DisplayMarker.onDidChange(
-                      self.handle(markerOnDidChange(editors)),
-                    )
-               );
-          /* decorate the editor with these markers */
-          let decorations =
-            markers
-            |> Array.map(marker =>
-                 focusedEditor
-                 |> TextEditor.decorateMarker(
-                      marker,
-                      TextEditor.decorationParams(
-                        ~type_="highlight",
-                        ~class_="input-method-decoration",
-                        (),
-                      ),
-                    )
-               );
-          /* store these markers and stuff */
-          self.send(UpdateMarkers(markers, decorations, markersDisposable));
-          /* insert '\' at the cursor to indicate the activation */
-          self.send(InsertSurface("\\"));
-        },
-      );
+        );
   | Deactivate =>
     onActivationChange(false);
-    state.activated ?
-      UpdateWithSideEffects(
-        {
-          ...state,
-          activated: false,
-          buffer: initialBuffer,
-          translation: initialTranslation,
-        },
-        _self => {
-          open Webapi.Dom;
-          open Atom;
-          /* remove class 'agda-mode-input-method-activated' */
-          editors
-          |> Editors.Focus.get
-          |> Views.getView
-          |> HtmlElement.classList
-          |> DomTokenListRe.remove("agda-mode-input-method-activated");
-          /* destroy all markers and stuff */
-          state.markers |> Array.forEach(DisplayMarker.destroy);
-          state.decorations |> Array.forEach(Decoration.destroy);
-          state.markersDisposable |> Option.map(Disposable.dispose) |> ignore;
-        },
-      ) :
-      NoUpdate;
+    state.activated
+      ? UpdateWithSideEffects(
+          {
+            ...state,
+            activated: false,
+            buffer: initialBuffer,
+            translation: initialTranslation,
+          },
+          _self => {
+            open Webapi.Dom;
+            open Atom;
+            /* remove class 'agda-mode-input-method-activated' */
+            editors
+            |> Editors.Focus.get
+            |> Views.getView
+            |> HtmlElement.classList
+            |> DomTokenListRe.remove("agda-mode-input-method-activated");
+            /* destroy all markers and stuff */
+            state.markers |> Array.forEach(DisplayMarker.destroy);
+            state.decorations |> Array.forEach(Decoration.destroy);
+            state.markersDisposable
+            |> Option.map(Disposable.dispose)
+            |> ignore;
+          },
+        )
+      : NoUpdate;
   | InsertUnderlying(char) =>
     let input = state.buffer.underlying ++ char;
     let translation = translate(input);

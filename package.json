@@ -1,11 +1,11 @@
 {
   "name": "agda-mode",
-  "main": "./lib/js/src/Reason/AgdaMode.bs",
+  "main": "./lib/js/src/AgdaMode.bs",
   "version": "0.8.6",
   "description": "agda-mode on Atom",
   "scripts": {
     "start": "bsb -make-world -w",
-    "build": "tsc && bsb -make-world && npx webpack --mode=production",
+    "build": "bsb -make-world && npx webpack --mode=production",
     "rebuild": "rm -rf lib && npm run build",
     "rebuild2": "rm -rf lib && tsc && bsb -make-world"
   },
@@ -32,8 +32,6 @@
   },
   "devDependencies": {
     "bs-platform": "^5.0.1",
-    "ts-loader": "^5.3.0",
-    "typescript": "^3.2.4",
     "webpack": "^4.24.0",
     "webpack-cli": "^3.1.2",
     "@glennsl/rebase": "github:glennsl/rebase",
@@ -42,30 +40,9 @@
     "bs-webapi": "^0.13.0"
   },
   "dependencies": {
-    "@types/atom": "^1.28",
-    "@types/bluebird": "^3.5",
-    "@types/classnames": "^2.2",
-    "@types/lodash": "^4.14",
-    "@types/node": "^10.5.1",
-    "@types/parsimmon": "^1.10.0",
-    "@types/react": "^16.4",
-    "@types/react-dom": "^16.0",
-    "@types/react-redux": "^6.0.3",
-    "@types/redux": "^3.6",
-    "@types/redux-actions": "^2.3",
-    "@types/semver": "^5.5",
-    "bluebird": "^3.5",
-    "classnames": "^2.2",
-    "duplexer": "^0.1",
-    "lodash": "^4.17",
-    "parsimmon": "^1.11",
     "react": "^16.4",
     "react-dom": "^16.4",
-    "react-redux": "^5.0",
     "reason-react": ">=0.4.0",
-    "redux": "^4",
-    "redux-actions": "^2.4",
-    "redux-thunk": "^2.3.0",
     "semver": "^5.5"
   }
 }
