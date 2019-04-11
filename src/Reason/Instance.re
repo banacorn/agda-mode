@@ -50,8 +50,7 @@ let make = (textEditor: Atom.TextEditor.t) => {
     |> Event.onOk(
          fun
          | Connection.Connect(path) => Js.log("Connect " ++ path)
-         | Connection.Disconnect =>
-           instance |> Connections.disconnect |> ignore,
+         | Connection.AutoSearch => Js.log("Auto search "),
        );
   /* listen to `onMouseEvent` */
   let destructor1 =

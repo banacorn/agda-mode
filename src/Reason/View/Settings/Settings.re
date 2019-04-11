@@ -27,9 +27,10 @@ let at = (x, y, classNames) => {
 
 let make =
     (
-      ~inquireConnection: Event.t((option(Connection.error), string), unit),
+      ~inquireConnection: Event.t(unit, unit),
       ~onInquireConnection: Event.t(Connection.viewAction, MiniEditor.error),
       ~connection: option(Connection.t),
+      ~connectionError: option(Connection.error),
       ~navigate: Event.t(uri, unit),
       ~element: option(Webapi.Dom.Element.t),
       _children,
@@ -74,6 +75,7 @@ let make =
               inquireConnection
               onInquireConnection
               connection
+              error=connectionError
               hidden={uri != URI.Connection}
             />
           </div>

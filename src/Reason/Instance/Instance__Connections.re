@@ -17,16 +17,17 @@ let rec inquireAgdaPath =
          instance.view |> navigateSettingsView(Settings.URI.Connection);
          /* listen to `onInquireConnection` before triggering `inquireConnection` */
          let promise = instance.view |> onInquireConnection;
-         instance.view |> inquireConnection(error, "");
+         instance.view |> inquireConnection;
+         instance.view |> updateConnection(None, error);
          promise;
        });
   instance.view |> activateSettingsView;
-  /*  */
+  /* ignore other actions from <Settings/Connection> */
   promise
   |> thenOk(
        fun
        | Connection.Connect(x) => resolve(x)
-       | Connection.Disconnect => instance |> inquireAgdaPath(error),
+       | _ => instance |> inquireAgdaPath(error),
      );
 };
 
@@ -42,7 +43,7 @@ let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
 
   searchedPath
   |> thenError(err =>
-       instance |> inquireAgdaPath(Some(Connection.AutoSearch(err)))
+       instance |> inquireAgdaPath(Some(Connection.AutoSearchError(err)))
      );
 };
 
@@ -56,7 +57,7 @@ let connectWithAgdaPath =
     |> thenError(err =>
          instance
          |> inquireAgdaPath(
-              Some(Connection.Validation(pathAndParams, err)),
+              Some(Connection.ValidationError(pathAndParams, err)),
             )
          |> thenOk(getMetadata(instance))
        );
@@ -71,7 +72,7 @@ let connectWithAgdaPath =
       |> String.joinWith(" ");
     Environment.Config.set("agda-mode.agdaPath", path);
     /* update the view */
-    instance.view.updateConnection |> Event.emitOk(Some(connection));
+    instance.view |> View.Handles.updateConnection(Some(connection), None);
     /* pass it on */
     connection;
   };
@@ -82,7 +83,7 @@ let connectWithAgdaPath =
     |> thenError(err => {
          Js.log(err);
          instance
-         |> inquireAgdaPath(Some(Connection.Connection(err)))
+         |> inquireAgdaPath(Some(Connection.ConnectionError(err)))
          |> thenOk(getMetadata(instance))
          |> thenOk(getConnection(instance));
        });
@@ -121,7 +122,7 @@ let disconnect = instance => {
   | Some(connection) =>
     Connection.disconnect(Connection.DisconnectedByUser, connection);
     instance.connection = None;
-    instance.view.updateConnection |> Event.emitOk(None);
+    instance.view |> View.Handles.updateConnection(None, None);
   | None => ()
   };
 };

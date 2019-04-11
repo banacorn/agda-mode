@@ -13,8 +13,9 @@ module Handles = {
     inquire: Event.t((Header.t, string, string), unit),
     toggleDocking: Event.t(unit, unit),
     activatePanel: Event.t(bool, unit),
-    updateConnection: Event.t(option(Connection.t), unit),
-    inquireConnection: Event.t((option(Connection.error), string), unit),
+    updateConnection:
+      Event.t((option(Connection.t), option(Connection.error)), unit),
+    inquireConnection: Event.t(unit, unit),
     onInquireConnection: Event.t(Connection.viewAction, MiniEditor.error),
     inquireQuery: Event.t((string, string), unit),
     onInquireQuery: Event.t(string, MiniEditor.error),
@@ -121,8 +122,11 @@ module Handles = {
   let onInquireConnection = handles => {
     handles.onInquireConnection |> Event.once;
   };
-  let inquireConnection = (error, body, handles) => {
-    handles.inquireConnection |> Event.emitOk((error, body));
+  let inquireConnection = handles => {
+    handles.inquireConnection |> Event.emitOk();
+  };
+  let updateConnection = (connection, error, handles) => {
+    handles.updateConnection |> Event.emitOk((connection, error));
   };
   let activateSettingsView = handles => {
     handles.activateSettingsView |> Event.emitOk(true);
@@ -152,6 +156,7 @@ type state = {
   activated: bool,
   settingsView: option(Tab.t),
   connection: option(Connection.t),
+  connectionError: option(Connection.error),
   mode,
 };
 
@@ -167,6 +172,7 @@ let initialState = () => {
     activated: false,
     settingsView: None,
     connection: None,
+    connectionError: None,
     mode: Display,
   };
 };
@@ -185,7 +191,7 @@ type action =
   | Activate
   | Deactivate
   /*  */
-  | UpdateConnection(option(Connection.t))
+  | UpdateConnection(option(Connection.t), option(Connection.error))
   | UpdateHeader(Header.t)
   | UpdateBody(body)
   | UpdateMode(mode)
@@ -277,7 +283,8 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
     SideEffects(mountSettings(editors, handles, open_))
   | UpdateSettingsView(settingsView) => Update({...state, settingsView})
   | UpdateMountAt(mountAt) => Update({...state, mountAt})
-  | UpdateConnection(connection) => Update({...state, connection})
+  | UpdateConnection(connection, connectionError) =>
+    Update({...state, connection, connectionError})
   | UpdateHeader(header) => Update({...state, header})
   | UpdateBody(body) => Update({...state, body})
   | UpdateMode(mode) => Update({...state, mode})
@@ -346,11 +353,22 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     |> destroyWhen(self.onUnmount);
 
     handles.updateConnection
-    |> onOk(connection => self.send(UpdateConnection(connection)))
+    |> onOk(((connection, error)) =>
+         self.send(UpdateConnection(connection, error))
+       )
     |> destroyWhen(self.onUnmount);
   },
   render: self => {
-    let {header, body, mountAt, mode, activated, settingsView, connection} =
+    let {
+      header,
+      body,
+      mountAt,
+      mode,
+      activated,
+      settingsView,
+      connection,
+      connectionError,
+    } =
       self.state;
     open Handles;
     let {
@@ -403,6 +421,7 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
           inquireConnection
           onInquireConnection
           connection
+          connectionError
           element=settingsElement
           navigate=navigateSettingsView
         />

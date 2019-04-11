@@ -6,58 +6,58 @@ let component = statelessComponent("SettingsConnectionError");
 
 let toString =
   fun
-  | AutoSearch(ProcessHanging) => (
+  | AutoSearchError(ProcessHanging) => (
       "Process not responding",
       {j|Please restart the process|j},
     )
-  | AutoSearch(NotSupported(os)) => (
+  | AutoSearchError(NotSupported(os)) => (
       "Auto search failed",
       {j|currently auto path searching is not supported on $(os)|j},
     )
-  | AutoSearch(NotFound(msg)) => ("Auto search failed", msg)
-  | Validation(_path, PathMalformed(msg)) => ("Path malformed", msg)
-  | Validation(_path, ProcessHanging) => (
+  | AutoSearchError(NotFound(msg)) => ("Auto search failed", msg)
+  | ValidationError(_path, PathMalformed(msg)) => ("Path malformed", msg)
+  | ValidationError(_path, ProcessHanging) => (
       "Process hanging",
       "The program has not been responding for more than 1 sec",
     )
-  | Validation(_path, NotFound(error)) => (
+  | ValidationError(_path, NotFound(error)) => (
       "Agda not found",
       Util.JsError.toString(error),
     )
-  | Validation(_path, ShellError(error)) => (
+  | ValidationError(_path, ShellError(error)) => (
       "Error from the shell",
       Util.JsError.toString(error),
     )
-  | Validation(_path, ProcessError(msg)) => ("Error from the stderr", msg)
-  | Validation(_path, IsNotAgda(msg)) => ("This is not agda", msg)
-  | Connection(ShellError(error)) => (
+  | ValidationError(_path, ProcessError(msg)) => (
+      "Error from the stderr",
+      msg,
+    )
+  | ValidationError(_path, IsNotAgda(msg)) => ("This is not agda", msg)
+  | ConnectionError(ShellError(error)) => (
       "Socket error",
       Util.JsError.toString(error),
     )
-  | Connection(ClosedByProcess(code, signal)) => (
+  | ConnectionError(ClosedByProcess(code, signal)) => (
       "Socket closed",
       {j|code: $code
 signal: $signal|j},
     )
-  | Connection(DisconnectedByUser) => (
+  | ConnectionError(DisconnectedByUser) => (
       "Disconnected",
       "Connection disconnected by ourselves",
     );
 
-let make = (~error: option(error), _children) => {
+let make = (~error: error, _children) => {
   ...component,
   render: _self => {
-    switch (error) {
-    | None => null
-    | Some(e) =>
-      let (header, body) = toString(e);
-      <>
-        <hr />
-        <div className="inset-panel padded text-warning error">
-          <h3> {string(header)} </h3>
-          <pre> {string(body)} </pre>
-        </div>
-      </>;
-    };
+    let (header, body) = toString(error);
+    <>
+      <hr />
+      <h2> {string("Error: " ++ header)} </h2>
+      <p> {string("error message:")} </p>
+      <pre className="inset-panel padded text-warning error">
+        {string(body)}
+      </pre>
+    </>;
   },
 };

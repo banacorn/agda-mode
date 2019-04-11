@@ -569,7 +569,7 @@ let handleRemoteCommand = (instance, remote) =>
     /* send the serialized command */
     cmd.connection
     |> Connection.send(serialized)
-    |> mapError(err => ConnectionError(Connection.Connection(err)))
+    |> mapError(err => ConnectionError(Connection.ConnectionError(err)))
     /* parse the returned response */
     |> thenOk(responses =>
          responses |> lift(Response.parse) |> mapError(e => ParseError(e))

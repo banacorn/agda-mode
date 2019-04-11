@@ -14,7 +14,7 @@ type metadata = {
 
 type viewAction =
   | Connect(string)
-  | Disconnect;
+  | AutoSearch;
 
 type autoSearchError =
   | ProcessHanging
@@ -40,9 +40,9 @@ type connectionError =
   | DisconnectedByUser;
 
 type error =
-  | AutoSearch(autoSearchError)
-  | Validation(string, validationError)
-  | Connection(connectionError);
+  | AutoSearchError(autoSearchError)
+  | ValidationError(string, validationError)
+  | ConnectionError(connectionError);
 
 type t = {
   metadata,

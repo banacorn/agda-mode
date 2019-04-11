@@ -151,6 +151,10 @@
 
         @breadcrumbHeight: calc(@component-line-height + @component-padding * 2);
 
+        h1, h2 {
+            color: @text-color-highlight
+        }
+
         .agda-settings-breadcrumb {
             flex: 0 1 @breadcrumbHeight;
 
@@ -190,87 +194,20 @@
         }
 
         .agda-settings-connection {
-            padding: @component-padding * 2;
+            padding: @component-padding (@component-padding * 2);
 
-            ul.agda-settings-connection-dashboard {
-                background: @base-background-color;
-                border: 1px solid @tool-panel-border-color;
-                border-radius: @component-border-radius * 2;
-                overflow: hidden;
-
-
-                h2 {
-                    margin: 0;
-                }
-
-                li > div {
-                    padding: @component-padding @component-padding @component-padding * 4;
-                }
-
-                li {
-                    border-bottom: 1px solid @tool-panel-border-color;
-
-                }
-
-                label {
-                    user-select: none;
-                    padding: @component-padding * 2;
-                    font-size: @font-size * 1.5;
-                    background: @tool-panel-background-color;
-
-                    cursor: pointer;
-
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-
-                p {
-                    margin: @component-padding;
-                }
-
-                .error {
-                    box-shadow: inset 0 0 0 2px @background-color-error;
-                }
-
-
+            #connection-status {
+                float: right;
             }
-                .input-toggle {
-                    cursor: pointer;
-                    flex-shrink: 0;
-
-                    width: 40px;
-                    height: 20px;
-                    border-radius: 2.5em;
-                }
-
-                .input-toggle:before {
-                    width: 20px;
-                    height: 20px;
-                }
         }
 
         .agda-settings-connection.inquiring {
-            #agda-settings-connection-agda {
-                box-shadow: inset 0 0 0 2px @background-color-error;
-
-                label {
-                    background: @background-color-error;
-                    color: @text-color-selected;
-                }
-                atom-text-editor {
-                    border-color: @background-color-error;
-                }
-                atom-text-editor.is-focused {
-                    border-color: @background-color-error;
-                    box-shadow: 0 0 0 1px @background-color-error;
-                }
+            atom-text-editor {
+                border-color: @background-color-error;
             }
-
-            li:not(#agda-settings-connection-agda) {
-                color: lighten(@tool-panel-background-color, 10%);
-                cursor: not-allowed;
-                * { cursor: not-allowed; }
+            atom-text-editor.is-focused {
+                border-color: @background-color-error;
+                box-shadow: 0 0 0 1px @background-color-error;
             }
         }
 
