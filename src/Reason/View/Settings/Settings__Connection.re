@@ -22,7 +22,7 @@ let initialState = () => {
   error: None,
   value: "",
 };
-let reducer = (action: action, state: state) =>
+let reducer = (onInquireConnection, action: action, state: state) =>
   switch (action) {
   | Inquire(error, value) =>
     UpdateWithSideEffects(
@@ -37,7 +37,10 @@ let reducer = (action: action, state: state) =>
         ),
     )
   | Connect => NoUpdate
-  | Disconnect => NoUpdate
+  | Disconnect =>
+    SideEffects(
+      _ => onInquireConnection |> Event.emitOk(Connection.Disconnect),
+    )
   };
 
 let component = reducerComponent("Connection");
@@ -51,12 +54,13 @@ let make =
       ~inquireConnection: Event.t((option(Connection.error), string), unit),
       ~onInquireConnection: Event.t(Connection.viewAction, MiniEditor.error),
       ~connection: option(Connection.t),
+      // ~connectionPath: option(string),
       ~hidden,
       _children,
     ) => {
   ...component,
   initialState,
-  reducer,
+  reducer: reducer(onInquireConnection),
   didMount: self => {
     open Event;
     /* pipe `editorModel` to `onInquireConnection` */
@@ -90,7 +94,13 @@ let make =
                   className="input-toggle"
                   checked=connected
                   type_="checkbox"
-                  onChange={_ => ()}
+                  onChange={event =>
+                    if (ReactEvent.Form.target(event)##checked) {
+                      self.send(Connect);
+                    } else {
+                      self.send(Disconnect);
+                    }
+                  }
                 />
               </label>
             </h2>

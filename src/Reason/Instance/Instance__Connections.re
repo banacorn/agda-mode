@@ -121,6 +121,7 @@ let disconnect = instance => {
   | Some(connection) =>
     Connection.disconnect(Connection.DisconnectedByUser, connection);
     instance.connection = None;
+    instance.view.updateConnection |> Event.emitOk(None);
   | None => ()
   };
 };

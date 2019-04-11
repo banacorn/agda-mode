@@ -192,7 +192,7 @@ type action =
   /*  */
   | MouseEvent(mouseEvent);
 
-let mountPanel = (editors: Editors.t, self, mountTo) => {
+let mountPanel = (editors: Editors.t, mountTo, self) => {
   let createTab = () =>
     Tab.make(
       ~editor=editors.source,
@@ -218,6 +218,42 @@ let mountPanel = (editors: Editors.t, self, mountTo) => {
   };
 };
 
+let mountSettings = (editors: Editors.t, handles, open_, self) => {
+  switch (self.state.settingsView) {
+  | None =>
+    if (open_) {
+      let tab =
+        Tab.make(
+          ~editor=editors.source,
+          ~getTitle=
+            () => "[Settings] " ++ Atom.TextEditor.getTitle(editors.source),
+          ~onOpen=
+            (_, _, _) =>
+              /* <Settings> is opened */
+              handles.Handles.onSettingsView |> Event.emitOk(true),
+          ~onClose=
+            _ => {
+              self.send(ToggleSettingsTab(false));
+              /* <Settings> is closed */
+              handles.onSettingsView |> Event.emitOk(false);
+            },
+          (),
+        );
+      self.send(UpdateSettingsView(Some(tab)));
+    }
+  | Some(tab) =>
+    if (open_) {
+      /* <Settings> is opened */
+      handles.onSettingsView |> Event.emitOk(true);
+    } else {
+      tab.kill();
+      self.send(UpdateSettingsView(None));
+      /* <Settings> is closed */
+      handles.onSettingsView |> Event.emitOk(false);
+    }
+  };
+};
+
 let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
   switch (action) {
   | Activate =>
@@ -230,8 +266,7 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
   | SetQueryRef(ref) =>
     SideEffects(_self => editors.query |> MiniEditor.Model.setRef(ref))
   | Focus(sort) => SideEffects(_self => editors |> Editors.Focus.on(sort))
-  | MountTo(mountTo) =>
-    SideEffects(self => mountPanel(editors, self, mountTo))
+  | MountTo(mountTo) => SideEffects(mountPanel(editors, mountTo))
   | ToggleDocking =>
     switch (state.mountAt) {
     | Bottom(_) => SideEffects(self => self.send(MountTo(ToPane)))
@@ -239,59 +274,7 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
     }
   /* UpdateWithSideEffects() */
   | ToggleSettingsTab(open_) =>
-    SideEffects(
-      self =>
-        switch (state.settingsView) {
-        | None =>
-          if (open_) {
-            let tab =
-              Tab.make(
-                ~editor=editors.source,
-                ~getTitle=
-                  () =>
-                    "[Settings] " ++ Atom.TextEditor.getTitle(editors.source),
-                ~onOpen=
-                  (element, _, _) => {
-                    open Handles;
-                    let connection = self.state.connection;
-                    let {inquireConnection, onInquireConnection} = handles;
-                    ReactDOMRe.render(
-                      <Settings
-                        inquireConnection
-                        onInquireConnection
-                        connection
-                        navigate={handles.navigateSettingsView}
-                      />,
-                      element,
-                    );
-                    /* <Settings> is opened */
-                    handles.onSettingsView |> Event.emitOk(true);
-                  },
-                ~onClose=
-                  element => {
-                    self.send(ToggleSettingsTab(false));
-                    ReactDOMRe.unmountComponentAtNode(element);
-
-                    /* <Settings> is closed */
-                    handles.onSettingsView |> Event.emitOk(false);
-                  },
-                /* handles.activateSettingsView |> Event.send(false); */
-                (),
-              );
-            self.send(UpdateSettingsView(Some(tab)));
-          }
-        | Some(tab) =>
-          if (open_) {
-            /* <Settings> is opened */
-            handles.onSettingsView |> Event.emitOk(true);
-          } else {
-            tab.kill();
-            self.send(UpdateSettingsView(None));
-            /* <Settings> is closed */
-            handles.onSettingsView |> Event.emitOk(false);
-          }
-        },
-    )
+    SideEffects(mountSettings(editors, handles, open_))
   | UpdateSettingsView(settingsView) => Update({...state, settingsView})
   | UpdateMountAt(mountAt) => Update({...state, mountAt})
   | UpdateConnection(connection) => Update({...state, connection})
@@ -367,11 +350,26 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     |> destroyWhen(self.onUnmount);
   },
   render: self => {
-    let {header, body, mountAt, mode, activated} = self.state;
-    let element: Webapi.Dom.Element.t =
+    let {header, body, mountAt, mode, activated, settingsView, connection} =
+      self.state;
+    open Handles;
+    let {
+      interceptAndInsertKey,
+      activateInputMethod,
+      activateSettingsView,
+      inquireConnection,
+      onInquireConnection,
+      navigateSettingsView,
+    } = handles;
+    let panelElement: Webapi.Dom.Element.t =
       switch (mountAt) {
       | Bottom(element) => element
       | Pane(tab) => tab.element
+      };
+    let settingsElement: option(Webapi.Dom.Element.t) =
+      switch (settingsView) {
+      | None => None
+      | Some(tab) => Some(tab.element)
       };
     let hidden =
       switch (mountAt) {
@@ -382,7 +380,7 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
       <MouseEmitter.Provider value={ev => self.send(MouseEvent(ev))}>
         <Panel
           editors
-          element
+          element=panelElement
           header
           body
           mountAt
@@ -394,12 +392,19 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
           onEditorRef={ref => self.send(SetQueryRef(ref))}
           editorValue={editors.query.value}
           editorPlaceholder={editors.query.placeholder}
-          interceptAndInsertKey={handles.interceptAndInsertKey}
-          activateInputMethod={handles.activateInputMethod}
-          activateSettingsView={handles.activateSettingsView}
+          interceptAndInsertKey
+          activateInputMethod
+          activateSettingsView
           onSettingsViewToggle={status =>
             self.send(ToggleSettingsTab(status))
           }
+        />
+        <Settings
+          inquireConnection
+          onInquireConnection
+          connection
+          element=settingsElement
+          navigate=navigateSettingsView
         />
       </MouseEmitter.Provider>
     </>;

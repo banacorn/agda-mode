@@ -45,7 +45,14 @@ let make = (textEditor: Atom.TextEditor.t) => {
   };
 
   /* listen to `onInquireConnection` */
-  let destructor0 = instance.view.onInquireConnection |> Event.onOk(Js.log);
+  let destructor0 =
+    instance.view.onInquireConnection
+    |> Event.onOk(
+         fun
+         | Connection.Connect(path) => Js.log("Connect " ++ path)
+         | Connection.Disconnect =>
+           instance |> Connections.disconnect |> ignore,
+       );
   /* listen to `onMouseEvent` */
   let destructor1 =
     instance.view.onMouseEvent

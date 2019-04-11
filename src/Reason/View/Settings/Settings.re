@@ -31,6 +31,7 @@ let make =
       ~onInquireConnection: Event.t(Connection.viewAction, MiniEditor.error),
       ~connection: option(Connection.t),
       ~navigate: Event.t(uri, unit),
+      ~element: option(Webapi.Dom.Element.t),
       _children,
     ) => {
   ...component,
@@ -47,29 +48,38 @@ let make =
   },
   render: self => {
     let {uri} = self.state;
-    <section className="agda-settings" tabIndex=(-1)>
-      <Settings__Breadcrumb
-        uri
-        onNavigate={uri => self.send(Navigate(uri))}
-      />
-      <div className="agda-settings-pages">
-        <ul className={at(URI.Root, uri, ["agda-settings-menu"])}>
-          <li onClick={_ => self.send(Navigate(URI.Connection))}>
-            <span className="icon icon-plug"> {string("Connection")} </span>
-          </li>
-          <li onClick={_ => self.send(Navigate(URI.Protocol))}>
-            <span className="icon icon-comment-discussion">
-              {string("Protocol")}
-            </span>
-          </li>
-        </ul>
-        <Settings__Connection
-          inquireConnection
-          onInquireConnection
-          connection
-          hidden={uri != URI.Connection}
-        />
-      </div>
-    </section>;
+    switch (element) {
+    | None => null
+    | Some(anchor) =>
+      ReactDOMRe.createPortal(
+        <section className="agda-settings" tabIndex=(-1)>
+          <Settings__Breadcrumb
+            uri
+            onNavigate={uri => self.send(Navigate(uri))}
+          />
+          <div className="agda-settings-pages">
+            <ul className={at(URI.Root, uri, ["agda-settings-menu"])}>
+              <li onClick={_ => self.send(Navigate(URI.Connection))}>
+                <span className="icon icon-plug">
+                  {string("Connection")}
+                </span>
+              </li>
+              <li onClick={_ => self.send(Navigate(URI.Protocol))}>
+                <span className="icon icon-comment-discussion">
+                  {string("Protocol")}
+                </span>
+              </li>
+            </ul>
+            <Settings__Connection
+              inquireConnection
+              onInquireConnection
+              connection
+              hidden={uri != URI.Connection}
+            />
+          </div>
+        </section>,
+        anchor,
+      )
+    };
   },
 };
