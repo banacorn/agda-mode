@@ -7,8 +7,10 @@ type state = {
   connected: bool,
   editorRef: ref(option(Atom.TextEditor.t)),
   editorModel: ref(MiniEditor.Model.t),
+  autoSearchError: option(Connection.error),
 };
 type action =
+  | UpdateError(option(Connection.error))
   | AutoSearch
   | Connect(string);
 
@@ -16,16 +18,32 @@ let initialState = () => {
   connected: false,
   editorRef: ref(None),
   editorModel: ref(MiniEditor.Model.make()),
+  autoSearchError: None,
 };
 let reducer = (onInquireConnection, action: action, state: state) =>
   switch (action) {
+  | UpdateError(autoSearchError) => Update({...state, autoSearchError})
   | AutoSearch =>
     SideEffects(
-      _ => onInquireConnection |> Event.emitOk(Connection.AutoSearch),
+      self =>
+        Connection.autoSearch("agda")
+        |> Async.thenOk(path =>
+             (
+               switch (self.state.editorRef^) {
+               | None => ()
+               | Some(editor) => editor |> Atom.TextEditor.setText(path)
+               }
+             )
+             |> Async.resolve
+           )
+        |> Async.finalError(err =>
+             self.send(UpdateError(Some(AutoSearchError(err))))
+           ),
     )
   | Connect(path) =>
-    SideEffects(
-      _ => onInquireConnection |> Event.emitOk(Connection.Connect(path)),
+    UpdateWithSideEffects(
+      {...state, autoSearchError: None},
+      _ => onInquireConnection |> Event.emitOk(path),
     )
   };
 
@@ -38,7 +56,7 @@ let setEditorRef = (theRef, {ReasonReact.state}) => {
 let make =
     (
       ~inquireConnection: Event.t(unit, unit),
-      ~onInquireConnection: Event.t(Connection.viewAction, MiniEditor.error),
+      ~onInquireConnection: Event.t(string, MiniEditor.error),
       ~connection: option(Connection.t),
       ~error: option(Connection.error),
       ~hidden,
@@ -51,7 +69,7 @@ let make =
     open Event;
     /* pipe `editorModel` to `onInquireConnection` */
     self.state.editorModel^.result
-    |> pipeMap(onInquireConnection, x => Connection.Connect(x))
+    |> pipe(onInquireConnection)
     |> destroyWhen(self.onUnmount);
     /* listens to `inquireConnection` */
     inquireConnection
@@ -138,8 +156,12 @@ let make =
           {string("auto search")}
         </button>
       </p>
-      {switch (error) {
-       | None => null
+      {switch (self.state.autoSearchError) {
+       | None =>
+         switch (error) {
+         | None => null
+         | Some(err) => <Settings__Connection__Error error=err />
+         }
        | Some(err) => <Settings__Connection__Error error=err />
        }}
     </section>;

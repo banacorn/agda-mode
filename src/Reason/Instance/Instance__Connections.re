@@ -4,13 +4,13 @@ open Async;
 open Instance__Type;
 open Atom;
 
-let rec inquireAgdaPath =
-        (error: option(Connection.error), instance)
-        : Async.t(string, MiniEditor.error) => {
+let inquireAgdaPath =
+    (error: option(Connection.error), instance)
+    : Async.t(string, MiniEditor.error) => {
   open View.Handles;
   activate(instance.view);
   /* listen to `onSettingsView` before triggering `activateSettingsView` */
-  let promise: Async.t(Connection.viewAction, MiniEditor.error) =
+  let promise: Async.t(string, MiniEditor.error) =
     instance.view
     |> onOpenSettingsView
     |> thenOk(_ => {
@@ -22,13 +22,8 @@ let rec inquireAgdaPath =
          promise;
        });
   instance.view |> activateSettingsView;
-  /* ignore other actions from <Settings/Connection> */
-  promise
-  |> thenOk(
-       fun
-       | Connection.Connect(x) => resolve(x)
-       | _ => instance |> inquireAgdaPath(error),
-     );
+
+  promise;
 };
 
 let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
@@ -80,13 +75,12 @@ let connectWithAgdaPath =
   let rec getConnection =
           (instance, metadata): Async.t(Connection.t, MiniEditor.error) => {
     Connection.connect(metadata)
-    |> thenError(err => {
-         Js.log(err);
+    |> thenError(err =>
          instance
          |> inquireAgdaPath(Some(Connection.ConnectionError(err)))
          |> thenOk(getMetadata(instance))
-         |> thenOk(getConnection(instance));
-       });
+         |> thenOk(getConnection(instance))
+       );
   };
   let handleUnboundError = (instance, connection): Connection.t => {
     Connection.(connection.errorEmitter)
@@ -101,20 +95,19 @@ let connectWithAgdaPath =
     connection;
   };
 
-  switch (instance.connection) {
-  | Some(connection) => resolve(connection)
-  | None =>
-    path
-    |> getMetadata(instance)
-    |> thenOk(getConnection(instance))
-    |> mapOk(persistConnection(instance))
-    |> mapOk(handleUnboundError(instance))
-    |> mapOk(Connection.wire)
-  };
+  path
+  |> getMetadata(instance)
+  |> thenOk(getConnection(instance))
+  |> mapOk(persistConnection(instance))
+  |> mapOk(handleUnboundError(instance))
+  |> mapOk(Connection.wire);
 };
 
 let connect = (instance): Async.t(Connection.t, MiniEditor.error) => {
-  instance |> getAgdaPath |> thenOk(connectWithAgdaPath(instance));
+  switch (instance.connection) {
+  | Some(connection) => resolve(connection)
+  | None => instance |> getAgdaPath |> thenOk(connectWithAgdaPath(instance))
+  };
 };
 
 let disconnect = instance => {

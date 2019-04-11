@@ -16,7 +16,7 @@ module Handles = {
     updateConnection:
       Event.t((option(Connection.t), option(Connection.error)), unit),
     inquireConnection: Event.t(unit, unit),
-    onInquireConnection: Event.t(Connection.viewAction, MiniEditor.error),
+    onInquireConnection: Event.t(string, MiniEditor.error),
     inquireQuery: Event.t((string, string), unit),
     onInquireQuery: Event.t(string, MiniEditor.error),
     activateSettingsView: Event.t(bool, unit),

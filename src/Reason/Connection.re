@@ -12,10 +12,6 @@ type metadata = {
   protocol,
 };
 
-type viewAction =
-  | Connect(string)
-  | AutoSearch;
-
 type autoSearchError =
   | ProcessHanging
   | NotSupported(string)

@@ -47,10 +47,8 @@ let make = (textEditor: Atom.TextEditor.t) => {
   /* listen to `onInquireConnection` */
   let destructor0 =
     instance.view.onInquireConnection
-    |> Event.onOk(
-         fun
-         | Connection.Connect(path) => Js.log("Connect " ++ path)
-         | Connection.AutoSearch => Js.log("Auto search "),
+    |> Event.onOk(path =>
+         Connections.connectWithAgdaPath(instance, path) |> ignore
        );
   /* listen to `onMouseEvent` */
   let destructor1 =
