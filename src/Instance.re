@@ -41,6 +41,7 @@ let make = (textEditor: Atom.TextEditor.t) => {
     view: View.initialize(editors),
     goals: [||],
     highlightings: [||],
+    runningInfo: RunningInfo.make(),
     connection: None,
     dispatch: Handler.dispatch,
     handleResponses: Handler.handleResponses,

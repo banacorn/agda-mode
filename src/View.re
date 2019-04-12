@@ -239,7 +239,6 @@ let mountSettings = (editors: Editors.t, handles, open_, self) => {
               handles.Handles.onSettingsView |> Event.emitOk(true),
           ~onClose=
             _ => {
-              Js.log("closed!");
               self.send(ToggleSettingsTab(false));
               /* <Settings> is closed */
               handles.onSettingsView |> Event.emitOk(false);
@@ -253,7 +252,6 @@ let mountSettings = (editors: Editors.t, handles, open_, self) => {
       /* <Settings> is opened */
       handles.onSettingsView |> Event.emitOk(true);
     } else {
-      Js.log("closing");
       tab.kill();
       self.send(UpdateSettingsView(None));
       /* <Settings> is closed */

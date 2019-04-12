@@ -4,6 +4,10 @@ type error =
   | Response(array(string))
   | Others(string);
 
+let agdaOutput = s => {
+  s |> Js.String.replaceByRe([%re "/\\\\n/g"], "\n");
+};
+
 let userInput = s => {
   let trim = s =>
     Atom.Environment.Config.get("agda-mode.trimSpaces") ? String.trim(s) : s;

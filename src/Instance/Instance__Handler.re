@@ -157,9 +157,9 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
   | NoStatus => resolve()
   | RunningInfo(verbosity, message) =>
     if (verbosity >= 2) {
-      Js.log("RunningInfo");
-      Js.log(verbosity);
-      Js.log(message);
+      instance.runningInfo
+      |> RunningInfo.add(Parser.agdaOutput(message))
+      |> ignore;
     } else {
       instance.view
       |> View.Handles.display(
@@ -171,9 +171,7 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
     };
 
     resolve();
-  | ClearRunningInfo =>
-    Js.log("CleanRunningInfo");
-    resolve();
+  | ClearRunningInfo => resolve()
   | DoneAborting =>
     Js.log("DoneAborting");
     resolve();

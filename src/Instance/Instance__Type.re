@@ -14,6 +14,7 @@ type t = {
   mutable highlightings: array(Highlighting.t),
   mutable goals: array(Goal.t),
   mutable connection: option(Connection.t),
+  mutable runningInfo: RunningInfo.t,
   dispatch: (Command.Primitive.t, t) => Async.t(unit, error),
   handleResponses: (t, array(Response.t)) => Async.t(unit, error),
 };
