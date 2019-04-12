@@ -31,13 +31,13 @@
     "atom": ">=1.19.0 <2.0.0"
   },
   "devDependencies": {
-    "bs-platform": "^5.0.1",
-    "webpack": "^4.24.0",
-    "webpack-cli": "^3.1.2",
-    "@glennsl/rebase": "github:glennsl/rebase",
     "@glennsl/bs-json": "^3.0.0",
+    "@glennsl/rebase": "github:glennsl/rebase",
     "atom": "~/reason/bs-atom",
-    "bs-webapi": "^0.13.0"
+    "bs-platform": "^5.0.1",
+    "bs-webapi": "^0.13.0",
+    "webpack": "^4.24.0",
+    "webpack-cli": "^3.1.2"
   },
   "dependencies": {
     "react": "^16.4",

@@ -4,7 +4,8 @@ let sort = Array.sort;
 
 open Rebase;
 
-[@bs.module "./../../keymap"] external rawKeymap: Js.t({.}) = "default";
+[@bs.module "./../../../../../asset/keymap.js"]
+external rawKeymap: Js.t({.}) = "default";
 
 type trie = {
   symbol: array(string),
