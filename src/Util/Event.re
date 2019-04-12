@@ -33,8 +33,10 @@ let removeListener' = (_id: string, _self: t('a, 'e)) => {
 let removeAllListeners = (self: t('a, 'e)) => {
   self.listeners
   |> Js.Dict.keys
-  |> Array.forEach(id => removeListener'(id, self));
+  |> Array.forEach(id => removeListener'(id, self))
+  |> ignore;
 };
+let destroy = removeAllListeners;
 
 let listen =
     (callback: result('a, 'e) => unit, self: t('a, 'e)): (unit => unit) => {

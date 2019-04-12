@@ -87,10 +87,14 @@ It's probably because Agda's not happy about the arguments you fed her
       );
 };
 
+type response =
+  | Data(string)
+  | End;
+
 type t = {
   metadata,
   process: N.ChildProcess.t,
-  mutable queue: array(Event.t(string, Error.connection)),
+  mutable queue: array(Event.t(response, Error.connection)),
   errorEmitter: Event.t(string, unit),
   mutable connected: bool,
 };
@@ -275,36 +279,36 @@ let connect = (metadata): Async.t(t, Error.connection) => {
 
 let wire = (self): t => {
   /* resolves the requests in the queue */
-  let response = data => {
+  let response = (res: response) => {
     switch (self.queue[0]) {
-    | None => self.errorEmitter |> Event.emitOk(data)
+    | None =>
+      switch (res) {
+      | Data(data) => self.errorEmitter |> Event.emitOk(data)
+      | End => ()
+      }
     | Some(req) =>
-      req |> Event.emitOk(data);
-      /* should updates the queue */
-      self.queue |> Js.Array.pop |> ignore;
+      req |> Event.emitOk(res);
+      switch (res) {
+      | Data(_) => ()
+      | End => self.queue |> Js.Array.pop |> Option.forEach(Event.destroy)
+      };
     };
   };
 
-  let buffer = ref("");
   /* listens to the "data" event on the stdout */
   let onData = chunk => {
     let string = chunk |> Node.Buffer.toString;
-
-    /* the prompt "Agda2> " should appear at the end of the response */
+    /* string either ends with "\n" or "Agda2> " */
     let endOfResponse = string |> String.endsWith("Agda2> ");
     if (endOfResponse) {
       let withoutSuffix =
         Js.String.substring(~from=0, ~to_=String.length(string) - 7, string);
-      /* append it to the accumulated buffer (without for the "Agda2> " suffix) */
-      let data = buffer^ ++ withoutSuffix;
-      if (data |> String.isEmpty |> (!)) {
-        response(data);
-      };
-      /* empty the buffer */
-      buffer := "";
+      response(Data(withoutSuffix));
+      response(End);
     } else {
-      /* append to the buffer and wait until the end of the response */
-      buffer := buffer^ ++ string;
+      let length = String.length(string) - 1;
+      let withoutNewline = string |> String.sub(~from=0, ~length);
+      response(Data(withoutNewline));
     };
   };
 
@@ -316,17 +320,15 @@ let wire = (self): t => {
   self;
 };
 
-let send = (request, self): Async.t(string, Error.connection) => {
-  let reqPromise = Event.make();
-  self.queue |> Js.Array.push(reqPromise) |> ignore;
+let send = (request, self): Event.t(response, Error.connection) => {
+  let reqEvent = Event.make();
+  self.queue |> Js.Array.push(reqEvent) |> ignore;
 
-  /* listen */
-  let promise = reqPromise |> Event.once;
   /* write */
   self.process
   |> N.ChildProcess.stdin
   |> N.Stream.Writable.write(request ++ "\n" |> Node.Buffer.fromString)
   |> ignore;
 
-  promise;
+  reqEvent;
 };
