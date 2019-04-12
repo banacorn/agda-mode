@@ -39,6 +39,7 @@ let make =
       ~mountAt: mountAt,
       ~mode: mode,
       ~hidden: bool,
+      ~settingsView: option(Tab.t),
       /* Editors */
       ~onInquireQuery: Event.t(string, MiniEditor.error),
       ~onEditorRef: Atom.TextEditor.t => unit,
@@ -46,7 +47,6 @@ let make =
       ~editorValue: string,
       ~interceptAndInsertKey: Event.t(string, unit),
       ~activateInputMethod: Event.t(bool, unit),
-      ~activateSettingsView: Event.t(bool, unit),
       ~onSettingsViewToggle: bool => unit,
       /* ~onGeneralEditorChange: Editors.miniEditor => unit,
          ~onGeneralEditorConfirm: string => unit,
@@ -72,14 +72,14 @@ let make =
       | _ => false
       };
     let style =
-      mountAtBottom ?
-        Some(
-          ReactDOMRe.Style.make(
-            ~maxHeight=string_of_int(maxHeight) ++ "px",
-            (),
-          ),
-        ) :
-        None;
+      mountAtBottom
+        ? Some(
+            ReactDOMRe.Style.make(
+              ~maxHeight=string_of_int(maxHeight) ++ "px",
+              (),
+            ),
+          )
+        : None;
     let className =
       Util.ClassName.([] |> addWhen("hidden", hidden) |> serialize);
     ReactDOMRe.createPortal(
@@ -115,9 +115,9 @@ let make =
             hidden=inputMethodActivated
             isPending
             mountAt
+            settingsView
             onMountAtChange
             onSettingsViewToggle
-            activateSettingsView
           />
         </section>
         <section ?style className="agda-body-container">

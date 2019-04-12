@@ -1,26 +1,18 @@
 open ReasonReact;
+open Rebase;
 
 type state = {
   settingsButtonRef: ref(option(Dom.element)),
   dockingButtonRef: ref(option(Dom.element)),
-  settingsView: bool,
 };
 
 let initialState = () => {
   settingsButtonRef: ref(None),
   dockingButtonRef: ref(None),
-  settingsView: false,
 };
 
-type action =
-  | SettingsViewOn
-  | SettingsViewOff;
-
-let reducer = (action, state) =>
-  switch (action) {
-  | SettingsViewOn => Update({...state, settingsView: true})
-  | SettingsViewOff => Update({...state, settingsView: false})
-  };
+type action;
+let reducer = (_action: action, _state) => NoUpdate;
 
 let setSettingsButtonRef = (r, {state}) =>
   state.settingsButtonRef := Js.Nullable.toOption(r);
@@ -36,21 +28,15 @@ let make =
       ~hidden: bool,
       ~isPending: bool,
       ~mountAt: Type.View.mountAt,
+      ~settingsView: option(Tab.t),
       ~onMountAtChange: Type.View.mountTo => unit,
       ~onSettingsViewToggle: bool => unit,
-      ~activateSettingsView: Event.t(bool, unit),
       _children,
     ) => {
   ...component,
   initialState,
   reducer,
   didMount: self => {
-    Event.(
-      activateSettingsView
-      |> onOk(open_ => self.send(open_ ? SettingsViewOn : SettingsViewOff))
-      |> destroyWhen(self.onUnmount)
-    );
-
     switch (self.state.settingsButtonRef^) {
     | None => ()
     | Some(settingsButton) =>
@@ -88,6 +74,7 @@ let make =
     };
   },
   render: self => {
+    let settingsOn = settingsView |> Option.isSome;
     open Util.ClassName;
     let classList =
       ["agda-header"] |> addWhen("hidden", hidden) |> serialize;
@@ -104,9 +91,7 @@ let make =
       |> addWhen("pending", isPending)
       |> serialize;
     let settingsViewClassList =
-      ["no-btn"]
-      |> addWhen("activated", self.state.settingsView)
-      |> serialize;
+      ["no-btn"] |> addWhen("activated", settingsOn) |> serialize;
     let toggleMountingPosition =
       ["no-btn"]
       |> addWhen(
@@ -125,15 +110,7 @@ let make =
           <button
             className=settingsViewClassList
             onClick={
-              self.handle((_, self) =>
-                if (self.state.settingsView) {
-                  onSettingsViewToggle(false);
-                  self.send(SettingsViewOff);
-                } else {
-                  onSettingsViewToggle(true);
-                  self.send(SettingsViewOn);
-                }
-              )
+              self.handle((_, _) => onSettingsViewToggle(!settingsOn))
             }
             ref={self.handle(setSettingsButtonRef)}>
             <span className="icon icon-settings" />

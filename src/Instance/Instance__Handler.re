@@ -199,7 +199,8 @@ let rec handleLocalCommand =
               "Loading ...",
               Type.View.Header.PlainText,
               Emacs(PlainText("")),
-            );
+            )
+         |> ignore;
          instance |> buff(Load);
        })
   | Abort => instance |> buff(Abort)
