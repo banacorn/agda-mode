@@ -7,10 +7,10 @@ type state = {
   connected: bool,
   editorRef: ref(option(Atom.TextEditor.t)),
   editorModel: ref(MiniEditor.Model.t),
-  autoSearchError: option(Connection.error),
+  autoSearch: option(Connection.Error.t),
 };
 type action =
-  | UpdateError(option(Connection.error))
+  | UpdateError(option(Connection.Error.t))
   | AutoSearch
   | Connect(string);
 
@@ -18,11 +18,11 @@ let initialState = () => {
   connected: false,
   editorRef: ref(None),
   editorModel: ref(MiniEditor.Model.make()),
-  autoSearchError: None,
+  autoSearch: None,
 };
 let reducer = (onInquireConnection, action: action, state: state) =>
   switch (action) {
-  | UpdateError(autoSearchError) => Update({...state, autoSearchError})
+  | UpdateError(autoSearch) => Update({...state, autoSearch})
   | AutoSearch =>
     SideEffects(
       self =>
@@ -42,7 +42,7 @@ let reducer = (onInquireConnection, action: action, state: state) =>
     )
   | Connect(path) =>
     UpdateWithSideEffects(
-      {...state, autoSearchError: None},
+      {...state, autoSearch: None},
       _ => onInquireConnection |> Event.emitOk(path),
     )
   };
@@ -58,7 +58,7 @@ let make =
       ~inquireConnection: Event.t(unit, unit),
       ~onInquireConnection: Event.t(string, MiniEditor.error),
       ~connection: option(Connection.t),
-      ~error: option(Connection.error),
+      ~error: option(Connection.Error.t),
       ~hidden,
       _children,
     ) => {
@@ -94,17 +94,17 @@ let make =
         |> serialize
       );
     let status =
-      connected ?
-        <span
-          title="connected"
-          id="connection-status"
-          className="icon icon-primitive-dot text-success"
-        /> :
-        <span
-          title="disconnected"
-          id="connection-status"
-          className="icon icon-primitive-dot text-error"
-        />;
+      connected
+        ? <span
+            title="connected"
+            id="connection-status"
+            className="icon icon-primitive-dot text-success"
+          />
+        : <span
+            title="disconnected"
+            id="connection-status"
+            className="icon icon-primitive-dot text-error"
+          />;
     <section className>
       <h1>
         <span className="icon icon-plug" />
@@ -156,7 +156,7 @@ let make =
           {string("auto search")}
         </button>
       </p>
-      {switch (self.state.autoSearchError) {
+      {switch (self.state.autoSearch) {
        | None =>
          switch (error) {
          | None => null

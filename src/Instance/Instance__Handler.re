@@ -35,13 +35,14 @@ let handleCommandError = instance =>
              Type.View.Header.Error,
              Emacs(PlainText(message)),
            );
-      | ConnectionError(_connErr) =>
+      | ConnectionError(error) =>
+        let (header, body) = Connection.Error.toString(error);
         instance.view
         |> View.Handles.display(
-             "Connection-related Error",
+             "Connection-related Error: " ++ header,
              Type.View.Header.Error,
-             Emacs(PlainText("")),
-           )
+             Emacs(PlainText(body)),
+           );
       | Cancelled =>
         instance.view
         |> View.Handles.display(
@@ -553,7 +554,9 @@ let handleRemoteCommand = (instance, remote) =>
     /* send the serialized command */
     cmd.connection
     |> Connection.send(serialized)
-    |> mapError(err => ConnectionError(Connection.ConnectionError(err)))
+    |> mapError(err =>
+         ConnectionError(Connection.Error.ConnectionError(err))
+       )
     /* parse the returned response */
     |> thenOk(responses =>
          responses |> lift(Response.parse) |> mapError(e => ParseError(e))

@@ -12,38 +12,83 @@ type metadata = {
   protocol,
 };
 
-type autoSearchError =
-  | ProcessHanging
-  | NotSupported(string)
-  | NotFound(string);
+module Error = {
+  type autoSearch =
+    | ProcessHanging
+    | NotSupported(string)
+    | NotFound(string);
 
-type validationError =
-  /* the path is empty */
-  | PathMalformed(string)
-  /* the process is not responding */
-  | ProcessHanging
-  /* from the shell */
-  | NotFound(Js.Exn.t)
-  | ShellError(Js.Exn.t)
-  /* from its stderr */
-  | ProcessError(string)
-  /* the process is not Agda */
-  | IsNotAgda(string);
+  type validation =
+    /* the path is empty */
+    | PathMalformed(string)
+    /* the process is not responding */
+    | ProcessHanging
+    /* from the shell */
+    | NotFound(Js.Exn.t)
+    | ShellError(Js.Exn.t)
+    /* from its stderr */
+    | ProcessError(string)
+    /* the process is not Agda */
+    | IsNotAgda(string);
 
-type connectionError =
-  | ShellError(Js.Exn.t)
-  | ClosedByProcess(int, string)
-  | DisconnectedByUser;
+  type connection =
+    | ShellError(Js.Exn.t)
+    | ClosedByProcess(int, string)
+    | DisconnectedByUser;
 
-type error =
-  | AutoSearchError(autoSearchError)
-  | ValidationError(string, validationError)
-  | ConnectionError(connectionError);
+  type t =
+    | AutoSearchError(autoSearch)
+    | ValidationError(string, validation)
+    | ConnectionError(connection);
+
+  let toString =
+    fun
+    | AutoSearchError(ProcessHanging) => (
+        "Process not responding",
+        {j|Please restart the process|j},
+      )
+    | AutoSearchError(NotSupported(os)) => (
+        "Auto search failed",
+        {j|currently auto path searching is not supported on $(os)|j},
+      )
+    | AutoSearchError(NotFound(msg)) => ("Auto search failed", msg)
+    | ValidationError(_path, PathMalformed(msg)) => ("Path malformed", msg)
+    | ValidationError(_path, ProcessHanging) => (
+        "Process hanging",
+        "The program has not been responding for more than 1 sec",
+      )
+    | ValidationError(_path, NotFound(error)) => (
+        "Agda not found",
+        Util.JsError.toString(error),
+      )
+    | ValidationError(_path, ShellError(error)) => (
+        "Error from the shell",
+        Util.JsError.toString(error),
+      )
+    | ValidationError(_path, ProcessError(msg)) => (
+        "Error from the stderr",
+        msg,
+      )
+    | ValidationError(_path, IsNotAgda(msg)) => ("This is not agda", msg)
+    | ConnectionError(ShellError(error)) => (
+        "Socket error",
+        Util.JsError.toString(error),
+      )
+    | ConnectionError(ClosedByProcess(code, signal)) => (
+        "Socket closed",
+        {j|code: $code
+    signal: $signal|j},
+      )
+    | ConnectionError(DisconnectedByUser) => (
+        "Disconnected",
+        "Connection disconnected by ourselves",
+      );
+};
 
 type t = {
   metadata,
   process: N.ChildProcess.t,
-  mutable queue: array(Event.t(string, connectionError)),
+  mutable queue: array(Event.t(string, Error.connection)),
   errorEmitter: Event.t(string, unit),
   mutable connected: bool,
 };
@@ -57,7 +102,7 @@ let disconnect = (error, self) => {
 };
 
 /* a more sophiscated "make" */
-let autoSearch = (path): Async.t(string, autoSearchError) =>
+let autoSearch = (path): Async.t(string, Error.autoSearch) =>
   Async.make((resolve, reject) =>
     switch (N.OS.type_()) {
     | "Linux"
@@ -65,7 +110,7 @@ let autoSearch = (path): Async.t(string, autoSearchError) =>
       /* reject if the process hasn't responded for more than 1 second */
       let hangTimeout =
         Js.Global.setTimeout(
-          () => reject(ProcessHanging: autoSearchError),
+          () => reject(ProcessHanging: Error.autoSearch),
           1000,
         );
       N.ChildProcess.exec(
@@ -103,9 +148,10 @@ let autoSearch = (path): Async.t(string, autoSearchError) =>
   );
 
 /* a more sophiscated "make" */
-let validateAndMake = (pathAndParams): Async.t(metadata, validationError) => {
+let validateAndMake = (pathAndParams): Async.t(metadata, Error.validation) => {
   let (path, args) = Parser.commandLine(pathAndParams);
-  let parseError = (error: Js.Nullable.t(Js.Exn.t)): option(validationError) => {
+  let parseError =
+      (error: Js.Nullable.t(Js.Exn.t)): option(Error.validation) => {
     switch (error |> Js.Nullable.toOption) {
     | None => None
     | Some(err) =>
@@ -120,7 +166,7 @@ let validateAndMake = (pathAndParams): Async.t(metadata, validationError) => {
     };
   };
   let parseStdout =
-      (stdout: Node.Buffer.t): result(metadata, validationError) => {
+      (stdout: Node.Buffer.t): result(metadata, Error.validation) => {
     let message = stdout |> Node.Buffer.toString;
     switch (Js.String.match([%re "/Agda version (.*)/"], message)) {
     | None => Error(IsNotAgda(message))
@@ -142,12 +188,12 @@ let validateAndMake = (pathAndParams): Async.t(metadata, validationError) => {
 
   Async.make((resolve, reject) => {
     if (path |> String.isEmpty) {
-      reject(PathMalformed("the path must not be empty"));
+      reject(Error.PathMalformed("the path must not be empty"));
     };
 
     /* reject if the process hasn't responded for more than 1 second */
     let hangTimeout =
-      Js.Global.setTimeout(() => reject(ProcessHanging), 1000);
+      Js.Global.setTimeout(() => reject(Error.ProcessHanging), 1000);
 
     N.ChildProcess.exec(
       path,
@@ -183,7 +229,7 @@ let useJSON = metadata => {
   && metadata.protocol == EmacsAndJSON;
 };
 
-let connect = (metadata): Async.t(t, connectionError) => {
+let connect = (metadata): Async.t(t, Error.connection) => {
   N.(
     Async.make((resolve, reject) => {
       let args =
@@ -203,16 +249,16 @@ let connect = (metadata): Async.t(t, connectionError) => {
       |> ChildProcess.on(
            `error(
              exn => {
-               connection |> disconnect(ShellError(exn));
-               reject(ShellError(exn));
+               connection |> disconnect(Error.ShellError(exn));
+               reject(Error.ShellError(exn));
              },
            ),
          )
       |> ChildProcess.on(
            `close(
              (code, signal) => {
-               connection |> disconnect(ClosedByProcess(code, signal));
-               reject(ClosedByProcess(code, signal));
+               connection |> disconnect(Error.ClosedByProcess(code, signal));
+               reject(Error.ClosedByProcess(code, signal));
              },
            ),
          )
@@ -268,7 +314,7 @@ let wire = (self): t => {
   self;
 };
 
-let send = (request, self): Async.t(string, connectionError) => {
+let send = (request, self): Async.t(string, Error.connection) => {
   let reqPromise = Event.make();
   self.queue |> Js.Array.push(reqPromise) |> ignore;
 

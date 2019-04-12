@@ -14,7 +14,7 @@ module Handles = {
     toggleDocking: Event.t(unit, unit),
     activatePanel: Event.t(bool, unit),
     updateConnection:
-      Event.t((option(Connection.t), option(Connection.error)), unit),
+      Event.t((option(Connection.t), option(Connection.Error.t)), unit),
     inquireConnection: Event.t(unit, unit),
     onInquireConnection: Event.t(string, MiniEditor.error),
     inquireQuery: Event.t((string, string), unit),
@@ -156,7 +156,7 @@ type state = {
   activated: bool,
   settingsView: option(Tab.t),
   connection: option(Connection.t),
-  connectionError: option(Connection.error),
+  connectionError: option(Connection.Error.t),
   mode,
 };
 
@@ -191,7 +191,7 @@ type action =
   | Activate
   | Deactivate
   /*  */
-  | UpdateConnection(option(Connection.t), option(Connection.error))
+  | UpdateConnection(option(Connection.t), option(Connection.Error.t))
   | UpdateHeader(Header.t)
   | UpdateBody(body)
   | UpdateMode(mode)

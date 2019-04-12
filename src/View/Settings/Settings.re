@@ -30,7 +30,7 @@ let make =
       ~inquireConnection: Event.t(unit, unit),
       ~onInquireConnection: Event.t(string, MiniEditor.error),
       ~connection: option(Connection.t),
-      ~connectionError: option(Connection.error),
+      ~connectionError: option(Connection.Error.t),
       ~navigate: Event.t(uri, unit),
       ~element: option(Webapi.Dom.Element.t),
       _children,

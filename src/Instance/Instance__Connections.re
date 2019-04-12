@@ -5,7 +5,7 @@ open Instance__Type;
 open Atom;
 
 let inquireAgdaPath =
-    (error: option(Connection.error), instance)
+    (error: option(Connection.Error.t), instance)
     : Async.t(string, MiniEditor.error) => {
   open View.Handles;
   activate(instance.view);
@@ -38,7 +38,8 @@ let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
 
   searchedPath
   |> thenError(err =>
-       instance |> inquireAgdaPath(Some(Connection.AutoSearchError(err)))
+       instance
+       |> inquireAgdaPath(Some(Connection.Error.AutoSearchError(err)))
      );
 };
 
@@ -52,7 +53,7 @@ let connectWithAgdaPath =
     |> thenError(err =>
          instance
          |> inquireAgdaPath(
-              Some(Connection.ValidationError(pathAndParams, err)),
+              Some(Connection.Error.ValidationError(pathAndParams, err)),
             )
          |> thenOk(getMetadata(instance))
        );
@@ -77,7 +78,7 @@ let connectWithAgdaPath =
     Connection.connect(metadata)
     |> thenError(err =>
          instance
-         |> inquireAgdaPath(Some(Connection.ConnectionError(err)))
+         |> inquireAgdaPath(Some(Connection.Error.ConnectionError(err)))
          |> thenOk(getMetadata(instance))
          |> thenOk(getConnection(instance))
        );
@@ -113,7 +114,7 @@ let connect = (instance): Async.t(Connection.t, MiniEditor.error) => {
 let disconnect = instance => {
   switch (instance.connection) {
   | Some(connection) =>
-    Connection.disconnect(Connection.DisconnectedByUser, connection);
+    Connection.disconnect(Connection.Error.DisconnectedByUser, connection);
     instance.connection = None;
     instance.view |> View.Handles.updateConnection(None, None);
   | None => ()

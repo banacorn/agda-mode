@@ -1,6 +1,6 @@
 type error =
   | ParseError(Parser.error)
-  | ConnectionError(Connection.error)
+  | ConnectionError(Connection.Error.t)
   /* Cancelled: never makes its way to Agda */
   | Cancelled
   /* Other reasons, also never make their way to Agda */
