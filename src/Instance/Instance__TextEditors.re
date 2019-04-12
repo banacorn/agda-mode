@@ -3,8 +3,25 @@ open Async;
 
 open Instance__Type;
 
+let pointingAt = (~cursor=?, instance): option(Goal.t) => {
+  let cursor_ =
+    switch (cursor) {
+    | None =>
+      instance.editors.source |> Atom.TextEditor.getCursorBufferPosition
+    | Some(x) => x
+    };
+
+  let pointedGoals =
+    instance.goals
+    |> Array.filter(goal =>
+         goal.Goal.range |> Atom.Range.containsPoint(cursor_)
+       );
+  /* return the first pointed goal */
+  pointedGoals[0];
+};
+
 let getPointedGoal = (instance): Async.t(Goal.t, error) => {
-  let pointed = Editors.pointingAt(instance.goals, instance.editors);
+  let pointed = pointingAt(instance);
   switch (pointed) {
   | Some(goal) => resolve(goal)
   | None => reject(OutOfGoal)
@@ -12,7 +29,7 @@ let getPointedGoal = (instance): Async.t(Goal.t, error) => {
 };
 
 let getPointedGoalAt = (cursor, instance): Async.t(Goal.t, error) => {
-  let pointed = Editors.pointingAt(~cursor, instance.goals, instance.editors);
+  let pointed = pointingAt(~cursor, instance);
   switch (pointed) {
   | Some(goal) => resolve(goal)
   | None => reject(OutOfGoal)
@@ -72,39 +89,4 @@ let recoverCursor = (callback, instance) => {
 
   /* return the result of the callbak */
   result;
-};
-
-let getSelectedTextNode = instance => {
-  let getSelectedText = () => {
-    instance.editors.source |> Atom.TextEditor.getSelectedText;
-  };
-  let getLargerSyntaxNode = () => {
-    instance.editors.source |> Atom.TextEditor.selectLargerSyntaxNode;
-    instance.editors.source |> Atom.TextEditor.getSelectedText;
-  };
-  let getPointedWord = () => {
-    instance.editors.source |> Atom.TextEditor.selectWordsContainingCursors;
-    instance.editors.source |> Atom.TextEditor.getSelectedText;
-  };
-
-  let selectedText = getSelectedText();
-
-  /* if the user didn't select anything */
-  if (String.isEmpty(selectedText)) {
-    let largerNode = getLargerSyntaxNode();
-    /* this happens when language-agda is not installed */
-    if (String.isEmpty(largerNode)) {
-      getPointedWord();
-    } else {
-      let pointedText = getPointedWord();
-      /* this happens when the user is hovering on a mixfix/infix operator like _+_ */
-      if (pointedText == "_") {
-        getLargerSyntaxNode();
-      } else {
-        pointedText;
-      };
-    };
-  } else {
-    selectedText;
-  };
 };

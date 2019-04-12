@@ -29,11 +29,6 @@ module Focus = {
       | Some(editor) => editor
       | None => editors.source
       }
-    /* | Connection =>
-       switch (editors.connection.model.ref) {
-       | Some(editor) => editor
-       | None => editors.source
-       } */
     };
 
   let on = (sort, editors) =>
@@ -44,23 +39,40 @@ module Focus = {
     | Query =>
       editors.query.ref |> Option.forEach(MiniEditor.focus);
       editors.focused = Query;
-    /* | Connection =>
-       if (editors.focused != Connection) {
-         editors.connection.model |> MiniEditor.Model.focus;
-       } */
     };
 };
 
-let pointingAt = (~cursor=?, goals, editors): option(Goal.t) => {
-  let cursor_ =
-    switch (cursor) {
-    | None => editors.source |> TextEditor.getCursorBufferPosition
-    | Some(x) => x
-    };
+let getSelectedTextNode = editors => {
+  let getSelectedText = () => {
+    editors |> Focus.get |> Atom.TextEditor.getSelectedText;
+  };
+  let getLargerSyntaxNode = () => {
+    editors |> Focus.get |> Atom.TextEditor.selectLargerSyntaxNode;
+    editors |> Focus.get |> Atom.TextEditor.getSelectedText;
+  };
+  let getPointedWord = () => {
+    editors |> Focus.get |> Atom.TextEditor.selectWordsContainingCursors;
+    editors |> Focus.get |> Atom.TextEditor.getSelectedText;
+  };
 
-  let pointedGoals =
-    goals
-    |> Array.filter(goal => goal.Goal.range |> Range.containsPoint(cursor_));
-  /* return the first pointed goal */
-  pointedGoals[0];
+  let selectedText = getSelectedText();
+
+  /* if the user didn't select anything */
+  if (String.isEmpty(selectedText)) {
+    let largerNode = getLargerSyntaxNode();
+    /* this happens when language-agda is not installed */
+    if (String.isEmpty(largerNode)) {
+      getPointedWord();
+    } else {
+      let pointedText = getPointedWord();
+      /* this happens when the user is hovering on a mixfix/infix operator like _+_ */
+      if (pointedText == "_") {
+        getLargerSyntaxNode();
+      } else {
+        pointedText;
+      };
+    };
+  } else {
+    selectedText;
+  };
 };

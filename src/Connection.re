@@ -228,7 +228,6 @@ let connect = (metadata): Async.t(t, connectionError) => {
 let wire = (self): t => {
   /* resolves the requests in the queue */
   let response = data => {
-    Js.log("receiving <<< " ++ data);
     switch (self.queue[0]) {
     | None => self.errorEmitter |> Event.emitOk(data)
     | Some(req) =>
@@ -270,7 +269,6 @@ let wire = (self): t => {
 };
 
 let send = (request, self): Async.t(string, connectionError) => {
-  Js.log("sending >>> " ++ request);
   let reqPromise = Event.make();
   self.queue |> Js.Array.push(reqPromise) |> ignore;
 

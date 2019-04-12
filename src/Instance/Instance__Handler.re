@@ -4,7 +4,6 @@ open Async;
 open Instance__Type;
 
 module Goals = Instance__Goals;
-module Views = Instance__Goals;
 module Highlightings = Instance__Highlightings;
 module Connections = Instance__Connections;
 module TextEditors = Instance__TextEditors;
@@ -138,7 +137,7 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
       resolve();
     }
   | MakeCase(makeCaseType, lines) =>
-    let pointed = Editors.pointingAt(instance.goals, instance.editors);
+    let pointed = pointingAt(instance);
     switch (pointed) {
     | Some(goal) =>
       switch (makeCaseType) {
@@ -155,9 +154,21 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
   | ClearHighlighting =>
     instance |> Highlightings.destroyAll;
     resolve();
-  | _ =>
-    Js.log("Unhandled response:");
-    Js.log(response);
+  | NoStatus => resolve()
+  | RunningInfo(verbosity, message) =>
+    Js.log("RunningInfo");
+    Js.log(verbosity);
+    Js.log(message);
+    resolve();
+  | ClearRunningInfo =>
+    Js.log("CleanRunningInfo");
+    resolve();
+  | DoneAborting =>
+    Js.log("DoneAborting");
+    resolve();
+  | SolveAll(solutions) =>
+    Js.log("SolveAll");
+    Js.log(solutions);
     resolve();
   };
 };
@@ -510,7 +521,8 @@ let rec handleLocalCommand =
   | GotoDefinition =>
     if (instance.loaded) {
       let name =
-        instance |> recoverCursor(() => getSelectedTextNode(instance));
+        instance
+        |> recoverCursor(() => Editors.getSelectedTextNode(instance.editors));
 
       instance
       |> getPointedGoal
