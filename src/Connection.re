@@ -75,9 +75,11 @@ module Error = {
         Util.JsError.toString(error),
       )
     | ConnectionError(ClosedByProcess(code, signal)) => (
-        "Socket closed",
+        "Socket closed by Agda",
         {j|code: $code
-    signal: $signal|j},
+signal: $signal
+It's probably because Agda's not happy about the arguments you fed her
+|j},
       )
     | ConnectionError(DisconnectedByUser) => (
         "Disconnected",

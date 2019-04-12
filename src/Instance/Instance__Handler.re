@@ -17,9 +17,8 @@ let handleCommandError = instance =>
       | ParseError(Response(errors)) =>
         let intro =
           string_of_int(Array.length(errors))
-          ++ "when trying to parse the following text responses from agda:\n\n";
+          ++ " errors arisen when trying to parse the following text responses from agda:\n\n";
         let message = errors |> List.fromArray |> String.joinWith("\n\n");
-
         instance.view
         |> View.Handles.display(
              "Parse Error",

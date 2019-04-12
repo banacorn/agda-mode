@@ -309,6 +309,7 @@ let parseSExpression = (tokens: Token.t): result(t, string) => {
     | Some(A("agda2-info-action-and-copy")) =>
       switch (xs[1]) {
       | Some(A("*Type-checking*")) =>
+        /* Resp_ClearRunningInfo & Resp_RunningInfo may run into this case */
         switch (xs[3]) {
         /* t: append */
         | Some(A("t")) =>
@@ -325,7 +326,7 @@ let parseSExpression = (tokens: Token.t): result(t, string) => {
         }
       }
     | Some(A("agda2-verbose")) =>
-      switch (xs[2]) {
+      switch (xs[1]) {
       | Some(A(message)) => Ok(RunningInfo(2, message))
       | _ => err
       }
