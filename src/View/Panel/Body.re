@@ -33,10 +33,10 @@ let make = (~body: body, ~hidden, _children) => {
         }
       };
     let className =
-      hidden ?
-        ["agda-body", "native-key-bindings", "hidden"]
-        |> String.joinWith(" ") :
-        ["agda-body", "native-key-bindings"] |> String.joinWith(" ");
+      hidden
+        ? ["agda-body", "native-key-bindings", "hidden"]
+          |> String.joinWith(" ")
+        : ["agda-body", "native-key-bindings"] |> String.joinWith(" ");
     <section className tabIndex=(-1)> comp </section>;
   },
 };

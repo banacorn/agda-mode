@@ -39,15 +39,11 @@ module Focus = {
   let on = (sort, editors) =>
     switch (sort) {
     | Source =>
-      if (editors.focused != Source) {
-        Environment.Views.getView(editors.source) |> HtmlElement.focus;
-        editors.focused = Source;
-      }
+      Environment.Views.getView(editors.source) |> HtmlElement.focus;
+      editors.focused = Source;
     | Query =>
-      if (editors.focused != Query) {
-        editors.query.ref |> Option.forEach(MiniEditor.focus);
-        editors.focused = Query;
-      }
+      editors.query.ref |> Option.forEach(MiniEditor.focus);
+      editors.focused = Query;
     /* | Connection =>
        if (editors.focused != Connection) {
          editors.connection.model |> MiniEditor.Model.focus;

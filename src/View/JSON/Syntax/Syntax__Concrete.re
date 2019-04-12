@@ -85,19 +85,35 @@ module Element = {
       | Ident(value) => <QName value />
       | Lit(value) => <Syntax__Literal value />
       | QuestionMark(range, None) =>
-        <Link className=["expr", "question-mark"] jump hover range>
+        <Link
+          className=["expr", "question-mark"]
+          jump
+          hover
+          target={RangeLink(range)}>
           {string("?")}
         </Link>
       | QuestionMark(range, Some(n)) =>
-        <Link className=["expr", "question-mark"] jump hover range>
+        <Link
+          className=["expr", "question-mark"]
+          jump
+          hover
+          target={RangeLink(range)}>
           {string("?" ++ string_of_int(n))}
         </Link>
       | Underscore(range, None) =>
-        <Link className=["expr", "underscore"] jump hover range>
+        <Link
+          className=["expr", "underscore"]
+          jump
+          hover
+          target={RangeLink(range)}>
           {string("_")}
         </Link>
       | Underscore(range, Some(s)) =>
-        <Link className=["expr", "underscore"] jump hover range>
+        <Link
+          className=["expr", "underscore"]
+          jump
+          hover
+          target={RangeLink(range)}>
           {string(s)}
         </Link>
       | App(_, _, _) =>
@@ -261,14 +277,16 @@ module Element = {
           {string({js| → |js})}
           <Expr value=expr />
         </span>
-      | Set(range) => <Link jump hover range> {string("Set")} </Link>
-      | Prop(range) => <Link jump hover range> {string("Prop")} </Link>
+      | Set(range) =>
+        <Link jump hover target={RangeLink(range)}> {string("Set")} </Link>
+      | Prop(range) =>
+        <Link jump hover target={RangeLink(range)}> {string("Prop")} </Link>
       | SetN(range, n) =>
-        <Link jump hover range>
+        <Link jump hover target={RangeLink(range)}>
           {string("Set" ++ Expr_.levelToString(n))}
         </Link>
       | PropN(range, n) =>
-        <Link jump hover range>
+        <Link jump hover target={RangeLink(range)}>
           {string("Prop" ++ Expr_.levelToString(n))}
         </Link>
       | Let(_, declarations, expr) =>

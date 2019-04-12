@@ -221,65 +221,18 @@ let rec handleLocalCommand =
   | ShowConstraints => instance |> buff(ShowConstraints)
   | ShowGoals => instance |> buff(ShowGoals)
   | NextGoal =>
-    let nextGoal = ref(None);
-    let cursor =
-      instance.editors.source |> Atom.TextEditor.getCursorBufferPosition;
-    let positions =
-      instance.goals
-      |> Array.map(goal =>
-           Atom.Point.translate(
-             Atom.Point.make(0, 3),
-             Atom.Range.start(goal.Goal.range),
-           )
-         );
-    /* assign the next goal position */
-    positions
-    |> Array.forEach(position =>
-         if (Atom.Point.isGreaterThan(cursor, position) && nextGoal^ === None) {
-           nextGoal := Some(position);
-         }
-       );
-
-    /* if no goal ahead of cursor, then loop back */
-    if (nextGoal^ === None) {
-      nextGoal := positions[0];
-    };
-
+    let nextGoal = instance |> Goals.getNextGoalPosition;
     /* jump */
-    nextGoal^
+    nextGoal
     |> Option.forEach(position =>
          instance.editors.source
          |> Atom.TextEditor.setCursorBufferPosition(position)
        );
     resolve(None);
   | PreviousGoal =>
-    let previousGoal = ref(None);
-    let cursor =
-      instance.editors.source |> Atom.TextEditor.getCursorBufferPosition;
-    let positions =
-      instance.goals
-      |> Array.map(goal =>
-           Atom.Point.translate(
-             Atom.Point.make(0, 3),
-             Atom.Range.start(goal.Goal.range),
-           )
-         );
-
-    /* assign the previous goal position */
-    positions
-    |> Array.forEach(position =>
-         if (Atom.Point.isLessThan(cursor, position) && previousGoal^ === None) {
-           previousGoal := Some(position);
-         }
-       );
-
-    /* loop back if this is already the first goal */
-    if (previousGoal^ === None) {
-      previousGoal := positions[Array.length(positions) - 1];
-    };
-
+    let previousGoal = instance |> Goals.getPreviousGoalPosition;
     /* jump */
-    previousGoal^
+    previousGoal
     |> Option.forEach(position =>
          instance.editors.source
          |> Atom.TextEditor.setCursorBufferPosition(position)
@@ -521,7 +474,18 @@ let rec handleLocalCommand =
       |> ignore;
     };
     resolve(None);
-  | Jump(range) =>
+  | Jump(Type.Location.Range.HoleLink(index)) =>
+    let positions = instance |> Goals.getPositions;
+
+    instance.editors |> Editors.Focus.on(Source);
+    positions[index]
+    |> Option.forEach(position =>
+         instance.editors.source
+         |> Atom.TextEditor.setCursorBufferPosition(position)
+       );
+    resolve(None);
+  | Jump(Type.Location.Range.RangeLink(range)) =>
+    open Type.Location.Range;
     let filePath = instance.editors.source |> Atom.TextEditor.getPath;
     let shouldJump =
       switch (range) {
@@ -531,7 +495,7 @@ let rec handleLocalCommand =
       };
     if (shouldJump) {
       /* Js.log(range); */
-      let ranges = Type.Location.Range.toAtomRanges(range);
+      let ranges = toAtomRanges(range);
       if (ranges[0] |> Option.isSome) {
         Js.Global.setTimeout(
           _ =>

@@ -290,7 +290,8 @@ module Decode = {
       open Type.Syntax.Name;
       let nameId = json =>
         NameId(json |> field("name", int), json |> field("module", int));
-      let namePart = withDefault(Hole, json => Id(json |> string));
+      let namePart =
+        withDefault(Type.Syntax.Name.Hole, json => Id(json |> string));
       let name =
         field("kind", string)
         |> andThen((kind, json) =>

@@ -75,6 +75,10 @@ module Range = {
     | NoRange
     | Range(option(string), array(Interval.t));
 
+  type linkTarget =
+    | RangeLink(t)
+    | HoleLink(int);
+
   let fuse = (a: t, b: t): t => {
     open Interval;
 

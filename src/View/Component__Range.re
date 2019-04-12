@@ -8,11 +8,11 @@ let make = (~range, ~abbr=false, _children) => {
   ...component,
   render: _self =>
     if (abbr) {
-      <Link jump=true range>
+      <Link jump=true target={Range.RangeLink(range)}>
         <span className="text-subtle range icon icon-link" />
       </Link>;
     } else {
-      <Link jump=true range>
+      <Link jump=true target={Range.RangeLink(range)}>
         <span className="text-subtle range icon icon-link">
           {ReasonReact.string(Range.toString(range))}
         </span>

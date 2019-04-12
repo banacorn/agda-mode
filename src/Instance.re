@@ -57,8 +57,8 @@ let make = (textEditor: Atom.TextEditor.t) => {
     instance.view.onMouseEvent
     |> Event.onOk(ev =>
          switch (ev) {
-         | Type.View.JumpToRange(range) =>
-           instance |> dispatch(Jump(range)) |> ignore
+         | Type.View.JumpToTarget(target) =>
+           instance |> dispatch(Jump(target)) |> ignore
          | _ => ()
          }
        );

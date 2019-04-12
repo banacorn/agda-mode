@@ -36,7 +36,7 @@ module Name = {
   let make = (~value, _children) => {
     ...component,
     render: _self =>
-      <Link jump=true hover=true range={getRange(value)}>
+      <Link jump=true hover=true target={RangeLink(getRange(value))}>
         {string(toString(value))}
       </Link>,
   };

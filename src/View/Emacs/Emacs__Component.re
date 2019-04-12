@@ -15,9 +15,13 @@ module Term = {
     render: _self =>
       switch (term) {
       | Plain(s) => <span className="expr"> {string(s)} </span>
-      | QuestionMark(s) =>
-        <Link className=["expr", "question-mark"] jump hover range=NoRange>
-          {string(s)}
+      | QuestionMark(i) =>
+        <Link
+          className=["expr", "question-mark"]
+          jump
+          hover
+          target={HoleLink(i)}>
+          {string("?" ++ string_of_int(i))}
         </Link>
       | Underscore(s) =>
         <span className="expr underscore"> {string(s)} </span>

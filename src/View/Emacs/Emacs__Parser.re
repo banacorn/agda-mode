@@ -155,7 +155,10 @@ let expr = {
         |> Array.filterMap(x => x)
         |> Array.mapi((token, i) =>
              switch (i mod 3) {
-             | 1 => QuestionMark(token)
+             | 1 =>
+               QuestionMark(
+                 int_of_string(Js.String.sliceToEnd(~from=1, token)),
+               )
              | 2 => Underscore(token)
              | _ => Plain(token)
              }

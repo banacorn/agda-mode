@@ -54,7 +54,7 @@ module JSON = {
 module Emacs = {
   type term =
     | Plain(string)
-    | QuestionMark(string)
+    | QuestionMark(int)
     | Underscore(string);
   type expr = array(term);
   type outputConstraint =
@@ -98,6 +98,7 @@ module Emacs = {
     | Error(string)
     | PlainText(string);
 };
+
 type body =
   | Nothing
   | Emacs(Emacs.body)
@@ -126,9 +127,9 @@ type mode =
   | Display
   | Inquire;
 type mouseEvent =
-  | JumpToRange(Range.t)
-  | MouseOver(Range.t)
-  | MouseOut(Range.t);
+  | JumpToTarget(Range.linkTarget)
+  | MouseOver(Range.linkTarget)
+  | MouseOut(Range.linkTarget);
 module MouseEmitter =
   Context.MakePair({
     type t = mouseEvent => unit;
