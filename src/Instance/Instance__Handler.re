@@ -201,6 +201,7 @@ let rec handleLocalCommand =
     Connections.disconnect(instance);
     instance |> Goals.destroyAll;
     instance |> Highlightings.destroyAll;
+    instance.view |> View.Handles.deactivate;
     instance.loaded = false;
     resolve(None);
   | Restart =>

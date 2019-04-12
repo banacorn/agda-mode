@@ -75,13 +75,12 @@ let onTriggerCommand = () => {
          `CSSSelector("atom-text-editor"), "agda-mode:" ++ command, _event =>
          Environment.Workspace.getActiveTextEditor()
          |> Option.flatMap(Instances.get)
-         |> Option.forEach(instance => {
-              Js.log("triggering: " ++ command);
+         |> Option.forEach(instance =>
               instance
               |> Instance.dispatch(Command.Primitive.parse(command))
               |> Instance.handleCommandError(instance)
-              |> ignore;
-            })
+              |> ignore
+            )
        )
        |> CompositeDisposable.add(subscriptions)
      );
