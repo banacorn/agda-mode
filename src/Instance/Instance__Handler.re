@@ -194,6 +194,12 @@ let rec handleLocalCommand =
     |> mapError(_ => Cancelled)
     |> thenOk(() => {
          instance.loaded = true;
+         instance.view
+         |> View.Handles.display(
+              "Loading ...",
+              Type.View.Header.PlainText,
+              Emacs(PlainText("")),
+            );
          instance |> buff(Load);
        })
   | Abort => instance |> buff(Abort)
