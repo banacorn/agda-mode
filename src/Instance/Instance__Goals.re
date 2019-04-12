@@ -22,6 +22,15 @@ let getRanges = (instance): array(Atom.Range.t) => {
   instance.goals |> Array.map(goal => goal.Goal.range);
 };
 
+let setCursor = (goal, instance) => {
+  let position =
+    Atom.Point.translate(
+      Atom.Point.make(0, 3),
+      Atom.Range.start(goal.Goal.range),
+    );
+  instance.editors.source |> Atom.TextEditor.setCursorBufferPosition(position);
+};
+
 let getPositions = (instance): array(Atom.Point.t) => {
   instance
   |> getRanges

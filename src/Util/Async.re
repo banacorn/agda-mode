@@ -26,10 +26,13 @@ let lift: ('i => Result.t('o, 'e), 'i) => t('o, 'e) =
 let fromPromise = (promise: P.t('a)): t('a, Js.Exn.t) => {
   promise |> P.then_(x => resolve(x));
 };
-let all: array(t('a, 'e)) => t(array('a), 'e) =
-  xs => {
-    xs |> P.all |> P.then_(xs => xs |> Util.Result.every |> P.resolve);
-  };
+// tasks => {
+//   tasks
+//   |> Array.reduce(
+//        (promise, task) => promise |> P.then_(() => P.resolve(task)),
+//        P.resolve([||]),
+//      );
+// };
 
 let map: ('a => 'b, 'e => 'f, t('a, 'e)) => t('b, 'f) =
   (f, g) =>
@@ -107,3 +110,16 @@ let flatten: (result('e, 'f) => 'g, t(result('a, 'e), 'f)) => t('a, 'g) =
        | Ok(v) => resolve(v)
        | Error(e) => resolve(f(e)),
      ); */
+
+let all: array(t('a, 'e)) => t(array('a), 'e) =
+  xs => {
+    xs |> P.all |> P.then_(xs => xs |> Util.Result.every |> P.resolve);
+  };
+
+// let seq: array(t('a, 'e)) => t(array('a), 'e) =
+//   Array.reduce(
+//     (promise, task) =>
+//       promise
+//       |> thenOk(xs => task |> thenOk(x => resolve(Array.concat(xs, [|x|])))),
+//     resolve([||]),
+//   );

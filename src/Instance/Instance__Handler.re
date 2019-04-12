@@ -173,12 +173,32 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
     resolve();
   | ClearRunningInfo => resolve()
   | DoneAborting =>
-    Js.log("DoneAborting");
+    instance.view
+    |> View.Handles.display(
+         "Status",
+         Type.View.Header.Warning,
+         Emacs(PlainText("Done aborting")),
+       )
+    |> ignore;
     resolve();
   | SolveAll(solutions) =>
-    Js.log("SolveAll");
-    Js.log(solutions);
-    resolve();
+    let solve = ((index, solution)) => {
+      switch (Goals.find(index, instance)) {
+      | None => resolve()
+      | Some(goal) =>
+        goal |> Goal.setContent(solution) |> ignore;
+        Goals.setCursor(goal, instance);
+        instance.dispatch(Give, instance);
+      };
+    };
+
+    // solve them one by one
+    solutions
+    |> Array.reduce(
+         (promise, solution) =>
+           promise |> thenOk(() => solve(solution) |> thenOk(() => resolve())),
+         resolve(),
+       );
   };
 };
 
@@ -514,7 +534,6 @@ let rec handleLocalCommand =
       | Range(Some(path), _) => path == filePath
       };
     if (shouldJump) {
-      /* Js.log(range); */
       let ranges = toAtomRanges(range);
       if (ranges[0] |> Option.isSome) {
         Js.Global.setTimeout(
