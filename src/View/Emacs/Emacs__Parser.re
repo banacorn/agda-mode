@@ -482,14 +482,13 @@ module Response = {
                "/its definition at (\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/g"
              ],
            )
-        |> Array.filterMap(x => x)
         |> Array.mapi((token, i) =>
              switch (i mod 2) {
-             | 1 => token |> parse(range)
+             | 1 => token |> Option.flatMap(parse(range))
              | _ => None
              }
            )
-        |> Util.Array_.catMaybes;
+        |> Array.filterMap(x => x);
       (raw |> parse(plainText) |> getOr([||]), ranges);
     };
   let searchAbout: string => (string, array(output)) =

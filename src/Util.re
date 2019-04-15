@@ -55,17 +55,17 @@ module Result = {
      ); */
 };
 module Array_ = {
-  let catMaybes = xs =>
-    Array.reduceRight(
-      (acc, x) =>
-        switch (x) {
-        | Some(v) => [v, ...acc]
-        | None => acc
-        },
-      [],
-      xs,
-    )
-    |> Array.fromList;
+  // let catMaybes = xs =>
+  //   Array.reduceRight(
+  //     (acc, x) =>
+  //       switch (x) {
+  //       | Some(v) => [v, ...acc]
+  //       | None => acc
+  //       },
+  //     [],
+  //     xs,
+  //   )
+  //   |> Array.fromList;
   let partite = (p: 'a => bool, xs: array('a)): array(array('a)) => {
     let indices: array(int) =
       xs
@@ -170,7 +170,7 @@ module Parser = {
     | String(handler) => handler(raw)
     };
   let parseArray = (parser: parser('a), xs: array(string)): array('a) =>
-    xs |> Array.map(raw => raw |> parse(parser)) |> Array_.catMaybes;
+    xs |> Array.map(raw => raw |> parse(parser)) |> Array.filterMap(x => x);
   let at =
       (i: int, parser: parser('a), captured: array(option(string)))
       : option('a) =>
