@@ -8,6 +8,13 @@ let agdaOutput = s => {
   s |> Js.String.replaceByRe([%re "/\\\\n/g"], "\n");
 };
 
+// replacement of `int_of_string`
+let int = s =>
+  switch (int_of_string(s)) {
+  | i => Some(i)
+  | exception _ => None
+  };
+
 let userInput = s => {
   let trim = s =>
     Atom.Environment.Config.get("agda-mode.trimSpaces") ? String.trim(s) : s;

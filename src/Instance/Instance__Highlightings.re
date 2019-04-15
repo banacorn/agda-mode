@@ -43,7 +43,7 @@ let addFromFile = (filepath, instance): Async.t(unit, unit) => {
        |> Emacs.Parser.SExpression.parse
        |> Result.map(tokens =>
             switch (tokens) {
-            | L(xs) => xs |> Highlighting.Annotation.parseIndirectHighlighting
+            | L(xs) => xs |> Highlighting.Annotation.parseIndirectHighlightings
             | _ => [||]
             }
           )

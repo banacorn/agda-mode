@@ -15,54 +15,66 @@ module Annotation = {
     types: array(string),
     source: option((filepath, int)),
   };
-  let parse: Token.t => result(t, string) =
+  let parse: Token.t => option(t) =
     fun
-    | A(s) => Error(toString(A(s)))
+    | A(_) => None
     | L(xs) =>
       switch (xs) {
       | [|
-          A(start),
-          A(end_),
+          A(start'),
+          A(end_'),
           types,
           _,
           _,
-          L([|A(filepath), _, A(index)|]),
+          L([|A(filepath), _, A(index')|]),
         |] =>
-        Ok({
-          start: int_of_string(start),
-          end_: int_of_string(end_),
-          types: flatten(types),
-          source: Some((filepath, int_of_string(index))),
-        })
-      | [|A(start), A(end_), types|] =>
-        Ok({
-          start: int_of_string(start),
-          end_: int_of_string(end_),
-          types: flatten(types),
-          source: None,
-        })
-      | [|A(start), A(end_), types, _|] =>
-        Ok({
-          start: int_of_string(start),
-          end_: int_of_string(end_),
-          types: flatten(types),
-          source: None,
-        })
-      | _ => Error(toString(L(xs)))
+        Parser.int(start')
+        |> Option.flatMap(start =>
+             Parser.int(end_')
+             |> Option.flatMap(end_ =>
+                  Parser.int(index')
+                  |> Option.flatMap(index =>
+                       Some({
+                         start,
+                         end_,
+                         types: flatten(types),
+                         source: Some((filepath, index)),
+                       })
+                     )
+                )
+           )
+
+      | [|A(start'), A(end_'), types|] =>
+        Parser.int(start')
+        |> Option.flatMap(start =>
+             Parser.int(end_')
+             |> Option.flatMap(end_ =>
+                  Some({start, end_, types: flatten(types), source: None})
+                )
+           )
+      | [|A(start'), A(end_'), types, _|] =>
+        Parser.int(start')
+        |> Option.flatMap(start =>
+             Parser.int(end_')
+             |> Option.flatMap(end_ =>
+                  Some({start, end_, types: flatten(types), source: None})
+                )
+           )
+      | _ => None
       };
-  let parseDirectHighlighting: array(Token.t) => array(t) =
+  let parseDirectHighlightings: array(Token.t) => array(t) =
     tokens => {
       tokens
       |> Js.Array.sliceFrom(2)
       |> Array.map(parse)
-      |> Array.filterMap(Option.fromResult);
+      |> Array.filterMap(x => x);
     };
-  let parseIndirectHighlighting: array(Token.t) => array(t) =
+  let parseIndirectHighlightings: array(Token.t) => array(t) =
     tokens =>
       tokens
       |> Js.Array.sliceFrom(1)
       |> Array.map(parse)
-      |> Array.filterMap(Option.fromResult);
+      |> Array.filterMap(x => x);
   /* the type of annotations that we want to highlight */
   let shouldHighlight: t => bool =
     annotation => {

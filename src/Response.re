@@ -212,7 +212,7 @@ let parseSExpression = (tokens: Token.t): result(t, string) => {
   | L(xs) =>
     switch (xs[0]) {
     | Some(A("agda2-highlight-add-annotations")) =>
-      let annotations = Highlighting.Annotation.parseDirectHighlighting(xs);
+      let annotations = Highlighting.Annotation.parseDirectHighlightings(xs);
       switch (xs[1]) {
       | Some(A("remove")) =>
         Ok(HighlightingInfoDirect(Highlighting.Remove, annotations))
@@ -239,29 +239,36 @@ let parseSExpression = (tokens: Token.t): result(t, string) => {
       }
     | Some(A("agda2-maybe-goto")) =>
       switch (xs[1]) {
-      | Some(L([|A(filepath), _, A(index)|])) =>
-        Ok(JumpToError(filepath, int_of_string(index)))
+      | Some(L([|A(filepath), _, A(index')|])) =>
+        Parser.int(index')
+        |> Option.flatMap(index => Some(JumpToError(filepath, index)))
+        |> Option.mapOr(x => Ok(x), err)
       | _ => err
       }
     | Some(A("agda2-goals-action")) =>
       switch (xs[1]) {
       | Some(xs) =>
         Ok(
-          InteractionPoints(xs |> Token.flatten |> Array.map(int_of_string)),
+          InteractionPoints(
+            xs |> Token.flatten |> Array.filterMap(Parser.int),
+          ),
         )
       | _ => err
       }
     | Some(A("agda2-give-action")) =>
       switch (xs[1]) {
-      | Some(A(index)) =>
-        let i = int_of_string(index);
-        switch (xs[2]) {
-        | Some(A("paren")) => Ok(GiveAction(i, Paren))
-        | Some(A("no-paren")) => Ok(GiveAction(i, NoParen))
-        | Some(A(result)) => Ok(GiveAction(i, String(result)))
-        | Some(L(_)) => err
-        | _ => err
-        };
+      | Some(A(index')) =>
+        Parser.int(index')
+        |> Option.flatMap(i =>
+             switch (xs[2]) {
+             | Some(A("paren")) => Some(GiveAction(i, Paren))
+             | Some(A("no-paren")) => Some(GiveAction(i, NoParen))
+             | Some(A(result)) => Some(GiveAction(i, String(result)))
+             | Some(L(_)) => None
+             | _ => None
+             }
+           )
+        |> Option.mapOr(x => Ok(x), err)
       | _ => err
       }
     | Some(A("agda2-make-case-action")) =>
@@ -288,12 +295,10 @@ let parseSExpression = (tokens: Token.t): result(t, string) => {
           |> Array.filterMap(token => {
                let solution =
                  if (isEven(i^)) {
-                   let index = int_of_string(token);
-                   tokens[i^ + 1] |> Option.map(s => (index, s));
-                   /* switch (tokens[i^ + 1]) {
-                      | Some(solution) => result
-                      | None =>
-                      }; */
+                   Parser.int(token)
+                   |> Option.flatMap(index =>
+                        tokens[i^ + 1] |> Option.map(s => (index, s))
+                      );
                  } else {
                    None;
                  };

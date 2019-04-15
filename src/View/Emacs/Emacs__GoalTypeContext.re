@@ -14,26 +14,22 @@ let make = (~body: string, _children) => {
     let parsed = Emacs.Parser.Response.goalTypeContext(body);
     <>
       <ul>
-        (
-          parsed.goal
-          |> Option.mapOr(
-               (Goal(expr)) => <Labeled label="Goal " expr />,
-               null,
-             )
-        )
-        (
-          parsed.have
-          |> Option.mapOr(
-               (Have(expr)) => <Labeled label="Have " expr />,
-               null,
-             )
-        )
+        {parsed.goal
+         |> Option.mapOr(
+              (Goal(expr)) => <Labeled label="Goal " expr />,
+              null,
+            )}
+        {parsed.have
+         |> Option.mapOr(
+              (Have(expr)) => <Labeled label="Have " expr />,
+              null,
+            )}
       </ul>
       <ul>
-        ...(parsed.interactionMetas |> Array.map(value => <Output value />))
+        ...{parsed.interactionMetas |> Array.map(value => <Output value />)}
       </ul>
       <ul>
-        ...(parsed.hiddenMetas |> Array.map(value => <Output value />))
+        ...{parsed.hiddenMetas |> Array.map(value => <Output value />)}
       </ul>
     </>;
   },

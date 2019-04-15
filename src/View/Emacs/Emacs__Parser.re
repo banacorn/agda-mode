@@ -81,10 +81,13 @@ let range =
       let sameRow = flatten(captured[6]) |> isSome;
       if (sameRow) {
         flatten(captured[6])
+        |> flatMap(Parser.int)
         |> flatMap(row =>
              flatten(captured[7])
+             |> flatMap(Parser.int)
              |> flatMap(colStart =>
                   flatten(captured[8])
+                  |> flatMap(Parser.int)
                   |> flatMap(colEnd =>
                        Some(
                          Range.Range(
@@ -93,13 +96,13 @@ let range =
                              {
                                start: {
                                  pos: None,
-                                 line: int_of_string(row),
-                                 col: int_of_string(colStart),
+                                 line: row,
+                                 col: colStart,
                                },
                                end_: {
                                  pos: None,
-                                 line: int_of_string(row),
-                                 col: int_of_string(colEnd),
+                                 line: row,
+                                 col: colEnd,
                                },
                              },
                            |],
@@ -110,12 +113,16 @@ let range =
            );
       } else {
         flatten(captured[2])
+        |> flatMap(Parser.int)
         |> flatMap(rowStart =>
              flatten(captured[3])
+             |> flatMap(Parser.int)
              |> flatMap(colStart =>
                   flatten(captured[4])
+                  |> flatMap(Parser.int)
                   |> flatMap(rowEnd =>
                        flatten(captured[5])
+                       |> flatMap(Parser.int)
                        |> flatMap(colEnd =>
                             Some(
                               Range.Range(
@@ -124,13 +131,13 @@ let range =
                                   {
                                     start: {
                                       pos: None,
-                                      line: int_of_string(rowStart),
-                                      col: int_of_string(colStart),
+                                      line: rowStart,
+                                      col: colStart,
                                     },
                                     end_: {
                                       pos: None,
-                                      line: int_of_string(rowEnd),
-                                      col: int_of_string(colEnd),
+                                      line: rowEnd,
+                                      col: colEnd,
                                     },
                                   },
                                 |],
@@ -156,13 +163,13 @@ let expr = {
         |> Array.mapi((token, i) =>
              switch (i mod 3) {
              | 1 =>
-               QuestionMark(
-                 int_of_string(Js.String.sliceToEnd(~from=1, token)),
-               )
-             | 2 => Underscore(token)
-             | _ => Plain(token)
+               Parser.int(Js.String.sliceToEnd(~from=1, token))
+               |> map(x => QuestionMark(x))
+             | 2 => Some(Underscore(token))
+             | _ => Some(Plain(token))
              }
            )
+        |> Array.filterMap(x => x)
         |> some,
     )
   );
@@ -398,6 +405,7 @@ module Response = {
   };
   let goalTypeContext: string => goalTypeContext =
     raw => {
+      Js.log(raw);
       let markGoal = ((line, _)) =>
         line |> Js.String.match([%re "/^Goal:/"]) |> map(_ => "goal");
       let markHave = ((line, _)) =>
