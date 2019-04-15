@@ -27,7 +27,7 @@ module Info = {
   type t =
     | CompilationOk
     | Constraints(option(string))
-    | AllGoalsWarnings(Type.View.Emacs.allGoalsWarnings)
+    | AllGoalsWarnings(Emacs.AllGoalsWarnings.t)
     | Time(string)
     | Error(string)
     | Intro(string)
@@ -71,9 +71,7 @@ module Info = {
       | Some(A("*Agda Version*")) => Some(Version(payload))
       | Some(A(title)) =>
         Some(
-          AllGoalsWarnings(
-            Emacs.Parser.Response.allGoalsWarnings(title, payload),
-          ),
+          AllGoalsWarnings(Emacs__AllGoalsWarnings.parse(title, payload)),
         )
       | _ => None
       };
@@ -205,7 +203,7 @@ type t =
   /* agda2-abort-done */
   | DoneAborting;
 
-let parseSExpression = (tokens: Token.t): result(t, string) => {
+let fromSExpression = (tokens: Token.t): result(t, string) => {
   let err = Error(tokens |> Token.toString);
   switch (tokens) {
   | A(_) => err
@@ -345,7 +343,7 @@ let parseSExpression = (tokens: Token.t): result(t, string) => {
 let parse = (raw: string): result(array(t), Parser.error) => {
   let results =
     Emacs.Parser.SExpression.parseFile(raw)
-    |> Array.map(Result.flatMap(parseSExpression));
+    |> Array.map(Result.flatMap(fromSExpression));
   let errors =
     results
     |> Array.filterMap(
@@ -359,20 +357,3 @@ let parse = (raw: string): result(array(t), Parser.error) => {
     Ok(results |> Array.filterMap(Option.fromResult));
   };
 };
-
-/* type t =
-   /* agda2-make-case-action */
-   /* agda2-make-case-action-extendlam */
-   | MakeCase(makeCaseType, array(string))
-   /* agda2-solveAll-action */
-   | SolveAll(array((index, string)))
-   /* agda2-info-action */
-   /* agda2-info-action-and-copy */
-   | DisplayInfo(Info.t)
-   | ClearRunningInfo
-   /* agda2-verbose */
-   | RunningInfo(int, string)
-   /* agda2-highlight-clear */
-   | ClearHighlighting
-   /* agda2-abort-done */
-   | DoneAborting; */

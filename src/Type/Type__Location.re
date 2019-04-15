@@ -75,6 +75,86 @@ module Range = {
     | NoRange
     | Range(option(string), array(Interval.t));
 
+  let parse =
+    [%re
+      /*          |  different row                    |    same row            | */
+      "/^(\\S+)\\:(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+))$/"
+    ]
+    |> Parser.captures(captured => {
+         open Rebase.Option;
+         let srcFile = flatten(captured[1]);
+         let sameRow = flatten(captured[6]) |> isSome;
+         if (sameRow) {
+           flatten(captured[6])
+           |> flatMap(Parser.int)
+           |> flatMap(row =>
+                flatten(captured[7])
+                |> flatMap(Parser.int)
+                |> flatMap(colStart =>
+                     flatten(captured[8])
+                     |> flatMap(Parser.int)
+                     |> flatMap(colEnd =>
+                          Some(
+                            Range(
+                              srcFile,
+                              [|
+                                {
+                                  start: {
+                                    pos: None,
+                                    line: row,
+                                    col: colStart,
+                                  },
+                                  end_: {
+                                    pos: None,
+                                    line: row,
+                                    col: colEnd,
+                                  },
+                                },
+                              |],
+                            ),
+                          )
+                        )
+                   )
+              );
+         } else {
+           flatten(captured[2])
+           |> flatMap(Parser.int)
+           |> flatMap(rowStart =>
+                flatten(captured[3])
+                |> flatMap(Parser.int)
+                |> flatMap(colStart =>
+                     flatten(captured[4])
+                     |> flatMap(Parser.int)
+                     |> flatMap(rowEnd =>
+                          flatten(captured[5])
+                          |> flatMap(Parser.int)
+                          |> flatMap(colEnd =>
+                               Some(
+                                 Range(
+                                   srcFile,
+                                   [|
+                                     {
+                                       start: {
+                                         pos: None,
+                                         line: rowStart,
+                                         col: colStart,
+                                       },
+                                       end_: {
+                                         pos: None,
+                                         line: rowEnd,
+                                         col: colEnd,
+                                       },
+                                     },
+                                   |],
+                                 ),
+                               )
+                             )
+                        )
+                   )
+              );
+         };
+       });
+
   type linkTarget =
     | RangeLink(t)
     | HoleLink(int);

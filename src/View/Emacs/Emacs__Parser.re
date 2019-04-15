@@ -2,8 +2,6 @@ open Rebase;
 
 open Rebase.Option;
 
-open Type.View.Emacs;
-
 /* open Type.View.Emacs; */
 
 let unindent: array(string) => array(string) =
@@ -49,225 +47,14 @@ let unindent: array(string) => array(string) =
        );
   };
 
-/* let filepath =
-   String(
-     raw => {
-       open Js.String;
-       /* remove newlines and sanitize with path.parse  */
-       let parsed = raw |> replace("\n", "") |> Node.Path.parse;
-       /* join it back and replace Windows' stupid backslash with slash */
-       let joined =
-         Node.Path.join2(parsed##dir, parsed##base)
-         |> split(Node.Path.sep)
-         |> List.fromArray
-         |> String.joinWith("/");
-       if (charCodeAt(0, joined) === 8234.0) {
-         joined |> sliceToEnd(~from=1) |> trim |> some;
-       } else {
-         joined |> trim |> some;
-       };
-     },
-   ); */
-
-let range =
-  [%re
-    /*          |  different row                    |    same row            | */
-    "/^(\\S+)\\:(?:(\\d+)\\,(\\d+)\\-(\\d+)\\,(\\d+)|(\\d+)\\,(\\d+)\\-(\\d+))$/"
-  ]
-  |> Parser.captures(captured => {
-       open Type.Location;
-       let srcFile = flatten(captured[1]);
-       let sameRow = flatten(captured[6]) |> isSome;
-       if (sameRow) {
-         flatten(captured[6])
-         |> flatMap(Parser.int)
-         |> flatMap(row =>
-              flatten(captured[7])
-              |> flatMap(Parser.int)
-              |> flatMap(colStart =>
-                   flatten(captured[8])
-                   |> flatMap(Parser.int)
-                   |> flatMap(colEnd =>
-                        Some(
-                          Range.Range(
-                            srcFile,
-                            [|
-                              {
-                                start: {
-                                  pos: None,
-                                  line: row,
-                                  col: colStart,
-                                },
-                                end_: {
-                                  pos: None,
-                                  line: row,
-                                  col: colEnd,
-                                },
-                              },
-                            |],
-                          ),
-                        )
-                      )
-                 )
-            );
-       } else {
-         flatten(captured[2])
-         |> flatMap(Parser.int)
-         |> flatMap(rowStart =>
-              flatten(captured[3])
-              |> flatMap(Parser.int)
-              |> flatMap(colStart =>
-                   flatten(captured[4])
-                   |> flatMap(Parser.int)
-                   |> flatMap(rowEnd =>
-                        flatten(captured[5])
-                        |> flatMap(Parser.int)
-                        |> flatMap(colEnd =>
-                             Some(
-                               Range.Range(
-                                 srcFile,
-                                 [|
-                                   {
-                                     start: {
-                                       pos: None,
-                                       line: rowStart,
-                                       col: colStart,
-                                     },
-                                     end_: {
-                                       pos: None,
-                                       line: rowEnd,
-                                       col: colEnd,
-                                     },
-                                   },
-                                 |],
-                               ),
-                             )
-                           )
-                      )
-                 )
-            );
-       };
-     });
-
-let expr = raw =>
-  raw
-  |> String.trim
-  /*                            1         2                        */
-  |> Util.safeSplitByRe([%re "/(\\?\\d+)|(\\_\\d+[^\\}\\)\\s]*)/"])
-  |> Array.mapi((token, i) =>
-       switch (i mod 3) {
-       | 1 =>
-         token
-         |> map(Js.String.sliceToEnd(~from=1))
-         |> flatMap(Parser.int)
-         |> map(x => QuestionMark(x))
-       | 2 => token |> map(x => Underscore(x))
-       | _ => token |> map(x => Plain(x))
-       }
-     )
-  |> Array.filterMap(x => x)
-  |> some;
-
-module OutputConstraint = {
-  let ofType =
-    [%re "/^([^\\:]*) \\: ((?:\\n|.)+)/"]
-    |> Parser.captures(captured =>
-         captured
-         |> Parser.at(2, expr)
-         |> flatMap(type_ =>
-              captured
-              |> Parser.at(1, expr)
-              |> flatMap(term => Some(OfType(term, type_)))
-            )
-       );
-  let justType =
-    [%re "/^Type ((?:\\n|.)+)/"]
-    |> Parser.captures(captured =>
-         captured |> Parser.at(1, expr) |> map(type_ => JustType(type_))
-       );
-  let justSort =
-    [%re "/^Sort ((?:\\n|.)+)/"]
-    |> Parser.captures(captured =>
-         captured |> Parser.at(1, expr) |> map(sort => JustSort(sort))
-       );
-  let others = raw => raw |> expr |> map(raw' => Others(raw'));
-};
-
-let outputConstraint =
-  Parser.choice([|
-    OutputConstraint.ofType,
-    OutputConstraint.justType,
-    OutputConstraint.justSort,
-    OutputConstraint.others,
-  |]);
-
-module Output = {
-  let outputWithoutRange = raw =>
-    raw |> outputConstraint |> map(x => Output(x, None));
-  let outputWithRange =
-    [%re "/((?:\\n|.)*\\S+)\\s*\\[ at ([^\\]]+) \\]/"]
-    |> Parser.captures(captured =>
-         flatten(captured[1])
-         |> flatMap(outputConstraint)
-         |> map(oc => {
-              let r = flatten(captured[2]) |> flatMap(range);
-              Output(oc, r);
-            })
-       );
-};
-
-let output = raw => {
-  let rangeRe = [%re
-    "/\\[ at (\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+)) \\]$/"
-  ];
-  let hasRange = Js.Re.test_(rangeRe, raw);
-  if (hasRange) {
-    raw |> Output.outputWithRange;
-  } else {
-    raw |> Output.outputWithoutRange;
-  };
-};
-
-let plainText = raw =>
-  raw
-  |> Util.safeSplitByRe(
-       [%re "/(\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/"],
-     )
-  |> Array.filterMap(x => x)
-  |> Array.mapi((token, i) =>
-       switch (i mod 2) {
-       | 1 =>
-         token
-         |> range
-         |> mapOr(
-              x => Type.View.Emacs.Range(x),
-              Type.View.Emacs.Text(token),
-            )
-       | _ => Type.View.Emacs.Text(token)
-       }
-     )
-  |> some;
-
-/* warnings or errors */
-let warningOrErrors = (isWarning, raw) =>
-  raw
-  |> plainText
-  |> map(body =>
-       isWarning
-         ? Type.View.Emacs.WarningMessage(body)
-         : Type.View.Emacs.ErrorMessage(body)
-     );
-
-let warning = warningOrErrors(true);
-
-let error = warningOrErrors(false);
-
 let partiteMetas =
   Util.Dict.split("metas", (rawMetas: array(string)) => {
     let metas = unindent(rawMetas);
     let indexOfHiddenMetas =
       metas
-      |> Array.findIndex(s => s |> Output.outputWithRange |> isSome)
+      |> Array.findIndex(s =>
+           s |> Emacs__Component.Output.parseOutputWithRange |> isSome
+         )
       |> map(fst);
     metas
     |> Util.Dict.partite(((_, i)) =>
@@ -291,226 +78,26 @@ let partiteMetas =
        );
   });
 
-module Response = {
-  let partiteWarningsOrErrors = key =>
-    Util.Dict.update(
-      key,
-      (raw: array(string)) => {
-        let hasDelimeter =
-          raw[0] |> flatMap(Js.String.match([%re "/^\\u2014{4}/"])) |> isSome;
-        let lines = hasDelimeter ? raw |> Js.Array.sliceFrom(1) : raw;
-        let markWarningStart = line => line |> range |> isSome;
-        /* If the previous warning of error ends with "at", then we have to glue it back */
-        let glueBack = xs =>
-          xs[Array.length(xs) - 1]
-          |> flatMap(Js.String.match([%re "/at$/"]))
-          |> isSome;
-        lines
-        |> Util.Array_.partite(markWarningStart)
-        |> Util.Array_.mergeWithNext(glueBack)
-        |> Array.map(xs => xs |> List.fromArray |> String.joinWith("\n"));
-      },
-    );
-  let allGoalsWarnings = (title, body): allGoalsWarnings => {
-    let partiteAllGoalsWarnings: (string, string) => Js.Dict.t(array(string)) =
-      (title, body) => {
-        let lines = body |> Js.String.split("\n");
-        /* examine the header to see what's in the body */
-        let hasMetas = title |> Js.String.match([%re "/Goals/"]) |> isSome;
-        let hasWarnings =
-          title |> Js.String.match([%re "/Warnings/"]) |> isSome;
-        let hasErrors = title |> Js.String.match([%re "/Errors/"]) |> isSome;
-        /* predicates for partitioning the body */
-        let markMetas = ((_, i)) =>
-          hasMetas && i === 0 ? Some("metas") : None;
-        let markWarnings = ((line, i)) =>
-          hasWarnings
-            ? hasMetas
-                /* Has both warnings and metas */
-                ? line
-                  |> Js.String.slice(~from=5, ~to_=13)
-                  |> Js.String.match([%re "/Warnings/"])
-                  |> map(_ => "warnings")
-                /* Has only warnings */
-                : i === 0 ? Some("warnings") : None
-            /* Has no warnings */
-            : None;
-        let markErrors = ((line, i)) =>
-          hasErrors
-            /* Has both warnings or metas and errors */
-            ? hasMetas || hasWarnings
-                ? line
-                  |> Js.String.slice(~from=5, ~to_=11)
-                  |> Js.String.match([%re "/Errors/"])
-                  |> map(_ => "errors")
-                /* Has only errors */
-                : i === 0 ? Some("errors") : None
-            : None;
-        lines
-        |> Util.Dict.partite(line =>
-             or_(
-               or_(markMetas(line), markWarnings(line)),
-               markErrors(line),
-             )
-           );
-      };
-    let dictionary: Js.Dict.t(array(string)) =
-      partiteAllGoalsWarnings(title, body)
-      |> partiteMetas
-      |> partiteWarningsOrErrors("warnings")
-      |> partiteWarningsOrErrors("errors");
-    /* extract entries from the dictionary */
-    let interactionMetas =
-      "interactionMetas"
-      |> Js.Dict.get(dictionary)
-      |> mapOr(
-           metas =>
-             metas
-             |> Array.map(Output.outputWithoutRange)
-             |> Array.filterMap(x => x),
-           [||],
-         );
-    let hiddenMetas =
-      "hiddenMetas"
-      |> Js.Dict.get(dictionary)
-      |> mapOr(
-           metas =>
-             metas
-             |> Array.map(Output.outputWithRange)
-             |> Array.filterMap(x => x),
-           [||],
-         );
-    let warnings =
-      "warnings"
-      |> Js.Dict.get(dictionary)
-      |> mapOr(
-           entries =>
-             entries |> Array.map(warning) |> Array.filterMap(x => x),
-           [||],
-         );
-    let errors =
-      "errors"
-      |> Js.Dict.get(dictionary)
-      |> mapOr(
-           entries => entries |> Array.map(error) |> Array.filterMap(x => x),
-           [||],
-         );
-    {title, interactionMetas, hiddenMetas, warnings, errors};
-  };
-  let goalTypeContext: string => goalTypeContext =
-    raw => {
-      Js.log(raw);
-      let markGoal = ((line, _)) =>
-        line |> Js.String.match([%re "/^Goal:/"]) |> map(_ => "goal");
-      let markHave = ((line, _)) =>
-        line |> Js.String.match([%re "/^Have:/"]) |> map(_ => "have");
-      let markMetas = ((line, _)) =>
-        line |> Js.String.match([%re "/\\u2014{60}/g"]) |> map(_ => "metas");
-      let partiteGoalTypeContext =
-        Util.Dict.partite(line =>
-          or_(or_(markGoal(line), markHave(line)), markMetas(line))
-        );
-      let removeDelimeter = Util.Dict.update("metas", Js.Array.sliceFrom(1));
-      let lines = raw |> Js.String.split("\n");
-      let dictionary =
-        lines |> partiteGoalTypeContext |> removeDelimeter |> partiteMetas;
-      /* extract entries from the dictionary */
-      let goal =
-        "goal"
-        |> Js.Dict.get(dictionary)
-        |> flatMap(line =>
-             line
-             |> List.fromArray
-             |> String.joinWith("\n")
-             |> Js.String.sliceToEnd(~from=5)
-             |> expr
-           )
-        |> map(x => Goal(x));
-      let have =
-        "have"
-        |> Js.Dict.get(dictionary)
-        |> flatMap(line =>
-             line
-             |> List.fromArray
-             |> String.joinWith("\n")
-             |> Js.String.sliceToEnd(~from=5)
-             |> expr
-           )
-        |> map(x => Have(x));
-      let interactionMetas =
-        "interactionMetas"
-        |> Js.Dict.get(dictionary)
-        |> mapOr(
-             metas =>
-               metas
-               |> Array.map(Output.outputWithoutRange)
-               |> Array.filterMap(x => x),
-             [||],
-           );
-      let hiddenMetas =
-        "hiddenMetas"
-        |> Js.Dict.get(dictionary)
-        |> mapOr(
-             metas =>
-               metas
-               |> Array.map(Output.outputWithRange)
-               |> Array.filterMap(x => x),
-             [||],
-           );
-      {goal, have, interactionMetas, hiddenMetas};
-    };
-  let context: string => array(output) =
-    raw => {
-      let lines = raw |> Js.String.split("\n") |> unindent;
-      lines |> Array.map(output) |> Array.filterMap(x => x);
-    };
-  let error: string => array(warningError) =
-    raw => {
-      let lines = raw |> Js.String.split("\n");
+let partiteWarningsOrErrors = key =>
+  Util.Dict.update(
+    key,
+    (raw: array(string)) => {
+      let hasDelimeter =
+        raw[0] |> flatMap(Js.String.match([%re "/^\\u2014{4}/"])) |> isSome;
+      let lines = hasDelimeter ? raw |> Js.Array.sliceFrom(1) : raw;
+      let markWarningStart = line =>
+        line |> Type.Location.Range.parse |> isSome;
+      /* If the previous warning of error ends with "at", then we have to glue it back */
+      let glueBack = xs =>
+        xs[Array.length(xs) - 1]
+        |> flatMap(Js.String.match([%re "/at$/"]))
+        |> isSome;
       lines
-      |> Util.Dict.partite(((_, i)) => i === 0 ? Some("errors") : None)
-      |> partiteWarningsOrErrors("errors")
-      |> Js.Dict.get(_, "errors")
-      |> mapOr(
-           metas => metas |> Array.map(error) |> Array.filterMap(x => x),
-           [||],
-         );
-    };
-  let whyInScope:
-    string =>
-    (array(Type.View.Emacs.textOrRange), array(Type.Location.Range.t)) =
-    raw => {
-      let ranges =
-        raw
-        |> Util.safeSplitByRe(
-             [%re
-               "/its definition at (\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/g"
-             ],
-           )
-        |> Array.mapi((token, i) =>
-             switch (i mod 2) {
-             | 1 => token |> Option.flatMap(range)
-             | _ => None
-             }
-           )
-        |> Array.filterMap(x => x);
-      (raw |> plainText |> getOr([||]), ranges);
-    };
-  let searchAbout: string => (string, array(output)) =
-    raw => {
-      let lines = raw |> Js.String.split("\n");
-      let target =
-        lines[0] |> map(Js.String.sliceToEnd(~from=18)) |> getOr("???");
-      let outputs =
-        lines
-        |> Js.Array.sliceFrom(1)
-        |> Array.map(s => s |> Js.String.sliceToEnd(~from=2))
-        |> unindent
-        |> Array.map(output)
-        |> Array.filterMap(x => x);
-      (target, outputs);
-    };
-};
+      |> Util.Array_.partite(markWarningStart)
+      |> Util.Array_.mergeWithNext(glueBack)
+      |> Array.map(xs => xs |> List.fromArray |> String.joinWith("\n"));
+    },
+  );
 
 /* Parsing S-Expressions */
 /* Courtesy of @NightRa */

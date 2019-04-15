@@ -51,53 +51,6 @@ module JSON = {
     | ErrorMessage(Type__TypeChecking.error, string)
     | PlainText(string);
 };
-module Emacs = {
-  type term =
-    | Plain(string)
-    | QuestionMark(int)
-    | Underscore(string);
-  type expr = array(term);
-  type outputConstraint =
-    | OfType(expr, expr)
-    | JustType(expr)
-    | JustSort(expr)
-    | Others(expr);
-  type goal =
-    | Goal(expr);
-  type have =
-    | Have(expr);
-  type output =
-    | Output(outputConstraint, option(Range.t));
-  type textOrRange =
-    | Text(string)
-    | Range(Range.t);
-  /* array(result(string, )); */
-  type warningError =
-    | WarningMessage(array(textOrRange))
-    | ErrorMessage(array(textOrRange));
-  type allGoalsWarnings = {
-    title: string,
-    interactionMetas: array(output),
-    hiddenMetas: array(output),
-    warnings: array(warningError),
-    errors: array(warningError),
-  };
-  type goalTypeContext = {
-    goal: option(goal),
-    have: option(have),
-    interactionMetas: array(output),
-    hiddenMetas: array(output),
-  };
-  type body =
-    | AllGoalsWarnings(allGoalsWarnings)
-    | GoalTypeContext(string)
-    | Context(string)
-    | Constraints(string)
-    | WhyInScope(string)
-    | SearchAbout(string)
-    | Error(string)
-    | PlainText(string);
-};
 
 module Header = {
   type style =
