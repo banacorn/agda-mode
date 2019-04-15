@@ -4,25 +4,18 @@ open Type.View;
 
 type state = {
   maxHeight: int,
-  isPending: bool,
   inputMethodActivated: bool,
 };
 
 type action =
   | UpdateMaxHeight(int)
-  | UpdateIsPending(bool)
   | UpdateInputMethodActivation(bool);
 
-let initialState = () => {
-  maxHeight: 170,
-  isPending: false,
-  inputMethodActivated: false,
-};
+let initialState = () => {maxHeight: 170, inputMethodActivated: false};
 
 let reducer = (action, state) =>
   switch (action) {
   | UpdateMaxHeight(maxHeight) => Update({...state, maxHeight})
-  | UpdateIsPending(isPending) => Update({...state, isPending})
   | UpdateInputMethodActivation(activated) =>
     Update({...state, inputMethodActivated: activated})
   };
@@ -40,6 +33,7 @@ let make =
       ~mode: mode,
       ~hidden: bool,
       ~settingsView: option(Tab.t),
+      ~isPending: bool,
       /* Editors */
       ~onInquireQuery: Event.t(string, MiniEditor.error),
       ~onEditorRef: Atom.TextEditor.t => unit,
@@ -65,7 +59,7 @@ let make =
   initialState,
   reducer,
   render: self => {
-    let {isPending, inputMethodActivated, maxHeight} = self.state;
+    let {inputMethodActivated, maxHeight} = self.state;
     let mountAtBottom =
       switch (mountAt) {
       | Bottom(_) => true

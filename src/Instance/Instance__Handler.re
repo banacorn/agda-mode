@@ -579,40 +579,40 @@ let handleRemoteCommand = (instance, remote) =>
   | Some(cmd) =>
     let handleResults = ref([||]);
     let parseErrors = ref([||]);
-    let serialized = Command.Remote.serialize(cmd);
     /* send the serialized command */
+    let serialized = Command.Remote.serialize(cmd);
+
+    let onResponse = (resolve', reject') => (
+      fun
+      | Ok(Connection.Data(data)) =>
+        switch (Response.parse(data)) {
+        | Ok(responses) =>
+          let results =
+            instance
+            |> recoverCursor(() =>
+                 Array.map(handleResponse(instance), responses)
+               );
+          handleResults := Array.concat(results, handleResults^);
+        | Error(Response(errors)) =>
+          parseErrors := Array.concat(errors, parseErrors^)
+        | Error(Others(error)) =>
+          parseErrors := Array.concat([|error|], parseErrors^)
+        }
+      | Ok(Connection.End) =>
+        if (Array.length(parseErrors^) > 0) {
+          reject'(ParseError(Parser.Response(parseErrors^))) |> ignore;
+        } else {
+          handleResults^ |> all |> mapOk(_ => resolve'()) |> ignore;
+        }
+      | Error(error) =>
+        reject'(ConnectionError(Connection.Error.ConnectionError(error)))
+        |> ignore
+    );
 
     Async.make((resolve', reject') =>
       cmd.connection
       |> Connection.send(serialized)
-      |> Event.on(
-           fun
-           | Ok(Connection.Data(data)) =>
-             switch (Response.parse(data)) {
-             | Ok(responses) =>
-               let results =
-                 instance
-                 |> recoverCursor(() =>
-                      Array.map(handleResponse(instance), responses)
-                    );
-               handleResults := Array.concat(results, handleResults^);
-             | Error(Response(errors)) =>
-               parseErrors := Array.concat(errors, parseErrors^)
-             | Error(Others(error)) =>
-               parseErrors := Array.concat([|error|], parseErrors^)
-             }
-           | Ok(Connection.End) =>
-             if (Array.length(parseErrors^) > 0) {
-               reject'(ParseError(Parser.Response(parseErrors^))) |> ignore;
-             } else {
-               handleResults^ |> all |> mapOk(_ => resolve'()) |> ignore;
-             }
-           | Error(error) =>
-             reject'(
-               ConnectionError(Connection.Error.ConnectionError(error)),
-             )
-             |> ignore,
-         )
+      |> Event.on(onResponse(resolve', reject'))
       |> ignore
     );
   };
@@ -620,5 +620,7 @@ let handleRemoteCommand = (instance, remote) =>
 let dispatch = (command, instance): Async.t(unit, error) => {
   instance
   |> handleLocalCommand(command)
-  |> thenOk(handleRemoteCommand(instance)) /*    */;
+  |> pass(_ => instance.view |> View.Handles.updateIsPending(true) |> ignore)
+  |> thenOk(handleRemoteCommand(instance))
+  |> pass(_ => instance.view |> View.Handles.updateIsPending(false) |> ignore);
 };

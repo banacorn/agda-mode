@@ -26,48 +26,54 @@ let lift: ('i => Result.t('o, 'e), 'i) => t('o, 'e) =
 let fromPromise = (promise: P.t('a)): t('a, Js.Exn.t) => {
   promise |> P.then_(x => resolve(x));
 };
-// tasks => {
-//   tasks
-//   |> Array.reduce(
-//        (promise, task) => promise |> P.then_(() => P.resolve(task)),
-//        P.resolve([||]),
-//      );
-// };
 
-let map: ('a => 'b, 'e => 'f, t('a, 'e)) => t('b, 'f) =
-  (f, g) =>
-    P.then_(
-      fun
-      | Ok(v) => resolve(f(v))
-      | Error(e) => reject(g(e)),
-    );
+let map = (f: 'a => 'b, g: 'e => 'f): (t('a, 'e) => t('b, 'f)) =>
+  P.then_(
+    fun
+    | Ok(v) => resolve(f(v))
+    | Error(e) => reject(g(e)),
+  );
 
-let mapOk: ('a => 'b, t('a, 'e)) => t('b, 'e) =
-  f =>
-    P.then_(
-      fun
-      | Ok(v) => resolve(f(v))
-      | Error(e) => reject(e),
-    );
+let pass = (f: result('a, 'e) => unit): (t('a, 'e) => t('a, 'e)) =>
+  P.then_(
+    fun
+    | Ok(v) => {
+        f(Ok(v));
+        resolve(v);
+      }
+    | Error(e) => {
+        f(Error(e));
+        reject(e);
+      },
+  );
 
-let thenOk: ('a => t('b, 'e), t('a, 'e)) => t('b, 'e) =
-  f =>
-    P.then_(
-      fun
-      | Ok(v) => f(v)
-      | Error(e) => reject(e),
-    );
+let mapOk = (f: 'a => 'b): (t('a, 'e) => t('b, 'e)) => map(f, e => e);
+
+let passOk = (f: 'a => unit): (t('a, 'e) => t('a, 'e)) =>
+  pass(
+    fun
+    | Ok(v) => f(v)
+    | Error(_) => (),
+  );
+
+let thenOk = (f: 'a => t('b, 'e)): (t('a, 'e) => t('b, 'e)) =>
+  P.then_(
+    fun
+    | Ok(v) => f(v)
+    | Error(e) => reject(e),
+  );
 
 let finalOk: ('a => 'b, t('a, 'e)) => unit =
   (f, p) => p |> thenOk(x => f(x) |> resolve) |> ignore;
 
-let mapError: ('e => 'f, t('a, 'e)) => t('a, 'f) =
-  f =>
-    P.then_(
-      fun
-      | Ok(v) => resolve(v)
-      | Error(e) => reject(f(e)),
-    );
+let mapError = (f: 'e => 'f): (t('a, 'e) => t('a, 'f)) => map(v => v, f);
+
+let passError = (f: 'e => unit): (t('a, 'e) => t('a, 'e)) =>
+  pass(
+    fun
+    | Ok(_) => ()
+    | Error(e) => f(e),
+  );
 
 let thenError: ('e => t('a, 'f), t('a, 'e)) => t('a, 'f) =
   f =>
@@ -89,37 +95,7 @@ let flatten: (result('e, 'f) => 'g, t(result('a, 'e), 'f)) => t('a, 'g) =
       | Error(f) => reject(merge(Error(f))),
     );
 
-/* module Pure = {
-     type t('a) = P.t('a);
-
-     let make = (callback: ('a => unit) => unit): t('a) => {
-       P.make((~resolve, ~reject as _) => {
-         let resolve' = x => resolve(. x);
-         callback(resolve');
-       });
-     };
-     let resolve = P.resolve;
-     let map: ('a => 'b, t('a)) => t('b) = f => P.then_(v => resolve(f(v)));
-     let then_: ('a => t('b), t('a)) => t('b) = P.then_;
-   }; */
-/*
- let catch: ('e => 'a, t('a, 'e)) => t('a, unit) =
-   f =>
-     P.then_(
-       fun
-       | Ok(v) => resolve(v)
-       | Error(e) => resolve(f(e)),
-     ); */
-
 let all: array(t('a, 'e)) => t(array('a), 'e) =
   xs => {
     xs |> P.all |> P.then_(xs => xs |> Util.Result.every |> P.resolve);
   };
-
-// let seq: array(t('a, 'e)) => t(array('a), 'e) =
-//   Array.reduce(
-//     (promise, task) =>
-//       promise
-//       |> thenOk(xs => task |> thenOk(x => resolve(Array.concat(xs, [|x|])))),
-//     resolve([||]),
-//   );

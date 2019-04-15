@@ -13,6 +13,7 @@ module Handles = {
     inquire: Event.t((Header.t, string, string), unit),
     toggleDocking: Event.t(unit, unit),
     activatePanel: Event.t(bool, unit),
+    updateIsPending: Event.t(bool, unit),
     updateConnection:
       Event.t((option(Connection.t), option(Connection.Error.t)), unit),
     inquireConnection: Event.t(unit, unit),
@@ -39,6 +40,8 @@ module Handles = {
     let display = Event.make();
     let inquire = Event.make();
     let toggleDocking = Event.make();
+
+    let updateIsPending = Event.make();
 
     /* private */
 
@@ -68,6 +71,7 @@ module Handles = {
       inquire,
       activatePanel,
       toggleDocking,
+      updateIsPending,
       updateConnection,
       inquireConnection,
       onInquireConnection,
@@ -113,6 +117,11 @@ module Handles = {
     handles.toggleDocking |> Event.emitOk();
     Async.resolve();
   };
+
+  let updateIsPending = (isPending, handles): Async.t(unit, unit) => {
+    handles.updateIsPending |> Event.emitOk(isPending);
+    Async.resolve();
+  };
   let onOpenSettingsView = (handles): Async.t(bool, MiniEditor.error) => {
     handles.onSettingsView |> Event.once |> mapError(_ => MiniEditor.Cancelled);
   };
@@ -154,6 +163,7 @@ type state = {
   maxHeight: int,
   mountAt,
   activated: bool,
+  isPending: bool,
   settingsView: option(Tab.t),
   connection: option(Connection.t),
   connectionError: option(Connection.Error.t),
@@ -170,6 +180,7 @@ let initialState = () => {
     maxHeight: 170,
     mountAt: Bottom(createElement()),
     activated: false,
+    isPending: false,
     settingsView: None,
     connection: None,
     connectionError: None,
@@ -190,6 +201,7 @@ type action =
   | ToggleDocking
   | Activate
   | Deactivate
+  | UpdateIsPending(bool)
   /*  */
   | UpdateConnection(option(Connection.t), option(Connection.Error.t))
   | UpdateHeader(Header.t)
@@ -269,6 +281,7 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
       UpdateWithSideEffects({...state, activated: true}, _ => tab.activate())
     }
   | Deactivate => Update({...state, activated: false})
+  | UpdateIsPending(isPending) => Update({...state, isPending})
   | SetQueryRef(ref) =>
     SideEffects(_self => editors.query |> MiniEditor.Model.setRef(ref))
   | Focus(sort) => SideEffects(_self => editors |> Editors.Focus.on(sort))
@@ -335,6 +348,11 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     |> onOk(() => self.send(ToggleDocking))
     |> destroyWhen(self.onUnmount);
 
+    /* toggle pending spinner */
+    handles.updateIsPending
+    |> onOk(isPending => self.send(UpdateIsPending(isPending)))
+    |> destroyWhen(self.onUnmount);
+
     handles.onInquireQuery
     |> on(_ => {
          self.send(UpdateMode(Display));
@@ -365,6 +383,7 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
       mountAt,
       mode,
       activated,
+      isPending,
       settingsView,
       connection,
       connectionError,
@@ -405,6 +424,7 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
           onMountAtChange={mountTo => self.send(MountTo(mountTo))}
           mode
           onInquireQuery={handles.onInquireQuery}
+          isPending
           /* editors */
           onEditorRef={ref => self.send(SetQueryRef(ref))}
           editorValue={editors.query.value}
