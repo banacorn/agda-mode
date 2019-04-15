@@ -9,7 +9,7 @@ module Event = Event;
 
 module Handles = {
   type t = {
-    display: Event.t((Header.t, body), unit),
+    display: Event.t((Header.t, Body.t), unit),
     inquire: Event.t((Header.t, string, string), unit),
     toggleDocking: Event.t(unit, unit),
     activatePanel: Event.t(bool, unit),
@@ -159,7 +159,7 @@ let createElement = (): Webapi.Dom.Element.t => {
 
 type state = {
   header: Header.t,
-  body,
+  body: Body.t,
   maxHeight: int,
   mountAt,
   activated: bool,
@@ -205,7 +205,7 @@ type action =
   /*  */
   | UpdateConnection(option(Connection.t), option(Connection.Error.t))
   | UpdateHeader(Header.t)
-  | UpdateBody(body)
+  | UpdateBody(Body.t)
   | UpdateMode(mode)
   /*  */
   | MouseEvent(mouseEvent);

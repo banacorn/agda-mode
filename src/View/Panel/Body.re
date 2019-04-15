@@ -4,9 +4,14 @@ open Rebase;
 
 open Type.View;
 
+type t =
+  | Nothing
+  | Emacs(Emacs.body)
+  | JSON(JSON.rawBody);
+
 let component = statelessComponent("JSONBody");
 
-let make = (~body: body, ~hidden, _children) => {
+let make = (~body: t, ~hidden, _children) => {
   ...component,
   render: _self => {
     let comp =

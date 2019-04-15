@@ -99,10 +99,6 @@ module Emacs = {
     | PlainText(string);
 };
 
-type body =
-  | Nothing
-  | Emacs(Emacs.body)
-  | JSON(JSON.rawBody);
 module Header = {
   type style =
     | PlainText

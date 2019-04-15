@@ -81,7 +81,7 @@ module Info = {
     };
   };
 
-  let handle = (info: t): (string, Type.View.Header.style, Type.View.body) => {
+  let handle = (info: t): (string, Type.View.Header.style, Body.t) => {
     /* open Response.Info; */
     Type.View.(
       switch (info) {

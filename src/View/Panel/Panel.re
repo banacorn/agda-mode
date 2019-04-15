@@ -27,7 +27,7 @@ let make =
       ~editors: Editors.t,
       ~element: Webapi.Dom.Element.t,
       ~onMountAtChange: mountTo => unit,
-      ~body: body,
+      ~body: Body.t,
       ~header: Header.t,
       ~mountAt: mountAt,
       ~mode: mode,
