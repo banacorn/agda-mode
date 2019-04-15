@@ -159,14 +159,15 @@ let expr = {
         |> String.trim
         /*                            1         2                        */
         |> Util.safeSplitByRe([%re "/(\\?\\d+)|(\\_\\d+[^\\}\\)\\s]*)/"])
-        |> Array.filterMap(x => x)
         |> Array.mapi((token, i) =>
              switch (i mod 3) {
              | 1 =>
-               Parser.int(Js.String.sliceToEnd(~from=1, token))
+               token
+               |> map(Js.String.sliceToEnd(~from=1))
+               |> flatMap(Parser.int)
                |> map(x => QuestionMark(x))
-             | 2 => Some(Underscore(token))
-             | _ => Some(Plain(token))
+             | 2 => token |> map(x => Underscore(x))
+             | _ => token |> map(x => Plain(x))
              }
            )
         |> Array.filterMap(x => x)
