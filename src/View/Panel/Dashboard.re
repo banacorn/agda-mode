@@ -1,0 +1,135 @@
+open ReasonReact;
+open Rebase;
+
+type state = {
+  settingsButtonRef: ref(option(Dom.element)),
+  dockingButtonRef: ref(option(Dom.element)),
+};
+
+let initialState = () => {
+  settingsButtonRef: ref(None),
+  dockingButtonRef: ref(None),
+};
+
+type action;
+let reducer = (_action: action, _state) => NoUpdate;
+
+let setSettingsButtonRef = (r, {state}) =>
+  state.settingsButtonRef := Js.Nullable.toOption(r);
+
+let setDockingButtonRef = (r, {state}) =>
+  state.dockingButtonRef := Js.Nullable.toOption(r);
+
+let component = reducerComponent("Dashboard");
+
+let make =
+    (
+      ~header: Type.View.Header.t,
+      ~hidden: bool,
+      ~isPending: bool,
+      ~mountAt: Type.View.mountAt,
+      ~settingsView: option(Tab.t),
+      ~onMountAtChange: Type.View.mountTo => unit,
+      ~onSettingsViewToggle: bool => unit,
+      _children,
+    ) => {
+  ...component,
+  initialState,
+  reducer,
+  didMount: self => {
+    switch (self.state.settingsButtonRef^) {
+    | None => ()
+    | Some(settingsButton) =>
+      let disposables = Atom.CompositeDisposable.make();
+      Atom.Environment.Tooltips.add(
+        Atom.Environment.Views.getView(settingsButton),
+        {
+          "title": "settings",
+          "delay": {
+            "show": 100,
+            "hide": 1000,
+          },
+        },
+      )
+      |> Atom.CompositeDisposable.add(disposables);
+      self.onUnmount(() => disposables |> Atom.CompositeDisposable.dispose);
+    };
+    switch (self.state.dockingButtonRef^) {
+    | None => ()
+    | Some(dockingButton) =>
+      let disposables = Atom.CompositeDisposable.make();
+      Atom.Environment.Tooltips.add(
+        Atom.Environment.Views.getView(dockingButton),
+        {
+          "title": "toggle panel docking position",
+          "delay": {
+            "show": 300,
+            "hide": 1000,
+          },
+          "keyBindingCommand": "agda-mode:toggle-docking",
+        },
+      )
+      |> Atom.CompositeDisposable.add(disposables);
+      self.onUnmount(() => disposables |> Atom.CompositeDisposable.dispose);
+    };
+  },
+  render: self => {
+    let settingsOn = settingsView |> Option.isSome;
+    open Util.ClassName;
+    let classList =
+      ["agda-header"] |> addWhen("hidden", hidden) |> serialize;
+    let headerClassList =
+      switch (header.style) {
+      | PlainText => ""
+      | Error => "text-error"
+      | Info => "text-info"
+      | Success => "text-success"
+      | Warning => "text-warning"
+      };
+    let spinnerClassList =
+      ["loading", "loading-spinner-tiny", "inline-block"]
+      |> addWhen("pending", isPending)
+      |> serialize;
+    let settingsViewClassList =
+      ["no-btn"] |> addWhen("activated", settingsOn) |> serialize;
+    let toggleMountingPosition =
+      ["no-btn"]
+      |> addWhen(
+           "activated",
+           switch (mountAt) {
+           | Pane(_) => true
+           | _ => false
+           },
+         )
+      |> serialize;
+    <div className=classList>
+      <h1 className=headerClassList> {string(header.text)} </h1>
+      <ul className="agda-dashboard">
+        <li> <span id="spinner" className=spinnerClassList /> </li>
+        <li>
+          <button
+            className=settingsViewClassList
+            onClick={
+              self.handle((_, _) => onSettingsViewToggle(!settingsOn))
+            }
+            ref={self.handle(setSettingsButtonRef)}>
+            <span className="icon icon-settings" />
+          </button>
+        </li>
+        <li>
+          <button
+            className=toggleMountingPosition
+            onClick={_ =>
+              switch (mountAt) {
+              | Pane(_) => onMountAtChange(Type.View.ToBottom)
+              | _ => onMountAtChange(Type.View.ToPane)
+              }
+            }
+            ref={self.handle(setDockingButtonRef)}>
+            <span className="icon icon-versions" />
+          </button>
+        </li>
+      </ul>
+    </div>;
+  },
+};

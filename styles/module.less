@@ -20,9 +20,6 @@ atom-text-editor.agda {
         position: relative;
     }
 
-    // this seemly-over-referenced (it does!) selector refers to the parent
-    // of .goal-index.
-    //
     // Fixes the problem that the "ghost" of a goal index that remains at the
     // original unshifted position would block some events (e.g. mouse clicks)
     // from getting through.
@@ -39,11 +36,20 @@ atom-text-editor.agda {
         background: fade(mix(@color, @syntax-background-color, 60%), 50%);
     }
 
+    .highlight-decoration.unsolvedconstraint .region {
+        @color: saturate(@background-color-warning, 100%);
+        background: fade(mix(@color, @syntax-background-color, 60%), 50%);
+    }
+
     .highlight-decoration.terminationproblem .region {
         @color: saturate(@background-color-error, 100%);
         background: fade(mix(@color, @syntax-background-color, 80%), 50%);
     }
 
+    .highlight-decoration.coverageproblem .region {
+        @color: saturate(@background-color-warning, 100%);
+        background: fade(mix(@color, @syntax-background-color, 60%), 50%);
+    }
     .highlight-decoration.hover .region  {
         @color: saturate(@background-color-info, 100%);
         background: fade(mix(@color, @syntax-background-color, 80%), 50%);

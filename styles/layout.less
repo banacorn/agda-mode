@@ -4,8 +4,16 @@
 
 // the main component that houses everything
 .agda-mode {
+    // font-size: var(--editor-font-size) !important;
+	// line-height: var(--editor-line-height) !important;
+    @line-height: var(--editor-line-height);
+    @font-size: var(--editor-font-size);
+
     @headerHeight: 50px;
     @itemHeight: 30px;
+
+    // font-size: var(--editor-font-size) !important;
+	// line-height: var(--editor-line-height) !important;
 
     // So that we can stop goal indices from floating around
     // see #14: https://github.com/banacorn/agda-mode/issues/14
@@ -13,9 +21,7 @@
 
     // so that .agda-body will overflow and be scrollable
     height: 100%;
-    > section { // pane item
-        height: 100%;
-    }
+    > section { height: 100% }
 
     //////////////////////////////////////////////////////
     // Header Container
@@ -47,8 +53,8 @@
 
             button {
                 color: @text-color-subtle;
-                min-width: 30px;
-                height: 30px;
+                min-width: @itemHeight;
+                height: @itemHeight;
                 font-size: 16px;
             }
             button:hover {
@@ -79,7 +85,9 @@
     .agda-body-container {
         @height: 30px;
 
-        // height: 100%;
+        // so that <Body> will overflow and be scrollable
+        height: calc(~"100% - 51px");
+        overflow-y: scroll;
 
         // texts
         font-family: Menlo, inconsolata, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
@@ -89,8 +97,6 @@
         // <EmacsBody>
         .agda-body {
 
-            // so that <Body> will overflow and be scrollable
-            overflow-y: scroll;
             padding: 0px @component-padding;
 
             li, p, section {
@@ -153,6 +159,10 @@
 
         @breadcrumbHeight: calc(@component-line-height + @component-padding * 2);
 
+        h1, h2 {
+            color: @text-color-highlight
+        }
+
         .agda-settings-breadcrumb {
             flex: 0 1 @breadcrumbHeight;
 
@@ -192,160 +202,21 @@
         }
 
         .agda-settings-connection {
-            padding: @component-padding * 2;
+            padding: @component-padding (@component-padding * 2);
 
-            ul.agda-settings-connection-dashboard {
-                background: @base-background-color;
-                border: 1px solid @tool-panel-border-color;
-                border-radius: @component-border-radius * 2;
-                overflow: hidden;
-
-
-                h2 {
-                    margin: 0;
-                }
-
-                li > div {
-                    padding: @component-padding @component-padding @component-padding * 4;
-                }
-
-                li {
-                    border-bottom: 1px solid @tool-panel-border-color;
-
-                }
-
-                label {
-                    user-select: none;
-                    padding: @component-padding * 2;
-                    font-size: @font-size * 1.5;
-                    background: @tool-panel-background-color;
-
-                    cursor: pointer;
-
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-
-                p {
-                    margin: @component-padding;
-                }
-
-                .error {
-                    box-shadow: inset 0 0 0 2px @background-color-error;
-                }
-
-
-            }
-                .input-toggle {
-                    cursor: pointer;
-                    flex-shrink: 0;
-
-                    width: 40px;
-                    height: 20px;
-                    border-radius: 2.5em;
-                }
-
-                .input-toggle:before {
-                    width: 20px;
-                    height: 20px;
-                }
-        }
-
-        .agda-settings-connection.querying {
-            #agda-settings-connection-agda {
-                box-shadow: inset 0 0 0 2px @background-color-error;
-
-                label {
-                    background: @background-color-error;
-                    color: @text-color-selected;
-                }
-                atom-text-editor {
-                    border-color: @background-color-error;
-                }
-                atom-text-editor.is-focused {
-                    border-color: @background-color-error;
-                    box-shadow: 0 0 0 1px @background-color-error;
-                }
-            }
-
-            li:not(#agda-settings-connection-agda) {
-                color: lighten(@tool-panel-background-color, 10%);
-                cursor: not-allowed;
-                * { cursor: not-allowed; }
+            #connection-status {
+                float: right;
             }
         }
 
-        .agda-settings-protocol {
-
-            display: flex;
-            flex-flow: column;
-            height: 100%;
-
-            .agda-settings-protocol-panel {
-                background: @tool-panel-background-color;
-                flex: 0 1 auto;
-                padding: @component-padding * 2;
+        .agda-settings-connection.inquiring {
+            atom-text-editor {
+                border-color: @background-color-error;
             }
-
-            .agda-settings-protocol-log {
-                // allow the height to grow (but no more than its parent)
-                flex: 1 1 auto;
-                overflow-y: scroll;
-
-                li {
-                    background: @base-background-color;
-                    line-height: 2em;
-                    padding: @component-padding * 2;
-                    cursor: pointer;
-
-
-                    &:hover {
-                        background: @background-color-highlight;
-                    }
-                }
+            atom-text-editor.is-focused {
+                border-color: @background-color-error;
+                box-shadow: 0 0 0 1px @background-color-error;
             }
-        }
-
-        .agda-settings-protocol-reqres {
-            overflow-y: scroll;
-            padding: @component-padding * 2;
-
-            .agda-settings-protocol-request {
-                background: @pane-item-background-color;
-                padding: 0.5em;
-                margin: 0.5em;
-                border-radius: @component-border-radius;
-                margin-bottom: 3em;
-            }
-
-            ol.agda-settings-protocol-responses {
-                > li {
-                    margin: 3em 0;
-                    word-wrap: break-word;
-                    // cursor: pointer;
-                }
-
-                dl {
-                    background: @pane-item-background-color;
-                }
-            }
-
-            dl {
-                display: flex;
-                padding: 0.5em;
-                margin: 0.5em;
-                border-radius: @component-border-radius;
-            }
-
-            dt {
-                width: 50%;
-            }
-
-            dd {
-                width: 50%;
-            }
-
         }
 
     }
