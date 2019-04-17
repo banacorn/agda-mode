@@ -27,6 +27,15 @@ let fromPromise = (promise: P.t('a)): t('a, Js.Exn.t) => {
   promise |> P.then_(x => resolve(x));
 };
 
+let then_ =
+    (f: 'a => t('b, 'f), transformer: 'e => t('b, 'f))
+    : (t('a, 'e) => t('b, 'f)) =>
+  P.then_(
+    fun
+    | Ok(v) => f(v)
+    | Error(e) => transformer(e),
+  );
+
 let map = (f: 'a => 'b, g: 'e => 'f): (t('a, 'e) => t('b, 'f)) =>
   P.then_(
     fun
@@ -57,11 +66,7 @@ let passOk = (f: 'a => unit): (t('a, 'e) => t('a, 'e)) =>
   );
 
 let thenOk = (f: 'a => t('b, 'e)): (t('a, 'e) => t('b, 'e)) =>
-  P.then_(
-    fun
-    | Ok(v) => f(v)
-    | Error(e) => reject(e),
-  );
+  then_(f, reject);
 
 let finalOk: ('a => 'b, t('a, 'e)) => unit =
   (f, p) => p |> thenOk(x => f(x) |> resolve) |> ignore;
@@ -75,13 +80,8 @@ let passError = (f: 'e => unit): (t('a, 'e) => t('a, 'e)) =>
     | Error(e) => f(e),
   );
 
-let thenError: ('e => t('a, 'f), t('a, 'e)) => t('a, 'f) =
-  f =>
-    P.then_(
-      fun
-      | Ok(v) => resolve(v)
-      | Error(e) => f(e),
-    );
+let thenError = (f: 'e => t('a, 'f)): (t('a, 'e) => t('a, 'f)) =>
+  then_(resolve, f);
 
 let finalError: ('e => 'f, t('a, 'e)) => unit =
   (f, p) => p |> thenError(e => f(e) |> resolve) |> ignore;
