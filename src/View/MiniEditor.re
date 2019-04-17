@@ -30,8 +30,6 @@ module Model = {
   };
 
   let setValue = (value, self) => {
-    Js.log(value);
-    Js.log(self.ref);
     switch (self.ref) {
     | None => ()
     | Some(editor) => editor |> Atom.TextEditor.setText(value)

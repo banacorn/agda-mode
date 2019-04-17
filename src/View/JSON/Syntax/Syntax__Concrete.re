@@ -309,17 +309,15 @@ module Element = {
       };
     },
   }
-  and makeDeclaration = (~value, _children) => {
+  and makeDeclaration = (~value as _, _children) => {
     ...Component.declaration,
     render: _self => {
-      Js.log(value);
       <span> {string("<Declaration> unimplemented")} </span>;
     },
   }
-  and makePattern = (~pattern, _children) => {
+  and makePattern = (~pattern as _, _children) => {
     ...Component.pattern,
     render: _self => {
-      Js.log(pattern);
       <span> {string("<Pattern> unimplemented")} </span>;
     },
   }

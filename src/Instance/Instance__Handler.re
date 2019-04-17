@@ -508,25 +508,57 @@ let rec handleLocalCommand =
   | Jump(Type.Location.Range.RangeLink(range)) =>
     open Type.Location.Range;
     let filePath = instance.editors.source |> Atom.TextEditor.getPath;
-    let shouldJump =
+    let (shouldJump, otherFilePath) =
       switch (range) {
-      | NoRange => false
-      | Range(None, _) => true
-      | Range(Some(path), _) => path == filePath
+      | NoRange => (false, None)
+      | Range(None, _) => (true, None)
+      | Range(Some(path), _) => (
+          true,
+          path == filePath ? None : Some(path),
+        )
       };
     if (shouldJump) {
-      let ranges = toAtomRanges(range);
-      if (ranges[0] |> Option.isSome) {
-        Js.Global.setTimeout(
-          _ =>
-            instance.editors.source
-            |> Atom.TextEditor.setSelectedBufferRanges(ranges),
-          0,
-        )
-        |> ignore;
+      switch (otherFilePath) {
+      | None =>
+        let ranges = toAtomRanges(range);
+        if (ranges[0] |> Option.isSome) {
+          Js.Global.setTimeout(
+            _ =>
+              instance.editors.source
+              |> Atom.TextEditor.setSelectedBufferRanges(ranges),
+            0,
+          )
+          |> ignore;
+        };
+        resolve(None);
+      | Some(uri) =>
+        let (line, column) =
+          switch (range) {
+          | NoRange => (0, 0)
+          | Range(_, is) =>
+            switch (is[0]) {
+            | None => (0, 0)
+            | Some(i) => (i.start.line - 1, i.start.col - 1)
+            }
+          };
+        let option = {
+          "initialLine": line,
+          "initialColumn": column,
+          "split": "right",
+          "activatePane": true,
+          "activateItem": true,
+          "pending": false,
+          "searchAllPanes": true,
+          "location": (None: option(string)),
+        };
+
+        Atom.Environment.Workspace.open_(uri, option)
+        |> fromPromise
+        |> then_(_ => resolve(None), _ => reject(Cancelled));
       };
+    } else {
+      resolve(None);
     };
-    resolve(None);
   | GotoDefinition =>
     if (instance.isLoaded) {
       let name =
