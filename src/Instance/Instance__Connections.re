@@ -8,22 +8,16 @@ let inquireAgdaPath =
     (error: option(Connection.Error.t), instance)
     : Async.t(string, MiniEditor.error) => {
   open View;
-  activate(instance.view);
-  /* listen to `onSettingsView` before triggering `activateSettingsView` */
-  let promise: Async.t(string, MiniEditor.error) =
-    instance.view
-    |> onOpenSettingsView
-    |> thenOk(_ => {
-         instance.view |> navigateSettingsView(Settings.URI.Connection);
-         /* listen to `onInquireConnection` before triggering `inquireConnection` */
-         let promise = instance.view |> onInquireConnection;
-         instance.view |> inquireConnection;
-         instance.view |> updateConnection(None, error);
-         promise;
-       });
-  instance.view |> activateSettingsView;
-
-  promise;
+  instance.view.activate();
+  instance.view.openSettings()
+  |> then_(
+       _ => {
+         instance.view.navigateSettings(Settings.URI.Connection);
+         instance.view.updateConnection(None, error);
+         instance.view.inquireConnection();
+       },
+       _ => reject(MiniEditor.Cancelled),
+     );
 };
 
 let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
@@ -68,7 +62,7 @@ let connectWithAgdaPath =
       |> String.joinWith(" ");
     Environment.Config.set("agda-mode.agdaPath", path);
     /* update the view */
-    instance.view |> View.updateConnection(Some(connection), None);
+    instance.view.updateConnection(Some(connection), None);
     /* pass it on */
     connection;
   };
@@ -116,7 +110,7 @@ let disconnect = instance => {
   | Some(connection) =>
     Connection.disconnect(Connection.Error.DisconnectedByUser, connection);
     instance.connection = None;
-    instance.view |> View.updateConnection(None, None);
+    instance.view.updateConnection(None, None);
   | None => ()
   };
 };

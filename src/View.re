@@ -1,10 +1,11 @@
 open Type.View;
 
 module Event = Event;
+open Event;
 
 /************************************************************************************************************/
 
-type t = {
+type handles = {
   display: Event.t((Header.t, Body.t), unit),
   inquire: Event.t((Header.t, string, string), unit),
   toggleDocking: Event.t(unit, unit),
@@ -28,42 +29,40 @@ type t = {
   onMouseEvent: Event.t(mouseEvent, unit),
 };
 
-let hook = (f, handle) => f := handle;
-
 /* creates all refs and return them */
-let make = () => {
+let makeHandles = () => {
   /* public */
-  let activatePanel = Event.make();
-  let display = Event.make();
-  let inquire = Event.make();
-  let toggleDocking = Event.make();
+  let activatePanel = make();
+  let display = make();
+  let inquire = make();
+  let toggleDocking = make();
 
-  let updateIsPending = Event.make();
-  let updateShouldDisplay = Event.make();
+  let updateIsPending = make();
+  let updateShouldDisplay = make();
 
   /* private */
 
   /* connection-related */
-  let updateConnection = Event.make();
-  let inquireConnection = Event.make();
-  let onInquireConnection = Event.make();
+  let updateConnection = make();
+  let inquireConnection = make();
+  let onInquireConnection = make();
 
   /* query-related */
-  let onInquireQuery = Event.make();
-  let inquireQuery = Event.make();
+  let onInquireQuery = make();
+  let inquireQuery = make();
 
   /* <Settings> related */
-  let activateSettingsView = Event.make();
-  let onSettingsView = Event.make();
-  let navigateSettingsView = Event.make();
+  let activateSettingsView = make();
+  let onSettingsView = make();
+  let navigateSettingsView = make();
 
   /* <InputMethod> related */
-  let interceptAndInsertKey = Event.make();
-  let activateInputMethod = Event.make();
+  let interceptAndInsertKey = make();
+  let activateInputMethod = make();
 
-  let onMouseEvent = Event.make();
+  let onMouseEvent = make();
 
-  let destroy = Event.make();
+  let destroy = make();
   {
     display,
     inquire,
@@ -86,62 +85,114 @@ let make = () => {
   };
 };
 
-open Type.View.Header;
-open Async;
-let activate = handles => {
-  handles.activatePanel |> Event.emitOk(true);
+type t = {
+  activate: unit => unit,
+  deactivate: unit => unit,
+  destroy: unit => unit,
+  onDestroy: unit => Async.t(unit, unit),
+  updateShouldDisplay: bool => unit,
+  // <Panel> related
+  display: (string, Type.View.Header.style, Body.t) => unit,
+  inquire: (string, string, string) => Async.t(string, MiniEditor.error),
+  updateIsPending: bool => unit,
+  onMouseEvent: Event.t(mouseEvent, unit),
+  // <InputMethod> related
+  activateInputMethod: unit => unit,
+  interceptAndInsertKey: string => unit,
+  // <Settings> related
+  navigateSettings: Settings__Breadcrumb.uri => unit,
+  activateSettings: unit => unit,
+  openSettings: unit => Async.t(bool, unit),
+  // <Settings/Connection> related
+  updateConnection:
+    (option(Connection.t), option(Connection.Error.t)) => unit,
+  onInquireConnection: Event.t(string, MiniEditor.error),
+  inquireConnection: unit => Async.t(string, MiniEditor.error),
+  // <Tab> related
+  toggleDocking: unit => unit,
 };
-let deactivate = handles => {
-  handles.activatePanel |> Event.emitOk(false);
-};
-let destroy = handles => {
-  deactivate(handles);
-  handles.destroy |> Event.emitOk();
-};
+let make = (handles: handles) => {
+  let activate = () => handles.activatePanel |> emitOk(true);
+  let deactivate = () => handles.activatePanel |> emitOk(false);
+  let destroy = () => {
+    deactivate();
+    handles.destroy |> emitOk();
+  };
+  let onDestroy = () => {
+    handles.destroy |> once;
+  };
 
-let display = (text, style, body, handles) => {
-  handles.display |> Event.emitOk(({text, style}, body));
-  Async.resolve();
-};
+  let updateShouldDisplay = shouldDisplay =>
+    handles.updateShouldDisplay |> emitOk(shouldDisplay) |> ignore;
 
-let inquire =
-    (text, placeholder, value, handles): Async.t(string, MiniEditor.error) => {
-  let promise = handles.onInquireQuery |> Event.once;
-  handles.inquire
-  |> Event.emitOk(({text, style: PlainText}, placeholder, value));
-  promise;
-};
+  let display = (text, style, body) => {
+    handles.display |> emitOk(({Type.View.Header.text, style}, body));
+  };
+  let inquire = (text, placeholder, value) => {
+    let promise = handles.onInquireQuery |> once;
+    handles.inquire
+    |> emitOk((
+         {Type.View.Header.text, style: PlainText},
+         placeholder,
+         value,
+       ));
+    promise;
+  };
 
-let toggleDocking = (handles): Async.t(unit, unit) => {
-  handles.toggleDocking |> Event.emitOk();
-  Async.resolve();
-};
+  let updateIsPending = isPending => {
+    handles.updateIsPending |> emitOk(isPending);
+  };
+  let onMouseEvent = handles.onMouseEvent;
 
-let updateIsPending = (isPending, handles): Async.t(unit, unit) => {
-  handles.updateIsPending |> Event.emitOk(isPending);
-  Async.resolve();
-};
+  let activateInputMethod = () => handles.activateInputMethod |> emitOk(true);
+  let interceptAndInsertKey = symbol =>
+    handles.interceptAndInsertKey |> emitOk(symbol);
 
-let updateShouldDisplay = (shouldDisplay, handles): Async.t(unit, unit) => {
-  handles.updateShouldDisplay |> Event.emitOk(shouldDisplay);
-  Async.resolve();
-};
+  let navigateSettings = where =>
+    handles.navigateSettingsView |> emitOk(where);
 
-let onOpenSettingsView = (handles): Async.t(bool, MiniEditor.error) => {
-  handles.onSettingsView |> Event.once |> mapError(_ => MiniEditor.Cancelled);
-};
-let navigateSettingsView = (where, handles) => {
-  handles.navigateSettingsView |> Event.emitOk(where);
-};
-let onInquireConnection = handles => {
-  handles.onInquireConnection |> Event.once;
-};
-let inquireConnection = handles => {
-  handles.inquireConnection |> Event.emitOk();
-};
-let updateConnection = (connection, error, handles) => {
-  handles.updateConnection |> Event.emitOk((connection, error));
-};
-let activateSettingsView = handles => {
-  handles.activateSettingsView |> Event.emitOk(true);
+  let activateSettings = () => handles.activateSettingsView |> emitOk(true);
+
+  let openSettings = () => {
+    /* listen to `onSettingsView` before triggering `activateSettingsView` */
+    let promise = handles.onSettingsView |> once;
+    activateSettings();
+    promise;
+  };
+
+  let updateConnection = (connection, error) => {
+    handles.updateConnection |> emitOk((connection, error));
+  };
+
+  let onInquireConnection = handles.onInquireConnection;
+  let inquireConnection = () => {
+    /* listen to `onInquireConnection` before triggering `inquireConnection` */
+    let promise = onInquireConnection |> once;
+    handles.inquireConnection |> emitOk();
+    promise;
+  };
+
+  let toggleDocking = () => {
+    handles.toggleDocking |> emitOk();
+  };
+  {
+    activate,
+    deactivate,
+    destroy,
+    onDestroy,
+    updateShouldDisplay,
+    display,
+    inquire,
+    updateIsPending,
+    onMouseEvent,
+    activateInputMethod,
+    interceptAndInsertKey,
+    navigateSettings,
+    activateSettings,
+    openSettings,
+    updateConnection,
+    onInquireConnection,
+    inquireConnection,
+    toggleDocking,
+  };
 };

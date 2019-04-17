@@ -104,7 +104,7 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
   };
 };
 
-let mountSettings = (editors: Editors.t, view, open_, self) => {
+let mountSettings = (editors: Editors.t, handles, open_, self) => {
   switch (self.state.settingsView) {
   | None =>
     if (open_) {
@@ -116,12 +116,12 @@ let mountSettings = (editors: Editors.t, view, open_, self) => {
           ~onOpen=
             (_, _, _) =>
               /* <Settings> is opened */
-              view.View.onSettingsView |> Event.emitOk(true),
+              handles.View.onSettingsView |> Event.emitOk(true),
           ~onClose=
             _ => {
               self.send(ToggleSettingsTab(false));
               /* <Settings> is closed */
-              view.onSettingsView |> Event.emitOk(false);
+              handles.onSettingsView |> Event.emitOk(false);
             },
           (),
         );
@@ -130,17 +130,17 @@ let mountSettings = (editors: Editors.t, view, open_, self) => {
   | Some(tab) =>
     if (open_) {
       /* <Settings> is opened */
-      view.onSettingsView |> Event.emitOk(true);
+      handles.onSettingsView |> Event.emitOk(true);
     } else {
       tab.kill();
       self.send(UpdateSettingsView(None));
       /* <Settings> is closed */
-      view.onSettingsView |> Event.emitOk(false);
+      handles.onSettingsView |> Event.emitOk(false);
     }
   };
 };
 
-let reducer = (editors: Editors.t, view: View.t, action, state) => {
+let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
   switch (action) {
   | Activate =>
     switch (state.mountAt) {
@@ -163,7 +163,7 @@ let reducer = (editors: Editors.t, view: View.t, action, state) => {
     }
   /* UpdateWithSideEffects() */
   | ToggleSettingsTab(open_) =>
-    SideEffects(mountSettings(editors, view, open_))
+    SideEffects(mountSettings(editors, handles, open_))
   | UpdateSettingsView(settingsView) => Update({...state, settingsView})
   | UpdateMountAt(mountAt) => Update({...state, mountAt})
   | UpdateConnection(connection, connectionError) =>
@@ -173,26 +173,26 @@ let reducer = (editors: Editors.t, view: View.t, action, state) => {
   | UpdateMode(mode) => Update({...state, mode})
 
   | MouseEvent(event) =>
-    SideEffects(_ => view.onMouseEvent |> Event.emitOk(event))
+    SideEffects(_ => handles.onMouseEvent |> Event.emitOk(event))
   };
 };
 
 let component = reducerComponent("View");
 
-let make = (~editors: Editors.t, ~view: View.t, _children) => {
+let make = (~editors: Editors.t, ~handles: View.handles, _children) => {
   ...component,
   initialState,
-  reducer: reducer(editors, view),
+  reducer: reducer(editors, handles),
   didMount: self => {
     open Event;
 
     /* activate/deactivate <Panel> */
-    view.activatePanel
+    handles.activatePanel
     |> onOk(activate => self.send(activate ? Activate : Deactivate))
     |> destroyWhen(self.onUnmount);
 
     /* display mode! */
-    view.display
+    handles.display
     |> onOk(((header, body)) => {
          self.send(Activate);
          self.send(UpdateMode(Display));
@@ -202,35 +202,35 @@ let make = (~editors: Editors.t, ~view: View.t, _children) => {
     |> destroyWhen(self.onUnmount);
 
     /* inquire mode! */
-    view.inquire
+    handles.inquire
     |> onOk(((header, placeholder, value)) => {
          self.send(Activate);
          self.send(UpdateMode(Inquire));
          self.send(Focus(Query));
          self.send(UpdateHeader(header));
          /* pass it on */
-         view.inquireQuery |> emitOk((placeholder, value));
+         handles.inquireQuery |> emitOk((placeholder, value));
        })
     |> destroyWhen(self.onUnmount);
 
     /* toggle docking */
-    view.toggleDocking
+    handles.toggleDocking
     |> onOk(() => self.send(ToggleDocking))
     |> destroyWhen(self.onUnmount);
 
     /* toggle pending spinner */
-    view.updateIsPending
+    handles.updateIsPending
     |> onOk(isPending => self.send(UpdateIsPending(isPending)))
     |> destroyWhen(self.onUnmount);
 
     /* toggle state of shouldDisplay */
-    view.updateShouldDisplay
+    handles.updateShouldDisplay
     |> onOk(shouldDisplay =>
          self.send(UpdateIsLoadedOrIsTyping(shouldDisplay))
        )
     |> destroyWhen(self.onUnmount);
 
-    view.onInquireQuery
+    handles.onInquireQuery
     |> on(_ => {
          self.send(UpdateMode(Display));
          self.send(Focus(Source));
@@ -238,16 +238,16 @@ let make = (~editors: Editors.t, ~view: View.t, _children) => {
     |> destroyWhen(self.onUnmount);
 
     /* destroy everything */
-    view.destroy
+    handles.destroy
     |> onOk(_ => Js.log("destroy!"))
     |> destroyWhen(self.onUnmount);
 
     /* opening/closing <Settings> */
-    view.activateSettingsView
+    handles.activateSettingsView
     |> onOk(activate => self.send(ToggleSettingsTab(activate)))
     |> destroyWhen(self.onUnmount);
 
-    view.updateConnection
+    handles.updateConnection
     |> onOk(((connection, error)) =>
          self.send(UpdateConnection(connection, error))
        )
@@ -274,7 +274,7 @@ let make = (~editors: Editors.t, ~view: View.t, _children) => {
       inquireConnection,
       onInquireConnection,
       navigateSettingsView,
-    } = view;
+    } = handles;
     let panelElement: Webapi.Dom.Element.t =
       switch (mountAt) {
       | Bottom(element) => element
@@ -302,7 +302,7 @@ let make = (~editors: Editors.t, ~view: View.t, _children) => {
           hidden
           onMountAtChange={mountTo => self.send(MountTo(mountTo))}
           mode
-          onInquireQuery={view.onInquireQuery}
+          onInquireQuery={handles.onInquireQuery}
           isPending
           isActive
           /* editors */
@@ -332,8 +332,9 @@ let make = (~editors: Editors.t, ~view: View.t, _children) => {
 let initialize = editors => {
   open Webapi.Dom;
   let element = document |> Document.createElement("article");
-  let view = View.make();
-  let component = ReasonReact.element(make(~editors, ~view, [||]));
+  let handles = View.makeHandles();
+  let view = View.make(handles);
+  let component = ReasonReact.element(make(~editors, ~handles, [||]));
   ReactDOMRe.render(component, element);
   /* return the handles for drilling */
   view;

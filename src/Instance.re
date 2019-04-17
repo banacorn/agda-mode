@@ -13,13 +13,11 @@ type t = Instance__Type.t;
 let handleCommandError = Handler.handleCommandError;
 let dispatch = Handler.dispatch;
 
-let activate = instance => View.activate(instance.view);
+let activate = instance => instance.view.activate();
 
-let deactivate = instance => View.deactivate(instance.view);
+let deactivate = instance => instance.view.deactivate();
 
-let destroy = instance => {
-  View.destroy(instance.view);
-};
+let destroy = instance => instance.view.destroy();
 
 let make = (textEditor: Atom.TextEditor.t) => {
   /* adds "agda" to the class-list */
@@ -57,8 +55,7 @@ let make = (textEditor: Atom.TextEditor.t) => {
          | _ => ()
          }
        );
-  instance.view.destroy
-  |> Event.once
+  instance.view.onDestroy()
   |> finalOk(_ => {
        destructor0();
        destructor1();
