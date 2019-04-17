@@ -8,7 +8,7 @@ type error =
   | OutOfGoal;
 
 type t = {
-  mutable loaded: bool,
+  mutable isLoaded: bool,
   editors: Editors.t,
   view: View.Handles.t,
   mutable highlightings: array(Highlighting.t),

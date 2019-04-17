@@ -14,6 +14,7 @@ module Handles = {
     toggleDocking: Event.t(unit, unit),
     activatePanel: Event.t(bool, unit),
     updateIsPending: Event.t(bool, unit),
+    updateShouldDisplay: Event.t(bool, unit),
     updateConnection:
       Event.t((option(Connection.t), option(Connection.Error.t)), unit),
     inquireConnection: Event.t(unit, unit),
@@ -42,6 +43,7 @@ module Handles = {
     let toggleDocking = Event.make();
 
     let updateIsPending = Event.make();
+    let updateShouldDisplay = Event.make();
 
     /* private */
 
@@ -72,6 +74,7 @@ module Handles = {
       activatePanel,
       toggleDocking,
       updateIsPending,
+      updateShouldDisplay,
       updateConnection,
       inquireConnection,
       onInquireConnection,
@@ -122,6 +125,12 @@ module Handles = {
     handles.updateIsPending |> Event.emitOk(isPending);
     Async.resolve();
   };
+
+  let updateShouldDisplay = (shouldDisplay, handles): Async.t(unit, unit) => {
+    handles.updateShouldDisplay |> Event.emitOk(shouldDisplay);
+    Async.resolve();
+  };
+
   let onOpenSettingsView = (handles): Async.t(bool, MiniEditor.error) => {
     handles.onSettingsView |> Event.once |> mapError(_ => MiniEditor.Cancelled);
   };
@@ -162,7 +171,8 @@ type state = {
   body: Body.t,
   maxHeight: int,
   mountAt,
-  activated: bool,
+  isActive: bool,
+  shouldDisplay: bool,
   isPending: bool,
   settingsView: option(Tab.t),
   connection: option(Connection.t),
@@ -179,7 +189,8 @@ let initialState = () => {
     body: Nothing,
     maxHeight: 170,
     mountAt: Bottom(createBottomPanel()),
-    activated: false,
+    isActive: false,
+    shouldDisplay: false,
     isPending: false,
     settingsView: None,
     connection: None,
@@ -201,6 +212,7 @@ type action =
   | ToggleDocking
   | Activate
   | Deactivate
+  | UpdateIsLoadedOrIsTyping(bool)
   | UpdateIsPending(bool)
   /*  */
   | UpdateConnection(option(Connection.t), option(Connection.Error.t))
@@ -276,11 +288,13 @@ let reducer = (editors: Editors.t, handles: Handles.t, action, state) => {
   switch (action) {
   | Activate =>
     switch (state.mountAt) {
-    | Bottom(_) => Update({...state, activated: true})
+    | Bottom(_) => Update({...state, isActive: true})
     | Pane(tab) =>
-      UpdateWithSideEffects({...state, activated: true}, _ => tab.activate())
+      UpdateWithSideEffects({...state, isActive: true}, _ => tab.activate())
     }
-  | Deactivate => Update({...state, activated: false})
+  | Deactivate => Update({...state, isActive: false})
+  | UpdateIsLoadedOrIsTyping(shouldDisplay) =>
+    Update({...state, shouldDisplay})
   | UpdateIsPending(isPending) => Update({...state, isPending})
   | SetQueryRef(ref) =>
     SideEffects(_self => editors.query |> MiniEditor.Model.setRef(ref))
@@ -353,6 +367,13 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
     |> onOk(isPending => self.send(UpdateIsPending(isPending)))
     |> destroyWhen(self.onUnmount);
 
+    /* toggle state of shouldDisplay */
+    handles.updateShouldDisplay
+    |> onOk(shouldDisplay =>
+         self.send(UpdateIsLoadedOrIsTyping(shouldDisplay))
+       )
+    |> destroyWhen(self.onUnmount);
+
     handles.onInquireQuery
     |> on(_ => {
          self.send(UpdateMode(Display));
@@ -382,7 +403,8 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
       body,
       mountAt,
       mode,
-      activated,
+      isActive,
+      shouldDisplay,
       isPending,
       settingsView,
       connection,
@@ -409,7 +431,8 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
       };
     let hidden =
       switch (mountAt) {
-      | Bottom(_) => !activated
+      // only show the view when it's loaded and active
+      | Bottom(_) => !(isActive && shouldDisplay)
       | Pane(_) => false
       };
     <>
@@ -425,6 +448,7 @@ let make = (~editors: Editors.t, ~handles: Handles.t, _children) => {
           mode
           onInquireQuery={handles.onInquireQuery}
           isPending
+          isActive
           /* editors */
           onEditorRef={ref => self.send(SetQueryRef(ref))}
           editorValue={editors.query.value}

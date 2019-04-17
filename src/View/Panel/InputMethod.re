@@ -418,6 +418,7 @@ let make =
       ~interceptAndInsertKey: Event.t(string, unit),
       ~activateInputMethod: Event.t(bool, unit),
       ~onActivationChange: bool => unit,
+      ~isActive: bool,
       _children,
     ) => {
   ...component,
@@ -475,6 +476,7 @@ let make =
         </div>
       </div>
       <CandidateSymbols
+        isActive
         updateTranslation={replace =>
           switch (replace) {
           | Some(symbol) => self.send(RewriteSurface(symbol))

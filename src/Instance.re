@@ -13,15 +13,9 @@ type t = Instance__Type.t;
 let handleCommandError = Handler.handleCommandError;
 let dispatch = Handler.dispatch;
 
-let activate = instance =>
-  // only activate the view when it has been loaded
-  if (instance.loaded) {
-    View.Handles.activate(instance.view);
-  };
+let activate = instance => View.Handles.activate(instance.view);
 
-let deactivate = instance => {
-  View.Handles.deactivate(instance.view);
-};
+let deactivate = instance => View.Handles.deactivate(instance.view);
 
 let destroy = instance => {
   View.Handles.destroy(instance.view);
@@ -36,7 +30,7 @@ let make = (textEditor: Atom.TextEditor.t) => {
   /*  */
   let editors = Editors.make(textEditor);
   let instance = {
-    loaded: false,
+    isLoaded: false,
     editors,
     view: View.initialize(editors),
     goals: [||],

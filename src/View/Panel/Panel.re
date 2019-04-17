@@ -34,6 +34,7 @@ let make =
       ~hidden: bool,
       ~settingsView: option(Tab.t),
       ~isPending: bool,
+      ~isActive: bool,
       /* Editors */
       ~onInquireQuery: Event.t(string, MiniEditor.error),
       ~onEditorRef: Atom.TextEditor.t => unit,
@@ -100,6 +101,7 @@ let make =
             editors
             interceptAndInsertKey
             activateInputMethod
+            isActive
             onActivationChange={activated =>
               self.send(UpdateInputMethodActivation(activated))
             }

@@ -16,6 +16,7 @@ let component = reducerComponent("CandidateSymbols");
 
 let make =
     (
+      ~isActive: bool,
       ~candidateSymbols: array(string),
       ~updateTranslation: option(string) => unit,
       ~chooseSymbol: string => unit,
@@ -24,6 +25,7 @@ let make =
   ...component,
   initialState: () => {index: 0},
   reducer: (action, {index}) => {
+    Js.log(isActive);
     switch (action) {
     | MoveUp =>
       let newIndex = max(0, index - 10);

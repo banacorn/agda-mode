@@ -233,7 +233,8 @@ let rec handleLocalCommand =
     |> fromPromise
     |> mapError(_ => Cancelled)
     |> thenOk(() => {
-         instance.loaded = true;
+         instance.isLoaded = true;
+         instance.view |> View.Handles.updateShouldDisplay(true) |> ignore;
          instance.view
          |> View.Handles.display(
               "Loading ...",
@@ -249,7 +250,8 @@ let rec handleLocalCommand =
     instance |> Goals.destroyAll;
     instance |> Highlightings.destroyAll;
     instance.view |> View.Handles.deactivate;
-    instance.loaded = false;
+    instance.isLoaded = false;
+    instance.view |> View.Handles.updateShouldDisplay(false) |> ignore;
     resolve(None);
   | Restart =>
     Connections.disconnect(instance);
@@ -491,6 +493,7 @@ let rec handleLocalCommand =
   | InputSymbol(symbol) =>
     let enabled = Atom.Environment.Config.get("agda-mode.inputMethod");
     if (enabled) {
+      instance.view.updateShouldDisplay |> Event.emitOk(true);
       switch (symbol) {
       | Ordinary =>
         instance.view.activatePanel |> Event.emitOk(true);
@@ -547,7 +550,7 @@ let rec handleLocalCommand =
     };
     resolve(None);
   | GotoDefinition =>
-    if (instance.loaded) {
+    if (instance.isLoaded) {
       let name =
         instance
         |> recoverCursor(() => Editors.getSelectedTextNode(instance.editors));
