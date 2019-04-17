@@ -20,7 +20,7 @@ let handleCommandError = instance =>
           ++ " errors arisen when trying to parse the following text responses from agda:\n\n";
         let message = errors |> List.fromArray |> String.joinWith("\n\n");
         instance.view
-        |> View.Handles.display(
+        |> View.display(
              "Parse Error",
              Type.View.Header.Error,
              Emacs(PlainText(intro ++ message)),
@@ -29,7 +29,7 @@ let handleCommandError = instance =>
         let message = "when trying to parse the following text:\n" ++ error;
 
         instance.view
-        |> View.Handles.display(
+        |> View.display(
              "Parse Error",
              Type.View.Header.Error,
              Emacs(PlainText(message)),
@@ -37,28 +37,28 @@ let handleCommandError = instance =>
       | ConnectionError(error) =>
         let (header, body) = Connection.Error.toString(error);
         instance.view
-        |> View.Handles.display(
+        |> View.display(
              "Connection-related Error: " ++ header,
              Type.View.Header.Error,
              Emacs(PlainText(body)),
            );
       | Cancelled =>
         instance.view
-        |> View.Handles.display(
+        |> View.display(
              "Query Cancelled",
              Type.View.Header.Error,
              Emacs(PlainText("")),
            )
       | GoalNotIndexed =>
         instance.view
-        |> View.Handles.display(
+        |> View.display(
              "Goal not indexed",
              Type.View.Header.Error,
              Emacs(PlainText("Please reload to re-index the goal")),
            )
       | OutOfGoal =>
         instance.view
-        |> View.Handles.display(
+        |> View.display(
              "Out of goal",
              Type.View.Header.Error,
              Emacs(PlainText("Please place the cursor in a goal")),
@@ -85,7 +85,7 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
   | Status(displayImplicit, checked) =>
     if (displayImplicit || checked) {
       instance.view
-      |> View.Handles.display(
+      |> View.display(
            "Status",
            Type.View.Header.PlainText,
            Emacs(
@@ -150,7 +150,7 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
   | DisplayInfo(info) =>
     instance.view.activatePanel |> Event.emitOk(true);
     let (x, y, z) = Response.Info.handle(info);
-    View.Handles.display(x, y, z, instance.view);
+    View.display(x, y, z, instance.view);
   | ClearHighlighting =>
     instance |> Highlightings.destroyAll;
     resolve();
@@ -162,7 +162,7 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
       |> ignore;
     } else {
       instance.view
-      |> View.Handles.display(
+      |> View.display(
            "Type-checking",
            Type.View.Header.PlainText,
            Emacs(PlainText(message)),
@@ -174,7 +174,7 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
   | ClearRunningInfo => resolve()
   | DoneAborting =>
     instance.view
-    |> View.Handles.display(
+    |> View.display(
          "Status",
          Type.View.Header.Warning,
          Emacs(PlainText("Done aborting")),
@@ -234,9 +234,9 @@ let rec handleLocalCommand =
     |> mapError(_ => Cancelled)
     |> thenOk(() => {
          instance.isLoaded = true;
-         instance.view |> View.Handles.updateShouldDisplay(true) |> ignore;
+         instance.view |> View.updateShouldDisplay(true) |> ignore;
          instance.view
-         |> View.Handles.display(
+         |> View.display(
               "Loading ...",
               Type.View.Header.PlainText,
               Emacs(PlainText("")),
@@ -249,9 +249,9 @@ let rec handleLocalCommand =
     Connections.disconnect(instance);
     instance |> Goals.destroyAll;
     instance |> Highlightings.destroyAll;
-    instance.view |> View.Handles.deactivate;
+    instance.view |> View.deactivate;
     instance.isLoaded = false;
-    instance.view |> View.Handles.updateShouldDisplay(false) |> ignore;
+    instance.view |> View.updateShouldDisplay(false) |> ignore;
     resolve(None);
   | Restart =>
     Connections.disconnect(instance);
@@ -282,7 +282,7 @@ let rec handleLocalCommand =
     resolve(None);
 
   | ToggleDocking =>
-    instance.view |> View.Handles.toggleDocking |> ignore;
+    instance.view |> View.toggleDocking |> ignore;
     resolve(None);
   | Give =>
     instance
@@ -291,7 +291,7 @@ let rec handleLocalCommand =
     |> thenOk(((goal, index)) =>
          if (Goal.isEmpty(goal)) {
            instance.view
-           |> View.Handles.inquire("Give", "expression to give:", "")
+           |> View.inquire("Give", "expression to give:", "")
            |> mapError(_ => Cancelled)
            |> thenOk(result => {
                 goal |> Goal.setContent(result) |> ignore;
@@ -307,7 +307,7 @@ let rec handleLocalCommand =
       instance.editors.source |> Atom.TextEditor.getSelectedText;
     if (String.isEmpty(selectedText)) {
       instance.view
-      |> View.Handles.inquire("Scope info", "name:", "")
+      |> View.inquire("Scope info", "name:", "")
       |> mapError(_ => Cancelled)
       |> thenOk(expr =>
            instance
@@ -324,7 +324,7 @@ let rec handleLocalCommand =
 
   | SearchAbout(normalization) =>
     instance.view
-    |> View.Handles.inquire(
+    |> View.inquire(
          "Searching through definitions ["
          ++ Command.Normalization.of_string(normalization)
          ++ "]",
@@ -342,7 +342,7 @@ let rec handleLocalCommand =
     |> thenOk(((goal, index)) =>
          if (Goal.isEmpty(goal)) {
            instance.view
-           |> View.Handles.inquire(
+           |> View.inquire(
                 "Infer type ["
                 ++ Command.Normalization.of_string(normalization)
                 ++ "]",
@@ -360,7 +360,7 @@ let rec handleLocalCommand =
     /* global  */
     |> handleOutOfGoal(_ =>
          instance.view
-         |> View.Handles.inquire(
+         |> View.inquire(
               "Infer type ["
               ++ Command.Normalization.of_string(normalization)
               ++ "]",
@@ -375,7 +375,7 @@ let rec handleLocalCommand =
 
   | ModuleContents(normalization) =>
     instance.view
-    |> View.Handles.inquire(
+    |> View.inquire(
          "Module contents ["
          ++ Command.Normalization.of_string(normalization)
          ++ "]",
@@ -402,7 +402,7 @@ let rec handleLocalCommand =
     |> thenOk(((goal, index)) =>
          if (Goal.isEmpty(goal)) {
            instance.view
-           |> View.Handles.inquire(
+           |> View.inquire(
                 "Compute normal form",
                 "expression to normalize:",
                 "",
@@ -418,7 +418,7 @@ let rec handleLocalCommand =
        )
     |> handleOutOfGoal(_ =>
          instance.view
-         |> View.Handles.inquire(
+         |> View.inquire(
               "Compute normal form",
               "expression to normalize:",
               "",
@@ -448,7 +448,7 @@ let rec handleLocalCommand =
     |> thenOk(((goal, index)) =>
          if (Goal.isEmpty(goal)) {
            instance.view
-           |> View.Handles.inquire("Case", "expression to case:", "")
+           |> View.inquire("Case", "expression to case:", "")
            |> mapError(_ => Cancelled)
            |> thenOk(result => {
                 goal |> Goal.setContent(result) |> ignore;
@@ -623,7 +623,7 @@ let handleRemoteCommand = (instance, remote) =>
 let dispatch = (command, instance): Async.t(unit, error) => {
   instance
   |> handleLocalCommand(command)
-  |> pass(_ => instance.view |> View.Handles.updateIsPending(true) |> ignore)
+  |> pass(_ => instance.view |> View.updateIsPending(true) |> ignore)
   |> thenOk(handleRemoteCommand(instance))
-  |> pass(_ => instance.view |> View.Handles.updateIsPending(false) |> ignore);
+  |> pass(_ => instance.view |> View.updateIsPending(false) |> ignore);
 };

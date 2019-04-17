@@ -7,7 +7,7 @@ open Atom;
 let inquireAgdaPath =
     (error: option(Connection.Error.t), instance)
     : Async.t(string, MiniEditor.error) => {
-  open View.Handles;
+  open View;
   activate(instance.view);
   /* listen to `onSettingsView` before triggering `activateSettingsView` */
   let promise: Async.t(string, MiniEditor.error) =
@@ -68,7 +68,7 @@ let connectWithAgdaPath =
       |> String.joinWith(" ");
     Environment.Config.set("agda-mode.agdaPath", path);
     /* update the view */
-    instance.view |> View.Handles.updateConnection(Some(connection), None);
+    instance.view |> View.updateConnection(Some(connection), None);
     /* pass it on */
     connection;
   };
@@ -116,7 +116,7 @@ let disconnect = instance => {
   | Some(connection) =>
     Connection.disconnect(Connection.Error.DisconnectedByUser, connection);
     instance.connection = None;
-    instance.view |> View.Handles.updateConnection(None, None);
+    instance.view |> View.updateConnection(None, None);
   | None => ()
   };
 };

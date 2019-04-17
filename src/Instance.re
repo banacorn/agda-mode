@@ -13,12 +13,12 @@ type t = Instance__Type.t;
 let handleCommandError = Handler.handleCommandError;
 let dispatch = Handler.dispatch;
 
-let activate = instance => View.Handles.activate(instance.view);
+let activate = instance => View.activate(instance.view);
 
-let deactivate = instance => View.Handles.deactivate(instance.view);
+let deactivate = instance => View.deactivate(instance.view);
 
 let destroy = instance => {
-  View.Handles.destroy(instance.view);
+  View.destroy(instance.view);
 };
 
 let make = (textEditor: Atom.TextEditor.t) => {
@@ -32,7 +32,7 @@ let make = (textEditor: Atom.TextEditor.t) => {
   let instance = {
     isLoaded: false,
     editors,
-    view: View.initialize(editors),
+    view: Root.initialize(editors),
     goals: [||],
     highlightings: [||],
     runningInfo: RunningInfo.make(),
