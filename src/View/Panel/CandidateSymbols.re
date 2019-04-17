@@ -23,7 +23,7 @@ let make =
     ) => {
   ...component,
   initialState: () => {index: 0},
-  reducer: (action, {index}) =>
+  reducer: (action, {index}) => {
     switch (action) {
     | MoveUp =>
       let newIndex = max(0, index - 10);
@@ -49,7 +49,8 @@ let make =
         {index: newIndex},
         _ => updateTranslation(candidateSymbols[newIndex]),
       );
-    },
+    };
+  },
   didMount: self => {
     /* subscribe to Atom's core events */
     let disposables = Atom.CompositeDisposable.make();
@@ -114,20 +115,3 @@ let make =
     };
   },
 };
-
-[@bs.deriving abstract]
-type jsProps = {
-  candidateSymbols: array(string),
-  updateTranslation: option(string) => unit,
-  chooseSymbol: string => unit,
-};
-
-let jsComponent =
-  wrapReasonForJs(~component, jsProps =>
-    make(
-      ~candidateSymbols=candidateSymbolsGet(jsProps),
-      ~updateTranslation=updateTranslationGet(jsProps),
-      ~chooseSymbol=chooseSymbolGet(jsProps),
-      [||],
-    )
-  );

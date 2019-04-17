@@ -144,7 +144,7 @@ module Handles = {
 
 /************************************************************************************************************/
 
-let createElement = (): Webapi.Dom.Element.t => {
+let createBottomPanel = (): Webapi.Dom.Element.t => {
   open Webapi.Dom;
   open DomTokenListRe;
   let element = document |> Document.createElement("article");
@@ -178,7 +178,7 @@ let initialState = () => {
     },
     body: Nothing,
     maxHeight: 170,
-    mountAt: Bottom(createElement()),
+    mountAt: Bottom(createBottomPanel()),
     activated: false,
     isPending: false,
     settingsView: None,
@@ -231,7 +231,7 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
   | (Bottom(_), ToPane) => self.send(UpdateMountAt(Pane(createTab())))
   | (Pane(tab), ToBottom) =>
     tab.kill();
-    self.send(UpdateMountAt(Bottom(createElement())));
+    self.send(UpdateMountAt(Bottom(createBottomPanel())));
   | (Pane(_), ToPane) => ()
   };
 };

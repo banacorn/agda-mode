@@ -179,32 +179,3 @@ let make =
     },
   };
 };
-
-[@bs.deriving abstract]
-type jsProps = {
-  value: string,
-  placeholder: string,
-  hidden: bool,
-  grammar: string,
-  onConfirm: string => unit,
-  onCancel: (. unit) => unit,
-  onFocus: (. unit) => unit,
-  onBlur: (. unit) => unit,
-  editorRef: Atom.TextEditor.t => unit,
-};
-
-let jsComponent =
-  ReasonReact.wrapReasonForJs(~component, jsProps =>
-    make(
-      ~value=valueGet(jsProps),
-      ~placeholder=placeholderGet(jsProps),
-      ~hidden=hiddenGet(jsProps),
-      ~grammar=grammarGet(jsProps),
-      ~onConfirm=onConfirmGet(jsProps),
-      ~onCancel=onCancelGet(jsProps),
-      ~onFocus=onFocusGet(jsProps),
-      ~onBlur=onBlurGet(jsProps),
-      ~editorRef=editorRefGet(jsProps),
-      [||],
-    )
-  );

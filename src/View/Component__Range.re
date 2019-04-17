@@ -19,11 +19,3 @@ let make = (~range, ~abbr=false, _children) => {
       </Link>;
     },
 };
-
-[@bs.deriving abstract]
-type jsProps = {range: Range.t};
-
-let jsComponent =
-  ReasonReact.wrapReasonForJs(~component, jsProps =>
-    make(~range=rangeGet(jsProps), [||])
-  );
