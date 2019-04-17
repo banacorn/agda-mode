@@ -6,8 +6,7 @@
   "scripts": {
     "start": "bsb -make-world -w",
     "build": "bsb -make-world && npx webpack --mode=production",
-    "rebuild": "rm -rf lib && npm run build",
-    "rebuild2": "rm -rf lib && tsc && bsb -make-world"
+    "clean": "rm -rf lib"
   },
   "activationCommands": {
     "atom-text-editor": [
@@ -33,7 +32,7 @@
   "devDependencies": {
     "@glennsl/bs-json": "^3.0.0",
     "@glennsl/rebase": "github:glennsl/rebase",
-    "atom": "~/reason/bs-atom",
+    "atom": "github:banacorn/bs-atom#38604b",
     "bs-platform": "^5.0.2",
     "bs-webapi": "^0.13.6",
     "webpack": "^4.24.0",
