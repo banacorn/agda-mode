@@ -97,7 +97,7 @@ The key mapping of symbols are the same as in Emacs. For example: `\bN` for `ℕ
 | Keymap                                     | Command                            |
 |-------------------------------------------:|:-----------------------------------|
 | <kbd>\\</kbd> or <kbd>alt-/</kbd>          | input symbol                       |
-| <kbd>C-u</kbd> <kbd>C-x</kbd> <kbd>=</kbd> | lookup the key mapping of a symbol |
+| <kbd>C-u</kbd> <kbd>C-x</kbd> <kbd>C-=</kbd> | lookup the key mapping of a symbol |
 
 ## How specify options to Agda
 

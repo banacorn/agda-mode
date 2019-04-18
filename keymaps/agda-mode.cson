@@ -74,7 +74,7 @@
     '\\': 'agda-mode:input-symbol'
     'alt-/': 'agda-mode:input-symbol'
     # query unicode symbol input sequence
-    'ctrl-u ctrl-x =': 'agda-mode:query-symbol'
+    'ctrl-u ctrl-x ctrl-=': 'agda-mode:query-symbol'
     # go to definition
     'ctrl-alt-\\': 'agda-mode:go-to-definition'
 
@@ -87,7 +87,7 @@
     '\\': 'agda-mode:input-symbol'
     'alt-/': 'agda-mode:input-symbol'
     # query unicode symbol input sequence
-    'ctrl-u ctrl-x =': 'agda-mode:query-symbol'
+    'ctrl-u ctrl-x ctrl-=': 'agda-mode:query-symbol'
     # go to definition
     'ctrl-alt-\\': 'agda-mode:go-to-definition'
 

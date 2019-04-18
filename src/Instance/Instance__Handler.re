@@ -8,6 +8,9 @@ module Highlightings = Instance__Highlightings;
 module Connections = Instance__Connections;
 module TextEditors = Instance__TextEditors;
 
+[@bs.module "./../../../../asset/query.js"]
+external rawTable: Js.Dict.t(array(string)) = "default";
+
 open TextEditors;
 
 let handleCommandError = instance =>
@@ -495,6 +498,42 @@ let rec handleLocalCommand =
       |> ignore;
     };
     resolve(None);
+
+  | QuerySymbol =>
+    let selected = instance.editors |> Editors.getSelectedTextNode;
+    let getSymbol =
+      if (String.isEmpty(String.trim(selected))) {
+        instance.view.updateShouldDisplay(true);
+        instance.view.activate();
+        instance.view.inquire(
+          "Lookup Unicode Symbol Input Sequence",
+          "symbol to lookup:",
+          "",
+        );
+      } else {
+        resolve(selected);
+      };
+
+    getSymbol
+    |> finalOk(symbol =>
+         Js.String.codePointAt(0, symbol)
+         |> Option.map(string_of_int)
+         |> Option.flatMap(Js.Dict.get(rawTable))
+         |> Option.forEach(sequences =>
+              instance.view.display(
+                "Input sequence for " ++ symbol,
+                Type.View.Header.PlainText,
+                Emacs(
+                  PlainText(
+                    sequences |> List.fromArray |> String.joinWith("\n"),
+                  ),
+                ),
+              )
+            )
+       )
+    |> ignore;
+    resolve(None);
+
   | Jump(Type.Location.Range.HoleLink(index)) =>
     let positions = instance |> Goals.getPositions;
 
@@ -581,7 +620,6 @@ let rec handleLocalCommand =
            instance |> handleLocalCommand(Command.Primitive.GotoDefinition)
          );
     }
-  | _ => instance |> buff(Load)
   };
 };
 
