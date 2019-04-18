@@ -118,12 +118,12 @@ let make =
         </section>
         <section ?style className="agda-body-container">
           <Body body hidden={mode != Display} />
-          <MiniEditor
+          <MiniEditor.Jsx2
             hidden={mode != Inquire}
             value=editorValue
             placeholder=editorPlaceholder
             grammar="agda"
-            editorRef=onEditorRef
+            onEditorRef
             onConfirm={result => onInquireQuery |> Event.emitOk(result)}
             onCancel={(.) =>
               onInquireQuery

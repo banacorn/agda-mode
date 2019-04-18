@@ -135,7 +135,7 @@ let make =
       <hr />
       <h2> {string("Path")} </h2>
       <p>
-        <MiniEditor
+        <MiniEditor.Jsx2
           hidden=false
           value={
             switch (connection) {
@@ -144,7 +144,7 @@ let make =
             }
           }
           placeholder="path to Agda"
-          editorRef={self.handle(setEditorRef)}
+          onEditorRef={self.handle(setEditorRef)}
           onConfirm={result => self.send(Connect(result))}
           onCancel={(.) => ()}
         />

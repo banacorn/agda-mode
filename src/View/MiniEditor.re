@@ -1,5 +1,4 @@
-open ReasonReact;
-
+[@bs.config {jsx: 3}]
 open Rebase;
 
 type error =
@@ -41,22 +40,43 @@ let focus = editor => {
   Webapi.Dom.(Atom.Environment.Views.getView(editor) |> HtmlElement.focus);
 };
 
-type state = {
-  focused: bool,
-  ref: ref(option(Atom.TextEditor.t)),
+/* observer the status of focus of the editor */
+let observeFocus = (setFocused: (bool => bool) => unit, editor) => {
+  open Webapi.Dom;
+
+  /* monitoring the "is-focus" class in the classList  */
+  let observer =
+    MutationObserver.make((mutations, _) => {
+      let focusedNow =
+        mutations
+        |> Array.exists(m =>
+             m
+             |> MutationRecord.target
+             |> Element.ofNode
+             |> Option.map(elem =>
+                  elem
+                  |> Element.classList
+                  |> DomTokenList.contains("is-focused")
+                )
+             |> Option.mapOr(Fn.id, false)
+           );
+      /* modify the state */
+      setFocused(_ => focusedNow);
+    });
+  let config = {
+    "attributes": true, /* we are only interested in the class list */
+    "childList": false,
+    "subtree": false,
+  };
+  /* start observing */
+  let element = Atom.Environment.Views.getView(editor);
+  observer |> MutationObserver.observe(element, config);
+
+  /* stop observing */
+  Some(() => observer |> MutationObserver.disconnect);
 };
 
-type action =
-  | Focus
-  | Blur;
-
-let setRef = (r, {ReasonReact.state}) =>
-  state.ref :=
-    Js.Nullable.toOption(r)
-    |> Option.map(r => ReasonReact.refToJsObj(r)##getModel());
-
-let component = ReasonReact.reducerComponent("MiniEditor");
-
+[@react.component]
 let make =
     (
       ~value="",
@@ -67,113 +87,122 @@ let make =
       ~onCancel=(.) => (),
       ~onFocus=(.) => (),
       ~onBlur=(.) => (),
-      ~editorRef=_ => (),
-      _children,
+      ~onEditorRef=_ => (),
     ) => {
-  let observeFocus = (self, editor) => {
-    open Webapi.Dom;
+  let (focused, setFocused) = React.useState(() => false);
+  let (editorRef, setEditorRef) = React.useState(() => None);
+  let editorElem = React.useRef(None);
 
-    /* monitoring the "is-focus" class in the classList  */
-    let observer =
-      MutationObserver.make((mutations, _) => {
-        let focusedNow =
-          mutations
-          |> Array.exists(m =>
-               m
-               |> MutationRecord.target
-               |> Element.ofNode
-               |> Option.map(elem =>
-                    elem
-                    |> Element.classList
-                    |> DomTokenList.contains("is-focused")
-                  )
-               |> Option.mapOr(Fn.id, false)
-             );
-        /* trigger the actions and the events  */
-        if (focusedNow) {
-          self.send(Focus);
-          onFocus(.);
-        } else {
-          self.send(Blur);
-          onBlur(.);
-        };
-      });
-    let config = {
-      "attributes": true, /* we are only interested in the class list */
-      "childList": false,
-      "subtree": false,
-    };
-    /* start observing */
-    let element = Atom.Environment.Views.getView(editor);
-    observer |> MutationObserver.observe(element, config);
-    /* stop observing */
-    self.onUnmount(() => observer |> MutationObserver.disconnect);
-  };
-  {
-    ...component,
-    initialState: () => {
-      focused: false,
-      ref: ref(None: option(Atom.TextEditor.t)),
+  React.useEffect1(
+    () =>
+      React.Ref.current(editorElem)
+      |> Option.map(r => ReasonReact.refToJsObj(r)##getModel())
+      |> Option.flatMap(editor => {
+           // storing the Editor
+           setEditorRef(_ => Some(editor));
+           /* WARNING: TextEditor.setGrammar is DEPRECATED!!! */
+           /* pass the grammar down to enable input method */
+           if (grammar === "agda") {
+             let agdaGrammar =
+               Atom.Environment.Grammar.grammarForScopeName("source.agda");
+             try (editor |> Atom.TextEditor.setGrammar(agdaGrammar)) {
+             | _ => () /* do nothing when we fail to load the grammar */
+             };
+           };
+           /* expose the editor */
+           onEditorRef(editor);
+           /* subscribe to Atom's core events */
+           let disposables = Atom.CompositeDisposable.make();
+           Atom.Environment.Commands.add(
+             `HtmlElement(Atom.Environment.Views.getView(editor)),
+             "core:confirm",
+             _event =>
+             onConfirm(editor |> Atom.TextEditor.getText)
+           )
+           |> Atom.CompositeDisposable.add(disposables);
+           Atom.Environment.Commands.add(
+             `HtmlElement(Atom.Environment.Views.getView(editor)),
+             "core:cancel",
+             _event =>
+             onCancel(.)
+           )
+           |> Atom.CompositeDisposable.add(disposables);
+
+           /* value */
+           editor |> Atom.TextEditor.setText(value);
+           /* placeholder */
+           editor |> Atom.TextEditor.setPlaceholderText(placeholder);
+
+           Some(() => disposables |> Atom.CompositeDisposable.dispose);
+         }),
+    [||],
+  );
+
+  /* observer the status of focus of the editor */
+  React.useEffect1(
+    () => editorRef |> Option.flatMap(observeFocus(setFocused)),
+    [|editorRef|],
+  );
+
+  // triggering callbacks
+  React.useEffect1(
+    () => {
+      if (focused) {
+        onFocus(.);
+      } else {
+        onBlur(.);
+      };
+      None;
     },
-    reducer: (action, state) =>
-      switch (action) {
-      | Blur => ReasonReact.Update({...state, focused: false})
-      | Focus => ReasonReact.Update({...state, focused: true})
-      },
-    didMount: self =>
-      switch (self.state.ref^) {
-      | None => ()
-      | Some(editor) =>
-        /* WARNING: TextEditor.setGrammar is DEPRECATED!!! */
-        /* pass the grammar down to enable input method */
-        if (grammar === "agda") {
-          let agdaGrammar =
-            Atom.Environment.Grammar.grammarForScopeName("source.agda");
-          try (editor |> Atom.TextEditor.setGrammar(agdaGrammar)) {
-          | _ => () /* do nothing when we fail to load the grammar */
-          };
-        };
-        /* expose the editor */
-        editorRef(editor);
-        /* subscribe to Atom's core events */
-        let disposables = Atom.CompositeDisposable.make();
-        Atom.Environment.Commands.add(
-          `HtmlElement(Atom.Environment.Views.getView(editor)),
-          "core:confirm",
-          _event =>
-          onConfirm(editor |> Atom.TextEditor.getText)
-        )
-        |> Atom.CompositeDisposable.add(disposables);
-        Atom.Environment.Commands.add(
-          `HtmlElement(Atom.Environment.Views.getView(editor)),
-          "core:cancel",
-          _event =>
-          onCancel(.)
-        )
-        |> Atom.CompositeDisposable.add(disposables);
-        self.onUnmount(() => disposables |> Atom.CompositeDisposable.dispose);
-        /* observer the status of focus of the editor */
-        observeFocus(self, editor);
-        /* value */
-        editor |> Atom.TextEditor.setText(value);
-        /* placeholder */
-        editor |> Atom.TextEditor.setPlaceholderText(placeholder);
-      },
-    render: self => {
-      let className =
-        Util.ClassName.(
-          ["mini-editor"] |> addWhen("hidden", hidden) |> serialize
-        );
-      ReactDOMRe.createElement(
-        "atom-text-editor",
-        ~props=
-          ReactDOMRe.objToDOMProps({
-            "class": className,
-            "mini": "true",
-            "ref": self.handle(setRef),
-          }),
-        [||],
-      );
-    },
-  };
+    [|focused|],
+  );
+
+  let className =
+    Util.ClassName.(
+      ["mini-editor"] |> addWhen("hidden", hidden) |> serialize
+    );
+  ReactDOMRe.createElement(
+    "atom-text-editor",
+    ~props=
+      ReactDOMRe.objToDOMProps({
+        "class": className,
+        "mini": "true",
+        "ref": editorElem,
+      }),
+    [||],
+  );
+};
+
+module Jsx2 = {
+  let component = ReasonReact.statelessComponent("MiniEditor");
+
+  let make =
+      (
+        ~value="",
+        ~placeholder="",
+        ~hidden,
+        ~grammar="",
+        ~onConfirm=_ => (),
+        ~onCancel=(.) => (),
+        ~onFocus=(.) => (),
+        ~onBlur=(.) => (),
+        ~onEditorRef=_ => (),
+        children,
+      ) =>
+    ReasonReactCompat.wrapReactForReasonReact(
+      make,
+      makeProps(
+        ~value,
+        ~placeholder,
+        ~hidden,
+        ~grammar,
+        ~onConfirm,
+        ~onCancel,
+        ~onFocus,
+        ~onBlur,
+        ~onEditorRef,
+        (),
+      ),
+      children,
+    );
 };
