@@ -160,9 +160,9 @@ let make =
        | None =>
          switch (error) {
          | None => null
-         | Some(err) => <Settings__Connection__Error error=err />
+         | Some(err) => <Settings__Connection__Error.Jsx2 error=err />
          }
-       | Some(err) => <Settings__Connection__Error error=err />
+       | Some(err) => <Settings__Connection__Error.Jsx2 error=err />
        }}
     </section>;
   },
