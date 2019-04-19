@@ -14,6 +14,9 @@ module React = {
   let enclosedBy =
       (front: reactElement, back: reactElement, item: reactElement) =>
     <> front {string(" ")} item {string(" ")} back </>;
+
+  let manyIn = elem =>
+    ReactDOMRe.createDOMElementVariadic(elem, ~props=ReactDOMRe.domProps());
 };
 
 module ClassName = {

@@ -84,3 +84,5 @@ module MouseEmitter =
     type t = mouseEvent => unit;
     let defaultValue = _ => ();
   });
+
+let mouseEmitter2 = React.createContext((_ev: mouseEvent) => ());

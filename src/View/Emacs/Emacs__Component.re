@@ -1,3 +1,5 @@
+[@bs.config {jsx: 3}];
+
 open Rebase.Option;
 
 open ReasonReact;
@@ -14,22 +16,21 @@ module Term = {
   let component = statelessComponent("EmacsTerm");
   let jump = true;
   let hover = true;
-  let make = (~term: t, _children) => {
-    ...component,
-    render: _self =>
-      switch (term) {
-      | Plain(s) => <span className="expr"> {string(s)} </span>
-      | QuestionMark(i) =>
-        <Link
-          className=["expr", "question-mark"]
-          jump
-          hover
-          target={HoleLink(i)}>
-          {string("?" ++ string_of_int(i))}
-        </Link>
-      | Underscore(s) =>
-        <span className="expr underscore"> {string(s)} </span>
-      },
+
+  [@react.component]
+  let make = (~term: t) => {
+    switch (term) {
+    | Plain(s) => <span className="expr"> {string(s)} </span>
+    | QuestionMark(i) =>
+      <Link
+        className=["expr", "question-mark"]
+        jump
+        hover
+        target={Type.Location.Range.HoleLink(i)}>
+        {string("?" ++ string_of_int(i))}
+      </Link>
+    | Underscore(s) => <span className="expr underscore"> {string(s)} </span>
+    };
   };
 };
 
@@ -55,14 +56,9 @@ module Expr = {
     |> Array.filterMap(x => x)
     |> some;
   };
-
-  let component = statelessComponent("EmacsExpr");
-  let make = (~expr: t, _children) => {
-    ...component,
-    render: _self =>
-      expr
-      |> Array.map(term => <Term term />)
-      |> (terms => <span> ...terms </span>),
+  [@react.component]
+  let make = (~expr: t) => {
+    expr |> Array.map(term => <Term term />) |> Util.React.manyIn("span");
   };
 };
 
@@ -101,48 +97,44 @@ module OutputConstraint = {
   let parse =
     Parser.choice([|parseOfType, parseJustType, parseJustSort, parseOthers|]);
 
-  let component = statelessComponent("EmacsOutputConstraint");
-  let make = (~value: t, ~range: option(Type.Location.Range.t), _children) => {
-    ...component,
-    render: _self =>
-      switch (value) {
-      | OfType(e, t) =>
-        <li className="output">
-          <Expr expr=e />
-          {string(" : ")}
-          <Expr expr=t />
-          {Option.mapOr(range => <Range range abbr=true />, null, range)}
-        </li>
-      | JustType(e) =>
-        <li className="output">
-          {string("Type ")}
-          <Expr expr=e />
-          {Option.mapOr(range => <Range range abbr=true />, null, range)}
-        </li>
-      | JustSort(e) =>
-        <li className="output">
-          {string("Sort ")}
-          <Expr expr=e />
-          {Option.mapOr(range => <Range range abbr=true />, null, range)}
-        </li>
-      | Others(e) =>
-        <li className="output">
-          <Expr expr=e />
-          {Option.mapOr(range => <Range range abbr=true />, null, range)}
-        </li>
-      },
+  [@react.component]
+  let make = (~value: t, ~range: option(Type.Location.Range.t)) => {
+    switch (value) {
+    | OfType(e, t) =>
+      <li className="output">
+        <Expr expr=e />
+        {string(" : ")}
+        <Expr expr=t />
+        {Option.mapOr(range => <Range range abbr=true />, null, range)}
+      </li>
+    | JustType(e) =>
+      <li className="output">
+        {string("Type ")}
+        <Expr expr=e />
+        {Option.mapOr(range => <Range range abbr=true />, null, range)}
+      </li>
+    | JustSort(e) =>
+      <li className="output">
+        {string("Sort ")}
+        <Expr expr=e />
+        {Option.mapOr(range => <Range range abbr=true />, null, range)}
+      </li>
+    | Others(e) =>
+      <li className="output">
+        <Expr expr=e />
+        {Option.mapOr(range => <Range range abbr=true />, null, range)}
+      </li>
+    };
   };
 };
 
 module Labeled = {
-  let component = statelessComponent("EmacsGoal");
-  let make = (~label: string, ~expr: Expr.t, _children) => {
-    ...component,
-    render: _self =>
-      <li className="labeled">
-        <span className="label"> {string(label)} </span>
-        <Expr expr />
-      </li>,
+  [@react.component]
+  let make = (~label: string, ~expr: Expr.t) => {
+    <li className="labeled">
+      <span className="label"> {string(label)} </span>
+      <Expr expr />
+    </li>;
   };
 };
 
@@ -175,13 +167,10 @@ module Output = {
     };
   };
 
-  let component = statelessComponent("EmacsInteractionMeta");
-  let make = (~value: t, _children) => {
-    ...component,
-    render: _self => {
-      let Output(oc, range) = value;
-      <OutputConstraint value=oc range />;
-    },
+  [@react.component]
+  let make = (~value: t) => {
+    let Output(oc, range) = value;
+    <OutputConstraint value=oc range />;
   };
 };
 
@@ -206,21 +195,16 @@ module PlainText = {
        )
     |> some;
 
-  let component = statelessComponent("PlainText");
-  let make = (~value: array(t), _children) => {
-    ...component,
-    render: _self =>
-      <span>
-        ...{
-             value
-             |> Array.map(token =>
-                  switch (token) {
-                  | Text(plainText) => string(plainText)
-                  | Range(range) => <Range range />
-                  }
-                )
-           }
-      </span>,
+  [@react.component]
+  let make = (~value: array(t)) => {
+    value
+    |> Array.map(token =>
+         switch (token) {
+         | Text(plainText) => string(plainText)
+         | Range(range) => <Range range />
+         }
+       )
+    |> Util.React.manyIn("span");
   };
 };
 
@@ -237,21 +221,19 @@ module WarningError = {
 
   let parseError = parse(false);
 
-  let component = statelessComponent("WarningError");
-  let make = (~value: t, _children) => {
-    ...component,
-    render: _self =>
-      switch (value) {
-      | WarningMessage(body) =>
-        <li className="warning-error">
-          <span className="warning-label"> {string("warning")} </span>
-          <PlainText value=body />
-        </li>
-      | ErrorMessage(body) =>
-        <li className="warning-error">
-          <span className="error-label"> {string("error")} </span>
-          <PlainText value=body />
-        </li>
-      },
+  [@react.component]
+  let make = (~value: t) => {
+    switch (value) {
+    | WarningMessage(body) =>
+      <li className="warning-error">
+        <span className="warning-label"> {string("warning")} </span>
+        <PlainText value=body />
+      </li>
+    | ErrorMessage(body) =>
+      <li className="warning-error">
+        <span className="error-label"> {string("error")} </span>
+        <PlainText value=body />
+      </li>
+    };
   };
 };

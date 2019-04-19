@@ -1,3 +1,5 @@
+[@bs.config {jsx: 3}];
+
 open ReasonReact;
 
 open Rebase;
@@ -73,25 +75,21 @@ let parse = raw => {
   {goal, have, interactionMetas, hiddenMetas};
 };
 
-let component = statelessComponent("EmacsGoalTypeContext");
-
-let make = (~body: string, _children) => {
-  ...component,
-  render: _self => {
-    let parsed = parse(body);
-    <>
-      <ul>
-        {parsed.goal
-         |> Option.mapOr(expr => <Labeled label="Goal " expr />, null)}
-        {parsed.have
-         |> Option.mapOr(expr => <Labeled label="Have " expr />, null)}
-      </ul>
-      <ul>
-        ...{parsed.interactionMetas |> Array.map(value => <Output value />)}
-      </ul>
-      <ul>
-        ...{parsed.hiddenMetas |> Array.map(value => <Output value />)}
-      </ul>
-    </>;
-  },
+[@react.component]
+let make = (~body: string) => {
+  let parsed = parse(body);
+  <>
+    <ul>
+      {parsed.goal
+       |> Option.mapOr(expr => <Labeled label="Goal " expr />, null)}
+      {parsed.have
+       |> Option.mapOr(expr => <Labeled label="Have " expr />, null)}
+    </ul>
+    {parsed.interactionMetas
+     |> Array.map(value => <Output value />)
+     |> Util.React.manyIn("ul")}
+    {parsed.hiddenMetas
+     |> Array.map(value => <Output value />)
+     |> Util.React.manyIn("ul")}
+  </>;
 };

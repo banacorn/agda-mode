@@ -1,3 +1,5 @@
+[@bs.config {jsx: 3}];
+
 open ReasonReact;
 
 open Emacs__Component;
@@ -100,17 +102,21 @@ let parse = (title, body): t => {
   {title, interactionMetas, hiddenMetas, warnings, errors};
 };
 
-let component = statelessComponent("EmacsAllGoalsWarnings");
-
-let make = (~value: t, _children) => {
-  ...component,
-  render: _self => {
-    let {interactionMetas, hiddenMetas, warnings, errors} = value;
-    <>
-      <ul> ...{interactionMetas |> Array.map(value => <Output value />)} </ul>
-      <ul> ...{hiddenMetas |> Array.map(value => <Output value />)} </ul>
-      <ul> ...{warnings |> Array.map(value => <WarningError value />)} </ul>
-      <ul> ...{errors |> Array.map(value => <WarningError value />)} </ul>
-    </>;
-  },
+[@react.component]
+let make = (~value: t) => {
+  let {interactionMetas, hiddenMetas, warnings, errors} = value;
+  <>
+    {interactionMetas
+     |> Array.map(value => <Output value />)
+     |> Util.React.manyIn("ul")}
+    {hiddenMetas
+     |> Array.map(value => <Output value />)
+     |> Util.React.manyIn("ul")}
+    {warnings
+     |> Array.map(value => <WarningError value />)
+     |> Util.React.manyIn("ul")}
+    {errors
+     |> Array.map(value => <WarningError value />)
+     |> Util.React.manyIn("ul")}
+  </>;
 };

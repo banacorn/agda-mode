@@ -1,4 +1,4 @@
-open ReasonReact;
+[@bs.config {jsx: 3}];
 
 open Rebase;
 
@@ -9,12 +9,10 @@ let parse: string => array(Output.t) =
     let lines = raw |> Js.String.split("\n") |> Emacs__Parser.unindent;
     lines |> Array.map(Output.parse) |> Array.filterMap(x => x);
   };
-let component = statelessComponent("EmacsContext");
 
-let make = (~body: string, _children) => {
-  ...component,
-  render: _self => {
-    let parsed = parse(body);
-    <> <ul> ...{parsed |> Array.map(value => <Output value />)} </ul> </>;
-  },
+[@react.component]
+let make = (~body: string) => {
+  parse(body)
+  |> Array.map(value => <Output value />)
+  |> Util.React.manyIn("ul");
 };

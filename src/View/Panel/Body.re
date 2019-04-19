@@ -15,14 +15,8 @@ let make = (~body: t, ~hidden, _children) => {
     let comp =
       switch (body) {
       | Nothing => null
-      /* | Unloaded => <Emacs__Error body="not loaded yet" /> */
-      | JSON(raw) =>
-        switch (Decoder.parseBody(raw)) {
-        | AllGoalsWarnings(value) => <JSON__AllGoalsWarnings value />
-        | ErrorMessage(value, rawString) => <JSON__Error value rawString />
-        | PlainText(s) => <p> {string(s)} </p>
-        }
-      | Emacs(data) => <Emacs__Body data />
+      | JSON(_) => null
+      | Emacs(data) => <Emacs__Body.Jsx2 data />
       };
     let className =
       hidden
