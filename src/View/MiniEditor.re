@@ -1,4 +1,3 @@
-[@bs.config {jsx: 3}]
 open Rebase;
 
 type error =
@@ -161,7 +160,8 @@ let make =
     Util.ClassName.(
       ["mini-editor"] |> addWhen("hidden", hidden) |> serialize
     );
-  ReactDOMRe.createElement(
+
+  ReactDOMRe.createElementVariadic(
     "atom-text-editor",
     ~props=
       ReactDOMRe.objToDOMProps({

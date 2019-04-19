@@ -1,4 +1,3 @@
-[@bs.config {jsx: 3}]
 open ReasonReact;
 
 open Connection;
@@ -14,16 +13,4 @@ let make = (~error: Error.t) => {
       {string(body)}
     </pre>
   </>;
-};
-
-module Jsx2 = {
-  let component =
-    ReasonReact.statelessComponent("Settings__Connection__Error");
-
-  let make = (~error, children) =>
-    ReasonReactCompat.wrapReactForReasonReact(
-      make,
-      makeProps(~error, ()),
-      children,
-    );
 };

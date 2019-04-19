@@ -316,7 +316,7 @@ let make = (~editors: Editors.t, ~handles: View.handles, _children) => {
             self.send(ToggleSettingsTab(status))
           }
         />
-        <Settings
+        <Settings.Jsx2
           inquireConnection
           onInquireConnection
           connection
