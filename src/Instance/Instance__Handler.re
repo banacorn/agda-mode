@@ -482,13 +482,14 @@ let rec handleLocalCommand =
       switch (symbol) {
       | Ordinary =>
         instance.view.activate();
-        instance.view.activateInputMethod();
+        instance.view.activateInputMethod(true);
       | CurlyBracket => instance.view.interceptAndInsertKey("{")
       | Bracket => instance.view.interceptAndInsertKey("[")
       | Parenthesis => instance.view.interceptAndInsertKey("(")
       | DoubleQuote => instance.view.interceptAndInsertKey("\"")
       | SingleQuote => instance.view.interceptAndInsertKey("'")
       | BackQuote => instance.view.interceptAndInsertKey("`")
+      | Abort => instance.view.activateInputMethod(false)
       };
       ();
     } else {

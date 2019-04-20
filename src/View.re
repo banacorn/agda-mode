@@ -97,7 +97,7 @@ type t = {
   updateIsPending: bool => unit,
   onMouseEvent: Event.t(mouseEvent, unit),
   // <InputMethod> related
-  activateInputMethod: unit => unit,
+  activateInputMethod: bool => unit,
   interceptAndInsertKey: string => unit,
   // <Settings> related
   navigateSettings: Settings__Breadcrumb.uri => unit,
@@ -144,7 +144,8 @@ let make = (handles: handles) => {
   };
   let onMouseEvent = handles.onMouseEvent;
 
-  let activateInputMethod = () => handles.activateInputMethod |> emitOk(true);
+  let activateInputMethod = activate =>
+    handles.activateInputMethod |> emitOk(activate);
   let interceptAndInsertKey = symbol =>
     handles.interceptAndInsertKey |> emitOk(symbol);
 

@@ -19,6 +19,7 @@
     '\"' : 'agda-mode:input-symbol-double-quote'
     '\'' : 'agda-mode:input-symbol-single-quote'
     '\`' : 'agda-mode:input-symbol-back-quote'
+    'escape' : 'agda-mode:deactivate-input-symbol'
 
 # for people who have 'agda-mode:load' executed (regardless of language-agda)
 'atom-text-editor.agda':

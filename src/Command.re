@@ -26,7 +26,8 @@ type inputSymbolType =
   | Parenthesis
   | DoubleQuote
   | SingleQuote
-  | BackQuote;
+  | BackQuote
+  | Abort;
 
 module ComputeMode = {
   type t =
@@ -137,6 +138,7 @@ module Primitive = {
     | "input-symbol-double-quote" => InputSymbol(DoubleQuote)
     | "input-symbol-single-quote" => InputSymbol(SingleQuote)
     | "input-symbol-back-quote" => InputSymbol(BackQuote)
+    | "deactivate-input-symbol" => InputSymbol(Abort)
     | "query-symbol" => QuerySymbol
     | "go-to-definition" => GotoDefinition
     | _ => Load;
@@ -424,6 +426,7 @@ let names = [|
   "input-symbol-double-quote",
   "input-symbol-single-quote",
   "input-symbol-back-quote",
+  "deactivate-input-symbol",
   "query-symbol",
   "go-to-definition",
 |];
