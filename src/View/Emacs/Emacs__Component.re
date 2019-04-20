@@ -13,7 +13,6 @@ module Term = {
     | Plain(string)
     | QuestionMark(int)
     | Underscore(string);
-  let component = statelessComponent("EmacsTerm");
   let jump = true;
   let hover = true;
 
@@ -36,7 +35,6 @@ module Term = {
 
 module Expr = {
   type t = array(Term.t);
-
   let parse = raw => {
     raw
     |> String.trim

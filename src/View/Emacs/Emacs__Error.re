@@ -1,7 +1,5 @@
 [@bs.config {jsx: 3}];
 
-open ReasonReact;
-
 open Emacs__Component;
 open Rebase.Option;
 open Rebase;
