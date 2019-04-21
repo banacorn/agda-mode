@@ -243,6 +243,20 @@ let reducer = (editors, onActivationChange, action, state) =>
                         self.handle(markerOnDidChange(editors)),
                       )
                    |> Garbages.add(garbages);
+                   /* monitors the cursor, deactivate if it was moved out of the marker #94 */
+                   Editors.Focus.get(editors)
+                   |> TextEditor.onDidChangeCursorPosition(event => {
+                        let point = event##newBufferPosition;
+                        let ranges =
+                          markers |> Array.map(DisplayMarker.getBufferRange);
+                        let inRange =
+                          ranges
+                          |> Array.exists(Atom.Range.containsPoint(point));
+                        if (!inRange) {
+                          self.send(Deactivate);
+                        };
+                      })
+                   |> Garbages.add(garbages);
                    garbages;
                  });
             /* decorate the editor with these markers */
