@@ -95,7 +95,7 @@ type state = {
   /* view related */
   decorations: array(Atom.Decoration.t),
   markers: array(Atom.DisplayMarker.t),
-  markersDisposable: option(Atom.Disposable.t),
+  markersDisposables: option(Garbages.t),
   /* translation */
   buffer,
   translation,
@@ -110,7 +110,7 @@ let initialState = _ => {
   /* view related */
   decorations: [||],
   markers: [||],
-  markersDisposable: None,
+  markersDisposables: None,
   /* translation */
   buffer: initialBuffer,
   translation: initialTranslation,
@@ -126,7 +126,7 @@ type action =
   | UpdateMarkers(
       array(Atom.DisplayMarker.t),
       array(Atom.Decoration.t),
-      option(Atom.Disposable.t),
+      option(Garbages.t),
     )
   /* manual actions */
   | InsertSurface(string)
@@ -233,14 +233,18 @@ let reducer = (editors, onActivationChange, action, state) =>
                    |> TextEditor.markBufferRange(Atom.Range.copy(range))
                  );
             /* monitors only the first marker */
-            let markersDisposable =
+            let markersDisposables =
               markers[0]
-              |> Option.map(marker =>
+              |> Option.map(marker => {
+                   let garbages = Garbages.make();
+                   // monitors the marker's change
                    marker
                    |> DisplayMarker.onDidChange(
                         self.handle(markerOnDidChange(editors)),
                       )
-                 );
+                   |> Garbages.add(garbages);
+                   garbages;
+                 });
             /* decorate the editor with these markers */
             let decorations =
               markers
@@ -257,7 +261,7 @@ let reducer = (editors, onActivationChange, action, state) =>
                  );
             /* store these markers and stuff */
             self.send(
-              UpdateMarkers(markers, decorations, markersDisposable),
+              UpdateMarkers(markers, decorations, markersDisposables),
             );
             /* insert '\' at the cursor to indicate the activation */
             self.send(InsertSurface("\\"));
@@ -285,9 +289,7 @@ let reducer = (editors, onActivationChange, action, state) =>
             /* destroy all markers and stuff */
             state.markers |> Array.forEach(DisplayMarker.destroy);
             state.decorations |> Array.forEach(Decoration.destroy);
-            state.markersDisposable
-            |> Option.map(Disposable.dispose)
-            |> ignore;
+            state.markersDisposables |> Option.map(Garbages.dispose) |> ignore;
           },
         )
       : NoUpdate;
@@ -346,8 +348,8 @@ let reducer = (editors, onActivationChange, action, state) =>
       },
       translation,
     });
-  | UpdateMarkers(markers, decorations, markersDisposable) =>
-    Update({...state, markers, decorations, markersDisposable})
+  | UpdateMarkers(markers, decorations, markersDisposables) =>
+    Update({...state, markers, decorations, markersDisposables})
   | InsertSurface(char) =>
     UpdateWithSideEffects(
       {
