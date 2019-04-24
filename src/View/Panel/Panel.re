@@ -106,7 +106,7 @@ let make =
               self.send(UpdateInputMethodActivation(activated))
             }
           />
-          <Dashboard
+          <Dashboard.Jsx2
             header
             hidden=inputMethodActivated
             isPending
