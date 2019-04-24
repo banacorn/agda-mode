@@ -491,7 +491,7 @@ let make =
              }
         </div>
       </div>
-      <CandidateSymbols
+      <CandidateSymbols.Jsx2
         isActive
         updateTranslation={replace =>
           switch (replace) {
