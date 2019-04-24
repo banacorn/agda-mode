@@ -80,7 +80,7 @@ let make =
     ReactDOMRe.createPortal(
       <section className>
         <section className="panel-heading agda-header-container">
-          <SizingHandle
+          <SizingHandle.Jsx2
             onResizeStart={height => self.send(UpdateMaxHeight(height))}
             onResizeEnd={height =>
               Js.Global.setTimeout(
@@ -117,7 +117,7 @@ let make =
           />
         </section>
         <section ?style className="agda-body-container">
-          <Body body hidden={mode != Display} />
+          <Body.Jsx2 body hidden={mode != Display} />
           <MiniEditor.Jsx2
             hidden={mode != Inquire}
             value=editorValue
