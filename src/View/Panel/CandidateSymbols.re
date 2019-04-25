@@ -31,68 +31,56 @@ let make =
   let (index, move) =
     React.useReducer(reducer(Array.length(candidateSymbols)), 0);
 
-  let (listenerHandles, setListenerHandles) = React.useState(() => None);
+  Hook.useAtomListenerWhen(
+    () =>
+      Atom.Environment.Commands.add(
+        `CSSSelector("atom-text-editor.agda-mode-input-method-activated"),
+        "core:move-up",
+        event => {
+          move(Up);
+          event |> Dom.Event.stopImmediatePropagation;
+        },
+      ),
+    isActive,
+  );
 
-  let startListening = () => {
-    /* subscribe to Atom's core events */
-    let disposables = Atom.CompositeDisposable.make();
-    Atom.Environment.Commands.add(
-      `CSSSelector("atom-text-editor.agda-mode-input-method-activated"),
-      "core:move-up",
-      event => {
-        move(Up);
-        event |> Dom.Event.stopImmediatePropagation;
-      },
-    )
-    |> Atom.CompositeDisposable.add(disposables);
-    Atom.Environment.Commands.add(
-      `CSSSelector("atom-text-editor.agda-mode-input-method-activated"),
-      "core:move-right",
-      event => {
-        move(Right);
-        event |> Dom.Event.stopImmediatePropagation;
-      },
-    )
-    |> Atom.CompositeDisposable.add(disposables);
-    Atom.Environment.Commands.add(
-      `CSSSelector("atom-text-editor.agda-mode-input-method-activated"),
-      "core:move-down",
-      event => {
-        move(Down);
-        event |> Dom.Event.stopImmediatePropagation;
-      },
-    )
-    |> Atom.CompositeDisposable.add(disposables);
-    Atom.Environment.Commands.add(
-      `CSSSelector("atom-text-editor.agda-mode-input-method-activated"),
-      "core:move-left",
-      event => {
-        move(Left);
-        event |> Dom.Event.stopImmediatePropagation;
-      },
-    )
-    |> Atom.CompositeDisposable.add(disposables);
-    // return the handle
-    disposables;
-  };
+  Hook.useAtomListenerWhen(
+    () =>
+      Atom.Environment.Commands.add(
+        `CSSSelector("atom-text-editor.agda-mode-input-method-activated"),
+        "core:move-right",
+        event => {
+          move(Right);
+          event |> Dom.Event.stopImmediatePropagation;
+        },
+      ),
+    isActive,
+  );
 
-  let stopListening = Atom.CompositeDisposable.dispose;
+  Hook.useAtomListenerWhen(
+    () =>
+      Atom.Environment.Commands.add(
+        `CSSSelector("atom-text-editor.agda-mode-input-method-activated"),
+        "core:move-down",
+        event => {
+          move(Down);
+          event |> Dom.Event.stopImmediatePropagation;
+        },
+      ),
+    isActive,
+  );
 
-  React.useEffect1(
-    () => {
-      if (isActive) {
-        let handles = startListening();
-        setListenerHandles(_ => Some(handles));
-      } else {
-        listenerHandles
-        |> Option.forEach(handles => {
-             stopListening(handles);
-             setListenerHandles(_ => None);
-           });
-      };
-      None;
-    },
-    [|isActive|],
+  Hook.useAtomListenerWhen(
+    () =>
+      Atom.Environment.Commands.add(
+        `CSSSelector("atom-text-editor.agda-mode-input-method-activated"),
+        "core:move-left",
+        event => {
+          move(Left);
+          event |> Dom.Event.stopImmediatePropagation;
+        },
+      ),
+    isActive,
   );
 
   React.useEffect1(
