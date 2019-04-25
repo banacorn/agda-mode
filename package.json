@@ -42,6 +42,7 @@
     "react": "^16.8",
     "react-dom": "^16.8",
     "reason-react": ">=0.7.0",
+    "reason-react-update": "^0.1.1",
     "semver": "^5.5"
   }
 }
