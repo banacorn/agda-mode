@@ -92,47 +92,49 @@ let make =
   let (editorRef, setEditorRef) = React.useState(() => None);
   let editorElem = React.useRef(None);
 
-  React.useEffect(() =>
-    React.Ref.current(editorElem)
-    |> Option.map(r => ReasonReact.refToJsObj(r)##getModel())
-    |> Option.flatMap(editor => {
-         // storing the Editor
-         setEditorRef(_ => Some(editor));
-         /* WARNING: TextEditor.setGrammar is DEPRECATED!!! */
-         /* pass the grammar down to enable input method */
-         if (grammar === "agda") {
-           let agdaGrammar =
-             Atom.Environment.Grammar.grammarForScopeName("source.agda");
-           try (editor |> Atom.TextEditor.setGrammar(agdaGrammar)) {
-           | _ => () /* do nothing when we fail to load the grammar */
+  React.useEffect1(
+    () =>
+      React.Ref.current(editorElem)
+      |> Option.map(r => ReasonReact.refToJsObj(r)##getModel())
+      |> Option.flatMap(editor => {
+           // storing the Editor
+           setEditorRef(_ => Some(editor));
+           /* WARNING: TextEditor.setGrammar is DEPRECATED!!! */
+           /* pass the grammar down to enable input method */
+           if (grammar === "agda") {
+             let agdaGrammar =
+               Atom.Environment.Grammar.grammarForScopeName("source.agda");
+             try (editor |> Atom.TextEditor.setGrammar(agdaGrammar)) {
+             | _ => () /* do nothing when we fail to load the grammar */
+             };
            };
-         };
-         /* expose the editor */
-         onEditorRef(editor);
-         /* subscribe to Atom's core events */
-         let disposables = Atom.CompositeDisposable.make();
-         Atom.Environment.Commands.add(
-           `HtmlElement(Atom.Environment.Views.getView(editor)),
-           "core:confirm",
-           _event =>
-           onConfirm(editor |> Atom.TextEditor.getText)
-         )
-         |> Atom.CompositeDisposable.add(disposables);
-         Atom.Environment.Commands.add(
-           `HtmlElement(Atom.Environment.Views.getView(editor)),
-           "core:cancel",
-           _event =>
-           onCancel(.)
-         )
-         |> Atom.CompositeDisposable.add(disposables);
+           /* expose the editor */
+           onEditorRef(editor);
+           /* subscribe to Atom's core events */
+           let disposables = Atom.CompositeDisposable.make();
+           Atom.Environment.Commands.add(
+             `HtmlElement(Atom.Environment.Views.getView(editor)),
+             "core:confirm",
+             _event =>
+             onConfirm(editor |> Atom.TextEditor.getText)
+           )
+           |> Atom.CompositeDisposable.add(disposables);
+           Atom.Environment.Commands.add(
+             `HtmlElement(Atom.Environment.Views.getView(editor)),
+             "core:cancel",
+             _event =>
+             onCancel(.)
+           )
+           |> Atom.CompositeDisposable.add(disposables);
 
-         /* value */
-         editor |> Atom.TextEditor.setText(value);
-         /* placeholder */
-         editor |> Atom.TextEditor.setPlaceholderText(placeholder);
+           /* value */
+           editor |> Atom.TextEditor.setText(value);
+           /* placeholder */
+           editor |> Atom.TextEditor.setPlaceholderText(placeholder);
 
-         Some(() => disposables |> Atom.CompositeDisposable.dispose);
-       })
+           Some(() => disposables |> Atom.CompositeDisposable.dispose);
+         }),
+    [||],
   );
 
   /* observer the status of focus of the editor */

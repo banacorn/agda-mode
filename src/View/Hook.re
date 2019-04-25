@@ -27,3 +27,22 @@ let useAtomListenerWhen = (listener, shouldListen) => {
     [|shouldListen|],
   );
 };
+
+let useListenWhen = (listener, shouldListen) => {
+  let (destructor, setDestructor) = useState(_ => None);
+
+  React.useEffect1(
+    () => {
+      if (shouldListen) {
+        setDestructor(_ => listener());
+      } else {
+        // execute the destructor
+        destructor |> Option.forEach(f => f());
+      };
+
+      // return the destructor in case that it got unmounted
+      destructor;
+    },
+    [|shouldListen|],
+  );
+};

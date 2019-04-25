@@ -97,7 +97,7 @@ let make =
             }
             mountAtBottom
           />
-          <InputMethod
+          <InputMethod2.Jsx2
             editors
             interceptAndInsertKey
             activateInputMethod

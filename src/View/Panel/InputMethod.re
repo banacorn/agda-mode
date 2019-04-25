@@ -1,4 +1,7 @@
-open ReasonReact;
+[@bs.config {jsx: 3}];
+
+// open ReasonReact;
+open ReactUpdate;
 
 let sort = Array.sort;
 
@@ -58,8 +61,8 @@ type translation = {
 };
 
 /* converts characters to symbol, and tells if there's any further possible combinations */
-let translate = (input: string): translation =>
-  switch (isInKeymap(input)) {
+let translate = (input: string): translation => {
+  switch (isInKeymap(Js.String.substr(~from=1, input))) {
   | Some(trie) =>
     let keySuggestions = toKeySuggestions(trie);
     let candidateSymbols = toCandidateSymbols(trie);
@@ -79,6 +82,7 @@ let translate = (input: string): translation =>
       candidateSymbols: [||],
     }
   };
+};
 
 /********************************************************************************************/
 module Garbages = Atom.CompositeDisposable;
@@ -105,7 +109,7 @@ let initialBuffer = {surface: "", underlying: ""};
 
 let initialTranslation = translate("");
 
-let initialState = _ => {
+let initialState = {
   activated: false,
   /* view related */
   decorations: [||],
@@ -133,7 +137,7 @@ type action =
   | InsertSurfaceAndUnderlying(string)
   | RewriteSurface(string);
 
-let markerOnDidChange = (editors, event, self) => {
+let markerOnDidChange = (editors, state, send, event) => {
   open Atom;
   let rangeOld =
     Atom.Range.make(
@@ -148,10 +152,10 @@ let markerOnDidChange = (editors, event, self) => {
   let comparison = Atom.Range.compare(rangeOld, rangeNew);
   let textBuffer = Editors.Focus.get(editors) |> TextEditor.getBuffer;
   if (Atom.Range.isEmpty(rangeNew)) {
-    self.send(Deactivate);
+    send(Deactivate);
   } else {
     let surfaceBuffer = textBuffer |> TextBuffer.getTextInRange(rangeNew);
-    if (surfaceBuffer != self.state.buffer.surface) {
+    if (surfaceBuffer != state.buffer.surface) {
       /* Insert */
       if (comparison == (-1)) {
         let insertedChar =
@@ -159,17 +163,17 @@ let markerOnDidChange = (editors, event, self) => {
             ~from=-1,
             textBuffer |> TextBuffer.getTextInRange(rangeNew),
           );
-        self.send(InsertUnderlying(insertedChar));
+        send(InsertUnderlying(insertedChar));
       };
       /* Backspace */
       if (comparison == 1) {
-        self.send(Backspace);
+        send(Backspace);
       };
     };
   };
 };
 
-let insertActualBuffer = (editors, char, _self) => {
+let insertActualBuffer = (editors, char) => {
   open Atom;
   let editor = Editors.Focus.get(editors);
   let textBuffer = editor |> TextEditor.getBuffer;
@@ -193,30 +197,27 @@ let insertActualBuffer = (editors, char, _self) => {
      });
 };
 
-let reducer = (editors, onActivationChange, action, state) =>
+let reducer = (editors, action, state) =>
   switch (action) {
   | Activate =>
-    onActivationChange(true);
     state.activated
       ? SideEffects(
-          self =>
+          ({send}) =>
             /* already activated, it happens when we get the 2nd */
             /* backslash '\' comes in */
             if (state.buffer.underlying |> String.isEmpty) {
               /* the user probably just want to type '\', we shall leave it as is */
-              self.send(
-                Deactivate,
-              );
+              send(Deactivate);
+              None;
             } else {
               /* keep going, see issue #34: https://github.com/banacorn/agda-mode/issues/34 */
-              self.send(
-                InsertSurface("\\"),
-              );
+              send(InsertSurface("\\"));
+              None;
             },
         )
       : UpdateWithSideEffects(
           {...state, activated: true},
-          self => {
+          ({send}) => {
             open Webapi.Dom;
             open Atom;
             let focusedEditor = Editors.Focus.get(editors);
@@ -240,7 +241,7 @@ let reducer = (editors, onActivationChange, action, state) =>
                    // monitors the marker's change
                    marker
                    |> DisplayMarker.onDidChange(
-                        self.handle(markerOnDidChange(editors)),
+                        markerOnDidChange(editors, state, send),
                       )
                    |> Garbages.add(garbages);
                    /* monitors the cursor, deactivate if it was moved out of the marker #94 */
@@ -253,7 +254,7 @@ let reducer = (editors, onActivationChange, action, state) =>
                           ranges
                           |> Array.exists(Atom.Range.containsPoint(point));
                         if (!inRange) {
-                          self.send(Deactivate);
+                          send(Deactivate);
                         };
                       })
                    |> Garbages.add(garbages);
@@ -274,15 +275,14 @@ let reducer = (editors, onActivationChange, action, state) =>
                       )
                  );
             /* store these markers and stuff */
-            self.send(
-              UpdateMarkers(markers, decorations, markersDisposables),
-            );
+            send(UpdateMarkers(markers, decorations, markersDisposables));
             /* insert '\' at the cursor to indicate the activation */
-            self.send(InsertSurface("\\"));
+            send(InsertSurface("\\"));
+
+            None;
           },
-        );
+        )
   | Deactivate =>
-    onActivationChange(false);
     state.activated
       ? UpdateWithSideEffects(
           {
@@ -291,7 +291,7 @@ let reducer = (editors, onActivationChange, action, state) =>
             buffer: initialBuffer,
             translation: initialTranslation,
           },
-          _self => {
+          _ => {
             open Webapi.Dom;
             open Atom;
             /* remove class 'agda-mode-input-method-activated' */
@@ -304,9 +304,11 @@ let reducer = (editors, onActivationChange, action, state) =>
             state.markers |> Array.forEach(DisplayMarker.destroy);
             state.decorations |> Array.forEach(Decoration.destroy);
             state.markersDisposables |> Option.map(Garbages.dispose) |> ignore;
+
+            None;
           },
         )
-      : NoUpdate;
+      : NoUpdate
   | InsertUnderlying(char) =>
     let input = state.buffer.underlying ++ char;
     let translation = translate(input);
@@ -321,13 +323,14 @@ let reducer = (editors, onActivationChange, action, state) =>
           },
           translation,
         },
-        self => {
+        ({send}) => {
           /* reflects current translation to the text buffer */
-          self.send(RewriteSurface(symbol));
+          send(RewriteSurface(symbol));
           /* deactivate if we can't go further */
           if (!translation.further) {
-            self.send(Deactivate);
+            send(Deactivate);
           };
+          None;
         },
       )
     | None =>
@@ -341,11 +344,13 @@ let reducer = (editors, onActivationChange, action, state) =>
           },
           translation,
         },
-        self =>
+        ({send}) => {
           /* deactivate if we can't go further */
           if (!translation.further) {
-            self.send(Deactivate);
-          },
+            send(Deactivate);
+          };
+          None;
+        },
       )
     };
   | Backspace =>
@@ -373,7 +378,10 @@ let reducer = (editors, onActivationChange, action, state) =>
           surface: state.buffer.surface ++ char,
         },
       },
-      insertActualBuffer(editors, char),
+      _ => {
+        insertActualBuffer(editors, char);
+        None;
+      },
     )
   | InsertSurfaceAndUnderlying(char) =>
     UpdateWithSideEffects(
@@ -384,13 +392,14 @@ let reducer = (editors, onActivationChange, action, state) =>
           surface: state.buffer.surface ++ char,
         },
       },
-      self => {
-        insertActualBuffer(editors, char, self);
-        self.send(InsertUnderlying(char));
+      ({send}) => {
+        insertActualBuffer(editors, char);
+        send(InsertUnderlying(char));
+        None;
       },
     )
   | RewriteSurface(string) =>
-    UpdateWithSideEffects(
+    ReactUpdate.UpdateWithSideEffects(
       {
         ...state,
         buffer: {
@@ -398,7 +407,7 @@ let reducer = (editors, onActivationChange, action, state) =>
           surface: string,
         },
       },
-      _self =>
+      _ => {
         state.markers
         |> Array.forEach(marker =>
              Atom.(
@@ -411,12 +420,13 @@ let reducer = (editors, onActivationChange, action, state) =>
                   )
              )
              |> ignore
-           ),
+           );
+        None;
+      },
     )
   };
 
-let component = reducerComponent("InputMethod");
-
+[@react.component]
 let make =
     (
       ~editors: Editors.t,
@@ -435,76 +445,109 @@ let make =
       ~activateInputMethod: Event.t(bool, unit),
       ~onActivationChange: bool => unit,
       ~isActive: bool,
-      _children,
     ) => {
-  ...component,
-  initialState,
-  reducer: reducer(editors, onActivationChange),
-  didMount: self => {
-    interceptAndInsertKey
-    |> Event.onOk(char => self.send(InsertSurfaceAndUnderlying(char)))
-    |> Event.destroyWhen(self.onUnmount);
+  // let (activated, setActivated) = React.useState(_ => false);
 
+  let (state, send) =
+    ReactUpdate.useReducer(initialState, reducer(editors));
+  let {activated, buffer, translation} = state;
+
+  React.useEffect1(
+    () => {
+      onActivationChange(activated);
+      None;
+    },
+    [|activated|],
+  );
+  React.useEffect(() =>
     activateInputMethod
-    |> Event.onOk(activate => self.send(activate ? Activate : Deactivate))
-    |> Event.destroyWhen(self.onUnmount);
-    /* listening some events */
-    let garbages = Garbages.make();
-    /* intercept newline `\n` as confirm */
+    |> Event.onOk(activate => send(activate ? Activate : Deactivate))
+    |> Option.some
+  );
+
+  React.useEffect(() =>
+    interceptAndInsertKey
+    |> Event.onOk(char => send(InsertSurfaceAndUnderlying(char)))
+    |> Option.some
+  );
+
+  Hook.useAtomListener(() =>
     Commands.add(
       `CSSSelector("atom-text-editor.agda-mode-input-method-activated"),
       "editor:newline",
       event =>
-      if (self.state.activated) {
-        self.send(Deactivate);
+      if (state.activated) {
+        send(Deactivate);
         event |> Webapi.Dom.Event.stopImmediatePropagation;
       }
     )
-    |> Garbages.add(garbages);
-    self.onUnmount(() => garbages |> Garbages.dispose);
-  },
-  render: self => {
-    let {activated, buffer, translation} = self.state;
-    open Util.ClassName;
-    let className =
-      ["input-method"] |> addWhen("hidden", !activated) |> serialize;
-    let bufferClassName =
-      ["inline-block", "buffer"]
-      |> addWhen("hidden", String.isEmpty(buffer.underlying))
-      |> serialize;
-    <section className>
-      <div className="keyboard">
-        <div className=bufferClassName> {string(buffer.underlying)} </div>
-        <div className="keys btn-group btn-group-sm">
-          ...{
-               translation.keySuggestions
-               |> Array.map(key =>
-                    <button
-                      className="btn"
-                      onClick={_ =>
-                        self.send(InsertSurfaceAndUnderlying(key))
-                      }
-                      key>
-                      {string(key)}
-                    </button>
-                  )
-             }
-        </div>
-      </div>
-      <CandidateSymbols.Jsx2
-        isActive
-        updateTranslation={replace =>
-          switch (replace) {
-          | Some(symbol) => self.send(RewriteSurface(symbol))
-          | None => ()
-          }
+  );
+  open Util.ClassName;
+  let className =
+    ["input-method"] |> addWhen("hidden", !activated) |> serialize;
+  let bufferClassName =
+    ["inline-block", "buffer"]
+    |> addWhen("hidden", String.isEmpty(buffer.underlying))
+    |> serialize;
+  <section className>
+    <div className="keyboard">
+      <div className=bufferClassName> {React.string(buffer.underlying)} </div>
+      {translation.keySuggestions
+       |> Array.map(key =>
+            <button
+              className="btn"
+              onClick={_ => send(InsertSurfaceAndUnderlying(key))}
+              key>
+              {React.string(key)}
+            </button>
+          )
+       |> ReactDOMRe.createDOMElementVariadic(
+            "div",
+            ~props=
+              ReactDOMRe.domProps(
+                ~className="keys btn-group btn-group-sm",
+                (),
+              ),
+          )}
+    </div>
+    <CandidateSymbols
+      isActive
+      updateTranslation={replace =>
+        switch (replace) {
+        | Some(symbol) => send(RewriteSurface(symbol))
+        | None => ()
         }
-        chooseSymbol={symbol => {
-          self.send(InsertSurfaceAndUnderlying(symbol));
-          self.send(Deactivate);
-        }}
-        candidateSymbols={translation.candidateSymbols}
-      />
-    </section>;
-  },
+      }
+      chooseSymbol={symbol => {
+        send(InsertSurfaceAndUnderlying(symbol));
+        send(Deactivate);
+      }}
+      candidateSymbols={translation.candidateSymbols}
+    />
+  </section>;
+};
+
+module Jsx2 = {
+  let component = ReasonReact.statelessComponent("InputMethod");
+  let make =
+      (
+        ~editors: Editors.t,
+        ~interceptAndInsertKey: Event.t(string, unit),
+        ~activateInputMethod: Event.t(bool, unit),
+        ~onActivationChange: bool => unit,
+        ~isActive: bool,
+        children,
+      ) =>
+    ReasonReactCompat.wrapReactForReasonReact(
+      make,
+      makeProps(
+        ~editors,
+        ~interceptAndInsertKey,
+        ~activateInputMethod,
+        ~onActivationChange,
+        ~isActive,
+        (),
+      ),
+      children,
+    );
 };
