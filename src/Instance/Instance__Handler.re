@@ -8,9 +8,6 @@ module Highlightings = Instance__Highlightings;
 module Connections = Instance__Connections;
 module TextEditors = Instance__TextEditors;
 
-[@bs.module "./../../../../asset/query.js"]
-external rawTable: Js.Dict.t(array(string)) = "default";
-
 open TextEditors;
 
 let handleCommandError = instance =>
@@ -517,9 +514,8 @@ let rec handleLocalCommand =
 
     getSymbol
     |> finalOk(symbol =>
-         Js.String.codePointAt(0, symbol)
-         |> Option.map(string_of_int)
-         |> Option.flatMap(Js.Dict.get(rawTable))
+         symbol
+         |> Translator.lookup
          |> Option.forEach(sequences =>
               instance.view.display(
                 "Input sequence for " ++ symbol,
