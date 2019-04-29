@@ -293,7 +293,7 @@ let make = (~editors: Editors.t, ~handles: View.handles, _children) => {
       };
     <>
       <MouseEmitter.Provider value={ev => self.send(MouseEvent(ev))}>
-        <Panel
+        <Panel.Jsx2
           editors
           element=panelElement
           header
