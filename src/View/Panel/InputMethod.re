@@ -1,5 +1,3 @@
-
-
 let sort = Array.sort;
 open ReactUpdate;
 open Rebase;
@@ -148,14 +146,51 @@ let removeClass = editor => {
   );
 };
 
+let getSelections = editor => {
+  open Atom;
+  /* get all selections and sort them */
+  let getCharIndex = selection => {
+    let start = Atom.Selection.getBufferRange(selection) |> Atom.Range.start;
+    editor
+    |> TextEditor.getBuffer
+    |> TextBuffer.characterIndexForPosition(start);
+  };
+  let compareSelection = (a, b) =>
+    compare(getCharIndex(a), getCharIndex(b));
+  let selections = TextEditor.getSelections(editor);
+  sort(compareSelection, selections);
+  selections;
+};
+
+let insertTextBuffer = (editor, char) => {
+  getSelections(editor)
+  |> Array.forEach(selection => {
+       let range = Atom.Selection.getBufferRange(selection);
+       /* replace the selected text with the inserted string */
+       editor |> Atom.TextEditor.setTextInBufferRange(range, char) |> ignore;
+     });
+};
+
+let rewriteTextBuffer = (editor, markers, string) => {
+  markers
+  |> Array.forEach(marker =>
+       Atom.(
+         editor
+         |> TextEditor.getBuffer
+         |> TextBuffer.setTextInRange(
+              DisplayMarker.getBufferRange(marker),
+              string,
+            )
+       )
+       |> ignore
+     );
+};
+
 let clearAndMarkSelectedAreas = editor => {
-  editor
-  |> Atom.TextEditor.getSelectedBufferRanges
-  |> Array.map(range => {
-       editor
-       |> Atom.TextEditor.getBuffer
-       |> Atom.TextBuffer.setTextInRange(range, "")
-       |> ignore;
+  getSelections(editor)
+  |> Array.map(selection => {
+       let range = Atom.Selection.getBufferRange(selection);
+       editor |> Atom.TextEditor.setTextInBufferRange(range, "") |> ignore;
        editor |> Atom.TextEditor.markBufferRange(Atom.Range.copy(range));
      });
 };
@@ -245,43 +280,6 @@ let monitor = (editor, send) => {
   );
 };
 
-let insertTextBuffer = (editor, char) => {
-  open Atom;
-  let textBuffer = editor |> TextEditor.getBuffer;
-  /* get all selections and sort them */
-  let getCharIndex = selection => {
-    let start = Atom.Selection.getBufferRange(selection) |> Atom.Range.start;
-    textBuffer |> TextBuffer.characterIndexForPosition(start);
-  };
-  let compareSelection = (a: Atom.Selection.t, b: Atom.Selection.t) => {
-    let indexA = getCharIndex(a);
-    let indexB = getCharIndex(b);
-    compare(indexA, indexB);
-  };
-  let selections = TextEditor.getSelections(editor);
-  sort(compareSelection, selections);
-  selections
-  |> Array.forEach(selection => {
-       let range = Atom.Selection.getBufferRange(selection);
-       /* replace the selected text with the inserted string */
-       textBuffer |> TextBuffer.setTextInRange(range, char) |> ignore;
-     });
-};
-
-let rewriteTextBuffer = (editor, markers, string) => {
-  markers
-  |> Array.forEach(marker =>
-       Atom.(
-         editor
-         |> TextEditor.getBuffer
-         |> TextBuffer.setTextInRange(
-              DisplayMarker.getBufferRange(marker),
-              string,
-            )
-       )
-       |> ignore
-     );
-};
 let reducer = (editor, action, state) =>
   switch (action) {
   | Activate =>
