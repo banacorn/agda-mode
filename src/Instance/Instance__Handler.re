@@ -206,15 +206,21 @@ let rec handleLocalCommand =
         : Async.t(option(Command.Remote.t), error) => {
   let buff = (command, instance) => {
     Connections.get(instance)
-    |> mapOk(connection =>
+    |> mapOk(connection => {
+         instance.view.display(
+           "Loading ...",
+           Type.View.Header.PlainText,
+           Emacs(PlainText("")),
+         );
+
          Some(
            {
              connection,
              filepath: instance.editors.source |> Atom.TextEditor.getPath,
              command,
            }: Command.Remote.t,
-         )
-       )
+         );
+       })
     |> mapError(_ => Cancelled);
   };
   switch (command) {
@@ -228,7 +234,7 @@ let rec handleLocalCommand =
          instance.isLoaded = true;
          instance.view.updateShouldDisplay(true);
          instance.view.display(
-           "Loading ...",
+           "Connecting ...",
            Type.View.Header.PlainText,
            Emacs(PlainText("")),
          )

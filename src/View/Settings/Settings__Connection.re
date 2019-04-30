@@ -42,7 +42,6 @@ let make =
   React.useEffect1(
     () => {
       open Event;
-      // let editorModel = MiniEditor.Model.make();
       let destructor = Event.make() |> pipe(onInquireConnection);
       Some(destructor);
     },
@@ -64,7 +63,7 @@ let make =
            );
       Some(destructor);
     },
-    [||],
+    [|editorRef|],
   );
 
   let connected = connection |> Option.isSome;

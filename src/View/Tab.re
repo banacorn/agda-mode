@@ -124,7 +124,6 @@ let make =
            CompositeDisposable.dispose(subscriptions);
            /* set the "closedDeliberately" to true to trigger "onKill" */
            closedDeliberately := true;
-           Js.log(Environment.Workspace.paneForItem(item));
            Environment.Workspace.paneForItem(item)
            |> Option.forEach(pane => Pane.destroyItem(item, pane) |> ignore);
 
@@ -135,7 +134,6 @@ let make =
     activate: () =>
       itemResource.acquire()
       |> Js.Promise.then_(item => {
-           Js.log(Environment.Workspace.paneForItem(item));
            Environment.Workspace.paneForItem(item)
            |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore);
 
