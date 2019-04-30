@@ -2,21 +2,22 @@ open Rebase;
 
 module React = {
   open ReasonReact;
+
+  let manyIn = elem =>
+    ReactDOMRe.createDOMElementVariadic(elem, ~props=ReactDOMRe.domProps());
   let sepBy = (sep: reactElement, item: list(reactElement)) =>
     switch (item) {
     | [] => <> </>
     | [x] => x
     | [x, ...xs] =>
-      <span>
-        ...{Array.fromList([x, ...List.map(i => <> sep i </>, xs)])}
-      </span>
+      {
+        Array.fromList([x, ...List.map(i => <> sep i </>, xs)]);
+      }
+      |> manyIn("span")
     };
   let enclosedBy =
       (front: reactElement, back: reactElement, item: reactElement) =>
     <> front {string(" ")} item {string(" ")} back </>;
-
-  let manyIn = elem =>
-    ReactDOMRe.createDOMElementVariadic(elem, ~props=ReactDOMRe.domProps());
 };
 
 module ClassName = {

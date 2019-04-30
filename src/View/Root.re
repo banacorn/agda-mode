@@ -1,5 +1,3 @@
-[@bs.config {jsx: 3}];
-
 open ReactUpdate;
 
 open Type.View;

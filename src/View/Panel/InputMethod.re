@@ -1,4 +1,4 @@
-[@bs.config {jsx: 3}];
+
 
 let sort = Array.sort;
 open ReactUpdate;
