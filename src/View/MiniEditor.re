@@ -3,42 +3,6 @@ open Rebase;
 type error =
   | Cancelled;
 
-module Model = {
-  type t = {
-    value: string,
-    placeholder: string,
-    mutable ref: option(Atom.TextEditor.t),
-    result: Event.t(string, error),
-  };
-
-  let make = () => {
-    value: "",
-    placeholder: "",
-    ref: None,
-    result: Event.make(),
-  };
-  let inquire = self => {
-    self.result |> Event.once;
-  };
-  let answer = (x, self) => self.result |> Event.emitOk(x);
-  let reject = (x, self) => self.result |> Event.emitError(x);
-
-  let setRef = (ref, self) => {
-    self.ref = Some(ref);
-  };
-
-  let setValue = (value, self) => {
-    switch (self.ref) {
-    | None => ()
-    | Some(editor) => editor |> Atom.TextEditor.setText(value)
-    };
-  };
-};
-
-let focus = editor => {
-  Webapi.Dom.(Atom.Environment.Views.getView(editor) |> HtmlElement.focus);
-};
-
 /* observer the status of focus of the editor */
 let observeFocus = (setFocused: bool => unit, editor) => {
   open Webapi.Dom;

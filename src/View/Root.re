@@ -181,6 +181,14 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   let ((connection, connectionError), setConnectionAndError) =
     Hook.useState((None, None));
 
+  React.useEffect1(
+    () => {
+      editors.query = React.Ref.current(queryRef);
+      None;
+    },
+    [||],
+  );
+
   /* activate/deactivate <Panel> */
   Hook.useEventListener(
     activate => send(activate ? Activate : Deactivate),
@@ -276,8 +284,10 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
         isActive
         /* editors */
         onEditorRef={ref => React.Ref.setCurrent(queryRef, Some(ref))}
-        editorValue={editors.query.value}
-        editorPlaceholder={editors.query.placeholder}
+        editorValue=""
+        // {editors.query.value}
+        // {editors.query.placeholder}
+        editorPlaceholder=""
         interceptAndInsertKey
         activateInputMethod
         settingsView

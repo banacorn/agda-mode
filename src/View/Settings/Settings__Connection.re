@@ -42,8 +42,8 @@ let make =
   React.useEffect1(
     () => {
       open Event;
-      let editorModel = MiniEditor.Model.make();
-      let destructor = editorModel.result |> pipe(onInquireConnection);
+      // let editorModel = MiniEditor.Model.make();
+      let destructor = Event.make() |> pipe(onInquireConnection);
       Some(destructor);
     },
     [||],

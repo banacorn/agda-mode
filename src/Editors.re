@@ -8,16 +8,12 @@ type sort =
 type t = {
   mutable focused: sort,
   source: TextEditor.t,
-  query: MiniEditor.Model.t,
+  mutable query: option(Atom.TextEditor.t),
 };
 
 exception QueryCancelled;
 
-let make = editor => {
-  focused: Source,
-  source: editor,
-  query: MiniEditor.Model.make(),
-};
+let make = editor => {focused: Source, source: editor, query: None};
 
 module Focus = {
   open Webapi.Dom;
@@ -25,7 +21,7 @@ module Focus = {
     switch (editors.focused) {
     | Source => editors.source
     | Query =>
-      switch (editors.query.ref) {
+      switch (editors.query) {
       | Some(editor) => editor
       | None => editors.source
       }
@@ -37,7 +33,11 @@ module Focus = {
       Environment.Views.getView(editors.source) |> HtmlElement.focus;
       editors.focused = Source;
     | Query =>
-      editors.query.ref |> Option.forEach(MiniEditor.focus);
+      editors.query
+      |> Option.forEach(editor =>
+           Atom.Environment.Views.getView(editor)
+           |> Webapi.Dom.HtmlElement.focus
+         );
       editors.focused = Query;
     };
 };
