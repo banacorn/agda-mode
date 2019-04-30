@@ -89,7 +89,7 @@ let make =
           grammar="agda"
           onEditorRef
           onConfirm={result => onInquireQuery |> Event.emitOk(result)}
-          onCancel={(.) =>
+          onCancel={() =>
             onInquireQuery |> Event.emitError(MiniEditor.Cancelled) |> ignore
           }
         />

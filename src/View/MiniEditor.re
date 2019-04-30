@@ -83,9 +83,9 @@ let make =
       ~hidden,
       ~grammar="",
       ~onConfirm=_ => (),
-      ~onCancel=(.) => (),
-      ~onFocus=(.) => (),
-      ~onBlur=(.) => (),
+      ~onCancel=_ => (),
+      ~onFocus=_ => (),
+      ~onBlur=_ => (),
       ~onEditorRef=_ => (),
     ) => {
   let (focused, setFocused) = Hook.useState(false);
@@ -123,7 +123,7 @@ let make =
              `HtmlElement(Atom.Environment.Views.getView(editor)),
              "core:cancel",
              _event =>
-             onCancel(.)
+             onCancel()
            )
            |> Atom.CompositeDisposable.add(disposables);
 
@@ -147,9 +147,9 @@ let make =
   React.useEffect1(
     () => {
       if (focused) {
-        onFocus(.);
+        onFocus();
       } else {
-        onBlur(.);
+        onBlur();
       };
       None;
     },
