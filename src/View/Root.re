@@ -55,12 +55,13 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
         () => "[Agda Mode] " ++ Atom.TextEditor.getTitle(editors.source),
       ~onClose=_ => self.send(MountTo(ToBottom)),
       ~onOpen=
-        (_, _, previousItem) => {
+        (_, _, previousItem) =>
           /* activate the previous pane (which opened this pane item) */
-          let pane = Atom.Environment.Workspace.paneForItem(previousItem);
-          pane |> Atom.Pane.activate;
-          pane |> Atom.Pane.activateItem(previousItem);
-        },
+          Atom.Environment.Workspace.paneForItem(previousItem)
+          |> Rebase.Option.forEach(pane => {
+               pane |> Atom.Pane.activate;
+               pane |> Atom.Pane.activateItem(previousItem);
+             }),
       (),
     );
   switch (self.state.mountAt, mountTo) {
