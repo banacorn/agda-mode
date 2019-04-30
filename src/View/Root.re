@@ -26,14 +26,12 @@ let createBottomPanel = (): Webapi.Dom.Element.t => {
 type state = {
   mountAt,
   isActive: bool,
-  shouldDisplay: bool,
   settingsView: option(Tab.t),
 };
 
 let initialState = {
   mountAt: Bottom(createBottomPanel()),
   isActive: false,
-  shouldDisplay: false,
   settingsView: None,
 };
 
@@ -46,8 +44,7 @@ type action =
   | MountTo(mountTo)
   | ToggleDocking
   | Activate
-  | Deactivate
-  | UpdateIsLoadedOrIsTyping(bool);
+  | Deactivate;
 /*  */
 
 let mountPanel = (editors: Editors.t, mountTo, self) => {
@@ -130,8 +127,6 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
       )
     }
   | Deactivate => Update({...state, isActive: false})
-  | UpdateIsLoadedOrIsTyping(shouldDisplay) =>
-    Update({...state, shouldDisplay})
   | MountTo(mountTo) => SideEffects(mountPanel(editors, mountTo))
   | ToggleDocking =>
     switch (state.mountAt) {
@@ -181,6 +176,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     Hook.useState({Header.text: "", style: PlainText});
   let (body, setBody) = Hook.useState(Body.Nothing);
   let (mode, setMode) = Hook.useState(Display);
+  let (shouldDisplay, setShouldDisplay) = Hook.useState(false);
   let (isPending, setIsPending) = Hook.useState(false);
   let ((connection, connectionError), setConnectionAndError) =
     Hook.useState((None, None));
@@ -219,10 +215,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   /* toggle pending spinner */
   Hook.useEventListener(setIsPending, handles.updateIsPending);
   /* toggle state of shouldDisplay */
-  Hook.useEventListener(
-    shouldDisplay => send(UpdateIsLoadedOrIsTyping(shouldDisplay)),
-    handles.updateShouldDisplay,
-  );
+  Hook.useEventListener(setShouldDisplay, handles.updateShouldDisplay);
   Hook.useEventListener(
     _ => {
       setMode(Display);
@@ -240,7 +233,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   );
   Hook.useEventListener(setConnectionAndError, handles.updateConnection);
 
-  let {mountAt, isActive, shouldDisplay, settingsView} = state;
+  let {mountAt, isActive, settingsView} = state;
 
   let {
     View.interceptAndInsertKey,

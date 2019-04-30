@@ -1,4 +1,3 @@
-
 open ReasonReact;
 open Rebase;
 
@@ -11,9 +10,9 @@ let make =
       ~error: option(Connection.Error.t),
       ~hidden,
     ) => {
-  let (autoSearchError, setAutoSearchError) = React.useState(() => None);
-  let (_, setConnectPath) = React.useState(() => "");
-  let (editorRef, setEditorRef) = React.useState(() => None);
+  let (autoSearchError, setAutoSearchError) = Hook.useState(None);
+  let (_, setConnectPath) = Hook.useState("");
+  let (editorRef, setEditorRef) = Hook.useState(None);
 
   /* triggering autoSearch */
   let handleAutoSearch = _ => {
@@ -28,14 +27,14 @@ let make =
          |> Async.resolve
        )
     |> Async.finalError(err =>
-         setAutoSearchError(_ => Some(Connection.Error.AutoSearchError(err)))
+         setAutoSearchError(Some(Connection.Error.AutoSearchError(err)))
        );
   };
 
   /* triggering connect */
   let handleConnect = path => {
-    setConnectPath(_ => path);
-    setAutoSearchError(_ => None);
+    setConnectPath(path);
+    setAutoSearchError(None);
     onInquireConnection |> Event.emitOk(path);
   };
 
@@ -127,7 +126,7 @@ let make =
           }
         }
         placeholder="path to Agda"
-        onEditorRef={ref => setEditorRef(_ => Some(ref))}
+        onEditorRef={ref => setEditorRef(Some(ref))}
         onConfirm=handleConnect
       />
     </p>

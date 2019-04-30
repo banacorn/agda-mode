@@ -1,5 +1,3 @@
-
-
 open Type.View;
 
 [@react.component]
@@ -25,9 +23,9 @@ let make =
       ~activateInputMethod: Event.t(bool, unit),
       ~onSettingsViewToggle: bool => unit,
     ) => {
-  let (maxHeight, setMaxHeight) = React.useState(_ => 170);
+  let (maxHeight, setMaxHeight) = Hook.useState(170);
   let (inputMethodActivated, setInputMethodActivation) =
-    React.useState(_ => false);
+    Hook.useState(false);
 
   let mountAtBottom =
     switch (mountAt) {
@@ -49,11 +47,11 @@ let make =
     <section className>
       <section className="panel-heading agda-header-container">
         <SizingHandle
-          onResizeStart={height => setMaxHeight(_ => height)}
+          onResizeStart=setMaxHeight
           onResizeEnd={height =>
             Js.Global.setTimeout(
               () => {
-                setMaxHeight(_ => height);
+                setMaxHeight(height);
                 Atom.Environment.Config.set(
                   "agda-mode.maxBodyHeight",
                   string_of_int(height),
@@ -70,9 +68,7 @@ let make =
           interceptAndInsertKey
           activateInputMethod
           isActive
-          onActivationChange={activated =>
-            setInputMethodActivation(_ => activated)
-          }
+          onActivationChange=setInputMethodActivation
         />
         <Dashboard
           header

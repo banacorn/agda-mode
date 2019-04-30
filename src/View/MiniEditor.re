@@ -40,7 +40,7 @@ let focus = editor => {
 };
 
 /* observer the status of focus of the editor */
-let observeFocus = (setFocused: (bool => bool) => unit, editor) => {
+let observeFocus = (setFocused: bool => unit, editor) => {
   open Webapi.Dom;
 
   /* monitoring the "is-focus" class in the classList  */
@@ -60,7 +60,7 @@ let observeFocus = (setFocused: (bool => bool) => unit, editor) => {
              |> Option.mapOr(Fn.id, false)
            );
       /* modify the state */
-      setFocused(_ => focusedNow);
+      setFocused(focusedNow);
     });
   let config = {
     "attributes": true, /* we are only interested in the class list */
@@ -88,8 +88,8 @@ let make =
       ~onBlur=(.) => (),
       ~onEditorRef=_ => (),
     ) => {
-  let (focused, setFocused) = React.useState(() => false);
-  let (editorRef, setEditorRef) = React.useState(() => None);
+  let (focused, setFocused) = Hook.useState(false);
+  let (editorRef, setEditorRef) = Hook.useState(None);
   let editorElem = React.useRef(None);
 
   React.useEffect1(
@@ -98,7 +98,7 @@ let make =
       |> Option.map(r => ReasonReact.refToJsObj(r)##getModel())
       |> Option.flatMap(editor => {
            // storing the Editor
-           setEditorRef(_ => Some(editor));
+           setEditorRef(Some(editor));
            /* WARNING: TextEditor.setGrammar is DEPRECATED!!! */
            /* pass the grammar down to enable input method */
            if (grammar === "agda") {

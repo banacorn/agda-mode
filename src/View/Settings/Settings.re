@@ -1,5 +1,3 @@
-
-
 open ReasonReact;
 
 module URI = Settings__Breadcrumb;
@@ -19,25 +17,22 @@ let make =
       ~navigate: Event.t(uri, unit),
       ~element: option(Webapi.Dom.Element.t),
     ) => {
-  let (uri, setURI) = React.useState(() => URI.Root);
+  let (uri, setURI) = Hook.useState(URI.Root);
 
-  React.useEffect1(
-    () => Some(navigate |> Event.onOk(uri => setURI(_ => uri))),
-    [||],
-  );
+  React.useEffect1(() => Some(navigate |> Event.onOk(setURI)), [||]);
 
   switch (element) {
   | None => null
   | Some(anchor) =>
     ReactDOMRe.createPortal(
       <section className="agda-settings" tabIndex=(-1)>
-        <Settings__Breadcrumb uri onNavigate={uri => setURI(_ => uri)} />
+        <Settings__Breadcrumb uri onNavigate=setURI />
         <div className="agda-settings-pages">
           <ul className={at(URI.Root, uri, ["agda-settings-menu"])}>
-            <li onClick={_ => setURI(_ => URI.Connection)}>
+            <li onClick={_ => setURI(URI.Connection)}>
               <span className="icon icon-plug"> {string("Connection")} </span>
             </li>
-            <li onClick={_ => setURI(_ => URI.Protocol)}>
+            <li onClick={_ => setURI(URI.Protocol)}>
               <span className="icon icon-comment-discussion">
                 {string("Protocol")}
               </span>
