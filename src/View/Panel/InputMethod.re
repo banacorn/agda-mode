@@ -442,28 +442,3 @@ let make =
     />
   </section>;
 };
-
-module Jsx2 = {
-  let component = ReasonReact.statelessComponent("InputMethod");
-  let make =
-      (
-        ~editors: Editors.t,
-        ~interceptAndInsertKey: Event.t(string, unit),
-        ~activateInputMethod: Event.t(bool, unit),
-        ~onActivationChange: bool => unit,
-        ~isActive: bool,
-        children,
-      ) =>
-    ReasonReactCompat.wrapReactForReasonReact(
-      make,
-      makeProps(
-        ~editors,
-        ~interceptAndInsertKey,
-        ~activateInputMethod,
-        ~onActivationChange,
-        ~isActive,
-        (),
-      ),
-      children,
-    );
-};

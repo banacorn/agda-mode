@@ -5,8 +5,9 @@
   "description": "agda-mode on Atom",
   "scripts": {
     "start": "bsb -make-world -w",
+    "clean": "rm -rf lib",
     "build": "bsb -make-world && npx webpack --mode=production",
-    "clean": "rm -rf lib"
+    "rebuild": "npm run clean && npm run build"
   },
   "activationCommands": {
     "atom-text-editor": [

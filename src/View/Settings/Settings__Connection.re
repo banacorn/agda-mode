@@ -148,28 +148,3 @@ let make =
      }}
   </section>;
 };
-module Jsx2 = {
-  let component = ReasonReact.statelessComponent("Connection");
-
-  let make =
-      (
-        ~inquireConnection: Event.t(unit, unit),
-        ~onInquireConnection: Event.t(string, MiniEditor.error),
-        ~connection: option(Connection.t),
-        ~error: option(Connection.Error.t),
-        ~hidden,
-        children,
-      ) =>
-    ReasonReactCompat.wrapReactForReasonReact(
-      make,
-      makeProps(
-        ~inquireConnection: Event.t(unit, unit),
-        ~onInquireConnection: Event.t(string, MiniEditor.error),
-        ~connection: option(Connection.t),
-        ~error: option(Connection.Error.t),
-        ~hidden,
-        (),
-      ),
-      children,
-    );
-};

@@ -172,37 +172,3 @@ let make =
     [||],
   );
 };
-
-module Jsx2 = {
-  let component = ReasonReact.statelessComponent("MiniEditor");
-
-  let make =
-      (
-        ~value="",
-        ~placeholder="",
-        ~hidden,
-        ~grammar="",
-        ~onConfirm=_ => (),
-        ~onCancel=(.) => (),
-        ~onFocus=(.) => (),
-        ~onBlur=(.) => (),
-        ~onEditorRef=_ => (),
-        children,
-      ) =>
-    ReasonReactCompat.wrapReactForReasonReact(
-      make,
-      makeProps(
-        ~value,
-        ~placeholder,
-        ~hidden,
-        ~grammar,
-        ~onConfirm,
-        ~onCancel,
-        ~onFocus,
-        ~onBlur,
-        ~onEditorRef,
-        (),
-      ),
-      children,
-    );
-};

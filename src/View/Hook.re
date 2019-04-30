@@ -1,5 +1,10 @@
-open React;
 open Rebase;
+
+let useState = init => {
+  let (state, setState) = React.useState(_ => init);
+  let setState' = value => setState(_ => value);
+  (state, setState');
+};
 
 let useAtomListener = listener => {
   React.useEffect(() => {
@@ -9,7 +14,7 @@ let useAtomListener = listener => {
 };
 
 let useAtomListenerWhen = (listener, shouldListen) => {
-  let (destructor, setDestructor) = useState(_ => None);
+  let (destructor, setDestructor) = React.useState(_ => None);
 
   React.useEffect1(
     () => {
@@ -29,7 +34,7 @@ let useAtomListenerWhen = (listener, shouldListen) => {
 };
 
 let useListenWhen = (listener, shouldListen) => {
-  let (destructor, setDestructor) = useState(_ => None);
+  let (destructor, setDestructor) = React.useState(_ => None);
 
   React.useEffect1(
     () => {
@@ -44,5 +49,12 @@ let useListenWhen = (listener, shouldListen) => {
       destructor;
     },
     [|shouldListen|],
+  );
+};
+
+let useEventListener = (listener, emitter) => {
+  React.useEffect1(
+    () => emitter |> Event.onOk(listener) |> Option.some,
+    [||],
   );
 };

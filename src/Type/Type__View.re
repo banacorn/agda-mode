@@ -79,10 +79,5 @@ type mouseEvent =
   | JumpToTarget(Range.linkTarget)
   | MouseOver(Range.linkTarget)
   | MouseOut(Range.linkTarget);
-module MouseEmitter =
-  Context.MakePair({
-    type t = mouseEvent => unit;
-    let defaultValue = _ => ();
-  });
 
-let mouseEmitter2 = React.createContext((_ev: mouseEvent) => ());
+let mouseEmitter = React.createContext((_ev: mouseEvent) => ());

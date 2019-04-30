@@ -118,26 +118,3 @@ let make =
        )
   };
 };
-
-module Jsx2 = {
-  let component = ReasonReact.statelessComponent("CandidateSymbols");
-  let make =
-      (
-        ~isActive: bool,
-        ~candidateSymbols: array(string),
-        ~updateTranslation: option(string) => unit,
-        ~chooseSymbol: string => unit,
-        children,
-      ) =>
-    ReasonReactCompat.wrapReactForReasonReact(
-      make,
-      makeProps(
-        ~isActive,
-        ~candidateSymbols,
-        ~updateTranslation,
-        ~chooseSymbol,
-        (),
-      ),
-      children,
-    );
-};

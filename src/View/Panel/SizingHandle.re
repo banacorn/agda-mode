@@ -58,19 +58,3 @@ let make =
       </div>
     : null;
 };
-
-module Jsx2 = {
-  let component = ReasonReact.statelessComponent("SizingHandle");
-  let make =
-      (
-        ~onResizeStart: int => unit,
-        ~onResizeEnd: int => unit,
-        ~mountAtBottom: bool,
-        children,
-      ) =>
-    ReasonReactCompat.wrapReactForReasonReact(
-      make,
-      makeProps(~onResizeStart, ~onResizeEnd, ~mountAtBottom, ()),
-      children,
-    );
-};

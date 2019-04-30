@@ -56,31 +56,3 @@ let make =
     )
   };
 };
-
-module Jsx2 = {
-  let component = ReasonReact.statelessComponent("Settings");
-
-  let make =
-      (
-        ~inquireConnection: Event.t(unit, unit),
-        ~onInquireConnection: Event.t(string, MiniEditor.error),
-        ~connection: option(Connection.t),
-        ~connectionError: option(Connection.Error.t),
-        ~navigate: Event.t(uri, unit),
-        ~element: option(Webapi.Dom.Element.t),
-        children,
-      ) =>
-    ReasonReactCompat.wrapReactForReasonReact(
-      make,
-      makeProps(
-        ~inquireConnection: Event.t(unit, unit),
-        ~onInquireConnection: Event.t(string, MiniEditor.error),
-        ~connection: option(Connection.t),
-        ~connectionError: option(Connection.Error.t),
-        ~navigate: Event.t(uri, unit),
-        ~element: option(Webapi.Dom.Element.t),
-        (),
-      ),
-      children,
-    );
-};

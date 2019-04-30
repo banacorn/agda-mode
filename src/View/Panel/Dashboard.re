@@ -117,32 +117,3 @@ let make =
     </ul>
   </div>;
 };
-
-module Jsx2 = {
-  let component = ReasonReact.statelessComponent("Dashboard");
-  let make =
-      (
-        ~header: Type.View.Header.t,
-        ~hidden: bool,
-        ~isPending: bool,
-        ~mountAt: Type.View.mountAt,
-        ~settingsView: option(Tab.t),
-        ~onMountAtChange: Type.View.mountTo => unit,
-        ~onSettingsViewToggle: bool => unit,
-        children,
-      ) =>
-    ReasonReactCompat.wrapReactForReasonReact(
-      make,
-      makeProps(
-        ~header,
-        ~hidden,
-        ~isPending,
-        ~mountAt,
-        ~settingsView,
-        ~onMountAtChange,
-        ~onSettingsViewToggle,
-        (),
-      ),
-      children,
-    );
-};

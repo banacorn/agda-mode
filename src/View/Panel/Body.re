@@ -24,13 +24,3 @@ let make = (~body: t, ~hidden) => {
       : ["agda-body", "native-key-bindings"] |> String.joinWith(" ");
   <section className tabIndex=(-1)> comp </section>;
 };
-
-module Jsx2 = {
-  let component = ReasonReact.statelessComponent("Body");
-  let make = (~body: t, ~hidden, children) =>
-    ReasonReactCompat.wrapReactForReasonReact(
-      make,
-      makeProps(~body, ~hidden, ()),
-      children,
-    );
-};

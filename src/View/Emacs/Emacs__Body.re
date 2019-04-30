@@ -26,13 +26,3 @@ let make = (~data: t) => {
   | PlainText(body) => String.isEmpty(body) ? null : <p> {string(body)} </p>
   };
 };
-
-module Jsx2 = {
-  let component = ReasonReact.statelessComponent("Emacs__Body");
-  let make = (~data, children) =>
-    ReasonReactCompat.wrapReactForReasonReact(
-      make,
-      makeProps(~data, ()),
-      children,
-    );
-};
