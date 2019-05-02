@@ -40,31 +40,44 @@ module Buffer = {
 
   type action =
     | Noop(t) // should do nothing
-    | Rewrite(t, bool) // should rewrite the text buffer, and should deactivate afterwards
+    | Rewrite(t) // should rewrite the text buffer
     | Stuck; // should deactivate
 
   // devise the next state
-  let next = ({surfaceHead, surfaceBody, underlying}, input) => {
-    let surface = toSurface({surfaceHead, surfaceBody, underlying});
+  let next = ({surfaceHead, surfaceBody, underlying} as self, input) => {
+    let surface = toSurface(self);
 
     if (input == surface) {
-      Noop({surfaceHead, surfaceBody, underlying});
+      if (Translator.translate(underlying).further && input != "\\") {
+        Noop(self);
+      } else {
+        Stuck;
+      };
     } else if (init(input) == surface) {
       // insertion
       let insertedChar = Js.String.substr(~from=-1, input);
       let underlying' = underlying ++ insertedChar;
       let translation = Translator.translate(underlying');
-
       switch (translation.symbol) {
       | Some(symbol) =>
-        Rewrite(
-          {
+        if (insertedChar == symbol) {
+          if (insertedChar == "\\") {
+            Stuck;
+          } else {
+            Noop({
+              surfaceHead: Some(symbol),
+              surfaceBody: "",
+              underlying: underlying',
+            });
+          };
+        } else {
+          Rewrite({
             surfaceHead: Some(symbol),
             surfaceBody: "",
             underlying: underlying',
-          },
-          translation.further,
-        )
+          });
+        }
+
       | None =>
         if (translation.further) {
           Noop({
@@ -81,14 +94,11 @@ module Buffer = {
       if (String.isEmpty(input)) {
         if (Option.isSome(surfaceHead)) {
           // A symbol has just been backspaced and gone
-          Rewrite(
-            {
-              surfaceHead: None,
-              surfaceBody: init(underlying),
-              underlying: init(underlying),
-            },
-            true,
-          );
+          Rewrite({
+            surfaceHead: None,
+            surfaceBody: init(underlying),
+            underlying: init(underlying),
+          });
         } else {
           Stuck;
         };
@@ -316,15 +326,12 @@ let reducer = (editor, action, state) =>
   | MarkerEvent(_oldBuffer, newBuffer) =>
     switch (Buffer.next(state.buffer, newBuffer)) {
     | Noop(buffer) => Update({...state, buffer})
-    | Rewrite(buffer, keepGoing) =>
+    | Rewrite(buffer) =>
       UpdateWithSideEffects(
         {...state, buffer},
         ({send}) => {
           let surface = Buffer.toSurface(buffer);
           send(Rewrite(surface));
-          if (!keepGoing) {
-            send(Deactivate);
-          };
           None;
         },
       )
