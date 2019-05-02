@@ -50,11 +50,11 @@ module Buffer = {
     if (input == surface) {
       Noop({surfaceHead, surfaceBody, underlying});
     } else if (init(input) == surface) {
+      // insertion
       let insertedChar = Js.String.substr(~from=-1, input);
       let underlying' = underlying ++ insertedChar;
       let translation = Translator.translate(underlying');
 
-      // insert
       switch (translation.symbol) {
       | Some(symbol) =>
         Rewrite(
@@ -77,6 +77,7 @@ module Buffer = {
         }
       };
     } else if (input == init(surface)) {
+      // backspace deletion
       if (String.isEmpty(input)) {
         if (Option.isSome(surfaceHead)) {
           // A symbol has just been backspaced and gone
@@ -103,6 +104,14 @@ module Buffer = {
       Stuck;
     };
   };
+  // let insert = (self, char) => {
+  //   let input = toSurface(self) ++ char;
+  //   switch (next(self, input)) {
+  //   | Noop(buffer) => buffer
+  //   | Rewrite(buffer, _) => buffer
+  //   | Stuck => self
+  //   };
+  // };
 };
 
 type state = {
@@ -335,6 +344,17 @@ let reducer = (editor, action, state) =>
         None;
       },
     )
+  // UpdateWithSideEffects(
+  //   {...state, buffer: Buffer.insert(state.buffer, char)},
+  //   self => {
+  //     Js.log("\n======");
+  //     Buffer.insert(state.buffer, char) |> Buffer.toString |> Js.log;
+  //     self.state.buffer |> Buffer.toString |> Js.log;
+  //     Js.log("======\n");
+  //     insertTextBuffer(editor, char);
+  //     None;
+  //   },
+  // )
   | Rewrite(string) =>
     SideEffects(
       _ => {

@@ -60,7 +60,7 @@ type translation = {
 let translate = (input: string): translation => {
   switch (isInKeymap(input)) {
   | Some(trie) =>
-    let keySuggestions = toKeySuggestions(trie);
+    let keySuggestions = Js.Array.sortInPlace(toKeySuggestions(trie));
     let candidateSymbols = toCandidateSymbols(trie);
     {
       symbol: candidateSymbols[0],
