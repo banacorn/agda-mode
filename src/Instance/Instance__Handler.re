@@ -504,7 +504,7 @@ let rec handleLocalCommand =
     resolve(None);
 
   | QuerySymbol =>
-    let selected = instance.editors |> Editors.getSelectedTextNode;
+    let selected = instance.editors |> Editors.getSelectedSymbol;
     let getSymbol =
       if (String.isEmpty(String.trim(selected))) {
         instance.view.updateShouldDisplay(true);

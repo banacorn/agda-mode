@@ -42,6 +42,12 @@ module Focus = {
     };
 };
 
+let getSelectedSymbol = editors => {
+  editors
+  |> Focus.get
+  |> Atom.TextEditor.getSelectedText
+  |> String.sub(~from=0, ~length=1);
+};
 let getSelectedTextNode = editors => {
   let getSelectedText = () => {
     editors |> Focus.get |> Atom.TextEditor.getSelectedText;
