@@ -8,34 +8,30 @@ open Atom.Environment;
 module Buffer = {
   type t = {
     // the symbol at the front of the sequence along with the sequence it replaced
-    surfaceHead: option(string),
+    symbol: option((string, string)),
     // the sequence following the symbol we see on the text editor
-    surfaceBody: string,
-    // the sequence that user typed
-    underlying: string,
+    tail: string,
   };
 
   let init = string =>
     Js.String.substring(~from=0, ~to_=String.length(string) - 1, string);
 
-  let initial = {surfaceHead: None, surfaceBody: "", underlying: ""};
+  let initial = {symbol: None, tail: ""};
 
   let isEmpty = self => {
-    self.surfaceHead == None
-    && String.isEmpty(self.surfaceBody)
-    || String.isEmpty(self.underlying);
+    self.symbol == None && String.isEmpty(self.tail);
   };
 
-  let toString = self =>
-    switch (self.surfaceHead) {
-    | None => " | " ++ self.underlying
-    | Some(symbol) => symbol ++ self.surfaceBody ++ " | " ++ self.underlying
+  let toSequence = self =>
+    switch (self.symbol) {
+    | None => self.tail
+    | Some((_, sequence)) => sequence ++ self.tail
     };
 
   let toSurface = self =>
-    switch (self.surfaceHead) {
-    | None => self.underlying
-    | Some(symbol) => symbol ++ self.surfaceBody
+    switch (self.symbol) {
+    | None => self.tail
+    | Some((symbol, _)) => symbol ++ self.tail
     };
 
   type action =
@@ -44,84 +40,60 @@ module Buffer = {
     | Stuck; // should deactivate
 
   // devise the next state
-  let next = ({surfaceHead, surfaceBody, underlying} as self, input) => {
+  let next = (self, reality) => {
     let surface = toSurface(self);
+    let sequence = toSequence(self);
 
-    if (input == surface) {
-      if (Translator.translate(underlying).further && input != "\\") {
+    if (reality == surface) {
+      if (Translator.translate(sequence).further && reality != "\\") {
         Noop(self);
       } else {
         Stuck;
       };
-    } else if (init(input) == surface) {
+    } else if (init(reality) == surface) {
       // insertion
-      let insertedChar = Js.String.substr(~from=-1, input);
-      let underlying' = underlying ++ insertedChar;
-      let translation = Translator.translate(underlying');
+      let insertedChar = Js.String.substr(~from=-1, reality);
+      let sequence' = sequence ++ insertedChar;
+      let translation = Translator.translate(sequence');
       switch (translation.symbol) {
       | Some(symbol) =>
         if (insertedChar == symbol) {
           if (insertedChar == "\\") {
             Stuck;
           } else {
-            Noop({
-              surfaceHead: Some(symbol),
-              surfaceBody: "",
-              underlying: underlying',
-            });
+            Noop({symbol: Some((symbol, sequence')), tail: ""});
           };
         } else {
-          Rewrite({
-            surfaceHead: Some(symbol),
-            surfaceBody: "",
-            underlying: underlying',
-          });
+          Rewrite({symbol: Some((symbol, sequence')), tail: ""});
         }
 
       | None =>
         if (translation.further) {
-          Noop({
-            surfaceHead,
-            surfaceBody: surfaceBody ++ insertedChar,
-            underlying: underlying',
-          });
+          Noop({...self, tail: self.tail ++ insertedChar});
         } else {
           Stuck;
         }
       };
-    } else if (input == init(surface)) {
+    } else if (reality == init(surface)) {
       // backspace deletion
-      if (String.isEmpty(input)) {
-        if (Option.isSome(surfaceHead)) {
+      if (String.isEmpty(reality)) {
+        if (Option.isSome(self.symbol)) {
           // A symbol has just been backspaced and gone
           Rewrite({
-            surfaceHead: None,
-            surfaceBody: init(underlying),
-            underlying: init(underlying),
+            symbol: None,
+            tail: init(sequence),
           });
         } else {
           Stuck;
         };
       } else {
         // normal backspace
-        Noop({
-          surfaceHead,
-          surfaceBody: init(surfaceBody),
-          underlying: init(underlying),
-        });
+        Noop({...self, tail: init(self.tail)});
       };
     } else {
       Stuck;
     };
   };
-  // let insert = (self, char) => {
-  //   let input = toSurface(self) ++ char;
-  //   switch (next(self, input)) {
-  //   | Noop(buffer) => buffer
-  //   | Rewrite(buffer, _) => buffer
-  //   | Stuck => self
-  //   };
-  // };
 };
 
 type state = {
@@ -355,8 +327,8 @@ let reducer = (editor, action, state) =>
   //   {...state, buffer: Buffer.insert(state.buffer, char)},
   //   self => {
   //     Js.log("\n======");
-  //     Buffer.insert(state.buffer, char) |> Buffer.toString |> Js.log;
-  //     self.state.buffer |> Buffer.toString |> Js.log;
+  //     Buffer.insert(state.buffer, char) |> Buffer.toSurface |> Js.log;
+  //     self.state.buffer |> Buffer.toSurface |> Js.log;
   //     Js.log("======\n");
   //     insertTextBuffer(editor, char);
   //     None;
@@ -422,19 +394,19 @@ let make =
   // listens to certain events only when the IM is activated
   Hook.useListenWhen(() => monitor(editor, send), state.activated);
 
-  let translation = Translator.translate(state.buffer.underlying);
+  let translation = Translator.translate(Buffer.toSequence(state.buffer));
   // the view
   open Util.ClassName;
   let className =
     ["input-method"] |> addWhen("hidden", !state.activated) |> serialize;
   let bufferClassName =
     ["inline-block", "buffer"]
-    |> addWhen("hidden", String.isEmpty(state.buffer.underlying))
+    |> addWhen("hidden", Buffer.isEmpty(state.buffer))
     |> serialize;
   <section className>
     <div className="keyboard">
       <div className=bufferClassName>
-        {React.string(state.buffer.underlying)}
+        {React.string(Buffer.toSequence(state.buffer))}
       </div>
       {translation.keySuggestions
        |> Array.map(key =>
