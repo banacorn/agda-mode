@@ -85,7 +85,6 @@ let getNextGoalPosition = (instance): option(Atom.Point.t) => {
 /* instantiate all goals */
 let instantiateAll = (indices, instance) => {
   open Atom;
-
   instance |> destroyAll;
 
   let textEditor = instance.editors.source;

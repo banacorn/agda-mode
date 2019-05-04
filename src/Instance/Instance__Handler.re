@@ -190,7 +190,24 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
          (promise, solution) =>
            promise |> thenOk(() => solve(solution) |> thenOk(() => resolve())),
          resolve(),
-       );
+       )
+    |> thenOk(() => {
+         let size = Array.length(solutions);
+         if (size == 0) {
+           instance.view.display(
+             "No solutions found",
+             Type.View.Header.PlainText,
+             Emacs(PlainText("")),
+           );
+         } else {
+           instance.view.display(
+             string_of_int(size) ++ " goals solved",
+             Type.View.Header.Success,
+             Emacs(PlainText("")),
+           );
+         };
+         resolve();
+       });
   };
 };
 
