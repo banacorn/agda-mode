@@ -101,11 +101,11 @@ let recoverCursor = (callback, instance) => {
 
 let startCheckpoint = (command, instance) => {
   let checkpoint = instance.editors.source |> Atom.TextEditor.createCheckpoint;
-  instance.checkpointStack |> Js.Array.push(checkpoint) |> ignore;
+  instance.history.checkpoints |> Js.Array.push(checkpoint) |> ignore;
 
   // see if reloading is needed on undo
-  if (Array.length(instance.checkpointStack) === 1) {
-    instance.checkpointNeedReload =
+  if (Array.length(instance.history.checkpoints) === 1) {
+    instance.history.needsReloading =
       Command.Primitive.(
         switch (command) {
         | SolveConstraints
@@ -120,9 +120,9 @@ let startCheckpoint = (command, instance) => {
 };
 
 let endCheckpoint = instance => {
-  let checkpoint = Js.Array.pop(instance.checkpointStack);
+  let checkpoint = Js.Array.pop(instance.history.checkpoints);
   // group changes if it's a parent command
-  if (Array.length(instance.checkpointStack) === 0) {
+  if (Array.length(instance.history.checkpoints) === 0) {
     checkpoint
     |> Option.forEach(n =>
          instance.editors.source

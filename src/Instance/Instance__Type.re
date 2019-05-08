@@ -7,12 +7,16 @@ type error =
   | GoalNotIndexed
   | OutOfGoal;
 
+type history = {
+  mutable checkpoints: array(int),
+  mutable needsReloading: bool,
+};
+
 type t = {
   mutable isLoaded: bool,
   editors: Editors.t,
   view: View.t,
-  mutable checkpointStack: array(int),
-  mutable checkpointNeedReload: bool,
+  history,
   mutable highlightings: array(Highlighting.t),
   mutable goals: array(Goal.t),
   mutable connection: option(Connection.t),
