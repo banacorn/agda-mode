@@ -199,8 +199,6 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   /* display mode! */
   Hook.useEventListener(
     ((header, body)) => {
-      send(Activate);
-
       setMode(Display);
       setHeader(header);
       setBody(body);

@@ -141,7 +141,7 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
     | None => reject(OutOfGoal)
     };
   | DisplayInfo(info) =>
-    instance.view.activate();
+    // instance.view.activate();
     let (text, style, body) = Response.Info.handle(info);
     instance.view.display(text, style, body);
     resolve();
@@ -249,6 +249,7 @@ let rec handleLocalCommand =
     |> mapError(_ => Cancelled)
     |> thenOk(() => {
          instance.isLoaded = true;
+         instance.view.activate();
          instance.view.updateShouldDisplay(true);
          instance.view.display(
            "Connecting ...",
