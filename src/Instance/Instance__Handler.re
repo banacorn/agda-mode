@@ -12,7 +12,7 @@ open TextEditors;
 
 let handleCommandError = instance =>
   thenError((error: error) => {
-    let _ =
+    (
       switch (error) {
       | ParseError(Response(errors)) =>
         let intro =
@@ -57,7 +57,10 @@ let handleCommandError = instance =>
           Type.View.Header.Error,
           Emacs(PlainText("Please place the cursor in a goal")),
         )
-      };
+      }
+    )
+    |> ignore;
+    instance.editors |> Editors.Focus.on(Editors.Source);
     resolve();
   });
 
