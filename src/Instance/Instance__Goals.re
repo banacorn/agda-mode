@@ -48,7 +48,7 @@ let getPreviousGoalPosition = (instance): option(Atom.Point.t) => {
   /* assign the previous goal position */
   positions
   |> Array.forEach(position =>
-       if (Atom.Point.isLessThan(cursor, position) && previousGoal^ === None) {
+       if (Atom.Point.isLessThan(cursor, position)) {
          previousGoal := Some(position);
        }
      );

@@ -53,6 +53,7 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
       ~editor=editors.source,
       ~getTitle=
         () => "[Agda Mode] " ++ Atom.TextEditor.getTitle(editors.source),
+      ~path="panel",
       ~onClose=_ => self.send(MountTo(ToBottom)),
       ~onOpen=
         (_, _, previousItem) =>
@@ -84,6 +85,7 @@ let mountSettings = (editors: Editors.t, handles, open_, self) => {
           ~editor=editors.source,
           ~getTitle=
             () => "[Settings] " ++ Atom.TextEditor.getTitle(editors.source),
+          ~path="settings",
           ~onOpen=
             (_, _, _) =>
               /* <Settings> is opened */

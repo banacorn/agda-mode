@@ -351,9 +351,11 @@ let make =
   let (state, send) = ReactUpdate.useReducer(initialState, reducer(editor));
 
   // let toString = state => {
+  //   Js.log(" ");
   //   Js.log(string_of_bool(state.activated));
   //   Js.log(Buffer.toSurface(state.buffer));
   //   Js.log(state.markers);
+  //   Js.log(" ");
   // };
   //
   // React.useEffect1(
