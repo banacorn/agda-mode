@@ -90,3 +90,45 @@ let recoverCursor = (callback, instance) => {
   /* return the result of the callbak */
   result;
 };
+
+//
+//  History Management
+//
+
+// sometimes a child command may be invoked by some parent command,
+// in that case, both the parent and the child command should be
+// regarded as a single action
+
+let startCheckpoint = (command, instance) => {
+  let checkpoint = instance.editors.source |> Atom.TextEditor.createCheckpoint;
+  instance.checkpointStack |> Js.Array.push(checkpoint) |> ignore;
+
+  // see if reloading is needed on undo
+  if (Array.length(instance.checkpointStack) === 1) {
+    instance.checkpointNeedReload =
+      Command.Primitive.(
+        switch (command) {
+        | SolveConstraints
+        | Give
+        | Refine
+        | Auto
+        | Case => true
+        | _ => false
+        }
+      );
+  };
+};
+
+let endCheckpoint = instance => {
+  let checkpoint = Js.Array.pop(instance.checkpointStack);
+  // group changes if it's a parent command
+  if (Array.length(instance.checkpointStack) === 0) {
+    checkpoint
+    |> Option.forEach(n =>
+         instance.editors.source
+         |> Atom.TextEditor.groupChangesSinceCheckpoint(n)
+         |> ignore
+       );
+  };
+  ();
+};

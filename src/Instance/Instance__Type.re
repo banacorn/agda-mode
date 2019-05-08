@@ -11,6 +11,8 @@ type t = {
   mutable isLoaded: bool,
   editors: Editors.t,
   view: View.t,
+  mutable checkpointStack: array(int),
+  mutable checkpointNeedReload: bool,
   mutable highlightings: array(Highlighting.t),
   mutable goals: array(Goal.t),
   mutable connection: option(Connection.t),

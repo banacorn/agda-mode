@@ -695,7 +695,9 @@ let handleRemoteCommand = (instance, remote) =>
 let dispatch = (command, instance): Async.t(unit, error) => {
   instance
   |> handleLocalCommand(command)
+  |> pass(_ => startCheckpoint(command, instance))
   |> pass(_ => instance.view.updateIsPending(true))
   |> thenOk(handleRemoteCommand(instance))
+  |> pass(_ => endCheckpoint(instance))
   |> pass(_ => instance.view.updateIsPending(false));
 };

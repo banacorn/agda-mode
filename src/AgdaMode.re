@@ -94,7 +94,9 @@ let onUndo = () => {
     event => {
       event |> Webapi.Dom.Event.stopImmediatePropagation;
       let activated = Environment.Workspace.getActiveTextEditor();
-      activated |> Option.forEach(Instance.dispatchUndo);
+      activated
+      |> Option.flatMap(Instances.get)
+      |> Option.forEach(Instance.dispatchUndo);
     },
   )
   |> CompositeDisposable.add(subscriptions);

@@ -32,6 +32,8 @@ let make = (textEditor: Atom.TextEditor.t) => {
     editors,
     view: Root.initialize(editors),
     goals: [||],
+    checkpointStack: [||],
+    checkpointNeedReload: false,
     highlightings: [||],
     runningInfo: RunningInfo.make(),
     connection: None,
@@ -64,6 +66,12 @@ let make = (textEditor: Atom.TextEditor.t) => {
   instance;
 };
 
-let dispatchUndo = _instance => {
-  Js.log("Undo");
+let dispatchUndo = (instance: t) => {
+  // should reset goals after undo
+  instance.editors.source |> Atom.TextEditor.undo;
+  // reload
+  if (instance.checkpointNeedReload) {
+    instance |> dispatch(Load) |> ignore;
+    instance.checkpointNeedReload = false;
+  };
 };
