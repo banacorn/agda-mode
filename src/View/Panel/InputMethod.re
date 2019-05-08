@@ -98,17 +98,11 @@ module Buffer = {
 
 type state = {
   activated: bool,
-  mute: bool,
   markers: array(Atom.DisplayMarker.t),
   buffer: Buffer.t,
 };
 
-let initialState = {
-  activated: false,
-  mute: false,
-  markers: [||],
-  buffer: Buffer.initial,
-};
+let initialState = {activated: false, markers: [||], buffer: Buffer.initial};
 
 type action =
   | Activate
@@ -264,9 +258,11 @@ let monitor = (editor, send) => {
   // destructor
   Some(
     () => {
+      removeClass(editor);
       decorations |> Array.forEach(Decoration.destroy);
       markers |> Array.forEach(DisplayMarker.destroy);
       disposables |> CompositeDisposable.dispose |> ignore;
+      send(UpdateMarker([||]));
     },
   );
 };
@@ -323,17 +319,6 @@ let reducer = (editor, action, state) =>
         None;
       },
     )
-  // UpdateWithSideEffects(
-  //   {...state, buffer: Buffer.insert(state.buffer, char)},
-  //   self => {
-  //     Js.log("\n======");
-  //     Buffer.insert(state.buffer, char) |> Buffer.toSurface |> Js.log;
-  //     self.state.buffer |> Buffer.toSurface |> Js.log;
-  //     Js.log("======\n");
-  //     insertTextBuffer(editor, char);
-  //     None;
-  //   },
-  // )
   | Rewrite(string) =>
     SideEffects(
       _ => {
@@ -364,6 +349,20 @@ let make =
   let editor = Editors.Focus.get(editors);
 
   let (state, send) = ReactUpdate.useReducer(initialState, reducer(editor));
+
+  // let toString = state => {
+  //   Js.log(string_of_bool(state.activated));
+  //   Js.log(Buffer.toSurface(state.buffer));
+  //   Js.log(state.markers);
+  // };
+  //
+  // React.useEffect1(
+  //   () => {
+  //     toString(state);
+  //     None;
+  //   },
+  //   [|state|],
+  // );
 
   React.useEffect1(
     () =>
