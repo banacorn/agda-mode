@@ -14,23 +14,19 @@ let handleCommandError = instance =>
   thenError((error: error) => {
     (
       switch (error) {
-      | ParseError(Response(errors)) =>
+      | ParseError(errors) =>
         let intro =
           string_of_int(Array.length(errors))
           ++ " errors arisen when trying to parse the following text responses from agda:\n\n";
-        let message = errors |> List.fromArray |> String.joinWith("\n\n");
+        let message =
+          errors
+          |> Array.map(Parser.Error.toString)
+          |> List.fromArray
+          |> String.joinWith("\n\n");
         instance.view.display(
           "Parse Error",
           Type.View.Header.Error,
           Emacs(PlainText(intro ++ message)),
-        );
-      | ParseError(Others(error)) =>
-        let message = "when trying to parse the following text:\n" ++ error;
-
-        instance.view.display(
-          "Parse Error",
-          Type.View.Header.Error,
-          Emacs(PlainText(message)),
         );
       | ConnectionError(error) =>
         let (header, body) = Connection.Error.toString(error);
@@ -214,10 +210,9 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
   };
 };
 
-let handleResponses = (instance, responses) =>
+let handleResponseAndRecoverCursor = (instance, response) =>
   instance
-  |> recoverCursor(() => responses |> Array.map(handleResponse(instance)))
-  |> all
+  |> recoverCursor(() => handleResponse(instance, response))
   |> mapOk(_ => ());
 
 /* Primitive Command => Remote Command */
@@ -653,29 +648,23 @@ let handleRemoteCommand = (instance, remote) =>
   | None => resolve()
   | Some(cmd) =>
     let handleResults = ref([||]);
-    let parseErrors = ref([||]);
+    let parseErrors: ref(array(Parser.Error.t)) = ref([||]);
     /* send the serialized command */
     let serialized = Command.Remote.serialize(cmd);
 
     let onResponse = (resolve', reject') => (
       fun
-      | Ok(Connection.Data(data)) =>
-        switch (Response.parse(data)) {
-        | Ok(responses) =>
-          let results =
+      | Ok(Connection.Data(response)) => {
+          let result =
             instance
-            |> recoverCursor(() =>
-                 Array.map(handleResponse(instance), responses)
-               );
-          handleResults := Array.concat(results, handleResults^);
-        | Error(Response(errors)) =>
-          parseErrors := Array.concat(errors, parseErrors^)
-        | Error(Others(error)) =>
-          parseErrors := Array.concat([|error|], parseErrors^)
+            |> recoverCursor(() => handleResponse(instance, response));
+          handleResults := Array.concat([|result|], handleResults^);
         }
+      | Ok(Connection.Error(error)) =>
+        parseErrors := Array.concat([|error|], parseErrors^)
       | Ok(Connection.End) =>
         if (Array.length(parseErrors^) > 0) {
-          reject'(ParseError(Parser.Response(parseErrors^))) |> ignore;
+          reject'(ParseError(parseErrors^)) |> ignore;
         } else {
           handleResults^ |> all |> mapOk(_ => resolve'()) |> ignore;
         }

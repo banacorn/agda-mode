@@ -1,5 +1,5 @@
 type error =
-  | ParseError(Parser.error)
+  | ParseError(array(Parser.Error.t))
   | ConnectionError(Connection.Error.t)
   /* Cancelled: never makes its way to Agda */
   | Cancelled
@@ -22,5 +22,5 @@ type t = {
   mutable connection: option(Connection.t),
   mutable runningInfo: RunningInfo.t,
   dispatch: (Command.Primitive.t, t) => Async.t(unit, error),
-  handleResponses: (t, array(Response.t)) => Async.t(unit, error),
+  handleResponse: (t, Response.t) => Async.t(unit, error),
 };

@@ -1,15 +1,23 @@
 open Rebase;
 
+// indicates at which stage the parse error happened
+module Error = {
+  type t =
+    | SExpression(string)
+    | Response(Parser__Type.SExpression.t);
+
+  let toString =
+    fun
+    | SExpression(string) => string
+    | Response(sexpr) => Parser__Type.SExpression.toString(sexpr);
+};
+
 let captures = (handler, regex, raw) =>
   Js.Re.exec_(regex, raw)
   |> Option.map(result =>
        result |> Js.Re.captures |> Array.map(Js.Nullable.toOption)
      )
   |> Option.flatMap(handler);
-
-type error =
-  | Response(array(string))
-  | Others(string);
 
 let agdaOutput = s => {
   s |> Js.String.replaceByRe([%re "/\\\\n/g"], "\n");
@@ -90,12 +98,29 @@ let rectifyEmacs = s => {
   s'^ |> String.trim;
 };
 
+let splitAndTrim = string =>
+  string
+  |> Util.safeSplitByRe([%re "/\\r\\n|\\n/"])
+  |> Array.map(result =>
+       switch (result) {
+       | None => None
+       | Some("") => None
+       | Some(chunk) => Some(chunk)
+       }
+     )
+  |> Array.filterMap(x => x)
+  |> Array.map(Js.String.trim);
+
 /* Parsing S-Expressions */
 /* Courtesy of @NightRa */
 module SExpression = {
-  type t =
-    | A(string)
-    | L(array(t));
+  type t = Parser__Type.SExpression.t;
+  open! Parser__Type.SExpression;
+  type state = array(ref(t));
+  type continuation =
+    | Error(string)
+    | Continue(string => continuation)
+    | Done(t);
 
   let preprocess = (string: string): result(string, string) => {
     /* Replace window's \\ in paths with /, so that \n doesn't get treated as newline. */
@@ -128,19 +153,15 @@ module SExpression = {
     };
   };
 
-  let rec toString =
-    fun
-    | A(s) => "\"" ++ s ++ "\""
-    | L(xs) =>
-      "[" ++ (Array.map(toString, xs) |> Js.Array.joinWith(", ")) ++ "]";
-
   let rec flatten: t => array(string) =
     fun
     | A(s) => [|s|]
     | L(xs) => xs |> Array.flatMap(flatten);
 
-  let postprocess = (string: string): result(t, string) => {
-    let stack: array(ref(t)) = [|ref(L([||]))|];
+  let initialState = [|ref(L([||]))|];
+
+  let rec postprocess = (stack: state, string: string): continuation => {
+    // let stack: array(ref(t)) = [|ref(L([||]))|];
     let word = ref("");
     let escaped = ref(false);
     let in_str = ref(false);
@@ -199,35 +220,69 @@ module SExpression = {
         word := word^ ++ char;
       };
     };
-    switch (stack[0]) {
-    | None => Error(string)
-    | Some(v) =>
-      switch (v^) {
-      | L(xs) =>
-        switch (xs[0]) {
-        | None => Error(string)
-        | Some(w) => Ok(w)
+
+    switch (Array.length(stack)) {
+    | 0 => Error(string)
+    | 1 =>
+      switch (stack[0]) {
+      | None => Error(string)
+      | Some(v) =>
+        switch (v^) {
+        | L(xs) =>
+          switch (xs[0]) {
+          | None => Error(string)
+          | Some(w) => Done(w)
+          }
+        | _ => Error(string)
         }
-      | _ => Error(string)
       }
+    | _ => Continue(postprocess(stack))
     };
   };
 
-  let parse = (string: string): result(t, string) => {
-    string |> preprocess |> Result.flatMap(postprocess);
+  let incrParse = (string: string): continuation => {
+    switch (preprocess(string)) {
+    | Error(_) => Error(string)
+    | Ok(processed) => postprocess(initialState, processed)
+    };
   };
+  let parse = (string: string): result(array(t), string) => {
+    let results = ref([||]);
+    let error = ref(None);
+    let continuation = ref(None);
+    string
+    |> splitAndTrim
+    |> Array.forEach(line => {
+         // get the parsing continuation or initialize a new one
+         let continue = continuation^ |> Option.getOr(incrParse);
 
-  let parseFile = (content: string): array(result(t, string)) => {
-    content
-    |> Util.safeSplitByRe([%re "/\\r\\n|\\n/"])
-    |> Array.map(result =>
-         switch (result) {
-         | None => None
-         | Some("") => None
-         | Some(chunk) => Some(chunk)
-         }
-       )
-    |> Array.filterMap(x => x)
-    |> Array.map(line => line |> Js.String.trim |> parse);
+         // continue parsing with the given continuation
+         switch (continue(line)) {
+         | Error(err) => error := Some(err)
+         | Continue(continue) => continuation := Some(continue)
+         | Done(result) =>
+           results^ |> Js.Array.push(result) |> ignore;
+           continuation := None;
+         };
+       });
+
+    switch (error^) {
+    | Some(err) => Error(err)
+    | None => Ok(results^)
+    };
   };
+  //
+  // let parseFile = (content: string): array(result(t, string)) => {
+  //   content
+  //   |> Util.safeSplitByRe([%re "/\\r\\n|\\n/"])
+  //   |> Array.map(result =>
+  //        switch (result) {
+  //        | None => None
+  //        | Some("") => None
+  //        | Some(chunk) => Some(chunk)
+  //        }
+  //      )
+  //   |> Array.filterMap(x => x)
+  //   |> Array.map(line => line |> Js.String.trim |> parse);
+  // };
 };
