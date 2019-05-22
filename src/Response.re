@@ -6,7 +6,7 @@ type filepath = string;
 type index = int;
 
 module Event = Event;
-module Token = Emacs.Parser.SExpression;
+module Token = Parser.SExpression;
 
 /* type fileType =
    | Agda
@@ -342,7 +342,7 @@ let fromSExpression = (tokens: Token.t): result(t, string) => {
 
 let parse = (raw: string): result(array(t), Parser.error) => {
   let results =
-    Emacs.Parser.SExpression.parseFile(raw)
+    Parser.SExpression.parseFile(raw)
     |> Array.map(Result.flatMap(fromSExpression));
   let errors =
     results

@@ -37,10 +37,10 @@ let addFromFile = (filepath, instance): Async.t(unit, unit) => {
   readFile(. filepath)
   |> fromPromise
   |> thenOk(content => {
-       open Emacs.Parser.SExpression;
+       open Parser.SExpression;
        content
        |> Node.Buffer.toString
-       |> Emacs.Parser.SExpression.parse
+       |> Parser.SExpression.parse
        |> Result.map(tokens =>
             switch (tokens) {
             | L(xs) => xs |> Highlighting.Annotation.parseIndirectHighlightings
