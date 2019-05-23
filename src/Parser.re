@@ -158,7 +158,7 @@ module SExpression = {
     | A(s) => [|s|]
     | L(xs) => xs |> Array.flatMap(flatten);
 
-  let initialState = [|ref(L([||]))|];
+  // let initialState = [|ref(L([||]))|];
 
   let rec postprocess = (stack: state, string: string): continuation => {
     // let stack: array(ref(t)) = [|ref(L([||]))|];
@@ -243,7 +243,7 @@ module SExpression = {
   let incrParse = (string: string): continuation => {
     switch (preprocess(string)) {
     | Error(_) => Error(string)
-    | Ok(processed) => postprocess(initialState, processed)
+    | Ok(processed) => postprocess([|ref(L([||]))|], processed)
     };
   };
   let parse = (string: string): result(array(t), string) => {

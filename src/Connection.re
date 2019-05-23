@@ -318,7 +318,6 @@ let wire = (self): t => {
          // get the parsing continuation or initialize a new one
          let continue =
            continuation^ |> Option.getOr(Parser.SExpression.incrParse);
-
          // continue parsing with the given continuation
          switch (continue(line)) {
          | Error(err) => response(Error(Parser.Error.SExpression(err)))
@@ -332,10 +331,9 @@ let wire = (self): t => {
          };
        });
 
-    ();
-    // response(Data(withoutNewline));
-    // response(Data(withoutSuffix));
-    // response(End);
+    if (endOfResponse) {
+      response(End);
+    };
   };
 
   self.process

@@ -208,6 +208,7 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
   switch (tokens) {
   | A(_) => err
   | L(xs) =>
+    Js.log(xs[0]);
     switch (xs[0]) {
     | Some(A("agda2-highlight-add-annotations")) =>
       let annotations = Highlighting.Annotation.parseDirectHighlightings(xs);
@@ -336,7 +337,7 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
     | Some(A("agda2-highlight-clear")) => Ok(ClearHighlighting)
     | Some(A("agda2-abort-done")) => Ok(DoneAborting)
     | _ => err
-    }
+    };
   };
 };
 
