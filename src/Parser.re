@@ -88,16 +88,6 @@ let commandLine = s => {
   };
 };
 
-let rectifyEmacs = s => {
-  let s' = ref(s);
-  /* remove the Windows Bidi control character */
-  if (Js.String.charCodeAt(0, s) === 8234.0) {
-    s' := s'^ |> Js.String.sliceToEnd(~from=1);
-  };
-
-  s'^ |> String.trim;
-};
-
 let splitAndTrim = string =>
   string
   |> Util.safeSplitByRe([%re "/\\r\\n|\\n/"])

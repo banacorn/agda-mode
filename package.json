@@ -33,7 +33,7 @@
   "devDependencies": {
     "@glennsl/bs-json": "^3.0.0",
     "@glennsl/rebase": "github:glennsl/rebase",
-    "atom": "github:banacorn/bs-atom#27f5a22",
+    "atom": "github:banacorn/bs-atom#b07608",
     "bs-platform": "^5.0.4",
     "bs-webapi": "^0.13.6",
     "webpack": "^4.24.0",

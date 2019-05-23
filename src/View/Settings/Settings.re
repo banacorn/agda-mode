@@ -21,6 +21,7 @@ let make =
 
   React.useEffect1(() => Some(navigate |> Event.onOk(setURI)), [||]);
 
+  let inDevMode = Atom.Environment.inDevMode();
   switch (element) {
   | None => null
   | Some(anchor) =>
@@ -32,11 +33,23 @@ let make =
             <li onClick={_ => setURI(URI.Connection)}>
               <span className="icon icon-plug"> {string("Connection")} </span>
             </li>
+            <li onClick={_ => setURI(URI.UnicodeInput)}>
+              <span className="icon icon-keyboard">
+                {string("Unicode Input")}
+              </span>
+            </li>
             <li onClick={_ => setURI(URI.Protocol)}>
               <span className="icon icon-comment-discussion">
                 {string("Protocol")}
               </span>
             </li>
+            {inDevMode
+               ? <li onClick={_ => setURI(URI.Debug)}>
+                   <span className="icon icon-terminal">
+                     {string("Debug")}
+                   </span>
+                 </li>
+               : null}
           </ul>
           <Settings__Connection
             inquireConnection
@@ -45,6 +58,10 @@ let make =
             error=connectionError
             hidden={uri != URI.Connection}
           />
+          <Settings__Placeholder
+            hidden={uri != URI.UnicodeInput && uri != URI.Protocol}
+          />
+          <Settings__Debug hidden={uri != URI.Debug} />
         </div>
       </section>,
       anchor,

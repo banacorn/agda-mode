@@ -1,9 +1,10 @@
-
 open ReasonReact;
 
 type uri =
   | Root
   | Connection
+  | UnicodeInput
+  | Debug
   | Protocol;
 
 [@react.component]
@@ -23,12 +24,26 @@ let make = (~uri: uri, ~onNavigate: uri => unit) =>
              <span className="icon icon-plug"> {string("Connection")} </span>
            </a>
          </li>
+       | UnicodeInput =>
+         <li>
+           <a href="#">
+             <span className="icon icon-keyboard">
+               {string("Unicode Input")}
+             </span>
+           </a>
+         </li>
        | Protocol =>
          <li>
            <a href="#">
              <span className="icon icon-comment-discussion">
                {string("Protocol")}
              </span>
+           </a>
+         </li>
+       | Debug =>
+         <li>
+           <a href="#">
+             <span className="icon icon-terminal"> {string("Debug")} </span>
            </a>
          </li>
        }}
