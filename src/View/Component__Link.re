@@ -1,7 +1,5 @@
 open Type.Location.Range;
 
-open Type.View;
-
 [@react.component]
 let make =
     (

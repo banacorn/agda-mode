@@ -15,6 +15,7 @@ let make =
       ~connection: option(Connection.t),
       ~connectionError: option(Connection.Error.t),
       ~navigate: Event.t(uri, unit),
+      ~debug: Type.View.Debug.state,
       ~element: option(Webapi.Dom.Element.t),
     ) => {
   let (uri, setURI) = Hook.useState(URI.Root);
@@ -61,7 +62,7 @@ let make =
           <Settings__Placeholder
             hidden={uri != URI.UnicodeInput && uri != URI.Protocol}
           />
-          <Settings__Debug hidden={uri != URI.Debug} />
+          <Settings__Debug debug hidden={uri != URI.Debug} />
         </div>
       </section>,
       anchor,

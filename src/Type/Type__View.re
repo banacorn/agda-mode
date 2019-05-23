@@ -99,13 +99,35 @@ module Mouse = {
   };
 };
 
-// module Debug = {
-//   type event =
-//     | UpdateInputMethod;
-//   let emitter = React.createContext((_ev: event) => ());
-//
-//   module Provider = {
-//     [@bs.obj] external makeProps: unit => {.} = "";
-//     let make = React.Context.provider(emitter);
-//   };
-// };
+module Debug = {
+  type inputMethod = {
+    activated: bool,
+    markers: array(Atom.DisplayMarker.t),
+    buffer: Buffer.t,
+  };
+
+  type state = {inputMethod};
+
+  let initialState = {
+    inputMethod: {
+      activated: false,
+      markers: [||],
+      buffer: Buffer.initial,
+    },
+  };
+
+  let setDebug = React.createContext((_: state) => ());
+
+  module Provider = {
+    [@bs.obj]
+    external makeProps:
+      (~value: state => unit, ~children: React.element, unit) =>
+      {
+        .
+        "children": React.element,
+        "value": state => unit,
+      } =
+      "";
+    let make = React.Context.provider(setDebug);
+  };
+};

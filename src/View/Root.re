@@ -161,6 +161,8 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     ReactUpdate.useReducer(initialState, reducer(editors, handles));
   let queryRef = React.useRef(None);
 
+  let (debug, setDebug) = Hook.useState(Debug.initialState);
+
   let (header, setHeader) =
     Hook.useState({Header.text: "", style: PlainText});
   let (body, setBody) = Hook.useState(Body.Nothing);
@@ -257,37 +259,40 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   <>
     <Mouse.Provider
       value={event => handles.onMouseEvent |> Event.emitOk(event)}>
-      <Panel
-        editors
-        element=panelElement
-        header
-        body
-        mountAt
-        hidden
-        onMountAtChange={mountTo => send(MountTo(mountTo))}
-        mode
-        onInquireQuery={handles.onInquireQuery}
-        isPending
-        isActive
-        /* editors */
-        onEditorRef={ref => React.Ref.setCurrent(queryRef, Some(ref))}
-        editorValue=""
-        // {editors.query.value}
-        // {editors.query.placeholder}
-        editorPlaceholder=""
-        interceptAndInsertKey
-        activateInputMethod
-        settingsView
-        onSettingsViewToggle={status => send(ToggleSettingsTab(status))}
-      />
-      <Settings
-        inquireConnection
-        onInquireConnection
-        connection
-        connectionError
-        element=settingsElement
-        navigate=navigateSettingsView
-      />
+      <Debug.Provider value=setDebug>
+        <Panel
+          editors
+          element=panelElement
+          header
+          body
+          mountAt
+          hidden
+          onMountAtChange={mountTo => send(MountTo(mountTo))}
+          mode
+          onInquireQuery={handles.onInquireQuery}
+          isPending
+          isActive
+          /* editors */
+          onEditorRef={ref => React.Ref.setCurrent(queryRef, Some(ref))}
+          editorValue=""
+          // {editors.query.value}
+          // {editors.query.placeholder}
+          editorPlaceholder=""
+          interceptAndInsertKey
+          activateInputMethod
+          settingsView
+          onSettingsViewToggle={status => send(ToggleSettingsTab(status))}
+        />
+        <Settings
+          inquireConnection
+          onInquireConnection
+          connection
+          connectionError
+          debug
+          element=settingsElement
+          navigate=navigateSettingsView
+        />
+      </Debug.Provider>
     </Mouse.Provider>
   </>;
 };
