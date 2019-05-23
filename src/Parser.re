@@ -116,7 +116,12 @@ let splitAndTrim = string =>
 module SExpression = {
   type t = Parser__Type.SExpression.t;
   open! Parser__Type.SExpression;
-  type state = array(ref(t));
+  type state = {
+    stack: array(ref(t)),
+    word: ref(string),
+    escaped: ref(bool),
+    in_str: ref(bool),
+  };
   type continuation =
     | Error(string)
     | Continue(string => continuation)
@@ -158,13 +163,15 @@ module SExpression = {
     | A(s) => [|s|]
     | L(xs) => xs |> Array.flatMap(flatten);
 
-  // let initialState = [|ref(L([||]))|];
+  let initialState = () => {
+    stack: [|ref(L([||]))|],
+    word: ref(""),
+    escaped: ref(false),
+    in_str: ref(false),
+  };
 
-  let rec postprocess = (stack: state, string: string): continuation => {
-    // let stack: array(ref(t)) = [|ref(L([||]))|];
-    let word = ref("");
-    let escaped = ref(false);
-    let in_str = ref(false);
+  let rec postprocess = (state: state, string: string): continuation => {
+    let {stack, word, escaped, in_str} = state;
 
     let pushToTheTop = (elem: t) => {
       let index = Array.length(stack) - 1;
@@ -236,14 +243,14 @@ module SExpression = {
         | _ => Error(string)
         }
       }
-    | _ => Continue(postprocess(stack))
+    | _ => Continue(postprocess(state))
     };
   };
 
   let incrParse = (string: string): continuation => {
     switch (preprocess(string)) {
     | Error(_) => Error(string)
-    | Ok(processed) => postprocess([|ref(L([||]))|], processed)
+    | Ok(processed) => postprocess(initialState(), processed)
     };
   };
   let parse = (string: string): result(array(t), string) => {
