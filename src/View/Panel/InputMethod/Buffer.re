@@ -60,7 +60,6 @@ let next = (self, reality) => {
       } else {
         Rewrite({symbol: Some((symbol, sequence')), tail: ""});
       }
-
     | None =>
       if (translation.further) {
         Noop({...self, tail: self.tail ++ insertedChar});

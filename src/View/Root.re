@@ -161,7 +161,8 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     ReactUpdate.useReducer(initialState, reducer(editors, handles));
   let queryRef = React.useRef(None);
 
-  let (debug, setDebug) = Hook.useState(Debug.initialState);
+  let (debug, debugDispatch) =
+    React.useReducer(Debug.reducer, Debug.initialState);
 
   let (header, setHeader) =
     Hook.useState({Header.text: "", style: PlainText});
@@ -259,7 +260,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   <>
     <Mouse.Provider
       value={event => handles.onMouseEvent |> Event.emitOk(event)}>
-      <Debug.Provider value=setDebug>
+      <Debug.Provider value=debugDispatch>
         <Panel
           editors
           element=panelElement

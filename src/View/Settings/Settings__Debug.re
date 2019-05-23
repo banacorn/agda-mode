@@ -1,23 +1,25 @@
 open ReasonReact;
 open Rebase;
 
+open Type.View.Debug;
+
 [@react.component]
-let make = (~debug: Type.View.Debug.state, ~hidden) => {
+let make = (~debug: state, ~hidden) => {
+  let {inputMethod} = debug;
   let className =
     Util.ClassName.(
       ["agda-settings-debug"] |> addWhen("hidden", hidden) |> serialize
     );
-  Js.log(debug.inputMethod);
   <section className>
     <h1>
       <span className="icon icon-terminal" />
       <span> {string("Debug")} </span>
     </h1>
-    <hr />
     <p> {string("only available in dev mode")} </p>
+    <hr />
     <h2>
       <span> {string("Input Method")} </span>
-      {debug.inputMethod.activated
+      {inputMethod.activated
          ? <span
              title="activated"
              id="input-method-activation"
@@ -32,13 +34,25 @@ let make = (~debug: Type.View.Debug.state, ~hidden) => {
     <p>
       {string("input sequence : ")}
       <span className="inline-block highlight">
-        {string(Buffer.toSequence(debug.inputMethod.buffer))}
-      </span>
-      <br />
-      {string("output buffer : ")}
-      <span className="inline-block highlight">
-        {string(Buffer.toSurface(debug.inputMethod.buffer))}
+        {string(Buffer.toSequence(inputMethod.buffer))}
       </span>
     </p>
+    <p>
+      {string("output buffer : ")}
+      <span className="inline-block highlight">
+        {string(Buffer.toSurface(inputMethod.buffer))}
+      </span>
+    </p>
+    <p>
+      {string("# of markers : ")}
+      <span className="inline-block highlight">
+        {string(string_of_int(Array.length(inputMethod.markers)))}
+      </span>
+    </p>
+    <div className="block">
+      <button className="btn" onClick={_ => Js.log(inputMethod.markers)}>
+        {string("Dump Markers")}
+      </button>
+    </div>
   </section>;
 };

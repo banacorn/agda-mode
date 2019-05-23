@@ -106,7 +106,16 @@ module Debug = {
     buffer: Buffer.t,
   };
 
+  type action =
+    | UpdateInputMethod(inputMethod);
+
   type state = {inputMethod};
+
+  let reducer = (state, action) => {
+    switch (action) {
+    | UpdateInputMethod(inputMethod) => {...state, inputMethod}
+    };
+  };
 
   let initialState = {
     inputMethod: {
@@ -116,18 +125,18 @@ module Debug = {
     },
   };
 
-  let setDebug = React.createContext((_: state) => ());
+  let debugDispatch = React.createContext((_: action) => ());
 
   module Provider = {
     [@bs.obj]
     external makeProps:
-      (~value: state => unit, ~children: React.element, unit) =>
+      (~value: action => unit, ~children: React.element, unit) =>
       {
         .
         "children": React.element,
-        "value": state => unit,
+        "value": action => unit,
       } =
       "";
-    let make = React.Context.provider(setDebug);
+    let make = React.Context.provider(debugDispatch);
   };
 };

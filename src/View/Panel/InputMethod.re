@@ -259,19 +259,19 @@ let make =
 
   let (state, send) = ReactUpdate.useReducer(initialState, reducer(editor));
 
-  let setDebug = React.useContext(Type.View.Debug.setDebug);
+  let debugDispatch = React.useContext(Type.View.Debug.debugDispatch);
 
   // dev mode debug
   React.useEffect1(
     () => {
       if (Atom.Environment.inDevMode()) {
-        setDebug({
-          inputMethod: {
+        debugDispatch(
+          UpdateInputMethod({
             activated: state.activated,
             markers: state.markers,
             buffer: state.buffer,
-          },
-        });
+          }),
+        );
       };
       None;
     },
