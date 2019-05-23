@@ -26,7 +26,7 @@ type handles = {
   activateInputMethod: Event.t(bool, unit),
   interceptAndInsertKey: Event.t(string, unit),
   /* Mouse Events */
-  onMouseEvent: Event.t(mouseEvent, unit),
+  onMouseEvent: Event.t(Mouse.event, unit),
 };
 
 /* creates all refs and return them */
@@ -95,7 +95,7 @@ type t = {
   display: (string, Type.View.Header.style, Body.t) => unit,
   inquire: (string, string, string) => Async.t(string, MiniEditor.error),
   updateIsPending: bool => unit,
-  onMouseEvent: Event.t(mouseEvent, unit),
+  onMouseEvent: Event.t(Mouse.event, unit),
   // <InputMethod> related
   activateInputMethod: bool => unit,
   interceptAndInsertKey: string => unit,

@@ -75,9 +75,37 @@ type mountAt =
 type mode =
   | Display
   | Inquire;
-type mouseEvent =
-  | JumpToTarget(Range.linkTarget)
-  | MouseOver(Range.linkTarget)
-  | MouseOut(Range.linkTarget);
 
-let mouseEmitter = React.createContext((_ev: mouseEvent) => ());
+module Mouse = {
+  type event =
+    | JumpToTarget(Range.linkTarget)
+    | MouseOver(Range.linkTarget)
+    | MouseOut(Range.linkTarget);
+
+  let emitter = React.createContext((_ev: event) => ());
+
+  module Provider = {
+    [@bs.obj]
+    external makeProps:
+      (~value: event => unit, ~children: React.element, unit) =>
+      {
+        .
+        "children": React.element,
+        "value": event => unit,
+      } =
+      "";
+
+    let make = React.Context.provider(emitter);
+  };
+};
+
+// module Debug = {
+//   type event =
+//     | UpdateInputMethod;
+//   let emitter = React.createContext((_ev: event) => ());
+//
+//   module Provider = {
+//     [@bs.obj] external makeProps: unit => {.} = "";
+//     let make = React.Context.provider(emitter);
+//   };
+// };

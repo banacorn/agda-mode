@@ -5,6 +5,8 @@ open Atom.Environment;
 
 /********************************************************************************************/
 
+// let emit = React.useContext(Type.View.Debug.emitter);
+
 module Buffer = {
   type t = {
     // the symbol at the front of the sequence along with the sequence it replaced

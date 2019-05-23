@@ -1,5 +1,3 @@
-
-
 open Type.Location.Range;
 
 open Type.View;
@@ -21,7 +19,7 @@ let make =
     | RangeLink(range) => Some(RangeLink(range))
     };
 
-  let emit = React.useContext(Type.View.mouseEmitter);
+  let emit = React.useContext(Type.View.Mouse.emitter);
 
   switch (target_) {
   | None =>

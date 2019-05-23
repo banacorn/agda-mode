@@ -4,7 +4,7 @@ open Type.View;
 
 module Event = Event;
 
-external unsafeCast: (mouseEvent => unit) => string = "%identity";
+external unsafeCast: (Mouse.event => unit) => string = "%identity";
 
 /************************************************************************************************************/
 
@@ -155,20 +155,6 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
   };
 };
 
-module MouseEventProvider = {
-  [@bs.obj]
-  external makeProps:
-    (~value: Type.View.mouseEvent => unit, ~children: React.element, unit) =>
-    {
-      .
-      "children": React.element,
-      "value": Type.View.mouseEvent => unit,
-    } =
-    "";
-
-  let make = React.Context.provider(mouseEmitter);
-};
-
 [@react.component]
 let make = (~editors: Editors.t, ~handles: View.handles) => {
   let (state, send) =
@@ -269,7 +255,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     };
 
   <>
-    <MouseEventProvider
+    <Mouse.Provider
       value={event => handles.onMouseEvent |> Event.emitOk(event)}>
       <Panel
         editors
@@ -302,7 +288,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
         element=settingsElement
         navigate=navigateSettingsView
       />
-    </MouseEventProvider>
+    </Mouse.Provider>
   </>;
 };
 
