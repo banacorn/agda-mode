@@ -42,12 +42,15 @@ let useListenWhen = (listener, shouldListen) => {
         setDestructor(_ => listener());
       } else {
         // execute the destructor
-        destructor |> Option.forEach(f => f());
+        destructor
+        |> Option.forEach(f => {
+             f();
+             setDestructor(_ => None);
+           });
       };
-
-      // return the destructor in case that it got unmounted
-      destructor;
+      None;
     },
+    // destructor;
     [|shouldListen|],
   );
 };

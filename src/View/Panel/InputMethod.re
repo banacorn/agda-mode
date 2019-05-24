@@ -176,7 +176,7 @@ let monitor = (editor, send) => {
   );
 };
 
-let reducer = (editor, action, state) =>
+let reducer = (editor, action, state) => {
   switch (action) {
   | Activate =>
     state.activated
@@ -236,6 +236,7 @@ let reducer = (editor, action, state) =>
       },
     )
   };
+};
 
 [@react.component]
 let make =
@@ -259,9 +260,8 @@ let make =
 
   let (state, send) = ReactUpdate.useReducer(initialState, reducer(editor));
 
-  let debugDispatch = React.useContext(Type.View.Debug.debugDispatch);
-
   // dev mode debug
+  let debugDispatch = React.useContext(Type.View.Debug.debugDispatch);
   React.useEffect1(
     () => {
       if (Atom.Environment.inDevMode()) {

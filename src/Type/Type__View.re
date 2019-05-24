@@ -111,9 +111,9 @@ module Debug = {
 
   type state = {inputMethod};
 
-  let reducer = (state, action) => {
+  let reducer = (_state, action) => {
     switch (action) {
-    | UpdateInputMethod(inputMethod) => {...state, inputMethod}
+    | UpdateInputMethod(inputMethod) => {inputMethod: inputMethod}
     };
   };
 
