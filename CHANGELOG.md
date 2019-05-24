@@ -1,3 +1,9 @@
+## 0.9.0
+* Scrap all TypeScript/JavaScript code
+* Rewrite everything with Reasonml/OCaml
+* Fix #94
+* Parsing S-expressions incrementally
+
 ## 0.8.10
 * Merge PRs from @mchristianl and @omega12345 👏
 * Fix #91
