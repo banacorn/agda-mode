@@ -32,11 +32,15 @@ let make = (textEditor: Atom.TextEditor.t) => {
     editors,
     view: Root.initialize(editors),
     goals: [||],
+    history: {
+      checkpoints: [||],
+      needsReloading: false,
+    },
     highlightings: [||],
     runningInfo: RunningInfo.make(),
     connection: None,
     dispatch: Handler.dispatch,
-    handleResponses: Handler.handleResponses,
+    handleResponse: Handler.handleResponseAndRecoverCursor,
   };
 
   /* listen to `onInquireConnection` */
@@ -50,7 +54,7 @@ let make = (textEditor: Atom.TextEditor.t) => {
     instance.view.onMouseEvent
     |> Event.onOk(ev =>
          switch (ev) {
-         | Type.View.JumpToTarget(target) =>
+         | Type.View.Mouse.JumpToTarget(target) =>
            instance |> dispatch(Jump(target)) |> ignore
          | _ => ()
          }
@@ -64,6 +68,12 @@ let make = (textEditor: Atom.TextEditor.t) => {
   instance;
 };
 
-let dispatchUndo = _instance => {
-  Js.log("Undo");
+let dispatchUndo = (instance: t) => {
+  // should reset goals after undo
+  instance.editors.source |> Atom.TextEditor.undo;
+  // reload
+  if (instance.history.needsReloading) {
+    instance |> dispatch(Load) |> ignore;
+    instance.history.needsReloading = false;
+  };
 };

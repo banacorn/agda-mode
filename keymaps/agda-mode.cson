@@ -19,6 +19,7 @@
     '\"' : 'agda-mode:input-symbol-double-quote'
     '\'' : 'agda-mode:input-symbol-single-quote'
     '\`' : 'agda-mode:input-symbol-back-quote'
+    'escape' : 'agda-mode:deactivate-input-symbol'
 
 # for people who have 'agda-mode:load' executed (regardless of language-agda)
 'atom-text-editor.agda':
@@ -74,7 +75,7 @@
     '\\': 'agda-mode:input-symbol'
     'alt-/': 'agda-mode:input-symbol'
     # query unicode symbol input sequence
-    'ctrl-u ctrl-x =': 'agda-mode:query-symbol'
+    'ctrl-u ctrl-x ctrl-=': 'agda-mode:query-symbol'
     # go to definition
     'ctrl-alt-\\': 'agda-mode:go-to-definition'
 
@@ -87,7 +88,7 @@
     '\\': 'agda-mode:input-symbol'
     'alt-/': 'agda-mode:input-symbol'
     # query unicode symbol input sequence
-    'ctrl-u ctrl-x =': 'agda-mode:query-symbol'
+    'ctrl-u ctrl-x ctrl-=': 'agda-mode:query-symbol'
     # go to definition
     'ctrl-alt-\\': 'agda-mode:go-to-definition'
 

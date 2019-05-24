@@ -1,4 +1,4 @@
-open ReasonReact;
+
 
 open Emacs__Component;
 open Rebase.Option;
@@ -19,12 +19,10 @@ let parse: string => array(WarningError.t) =
          [||],
        );
   };
-let component = statelessComponent("EmacsError");
 
-let make = (~body: string, _children) => {
-  ...component,
-  render: _self => {
-    let parsed = parse(body);
-    <ul> ...{parsed |> Array.map(value => <WarningError value />)} </ul>;
-  },
+[@react.component]
+let make = (~body: string) => {
+  parse(body)
+  |> Array.map(value => <WarningError value />)
+  |> Util.React.manyIn("ul");
 };

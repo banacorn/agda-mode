@@ -6,7 +6,7 @@ type filepath = string;
 type index = int;
 
 module Event = Event;
-module Token = Emacs.Parser.SExpression;
+module Token = Parser.SExpression;
 
 /* type fileType =
    | Agda
@@ -203,8 +203,8 @@ type t =
   /* agda2-abort-done */
   | DoneAborting;
 
-let fromSExpression = (tokens: Token.t): result(t, string) => {
-  let err = Error(tokens |> Token.toString);
+let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
+  let err = Error(Parser.Error.Response(tokens));
   switch (tokens) {
   | A(_) => err
   | L(xs) =>
@@ -340,20 +340,19 @@ let fromSExpression = (tokens: Token.t): result(t, string) => {
   };
 };
 
-let parse = (raw: string): result(array(t), Parser.error) => {
-  let results =
-    Emacs.Parser.SExpression.parseFile(raw)
-    |> Array.map(Result.flatMap(fromSExpression));
-  let errors =
-    results
-    |> Array.filterMap(
-         fun
-         | Ok(_) => None
-         | Error(e) => Some(e),
-       );
-  if (Array.length(errors) > 0) {
-    Error(Parser.Response(errors));
-  } else {
-    Ok(results |> Array.filterMap(Option.fromResult));
-  };
-};
+// let parse = (raw: Token.t): result(array(t), Parser.error) => {
+//   // let results =
+//   //   Token.parseFile(raw) |> Array.map(Result.flatMap(fromSExpression));
+//   let errors =
+//     results
+//     |> Array.filterMap(
+//          fun
+//          | Ok(_) => None
+//          | Error(e) => Some(e),
+//        );
+//   if (Array.length(errors) > 0) {
+//     Error(Parser.ResponseError(errors));
+//   } else {
+//     Ok(results |> Array.filterMap(Option.fromResult));
+//   };
+// };

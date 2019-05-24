@@ -88,14 +88,15 @@ It's probably because Agda's not happy about the arguments you fed her
 };
 
 type response =
-  | Data(string)
+  | Error(Parser.Error.t)
+  | Data(Response.t)
   | End;
 
 type t = {
   metadata,
   process: N.ChildProcess.t,
   mutable queue: array(Event.t(response, Error.connection)),
-  errorEmitter: Event.t(string, unit),
+  errorEmitter: Event.t(Response.t, unit),
   mutable connected: bool,
 };
 
@@ -284,31 +285,54 @@ let wire = (self): t => {
     | None =>
       switch (res) {
       | Data(data) => self.errorEmitter |> Event.emitOk(data)
-      | End => ()
+      | _ => ()
       }
     | Some(req) =>
       req |> Event.emitOk(res);
       switch (res) {
       | Data(_) => ()
+      | Error(_) => ()
       | End => self.queue |> Js.Array.pop |> Option.forEach(Event.destroy)
       };
     };
   };
+  let continuation = ref(None);
 
   /* listens to the "data" event on the stdout */
   let onData = chunk => {
     let string = chunk |> Node.Buffer.toString;
-    /* string either ends with "\n" or "Agda2> " */
+    /* either ends with "\n" or "Agda2> " */
     let endOfResponse = string |> String.endsWith("Agda2> ");
-    if (endOfResponse) {
-      let withoutSuffix =
+    // without "\n" or "Agda2> "
+    let trimmed =
+      if (endOfResponse) {
         Js.String.substring(~from=0, ~to_=String.length(string) - 7, string);
-      response(Data(withoutSuffix));
+      } else {
+        let length = String.length(string) - 1;
+        string |> String.sub(~from=0, ~length);
+      };
+    //
+    trimmed
+    |> Parser.splitAndTrim
+    |> Array.forEach(line => {
+         // get the parsing continuation or initialize a new one
+         let continue =
+           continuation^ |> Option.getOr(Parser.SExpression.incrParse);
+         // continue parsing with the given continuation
+         switch (continue(line)) {
+         | Error(err) => response(Error(Parser.Error.SExpression(err)))
+         | Continue(parse) => continuation := Some(parse)
+         | Done(result) =>
+           switch (Response.parse(result)) {
+           | Error(err) => response(Error(err))
+           | Ok(result) => response(Data(result))
+           };
+           continuation := None;
+         };
+       });
+
+    if (endOfResponse) {
       response(End);
-    } else {
-      let length = String.length(string) - 1;
-      let withoutNewline = string |> String.sub(~from=0, ~length);
-      response(Data(withoutNewline));
     };
   };
 

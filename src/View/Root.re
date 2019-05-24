@@ -1,9 +1,10 @@
-open ReasonReact;
-/* open Rebase; */
+open ReactUpdate;
 
 open Type.View;
 
 module Event = Event;
+
+external unsafeCast: (Mouse.event => unit) => string = "%identity";
 
 /************************************************************************************************************/
 
@@ -23,42 +24,18 @@ let createBottomPanel = (): Webapi.Dom.Element.t => {
 };
 
 type state = {
-  header: Header.t,
-  body: Body.t,
-  maxHeight: int,
   mountAt,
   isActive: bool,
-  shouldDisplay: bool,
-  isPending: bool,
   settingsView: option(Tab.t),
-  connection: option(Connection.t),
-  connectionError: option(Connection.Error.t),
-  mode,
 };
 
-let initialState = () => {
-  {
-    header: {
-      text: "",
-      style: PlainText,
-    },
-    body: Nothing,
-    maxHeight: 170,
-    mountAt: Bottom(createBottomPanel()),
-    isActive: false,
-    shouldDisplay: false,
-    isPending: false,
-    settingsView: None,
-    connection: None,
-    connectionError: None,
-    mode: Display,
-  };
+let initialState = {
+  mountAt: Bottom(createBottomPanel()),
+  isActive: false,
+  settingsView: None,
 };
 
 type action =
-  | Focus(Editors.sort)
-  /* Query Editor related */
-  | SetQueryRef(Atom.TextEditor.t)
   /* Settings Tab related */
   | ToggleSettingsTab(bool)
   | UpdateSettingsView(option(Tab.t))
@@ -67,16 +44,8 @@ type action =
   | MountTo(mountTo)
   | ToggleDocking
   | Activate
-  | Deactivate
-  | UpdateIsLoadedOrIsTyping(bool)
-  | UpdateIsPending(bool)
-  /*  */
-  | UpdateConnection(option(Connection.t), option(Connection.Error.t))
-  | UpdateHeader(Header.t)
-  | UpdateBody(Body.t)
-  | UpdateMode(mode)
-  /*  */
-  | MouseEvent(mouseEvent);
+  | Deactivate;
+/*  */
 
 let mountPanel = (editors: Editors.t, mountTo, self) => {
   let createTab = () =>
@@ -84,14 +53,16 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
       ~editor=editors.source,
       ~getTitle=
         () => "[Agda Mode] " ++ Atom.TextEditor.getTitle(editors.source),
+      ~path="panel",
       ~onClose=_ => self.send(MountTo(ToBottom)),
       ~onOpen=
-        (_, _, previousItem) => {
+        (_, _, previousItem) =>
           /* activate the previous pane (which opened this pane item) */
-          let pane = Atom.Environment.Workspace.paneForItem(previousItem);
-          pane |> Atom.Pane.activate;
-          pane |> Atom.Pane.activateItem(previousItem);
-        },
+          Atom.Environment.Workspace.paneForItem(previousItem)
+          |> Rebase.Option.forEach(pane => {
+               pane |> Atom.Pane.activate;
+               pane |> Atom.Pane.activateItem(previousItem);
+             }),
       (),
     );
   switch (self.state.mountAt, mountTo) {
@@ -102,6 +73,7 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
     self.send(UpdateMountAt(Bottom(createBottomPanel())));
   | (Pane(_), ToPane) => ()
   };
+  None;
 };
 
 let mountSettings = (editors: Editors.t, handles, open_, self) => {
@@ -113,6 +85,7 @@ let mountSettings = (editors: Editors.t, handles, open_, self) => {
           ~editor=editors.source,
           ~getTitle=
             () => "[Settings] " ++ Atom.TextEditor.getTitle(editors.source),
+          ~path="settings",
           ~onOpen=
             (_, _, _) =>
               /* <Settings> is opened */
@@ -126,7 +99,8 @@ let mountSettings = (editors: Editors.t, handles, open_, self) => {
           (),
         );
       self.send(UpdateSettingsView(Some(tab)));
-    }
+    };
+    None;
   | Some(tab) =>
     if (open_) {
       /* <Settings> is opened */
@@ -136,7 +110,8 @@ let mountSettings = (editors: Editors.t, handles, open_, self) => {
       self.send(UpdateSettingsView(None));
       /* <Settings> is closed */
       handles.onSettingsView |> Event.emitOk(false);
-    }
+    };
+    None;
   };
 };
 
@@ -146,153 +121,146 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
     switch (state.mountAt) {
     | Bottom(_) => Update({...state, isActive: true})
     | Pane(tab) =>
-      UpdateWithSideEffects({...state, isActive: true}, _ => tab.activate())
+      UpdateWithSideEffects(
+        {...state, isActive: true},
+        _ => {
+          tab.activate();
+          None;
+        },
+      )
     }
   | Deactivate => Update({...state, isActive: false})
-  | UpdateIsLoadedOrIsTyping(shouldDisplay) =>
-    Update({...state, shouldDisplay})
-  | UpdateIsPending(isPending) => Update({...state, isPending})
-  | SetQueryRef(ref) =>
-    SideEffects(_self => editors.query |> MiniEditor.Model.setRef(ref))
-  | Focus(sort) => SideEffects(_self => editors |> Editors.Focus.on(sort))
   | MountTo(mountTo) => SideEffects(mountPanel(editors, mountTo))
   | ToggleDocking =>
     switch (state.mountAt) {
-    | Bottom(_) => SideEffects(self => self.send(MountTo(ToPane)))
-    | Pane(_) => SideEffects(self => self.send(MountTo(ToBottom)))
+    | Bottom(_) =>
+      SideEffects(
+        ({send}) => {
+          send(MountTo(ToPane));
+          None;
+        },
+      )
+    | Pane(_) =>
+      SideEffects(
+        ({send}) => {
+          send(MountTo(ToBottom));
+          None;
+        },
+      )
     }
-  /* UpdateWithSideEffects() */
   | ToggleSettingsTab(open_) =>
     SideEffects(mountSettings(editors, handles, open_))
   | UpdateSettingsView(settingsView) => Update({...state, settingsView})
   | UpdateMountAt(mountAt) => Update({...state, mountAt})
-  | UpdateConnection(connection, connectionError) =>
-    Update({...state, connection, connectionError})
-  | UpdateHeader(header) => Update({...state, header})
-  | UpdateBody(body) => Update({...state, body})
-  | UpdateMode(mode) => Update({...state, mode})
-
-  | MouseEvent(event) =>
-    SideEffects(_ => handles.onMouseEvent |> Event.emitOk(event))
   };
 };
 
-let component = reducerComponent("View");
+[@react.component]
+let make = (~editors: Editors.t, ~handles: View.handles) => {
+  let (state, send) =
+    ReactUpdate.useReducer(initialState, reducer(editors, handles));
+  let queryRef = React.useRef(None);
 
-let make = (~editors: Editors.t, ~handles: View.handles, _children) => {
-  ...component,
-  initialState,
-  reducer: reducer(editors, handles),
-  didMount: self => {
-    open Event;
+  let (debug, debugDispatch) =
+    React.useReducer(Debug.reducer, Debug.initialState);
 
-    /* activate/deactivate <Panel> */
-    handles.activatePanel
-    |> onOk(activate => self.send(activate ? Activate : Deactivate))
-    |> destroyWhen(self.onUnmount);
+  let (header, setHeader) =
+    Hook.useState({Header.text: "", style: PlainText});
+  let (body, setBody) = Hook.useState(Body.Nothing);
+  let (mode, setMode) = Hook.useState(Display);
+  let (shouldDisplay, setShouldDisplay) = Hook.useState(false);
+  let (isPending, setIsPending) = Hook.useState(false);
+  let ((connection, connectionError), setConnectionAndError) =
+    Hook.useState((None, None));
 
-    /* display mode! */
-    handles.display
-    |> onOk(((header, body)) => {
-         self.send(Activate);
-         self.send(UpdateMode(Display));
-         self.send(UpdateHeader(header));
-         self.send(UpdateBody(body));
-       })
-    |> destroyWhen(self.onUnmount);
+  React.useEffect1(
+    () => {
+      editors.query = React.Ref.current(queryRef);
+      None;
+    },
+    [||],
+  );
 
-    /* inquire mode! */
-    handles.inquire
-    |> onOk(((header, placeholder, value)) => {
-         self.send(Activate);
-         self.send(UpdateMode(Inquire));
-         self.send(Focus(Query));
-         self.send(UpdateHeader(header));
-         /* pass it on */
-         handles.inquireQuery |> emitOk((placeholder, value));
-       })
-    |> destroyWhen(self.onUnmount);
+  /* activate/deactivate <Panel> */
+  Hook.useEventListener(
+    activate => send(activate ? Activate : Deactivate),
+    handles.activatePanel,
+  );
 
-    /* toggle docking */
-    handles.toggleDocking
-    |> onOk(() => self.send(ToggleDocking))
-    |> destroyWhen(self.onUnmount);
+  /* display mode! */
+  Hook.useEventListener(
+    ((header, body)) => {
+      setMode(Display);
+      setHeader(header);
+      setBody(body);
+    },
+    handles.display,
+  );
+  /* inquire mode! */
+  Hook.useEventListener(
+    ((header, placeholder, value)) => {
+      send(Activate);
+      setMode(Inquire);
+      editors |> Editors.Focus.on(Query);
+      setHeader(header);
+      /* pass it on */
+      handles.inquireQuery |> Event.emitOk((placeholder, value));
+    },
+    handles.inquire,
+  );
+  /* toggle docking */
+  Hook.useEventListener(() => send(ToggleDocking), handles.toggleDocking);
+  /* toggle pending spinner */
+  Hook.useEventListener(setIsPending, handles.updateIsPending);
+  /* toggle state of shouldDisplay */
+  Hook.useEventListener(setShouldDisplay, handles.updateShouldDisplay);
+  Hook.useEventListener(
+    _ => {
+      setMode(Display);
+      editors |> Editors.Focus.on(Source);
+    },
+    handles.onInquireQuery,
+  );
+  /* destroy everything */
+  Hook.useEventListener(_ => Js.log("destroy!"), handles.destroy);
 
-    /* toggle pending spinner */
-    handles.updateIsPending
-    |> onOk(isPending => self.send(UpdateIsPending(isPending)))
-    |> destroyWhen(self.onUnmount);
+  /* opening/closing <Settings> */
+  Hook.useEventListener(
+    activate => send(ToggleSettingsTab(activate)),
+    handles.activateSettingsView,
+  );
+  Hook.useEventListener(setConnectionAndError, handles.updateConnection);
 
-    /* toggle state of shouldDisplay */
-    handles.updateShouldDisplay
-    |> onOk(shouldDisplay =>
-         self.send(UpdateIsLoadedOrIsTyping(shouldDisplay))
-       )
-    |> destroyWhen(self.onUnmount);
+  let {mountAt, isActive, settingsView} = state;
 
-    handles.onInquireQuery
-    |> on(_ => {
-         self.send(UpdateMode(Display));
-         self.send(Focus(Source));
-       })
-    |> destroyWhen(self.onUnmount);
+  let {
+    View.interceptAndInsertKey,
+    activateInputMethod,
+    inquireConnection,
+    onInquireConnection,
+    navigateSettingsView,
+  } = handles;
+  let panelElement: Webapi.Dom.Element.t =
+    switch (mountAt) {
+    | Bottom(element) => element
+    | Pane(tab) => tab.element
+    };
+  let settingsElement: option(Webapi.Dom.Element.t) =
+    switch (settingsView) {
+    | None => None
+    | Some(tab) => Some(tab.element)
+    };
+  let hidden =
+    switch (mountAt) {
+    // only show the view when it's loaded and active
+    | Bottom(_) => !(isActive && shouldDisplay)
+    | Pane(_) => false
+    };
 
-    /* destroy everything */
-    handles.destroy
-    |> onOk(_ => Js.log("destroy!"))
-    |> destroyWhen(self.onUnmount);
-
-    /* opening/closing <Settings> */
-    handles.activateSettingsView
-    |> onOk(activate => self.send(ToggleSettingsTab(activate)))
-    |> destroyWhen(self.onUnmount);
-
-    handles.updateConnection
-    |> onOk(((connection, error)) =>
-         self.send(UpdateConnection(connection, error))
-       )
-    |> destroyWhen(self.onUnmount);
-  },
-  render: self => {
-    let {
-      header,
-      body,
-      mountAt,
-      mode,
-      isActive,
-      shouldDisplay,
-      isPending,
-      settingsView,
-      connection,
-      connectionError,
-    } =
-      self.state;
-    open View;
-    let {
-      interceptAndInsertKey,
-      activateInputMethod,
-      inquireConnection,
-      onInquireConnection,
-      navigateSettingsView,
-    } = handles;
-    let panelElement: Webapi.Dom.Element.t =
-      switch (mountAt) {
-      | Bottom(element) => element
-      | Pane(tab) => tab.element
-      };
-    let settingsElement: option(Webapi.Dom.Element.t) =
-      switch (settingsView) {
-      | None => None
-      | Some(tab) => Some(tab.element)
-      };
-    let hidden =
-      switch (mountAt) {
-      // only show the view when it's loaded and active
-      | Bottom(_) => !(isActive && shouldDisplay)
-      | Pane(_) => false
-      };
-    <>
-      <MouseEmitter.Provider value={ev => self.send(MouseEvent(ev))}>
+  <>
+    <Mouse.Provider
+      value={event => handles.onMouseEvent |> Event.emitOk(event)}>
+      <Debug.Provider value=debugDispatch>
         <Panel
           editors
           element=panelElement
@@ -300,33 +268,34 @@ let make = (~editors: Editors.t, ~handles: View.handles, _children) => {
           body
           mountAt
           hidden
-          onMountAtChange={mountTo => self.send(MountTo(mountTo))}
+          onMountAtChange={mountTo => send(MountTo(mountTo))}
           mode
           onInquireQuery={handles.onInquireQuery}
           isPending
           isActive
           /* editors */
-          onEditorRef={ref => self.send(SetQueryRef(ref))}
-          editorValue={editors.query.value}
-          editorPlaceholder={editors.query.placeholder}
+          onEditorRef={ref => React.Ref.setCurrent(queryRef, Some(ref))}
+          editorValue=""
+          // {editors.query.value}
+          // {editors.query.placeholder}
+          editorPlaceholder=""
           interceptAndInsertKey
           activateInputMethod
           settingsView
-          onSettingsViewToggle={status =>
-            self.send(ToggleSettingsTab(status))
-          }
+          onSettingsViewToggle={status => send(ToggleSettingsTab(status))}
         />
         <Settings
           inquireConnection
           onInquireConnection
           connection
           connectionError
+          debug
           element=settingsElement
           navigate=navigateSettingsView
         />
-      </MouseEmitter.Provider>
-    </>;
-  },
+      </Debug.Provider>
+    </Mouse.Provider>
+  </>;
 };
 
 let initialize = editors => {
@@ -334,7 +303,14 @@ let initialize = editors => {
   let element = document |> Document.createElement("article");
   let handles = View.makeHandles();
   let view = View.make(handles);
-  let component = ReasonReact.element(make(~editors, ~handles, [||]));
+
+  let component =
+    React.createElementVariadic(
+      make,
+      makeProps(~editors, ~handles, ()),
+      [||],
+    );
+
   ReactDOMRe.render(component, element);
   /* return the handles for drilling */
   view;

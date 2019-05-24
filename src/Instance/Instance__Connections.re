@@ -79,13 +79,7 @@ let connectWithAgdaPath =
   };
   let handleUnboundError = (instance, connection): Connection.t => {
     Connection.(connection.errorEmitter)
-    |> Event.onOk(responses =>
-         responses
-         |> lift(Response.parse)
-         |> mapError(e => Instance__Type.ParseError(e))
-         |> thenOk(instance.handleResponses(instance))
-         |> ignore
-       )
+    |> Event.onOk(res => instance.handleResponse(instance, res) |> ignore)
     |> ignore;
     connection;
   };

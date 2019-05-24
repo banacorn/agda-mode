@@ -154,7 +154,7 @@
         display: flex;
         flex-flow: column;
 
-        font-size: @font-size;
+        // font-size: @font-size;
         // background: @base-background-color;
 
         @breadcrumbHeight: calc(@component-line-height + @component-padding * 2);
@@ -205,6 +205,20 @@
             padding: @component-padding (@component-padding * 2);
 
             #connection-status {
+                float: right;
+            }
+        }
+
+        .agda-settings-placeholder {
+            padding: @component-padding (@component-padding * 2);
+
+        }
+
+        .agda-settings-debug {
+            padding: @component-padding (@component-padding * 2);
+            p {font-size: 120%;}
+
+            #input-method-activation {
                 float: right;
             }
         }

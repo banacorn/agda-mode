@@ -4,8 +4,6 @@ For people who don't wanna use Emacs for whatever reasons.
 
 **Feel free to open issues!!!!**
 
-Update: This repo is under the transition from TypeScript to Reasonml, see branch [ocaml](https://github.com/banacorn/agda-mode/tree/ocaml) for updates.
-
 ## Requirements
 
 * Binaries: [agda](https://agda.readthedocs.io/en/latest/getting-started/installation.html)
@@ -33,12 +31,15 @@ Extra perk: with *language-agda* installed, commands such as `input-symbol`, `go
 
 ### Enable Scroll Past End
 
-Go to `Settings > Editor > Scroll Past End` and enable it to allow the editor to be scrolled past the end of the last line. The reason is that the height of the "panel" at the bottom is constantly changing, and it would be annoying if the editor jumps up and down with the panel.
+Go to `Settings > Editor > Scroll Past End` and enable it to allow the editor to
+be scrolled past the end of the last line. The reason is that the height of the "panel" at the bottom is constantly changing, and it's pretty annoying to have
+the editor jumping up and down with the panel.
 
 ## Commands
 
 * <kbd>C-c</kbd> stands for "press <kbd>Ctrl</kbd> and <kbd>c</kbd> at the same time"
-* When it comes to combos like <kbd>C-c</kbd> <kbd>C-l</kbd>, you can often slur them into "hold <kbd>Ctrl</kbd> while pressing <kbd>c</kbd> and then <kbd>l</kbd>"
+* When it comes to combos like <kbd>C-c</kbd> <kbd>C-l</kbd>, you can often slur
+them into "hold <kbd>Ctrl</kbd> while pressing <kbd>c</kbd> and then <kbd>l</kbd>"
 
 This is an (not so) exhaustive list of available commands:
 
@@ -96,7 +97,7 @@ The key mapping of symbols are the same as in Emacs. For example: `\bN` for `ℕ
 | Keymap                                     | Command                            |
 |-------------------------------------------:|:-----------------------------------|
 | <kbd>\\</kbd> or <kbd>alt-/</kbd>          | input symbol                       |
-| <kbd>C-u</kbd> <kbd>C-x</kbd> <kbd>=</kbd> | lookup the key mapping of a symbol |
+| <kbd>C-u</kbd> <kbd>C-x</kbd> <kbd>C-=</kbd> | lookup the key mapping of a symbol |
 
 ## How specify options to Agda
 
@@ -104,32 +105,6 @@ Go to `Settings > Packages > agda-mode`, put the options after the path of Agda 
 
 ![image](https://i.imgur.com/SwKSWXZ.png)
 
-## How to contribute
+## Contribute
 
-### Environment Setup
-
-1. clone the repo and load it as a development package
-2. open the repo in the development mode
-3. install dependencies
-4. checkout to the `dev` branch. The `master` branch is for stable releases.
-```
-apm develop agda-mode
-atom -d ~/github/agda-mode
-cd ~/github/agda-mode
-npm install
-git checkout dev
-```
-
-The project is written in TypeScript so you would probably need these:
-```
-npm install -g typescript@2.9.2
-```
-
-To keep the TypeScript transpiler running while developing:
-
-```
-tsc --watch
-```
-
-
-![This gif looks cute so i'm keeping it](https://f.cloud.github.com/assets/69169/2290250/c35d867a-a017-11e3-86be-cd7c5bf3ff9b.gif)
+See [HACKING](HACKING.md)

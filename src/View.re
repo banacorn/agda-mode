@@ -26,7 +26,7 @@ type handles = {
   activateInputMethod: Event.t(bool, unit),
   interceptAndInsertKey: Event.t(string, unit),
   /* Mouse Events */
-  onMouseEvent: Event.t(mouseEvent, unit),
+  onMouseEvent: Event.t(Mouse.event, unit),
 };
 
 /* creates all refs and return them */
@@ -95,9 +95,9 @@ type t = {
   display: (string, Type.View.Header.style, Body.t) => unit,
   inquire: (string, string, string) => Async.t(string, MiniEditor.error),
   updateIsPending: bool => unit,
-  onMouseEvent: Event.t(mouseEvent, unit),
+  onMouseEvent: Event.t(Mouse.event, unit),
   // <InputMethod> related
-  activateInputMethod: unit => unit,
+  activateInputMethod: bool => unit,
   interceptAndInsertKey: string => unit,
   // <Settings> related
   navigateSettings: Settings__Breadcrumb.uri => unit,
@@ -144,7 +144,8 @@ let make = (handles: handles) => {
   };
   let onMouseEvent = handles.onMouseEvent;
 
-  let activateInputMethod = () => handles.activateInputMethod |> emitOk(true);
+  let activateInputMethod = activate =>
+    handles.activateInputMethod |> emitOk(activate);
   let interceptAndInsertKey = symbol =>
     handles.interceptAndInsertKey |> emitOk(symbol);
 

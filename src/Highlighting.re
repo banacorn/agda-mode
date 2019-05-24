@@ -5,7 +5,7 @@ type removeTokenBasedHighlighting =
   | Keep;
 
 type filepath = string;
-module Token = Emacs.Parser.SExpression;
+module Token = Parser.SExpression;
 
 module Annotation = {
   open Token;

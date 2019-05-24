@@ -5,7 +5,7 @@
 {
   "name": "agda-mode",
   "reason": {
-    "react-jsx": 2
+    "react-jsx": 3
   },
   "sources": {
     "dir" : "src",
@@ -22,7 +22,8 @@
     "@glennsl/bs-json",
     "@glennsl/rebase",
     "atom",
-    "bs-webapi"
+    "bs-webapi",
+    "reason-react-update"
   ],
   "bsc-flags": ["-bs-g"]  ,
   "refmt": 3

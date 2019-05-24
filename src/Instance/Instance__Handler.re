@@ -12,25 +12,21 @@ open TextEditors;
 
 let handleCommandError = instance =>
   thenError((error: error) => {
-    let _ =
+    (
       switch (error) {
-      | ParseError(Response(errors)) =>
+      | ParseError(errors) =>
         let intro =
           string_of_int(Array.length(errors))
           ++ " errors arisen when trying to parse the following text responses from agda:\n\n";
-        let message = errors |> List.fromArray |> String.joinWith("\n\n");
+        let message =
+          errors
+          |> Array.map(Parser.Error.toString)
+          |> List.fromArray
+          |> String.joinWith("\n\n");
         instance.view.display(
           "Parse Error",
           Type.View.Header.Error,
           Emacs(PlainText(intro ++ message)),
-        );
-      | ParseError(Others(error)) =>
-        let message = "when trying to parse the following text:\n" ++ error;
-
-        instance.view.display(
-          "Parse Error",
-          Type.View.Header.Error,
-          Emacs(PlainText(message)),
         );
       | ConnectionError(error) =>
         let (header, body) = Connection.Error.toString(error);
@@ -57,7 +53,10 @@ let handleCommandError = instance =>
           Type.View.Header.Error,
           Emacs(PlainText("Please place the cursor in a goal")),
         )
-      };
+      }
+    )
+    |> ignore;
+    instance.editors |> Editors.Focus.on(Editors.Source);
     resolve();
   });
 
@@ -141,7 +140,7 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
     | None => reject(OutOfGoal)
     };
   | DisplayInfo(info) =>
-    instance.view.activate();
+    // instance.view.activate();
     let (text, style, body) = Response.Info.handle(info);
     instance.view.display(text, style, body);
     resolve();
@@ -190,14 +189,30 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
          (promise, solution) =>
            promise |> thenOk(() => solve(solution) |> thenOk(() => resolve())),
          resolve(),
-       );
+       )
+    |> thenOk(() => {
+         let size = Array.length(solutions);
+         if (size == 0) {
+           instance.view.display(
+             "No solutions found",
+             Type.View.Header.PlainText,
+             Emacs(PlainText("")),
+           );
+         } else {
+           instance.view.display(
+             string_of_int(size) ++ " goals solved",
+             Type.View.Header.Success,
+             Emacs(PlainText("")),
+           );
+         };
+         resolve();
+       });
   };
 };
 
-let handleResponses = (instance, responses) =>
+let handleResponseAndRecoverCursor = (instance, response) =>
   instance
-  |> recoverCursor(() => responses |> Array.map(handleResponse(instance)))
-  |> all
+  |> recoverCursor(() => handleResponse(instance, response))
   |> mapOk(_ => ());
 
 /* Primitive Command => Remote Command */
@@ -206,15 +221,21 @@ let rec handleLocalCommand =
         : Async.t(option(Command.Remote.t), error) => {
   let buff = (command, instance) => {
     Connections.get(instance)
-    |> mapOk(connection =>
+    |> mapOk(connection => {
+         instance.view.display(
+           "Loading ...",
+           Type.View.Header.PlainText,
+           Emacs(PlainText("")),
+         );
+
          Some(
            {
              connection,
              filepath: instance.editors.source |> Atom.TextEditor.getPath,
              command,
            }: Command.Remote.t,
-         )
-       )
+         );
+       })
     |> mapError(_ => Cancelled);
   };
   switch (command) {
@@ -226,9 +247,10 @@ let rec handleLocalCommand =
     |> mapError(_ => Cancelled)
     |> thenOk(() => {
          instance.isLoaded = true;
+         instance.view.activate();
          instance.view.updateShouldDisplay(true);
          instance.view.display(
-           "Loading ...",
+           "Connecting ...",
            Type.View.Header.PlainText,
            Emacs(PlainText("")),
          )
@@ -479,13 +501,14 @@ let rec handleLocalCommand =
       switch (symbol) {
       | Ordinary =>
         instance.view.activate();
-        instance.view.activateInputMethod();
+        instance.view.activateInputMethod(true);
       | CurlyBracket => instance.view.interceptAndInsertKey("{")
       | Bracket => instance.view.interceptAndInsertKey("[")
       | Parenthesis => instance.view.interceptAndInsertKey("(")
       | DoubleQuote => instance.view.interceptAndInsertKey("\"")
       | SingleQuote => instance.view.interceptAndInsertKey("'")
       | BackQuote => instance.view.interceptAndInsertKey("`")
+      | Abort => instance.view.activateInputMethod(false)
       };
       ();
     } else {
@@ -495,6 +518,41 @@ let rec handleLocalCommand =
       |> ignore;
     };
     resolve(None);
+
+  | QuerySymbol =>
+    let selected = instance.editors |> Editors.getSelectedSymbol;
+    let getSymbol =
+      if (String.isEmpty(String.trim(selected))) {
+        instance.view.updateShouldDisplay(true);
+        instance.view.activate();
+        instance.view.inquire(
+          "Lookup Unicode Symbol Input Sequence",
+          "symbol to lookup:",
+          "",
+        );
+      } else {
+        resolve(selected);
+      };
+
+    getSymbol
+    |> finalOk(symbol =>
+         symbol
+         |> Translator.lookup
+         |> Option.forEach(sequences =>
+              instance.view.display(
+                "Input sequence for " ++ symbol,
+                Type.View.Header.PlainText,
+                Emacs(
+                  PlainText(
+                    sequences |> List.fromArray |> String.joinWith("\n"),
+                  ),
+                ),
+              )
+            )
+       )
+    |> ignore;
+    resolve(None);
+
   | Jump(Type.Location.Range.HoleLink(index)) =>
     let positions = instance |> Goals.getPositions;
 
@@ -581,7 +639,6 @@ let rec handleLocalCommand =
            instance |> handleLocalCommand(Command.Primitive.GotoDefinition)
          );
     }
-  | _ => instance |> buff(Load)
   };
 };
 
@@ -591,29 +648,23 @@ let handleRemoteCommand = (instance, remote) =>
   | None => resolve()
   | Some(cmd) =>
     let handleResults = ref([||]);
-    let parseErrors = ref([||]);
+    let parseErrors: ref(array(Parser.Error.t)) = ref([||]);
     /* send the serialized command */
     let serialized = Command.Remote.serialize(cmd);
 
     let onResponse = (resolve', reject') => (
       fun
-      | Ok(Connection.Data(data)) =>
-        switch (Response.parse(data)) {
-        | Ok(responses) =>
-          let results =
+      | Ok(Connection.Data(response)) => {
+          let result =
             instance
-            |> recoverCursor(() =>
-                 Array.map(handleResponse(instance), responses)
-               );
-          handleResults := Array.concat(results, handleResults^);
-        | Error(Response(errors)) =>
-          parseErrors := Array.concat(errors, parseErrors^)
-        | Error(Others(error)) =>
-          parseErrors := Array.concat([|error|], parseErrors^)
+            |> recoverCursor(() => handleResponse(instance, response));
+          handleResults := Array.concat([|result|], handleResults^);
         }
+      | Ok(Connection.Error(error)) =>
+        parseErrors := Array.concat([|error|], parseErrors^)
       | Ok(Connection.End) =>
         if (Array.length(parseErrors^) > 0) {
-          reject'(ParseError(Parser.Response(parseErrors^))) |> ignore;
+          reject'(ParseError(parseErrors^)) |> ignore;
         } else {
           handleResults^ |> all |> mapOk(_ => resolve'()) |> ignore;
         }
@@ -633,7 +684,9 @@ let handleRemoteCommand = (instance, remote) =>
 let dispatch = (command, instance): Async.t(unit, error) => {
   instance
   |> handleLocalCommand(command)
+  |> pass(_ => startCheckpoint(command, instance))
   |> pass(_ => instance.view.updateIsPending(true))
   |> thenOk(handleRemoteCommand(instance))
+  |> pass(_ => endCheckpoint(instance))
   |> pass(_ => instance.view.updateIsPending(false));
 };

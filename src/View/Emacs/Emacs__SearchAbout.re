@@ -1,3 +1,5 @@
+
+
 open ReasonReact;
 
 open Rebase;
@@ -19,17 +21,16 @@ let parse: string => (string, array(Output.t)) =
       |> Array.filterMap(x => x);
     (target, outputs);
   };
-let component = statelessComponent("EmacsSearchAbout");
 
-let make = (~body: string, _children) => {
-  ...component,
-  render: _self => {
-    let (target, outputs) = parse(body);
-    Array.length(outputs) === 0
-      ? <p> {string("There are no definitions about " ++ target)} </p>
-      : <>
-          <p> {string("Definitions about " ++ target ++ ":")} </p>
-          <ul> ...{outputs |> Array.map(value => <Output value />)} </ul>
-        </>;
-  },
+[@react.component]
+let make = (~body: string) => {
+  let (target, outputs) = parse(body);
+  Array.length(outputs) === 0
+    ? <p> {string("There are no definitions about " ++ target)} </p>
+    : <>
+        <p> {string("Definitions about " ++ target ++ ":")} </p>
+        {outputs
+         |> Array.map(value => <Output value />)
+         |> Util.React.manyIn("ul")}
+      </>;
 };
