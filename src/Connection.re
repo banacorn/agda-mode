@@ -300,16 +300,16 @@ let wire = (self): t => {
 
   /* listens to the "data" event on the stdout */
   let onData = chunk => {
+    // serialize the binary chunk into string
     let string = chunk |> Node.Buffer.toString;
-    /* either ends with "\n" or "Agda2> " */
+    // we consider the chunk ended with if ends with "Agda2> "
     let endOfResponse = string |> String.endsWith("Agda2> ");
-    // without "\n" or "Agda2> "
+    /* remove the trailing "Agda2> " */
     let trimmed =
       if (endOfResponse) {
         Js.String.substring(~from=0, ~to_=String.length(string) - 7, string);
       } else {
-        let length = String.length(string) - 1;
-        string |> String.sub(~from=0, ~length);
+        string;
       };
     //
     trimmed

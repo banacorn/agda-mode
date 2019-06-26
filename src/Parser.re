@@ -217,7 +217,6 @@ module SExpression = {
         word := word^ ++ char;
       };
     };
-
     switch (Array.length(stack)) {
     | 0 => Error(string)
     | 1 =>
@@ -268,18 +267,4 @@ module SExpression = {
     | None => Ok(results^)
     };
   };
-  //
-  // let parseFile = (content: string): array(result(t, string)) => {
-  //   content
-  //   |> Util.safeSplitByRe([%re "/\\r\\n|\\n/"])
-  //   |> Array.map(result =>
-  //        switch (result) {
-  //        | None => None
-  //        | Some("") => None
-  //        | Some(chunk) => Some(chunk)
-  //        }
-  //      )
-  //   |> Array.filterMap(x => x)
-  //   |> Array.map(line => line |> Js.String.trim |> parse);
-  // };
 };
