@@ -1,3 +1,6 @@
+## 0.9.1
+* Fix #100 and #101
+
 ## 0.9.0
 * Scrap all TypeScript/JavaScript code
 * Rewrite everything with Reasonml/OCaml
