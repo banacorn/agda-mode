@@ -183,12 +183,6 @@ module Remote = {
   /* serializes Buffed Command into strings that can be sent to Agda */
   let serialize = self => {
     let {filepath, command, connection} = self;
-    let onWindows = N.OS.type_() == "Windows_NT";
-    let filepath = if (onWindows) {
-      Js.String.replaceByRe([%re "/\\\\/g"], "/", filepath);
-    } else {
-      filepath;
-    };
     let libraryPath: string = {
       let path = Atom.Environment.Config.get("agda-mode.libraryPath");
       path |> Js.Array.unshift(".") |> ignore;

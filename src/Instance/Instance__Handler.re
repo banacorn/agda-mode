@@ -62,7 +62,7 @@ let handleCommandError = instance =>
 
 let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
   let textEditor = instance.editors.source;
-  let filePath = textEditor |> Atom.TextEditor.getPath;
+  let filePath = textEditor |> Atom.TextEditor.getPath |> Parser.filepath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
   switch (response) {
   | HighlightingInfoDirect(_remove, annotations) =>
@@ -231,7 +231,7 @@ let rec handleLocalCommand =
          Some(
            {
              connection,
-             filepath: instance.editors.source |> Atom.TextEditor.getPath,
+             filepath: instance.editors.source |> Atom.TextEditor.getPath |> Parser.filepath,
              command,
            }: Command.Remote.t,
          );

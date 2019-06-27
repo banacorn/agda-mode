@@ -36,7 +36,7 @@ module Instances = {
 
 /* if end with '.agda' or '.lagda' */
 let isAgdaFile = (textEditor): bool => {
-  let filepath = textEditor |> Atom.TextEditor.getPath;
+  let filepath = textEditor |> Atom.TextEditor.getPath |> Parser.filepath;
   /* filenames are case insensitive on Windows */
   let onWindows = N.OS.type_() == "Windows_NT";
   if (onWindows) {
