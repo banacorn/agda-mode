@@ -141,7 +141,7 @@ module SExpression = {
       let index = result^ |> Js.String.indexOf("(agda");
       Ok(
         result^
-        |> Js.String.substring(~from=index, ~to_=String.length(string) - 1),
+        |> Js.String.substring(~from=index, ~to_=String.length(result^) - 1),
       );
     } else {
       Ok(result^);
