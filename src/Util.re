@@ -277,7 +277,28 @@ module JsError = {
 [@bs.send.pipe: Js.String.t]
 external safeSplitByRe: Js_re.t => array(option(Js.String.t)) = "split";
 
-module Semver = {
-  [@bs.module "semver"] external gte: (string, string) => bool = "";
-  [@bs.module "semver"] external coerce: string => string = "";
+// module Semver = {
+//   [@bs.module "semver"] external gte: (string, string) => bool = "";
+//   [@bs.module "semver"] external coerce: string => string = "";
+// };
+
+module Version = {
+  type ordering =
+    | LT
+    | EQ
+    | GT;
+  [@bs.module]
+  external compareVersionsPrim: (string, string) => int = "compare-versions";
+  let compare = (a, b) =>
+    switch (compareVersionsPrim(a, b)) {
+    | (-1) => LT
+    | 0 => EQ
+    | _ => GT
+    };
+  let gte = (a, b) =>
+    switch (compare(a, b)) {
+    | EQ
+    | GT => true
+    | LT => false
+    };
 };
