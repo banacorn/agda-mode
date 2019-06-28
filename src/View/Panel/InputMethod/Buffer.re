@@ -7,6 +7,11 @@ type t = {
   tail: string,
 };
 
+// examples of Buffer.t:
+//    user typed: l       => { symbol: Some("←", "l"), tail: "" }
+//    user typed: lambd   => { symbol: Some("←", "lambd"), tail: "ambd" }
+//    user typed: lambda   => { symbol: Some("λ", "lambda"), tail: "" }
+
 let init = string =>
   Js.String.substring(~from=0, ~to_=String.length(string) - 1, string);
 
