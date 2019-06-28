@@ -1,3 +1,7 @@
+## 0.9.2
+* Merge PR from @marklemay 👏
+* Fix #98 and #102
+
 ## 0.9.1
 * Fix #100 and #101
 

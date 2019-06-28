@@ -26,20 +26,28 @@ You would also need to have Reason and BuckleScript installed:
 * [Installation](https://reasonml.github.io/docs/en/installation)
 * [Editor Plugins](https://reasonml.github.io/docs/en/editor-plugins)
 
+## `dev` and `master` branch
+
+The only difference between `dev` and `master` is the entry point of the package, specified in `./package.json`.
+* `master`: `./lib/js/bundled.js`.
+* `dev`: `./lib/js/src/AgdaMode.bs`.
+
+## Handy commands
+
 To have the BuckleScript transpiler running while developing:
 
 ```
 npm run start
 ```
 
-To build and bundle everything into one JS file:
+If the built artefacts are stale, to rebuild them, simple run `start` again:
+
+```
+npm run start
+```
+
+To build and bundle `./lib/js/bundled.js` (the entry file):
 
 ```
 npm run build
-```
-
-To clean the built artefacts:
-
-```
-npm run clean
 ```

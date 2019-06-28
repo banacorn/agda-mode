@@ -203,7 +203,7 @@ module Remote = {
       | None => {j|IOTCM "$(filepath)" None $(highlightingMethod) |j};
 
     let buildRange = goal =>
-      if (Util.Semver.gte(connection.metadata.version, "2.5.1")) {
+      if (Util.Version.gte(connection.metadata.version, "2.5.1")) {
         goal |> Goal.buildHaskellRange(false, filepath);
       } else {
         goal |> Goal.buildHaskellRange(true, filepath);
@@ -212,7 +212,7 @@ module Remote = {
     /* serialization */
     switch (command) {
     | Load =>
-      if (Util.Semver.gte(connection.metadata.version, "2.5.0")) {
+      if (Util.Version.gte(connection.metadata.version, "2.5.0")) {
         commonPart(NonInteractive) ++ {j|( Cmd_load "$(filepath)" [] )|j};
       } else {
         commonPart(NonInteractive)
@@ -223,7 +223,7 @@ module Remote = {
     | Compile =>
       let backend: string = Atom.Environment.Config.get("agda-mode.backend");
 
-      if (Util.Semver.gte(connection.metadata.version, "2.5.0")) {
+      if (Util.Version.gte(connection.metadata.version, "2.5.0")) {
         commonPart(NonInteractive)
         ++ {j|( Cmd_compile $(backend) "$(filepath)" [] )|j};
       } else {
@@ -291,7 +291,7 @@ module Remote = {
       let ignoreAbstract = ComputeMode.ignoreAbstract(computeMode);
       let content = Parser.userInput(expr);
 
-      if (Util.Semver.gte(connection.metadata.version, "2.5.2")) {
+      if (Util.Version.gte(connection.metadata.version, "2.5.2")) {
         commonPart(NonInteractive)
         ++ {j|( Cmd_compute $(computeMode') $(index) noRange "$(content)" )|j};
       } else {
@@ -304,7 +304,7 @@ module Remote = {
       let ignoreAbstract = ComputeMode.ignoreAbstract(computeMode);
       let content = Parser.userInput(expr);
 
-      if (Util.Semver.gte(connection.metadata.version, "2.5.2")) {
+      if (Util.Version.gte(connection.metadata.version, "2.5.2")) {
         commonPart(NonInteractive)
         ++ {j|( Cmd_compute_toplevel $(computeMode') "$(content)" )|j};
       } else {
@@ -318,7 +318,7 @@ module Remote = {
     | Give(goal, index) =>
       let content = Goal.getContent(goal);
       let range = buildRange(goal);
-      if (Util.Semver.gte(connection.metadata.version, "2.5.3")) {
+      if (Util.Version.gte(connection.metadata.version, "2.5.3")) {
         commonPart(NonInteractive)
         ++ {j|( Cmd_give WithoutForce $(index) $(range) "$(content)" )|j};
       } else {

@@ -184,7 +184,7 @@ let validateAndMake = (pathAndParams): Async.t(metadata, Error.validation) => {
         Ok({
           path,
           args,
-          version: Util.Semver.coerce(version),
+          version,
           protocol:
             Js.Re.test_([%re "/--interaction-json/"], message)
               ? EmacsAndJSON : EmacsOnly,

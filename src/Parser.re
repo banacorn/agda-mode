@@ -67,13 +67,21 @@ let userInput = s => {
 };
 
 let filepath = s => {
-  let s' = ref(s);
-  /* remove the Windows Bidi control character */
-  if (Js.String.charCodeAt(0, s) === 8234.0) {
-    s' := s'^ |> Js.String.sliceToEnd(~from=1);
+
+  // remove the Windows Bidi control character
+  let removedBidi = if (Js.String.charCodeAt(0, s) === 8234.0) {
+    s |> Js.String.sliceToEnd(~from=1);
+  } else {
+    s
   };
 
-  s'^ |> String.trim;
+  // normalize the path with Node.Path.normalize
+  let normalized = removedBidi |> Node.Path.normalize;
+
+  // replace Windows' stupid backslash with slash
+  let replaced =  normalized |> Js.String.replaceByRe([%re "/\\\\/g"], "/");
+
+  replaced;
 };
 
 let commandLine = s => {
@@ -141,7 +149,7 @@ module SExpression = {
       let index = result^ |> Js.String.indexOf("(agda");
       Ok(
         result^
-        |> Js.String.substring(~from=index, ~to_=String.length(string) - 1),
+        |> Js.String.substring(~from=index, ~to_=String.length(result^) - 1),
       );
     } else {
       Ok(result^);
