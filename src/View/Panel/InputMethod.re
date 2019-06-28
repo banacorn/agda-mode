@@ -16,6 +16,7 @@ let initialState = {activated: false, markers: [||], buffer: Buffer.initial};
 type action =
   | Activate
   | Deactivate
+  | Reactivate // Deactivate and then Activate
   | UpdateMarker(array(Atom.DisplayMarker.t))
   | MarkerEvent(string, string)
   | Insert(string)
@@ -183,13 +184,16 @@ let reducer = (editor, action, state) => {
       ? SideEffects(
           ({send}) => {
             // already activated, this happens when the 2nd backslash '\' kicks in
-
-            /* the user probably just want to type '\', so we leave it as is */
-            send(Insert("\\"));
-
-            /* deactivate or keep going, see issue #34: https://github.com/banacorn/agda-mode/issues/34 */
             if (Buffer.isEmpty(state.buffer)) {
+              // the user probably just want to type '\', so we leave it as is
+              send(Insert("\\"));
               send(Deactivate);
+            } else {
+              // Deactivate and then Activate, see #102: https://github.com/banacorn/agda-mode/issues/102
+              // allow users to type combos like ≡⟨⟩ with `\==\<\>`
+              send(
+                Reactivate,
+              );
             };
             None;
           },
@@ -198,6 +202,16 @@ let reducer = (editor, action, state) => {
   | Deactivate =>
     state.activated
       ? Update({...state, activated: false, buffer: Buffer.initial})
+      : NoUpdate
+  | Reactivate =>
+    state.activated
+      ? UpdateWithSideEffects(
+          {...state, activated: false, buffer: Buffer.initial},
+          ({send}) => {
+            send(Activate);
+            None;
+          },
+        )
       : NoUpdate
   | UpdateMarker(markers) => Update({...state, markers})
   | MarkerEvent(_oldBuffer, newBuffer) =>
