@@ -42,6 +42,27 @@ module Info = {
     | Context(string)
     | HelperFunction(string)
     | Version(string);
+  let toString =
+    fun
+    | CompilationOk => "CompilationOk"
+    | Constraints(None) => "Constraints"
+    | Constraints(Some(string)) => "Constraints " ++ string
+    | AllGoalsWarnings(warnings) =>
+      "AllGoalsWarnings " ++ Emacs.AllGoalsWarnings.toString(warnings)
+    | Time(string) => "Time " ++ string
+    | Error(string) => "Error " ++ string
+    | Intro(string) => "Intro " ++ string
+    | Auto(string) => "Auto " ++ string
+    | ModuleContents(string) => "ModuleContents " ++ string
+    | SearchAbout(string) => "SearchAbout " ++ string
+    | WhyInScope(string) => "WhyInScope " ++ string
+    | NormalForm(string) => "NormalForm " ++ string
+    | GoalType(string) => "GoalType " ++ string
+    | CurrentGoal(string) => "CurrentGoal " ++ string
+    | InferredType(string) => "InferredType " ++ string
+    | Context(string) => "Context " ++ string
+    | HelperFunction(string) => "HelperFunction " ++ string
+    | Version(string) => "Version " ++ string;
 
   let parse = (xs: array(Token.t)): option(t) => {
     switch (xs[1]) {
@@ -202,6 +223,59 @@ type t =
   | ClearHighlighting
   /* agda2-abort-done */
   | DoneAborting;
+
+let toString =
+  fun
+  | HighlightingInfoDirect(Remove, annotations) =>
+    "HighlightingInfoDirect Remove "
+    ++ (
+      annotations
+      |> Array.map(Highlighting.Annotation.toString)
+      |> Util.Pretty.array
+    )
+  | HighlightingInfoDirect(Keep, annotations) =>
+    "HighlightingInfoDirect Keep "
+    ++ (
+      annotations
+      |> Array.map(Highlighting.Annotation.toString)
+      |> Util.Pretty.array
+    )
+  | HighlightingInfoIndirect(filepath) =>
+    "HighlightingInfoIndirect " ++ filepath
+  | NoStatus => "NoStatus"
+  | Status(displayed, checked) =>
+    "Status: implicit arguments "
+    ++ (displayed ? "displayed, " : "not displayed, ")
+    ++ "module "
+    ++ (checked ? "type checked" : "not type checked")
+  | JumpToError(filepath, n) =>
+    "JumpToError " ++ filepath ++ " " ++ string_of_int(n)
+  | InteractionPoints(points) =>
+    "InteractionPoints "
+    ++ (points |> Array.map(string_of_int) |> Util.Pretty.array)
+  | GiveAction(index, Paren) =>
+    "GiveAction " ++ string_of_int(index) ++ " Paren"
+  | GiveAction(index, NoParen) =>
+    "GiveAction " ++ string_of_int(index) ++ " NoParen"
+  | GiveAction(index, String(string)) =>
+    "GiveAction " ++ string_of_int(index) ++ " String " ++ string
+  | MakeCase(Function, payload) =>
+    "MakeCase Function " ++ Util.Pretty.array(payload)
+  | MakeCase(ExtendedLambda, payload) =>
+    "MakeCase ExtendedLambda " ++ Util.Pretty.array(payload)
+  | SolveAll(solutions) =>
+    "SolveAll "
+    ++ (
+      solutions
+      |> Array.map(((i, s)) => string_of_int(i) ++ " " ++ s)
+      |> Util.Pretty.array
+    )
+  | DisplayInfo(info) => "DisplayInfo " ++ Info.toString(info)
+  | ClearRunningInfo => "ClearRunningInfo"
+  | RunningInfo(int, string) =>
+    "RunningInfo " ++ string_of_int(int) ++ " " ++ string
+  | ClearHighlighting => "ClearHighlighting"
+  | DoneAborting => "DoneAborting";
 
 let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
   let err = n => Error(Parser.Error.Response(n, tokens));

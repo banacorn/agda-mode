@@ -15,6 +15,19 @@ module Annotation = {
     types: array(string),
     source: option((filepath, int)),
   };
+  let toString = self =>
+    "Annotation "
+    ++ string_of_int(self.start)
+    ++ " "
+    ++ string_of_int(self.end_)
+    ++ " "
+    ++ Util.Pretty.list(List.fromArray(self.types))
+    ++ (
+      switch (self.source) {
+      | None => ""
+      | Some((s, i)) => s ++ " " ++ string_of_int(i)
+      }
+    );
   let parse: Token.t => option(t) =
     fun
     | A(_) => None

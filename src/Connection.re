@@ -96,7 +96,7 @@ module Log = {
   type t = {
     mutable rawText: array(string),
     mutable sexpression: array(Parser.SExpression.t),
-    mutable response: array(string),
+    mutable response: array(Response.t),
   };
 
   let empty = {rawText: [||], sexpression: [||], response: [||]};
@@ -359,7 +359,10 @@ let wire = (self): t => {
            self.log.sexpression |> Js.Array.push(result) |> ignore;
            switch (Response.parse(result)) {
            | Error(err) => response(Error(err))
-           | Ok(result) => response(Data(result))
+           | Ok(result) =>
+             // store the parsed response in the log
+             self.log.response |> Js.Array.push(result) |> ignore;
+             response(Data(result));
            };
            continuation := None;
          };

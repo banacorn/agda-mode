@@ -23,6 +23,13 @@ let make = (~connection: option(Connection.t), ~hidden) => {
        )
     |> Util.React.manyIn("ol");
 
+  let responseListItems =
+    log.response
+    |> Array.map(raw =>
+         <li> <pre> {string(Response.toString(raw))} </pre> </li>
+       )
+    |> Util.React.manyIn("ol");
+
   <section className>
     <h1>
       <span className="icon icon-comment-discussion" />
@@ -42,8 +49,7 @@ let make = (~connection: option(Connection.t), ~hidden) => {
     sexpressionListItems
     <hr />
     <h2> <span> {string("Responses")} </span> </h2>
-    <ol> <li> <pre> {string("Responses")} </pre> </li> </ol>
-    <ol> <li> <pre> {string("Responses")} </pre> </li> </ol>
+    responseListItems
   </section>;
   // <div className="block">
   //   <button className="btn" onClick={_ => ()}>
