@@ -243,12 +243,12 @@ let rec handleLocalCommand =
   };
   switch (command) {
   | Load =>
-    /* force save before load */
     instance.editors.source
-    |> Atom.TextEditor.save
+    |> Atom.TextEditor.save  // force save before load
     |> fromPromise
     |> mapError(_ => Cancelled)
     |> thenOk(() => {
+         instance.connection |> Connection.resetLog;
          instance.isLoaded = true;
          instance.view.activate();
          instance.view.updateShouldDisplay(true);

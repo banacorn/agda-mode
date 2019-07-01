@@ -107,8 +107,18 @@ type t = {
   process: N.ChildProcess.t,
   mutable queue: array(Event.t(response, Error.connection)),
   errorEmitter: Event.t(Response.t, unit),
-  log: Log.t,
+  mutable log: Log.t,
   mutable connected: bool,
+};
+
+let resetLog = self => {
+  switch (self) {
+  | None => ()
+  | Some(conn) =>
+    conn.log.rawText = [||];
+    conn.log.sexpression = [||];
+    conn.log.response = [||];
+  };
 };
 
 let disconnect = (error, self) => {
