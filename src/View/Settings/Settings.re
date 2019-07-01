@@ -34,14 +34,14 @@ let make =
             <li onClick={_ => setURI(URI.Connection)}>
               <span className="icon icon-plug"> {string("Connection")} </span>
             </li>
-            <li onClick={_ => setURI(URI.UnicodeInput)}>
-              <span className="icon icon-keyboard">
-                {string("Unicode Input")}
-              </span>
-            </li>
             <li onClick={_ => setURI(URI.Protocol)}>
               <span className="icon icon-comment-discussion">
                 {string("Protocol")}
+              </span>
+            </li>
+            <li onClick={_ => setURI(URI.UnicodeInput)}>
+              <span className="icon icon-keyboard">
+                {string("Unicode Input")}
               </span>
             </li>
             {inDevMode
@@ -59,9 +59,8 @@ let make =
             error=connectionError
             hidden={uri != URI.Connection}
           />
-          <Settings__Placeholder
-            hidden={uri != URI.UnicodeInput && uri != URI.Protocol}
-          />
+          <Settings__Protocol hidden={uri != URI.Protocol} />
+          <Settings__Placeholder hidden={uri != URI.UnicodeInput} />
           <Settings__Debug debug hidden={uri != URI.Debug} />
         </div>
       </section>,
