@@ -59,7 +59,7 @@ let make =
             error=connectionError
             hidden={uri != URI.Connection}
           />
-          <Settings__Protocol hidden={uri != URI.Protocol} />
+          <Settings__Protocol connection hidden={uri != URI.Protocol} />
           <Settings__Placeholder hidden={uri != URI.UnicodeInput} />
           <Settings__Debug debug hidden={uri != URI.Debug} />
         </div>

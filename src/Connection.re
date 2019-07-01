@@ -92,20 +92,34 @@ type response =
   | Data(Response.t)
   | End;
 
+module Log = {
+  type t = {
+    mutable rawText: array(string),
+    mutable sexpression: array(string),
+    mutable response: array(string),
+  };
+
+  let empty = {rawText: [||], sexpression: [||], response: [||]};
+};
+
 type t = {
   metadata,
   process: N.ChildProcess.t,
   mutable queue: array(Event.t(response, Error.connection)),
   errorEmitter: Event.t(Response.t, unit),
+  log: Log.t,
   mutable connected: bool,
 };
 
 let disconnect = (error, self) => {
+  self.process |> N.ChildProcess.kill("SIGTERM");
   self.queue |> Array.forEach(ev => ev |> Event.emitError(error));
   self.queue = [||];
   self.errorEmitter |> Event.removeAllListeners;
+  self.log.rawText = [||];
+  self.log.sexpression = [||];
+  self.log.response = [||];
   self.connected = false;
-  self.process |> N.ChildProcess.kill("SIGTERM");
 };
 
 /* a more sophiscated "make" */
@@ -250,6 +264,7 @@ let connect = (metadata): Async.t(t, Error.connection) => {
         connected: true,
         queue: [||],
         errorEmitter: Event.make(),
+        log: Log.empty,
       };
       /* Handles errors and anomalies */
       process
@@ -302,6 +317,7 @@ let wire = (self): t => {
   let onData = chunk => {
     // serialize the binary chunk into string
     let string = chunk |> Node.Buffer.toString;
+    self.log.rawText |> Js.Array.push(string) |> ignore;
     // we consider the chunk ended with if ends with "Agda2> "
     let endOfResponse = string |> String.endsWith("Agda2> ");
     /* remove the trailing "Agda2> " */
