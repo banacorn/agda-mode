@@ -173,12 +173,14 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   let ((connection, connectionError), setConnectionAndError) =
     Hook.useState((None, None));
 
+  // reset the element of editors.query  everytime <Panel> got remounted
+  // issue #104: https://github.com/banacorn/agda-mode/issues/104
   React.useEffect1(
     () => {
       editors.query = React.Ref.current(queryRef);
       None;
     },
-    [||],
+    [|state.mountAt|],
   );
 
   /* activate/deactivate <Panel> */

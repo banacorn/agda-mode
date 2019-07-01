@@ -231,7 +231,10 @@ let rec handleLocalCommand =
          Some(
            {
              connection,
-             filepath: instance.editors.source |> Atom.TextEditor.getPath |> Parser.filepath,
+             filepath:
+               instance.editors.source
+               |> Atom.TextEditor.getPath
+               |> Parser.filepath,
              command,
            }: Command.Remote.t,
          );
