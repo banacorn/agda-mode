@@ -95,7 +95,7 @@ type response =
 module Log = {
   type t = {
     mutable rawText: array(string),
-    mutable sexpression: array(string),
+    mutable sexpression: array(Parser.SExpression.t),
     mutable response: array(string),
   };
 
@@ -326,16 +326,21 @@ let wire = (self): t => {
   /* listens to the "data" event on the stdout */
   let onData = chunk => {
     // serialize the binary chunk into string
-    let string = chunk |> Node.Buffer.toString;
-    self.log.rawText |> Js.Array.push(string) |> ignore;
+    let rawText = chunk |> Node.Buffer.toString;
+    // store the raw text in the log
+    self.log.rawText |> Js.Array.push(rawText) |> ignore;
     // we consider the chunk ended with if ends with "Agda2> "
-    let endOfResponse = string |> String.endsWith("Agda2> ");
-    /* remove the trailing "Agda2> " */
+    let endOfResponse = rawText |> String.endsWith("Agda2> ");
+    // remove the trailing "Agda2> "
     let trimmed =
       if (endOfResponse) {
-        Js.String.substring(~from=0, ~to_=String.length(string) - 7, string);
+        Js.String.substring(
+          ~from=0,
+          ~to_=String.length(rawText) - 7,
+          rawText,
+        );
       } else {
-        string;
+        rawText;
       };
     //
     trimmed
@@ -350,6 +355,8 @@ let wire = (self): t => {
            response(Error(Parser.Error.SExpression(n, err)))
          | Continue(parse) => continuation := Some(parse)
          | Done(result) =>
+           // store the parsed s-expression in the log
+           self.log.sexpression |> Js.Array.push(result) |> ignore;
            switch (Response.parse(result)) {
            | Error(err) => response(Error(err))
            | Ok(result) => response(Data(result))

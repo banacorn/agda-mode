@@ -118,6 +118,7 @@ let splitAndTrim = string =>
 /* Courtesy of @NightRa */
 module SExpression = {
   type t = Parser__Type.SExpression.t;
+  let toString = Parser__Type.SExpression.toString;
   open! Parser__Type.SExpression;
   type state = {
     stack: array(ref(t)),
