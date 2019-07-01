@@ -1,13 +1,10 @@
 open ReasonReact;
-// open Rebase;
-
-// open Type.View.Debug;
 
 [@react.component]
 let make = (~connection: option(Connection.t), ~hidden) => {
   let className =
     Util.ClassName.(
-      ["agda-settings-protocol"] |> addWhen("hidden", hidden) |> serialize
+      ["agda-settings-log"] |> addWhen("hidden", hidden) |> serialize
     );
   let log =
     switch (connection) {
@@ -22,7 +19,7 @@ let make = (~connection: option(Connection.t), ~hidden) => {
   <section className>
     <h1>
       <span className="icon icon-comment-discussion" />
-      <span> {string("Protocol")} </span>
+      <span> {string("Log")} </span>
     </h1>
     <hr />
     <p>

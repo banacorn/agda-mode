@@ -3,9 +3,9 @@ open ReasonReact;
 type uri =
   | Root
   | Connection
+  | Log
   | UnicodeInput
-  | Debug
-  | Protocol;
+  | Debug;
 
 [@react.component]
 let make = (~uri: uri, ~onNavigate: uri => unit) =>
@@ -24,19 +24,19 @@ let make = (~uri: uri, ~onNavigate: uri => unit) =>
              <span className="icon icon-plug"> {string("Connection")} </span>
            </a>
          </li>
+       | Log =>
+         <li>
+           <a href="#">
+             <span className="icon icon-comment-discussion">
+               {string("Log")}
+             </span>
+           </a>
+         </li>
        | UnicodeInput =>
          <li>
            <a href="#">
              <span className="icon icon-keyboard">
                {string("Unicode Input")}
-             </span>
-           </a>
-         </li>
-       | Protocol =>
-         <li>
-           <a href="#">
-             <span className="icon icon-comment-discussion">
-               {string("Protocol")}
              </span>
            </a>
          </li>
