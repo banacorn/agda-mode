@@ -320,7 +320,8 @@ let wire = (self): t => {
            continuation^ |> Option.getOr(Parser.SExpression.incrParse);
          // continue parsing with the given continuation
          switch (continue(line)) {
-         | Error(err) => response(Error(Parser.Error.SExpression(err)))
+         | Error(n, err) =>
+           response(Error(Parser.Error.SExpression(n, err)))
          | Continue(parse) => continuation := Some(parse)
          | Done(result) =>
            switch (Response.parse(result)) {

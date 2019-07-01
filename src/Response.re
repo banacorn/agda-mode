@@ -204,9 +204,9 @@ type t =
   | DoneAborting;
 
 let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
-  let err = Error(Parser.Error.Response(tokens));
+  let err = n => Error(Parser.Error.Response(n, tokens));
   switch (tokens) {
-  | A(_) => err
+  | A(_) => err(0)
   | L(xs) =>
     switch (xs[0]) {
     | Some(A("agda2-highlight-add-annotations")) =>
@@ -216,12 +216,12 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
         Ok(HighlightingInfoDirect(Highlighting.Remove, annotations))
       | Some(A("nil")) =>
         Ok(HighlightingInfoDirect(Highlighting.Keep, annotations))
-      | _ => err
+      | _ => err(1)
       };
     | Some(A("agda2-highlight-load-and-delete-action")) =>
       switch (xs[1]) {
       | Some(A(filepath)) => Ok(HighlightingInfoIndirect(filepath))
-      | _ => err
+      | _ => err(2)
       }
     | Some(A("agda2-status-action")) =>
       switch (xs[1]) {
@@ -240,8 +240,8 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
       | Some(L([|A(filepath), _, A(index')|])) =>
         Parser.int(index')
         |> Option.flatMap(index => Some(JumpToError(filepath, index)))
-        |> Option.mapOr(x => Ok(x), err)
-      | _ => err
+        |> Option.mapOr(x => Ok(x), err(3))
+      | _ => err(4)
       }
     | Some(A("agda2-goals-action")) =>
       switch (xs[1]) {
@@ -251,7 +251,7 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
             xs |> Token.flatten |> Array.filterMap(Parser.int),
           ),
         )
-      | _ => err
+      | _ => err(5)
       }
     | Some(A("agda2-give-action")) =>
       switch (xs[1]) {
@@ -266,18 +266,18 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
              | _ => None
              }
            )
-        |> Option.mapOr(x => Ok(x), err)
-      | _ => err
+        |> Option.mapOr(x => Ok(x), err(6))
+      | _ => err(7)
       }
     | Some(A("agda2-make-case-action")) =>
       switch (xs[1]) {
       | Some(xs) => Ok(MakeCase(Function, Token.flatten(xs)))
-      | _ => err
+      | _ => err(8)
       }
     | Some(A("agda2-make-case-action-extendlam")) =>
       switch (xs[1]) {
       | Some(xs) => Ok(MakeCase(ExtendedLambda, Token.flatten(xs)))
-      | _ => err
+      | _ => err(9)
       }
     | Some(A("agda2-solveAll-action")) =>
       switch (xs[1]) {
@@ -306,7 +306,7 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
                solution;
              });
         Ok(SolveAll(solutions));
-      | _ => err
+      | _ => err(10)
       }
     | Some(A("agda2-info-action"))
     | Some(A("agda2-info-action-and-copy")) =>
@@ -318,24 +318,24 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
         | Some(A("t")) =>
           switch (xs[2]) {
           | Some(A(message)) => Ok(RunningInfo(1, message))
-          | _ => err
+          | _ => err(11)
           }
         | _ => Ok(ClearRunningInfo)
         }
       | _ =>
         switch (Info.parse(xs |> Js.Array.sliceFrom(1))) {
         | Some(info) => Ok(DisplayInfo(info))
-        | None => err
+        | None => err(12)
         }
       }
     | Some(A("agda2-verbose")) =>
       switch (xs[1]) {
       | Some(A(message)) => Ok(RunningInfo(2, message))
-      | _ => err
+      | _ => err(13)
       }
     | Some(A("agda2-highlight-clear")) => Ok(ClearHighlighting)
     | Some(A("agda2-abort-done")) => Ok(DoneAborting)
-    | _ => err
+    | _ => err(14)
     }
   };
 };

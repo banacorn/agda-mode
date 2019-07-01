@@ -17,7 +17,7 @@ let handleCommandError = instance =>
       | ParseError(errors) =>
         let intro =
           string_of_int(Array.length(errors))
-          ++ " errors arisen when trying to parse the following text responses from agda:\n\n";
+          ++ " error raised when trying to parse the following text responses from agda:\n\n";
         let message =
           errors
           |> Array.map(Parser.Error.toString)

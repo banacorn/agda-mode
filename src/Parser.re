@@ -3,13 +3,18 @@ open Rebase;
 // indicates at which stage the parse error happened
 module Error = {
   type t =
-    | SExpression(string)
-    | Response(Parser__Type.SExpression.t);
+    | SExpression(int, string)
+    | Response(int, Parser__Type.SExpression.t);
 
   let toString =
     fun
-    | SExpression(string) => string
-    | Response(sexpr) => Parser__Type.SExpression.toString(sexpr);
+    | SExpression(errno, string) =>
+      "Parse error code: S" ++ string_of_int(errno) ++ "\n" ++ string
+    | Response(errno, sexpr) =>
+      "Parse error code: R"
+      ++ string_of_int(errno)
+      ++ "\n"
+      ++ Parser__Type.SExpression.toString(sexpr);
 };
 
 let captures = (handler, regex, raw) =>
@@ -67,19 +72,19 @@ let userInput = s => {
 };
 
 let filepath = s => {
-
   // remove the Windows Bidi control character
-  let removedBidi = if (Js.String.charCodeAt(0, s) === 8234.0) {
-    s |> Js.String.sliceToEnd(~from=1);
-  } else {
-    s
-  };
+  let removedBidi =
+    if (Js.String.charCodeAt(0, s) === 8234.0) {
+      s |> Js.String.sliceToEnd(~from=1);
+    } else {
+      s;
+    };
 
   // normalize the path with Node.Path.normalize
   let normalized = removedBidi |> Node.Path.normalize;
 
   // replace Windows' stupid backslash with slash
-  let replaced =  normalized |> Js.String.replaceByRe([%re "/\\\\/g"], "/");
+  let replaced = normalized |> Js.String.replaceByRe([%re "/\\\\/g"], "/");
 
   replaced;
 };
@@ -121,7 +126,7 @@ module SExpression = {
     in_str: ref(bool),
   };
   type continuation =
-    | Error(string)
+    | Error(int, string) // int for error index
     | Continue(string => continuation)
     | Done(t);
 
@@ -168,7 +173,7 @@ module SExpression = {
     in_str: ref(false),
   };
 
-  let rec postprocess = (state: state, string: string): continuation => {
+  let rec parseSExpression = (state: state, string: string): continuation => {
     let {stack, word, escaped, in_str} = state;
 
     let pushToTheTop = (elem: t) => {
@@ -226,31 +231,32 @@ module SExpression = {
       };
     };
     switch (Array.length(stack)) {
-    | 0 => Error(string)
+    | 0 => Error(0, string)
     | 1 =>
       switch (stack[0]) {
-      | None => Error(string)
+      | None => Error(1, string)
       | Some(v) =>
         switch (v^) {
         | L(xs) =>
           switch (xs[0]) {
-          | None => Error(string)
+          | None => Error(2, string)
           | Some(w) => Done(w)
           }
-        | _ => Error(string)
+        | _ => Error(3, string)
         }
       }
-    | _ => Continue(postprocess(state))
+    | _ => Continue(parseSExpression(state))
     };
   };
 
   let incrParse = (string: string): continuation => {
     switch (preprocess(string)) {
-    | Error(_) => Error(string)
-    | Ok(processed) => postprocess(initialState(), processed)
+    | Error(_) => Error(4, string)
+    | Ok(processed) => parseSExpression(initialState(), processed)
     };
   };
-  let parse = (string: string): result(array(t), string) => {
+  // (int, string) as the error index and the raw input
+  let parse = (string: string): result(array(t), (int, string)) => {
     let results = ref([||]);
     let error = ref(None);
     let continuation = ref(None);
@@ -262,7 +268,7 @@ module SExpression = {
 
          // continue parsing with the given continuation
          switch (continue(line)) {
-         | Error(err) => error := Some(err)
+         | Error(n, err) => error := Some((n, err))
          | Continue(continue) => continuation := Some(continue)
          | Done(result) =>
            results^ |> Js.Array.push(result) |> ignore;
@@ -271,7 +277,7 @@ module SExpression = {
        });
 
     switch (error^) {
-    | Some(err) => Error(err)
+    | Some((n, err)) => Error((n, err))
     | None => Ok(results^)
     };
   };
