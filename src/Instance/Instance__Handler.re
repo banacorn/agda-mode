@@ -221,7 +221,7 @@ let rec handleLocalCommand =
         : Async.t(option(Command.Remote.t), error) => {
   let buff = (command, instance) => {
     Connections.get(instance)
-    |> mapOk(connection => {
+    |> mapOk((connection: Connection.t) => {
          instance.view.display(
            "Loading ...",
            Type.View.Header.PlainText,
@@ -230,7 +230,7 @@ let rec handleLocalCommand =
 
          Some(
            {
-             connection,
+             version: connection.metadata.version,
              filepath:
                instance.editors.source
                |> Atom.TextEditor.getPath
@@ -677,9 +677,13 @@ let handleRemoteCommand = (instance, remote) =>
     );
 
     Async.make((resolve', reject') =>
-      cmd.connection
-      |> Connection.send(serialized)
-      |> Event.on(onResponse(resolve', reject'))
+      Connections.get(instance)
+      |> mapOk(connection =>
+           connection
+           |> Connection.send(serialized)
+           |> Event.on(onResponse(resolve', reject'))
+           |> ignore
+         )
       |> ignore
     );
   };

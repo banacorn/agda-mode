@@ -93,13 +93,24 @@ type response =
   | End;
 
 module Log = {
-  type t = {
+  type request = {
+    primitive: Command.Primitive.t,
+    remote: Command.Remote.t,
+  };
+  type response = {
     mutable rawText: array(string),
     mutable sexpression: array(Parser.SExpression.t),
     mutable response: array(Response.t),
   };
+  type t = {response};
 
-  let empty = {rawText: [||], sexpression: [||], response: [||]};
+  let empty = {
+    response: {
+      rawText: [||],
+      sexpression: [||],
+      response: [||],
+    },
+  };
 };
 
 type t = {
@@ -115,9 +126,9 @@ let resetLog = self => {
   switch (self) {
   | None => ()
   | Some(conn) =>
-    conn.log.rawText = [||];
-    conn.log.sexpression = [||];
-    conn.log.response = [||];
+    conn.log.response.rawText = [||];
+    conn.log.response.sexpression = [||];
+    conn.log.response.response = [||];
   };
 };
 
@@ -126,9 +137,9 @@ let disconnect = (error, self) => {
   self.queue |> Array.forEach(ev => ev |> Event.emitError(error));
   self.queue = [||];
   self.errorEmitter |> Event.removeAllListeners;
-  self.log.rawText = [||];
-  self.log.sexpression = [||];
-  self.log.response = [||];
+  self.log.response.rawText = [||];
+  self.log.response.sexpression = [||];
+  self.log.response.response = [||];
   self.connected = false;
 };
 
@@ -328,7 +339,7 @@ let wire = (self): t => {
     // serialize the binary chunk into string
     let rawText = chunk |> Node.Buffer.toString;
     // store the raw text in the log
-    self.log.rawText |> Js.Array.push(rawText) |> ignore;
+    self.log.response.rawText |> Js.Array.push(rawText) |> ignore;
     // we consider the chunk ended with if ends with "Agda2> "
     let endOfResponse = rawText |> String.endsWith("Agda2> ");
     // remove the trailing "Agda2> "
@@ -356,12 +367,12 @@ let wire = (self): t => {
          | Continue(parse) => continuation := Some(parse)
          | Done(result) =>
            // store the parsed s-expression in the log
-           self.log.sexpression |> Js.Array.push(result) |> ignore;
+           self.log.response.sexpression |> Js.Array.push(result) |> ignore;
            switch (Response.parse(result)) {
            | Error(err) => response(Error(err))
            | Ok(result) =>
              // store the parsed response in the log
-             self.log.response |> Js.Array.push(result) |> ignore;
+             self.log.response.response |> Js.Array.push(result) |> ignore;
              response(Data(result));
            };
            continuation := None;

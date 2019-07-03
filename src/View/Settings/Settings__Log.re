@@ -12,19 +12,19 @@ let make = (~connection: option(Connection.t), ~hidden) => {
     | Some(conn) => conn.log
     };
   let rawTextListItems =
-    log.rawText
+    log.response.rawText
     |> Array.map(raw => <li> <pre> {string(raw)} </pre> </li>)
     |> Util.React.manyIn("ol");
 
   let sexpressionListItems =
-    log.sexpression
+    log.response.sexpression
     |> Array.map(raw =>
          <li> <pre> {string(Parser.SExpression.toString(raw))} </pre> </li>
        )
     |> Util.React.manyIn("ol");
 
   let responseListItems =
-    log.response
+    log.response.response
     |> Array.map(raw =>
          <li> <pre> {string(Response.toString(raw))} </pre> </li>
        )
@@ -41,6 +41,11 @@ let make = (~connection: option(Connection.t), ~hidden) => {
          "Keeps track of what Agda said what we've parsed. \nFor reporting parse errors. \nRefreshed on reload (C-c C-l)",
        )}
     </p>
+    // <div className="block">
+    //   <button className="btn btn-primary icon icon-clippy">
+    //     {string("Dump to clipboard")}
+    //   </button>
+    // </div>
     <hr />
     <h2> <span> {string("Raw text")} </span> </h2>
     rawTextListItems
@@ -51,9 +56,4 @@ let make = (~connection: option(Connection.t), ~hidden) => {
     <h2> <span> {string("Responses")} </span> </h2>
     responseListItems
   </section>;
-  // <div className="block">
-  //   <button className="btn" onClick={_ => ()}>
-  //     {string("Dump Markers")}
-  //   </button>
-  // </div>
 };
