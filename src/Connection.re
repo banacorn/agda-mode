@@ -92,24 +92,17 @@ type response =
   | Data(Response.t)
   | End;
 
+// type for logging request/response
 module Log = {
-  type request = {
-    primitive: Command.Primitive.t,
-    remote: Command.Remote.t,
-  };
+  type request = Command.Remote.t;
   type response = {
     mutable rawText: array(string),
     mutable sexpression: array(Parser.SExpression.t),
     mutable response: array(Response.t),
   };
-  type t = {response};
-
-  let empty = {
-    response: {
-      rawText: [||],
-      sexpression: [||],
-      response: [||],
-    },
+  type t = {
+    request,
+    response,
   };
 };
 
@@ -118,28 +111,52 @@ type t = {
   process: N.ChildProcess.t,
   mutable queue: array(Event.t(response, Error.connection)),
   errorEmitter: Event.t(Response.t, unit),
-  mutable log: Log.t,
+  mutable logs: array(Log.t),
   mutable connected: bool,
 };
 
-let resetLog = self => {
-  switch (self) {
-  | None => ()
-  | Some(conn) =>
-    conn.log.response.rawText = [||];
-    conn.log.response.sexpression = [||];
-    conn.log.response.response = [||];
-  };
+let resetLogEntries = self => {
+  self.logs = [||];
 };
+
+let createLogEntry = (cmd, self) => {
+  let log: Log.t = {
+    request: cmd,
+    response: {
+      rawText: [||],
+      sexpression: [||],
+      response: [||],
+    },
+  };
+  Js.Array.push(log, self.logs) |> ignore;
+};
+
+let updateLatestLogEntry = (f: Log.t => unit, self) => {
+  let n = Array.length(self.logs);
+  self.logs[n - 1] |> Option.forEach(f);
+};
+
+let logRawText = text =>
+  updateLatestLogEntry(log =>
+    Js.Array.push(text, log.response.rawText) |> ignore
+  );
+
+let logSExpression = text =>
+  updateLatestLogEntry(log =>
+    Js.Array.push(text, log.response.sexpression) |> ignore
+  );
+
+let logResponse = text =>
+  updateLatestLogEntry(log =>
+    Js.Array.push(text, log.response.response) |> ignore
+  );
 
 let disconnect = (error, self) => {
   self.process |> N.ChildProcess.kill("SIGTERM");
   self.queue |> Array.forEach(ev => ev |> Event.emitError(error));
   self.queue = [||];
   self.errorEmitter |> Event.removeAllListeners;
-  self.log.response.rawText = [||];
-  self.log.response.sexpression = [||];
-  self.log.response.response = [||];
+  self.logs = [||];
   self.connected = false;
 };
 
@@ -285,7 +302,7 @@ let connect = (metadata): Async.t(t, Error.connection) => {
         connected: true,
         queue: [||],
         errorEmitter: Event.make(),
-        log: Log.empty,
+        logs: [||],
       };
       /* Handles errors and anomalies */
       process
@@ -339,7 +356,7 @@ let wire = (self): t => {
     // serialize the binary chunk into string
     let rawText = chunk |> Node.Buffer.toString;
     // store the raw text in the log
-    self.log.response.rawText |> Js.Array.push(rawText) |> ignore;
+    logRawText(rawText, self);
     // we consider the chunk ended with if ends with "Agda2> "
     let endOfResponse = rawText |> String.endsWith("Agda2> ");
     // remove the trailing "Agda2> "
@@ -367,12 +384,12 @@ let wire = (self): t => {
          | Continue(parse) => continuation := Some(parse)
          | Done(result) =>
            // store the parsed s-expression in the log
-           self.log.response.sexpression |> Js.Array.push(result) |> ignore;
+           logSExpression(result, self);
            switch (Response.parse(result)) {
            | Error(err) => response(Error(err))
            | Ok(result) =>
              // store the parsed response in the log
-             self.log.response.response |> Js.Array.push(result) |> ignore;
+             logResponse(result, self);
              response(Data(result));
            };
            continuation := None;

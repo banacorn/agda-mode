@@ -1,4 +1,22 @@
 open ReasonReact;
+open Rebase;
+
+module Log = {
+  [@react.component]
+  let make = (~log: Connection.Log.t) => {
+    let rawText =
+      log.response.rawText
+      |> Array.map(text => <li> {string(text)} </li>)
+      |> Util.React.manyIn("ol");
+
+    <li className="agda-settings-log-entry">
+      <h2> {string(Command.Remote.toString(log.request.command))} </h2>
+      rawText
+    </li>;
+  };
+  // <h2> {string("Request")} </h2>
+  // <h2> {string("Response")} </h2>
+};
 
 [@react.component]
 let make = (~connection: option(Connection.t), ~hidden) => {
@@ -6,30 +24,12 @@ let make = (~connection: option(Connection.t), ~hidden) => {
     Util.ClassName.(
       ["agda-settings-log"] |> addWhen("hidden", hidden) |> serialize
     );
-  let log =
-    switch (connection) {
-    | None => Connection.Log.empty
-    | Some(conn) => conn.log
-    };
-  let rawTextListItems =
-    log.response.rawText
-    |> Array.map(raw => <li> <pre> {string(raw)} </pre> </li>)
-    |> Util.React.manyIn("ol");
 
-  let sexpressionListItems =
-    log.response.sexpression
-    |> Array.map(raw =>
-         <li> <pre> {string(Parser.SExpression.toString(raw))} </pre> </li>
-       )
+  let logs =
+    connection
+    |> Option.mapOr(conn => conn.Connection.logs, [||])
+    |> Array.map(log => <Log log />)
     |> Util.React.manyIn("ol");
-
-  let responseListItems =
-    log.response.response
-    |> Array.map(raw =>
-         <li> <pre> {string(Response.toString(raw))} </pre> </li>
-       )
-    |> Util.React.manyIn("ol");
-
   <section className>
     <h1>
       <span className="icon icon-comment-discussion" />
@@ -41,19 +41,13 @@ let make = (~connection: option(Connection.t), ~hidden) => {
          "Keeps track of what Agda said what we've parsed. \nFor reporting parse errors. \nRefreshed on reload (C-c C-l)",
        )}
     </p>
-    // <div className="block">
-    //   <button className="btn btn-primary icon icon-clippy">
-    //     {string("Dump to clipboard")}
-    //   </button>
-    // </div>
     <hr />
-    <h2> <span> {string("Raw text")} </span> </h2>
-    rawTextListItems
-    <hr />
-    <h2> <span> {string("S-expressions")} </span> </h2>
-    sexpressionListItems
-    <hr />
-    <h2> <span> {string("Responses")} </span> </h2>
-    responseListItems
+    logs
   </section>;
+  // <div className="block">
+  //   <button className="btn btn-primary icon icon-clippy">
+  //     {string("Dump to clipboard")}
+  //   </button>
+  // </div>
+  // responseListItems
 };

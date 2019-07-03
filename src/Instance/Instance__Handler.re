@@ -248,7 +248,6 @@ let rec handleLocalCommand =
     |> fromPromise
     |> mapError(_ => Cancelled)
     |> thenOk(() => {
-         instance.connection |> Connection.resetLog;
          instance.isLoaded = true;
          instance.view.activate();
          instance.view.updateShouldDisplay(true);
@@ -339,7 +338,7 @@ let rec handleLocalCommand =
   | SearchAbout(normalization) =>
     instance.view.inquire(
       "Searching through definitions ["
-      ++ Command.Normalization.of_string(normalization)
+      ++ Command.Normalization.toString(normalization)
       ++ "]",
       "expression to infer:",
       "",
@@ -356,7 +355,7 @@ let rec handleLocalCommand =
          if (Goal.isEmpty(goal)) {
            instance.view.inquire(
              "Infer type ["
-             ++ Command.Normalization.of_string(normalization)
+             ++ Command.Normalization.toString(normalization)
              ++ "]",
              "expression to infer:",
              "",
@@ -373,7 +372,7 @@ let rec handleLocalCommand =
     |> handleOutOfGoal(_ =>
          instance.view.inquire(
            "Infer type ["
-           ++ Command.Normalization.of_string(normalization)
+           ++ Command.Normalization.toString(normalization)
            ++ "]",
            "expression to infer:",
            "",
@@ -387,7 +386,7 @@ let rec handleLocalCommand =
   | ModuleContents(normalization) =>
     instance.view.inquire(
       "Module contents ["
-      ++ Command.Normalization.of_string(normalization)
+      ++ Command.Normalization.toString(normalization)
       ++ "]",
       "module name:",
       "",
@@ -650,6 +649,17 @@ let handleRemoteCommand = (instance, remote) =>
   switch (remote) {
   | None => resolve()
   | Some(cmd) =>
+    Connections.get(instance)
+    |> mapOk(connection => {
+         // remove all old log entries if `cmd` is `Load`
+         if (Command.Remote.isLoad(cmd)) {
+           Connection.resetLogEntries(connection);
+         };
+         // create log entry for each `cmd`
+         Connection.createLogEntry(cmd, connection);
+       })
+    |> ignore;
+
     let handleResults = ref([||]);
     let parseErrors: ref(array(Parser.Error.t)) = ref([||]);
     /* send the serialized command */
