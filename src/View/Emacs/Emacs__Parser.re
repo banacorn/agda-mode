@@ -11,7 +11,7 @@ let unindent: array(string) => array(string) =
       let delimeter = [%re "/^\\u2014{4}/g"];
       /* banana : Banana */
       let completeJudgement = [%re
-        "/^(?:(?:[^\\(\\{\\s]+\\s+\\:)|Have\\:|Goal\\:)\\s* \\S*/"
+        "/^(?:(?:[^\\(\\{\\s]+\\s+\\:=?)|Have\\:|Goal\\:)\\s* \\S*/"
       ];
       /* case when the term's name is too long, the rest of the judgement
             would go to the next line, e.g:
@@ -19,7 +19,7 @@ let unindent: array(string) => array(string) =
                      : Banana
          */
       let reallyLongTermIdentifier = [%re "/^\\S+$/"];
-      let restOfTheJudgement = [%re "/^\\s*\\:\\s* \\S*/"];
+      let restOfTheJudgement = [%re "/^\\s*\\:=?\\s* \\S*/"];
       Js.Re.test_(sort, line)
       || Js.Re.test_(delimeter, line)
       || Js.Re.test_(reallyLongTermIdentifier, line)

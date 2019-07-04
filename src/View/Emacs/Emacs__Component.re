@@ -1,5 +1,3 @@
-
-
 open Rebase.Option;
 
 open ReasonReact;
@@ -13,6 +11,12 @@ module Term = {
     | Plain(string)
     | QuestionMark(int)
     | Underscore(string);
+  let toString =
+    fun
+    | Plain(string) => string
+    | QuestionMark(int) => "?" ++ string_of_int(int)
+    | Underscore(string) => "_" ++ string;
+
   let jump = true;
   let hover = true;
 
@@ -35,6 +39,8 @@ module Term = {
 
 module Expr = {
   type t = array(Term.t);
+  let toString = xs =>
+    xs |> Array.map(Term.toString) |> List.fromArray |> String.joinWith(" ");
   let parse = raw => {
     raw
     |> String.trim
@@ -66,6 +72,13 @@ module OutputConstraint = {
     | JustType(Expr.t)
     | JustSort(Expr.t)
     | Others(Expr.t);
+
+  let toString =
+    fun
+    | OfType(e, t) => Expr.toString(e) ++ " : " ++ Expr.toString(t)
+    | JustType(t) => Expr.toString(t)
+    | JustSort(t) => Expr.toString(t)
+    | Others(t) => Expr.toString(t);
 
   let parseOfType =
     [%re "/^([^\\:]*) \\: ((?:\\n|.)+)/"]
@@ -139,6 +152,14 @@ module Labeled = {
 module Output = {
   type t =
     | Output(OutputConstraint.t, option(Type.Location.Range.t));
+  let toString =
+    fun
+    | Output(c, None) => "Output " ++ OutputConstraint.toString(c)
+    | Output(c, Some(range)) =>
+      "Output "
+      ++ OutputConstraint.toString(c)
+      ++ " "
+      ++ Type.Location.Range.toString(range);
 
   let parseOutputWithoutRange = raw =>
     raw |> OutputConstraint.parse |> map(x => Output(x, None));
@@ -176,6 +197,11 @@ module PlainText = {
   type t =
     | Text(string)
     | Range(Type.Location.Range.t);
+
+  let toString =
+    fun
+    | Text(s) => s
+    | Range(r) => Type.Location.Range.toString(r);
   let parse = raw =>
     raw
     |> Util.safeSplitByRe(
@@ -210,6 +236,12 @@ module WarningError = {
   type t =
     | WarningMessage(array(PlainText.t))
     | ErrorMessage(array(PlainText.t));
+  let toString =
+    fun
+    | WarningMessage(xs) =>
+      xs |> Array.map(PlainText.toString) |> Util.Pretty.array
+    | ErrorMessage(xs) =>
+      xs |> Array.map(PlainText.toString) |> Util.Pretty.array;
   let parse = (isWarning, raw) =>
     raw
     |> PlainText.parse

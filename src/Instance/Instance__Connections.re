@@ -77,7 +77,8 @@ let connectWithAgdaPath =
          |> thenOk(getConnection(instance))
        );
   };
-  let handleUnboundError = (instance, connection): Connection.t => {
+  // handle unbound errors
+  let handleUnboundErrors = (instance, connection): Connection.t => {
     Connection.(connection.errorEmitter)
     |> Event.onOk(res => instance.handleResponse(instance, res) |> ignore)
     |> ignore;
@@ -88,7 +89,7 @@ let connectWithAgdaPath =
   |> getMetadata(instance)
   |> thenOk(getConnection(instance))
   |> mapOk(persistConnection(instance))
-  |> mapOk(handleUnboundError(instance))
+  |> mapOk(handleUnboundErrors(instance))
   |> mapOk(Connection.wire);
 };
 

@@ -1,5 +1,3 @@
-
-
 open Emacs__Component;
 
 type t = {
@@ -9,6 +7,21 @@ type t = {
   warnings: array(WarningError.t),
   errors: array(WarningError.t),
 };
+
+let toString = self =>
+  Util.Pretty.(
+    "Metas "
+    ++ self.title
+    ++ "\n"
+    ++ array(Array.map(Output.toString, self.interactionMetas))
+    ++ "\n"
+    ++ array(Array.map(Output.toString, self.hiddenMetas))
+    ++ "\n"
+    ++ array(Array.map(WarningError.toString, self.warnings))
+    ++ "\n"
+    ++ array(Array.map(WarningError.toString, self.errors))
+  );
+
 let parse = (title, body): t => {
   open Rebase;
   open Rebase.Option;

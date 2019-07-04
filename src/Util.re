@@ -302,3 +302,11 @@ module Version = {
     | LT => false
     };
 };
+
+module Pretty = {
+  let list = xs => {
+    let xs_ = xs |> Rebase.String.joinWith(", ");
+    "[" ++ xs_ ++ "]";
+  };
+  let array = xs => xs |> Rebase.List.fromArray |> list;
+};

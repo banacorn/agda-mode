@@ -12,7 +12,7 @@ module Normalization = {
     | Instantiated
     | Normalised;
 
-  let of_string =
+  let toString =
     fun
     | Simplified => "Simplified"
     | Instantiated => "Instantiated"
@@ -35,7 +35,7 @@ module ComputeMode = {
     | IgnoreAbstract
     | UseShowInstance;
 
-  let of_string =
+  let toString =
     fun
     | DefaultCompute => "DefaultCompute"
     | IgnoreAbstract => "IgnoreAbstract"
@@ -175,14 +175,14 @@ module Remote = {
     | GotoDefinitionGlobal(string);
 
   type t = {
-    connection: Connection.t,
+    version: string,
     filepath: string,
     command,
   };
 
   /* serializes Buffed Command into strings that can be sent to Agda */
   let serialize = self => {
-    let {filepath, command, connection} = self;
+    let {filepath, command, version} = self;
     let libraryPath: string = {
       let path = Atom.Environment.Config.get("agda-mode.libraryPath");
       path |> Js.Array.unshift(".") |> ignore;
@@ -203,7 +203,7 @@ module Remote = {
       | None => {j|IOTCM "$(filepath)" None $(highlightingMethod) |j};
 
     let buildRange = goal =>
-      if (Util.Version.gte(connection.metadata.version, "2.5.1")) {
+      if (Util.Version.gte(version, "2.5.1")) {
         goal |> Goal.buildHaskellRange(false, filepath);
       } else {
         goal |> Goal.buildHaskellRange(true, filepath);
@@ -212,7 +212,7 @@ module Remote = {
     /* serialization */
     switch (command) {
     | Load =>
-      if (Util.Version.gte(connection.metadata.version, "2.5.0")) {
+      if (Util.Version.gte(version, "2.5.0")) {
         commonPart(NonInteractive) ++ {j|( Cmd_load "$(filepath)" [] )|j};
       } else {
         commonPart(NonInteractive)
@@ -223,7 +223,7 @@ module Remote = {
     | Compile =>
       let backend: string = Atom.Environment.Config.get("agda-mode.backend");
 
-      if (Util.Version.gte(connection.metadata.version, "2.5.0")) {
+      if (Util.Version.gte(version, "2.5.0")) {
         commonPart(NonInteractive)
         ++ {j|( Cmd_compile $(backend) "$(filepath)" [] )|j};
       } else {
@@ -253,45 +253,45 @@ module Remote = {
       commonPart(None) ++ {j|( Cmd_why_in_scope_toplevel "$(content)" )|j};
 
     | SearchAbout(normalization, expr) =>
-      let normalization' = Normalization.of_string(normalization);
+      let normalization' = Normalization.toString(normalization);
       let content = Parser.userInput(expr);
       commonPart(None)
       ++ {j|( Cmd_search_about_toplevel $(normalization')  "$(content)" )|j};
 
     | InferType(normalization, expr, index) =>
-      let normalization' = Normalization.of_string(normalization);
+      let normalization' = Normalization.toString(normalization);
       let content = Parser.userInput(expr);
 
       commonPart(NonInteractive)
       ++ {j|( Cmd_infer $(normalization') $(index) noRange "$(content)" )|j};
 
     | InferTypeGlobal(normalization, expr) =>
-      let normalization' = Normalization.of_string(normalization);
+      let normalization' = Normalization.toString(normalization);
       let content = Parser.userInput(expr);
 
       commonPart(None)
       ++ {j|( Cmd_infer_toplevel $(normalization') "$(content)" )|j};
 
     | ModuleContents(normalization, expr, index) =>
-      let normalization' = Normalization.of_string(normalization);
+      let normalization' = Normalization.toString(normalization);
       let content = Parser.userInput(expr);
 
       commonPart(NonInteractive)
       ++ {j|( Cmd_show_module_contents $(normalization') $(index) noRange "$(content)" )|j};
 
     | ModuleContentsGlobal(normalization, expr) =>
-      let normalization' = Normalization.of_string(normalization);
+      let normalization' = Normalization.toString(normalization);
       let content = Parser.userInput(expr);
 
       commonPart(None)
       ++ {j|( Cmd_show_module_contents_toplevel $(normalization') "$(content)" )|j};
 
     | ComputeNormalForm(computeMode, expr, index) =>
-      let computeMode' = ComputeMode.of_string(computeMode);
+      let computeMode' = ComputeMode.toString(computeMode);
       let ignoreAbstract = ComputeMode.ignoreAbstract(computeMode);
       let content = Parser.userInput(expr);
 
-      if (Util.Version.gte(connection.metadata.version, "2.5.2")) {
+      if (Util.Version.gte(version, "2.5.2")) {
         commonPart(NonInteractive)
         ++ {j|( Cmd_compute $(computeMode') $(index) noRange "$(content)" )|j};
       } else {
@@ -300,11 +300,11 @@ module Remote = {
       };
 
     | ComputeNormalFormGlobal(computeMode, expr) =>
-      let computeMode' = ComputeMode.of_string(computeMode);
+      let computeMode' = ComputeMode.toString(computeMode);
       let ignoreAbstract = ComputeMode.ignoreAbstract(computeMode);
       let content = Parser.userInput(expr);
 
-      if (Util.Version.gte(connection.metadata.version, "2.5.2")) {
+      if (Util.Version.gte(version, "2.5.2")) {
         commonPart(NonInteractive)
         ++ {j|( Cmd_compute_toplevel $(computeMode') "$(content)" )|j};
       } else {
@@ -318,7 +318,7 @@ module Remote = {
     | Give(goal, index) =>
       let content = Goal.getContent(goal);
       let range = buildRange(goal);
-      if (Util.Version.gte(connection.metadata.version, "2.5.3")) {
+      if (Util.Version.gte(version, "2.5.3")) {
         commonPart(NonInteractive)
         ++ {j|( Cmd_give WithoutForce $(index) $(range) "$(content)" )|j};
       } else {
@@ -345,23 +345,23 @@ module Remote = {
       ++ {j|( Cmd_make_case $(index) $(range) "$(content)" )|j};
 
     | GoalType(normalization, index) =>
-      let normalization' = Normalization.of_string(normalization);
+      let normalization' = Normalization.toString(normalization);
       commonPart(NonInteractive)
       ++ {j|( Cmd_goal_type $(normalization') $(index) noRange "" )|j};
 
     | Context(normalization, index) =>
-      let normalization' = Normalization.of_string(normalization);
+      let normalization' = Normalization.toString(normalization);
       commonPart(NonInteractive)
       ++ {j|( Cmd_context $(normalization') $(index) noRange "" )|j};
 
     | GoalTypeAndContext(normalization, index) =>
-      let normalization' = Normalization.of_string(normalization);
+      let normalization' = Normalization.toString(normalization);
       commonPart(NonInteractive)
       ++ {j|( Cmd_goal_type_context $(normalization') $(index) noRange "" )|j};
 
     | GoalTypeAndInferredType(normalization, goal, index) =>
       let content = Goal.getContent(goal);
-      let normalization' = Normalization.of_string(normalization);
+      let normalization' = Normalization.toString(normalization);
       commonPart(NonInteractive)
       ++ {j|( Cmd_goal_type_context_infer $(normalization') $(index) noRange "$(content)" )|j};
 
@@ -375,6 +375,108 @@ module Remote = {
       commonPart(None) ++ {j|( Cmd_why_in_scope_toplevel "$(content)" )|j};
     };
   };
+
+  let isLoad = self =>
+    switch (self.command) {
+    | Load => true
+    | _ => false
+    };
+  let toString =
+    fun
+    | Load => "Load"
+    | Abort => "Abort"
+    | Compile => "Compile"
+    | ToggleDisplayOfImplicitArguments => "ToggleDisplayOfImplicitArguments"
+    | SolveConstraints => "SolveConstraints"
+    | ShowConstraints => "ShowConstraints"
+    | ShowGoals => "ShowGoals"
+    | WhyInScope(string, int) =>
+      "WhyInScope \"" ++ string ++ "\" (Goal " ++ string_of_int(int) ++ ")"
+    | WhyInScopeGlobal(string) => "WhyInScope \"" ++ string ++ "\" (Global)"
+    | SearchAbout(norm, string) =>
+      "SearchAbout \""
+      ++ string
+      ++ "\" ("
+      ++ Normalization.toString(norm)
+      ++ ")"
+    | InferType(norm, string, int) =>
+      "InferType \""
+      ++ string
+      ++ "\" (Goal "
+      ++ string_of_int(int)
+      ++ ", "
+      ++ Normalization.toString(norm)
+      ++ ")"
+    | InferTypeGlobal(norm, string) =>
+      "InferType \""
+      ++ string
+      ++ "\" (Global, "
+      ++ Normalization.toString(norm)
+      ++ ")"
+    | ModuleContents(norm, string, int) =>
+      "ModuleContents \""
+      ++ string
+      ++ "\" (Goal "
+      ++ string_of_int(int)
+      ++ ", "
+      ++ Normalization.toString(norm)
+      ++ ")"
+    | ModuleContentsGlobal(norm, string) =>
+      "ModuleContents \""
+      ++ string
+      ++ "\" (Global, "
+      ++ Normalization.toString(norm)
+      ++ ")"
+    | ComputeNormalForm(computeMode, string, int) =>
+      "ComputeNormalForm \""
+      ++ string
+      ++ "\" (Goal "
+      ++ string_of_int(int)
+      ++ ", "
+      ++ ComputeMode.toString(computeMode)
+      ++ ")"
+    | ComputeNormalFormGlobal(computeMode, string) =>
+      "ComputeNormalForm \""
+      ++ string
+      ++ "\" (Global, "
+      ++ ComputeMode.toString(computeMode)
+      ++ ")"
+    | Give(_, int) => "Give (Goal " ++ string_of_int(int) ++ ")"
+    | Refine(_, int) => "Refine (Goal " ++ string_of_int(int) ++ ")"
+    | Auto(_, int) => "Auto (Goal " ++ string_of_int(int) ++ ")"
+    | Case(_, int) => "Case (Goal " ++ string_of_int(int) ++ ")"
+    | GoalType(norm, int) =>
+      "GoalType (Goal "
+      ++ string_of_int(int)
+      ++ ", "
+      ++ Normalization.toString(norm)
+      ++ ")"
+    | Context(norm, int) =>
+      "Context (Goal "
+      ++ string_of_int(int)
+      ++ ", "
+      ++ Normalization.toString(norm)
+      ++ ")"
+    | GoalTypeAndContext(norm, int) =>
+      "GoalTypeAndContext (Goal "
+      ++ string_of_int(int)
+      ++ ", "
+      ++ Normalization.toString(norm)
+      ++ ")"
+    | GoalTypeAndInferredType(norm, _, int) =>
+      "GoalTypeAndInferredType (Goal "
+      ++ string_of_int(int)
+      ++ ", "
+      ++ Normalization.toString(norm)
+      ++ ")"
+    | GotoDefinition(string, int) =>
+      "GotoDefinition \""
+      ++ string
+      ++ "\" (Goal "
+      ++ string_of_int(int)
+      ++ ")"
+    | GotoDefinitionGlobal(string) =>
+      "GotoDefinition \"" ++ string ++ "\" (Global)";
 };
 
 let names = [|

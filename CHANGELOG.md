@@ -1,4 +1,8 @@
-## 0.9.2
+## 0.9.4
+* Generate log on parse errors
+* Fix #104
+
+## 0.9.3
 * Merge PR from @marklemay 👏
 * Fix #98 and #102
 

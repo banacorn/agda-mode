@@ -98,14 +98,17 @@ type t = {
   mutable queue: array(Event.t(response, Error.connection)),
   errorEmitter: Event.t(Response.t, unit),
   mutable connected: bool,
+  mutable log: Log.t,
+  mutable resetLogOnLoad: bool,
 };
 
 let disconnect = (error, self) => {
+  self.process |> N.ChildProcess.kill("SIGTERM");
   self.queue |> Array.forEach(ev => ev |> Event.emitError(error));
   self.queue = [||];
   self.errorEmitter |> Event.removeAllListeners;
+  self.log = Log.empty;
   self.connected = false;
-  self.process |> N.ChildProcess.kill("SIGTERM");
 };
 
 /* a more sophiscated "make" */
@@ -250,6 +253,8 @@ let connect = (metadata): Async.t(t, Error.connection) => {
         connected: true,
         queue: [||],
         errorEmitter: Event.make(),
+        log: [||],
+        resetLogOnLoad: true,
       };
       /* Handles errors and anomalies */
       process
@@ -301,15 +306,21 @@ let wire = (self): t => {
   /* listens to the "data" event on the stdout */
   let onData = chunk => {
     // serialize the binary chunk into string
-    let string = chunk |> Node.Buffer.toString;
+    let rawText = chunk |> Node.Buffer.toString;
+    // store the raw text in the log
+    Log.logRawText(rawText, self.log);
     // we consider the chunk ended with if ends with "Agda2> "
-    let endOfResponse = string |> String.endsWith("Agda2> ");
-    /* remove the trailing "Agda2> " */
+    let endOfResponse = rawText |> String.endsWith("Agda2> ");
+    // remove the trailing "Agda2> "
     let trimmed =
       if (endOfResponse) {
-        Js.String.substring(~from=0, ~to_=String.length(string) - 7, string);
+        Js.String.substring(
+          ~from=0,
+          ~to_=String.length(rawText) - 7,
+          rawText,
+        );
       } else {
-        string;
+        rawText;
       };
     //
     trimmed
@@ -320,12 +331,18 @@ let wire = (self): t => {
            continuation^ |> Option.getOr(Parser.SExpression.incrParse);
          // continue parsing with the given continuation
          switch (continue(line)) {
-         | Error(err) => response(Error(Parser.Error.SExpression(err)))
+         | Error(n, err) =>
+           response(Error(Parser.Error.SExpression(n, err)))
          | Continue(parse) => continuation := Some(parse)
          | Done(result) =>
+           // store the parsed s-expression in the log
+           Log.logSExpression(result, self.log);
            switch (Response.parse(result)) {
            | Error(err) => response(Error(err))
-           | Ok(result) => response(Data(result))
+           | Ok(result) =>
+             // store the parsed response in the log
+             Log.logResponse(result, self.log);
+             response(Data(result));
            };
            continuation := None;
          };
@@ -355,4 +372,8 @@ let send = (request, self): Event.t(response, Error.connection) => {
   |> ignore;
 
   reqEvent;
+};
+
+let resetLog = self => {
+  self.log = [||];
 };

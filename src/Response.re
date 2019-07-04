@@ -42,6 +42,27 @@ module Info = {
     | Context(string)
     | HelperFunction(string)
     | Version(string);
+  let toString =
+    fun
+    | CompilationOk => "CompilationOk"
+    | Constraints(None) => "Constraints"
+    | Constraints(Some(string)) => "Constraints " ++ string
+    | AllGoalsWarnings(warnings) =>
+      "AllGoalsWarnings " ++ Emacs.AllGoalsWarnings.toString(warnings)
+    | Time(string) => "Time " ++ string
+    | Error(string) => "Error " ++ string
+    | Intro(string) => "Intro " ++ string
+    | Auto(string) => "Auto " ++ string
+    | ModuleContents(string) => "ModuleContents " ++ string
+    | SearchAbout(string) => "SearchAbout " ++ string
+    | WhyInScope(string) => "WhyInScope " ++ string
+    | NormalForm(string) => "NormalForm " ++ string
+    | GoalType(string) => "GoalType " ++ string
+    | CurrentGoal(string) => "CurrentGoal " ++ string
+    | InferredType(string) => "InferredType " ++ string
+    | Context(string) => "Context " ++ string
+    | HelperFunction(string) => "HelperFunction " ++ string
+    | Version(string) => "Version " ++ string;
 
   let parse = (xs: array(Token.t)): option(t) => {
     switch (xs[1]) {
@@ -77,92 +98,6 @@ module Info = {
       };
     | _ => None
     };
-  };
-
-  let handle = (info: t): (string, Type.View.Header.style, Body.t) => {
-    /* open Response.Info; */
-    Type.View.(
-      switch (info) {
-      | CompilationOk => ("Compilation Done!", Header.Success, Nothing)
-      | Constraints(None) => ("No Constraints", Header.Success, Nothing)
-      | Constraints(Some(payload)) => (
-          "Constraints",
-          Header.Info,
-          Emacs(Constraints(payload)),
-        )
-      | AllGoalsWarnings(payload) => (
-          payload.title,
-          Header.Info,
-          Emacs(AllGoalsWarnings(payload)),
-        )
-      | Time(payload) => (
-          "Time",
-          Header.PlainText,
-          Emacs(PlainText(payload)),
-        )
-      | Error(payload) => ("Error", Header.Error, Emacs(Error(payload)))
-      | Intro(payload) => (
-          "Intro",
-          Header.PlainText,
-          Emacs(PlainText(payload)),
-        )
-      | Auto(payload) => (
-          "Auto",
-          Header.PlainText,
-          Emacs(PlainText(payload)),
-        )
-      | ModuleContents(payload) => (
-          "Module Contents",
-          Header.Info,
-          Emacs(PlainText(payload)),
-        )
-      | SearchAbout(payload) => (
-          "Searching about ...",
-          Header.PlainText,
-          Emacs(SearchAbout(payload)),
-        )
-      | WhyInScope(payload) => (
-          "Scope info",
-          Header.Info,
-          Emacs(WhyInScope(payload)),
-        )
-      | NormalForm(payload) => (
-          "Normal form",
-          Header.Info,
-          Emacs(PlainText(payload)),
-        )
-      | GoalType(payload) => (
-          "Goal type",
-          Header.Info,
-          Emacs(GoalTypeContext(payload)),
-        )
-      | CurrentGoal(payload) => (
-          "Current goal",
-          Header.Info,
-          Emacs(PlainText(payload)),
-        )
-      | InferredType(payload) => (
-          "Inferred type",
-          Header.Info,
-          Emacs(PlainText(payload)),
-        )
-      | Context(payload) => (
-          "Context",
-          Header.Info,
-          Emacs(Context(payload)),
-        )
-      | HelperFunction(payload) => (
-          "Helper function",
-          Header.Info,
-          Emacs(PlainText(payload)),
-        )
-      | Version(payload) => (
-          "Version",
-          Header.Info,
-          Emacs(PlainText(payload)),
-        )
-      }
-    );
   };
 };
 
@@ -203,10 +138,63 @@ type t =
   /* agda2-abort-done */
   | DoneAborting;
 
+let toString =
+  fun
+  | HighlightingInfoDirect(Remove, annotations) =>
+    "HighlightingInfoDirect Remove "
+    ++ (
+      annotations
+      |> Array.map(Highlighting.Annotation.toString)
+      |> Util.Pretty.array
+    )
+  | HighlightingInfoDirect(Keep, annotations) =>
+    "HighlightingInfoDirect Keep "
+    ++ (
+      annotations
+      |> Array.map(Highlighting.Annotation.toString)
+      |> Util.Pretty.array
+    )
+  | HighlightingInfoIndirect(filepath) =>
+    "HighlightingInfoIndirect " ++ filepath
+  | NoStatus => "NoStatus"
+  | Status(displayed, checked) =>
+    "Status: implicit arguments "
+    ++ (displayed ? "displayed, " : "not displayed, ")
+    ++ "module "
+    ++ (checked ? "type checked" : "not type checked")
+  | JumpToError(filepath, n) =>
+    "JumpToError " ++ filepath ++ " " ++ string_of_int(n)
+  | InteractionPoints(points) =>
+    "InteractionPoints "
+    ++ (points |> Array.map(string_of_int) |> Util.Pretty.array)
+  | GiveAction(index, Paren) =>
+    "GiveAction " ++ string_of_int(index) ++ " Paren"
+  | GiveAction(index, NoParen) =>
+    "GiveAction " ++ string_of_int(index) ++ " NoParen"
+  | GiveAction(index, String(string)) =>
+    "GiveAction " ++ string_of_int(index) ++ " String " ++ string
+  | MakeCase(Function, payload) =>
+    "MakeCase Function " ++ Util.Pretty.array(payload)
+  | MakeCase(ExtendedLambda, payload) =>
+    "MakeCase ExtendedLambda " ++ Util.Pretty.array(payload)
+  | SolveAll(solutions) =>
+    "SolveAll "
+    ++ (
+      solutions
+      |> Array.map(((i, s)) => string_of_int(i) ++ " " ++ s)
+      |> Util.Pretty.array
+    )
+  | DisplayInfo(info) => "DisplayInfo " ++ Info.toString(info)
+  | ClearRunningInfo => "ClearRunningInfo"
+  | RunningInfo(int, string) =>
+    "RunningInfo " ++ string_of_int(int) ++ " " ++ string
+  | ClearHighlighting => "ClearHighlighting"
+  | DoneAborting => "DoneAborting";
+
 let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
-  let err = Error(Parser.Error.Response(tokens));
+  let err = n => Error(Parser.Error.Response(n, tokens));
   switch (tokens) {
-  | A(_) => err
+  | A(_) => err(0)
   | L(xs) =>
     switch (xs[0]) {
     | Some(A("agda2-highlight-add-annotations")) =>
@@ -216,12 +204,12 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
         Ok(HighlightingInfoDirect(Highlighting.Remove, annotations))
       | Some(A("nil")) =>
         Ok(HighlightingInfoDirect(Highlighting.Keep, annotations))
-      | _ => err
+      | _ => err(1)
       };
     | Some(A("agda2-highlight-load-and-delete-action")) =>
       switch (xs[1]) {
       | Some(A(filepath)) => Ok(HighlightingInfoIndirect(filepath))
-      | _ => err
+      | _ => err(2)
       }
     | Some(A("agda2-status-action")) =>
       switch (xs[1]) {
@@ -240,8 +228,8 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
       | Some(L([|A(filepath), _, A(index')|])) =>
         Parser.int(index')
         |> Option.flatMap(index => Some(JumpToError(filepath, index)))
-        |> Option.mapOr(x => Ok(x), err)
-      | _ => err
+        |> Option.mapOr(x => Ok(x), err(3))
+      | _ => err(4)
       }
     | Some(A("agda2-goals-action")) =>
       switch (xs[1]) {
@@ -251,7 +239,7 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
             xs |> Token.flatten |> Array.filterMap(Parser.int),
           ),
         )
-      | _ => err
+      | _ => err(5)
       }
     | Some(A("agda2-give-action")) =>
       switch (xs[1]) {
@@ -266,18 +254,18 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
              | _ => None
              }
            )
-        |> Option.mapOr(x => Ok(x), err)
-      | _ => err
+        |> Option.mapOr(x => Ok(x), err(6))
+      | _ => err(7)
       }
     | Some(A("agda2-make-case-action")) =>
       switch (xs[1]) {
       | Some(xs) => Ok(MakeCase(Function, Token.flatten(xs)))
-      | _ => err
+      | _ => err(8)
       }
     | Some(A("agda2-make-case-action-extendlam")) =>
       switch (xs[1]) {
       | Some(xs) => Ok(MakeCase(ExtendedLambda, Token.flatten(xs)))
-      | _ => err
+      | _ => err(9)
       }
     | Some(A("agda2-solveAll-action")) =>
       switch (xs[1]) {
@@ -306,7 +294,7 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
                solution;
              });
         Ok(SolveAll(solutions));
-      | _ => err
+      | _ => err(10)
       }
     | Some(A("agda2-info-action"))
     | Some(A("agda2-info-action-and-copy")) =>
@@ -318,41 +306,24 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
         | Some(A("t")) =>
           switch (xs[2]) {
           | Some(A(message)) => Ok(RunningInfo(1, message))
-          | _ => err
+          | _ => err(11)
           }
         | _ => Ok(ClearRunningInfo)
         }
       | _ =>
         switch (Info.parse(xs |> Js.Array.sliceFrom(1))) {
         | Some(info) => Ok(DisplayInfo(info))
-        | None => err
+        | None => err(12)
         }
       }
     | Some(A("agda2-verbose")) =>
       switch (xs[1]) {
       | Some(A(message)) => Ok(RunningInfo(2, message))
-      | _ => err
+      | _ => err(13)
       }
     | Some(A("agda2-highlight-clear")) => Ok(ClearHighlighting)
     | Some(A("agda2-abort-done")) => Ok(DoneAborting)
-    | _ => err
+    | _ => err(14)
     }
   };
 };
-
-// let parse = (raw: Token.t): result(array(t), Parser.error) => {
-//   // let results =
-//   //   Token.parseFile(raw) |> Array.map(Result.flatMap(fromSExpression));
-//   let errors =
-//     results
-//     |> Array.filterMap(
-//          fun
-//          | Ok(_) => None
-//          | Error(e) => Some(e),
-//        );
-//   if (Array.length(errors) > 0) {
-//     Error(Parser.ResponseError(errors));
-//   } else {
-//     Ok(results |> Array.filterMap(Option.fromResult));
-//   };
-// };

@@ -15,19 +15,19 @@ let handleCommandError = instance =>
     (
       switch (error) {
       | ParseError(errors) =>
-        let intro =
-          string_of_int(Array.length(errors))
-          ++ " errors arisen when trying to parse the following text responses from agda:\n\n";
-        let message =
-          errors
-          |> Array.map(Parser.Error.toString)
-          |> List.fromArray
-          |> String.joinWith("\n\n");
-        instance.view.display(
-          "Parse Error",
-          Type.View.Header.Error,
-          Emacs(PlainText(intro ++ message)),
-        );
+        instance.connection
+        |> Option.forEach(conn => {
+             // log the errors
+             errors
+             |> Array.forEach(e => Log.logError(e, conn.Connection.log));
+             // and display with the log
+             instance.view.display(
+               "Parse Error",
+               Type.View.Header.Error,
+               Emacs(ParseError(conn.Connection.log)),
+             );
+           })
+
       | ConnectionError(error) =>
         let (header, body) = Connection.Error.toString(error);
         instance.view.display(
@@ -59,6 +59,89 @@ let handleCommandError = instance =>
     instance.editors |> Editors.Focus.on(Editors.Source);
     resolve();
   });
+
+let handleDisplayInfo =
+    (info: Response.Info.t): (string, Type.View.Header.style, Body.t) => {
+  /* open Response.Info; */
+  Type.View.(
+    switch (info) {
+    | CompilationOk => ("Compilation Done!", Header.Success, Nothing)
+    | Constraints(None) => ("No Constraints", Header.Success, Nothing)
+    | Constraints(Some(payload)) => (
+        "Constraints",
+        Header.Info,
+        Emacs(Constraints(payload)),
+      )
+    | AllGoalsWarnings(payload) => (
+        payload.title,
+        Header.Info,
+        Emacs(AllGoalsWarnings(payload)),
+      )
+    | Time(payload) => (
+        "Time",
+        Header.PlainText,
+        Emacs(PlainText(payload)),
+      )
+    | Error(payload) => ("Error", Header.Error, Emacs(Error(payload)))
+    | Intro(payload) => (
+        "Intro",
+        Header.PlainText,
+        Emacs(PlainText(payload)),
+      )
+    | Auto(payload) => (
+        "Auto",
+        Header.PlainText,
+        Emacs(PlainText(payload)),
+      )
+    | ModuleContents(payload) => (
+        "Module Contents",
+        Header.Info,
+        Emacs(PlainText(payload)),
+      )
+    | SearchAbout(payload) => (
+        "Searching about ...",
+        Header.PlainText,
+        Emacs(SearchAbout(payload)),
+      )
+    | WhyInScope(payload) => (
+        "Scope info",
+        Header.Info,
+        Emacs(WhyInScope(payload)),
+      )
+    | NormalForm(payload) => (
+        "Normal form",
+        Header.Info,
+        Emacs(PlainText(payload)),
+      )
+    | GoalType(payload) => (
+        "Goal type",
+        Header.Info,
+        Emacs(GoalTypeContext(payload)),
+      )
+    | CurrentGoal(payload) => (
+        "Current goal",
+        Header.Info,
+        Emacs(PlainText(payload)),
+      )
+    | InferredType(payload) => (
+        "Inferred type",
+        Header.Info,
+        Emacs(PlainText(payload)),
+      )
+    | Context(payload) => ("Context", Header.Info, Emacs(Context(payload)))
+    | HelperFunction(payload) => (
+        "Helper function",
+        Header.Info,
+        Emacs(PlainText(payload)),
+      )
+    | Version(payload) => (
+        "Version",
+        Header.Info,
+        Emacs(PlainText(payload)),
+      )
+    }
+  );
+};
 
 let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
   let textEditor = instance.editors.source;
@@ -140,8 +223,7 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
     | None => reject(OutOfGoal)
     };
   | DisplayInfo(info) =>
-    // instance.view.activate();
-    let (text, style, body) = Response.Info.handle(info);
+    let (text, style, body) = handleDisplayInfo(info);
     instance.view.display(text, style, body);
     resolve();
   | ClearHighlighting =>
@@ -221,7 +303,7 @@ let rec handleLocalCommand =
         : Async.t(option(Command.Remote.t), error) => {
   let buff = (command, instance) => {
     Connections.get(instance)
-    |> mapOk(connection => {
+    |> mapOk((connection: Connection.t) => {
          instance.view.display(
            "Loading ...",
            Type.View.Header.PlainText,
@@ -230,8 +312,11 @@ let rec handleLocalCommand =
 
          Some(
            {
-             connection,
-             filepath: instance.editors.source |> Atom.TextEditor.getPath |> Parser.filepath,
+             version: connection.metadata.version,
+             filepath:
+               instance.editors.source
+               |> Atom.TextEditor.getPath
+               |> Parser.filepath,
              command,
            }: Command.Remote.t,
          );
@@ -240,9 +325,8 @@ let rec handleLocalCommand =
   };
   switch (command) {
   | Load =>
-    /* force save before load */
     instance.editors.source
-    |> Atom.TextEditor.save
+    |> Atom.TextEditor.save  // force save before load
     |> fromPromise
     |> mapError(_ => Cancelled)
     |> thenOk(() => {
@@ -336,7 +420,7 @@ let rec handleLocalCommand =
   | SearchAbout(normalization) =>
     instance.view.inquire(
       "Searching through definitions ["
-      ++ Command.Normalization.of_string(normalization)
+      ++ Command.Normalization.toString(normalization)
       ++ "]",
       "expression to infer:",
       "",
@@ -353,7 +437,7 @@ let rec handleLocalCommand =
          if (Goal.isEmpty(goal)) {
            instance.view.inquire(
              "Infer type ["
-             ++ Command.Normalization.of_string(normalization)
+             ++ Command.Normalization.toString(normalization)
              ++ "]",
              "expression to infer:",
              "",
@@ -370,7 +454,7 @@ let rec handleLocalCommand =
     |> handleOutOfGoal(_ =>
          instance.view.inquire(
            "Infer type ["
-           ++ Command.Normalization.of_string(normalization)
+           ++ Command.Normalization.toString(normalization)
            ++ "]",
            "expression to infer:",
            "",
@@ -384,7 +468,7 @@ let rec handleLocalCommand =
   | ModuleContents(normalization) =>
     instance.view.inquire(
       "Module contents ["
-      ++ Command.Normalization.of_string(normalization)
+      ++ Command.Normalization.toString(normalization)
       ++ "]",
       "module name:",
       "",
@@ -647,6 +731,18 @@ let handleRemoteCommand = (instance, remote) =>
   switch (remote) {
   | None => resolve()
   | Some(cmd) =>
+    Connections.get(instance)
+    |> mapOk(connection => {
+         // remove all old log entries if `cmd` is `Load`
+         if (Command.Remote.isLoad(cmd)
+             && connection.Connection.resetLogOnLoad) {
+           Connection.resetLog(connection);
+         };
+         // create log entry for each `cmd`
+         Log.createEntry(cmd.command, connection.log);
+       })
+    |> ignore;
+
     let handleResults = ref([||]);
     let parseErrors: ref(array(Parser.Error.t)) = ref([||]);
     /* send the serialized command */
@@ -674,9 +770,13 @@ let handleRemoteCommand = (instance, remote) =>
     );
 
     Async.make((resolve', reject') =>
-      cmd.connection
-      |> Connection.send(serialized)
-      |> Event.on(onResponse(resolve', reject'))
+      Connections.get(instance)
+      |> mapOk(connection =>
+           connection
+           |> Connection.send(serialized)
+           |> Event.on(onResponse(resolve', reject'))
+           |> ignore
+         )
       |> ignore
     );
   };
