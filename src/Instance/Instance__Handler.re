@@ -654,7 +654,7 @@ let handleRemoteCommand = (instance, remote) =>
          // remove all old log entries if `cmd` is `Load`
          if (Command.Remote.isLoad(cmd)
              && connection.Connection.resetLogOnLoad) {
-           connection.log = Log.empty;
+           Connection.resetLog(connection);
          };
          // create log entry for each `cmd`
          Log.createEntry(cmd.command, connection.log);

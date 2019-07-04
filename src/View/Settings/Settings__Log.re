@@ -98,7 +98,7 @@ let make = (~connection: option(Connection.t), ~hidden) => {
           className="input-toggle"
           type_="checkbox"
           checked=refreshOnLoad
-          onClick={_ => setRefreshOnLoad(!refreshOnLoad)}
+          onChange={_ => setRefreshOnLoad(!refreshOnLoad)}
         />
         {string("Refresh on Load (C-c C-l)")}
       </label>

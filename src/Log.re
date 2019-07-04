@@ -95,7 +95,11 @@ let logResponse = text =>
   );
 
 let serialize = log => {
-  let entries = log |> Array.mapi(Entry.serialize);
+  let entries =
+    log
+    |> Array.mapi(Entry.serialize)
+    |> List.fromArray
+    |> String.joinWith("\n");
 
   {j|## Log
 $entries

@@ -373,3 +373,7 @@ let send = (request, self): Event.t(response, Error.connection) => {
 
   reqEvent;
 };
+
+let resetLog = self => {
+  self.log = [||];
+};
