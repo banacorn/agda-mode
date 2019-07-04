@@ -4,14 +4,37 @@ open Rebase;
 module Log = {
   [@react.component]
   let make = (~log: Connection.Log.t) => {
-    let rawText =
+    let (hidden, setHidden) = Hook.useState(true);
+    let className = hidden ? "hidden" : "";
+    let rawTexts =
       log.response.rawText
       |> Array.map(text => <li> {string(text)} </li>)
       |> Util.React.manyIn("ol");
+    let sexpressions =
+      log.response.sexpression
+      |> Array.map(text =>
+           <li> {string(Parser.SExpression.toString(text))} </li>
+         )
+      |> Util.React.manyIn("ol");
+    let responses =
+      log.response.response
+      |> Array.map(text => <li> {string(Response.toString(text))} </li>)
+      |> Util.React.manyIn("ol");
 
     <li className="agda-settings-log-entry">
-      <h2> {string(Command.Remote.toString(log.request.command))} </h2>
-      rawText
+      <h2 onClick={_ => setHidden(!hidden)}>
+        {string(Command.Remote.toString(log.request.command))}
+      </h2>
+      <section className>
+        <h3> {string("raw text")} </h3>
+        rawTexts
+        <hr />
+        <h3> {string("s-expression")} </h3>
+        sexpressions
+        <hr />
+        <h3> {string("response")} </h3>
+        responses
+      </section>
     </li>;
   };
   // <h2> {string("Request")} </h2>

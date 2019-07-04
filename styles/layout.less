@@ -214,14 +214,44 @@
         }
 
         .agda-settings-log {
+            // margin: @component-padding;
             padding: @component-padding (@component-padding * 2);
 
-            li {
-              // margin: @component-padding 0;
-              // padding: @component-padding;
-              //
-              // background: @base-background-color;
+
+            .agda-settings-log-entry {
+                margin: @component-padding 0;
+                background: @base-background-color;
+
+                section {
+                    padding: @component-padding;
+                }
+
+                li {
+                    background: @app-background-color;
+                    padding: @component-padding;
+                    margin: @component-padding 0;
+                }
+
+                h2 {
+                    padding: @component-padding;
+                    margin-bottom: 0;
+                    // background: @background-color-highlight;
+                }
+                h2:hover {
+                    // background: @background-color-selected;
+                    cursor: pointer;
+                }
+
+                h3 {
+                    color: @text-color-highlight;
+                }
             }
+            // li {
+            //   // margin: @component-padding 0;
+            //   // padding: @component-padding;
+            //   //
+            //   // background: @base-background-color;
+            // }
         }
 
 
