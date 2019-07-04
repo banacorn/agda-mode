@@ -652,7 +652,8 @@ let handleRemoteCommand = (instance, remote) =>
     Connections.get(instance)
     |> mapOk(connection => {
          // remove all old log entries if `cmd` is `Load`
-         if (Command.Remote.isLoad(cmd)) {
+         if (Command.Remote.isLoad(cmd)
+             && connection.Connection.resetLogOnLoad) {
            Connection.resetLogEntries(connection);
          };
          // create log entry for each `cmd`

@@ -111,8 +111,9 @@ type t = {
   process: N.ChildProcess.t,
   mutable queue: array(Event.t(response, Error.connection)),
   errorEmitter: Event.t(Response.t, unit),
-  mutable logs: array(Log.t),
   mutable connected: bool,
+  mutable logs: array(Log.t),
+  mutable resetLogOnLoad: bool,
 };
 
 let resetLogEntries = self => {
@@ -303,6 +304,7 @@ let connect = (metadata): Async.t(t, Error.connection) => {
         queue: [||],
         errorEmitter: Event.make(),
         logs: [||],
+        resetLogOnLoad: true,
       };
       /* Handles errors and anomalies */
       process

@@ -43,6 +43,10 @@ module Log = {
 
 [@react.component]
 let make = (~connection: option(Connection.t), ~hidden) => {
+  let (refreshOnLoad, setRefreshOnLoad) = Hook.useState(true);
+  connection
+  |> Option.forEach(conn => conn.Connection.resetLogOnLoad = refreshOnLoad);
+
   let className =
     Util.ClassName.(
       ["agda-settings-log"] |> addWhen("hidden", hidden) |> serialize
@@ -61,9 +65,18 @@ let make = (~connection: option(Connection.t), ~hidden) => {
     <hr />
     <p>
       {string(
-         "Keeps track of what Agda said what we've parsed. \nFor reporting parse errors. \nRefreshed on reload (C-c C-l)",
+         "Keeps track of what Agda said what we've parsed. For reporting parse errors. ",
        )}
     </p>
+    <label className="input-label">
+      <input
+        className="input-toggle"
+        type_="checkbox"
+        checked=refreshOnLoad
+        onClick={_ => setRefreshOnLoad(!refreshOnLoad)}
+      />
+      {string("Refresh on Load (C-c C-l)")}
+    </label>
     <hr />
     logs
   </section>;
