@@ -6,6 +6,7 @@ module Entry = {
     mutable rawText: array(string),
     mutable sexpression: array(Parser.SExpression.t),
     mutable response: array(Response.t),
+    mutable error: array(Parser.Error.t),
   };
   type t = {
     request,
@@ -49,11 +50,16 @@ $x
       self.response.response
       |> Array.map(Response.toString)
       |> quote("response");
+    let error =
+      self.response.error
+      |> Array.map(Parser.Error.toString)
+      |> quote("error");
 
     {j|$i. **$request**
 $rawText
 $sexpression
 $response
+$error
 |j};
   };
 };
@@ -69,6 +75,7 @@ let createEntry = (cmd, log) => {
       rawText: [||],
       sexpression: [||],
       response: [||],
+      error: [||],
     },
   };
   Js.Array.push(entry, log) |> ignore;
@@ -94,6 +101,9 @@ let logResponse = text =>
     Js.Array.push(text, log.response.response) |> ignore
   );
 
+let logError = text =>
+  updateLatestEntry(log => Js.Array.push(text, log.response.error) |> ignore);
+
 let serialize = log => {
   let entries =
     log
@@ -104,4 +114,30 @@ let serialize = log => {
   {j|## Parse Log
 $entries
 |j};
+};
+
+let dump = log => {
+  open Async;
+  let text = serialize(log);
+  // connection
+  // |> Option.mapOr(conn => Log.serialize(conn.Connection.log), "");
+
+  let itemOptions = {
+    "initialLine": 0,
+    "initialColumn": 0,
+    "split": "left",
+    "activatePane": true,
+    "activateItem": true,
+    "pending": false,
+    "searchAllPanes": true,
+    "location": (None: option(string)),
+  };
+  let itemURI = "agda-mode://log.md";
+  Atom.Environment.Workspace.open_(itemURI, itemOptions)
+  |> fromPromise
+  |> thenOk(newItem => {
+       newItem |> Atom.TextEditor.insertText(text) |> ignore;
+       resolve();
+     })
+  |> ignore;
 };

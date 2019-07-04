@@ -20,6 +20,11 @@ module Entry = {
       entry.response.response
       |> Array.map(text => <li> {string(Response.toString(text))} </li>)
       |> Util.React.manyIn("ol");
+    let hasError = Array.length(entry.response.error) > 0;
+    let errors =
+      entry.response.error
+      |> Array.map(text => <li> {string(Parser.Error.toString(text))} </li>)
+      |> Util.React.manyIn("ol");
 
     <li className="agda-settings-log-entry">
       <h2 onClick={_ => setHidden(!hidden)}>
@@ -34,35 +39,10 @@ module Entry = {
         <hr />
         <h3> {string("response")} </h3>
         responses
+        {hasError ? <> <hr /> <h3> {string("error")} </h3> errors </> : null}
       </section>
     </li>;
   };
-};
-
-let dumpLog = connection => {
-  open Async;
-  let log =
-    connection
-    |> Option.mapOr(conn => Log.serialize(conn.Connection.log), "");
-
-  let itemOptions = {
-    "initialLine": 0,
-    "initialColumn": 0,
-    "split": "left",
-    "activatePane": true,
-    "activateItem": true,
-    "pending": false,
-    "searchAllPanes": true,
-    "location": (None: option(string)),
-  };
-  let itemURI = "agda-mode://log.md";
-  Atom.Environment.Workspace.open_(itemURI, itemOptions)
-  |> fromPromise
-  |> thenOk(newItem => {
-       newItem |> Atom.TextEditor.insertText(log) |> ignore;
-       resolve();
-     })
-  |> ignore;
 };
 
 [@react.component]
@@ -108,7 +88,7 @@ let make = (~connection: option(Connection.t), ~hidden) => {
       <button
         onClick={_ => {
           setShowInstruction(true);
-          dumpLog(connection);
+          connection |> Option.forEach(conn => Log.dump(conn.Connection.log));
         }}
         className="btn btn-primary icon icon-clippy">
         {string("Dump log")}
