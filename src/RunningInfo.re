@@ -44,7 +44,7 @@ let add = (info, self) =>
       resolve();
     } else {
       self.isOpeningEditor = true;
-      let itemURI = "agda-mode://log";
+      let itemURI = "agda-mode://running-info";
       Environment.Workspace.open_(itemURI, itemOptions)
       |> fromPromise
       |> thenOk(newItem => {

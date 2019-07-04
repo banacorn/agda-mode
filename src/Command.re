@@ -391,7 +391,7 @@ module Remote = {
     | ShowConstraints => "ShowConstraints"
     | ShowGoals => "ShowGoals"
     | WhyInScope(string, int) =>
-      "WhyInScope \"" ++ string ++ "\" (Goal #" ++ string_of_int(int) ++ ")"
+      "WhyInScope \"" ++ string ++ "\" (Goal " ++ string_of_int(int) ++ ")"
     | WhyInScopeGlobal(string) => "WhyInScope \"" ++ string ++ "\" (Global)"
     | SearchAbout(norm, string) =>
       "SearchAbout \""
@@ -402,7 +402,7 @@ module Remote = {
     | InferType(norm, string, int) =>
       "InferType \""
       ++ string
-      ++ "\" (Goal #"
+      ++ "\" (Goal "
       ++ string_of_int(int)
       ++ ", "
       ++ Normalization.toString(norm)
@@ -416,7 +416,7 @@ module Remote = {
     | ModuleContents(norm, string, int) =>
       "ModuleContents \""
       ++ string
-      ++ "\" (Goal #"
+      ++ "\" (Goal "
       ++ string_of_int(int)
       ++ ", "
       ++ Normalization.toString(norm)
@@ -430,7 +430,7 @@ module Remote = {
     | ComputeNormalForm(computeMode, string, int) =>
       "ComputeNormalForm \""
       ++ string
-      ++ "\" (Goal #"
+      ++ "\" (Goal "
       ++ string_of_int(int)
       ++ ", "
       ++ ComputeMode.toString(computeMode)
@@ -441,30 +441,30 @@ module Remote = {
       ++ "\" (Global, "
       ++ ComputeMode.toString(computeMode)
       ++ ")"
-    | Give(_, int) => "Give (Goal #" ++ string_of_int(int) ++ ")"
-    | Refine(_, int) => "Refine (Goal #" ++ string_of_int(int) ++ ")"
-    | Auto(_, int) => "Auto (Goal #" ++ string_of_int(int) ++ ")"
-    | Case(_, int) => "Case (Goal #" ++ string_of_int(int) ++ ")"
+    | Give(_, int) => "Give (Goal " ++ string_of_int(int) ++ ")"
+    | Refine(_, int) => "Refine (Goal " ++ string_of_int(int) ++ ")"
+    | Auto(_, int) => "Auto (Goal " ++ string_of_int(int) ++ ")"
+    | Case(_, int) => "Case (Goal " ++ string_of_int(int) ++ ")"
     | GoalType(norm, int) =>
-      "GoalType (Goal #"
+      "GoalType (Goal "
       ++ string_of_int(int)
       ++ ", "
       ++ Normalization.toString(norm)
       ++ ")"
     | Context(norm, int) =>
-      "Context (Goal #"
+      "Context (Goal "
       ++ string_of_int(int)
       ++ ", "
       ++ Normalization.toString(norm)
       ++ ")"
     | GoalTypeAndContext(norm, int) =>
-      "GoalTypeAndContext (Goal #"
+      "GoalTypeAndContext (Goal "
       ++ string_of_int(int)
       ++ ", "
       ++ Normalization.toString(norm)
       ++ ")"
     | GoalTypeAndInferredType(norm, _, int) =>
-      "GoalTypeAndInferredType (Goal #"
+      "GoalTypeAndInferredType (Goal "
       ++ string_of_int(int)
       ++ ", "
       ++ Normalization.toString(norm)
@@ -472,7 +472,7 @@ module Remote = {
     | GotoDefinition(string, int) =>
       "GotoDefinition \""
       ++ string
-      ++ "\" (Goal #"
+      ++ "\" (Goal "
       ++ string_of_int(int)
       ++ ")"
     | GotoDefinitionGlobal(string) =>

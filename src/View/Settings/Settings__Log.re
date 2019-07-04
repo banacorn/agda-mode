@@ -1,29 +1,29 @@
 open ReasonReact;
 open Rebase;
 
-module Log = {
+module Entry = {
   [@react.component]
-  let make = (~log: Connection.Log.t) => {
+  let make = (~entry: Log.Entry.t) => {
     let (hidden, setHidden) = Hook.useState(true);
     let className = hidden ? "hidden" : "";
     let rawTexts =
-      log.response.rawText
+      entry.response.rawText
       |> Array.map(text => <li> {string(text)} </li>)
       |> Util.React.manyIn("ol");
     let sexpressions =
-      log.response.sexpression
+      entry.response.sexpression
       |> Array.map(text =>
            <li> {string(Parser.SExpression.toString(text))} </li>
          )
       |> Util.React.manyIn("ol");
     let responses =
-      log.response.response
+      entry.response.response
       |> Array.map(text => <li> {string(Response.toString(text))} </li>)
       |> Util.React.manyIn("ol");
 
     <li className="agda-settings-log-entry">
       <h2 onClick={_ => setHidden(!hidden)}>
-        {string(Command.Remote.toString(log.request.command))}
+        {string(Command.Remote.toString(entry.request))}
       </h2>
       <section className>
         <h3> {string("raw text")} </h3>
@@ -37,8 +37,32 @@ module Log = {
       </section>
     </li>;
   };
-  // <h2> {string("Request")} </h2>
-  // <h2> {string("Response")} </h2>
+};
+
+let dumpLog = (connection, _) => {
+  open Async;
+  let log =
+    connection
+    |> Option.mapOr(conn => Log.serialize(conn.Connection.log), "");
+
+  let itemOptions = {
+    "initialLine": 0,
+    "initialColumn": 0,
+    "split": "left",
+    "activatePane": true,
+    "activateItem": true,
+    "pending": false,
+    "searchAllPanes": true,
+    "location": (None: option(string)),
+  };
+  let itemURI = "agda-mode://log.md";
+  Atom.Environment.Workspace.open_(itemURI, itemOptions)
+  |> fromPromise
+  |> thenOk(newItem => {
+       newItem |> Atom.TextEditor.insertText(log) |> ignore;
+       resolve();
+     })
+  |> ignore;
 };
 
 [@react.component]
@@ -54,8 +78,8 @@ let make = (~connection: option(Connection.t), ~hidden) => {
 
   let logs =
     connection
-    |> Option.mapOr(conn => conn.Connection.logs, [||])
-    |> Array.map(log => <Log log />)
+    |> Option.mapOr(conn => conn.Connection.log, [||])
+    |> Array.map(entry => <Entry entry />)
     |> Util.React.manyIn("ol");
   <section className>
     <h1>
@@ -68,22 +92,25 @@ let make = (~connection: option(Connection.t), ~hidden) => {
          "Keeps track of what Agda said what we've parsed. For reporting parse errors. ",
        )}
     </p>
-    <label className="input-label">
-      <input
-        className="input-toggle"
-        type_="checkbox"
-        checked=refreshOnLoad
-        onClick={_ => setRefreshOnLoad(!refreshOnLoad)}
-      />
-      {string("Refresh on Load (C-c C-l)")}
-    </label>
+    <p>
+      <label className="input-label">
+        <input
+          className="input-toggle"
+          type_="checkbox"
+          checked=refreshOnLoad
+          onClick={_ => setRefreshOnLoad(!refreshOnLoad)}
+        />
+        {string("Refresh on Load (C-c C-l)")}
+      </label>
+    </p>
+    <p>
+      <button
+        onClick={dumpLog(connection)}
+        className="btn btn-primary icon icon-clippy">
+        {string("Dump log")}
+      </button>
+    </p>
     <hr />
     logs
   </section>;
-  // <div className="block">
-  //   <button className="btn btn-primary icon icon-clippy">
-  //     {string("Dump to clipboard")}
-  //   </button>
-  // </div>
-  // responseListItems
 };

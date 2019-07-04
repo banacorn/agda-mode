@@ -92,72 +92,22 @@ type response =
   | Data(Response.t)
   | End;
 
-// type for logging request/response
-module Log = {
-  type request = Command.Remote.t;
-  type response = {
-    mutable rawText: array(string),
-    mutable sexpression: array(Parser.SExpression.t),
-    mutable response: array(Response.t),
-  };
-  type t = {
-    request,
-    response,
-  };
-};
-
 type t = {
   metadata,
   process: N.ChildProcess.t,
   mutable queue: array(Event.t(response, Error.connection)),
   errorEmitter: Event.t(Response.t, unit),
   mutable connected: bool,
-  mutable logs: array(Log.t),
+  mutable log: Log.t,
   mutable resetLogOnLoad: bool,
 };
-
-let resetLogEntries = self => {
-  self.logs = [||];
-};
-
-let createLogEntry = (cmd, self) => {
-  let log: Log.t = {
-    request: cmd,
-    response: {
-      rawText: [||],
-      sexpression: [||],
-      response: [||],
-    },
-  };
-  Js.Array.push(log, self.logs) |> ignore;
-};
-
-let updateLatestLogEntry = (f: Log.t => unit, self) => {
-  let n = Array.length(self.logs);
-  self.logs[n - 1] |> Option.forEach(f);
-};
-
-let logRawText = text =>
-  updateLatestLogEntry(log =>
-    Js.Array.push(text, log.response.rawText) |> ignore
-  );
-
-let logSExpression = text =>
-  updateLatestLogEntry(log =>
-    Js.Array.push(text, log.response.sexpression) |> ignore
-  );
-
-let logResponse = text =>
-  updateLatestLogEntry(log =>
-    Js.Array.push(text, log.response.response) |> ignore
-  );
 
 let disconnect = (error, self) => {
   self.process |> N.ChildProcess.kill("SIGTERM");
   self.queue |> Array.forEach(ev => ev |> Event.emitError(error));
   self.queue = [||];
   self.errorEmitter |> Event.removeAllListeners;
-  self.logs = [||];
+  self.log = Log.empty;
   self.connected = false;
 };
 
@@ -303,7 +253,7 @@ let connect = (metadata): Async.t(t, Error.connection) => {
         connected: true,
         queue: [||],
         errorEmitter: Event.make(),
-        logs: [||],
+        log: [||],
         resetLogOnLoad: true,
       };
       /* Handles errors and anomalies */
@@ -358,7 +308,7 @@ let wire = (self): t => {
     // serialize the binary chunk into string
     let rawText = chunk |> Node.Buffer.toString;
     // store the raw text in the log
-    logRawText(rawText, self);
+    Log.logRawText(rawText, self.log);
     // we consider the chunk ended with if ends with "Agda2> "
     let endOfResponse = rawText |> String.endsWith("Agda2> ");
     // remove the trailing "Agda2> "
@@ -386,12 +336,12 @@ let wire = (self): t => {
          | Continue(parse) => continuation := Some(parse)
          | Done(result) =>
            // store the parsed s-expression in the log
-           logSExpression(result, self);
+           Log.logSExpression(result, self.log);
            switch (Response.parse(result)) {
            | Error(err) => response(Error(err))
            | Ok(result) =>
              // store the parsed response in the log
-             logResponse(result, self);
+             Log.logResponse(result, self.log);
              response(Data(result));
            };
            continuation := None;
