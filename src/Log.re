@@ -101,7 +101,7 @@ let serialize = log => {
     |> List.fromArray
     |> String.joinWith("\n");
 
-  {j|## Log
+  {j|## Parse Log
 $entries
 |j};
 };

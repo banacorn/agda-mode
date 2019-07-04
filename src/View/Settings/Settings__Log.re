@@ -39,7 +39,7 @@ module Entry = {
   };
 };
 
-let dumpLog = (connection, _) => {
+let dumpLog = connection => {
   open Async;
   let log =
     connection
@@ -67,6 +67,7 @@ let dumpLog = (connection, _) => {
 
 [@react.component]
 let make = (~connection: option(Connection.t), ~hidden) => {
+  let (showInstruction, setShowInstruction) = Hook.useState(false);
   let (refreshOnLoad, setRefreshOnLoad) = Hook.useState(true);
   connection
   |> Option.forEach(conn => conn.Connection.resetLogOnLoad = refreshOnLoad);
@@ -105,11 +106,24 @@ let make = (~connection: option(Connection.t), ~hidden) => {
     </p>
     <p>
       <button
-        onClick={dumpLog(connection)}
+        onClick={_ => {
+          setShowInstruction(true);
+          dumpLog(connection);
+        }}
         className="btn btn-primary icon icon-clippy">
         {string("Dump log")}
       </button>
     </p>
+    {showInstruction
+       ? <p className="text-warning">
+           {string(
+              "In case of parse error, please copy the log and paste it ",
+            )}
+           <a href="https://github.com/banacorn/agda-mode/issues/new">
+             {string("here")}
+           </a>
+         </p>
+       : null}
     <hr />
     logs
   </section>;
