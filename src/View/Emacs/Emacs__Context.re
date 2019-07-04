@@ -1,5 +1,3 @@
-
-
 open Rebase;
 
 open Emacs__Component;
