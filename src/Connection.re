@@ -1,17 +1,5 @@
 open Rebase;
 
-/* supported protocol */
-type protocol =
-  | EmacsOnly
-  | EmacsAndJSON;
-
-type metadata = {
-  path: string,
-  args: array(string),
-  version: string,
-  protocol,
-};
-
 module Error = {
   type autoSearch =
     | ProcessHanging
@@ -93,21 +81,20 @@ type response =
   | End;
 
 type t = {
-  metadata,
+  metadata: Metadata.t,
   process: N.ChildProcess.t,
   mutable queue: array(Event.t(response, Error.connection)),
   errorEmitter: Event.t(Response.t, unit),
   mutable connected: bool,
-  mutable log: Log.t,
   mutable resetLogOnLoad: bool,
 };
 
 let disconnect = (error, self) => {
+  self.metadata.entries = [||];
   self.process |> N.ChildProcess.kill("SIGTERM");
   self.queue |> Array.forEach(ev => ev |> Event.emitError(error));
   self.queue = [||];
   self.errorEmitter |> Event.removeAllListeners;
-  self.log = Log.empty;
   self.connected = false;
 };
 
@@ -158,7 +145,7 @@ let autoSearch = (path): Async.t(string, Error.autoSearch) =>
   );
 
 /* a more sophiscated "make" */
-let validateAndMake = (pathAndParams): Async.t(metadata, Error.validation) => {
+let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.validation) => {
   let (path, args) = Parser.commandLine(pathAndParams);
   let parseError =
       (error: Js.Nullable.t(Js.Exn.t)): option(Error.validation) => {
@@ -176,7 +163,7 @@ let validateAndMake = (pathAndParams): Async.t(metadata, Error.validation) => {
     };
   };
   let parseStdout =
-      (stdout: Node.Buffer.t): result(metadata, Error.validation) => {
+      (stdout: Node.Buffer.t): result(Metadata.t, Error.validation) => {
     let message = stdout |> Node.Buffer.toString;
     switch (Js.String.match([%re "/Agda version (.*)/"], message)) {
     | None => Error(IsNotAgda(message))
@@ -191,6 +178,7 @@ let validateAndMake = (pathAndParams): Async.t(metadata, Error.validation) => {
           protocol:
             Js.Re.test_([%re "/--interaction-json/"], message)
               ? EmacsAndJSON : EmacsOnly,
+          entries: [||],
         })
       }
     };
@@ -236,7 +224,7 @@ let validateAndMake = (pathAndParams): Async.t(metadata, Error.validation) => {
 
 let useJSON = metadata => {
   Atom.Environment.Config.get("agda-mode.enableJSONProtocol")
-  && metadata.protocol == EmacsAndJSON;
+  && metadata.Metadata.protocol == EmacsAndJSON;
 };
 
 let connect = (metadata): Async.t(t, Error.connection) => {
@@ -253,7 +241,6 @@ let connect = (metadata): Async.t(t, Error.connection) => {
         connected: true,
         queue: [||],
         errorEmitter: Event.make(),
-        log: [||],
         resetLogOnLoad: true,
       };
       /* Handles errors and anomalies */
@@ -308,7 +295,7 @@ let wire = (self): t => {
     // serialize the binary chunk into string
     let rawText = chunk |> Node.Buffer.toString;
     // store the raw text in the log
-    Log.logRawText(rawText, self.log);
+    Metadata.logRawText(rawText, self.metadata);
     // we consider the chunk ended with if ends with "Agda2> "
     let endOfResponse = rawText |> String.endsWith("Agda2> ");
     // remove the trailing "Agda2> "
@@ -336,12 +323,12 @@ let wire = (self): t => {
          | Continue(parse) => continuation := Some(parse)
          | Done(result) =>
            // store the parsed s-expression in the log
-           Log.logSExpression(result, self.log);
+           Metadata.logSExpression(result, self.metadata);
            switch (Response.parse(result)) {
            | Error(err) => response(Error(err))
            | Ok(result) =>
              // store the parsed response in the log
-             Log.logResponse(result, self.log);
+             Metadata.logResponse(result, self.metadata);
              response(Data(result));
            };
            continuation := None;
@@ -375,5 +362,5 @@ let send = (request, self): Event.t(response, Error.connection) => {
 };
 
 let resetLog = self => {
-  self.log = [||];
+  self.metadata.entries = [||];
 };

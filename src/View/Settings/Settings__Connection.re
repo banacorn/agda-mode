@@ -103,12 +103,7 @@ let make =
          <p>
            {string(
               "Supported protocol: "
-              ++ (
-                switch (conn.metadata.protocol) {
-                | Connection.EmacsOnly => "Emacs"
-                | Connection.EmacsAndJSON => "Emacs / JSON"
-                }
-              ),
+              ++ Metadata.Protocol.toString(conn.metadata.protocol),
             )}
          </p>
        </>

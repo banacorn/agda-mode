@@ -3,7 +3,7 @@ open Rebase;
 
 module Entry = {
   [@react.component]
-  let make = (~entry: Log.Entry.t) => {
+  let make = (~entry: Metadata.Log.Entry.t) => {
     let (hidden, setHidden) = Hook.useState(true);
     let className = hidden ? "hidden" : "";
     let rawTexts =
@@ -57,9 +57,9 @@ let make = (~connection: option(Connection.t), ~hidden) => {
       ["agda-settings-log"] |> addWhen("hidden", hidden) |> serialize
     );
 
-  let logs =
+  let entries =
     connection
-    |> Option.mapOr(conn => conn.Connection.log, [||])
+    |> Option.mapOr(conn => conn.Connection.metadata.entries, [||])
     |> Array.map(entry => <Entry entry />)
     |> Util.React.manyIn("ol");
   <section className>
@@ -88,7 +88,8 @@ let make = (~connection: option(Connection.t), ~hidden) => {
       <button
         onClick={_ => {
           setShowInstruction(true);
-          connection |> Option.forEach(conn => Log.dump(conn.Connection.log));
+          connection
+          |> Option.forEach(conn => Metadata.dump(conn.Connection.metadata));
         }}
         className="btn btn-primary icon icon-clippy">
         {string("Dump log")}
@@ -105,6 +106,6 @@ let make = (~connection: option(Connection.t), ~hidden) => {
          </p>
        : null}
     <hr />
-    logs
+    entries
   </section>;
 };
