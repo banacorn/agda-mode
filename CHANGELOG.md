@@ -1,3 +1,6 @@
+## 0.9.5
+* Fix #101 and #105
+
 ## 0.9.4
 * Generate log on parse errors
 * Fix #104
