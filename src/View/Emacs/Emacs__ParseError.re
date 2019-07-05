@@ -1,7 +1,4 @@
 open ReasonReact;
-open Emacs__Component;
-open Rebase.Option;
-open Rebase;
 
 [@react.component]
 let make = (~log: Log.t) => {
