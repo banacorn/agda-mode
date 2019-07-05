@@ -204,7 +204,7 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
         Ok(HighlightingInfoDirect(Highlighting.Remove, annotations))
       | Some(A("nil")) =>
         Ok(HighlightingInfoDirect(Highlighting.Keep, annotations))
-      | _ => err(1)
+      | _ => Ok(HighlightingInfoDirect(Highlighting.Keep, [||]))
       };
     | Some(A("agda2-highlight-load-and-delete-action")) =>
       switch (xs[1]) {
