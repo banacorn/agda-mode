@@ -1,9 +1,15 @@
 open Rebase;
 
 /* supported protocol */
-type protocol =
-  | EmacsOnly
-  | EmacsAndJSON;
+module Protocol = {
+  type t =
+    | EmacsOnly
+    | EmacsAndJSON;
+  let toString =
+    fun
+    | EmacsOnly => "Emacs"
+    | EmacsAndJSON => "Emacs / JSON";
+};
 
 module Log = {
   module Entry = {
@@ -77,7 +83,7 @@ type t = {
   path: string,
   args: array(string),
   version: string,
-  protocol,
+  protocol: Protocol.t,
   mutable entries: array(Log.Entry.t),
 };
 
@@ -118,6 +124,11 @@ let logError = text =>
   updateLatestEntry(log => Js.Array.push(text, log.response.error) |> ignore);
 
 let serialize = self => {
+  let path = "* path: " ++ self.path;
+  let args = "* args: " ++ Util.Pretty.array(self.args);
+  let version = "* version: " ++ self.version;
+  let protocol = "* protocol: " ++ Protocol.toString(self.protocol);
+  let os = "* platform: " ++ N.OS.type_();
   let entries =
     self.entries
     |> Array.mapi(Log.Entry.serialize)
@@ -125,16 +136,18 @@ let serialize = self => {
     |> String.joinWith("\n");
 
   {j|## Parse Log
-  $entries
+$path
+$args
+$version
+$protocol
+$os
+$entries
   |j};
 };
 
 let dump = self => {
   open Async;
   let text = serialize(self);
-  // connection
-  // |> Option.mapOr(conn => Log.serialize(conn.Connection.log), "");
-
   let itemOptions = {
     "initialLine": 0,
     "initialColumn": 0,
