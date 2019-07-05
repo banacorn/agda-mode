@@ -1,5 +1,17 @@
 open Rebase;
 
+/* supported protocol */
+type protocol =
+  | EmacsOnly
+  | EmacsAndJSON;
+
+type metadata = {
+  path: string,
+  args: array(string),
+  version: string,
+  protocol,
+};
+
 module Entry = {
   type request = Command.Remote.command;
   type response = {
@@ -64,7 +76,10 @@ $error
   };
 };
 
-type t = array(Entry.t);
+type t = {
+  metadata,
+  mutable entries: array(Entry.t),
+};
 
 let empty = [||];
 
@@ -78,27 +93,27 @@ let createEntry = (cmd, log) => {
       error: [||],
     },
   };
-  Js.Array.push(entry, log) |> ignore;
+  Js.Array.push(entry, log.entries) |> ignore;
 };
 
 let updateLatestEntry = (f: Entry.t => unit, log) => {
-  let n = Array.length(log);
-  log[n - 1] |> Option.forEach(f);
+  let n = Array.length(log.entries);
+  log.entries[n - 1] |> Option.forEach(f);
 };
 
 let logRawText = text =>
-  updateLatestEntry(log =>
-    Js.Array.push(text, log.response.rawText) |> ignore
+  updateLatestEntry(entry =>
+    Js.Array.push(text, entry.response.rawText) |> ignore
   );
 
 let logSExpression = text =>
-  updateLatestEntry(log =>
-    Js.Array.push(text, log.response.sexpression) |> ignore
+  updateLatestEntry(entry =>
+    Js.Array.push(text, entry.response.sexpression) |> ignore
   );
 
 let logResponse = text =>
-  updateLatestEntry(log =>
-    Js.Array.push(text, log.response.response) |> ignore
+  updateLatestEntry(entry =>
+    Js.Array.push(text, entry.response.response) |> ignore
   );
 
 let logError = text =>
@@ -106,7 +121,7 @@ let logError = text =>
 
 let serialize = log => {
   let entries =
-    log
+    log.entries
     |> Array.mapi(Entry.serialize)
     |> List.fromArray
     |> String.joinWith("\n");

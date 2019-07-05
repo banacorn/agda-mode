@@ -312,7 +312,7 @@ let rec handleLocalCommand =
 
          Some(
            {
-             version: connection.metadata.version,
+             version: connection.log.metadata.version,
              filepath:
                instance.editors.source
                |> Atom.TextEditor.getPath

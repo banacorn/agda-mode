@@ -1,17 +1,5 @@
 open Rebase;
 
-/* supported protocol */
-type protocol =
-  | EmacsOnly
-  | EmacsAndJSON;
-
-type metadata = {
-  path: string,
-  args: array(string),
-  version: string,
-  protocol,
-};
-
 module Error = {
   type autoSearch =
     | ProcessHanging
@@ -93,12 +81,11 @@ type response =
   | End;
 
 type t = {
-  metadata,
   process: N.ChildProcess.t,
   mutable queue: array(Event.t(response, Error.connection)),
   errorEmitter: Event.t(Response.t, unit),
   mutable connected: bool,
-  mutable log: Log.t,
+  log: Log.t,
   mutable resetLogOnLoad: bool,
 };
 
@@ -107,7 +94,7 @@ let disconnect = (error, self) => {
   self.queue |> Array.forEach(ev => ev |> Event.emitError(error));
   self.queue = [||];
   self.errorEmitter |> Event.removeAllListeners;
-  self.log = Log.empty;
+  self.log.entries = [||];
   self.connected = false;
 };
 
@@ -158,7 +145,8 @@ let autoSearch = (path): Async.t(string, Error.autoSearch) =>
   );
 
 /* a more sophiscated "make" */
-let validateAndMake = (pathAndParams): Async.t(metadata, Error.validation) => {
+let validateAndMake =
+    (pathAndParams): Async.t(Log.metadata, Error.validation) => {
   let (path, args) = Parser.commandLine(pathAndParams);
   let parseError =
       (error: Js.Nullable.t(Js.Exn.t)): option(Error.validation) => {
@@ -176,7 +164,7 @@ let validateAndMake = (pathAndParams): Async.t(metadata, Error.validation) => {
     };
   };
   let parseStdout =
-      (stdout: Node.Buffer.t): result(metadata, Error.validation) => {
+      (stdout: Node.Buffer.t): result(Log.metadata, Error.validation) => {
     let message = stdout |> Node.Buffer.toString;
     switch (Js.String.match([%re "/Agda version (.*)/"], message)) {
     | None => Error(IsNotAgda(message))
@@ -236,7 +224,7 @@ let validateAndMake = (pathAndParams): Async.t(metadata, Error.validation) => {
 
 let useJSON = metadata => {
   Atom.Environment.Config.get("agda-mode.enableJSONProtocol")
-  && metadata.protocol == EmacsAndJSON;
+  && metadata.Log.protocol == EmacsAndJSON;
 };
 
 let connect = (metadata): Async.t(t, Error.connection) => {
@@ -248,12 +236,14 @@ let connect = (metadata): Async.t(t, Error.connection) => {
       let process = ChildProcess.spawn(metadata.path, args, {"shell": true});
 
       let connection = {
-        metadata,
         process,
         connected: true,
         queue: [||],
         errorEmitter: Event.make(),
-        log: [||],
+        log: {
+          metadata,
+          entries: [||],
+        },
         resetLogOnLoad: true,
       };
       /* Handles errors and anomalies */
@@ -375,5 +365,5 @@ let send = (request, self): Event.t(response, Error.connection) => {
 };
 
 let resetLog = self => {
-  self.log = [||];
+  self.log.entries = [||];
 };

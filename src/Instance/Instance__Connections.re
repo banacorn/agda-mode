@@ -41,8 +41,7 @@ let connectWithAgdaPath =
     (instance, path): Async.t(Connection.t, MiniEditor.error) => {
   /* validate the given path */
   let rec getMetadata =
-          (instance, pathAndParams)
-          : Async.t(Connection.metadata, MiniEditor.error) => {
+          (instance, pathAndParams): Async.t(Log.metadata, MiniEditor.error) => {
     Connection.validateAndMake(pathAndParams)
     |> thenError(err =>
          instance
@@ -57,7 +56,10 @@ let connectWithAgdaPath =
     instance.connection = Some(connection);
     /* store the path in the config */
     let path =
-      Array.concat(connection.metadata.args, [|connection.metadata.path|])
+      Array.concat(
+        connection.log.metadata.args,
+        [|connection.log.metadata.path|],
+      )
       |> List.fromArray
       |> String.joinWith(" ");
     Environment.Config.set("agda-mode.agdaPath", path);

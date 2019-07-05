@@ -57,9 +57,9 @@ let make = (~connection: option(Connection.t), ~hidden) => {
       ["agda-settings-log"] |> addWhen("hidden", hidden) |> serialize
     );
 
-  let logs =
+  let entries =
     connection
-    |> Option.mapOr(conn => conn.Connection.log, [||])
+    |> Option.mapOr(conn => conn.Connection.log.entries, [||])
     |> Array.map(entry => <Entry entry />)
     |> Util.React.manyIn("ol");
   <section className>
@@ -105,6 +105,6 @@ let make = (~connection: option(Connection.t), ~hidden) => {
          </p>
        : null}
     <hr />
-    logs
+    entries
   </section>;
 };
