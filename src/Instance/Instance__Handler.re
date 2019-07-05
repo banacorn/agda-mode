@@ -19,12 +19,14 @@ let handleCommandError = instance =>
         |> Option.forEach(conn => {
              // log the errors
              errors
-             |> Array.forEach(e => Log.logError(e, conn.Connection.log));
+             |> Array.forEach(e =>
+                  Metadata.logError(e, conn.Connection.metadata)
+                );
              // and display with the log
              instance.view.display(
                "Parse Error",
                Type.View.Header.Error,
-               Emacs(ParseError(conn.Connection.log)),
+               Emacs(ParseError(conn.Connection.metadata)),
              );
            })
 
@@ -312,7 +314,7 @@ let rec handleLocalCommand =
 
          Some(
            {
-             version: connection.log.metadata.version,
+             version: connection.metadata.version,
              filepath:
                instance.editors.source
                |> Atom.TextEditor.getPath
@@ -739,7 +741,7 @@ let handleRemoteCommand = (instance, remote) =>
            Connection.resetLog(connection);
          };
          // create log entry for each `cmd`
-         Log.createEntry(cmd.command, connection.log);
+         Metadata.createEntry(cmd.command, connection.metadata);
        })
     |> ignore;
 

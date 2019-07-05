@@ -98,15 +98,15 @@ let make =
      | None => <> <p> {string("connection not established")} </p> </>
      | Some(conn) =>
        <>
-         <p> {string("Path: " ++ conn.log.metadata.path)} </p>
-         <p> {string("Version: " ++ conn.log.metadata.version)} </p>
+         <p> {string("Path: " ++ conn.metadata.path)} </p>
+         <p> {string("Version: " ++ conn.metadata.version)} </p>
          <p>
            {string(
               "Supported protocol: "
               ++ (
-                switch (conn.log.metadata.protocol) {
-                | Log.EmacsOnly => "Emacs"
-                | Log.EmacsAndJSON => "Emacs / JSON"
+                switch (conn.metadata.protocol) {
+                | Metadata.EmacsOnly => "Emacs"
+                | Metadata.EmacsAndJSON => "Emacs / JSON"
                 }
               ),
             )}
@@ -121,7 +121,7 @@ let make =
         value={
           switch (connection) {
           | None => ""
-          | Some(conn) => conn.log.metadata.path
+          | Some(conn) => conn.metadata.path
           }
         }
         placeholder="path to Agda"
