@@ -23,7 +23,7 @@
       "agda-mode:go-to-definition"
     ]
   },
-  "atomTestRunner": "./spec/TestRunner.bs.js",
+  "atomTestRunner": "./lib/js/src/TestRunner.bs.js",
   "repository": "https://github.com/banacorn/agda-mode",
   "license": "MIT",
   "engines": {
