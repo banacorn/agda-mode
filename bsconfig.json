@@ -27,6 +27,7 @@
     "@glennsl/rebase",
     "atom",
     "bs-webapi",
+    "bs-mocha",
     "reason-react-update"
   ],
   "bsc-flags": ["-bs-g"]  ,
