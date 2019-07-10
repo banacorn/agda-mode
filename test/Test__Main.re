@@ -3,6 +3,8 @@ open BsMocha;
 open BsMocha.Mocha;
 open Js.Promise;
 
+exception CannotReadPackageJson;
+
 // bindings for git-branch
 [@bs.module] external branch: unit => Js.Promise.t(string) = "git-branch";
 
@@ -18,13 +20,35 @@ let on = (br, test) => {
      );
 };
 let readFile = N.Fs.readFile |> N.Util.promisify;
+let readPackageJSONMain = () => {
+  readFile(. "./package.json")
+  |> then_(buffer =>
+       buffer
+       |> Node.Buffer.toString
+       |> Js.Json.parseExn
+       |> Js.Json.decodeObject
+       |> Option.flatMap(obj => Js.Dict.get(obj, "main"))
+       |> Option.flatMap(Js.Json.decodeString)
+       |> Option.mapOr(resolve, reject(CannotReadPackageJson))
+     );
+};
 
-on("dev", () =>
+describe("Development", () =>
+  BsMocha.Promise.it("Entry points to AgdaMode.bs", () =>
+    readPackageJSONMain()
+    |> then_(path => {
+         Assert.equal(path, "./lib/js/src/AgdaMode.bs");
+         resolve();
+       })
+  )
+);
+
+on("test", () =>
   describe("Development", () =>
     BsMocha.Promise.it("Entry points to AgdaMode.bs", () =>
-      readFile(. "./package.json")
-      |> then_(content => {
-           Js.log(content);
+      readPackageJSONMain()
+      |> then_(path => {
+           Assert.equal(path, "./lib/js/src/AgdaMode.bs");
            resolve();
          })
     )
@@ -45,38 +69,38 @@ on("master", () =>
     );
 
     BsMocha.Promise.it("Entry points to the production bundle", () =>
-      readFile(. "./package.json")
-      |> then_(content => {
-           Js.log(content);
+      readPackageJSONMain()
+      |> then_(path => {
+           Assert.equal(path, "./lib/js/bunbled.js");
            resolve();
          })
     );
   })
 );
 
-exception DispatchFailure(string);
-
-let openBlankAgdaFile = () =>
-  Atom.Environment.Workspace.openWithOnlyURI("../test/asset/Blank.agda");
-
-let getActivePackageNames = () =>
-  Atom.Environment.Packages.getActivePackages()
-  |> Array.map(o => o |> Atom.Package.name);
-
-let getLoadedPackageNames = () =>
-  Atom.Environment.Packages.getLoadedPackages()
-  |> Array.map((o: Atom.Package.t) => o |> Atom.Package.name);
-
-let dispatch = (editor, event) => {
-  let element = Atom.Environment.Views.getView(editor);
-  let result = Atom.Environment.Commands.dispatch(element, "agda-mode:load");
-  switch (result) {
-  | None => reject(DispatchFailure(event))
-  | Some(_) =>
-    Js.log("dispatched!");
-    resolve();
-  };
-};
+// exception DispatchFailure(string);
+//
+// let openBlankAgdaFile = () =>
+//   Atom.Environment.Workspace.openWithOnlyURI("../test/asset/Blank.agda");
+//
+// let getActivePackageNames = () =>
+//   Atom.Environment.Packages.getActivePackages()
+//   |> Array.map(o => o |> Atom.Package.name);
+//
+// let getLoadedPackageNames = () =>
+//   Atom.Environment.Packages.getLoadedPackages()
+//   |> Array.map((o: Atom.Package.t) => o |> Atom.Package.name);
+//
+// let dispatch = (editor, event) => {
+//   let element = Atom.Environment.Views.getView(editor);
+//   let result = Atom.Environment.Commands.dispatch(element, "agda-mode:load");
+//   switch (result) {
+//   | None => reject(DispatchFailure(event))
+//   | Some(_) =>
+//     Js.log("dispatched!");
+//     resolve();
+//   };
+// };
 
 // describe("activating agda-mode", () =>
 //   BsMocha.Promise.it(
