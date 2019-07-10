@@ -5,6 +5,10 @@ open Js.Promise;
 
 exception CannotReadPackageJson;
 
+let base = Node.Path.join2([%raw "__dirname"], "../../../");
+let file = path => Node.Path.join2(base, path);
+let asset = path => Node.Path.join([|base, "test/asset/", path|]);
+
 // bindings for git-branch
 [@bs.module] external branch: unit => Js.Promise.t(string) = "git-branch";
 
@@ -49,7 +53,7 @@ let readPackageJSONMain = () => {
 
 // runs on all the branches other than "master"
 Branch.onDev(() =>
-  describe("Development", () =>
+  describe("Development version", () =>
     BsMocha.Promise.it("points to AgdaMode.bs", () =>
       readPackageJSONMain()
       |> then_(path => {
@@ -62,11 +66,11 @@ Branch.onDev(() =>
 
 // runs only on the "master" branch
 Branch.onProd(() =>
-  describe("Release", () => {
+  describe("Release version", () => {
     BsMocha.Promise.it("has the production bundle ready", () =>
       make((~resolve, ~reject) =>
-        N.Fs.access("./lib/js/bundled.js", err =>
-          switch (err) {
+        N.Fs.access(file("lib/js/bundled.js"), err =>
+          switch (Js.Nullable.toOption(err)) {
           | None => resolve(. 0)
           | Some(e) => reject(. N.Exception(e))
           }
@@ -77,18 +81,12 @@ Branch.onProd(() =>
     BsMocha.Promise.it("points to the production bundle", () =>
       readPackageJSONMain()
       |> then_(path => {
-           Assert.equal(path, "./lib/js/bunbled.js");
+           Assert.equal(path, "./lib/js/bundled.js");
            resolve();
          })
     );
   })
 );
-
-let asset = path =>
-  Node.Path.join2(
-    Node.Path.join2([%raw "__dirname"], "../../test/asset/"),
-    path,
-  );
 
 let openFile = path =>
   Atom.Environment.Workspace.openWithOnlyURI(asset(path));
@@ -140,16 +138,6 @@ describe("Instances", () => {
 //     resolve();
 //   };
 // };
-
-//
-//   BsMocha.Promise.it("Entry points to the production bundle", () =>
-//     readPackageJSONMain()
-//     |> then_(path => {
-//          Assert.equal(path, "./lib/js/bunbled.js");
-//          resolve();
-//        })
-//   );
-// });
 
 // let getActivePackageNames = () =>
 //   Atom.Environment.Packages.getActivePackages()
