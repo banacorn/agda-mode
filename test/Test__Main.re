@@ -33,19 +33,9 @@ let readPackageJSONMain = () => {
      );
 };
 
-describe("Development", () =>
-  BsMocha.Promise.it("Entry points to AgdaMode.bs", () =>
-    readPackageJSONMain()
-    |> then_(path => {
-         Assert.equal(path, "./lib/js/src/AgdaMode.bs");
-         resolve();
-       })
-  )
-);
-
 on("test", () =>
   describe("Development", () =>
-    BsMocha.Promise.it("Entry points to AgdaMode.bs", () =>
+    BsMocha.Promise.it("points to AgdaMode.bs", () =>
       readPackageJSONMain()
       |> then_(path => {
            Assert.equal(path, "./lib/js/src/AgdaMode.bs");
@@ -57,7 +47,7 @@ on("test", () =>
 
 on("master", () =>
   describe("Release", () => {
-    BsMocha.Promise.it("Production bundle exists", () =>
+    BsMocha.Promise.it("has production bundle", () =>
       make((~resolve, ~reject) =>
         N.Fs.access("./lib/js/bundled.js", err =>
           switch (err) {
@@ -68,7 +58,7 @@ on("master", () =>
       )
     );
 
-    BsMocha.Promise.it("Entry points to the production bundle", () =>
+    BsMocha.Promise.it("points to the production bundle", () =>
       readPackageJSONMain()
       |> then_(path => {
            Assert.equal(path, "./lib/js/bunbled.js");
@@ -78,11 +68,73 @@ on("master", () =>
   })
 );
 
-// exception DispatchFailure(string);
+exception DispatchFailure(string);
+
+let asset = path =>
+  Node.Path.join2(
+    Node.Path.join2([%raw "__dirname"], "../../test/asset/"),
+    path,
+  );
+
+let openFile = path =>
+  Atom.Environment.Workspace.openWithOnlyURI(asset(path));
+
+// let dispatch = (editor, event) => {
+//   let element = Atom.Environment.Views.getView(editor);
+//   let result = Atom.Environment.Commands.dispatch(element, "agda-mode:load");
+//   switch (result) {
+//   | None => reject(DispatchFailure(event))
+//   | Some(_) =>
+//     Js.log("dispatched!");
+//     resolve();
+//   };
+// };
+
+describe("Instances", () => {
+  let instances = ref(Js.Dict.empty());
+  let size = dict => dict^ |> Js.Dict.keys |> Array.length;
+
+  it("should be activated without any problem", () => {
+    instances := AgdaMode.activate();
+    Assert.ok(true);
+  });
+
+  it("should have no instances before opening any files", () =>
+    Assert.equal(size(instances), 0)
+  );
+
+  BsMocha.Promise.it("should respect the number of opened .agda file", () =>
+    openFile("Blank1.agda")
+    |> then_(editor => {
+         Assert.equal(size(instances), 1);
+         let pane = Atom.Environment.Workspace.getActivePane();
+         Atom.Pane.destroyItem_(editor, true, pane);
+         Assert.equal(size(instances), 0);
+         resolve();
+       })
+  );
+
+  BsMocha.Promise.it("should respect the number of opened .lagda file", () =>
+    openFile("Blank2.lagda")
+    |> then_(editor => {
+         Assert.equal(size(instances), 1);
+         let pane = Atom.Environment.Workspace.getActivePane();
+         Atom.Pane.destroyItem_(editor, true, pane);
+         Assert.equal(size(instances), 0);
+         resolve();
+       })
+  );
+});
 //
-// let openBlankAgdaFile = () =>
-//   Atom.Environment.Workspace.openWithOnlyURI("../test/asset/Blank.agda");
-//
+//   BsMocha.Promise.it("Entry points to the production bundle", () =>
+//     readPackageJSONMain()
+//     |> then_(path => {
+//          Assert.equal(path, "./lib/js/bunbled.js");
+//          resolve();
+//        })
+//   );
+// });
+
 // let getActivePackageNames = () =>
 //   Atom.Environment.Packages.getActivePackages()
 //   |> Array.map(o => o |> Atom.Package.name);
@@ -101,7 +153,7 @@ on("master", () =>
 //     resolve();
 //   };
 // };
-
+//
 // describe("activating agda-mode", () =>
 //   BsMocha.Promise.it(
 //     "should be activated after triggering agda-mode:load on .agda files", () =>
@@ -125,34 +177,3 @@ on("master", () =>
 //       //    );
 //     )
 //   )
-// );
-//
-// .then((editor) => {
-//     // get the element of the editor so that we could dispatch commands
-//     const element = atom.views.getView(editor)
-//     atom.commands.dispatch(element, "agda-mode:load");
-//     // wait after it"s activated
-//     activationPromise.then(() => {
-//         getActivePackageNames().should.contain("agda-mode");
-//         editor.should.have.property("core");
-//         close(editor)
-//         done();
-//     });
-// });
-// // activate language-agda before everything
-//
-// // load packages before loading them
-// Atom.Environment.Packages.loadPackages();
-// Js.log(getActivePackageNames());
-// Js.log(getLoadedPackageNames() |> Array.length);
-//
-// describe("#indexOf()", () =>
-//   BsMocha.Promise.it("should return -1 when the value is not present", _ =>
-//     Atom.Environment.Packages.activatePackage("agda-mode")
-//     |> then_(_ => {
-//          Js.log("success");
-//          resolve(3);
-//        })
-//   )
-// );
-// Assert.equal(-1, -1);
