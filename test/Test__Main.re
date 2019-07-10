@@ -9,16 +9,30 @@ exception CannotReadPackageJson;
 [@bs.module] external branch: unit => Js.Promise.t(string) = "git-branch";
 
 // run tests on `master` branch
-let on = (br, test) => {
-  branch()
-  |> then_(name =>
-       if (name == br) {
-         test() |> resolve;
-       } else {
-         resolve();
-       }
-     );
+module Branch = {
+  type t =
+    | Prod
+    | Dev;
+  let parse =
+    fun
+    | "master" => Prod
+    | _ => Dev;
+
+  let on = (br, test) => {
+    branch()
+    |> then_(name =>
+         if (parse(name) == br) {
+           test() |> resolve;
+         } else {
+           resolve();
+         }
+       );
+  };
+
+  let onDev = on(Dev);
+  let onProd = on(Prod);
 };
+
 let readFile = N.Fs.readFile |> N.Util.promisify;
 let readPackageJSONMain = () => {
   readFile(. "./package.json")
@@ -33,7 +47,8 @@ let readPackageJSONMain = () => {
      );
 };
 
-on("test", () =>
+// runs on all the branches other than "master"
+Branch.onDev(() =>
   describe("Development", () =>
     BsMocha.Promise.it("points to AgdaMode.bs", () =>
       readPackageJSONMain()
@@ -45,9 +60,10 @@ on("test", () =>
   )
 );
 
-on("master", () =>
+// runs only on the "master" branch
+Branch.onProd(() =>
   describe("Release", () => {
-    BsMocha.Promise.it("has production bundle", () =>
+    BsMocha.Promise.it("has the production bundle ready", () =>
       make((~resolve, ~reject) =>
         N.Fs.access("./lib/js/bundled.js", err =>
           switch (err) {
@@ -68,8 +84,6 @@ on("master", () =>
   })
 );
 
-exception DispatchFailure(string);
-
 let asset = path =>
   Node.Path.join2(
     Node.Path.join2([%raw "__dirname"], "../../test/asset/"),
@@ -78,17 +92,6 @@ let asset = path =>
 
 let openFile = path =>
   Atom.Environment.Workspace.openWithOnlyURI(asset(path));
-
-// let dispatch = (editor, event) => {
-//   let element = Atom.Environment.Views.getView(editor);
-//   let result = Atom.Environment.Commands.dispatch(element, "agda-mode:load");
-//   switch (result) {
-//   | None => reject(DispatchFailure(event))
-//   | Some(_) =>
-//     Js.log("dispatched!");
-//     resolve();
-//   };
-// };
 
 describe("Instances", () => {
   let instances = ref(Js.Dict.empty());
@@ -125,6 +128,19 @@ describe("Instances", () => {
        })
   );
 });
+
+//   exception DispatchFailure(string);
+// let dispatch = (editor, event) => {
+//   let element = Atom.Environment.Views.getView(editor);
+//   let result = Atom.Environment.Commands.dispatch(element, "agda-mode:load");
+//   switch (result) {
+//   | None => reject(DispatchFailure(event))
+//   | Some(_) =>
+//     Js.log("dispatched!");
+//     resolve();
+//   };
+// };
+
 //
 //   BsMocha.Promise.it("Entry points to the production bundle", () =>
 //     readPackageJSONMain()
