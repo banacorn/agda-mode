@@ -1,5 +1,7 @@
 /* Node.js bindings */
 
+exception Exception(Js.Exn.t);
+
 module Stream = Node__Stream;
 module ChildProcess = Node__ChildProcess;
 module OS = Node__OS;

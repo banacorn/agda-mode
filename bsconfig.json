@@ -28,6 +28,7 @@
     "atom",
     "bs-webapi",
     "bs-mocha",
+    "bs-chai",
     "reason-react-update"
   ],
   "bsc-flags": ["-bs-g"]  ,
