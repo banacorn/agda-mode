@@ -104,46 +104,46 @@ let onUndo = () => {
 
 /* the entry point of the whole package */
 let activate = _ => {
-  CompositeDisposable.
-    /* triggered everytime when a new text editor is opened */
-    (
-      Environment.Workspace.observeTextEditors(textEditor => {
-        let textEditorSubscriptions = make();
+  /* triggered everytime when a new text editor is opened */
+  Environment.Workspace.observeTextEditors(textEditor => {
+    open CompositeDisposable;
+    let textEditorSubscriptions = make();
 
-        /* register it */
-        if (isAgdaFile(textEditor)) {
-          Instances.add(textEditor);
-        };
+    /* register it */
+    if (isAgdaFile(textEditor)) {
+      Instances.add(textEditor);
+    };
 
-        /* subscribe to path change in case that `isAgdaFile(textEditor)` changed */
-        textEditor
-        |> TextEditor.onDidChangePath(() => {
-             /* agda => not agda */
-             if (!isAgdaFile(textEditor) && Instances.contains(textEditor)) {
-               Instances.remove(textEditor);
-             };
-             /* not agda => agda */
-             if (isAgdaFile(textEditor) && !Instances.contains(textEditor)) {
-               Instances.add(textEditor);
-             };
-           })
-        |> add(textEditorSubscriptions);
+    /* subscribe to path change in case that `isAgdaFile(textEditor)` changed */
+    textEditor
+    |> TextEditor.onDidChangePath(() => {
+         /* agda => not agda */
+         if (!isAgdaFile(textEditor) && Instances.contains(textEditor)) {
+           Instances.remove(textEditor);
+         };
+         /* not agda => agda */
+         if (isAgdaFile(textEditor) && !Instances.contains(textEditor)) {
+           Instances.add(textEditor);
+         };
+       })
+    |> add(textEditorSubscriptions);
 
-        /* on destroy */
-        textEditor
-        |> TextEditor.onDidDestroy(() => {
-             if (isAgdaFile(textEditor) && Instances.contains(textEditor)) {
-               Instances.remove(textEditor);
-             };
-             dispose(textEditorSubscriptions);
-           })
-        |> add(textEditorSubscriptions);
-      })
-      |> add(subscriptions)
-    );
+    /* on destroy */
+    textEditor
+    |> TextEditor.onDidDestroy(() => {
+         if (isAgdaFile(textEditor) && Instances.contains(textEditor)) {
+           Instances.remove(textEditor);
+         };
+         dispose(textEditorSubscriptions);
+       })
+    |> add(textEditorSubscriptions);
+  })
+  |> CompositeDisposable.add(subscriptions);
   onEditorActivationChange();
   onTriggerCommand();
   onUndo();
+
+  instances;
 };
 let deactivate = _ => {
   CompositeDisposable.dispose(subscriptions);
