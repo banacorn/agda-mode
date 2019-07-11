@@ -4,10 +4,10 @@ module Stream = Node__Stream;
 
 type t;
 
-[@bs.get] external stdout: t => Stream.Readable.t = "";
-[@bs.get] external stdin: t => Stream.Writable.t = "";
+[@bs.get] external stdout: t => Stream.Readable.t = "stdout";
+[@bs.get] external stdin: t => Stream.Writable.t = "stdin";
 /* [@bs.send.pipe: t] external disconnect: unit = ""; */
-[@bs.send.pipe: t] external kill: string => unit = "";
+[@bs.send.pipe: t] external kill: string => unit = "kill";
 
 [@bs.send.pipe: t]
 external on:
@@ -22,12 +22,13 @@ external on:
   ]
   ) =>
   t =
-  "";
+  "on";
 
 type execCallback =
   (Js.Nullable.t(Js.Exn.t), Node.Buffer.t, Node.Buffer.t) => unit;
-[@bs.module "child_process"] external exec: (string, execCallback) => t = "";
+[@bs.module "child_process"]
+external exec: (string, execCallback) => t = "exec";
 type spawnOption = {. "shell": bool};
 
 [@bs.module "child_process"]
-external spawn: (string, array(string), spawnOption) => t = "";
+external spawn: (string, array(string), spawnOption) => t = "spawn";
