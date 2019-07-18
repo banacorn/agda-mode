@@ -134,7 +134,7 @@ describe("Instances", () => {
 exception DispatchFailure(string);
 let dispatch = (editor: Atom.TextEditor.t, event) => {
   let element = Atom.Environment.Views.getView(editor);
-  let result = Atom.Environment.Commands.dispatch(element, "agda-mode:load");
+  let result = Atom.Environment.Commands.dispatch(element, event);
   switch (result) {
   | None => reject(DispatchFailure(event))
   | Some(_) => resolve()

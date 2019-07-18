@@ -210,7 +210,6 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.validation) => 
         if (stderr' |> String.isEmpty |> (!)) {
           reject(ProcessError(stderr'));
         };
-
         /* stdout */
         switch (parseStdout(stdout)) {
         | Error(err) => reject(err)

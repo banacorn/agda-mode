@@ -92,6 +92,7 @@ let connectWithAgdaPath =
   |> mapOk(Connection.wire);
 };
 
+// would stuck (and wait for the user) if the path is wrong, not suitable for testing
 let connect = (instance): Async.t(Connection.t, MiniEditor.error) => {
   switch (instance.connection) {
   | Some(connection) => resolve(connection)
@@ -109,9 +110,4 @@ let disconnect = instance => {
   };
 };
 
-let get = instance => {
-  switch (instance.connection) {
-  | Some(connection) => resolve(connection)
-  | None => connect(instance)
-  };
-};
+let get = connect;

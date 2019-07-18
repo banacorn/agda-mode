@@ -729,7 +729,7 @@ let rec handleLocalCommand =
 };
 
 /* Remote Command => Responses */
-let handleRemoteCommand = (instance, remote) =>
+let handleRemoteCommand = (instance, handler, remote) =>
   switch (remote) {
   | None => resolve()
   | Some(cmd) =>
@@ -754,8 +754,7 @@ let handleRemoteCommand = (instance, remote) =>
       fun
       | Ok(Connection.Data(response)) => {
           let result =
-            instance
-            |> recoverCursor(() => handleResponse(instance, response));
+            instance |> recoverCursor(() => handler(instance, response));
           handleResults := Array.concat([|result|], handleResults^);
         }
       | Ok(Connection.Error(error)) =>
@@ -788,7 +787,7 @@ let dispatch = (command, instance): Async.t(unit, error) => {
   |> handleLocalCommand(command)
   |> pass(_ => startCheckpoint(command, instance))
   |> pass(_ => instance.view.updateIsPending(true))
-  |> thenOk(handleRemoteCommand(instance))
+  |> thenOk(handleRemoteCommand(instance, handleResponse))
   |> pass(_ => endCheckpoint(instance))
   |> pass(_ => instance.view.updateIsPending(false));
 };
