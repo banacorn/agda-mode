@@ -348,7 +348,6 @@ let wire = (self): t => {
       response(End);
     };
   };
-
   self.process
   |> N.ChildProcess.stdout
   |> N.Stream.Readable.on(`data(onData))

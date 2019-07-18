@@ -729,10 +729,12 @@ let rec handleLocalCommand =
 };
 
 /* Remote Command => Responses */
-let handleRemoteCommand = (instance, handler, remote) =>
+let handleRemoteCommand =
+    (instance, handler, remote): Async.t(array('a), error) =>
   switch (remote) {
-  | None => resolve()
+  | None => resolve([||])
   | Some(cmd) =>
+    // log setup
     Connections.get(instance)
     |> mapOk(connection => {
          // remove all old log entries if `cmd` is `Load`
@@ -747,7 +749,6 @@ let handleRemoteCommand = (instance, handler, remote) =>
 
     let handleResults = ref([||]);
     let parseErrors: ref(array(Parser.Error.t)) = ref([||]);
-    /* send the serialized command */
     let serialized = Command.Remote.serialize(cmd);
 
     let onResponse = (resolve', reject') => (
@@ -763,7 +764,10 @@ let handleRemoteCommand = (instance, handler, remote) =>
         if (Array.length(parseErrors^) > 0) {
           reject'(ParseError(parseErrors^)) |> ignore;
         } else {
-          handleResults^ |> all |> mapOk(_ => resolve'()) |> ignore;
+          handleResults^
+          |> all
+          |> thenOk(results => resolve'(results) |> resolve)
+          |> ignore;
         }
       | Error(error) =>
         reject'(ConnectionError(Connection.Error.ConnectionError(error)))
@@ -789,5 +793,6 @@ let dispatch = (command, instance): Async.t(unit, error) => {
   |> pass(_ => instance.view.updateIsPending(true))
   |> thenOk(handleRemoteCommand(instance, handleResponse))
   |> pass(_ => endCheckpoint(instance))
-  |> pass(_ => instance.view.updateIsPending(false));
+  |> pass(_ => instance.view.updateIsPending(false))
+  |> mapOk(_ => ());
 };

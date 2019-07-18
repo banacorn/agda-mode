@@ -33,6 +33,19 @@ let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
   searchedPath |> thenError(err => instance |> inquireAgdaPath(Some(err)));
 };
 
+let persistConnection = (instance, connection: Connection.t) => {
+  instance.connection = Some(connection);
+  /* store the path in the config */
+  let path =
+    Array.concat(connection.metadata.args, [|connection.metadata.path|])
+    |> List.fromArray
+    |> String.joinWith(" ");
+  Environment.Config.set("agda-mode.agdaPath", path);
+  /* update the view */
+  instance.view.updateConnection(Some(connection), None);
+  /* pass it on */
+  connection;
+};
 let connectWithAgdaPath =
     (instance, path): Async.t(Connection.t, MiniEditor.error) => {
   /* validate the given path */
@@ -44,20 +57,6 @@ let connectWithAgdaPath =
          |> inquireAgdaPath(Some(err))
          |> thenOk(getMetadata(instance))
        );
-  };
-
-  let persistConnection = (instance, connection: Connection.t) => {
-    instance.connection = Some(connection);
-    /* store the path in the config */
-    let path =
-      Array.concat(connection.metadata.args, [|connection.metadata.path|])
-      |> List.fromArray
-      |> String.joinWith(" ");
-    Environment.Config.set("agda-mode.agdaPath", path);
-    /* update the view */
-    instance.view.updateConnection(Some(connection), None);
-    /* pass it on */
-    connection;
   };
 
   let rec getConnection =
@@ -105,3 +104,5 @@ let disconnect = instance => {
 };
 
 let get = connect;
+
+let set = persistConnection;

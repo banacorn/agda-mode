@@ -1,3 +1,4 @@
 module.exports = {
-  "specPattern": /[-_.]*\.bs\.js$/i
+  "specPattern": /[-_.]*\.bs\.js$/i,
+  "timeout": 10000
 }
