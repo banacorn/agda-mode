@@ -26,9 +26,7 @@ let make =
          )
          |> Async.resolve
        )
-    |> Async.finalError(err =>
-         setAutoSearchError(Some(Connection.Error.AutoSearchError(err)))
-       );
+    |> Async.finalError(err => setAutoSearchError(Some(err)));
   };
 
   /* triggering connect */

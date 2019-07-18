@@ -30,11 +30,7 @@ let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
       resolve(storedPath);
     };
 
-  searchedPath
-  |> thenError(err =>
-       instance
-       |> inquireAgdaPath(Some(Connection.Error.AutoSearchError(err)))
-     );
+  searchedPath |> thenError(err => instance |> inquireAgdaPath(Some(err)));
 };
 
 let connectWithAgdaPath =
@@ -45,9 +41,7 @@ let connectWithAgdaPath =
     Connection.validateAndMake(pathAndParams)
     |> thenError(err =>
          instance
-         |> inquireAgdaPath(
-              Some(Connection.Error.ValidationError(pathAndParams, err)),
-            )
+         |> inquireAgdaPath(Some(err))
          |> thenOk(getMetadata(instance))
        );
   };
@@ -71,7 +65,7 @@ let connectWithAgdaPath =
     Connection.connect(metadata)
     |> thenError(err =>
          instance
-         |> inquireAgdaPath(Some(Connection.Error.ConnectionError(err)))
+         |> inquireAgdaPath(Some(err))
          |> thenOk(getMetadata(instance))
          |> thenOk(getConnection(instance))
        );

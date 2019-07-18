@@ -37,19 +37,9 @@ describe("when loading files", () =>
       |> then_(editor => {
            let instance = Instance.make(editor);
 
-           let autoSearch = s =>
-             Connection.autoSearch(s)
-             |> Async.mapError(e => Connection.Error.AutoSearchError(e));
-           let validateAndMake = s =>
-             Connection.validateAndMake(s)
-             |> Async.mapError(e => Connection.Error.ValidationError("", e));
-           let connect = s =>
-             Connection.connect(s)
-             |> Async.mapError(e => Connection.Error.ConnectionError(e));
-
-           autoSearch("agda")
-           |> Async.thenOk(validateAndMake)
-           |> Async.thenOk(connect)
+           Connection.autoSearch("agda")
+           |> Async.thenOk(Connection.validateAndMake)
+           |> Async.thenOk(Connection.connect)
            |> then_(conn => Js.log(conn) |> resolve);
            // instance
            // |> Connection.autoSearch("agda")
