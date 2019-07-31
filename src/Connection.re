@@ -223,21 +223,11 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
   }
   |> Async.mapError(e => Error.ValidationError(pathAndParams, e));
 
-let useJSON = metadata => {
-  Atom.Environment.Config.get("agda-mode.enableJSONProtocol")
-  && metadata.Metadata.protocol == EmacsAndJSON;
-};
-
-let connect = (metadata): Async.t(t, Error.t) =>
+let connect = (metadata: Metadata.t): Async.t(t, Error.t) =>
   {
     N.(
       Async.make((resolve, reject) => {
-        let args =
-          (
-            useJSON(metadata)
-              ? [|"--interaction-json"|] : [|"--interaction"|]
-          )
-          |> Array.concat(metadata.args);
+        let args = [|"--interaction"|] |> Array.concat(metadata.args);
         let process =
           ChildProcess.spawn(metadata.path, args, {"shell": true});
 
