@@ -88,7 +88,7 @@ let instantiateAll = (indices, instance) => {
   instance |> destroyAll;
 
   let textEditor = instance.editors.source;
-  let filePath = textEditor |> TextEditor.getPath |> Option.getOr("untitled");
+  let filePath = instance |> Instance__TextEditors.getPath;
   let textBuffer = textEditor |> TextEditor.getBuffer;
 
   let source = textEditor |> TextEditor.getText;
