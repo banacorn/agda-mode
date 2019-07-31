@@ -147,7 +147,7 @@ let handleDisplayInfo =
 
 let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
   let textEditor = instance.editors.source;
-  let filePath = textEditor |> Atom.TextEditor.getPath |> Parser.filepath;
+  let filePath = textEditor |> Atom.TextEditor.getPath |> Option.getOr("untitled") |> Parser.filepath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
   switch (response) {
   | HighlightingInfoDirect(_remove, annotations) =>
@@ -318,6 +318,7 @@ let rec handleLocalCommand =
              filepath:
                instance.editors.source
                |> Atom.TextEditor.getPath
+               |> Option.getOr("untitled")
                |> Parser.filepath,
              command,
            }: Command.Remote.t,
@@ -651,14 +652,16 @@ let rec handleLocalCommand =
     resolve(None);
   | Jump(Type.Location.Range.RangeLink(range)) =>
     open Type.Location.Range;
-    let filePath = instance.editors.source |> Atom.TextEditor.getPath;
     let (shouldJump, otherFilePath) =
       switch (range) {
       | NoRange => (false, None)
       | Range(None, _) => (true, None)
       | Range(Some(path), _) => (
           true,
-          path == filePath ? None : Some(path),
+          instance.editors.source |> Atom.TextEditor.getPath
+          |> Option.flatMap(filePath => {
+            path == filePath ? None : Some(path)
+          }),
         )
       };
     if (shouldJump) {
