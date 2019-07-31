@@ -24,7 +24,7 @@ let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
   let storedPath =
     Environment.Config.get("agda-mode.agdaPath") |> Parser.filepath;
   let searchedPath =
-    if (storedPath |> String.isEmpty) {
+    if (String.isEmpty(storedPath) || storedPath == ".") {
       Connection.autoSearch("agda");
     } else {
       resolve(storedPath);

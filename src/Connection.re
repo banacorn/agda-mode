@@ -200,7 +200,6 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
         (error, stdout, stderr) => {
           /* clear timeout as the process has responded */
           Js.Global.clearTimeout(hangTimeout);
-
           /* parses `error` and rejects it if there's any  */
           switch (parseError(error)) {
           | None => ()
@@ -301,9 +300,9 @@ let wire = (self): t => {
 
   /* listens to the "data" event on the stdout */
   let onData = chunk => {
-    // serialize the binary chunk into string
+    /* serialize the binary chunk into string */
     let rawText = chunk |> Node.Buffer.toString;
-    // store the raw text in the log
+    /* store the raw text in the log */
     Metadata.logRawText(rawText, self.metadata);
     // we consider the chunk ended with if ends with "Agda2> "
     let endOfResponse = rawText |> String.endsWith("Agda2> ");
