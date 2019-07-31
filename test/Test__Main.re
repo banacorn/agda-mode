@@ -8,8 +8,8 @@ open BsChai.Expect.Combos;
 
 exception CannotReadPackageJson;
 
-let base = Node.Path.join2([%raw "__dirname"], "../../../");
-let file = path => Node.Path.join2(base, path);
+open Test__Util;
+
 let asset = path => Node.Path.join([|base, "test/asset/", path|]);
 
 // bindings for git-branch
@@ -109,7 +109,7 @@ describe("Instances", () => {
   );
 
   it("should respect the number of opened .agda file", () =>
-    openFile("Blank1.agda")
+    openFile(asset("Blank1.agda"))
     |> then_(editor => {
          Assert.equal(size(instances), 1);
          let pane = Atom.Environment.Workspace.getActivePane();
@@ -120,7 +120,7 @@ describe("Instances", () => {
   );
 
   it("should respect the number of opened .lagda file", () =>
-    openFile("Blank2.lagda")
+    openFile(asset("Blank2.lagda"))
     |> then_(editor => {
          Assert.equal(size(instances), 1);
          let pane = Atom.Environment.Workspace.getActivePane();
@@ -130,24 +130,6 @@ describe("Instances", () => {
        })
   );
 });
-
-exception DispatchFailure(string);
-let dispatch = (editor: Atom.TextEditor.t, event) => {
-  let element = Atom.Environment.Views.getView(editor);
-  let result = Atom.Environment.Commands.dispatch(element, event);
-  switch (result) {
-  | None => reject(DispatchFailure(event))
-  | Some(_) => resolve()
-  };
-};
-
-let getActivePackageNames = () =>
-  Atom.Environment.Packages.getActivePackages()
-  |> Array.map(o => o |> Atom.Package.name);
-
-let getLoadedPackageNames = () =>
-  Atom.Environment.Packages.getLoadedPackages()
-  |> Array.map((o: Atom.Package.t) => o |> Atom.Package.name);
 
 describe("agda-mode", () => {
   let activationPromise = ref(None);
