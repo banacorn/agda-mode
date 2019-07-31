@@ -58,7 +58,7 @@ let make =
   let previousItem =
     Environment.Workspace.getActivePane() |> Pane.getActiveItem;
   /* mount the view onto the element */
-  let itemURI = "agda-mode://" ++ TextEditor.getPath(editor) ++ "/" ++ path;
+  let itemURI = "agda-mode://" ++ Option.getOr("untitled", TextEditor.getPath(editor)) ++ "/" ++ path;
   let itemOpener = {"element": makeTabElement(), "getTitle": getTitle};
   /* add tab opener */
   Environment.Workspace.addOpener(givenURI =>

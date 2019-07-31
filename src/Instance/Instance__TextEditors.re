@@ -3,6 +3,13 @@ open Async;
 
 open Instance__Type;
 
+let getPath = instance => {
+  instance.editors.source
+  |> Atom.TextEditor.getPath
+  |> Option.getOr("untitled")
+  |> Parser.filepath
+};
+
 let pointingAt = (~cursor=?, instance): option(Goal.t) => {
   let cursor_ =
     switch (cursor) {

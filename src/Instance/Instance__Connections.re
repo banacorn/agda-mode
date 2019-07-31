@@ -24,19 +24,28 @@ let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
   let storedPath =
     Environment.Config.get("agda-mode.agdaPath") |> Parser.filepath;
   let searchedPath =
-    if (storedPath |> String.isEmpty) {
+    if (String.isEmpty(storedPath) || storedPath == ".") {
       Connection.autoSearch("agda");
     } else {
       resolve(storedPath);
     };
 
-  searchedPath
-  |> thenError(err =>
-       instance
-       |> inquireAgdaPath(Some(Connection.Error.AutoSearchError(err)))
-     );
+  searchedPath |> thenError(err => instance |> inquireAgdaPath(Some(err)));
 };
 
+let persistConnection = (instance, connection: Connection.t) => {
+  instance.connection = Some(connection);
+  /* store the path in the config */
+  let path =
+    Array.concat(connection.metadata.args, [|connection.metadata.path|])
+    |> List.fromArray
+    |> String.joinWith(" ");
+  Environment.Config.set("agda-mode.agdaPath", path);
+  /* update the view */
+  instance.view.updateConnection(Some(connection), None);
+  /* pass it on */
+  connection;
+};
 let connectWithAgdaPath =
     (instance, path): Async.t(Connection.t, MiniEditor.error) => {
   /* validate the given path */
@@ -45,25 +54,9 @@ let connectWithAgdaPath =
     Connection.validateAndMake(pathAndParams)
     |> thenError(err =>
          instance
-         |> inquireAgdaPath(
-              Some(Connection.Error.ValidationError(pathAndParams, err)),
-            )
+         |> inquireAgdaPath(Some(err))
          |> thenOk(getMetadata(instance))
        );
-  };
-
-  let persistConnection = (instance, connection: Connection.t) => {
-    instance.connection = Some(connection);
-    /* store the path in the config */
-    let path =
-      Array.concat(connection.metadata.args, [|connection.metadata.path|])
-      |> List.fromArray
-      |> String.joinWith(" ");
-    Environment.Config.set("agda-mode.agdaPath", path);
-    /* update the view */
-    instance.view.updateConnection(Some(connection), None);
-    /* pass it on */
-    connection;
   };
 
   let rec getConnection =
@@ -71,7 +64,7 @@ let connectWithAgdaPath =
     Connection.connect(metadata)
     |> thenError(err =>
          instance
-         |> inquireAgdaPath(Some(Connection.Error.ConnectionError(err)))
+         |> inquireAgdaPath(Some(err))
          |> thenOk(getMetadata(instance))
          |> thenOk(getConnection(instance))
        );
@@ -92,6 +85,7 @@ let connectWithAgdaPath =
   |> mapOk(Connection.wire);
 };
 
+// would stuck (and wait for the user) if the path is wrong, not suitable for testing
 let connect = (instance): Async.t(Connection.t, MiniEditor.error) => {
   switch (instance.connection) {
   | Some(connection) => resolve(connection)
@@ -109,9 +103,6 @@ let disconnect = instance => {
   };
 };
 
-let get = instance => {
-  switch (instance.connection) {
-  | Some(connection) => resolve(connection)
-  | None => connect(instance)
-  };
-};
+let get = connect;
+
+let set = persistConnection;

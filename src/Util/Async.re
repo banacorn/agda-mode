@@ -27,6 +27,18 @@ let fromPromise = (promise: P.t('a)): t('a, Js.Exn.t) => {
   promise |> P.then_(x => resolve(x));
 };
 
+exception Exn;
+
+// Async A E -> Promise A
+let toPromise = (self: t('a, 'e)): P.t('a) => {
+  self
+  |> P.then_(
+       fun
+       | Ok(v) => P.resolve(v)
+       | Error(_) => P.reject(Exn),
+     );
+};
+
 let then_ =
     (f: 'a => t('b, 'f), transformer: 'e => t('b, 'f))
     : (t('a, 'e) => t('b, 'f)) =>

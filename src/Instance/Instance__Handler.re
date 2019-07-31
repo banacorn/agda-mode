@@ -147,7 +147,7 @@ let handleDisplayInfo =
 
 let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
   let textEditor = instance.editors.source;
-  let filePath = textEditor |> Atom.TextEditor.getPath |> Parser.filepath;
+  let filePath = instance |> Instance__TextEditors.getPath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
   switch (response) {
   | HighlightingInfoDirect(_remove, annotations) =>
@@ -315,10 +315,7 @@ let rec handleLocalCommand =
          Some(
            {
              version: connection.metadata.version,
-             filepath:
-               instance.editors.source
-               |> Atom.TextEditor.getPath
-               |> Parser.filepath,
+             filepath: instance |> Instance__TextEditors.getPath,
              command,
            }: Command.Remote.t,
          );
@@ -651,15 +648,12 @@ let rec handleLocalCommand =
     resolve(None);
   | Jump(Type.Location.Range.RangeLink(range)) =>
     open Type.Location.Range;
-    let filePath = instance.editors.source |> Atom.TextEditor.getPath;
+    let filePath = instance |> Instance__TextEditors.getPath;
     let (shouldJump, otherFilePath) =
       switch (range) {
       | NoRange => (false, None)
       | Range(None, _) => (true, None)
-      | Range(Some(path), _) => (
-          true,
-          path == filePath ? None : Some(path),
-        )
+      | Range(Some(path), _) => (true, path == filePath ? None : Some(path))
       };
     if (shouldJump) {
       switch (otherFilePath) {
@@ -729,10 +723,12 @@ let rec handleLocalCommand =
 };
 
 /* Remote Command => Responses */
-let handleRemoteCommand = (instance, remote) =>
+let handleRemoteCommand =
+    (instance, handler, remote): Async.t(array('a), error) =>
   switch (remote) {
-  | None => resolve()
+  | None => resolve([||])
   | Some(cmd) =>
+    // log setup
     Connections.get(instance)
     |> mapOk(connection => {
          // remove all old log entries if `cmd` is `Load`
@@ -747,15 +743,13 @@ let handleRemoteCommand = (instance, remote) =>
 
     let handleResults = ref([||]);
     let parseErrors: ref(array(Parser.Error.t)) = ref([||]);
-    /* send the serialized command */
     let serialized = Command.Remote.serialize(cmd);
 
     let onResponse = (resolve', reject') => (
       fun
       | Ok(Connection.Data(response)) => {
           let result =
-            instance
-            |> recoverCursor(() => handleResponse(instance, response));
+            instance |> recoverCursor(() => handler(instance, response));
           handleResults := Array.concat([|result|], handleResults^);
         }
       | Ok(Connection.Error(error)) =>
@@ -764,7 +758,10 @@ let handleRemoteCommand = (instance, remote) =>
         if (Array.length(parseErrors^) > 0) {
           reject'(ParseError(parseErrors^)) |> ignore;
         } else {
-          handleResults^ |> all |> mapOk(_ => resolve'()) |> ignore;
+          handleResults^
+          |> all
+          |> thenOk(results => resolve'(results) |> resolve)
+          |> ignore;
         }
       | Error(error) =>
         reject'(ConnectionError(Connection.Error.ConnectionError(error)))
@@ -788,7 +785,8 @@ let dispatch = (command, instance): Async.t(unit, error) => {
   |> handleLocalCommand(command)
   |> pass(_ => startCheckpoint(command, instance))
   |> pass(_ => instance.view.updateIsPending(true))
-  |> thenOk(handleRemoteCommand(instance))
+  |> thenOk(handleRemoteCommand(instance, handleResponse))
   |> pass(_ => endCheckpoint(instance))
-  |> pass(_ => instance.view.updateIsPending(false));
+  |> pass(_ => instance.view.updateIsPending(false))
+  |> mapOk(_ => ());
 };

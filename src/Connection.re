@@ -99,7 +99,7 @@ let disconnect = (error, self) => {
 };
 
 /* a more sophiscated "make" */
-let autoSearch = (path): Async.t(string, Error.autoSearch) =>
+let autoSearch = (path): Async.t(string, Error.t) =>
   Async.make((resolve, reject) =>
     switch (N.OS.type_()) {
     | "Linux"
@@ -142,133 +142,131 @@ let autoSearch = (path): Async.t(string, Error.autoSearch) =>
     | "Windows_NT" => reject(NotSupported("Windows_NT"))
     | os => reject(NotSupported(os))
     }
-  );
+  )
+  |> Async.mapError(e => Error.AutoSearchError(e));
 
 /* a more sophiscated "make" */
-let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.validation) => {
-  let (path, args) = Parser.commandLine(pathAndParams);
-  let parseError =
-      (error: Js.Nullable.t(Js.Exn.t)): option(Error.validation) => {
-    switch (error |> Js.Nullable.toOption) {
-    | None => None
-    | Some(err) =>
-      let message = err |> Js.Exn.message |> Option.getOr("");
-      if (message |> Js.Re.test_([%re "/No such file or directory/"], _)) {
-        Some(NotFound(err));
-      } else if (message |> Js.Re.test_([%re "/command not found/"], _)) {
-        Some(NotFound(err));
-      } else {
-        Some(ShellError(err));
+let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
+  {
+    let (path, args) = Parser.commandLine(pathAndParams);
+    let parseError =
+        (error: Js.Nullable.t(Js.Exn.t)): option(Error.validation) => {
+      switch (error |> Js.Nullable.toOption) {
+      | None => None
+      | Some(err) =>
+        let message = err |> Js.Exn.message |> Option.getOr("");
+        if (message |> Js.Re.test_([%re "/No such file or directory/"], _)) {
+          Some(NotFound(err));
+        } else if (message |> Js.Re.test_([%re "/command not found/"], _)) {
+          Some(NotFound(err));
+        } else {
+          Some(ShellError(err));
+        };
       };
     };
-  };
-  let parseStdout =
-      (stdout: Node.Buffer.t): result(Metadata.t, Error.validation) => {
-    let message = stdout |> Node.Buffer.toString;
-    switch (Js.String.match([%re "/Agda version (.*)/"], message)) {
-    | None => Error(IsNotAgda(message))
-    | Some(match) =>
-      switch (match[1]) {
+    let parseStdout =
+        (stdout: Node.Buffer.t): result(Metadata.t, Error.validation) => {
+      let message = stdout |> Node.Buffer.toString;
+      switch (Js.String.match([%re "/Agda version (.*)/"], message)) {
       | None => Error(IsNotAgda(message))
-      | Some(version) =>
-        Ok({
-          path,
-          args,
-          version,
-          protocol:
-            Js.Re.test_([%re "/--interaction-json/"], message)
-              ? EmacsAndJSON : EmacsOnly,
-          entries: [||],
-        })
-      }
-    };
-  };
-
-  Async.make((resolve, reject) => {
-    if (path |> String.isEmpty) {
-      reject(Error.PathMalformed("the path must not be empty"));
-    };
-
-    /* reject if the process hasn't responded for more than 1 second */
-    let hangTimeout =
-      Js.Global.setTimeout(() => reject(Error.ProcessHanging), 1000);
-
-    N.ChildProcess.exec(
-      path,
-      (error, stdout, stderr) => {
-        /* clear timeout as the process has responded */
-        Js.Global.clearTimeout(hangTimeout);
-
-        /* parses `error` and rejects it if there's any  */
-        switch (parseError(error)) {
-        | None => ()
-        | Some(err) => reject(err)
-        };
-
-        /* stderr */
-        let stderr' = stderr |> Node.Buffer.toString;
-        if (stderr' |> String.isEmpty |> (!)) {
-          reject(ProcessError(stderr'));
-        };
-
-        /* stdout */
-        switch (parseStdout(stdout)) {
-        | Error(err) => reject(err)
-        | Ok(self) => resolve(self)
-        };
-      },
-    )
-    |> ignore;
-  });
-};
-
-let useJSON = metadata => {
-  Atom.Environment.Config.get("agda-mode.enableJSONProtocol")
-  && metadata.Metadata.protocol == EmacsAndJSON;
-};
-
-let connect = (metadata): Async.t(t, Error.connection) => {
-  N.(
-    Async.make((resolve, reject) => {
-      let args =
-        (useJSON(metadata) ? [|"--interaction-json"|] : [|"--interaction"|])
-        |> Array.concat(metadata.args);
-      let process = ChildProcess.spawn(metadata.path, args, {"shell": true});
-
-      let connection = {
-        metadata,
-        process,
-        connected: true,
-        queue: [||],
-        errorEmitter: Event.make(),
-        resetLogOnLoad: true,
+      | Some(match) =>
+        switch (match[1]) {
+        | None => Error(IsNotAgda(message))
+        | Some(version) =>
+          Ok({
+            path,
+            args,
+            version,
+            protocol:
+              Js.Re.test_([%re "/--interaction-json/"], message)
+                ? EmacsAndJSON : EmacsOnly,
+            entries: [||],
+          })
+        }
       };
-      /* Handles errors and anomalies */
-      process
-      |> ChildProcess.on(
-           `error(
-             exn => {
-               connection |> disconnect(Error.ShellError(exn));
-               reject(Error.ShellError(exn));
-             },
-           ),
-         )
-      |> ChildProcess.on(
-           `close(
-             (code, signal) => {
-               connection |> disconnect(Error.ClosedByProcess(code, signal));
-               reject(Error.ClosedByProcess(code, signal));
-             },
-           ),
-         )
+    };
+
+    Async.make((resolve, reject) => {
+      if (path |> String.isEmpty) {
+        reject(Error.PathMalformed("the path must not be empty"));
+      };
+
+      /* reject if the process hasn't responded for more than 1 second */
+      let hangTimeout =
+        Js.Global.setTimeout(() => reject(Error.ProcessHanging), 1000);
+
+      N.ChildProcess.exec(
+        path,
+        (error, stdout, stderr) => {
+          /* clear timeout as the process has responded */
+          Js.Global.clearTimeout(hangTimeout);
+          /* parses `error` and rejects it if there's any  */
+          switch (parseError(error)) {
+          | None => ()
+          | Some(err) => reject(err)
+          };
+
+          /* stderr */
+          let stderr' = stderr |> Node.Buffer.toString;
+          if (stderr' |> String.isEmpty |> (!)) {
+            reject(ProcessError(stderr'));
+          };
+          /* stdout */
+          switch (parseStdout(stdout)) {
+          | Error(err) => reject(err)
+          | Ok(self) => resolve(self)
+          };
+        },
+      )
       |> ignore;
-      process
-      |> ChildProcess.stdout
-      |> Stream.Readable.once(`data(_ => resolve(connection)))
-      |> ignore;
-    })
-  );
-};
+    });
+  }
+  |> Async.mapError(e => Error.ValidationError(pathAndParams, e));
+
+let connect = (metadata: Metadata.t): Async.t(t, Error.t) =>
+  {
+    N.(
+      Async.make((resolve, reject) => {
+        let args = [|"--interaction"|] |> Array.concat(metadata.args);
+        let process =
+          ChildProcess.spawn(metadata.path, args, {"shell": true});
+
+        let connection = {
+          metadata,
+          process,
+          connected: true,
+          queue: [||],
+          errorEmitter: Event.make(),
+          resetLogOnLoad: true,
+        };
+        /* Handles errors and anomalies */
+        process
+        |> ChildProcess.on(
+             `error(
+               exn => {
+                 connection |> disconnect(Error.ShellError(exn));
+                 reject(Error.ShellError(exn));
+               },
+             ),
+           )
+        |> ChildProcess.on(
+             `close(
+               (code, signal) => {
+                 connection
+                 |> disconnect(Error.ClosedByProcess(code, signal));
+                 reject(Error.ClosedByProcess(code, signal));
+               },
+             ),
+           )
+        |> ignore;
+        process
+        |> ChildProcess.stdout
+        |> Stream.Readable.once(`data(_ => resolve(connection)))
+        |> ignore;
+      })
+    );
+  }
+  |> Async.mapError(e => Error.ConnectionError(e));
 
 let wire = (self): t => {
   /* resolves the requests in the queue */
@@ -292,9 +290,9 @@ let wire = (self): t => {
 
   /* listens to the "data" event on the stdout */
   let onData = chunk => {
-    // serialize the binary chunk into string
+    /* serialize the binary chunk into string */
     let rawText = chunk |> Node.Buffer.toString;
-    // store the raw text in the log
+    /* store the raw text in the log */
     Metadata.logRawText(rawText, self.metadata);
     // we consider the chunk ended with if ends with "Agda2> "
     let endOfResponse = rawText |> String.endsWith("Agda2> ");
@@ -339,7 +337,6 @@ let wire = (self): t => {
       response(End);
     };
   };
-
   self.process
   |> N.ChildProcess.stdout
   |> N.Stream.Readable.on(`data(onData))

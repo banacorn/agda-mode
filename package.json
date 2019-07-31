@@ -6,7 +6,7 @@
   "scripts": {
     "start": "bsb -clean && bsb -make-world -w",
     "build": "bsb -make-world && npx webpack --mode=production",
-    "test": "apm test"
+    "test": "atom -t lib/js/test/"
   },
   "activationCommands": {
     "atom-text-editor": [
@@ -23,7 +23,7 @@
       "agda-mode:go-to-definition"
     ]
   },
-  "atomTestRunner": "./lib/js/src/TestRunner.bs.js",
+  "atomTestRunner": "atom-mocha",
   "repository": "https://github.com/banacorn/agda-mode",
   "license": "MIT",
   "engines": {
@@ -32,14 +32,15 @@
   "devDependencies": {
     "@glennsl/bs-json": "^3.0.0",
     "@glennsl/rebase": "github:glennsl/rebase",
-    "atom": "~/reason/bs-atom",
-    "atom-mocha-test-runner": "github:banacorn/atom-mocha-test-runner#6a932a",
+    "atom": "github:banacorn/bs-atom#c8c847",
+    "atom-mocha": "^2.2.0",
     "bs-chai": "^0.5.0",
     "bs-mocha": "^0.5.0",
     "bs-platform": "^5.0.4",
     "bs-webapi": "^0.13.6",
     "chai": "^4.2.0",
     "git-branch": "^2.0.1",
+    "node-dir": "^0.1.17",
     "webpack": "^4.24.0",
     "webpack-cli": "^3.1.2"
   },
