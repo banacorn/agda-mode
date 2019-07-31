@@ -1,3 +1,6 @@
+## 0.9.7
+* Fix #12 and #108
+
 ## 0.9.6
 * Fix bundled source
 
