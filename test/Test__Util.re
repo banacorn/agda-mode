@@ -1,6 +1,8 @@
 open Rebase;
 open Atom;
 
+[@bs.get] external not: BsChai.Expect.chai => BsChai.Expect.chai = "not";
+
 let base = Node.Path.join2([%raw "__dirname"], "../../../");
 let file = path => Node.Path.join2(base, path);
 let asset = path =>

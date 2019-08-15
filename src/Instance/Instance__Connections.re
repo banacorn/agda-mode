@@ -21,8 +21,7 @@ let inquireAgdaPath =
 };
 
 let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
-  let storedPath =
-    Config.get("agda-mode.agdaPath") |> Parser.filepath;
+  let storedPath = Config.get("agda-mode.agdaPath") |> Parser.filepath;
   let searchedPath =
     if (String.isEmpty(storedPath) || storedPath == ".") {
       Connection.autoSearch("agda");
@@ -40,7 +39,7 @@ let persistConnection = (instance, connection: Connection.t) => {
     Array.concat(connection.metadata.args, [|connection.metadata.path|])
     |> List.fromArray
     |> String.joinWith(" ");
-  Config.set("agda-mode.agdaPath", path);
+  Config.set("agda-mode.agdaPath", path) |> ignore;
   /* update the view */
   instance.view.updateConnection(Some(connection), None);
   /* pass it on */

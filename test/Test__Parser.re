@@ -1,4 +1,4 @@
-open Rebase;
+// open Rebase;
 open! BsMocha.Mocha;
 open! BsMocha.Promise;
 // open BsChai.Expect.Expect;
@@ -24,7 +24,9 @@ describe("when loading files", () =>
            |> thenOk(Connection.connect)
            |> mapOk(Connection.wire)
            |> mapOk(Instance.Connections.set(instance))
-           |> mapError(_ => BsMocha.Assert.fail(Atom.TextEditor.getPath(editor)))
+           |> mapError(_ =>
+                BsMocha.Assert.fail(Atom.TextEditor.getPath(editor))
+              )
            |> thenOk(_ =>
                 instance
                 |> Instance.Handler.handleLocalCommand(
@@ -47,8 +49,10 @@ describe("when loading files", () =>
          });
     };
 
-    it("should success", () =>
-      loadAndParse(asset("Algebra.agda"))
+    it("should success", ()
+      =>
+        loadAndParse(asset("Algebra.agda"))
+      );
       // promiseFiles("test/asset/agda-stdlib-1.0")
       // |> Js.Promise.then_(paths =>
       //      paths |> Array.slice(~from=0, ~to_=1) |> Js.Promise.resolve
@@ -56,6 +60,5 @@ describe("when loading files", () =>
       // |> Js.Promise.then_(paths =>
       //      paths |> Array.map(loadAndParse) |> Js.Promise.all
       //    )
-    );
   })
 );

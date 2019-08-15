@@ -114,7 +114,9 @@ describe("Instances", () => {
          Assert.equal(size(instances), 1);
          let pane = Atom.Environment.Workspace.getActivePane();
          Atom.Pane.destroyItem_(editor, true, pane);
-         Assert.equal(size(instances), 0);
+       })
+    |> then_(destroyed => {
+         Assert.equal(size(instances), destroyed ? 0 : 1);
          resolve();
        })
   );
@@ -125,7 +127,9 @@ describe("Instances", () => {
          Assert.equal(size(instances), 1);
          let pane = Atom.Environment.Workspace.getActivePane();
          Atom.Pane.destroyItem_(editor, true, pane);
-         Assert.equal(size(instances), 0);
+       })
+    |> then_(destroyed => {
+         Assert.equal(size(instances), destroyed ? 0 : 1);
          resolve();
        })
   );
@@ -157,26 +161,42 @@ describe("agda-mode", () => {
   });
 
   it(
-    "should be activated after triggering 'agda-mode:load' on .agda files", () =>
+    "should be activated after triggering 'agda-mode:load' on .agda files", () => {
+    // before
+    expect("agda-mode")
+    |> not
+    |> to_be_one_of(getActivePackageNames())
+    |> ignore;
+
     openFile("Blank1.agda")
     |> then_(editor => dispatch(editor, "agda-mode:load"))
     |> then_(() => activationPromise^ |> Option.getOr(resolve()))
-    |> then_(() =>
-         expect("agda-mode")
-         |> to_be_one_of(getActivePackageNames())
-         |> resolve
-       )
-  );
+    |> then_(()
+         // after
+         =>
+           expect("agda-mode")
+           |> to_be_one_of(getActivePackageNames())
+           |> resolve
+         );
+  });
 
   it(
-    "should be activated after triggering 'agda-mode:load' on .lagda files", () =>
+    "should be activated after triggering 'agda-mode:load' on .lagda files", () => {
+    // before
+    expect("agda-mode")
+    |> not
+    |> to_be_one_of(getActivePackageNames())
+    |> ignore;
+
     openFile("Blank2.lagda")
     |> then_(editor => dispatch(editor, "agda-mode:load"))
     |> then_(() => activationPromise^ |> Option.getOr(resolve()))
-    |> then_(() =>
-         expect("agda-mode")
-         |> to_be_one_of(getActivePackageNames())
-         |> resolve
-       )
-  );
+    |> then_(()
+         // after
+         =>
+           expect("agda-mode")
+           |> to_be_one_of(getActivePackageNames())
+           |> resolve
+         );
+  });
 });

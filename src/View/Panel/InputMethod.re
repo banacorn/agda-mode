@@ -1,7 +1,6 @@
 let sort = Array.sort;
 open ReactUpdate;
 open Rebase;
-open Atom.Environment;
 
 /********************************************************************************************/
 

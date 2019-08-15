@@ -224,7 +224,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     handles.onInquireQuery,
   );
   /* destroy everything */
-  Hook.useEventListener(_ => Js.log("destroy!"), handles.destroy);
+  Hook.useEventListener(_ => (), handles.destroy);
 
   /* opening/closing <Settings> */
   Hook.useEventListener(
