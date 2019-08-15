@@ -145,6 +145,53 @@ let autoSearch = (path): Async.t(string, Error.t) =>
   )
   |> Async.mapError(e => Error.AutoSearchError(e));
 
+let parseAgdaOutput: (string, ref('a)) => array(response) =
+  (stringAgdaSpatOut, continuation) => {
+    // we consider the chunk ended with if ends with "Agda2> "
+    let isEndOfResponse = stringAgdaSpatOut |> String.endsWith("Agda2> ");
+    // remove the trailing "Agda2> "
+    let trimmed =
+      if (isEndOfResponse) {
+        Js.String.substring(
+          ~from=0,
+          ~to_=String.length(stringAgdaSpatOut) - 7,
+          stringAgdaSpatOut,
+        );
+      } else {
+        stringAgdaSpatOut;
+      };
+    let results =
+      trimmed
+      |> Parser.splitAndTrim
+      |> Array.map(line => {
+           // get the parsing continuation or initialize a new one
+           let continue =
+             continuation^ |> Option.getOr(Parser.SExpression.incrParse);
+           // continue parsing with the given continuation
+           let stuff: response =
+             switch (continue(line)) {
+             | Error(n, err) => Error(Parser.Error.SExpression(n, err))
+             | Continue(parse) =>
+               continuation := Some(parse);
+               Error(Parser.Error.SExpression(1, "should not be called"));
+             | Done(result) =>
+               let returnValue =
+                 switch (Response.parse(result)) {
+                 | Error(err) => Error(err)
+                 | Ok(result) => Data(result)
+                 };
+               continuation := None;
+               returnValue;
+             };
+           stuff;
+         });
+    if (isEndOfResponse) {
+      Array.concat(results, [|End|]);
+    } else {
+      results;
+    };
+  };
+
 /* a more sophiscated "make" */
 let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
   {
@@ -164,7 +211,7 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
         };
       };
     };
-    let parseStdout =
+    let parseVersion =
         (stdout: Node.Buffer.t): result(Metadata.t, Error.validation) => {
       let message = stdout |> Node.Buffer.toString;
       switch (Js.String.match([%re "/Agda version (.*)/"], message)) {
@@ -212,7 +259,7 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
             reject(ProcessError(stderr'));
           };
           /* stdout */
-          switch (parseStdout(stdout)) {
+          switch (parseVersion(stdout)) {
           | Error(err) => reject(err)
           | Ok(self) => resolve(self)
           };
@@ -289,54 +336,27 @@ let wire = (self): t => {
   let continuation = ref(None);
 
   /* listens to the "data" event on the stdout */
-  let onData = chunk => {
-    /* serialize the binary chunk into string */
-    let rawText = chunk |> Node.Buffer.toString;
-    /* store the raw text in the log */
-    Metadata.logRawText(rawText, self.metadata);
-    // we consider the chunk ended with if ends with "Agda2> "
-    let endOfResponse = rawText |> String.endsWith("Agda2> ");
-    // remove the trailing "Agda2> "
-    let trimmed =
-      if (endOfResponse) {
-        Js.String.substring(
-          ~from=0,
-          ~to_=String.length(rawText) - 7,
-          rawText,
-        );
-      } else {
-        rawText;
-      };
-    //
-    trimmed
-    |> Parser.splitAndTrim
-    |> Array.forEach(line => {
-         // get the parsing continuation or initialize a new one
-         let continue =
-           continuation^ |> Option.getOr(Parser.SExpression.incrParse);
-         // continue parsing with the given continuation
-         switch (continue(line)) {
-         | Error(n, err) =>
-           response(Error(Parser.Error.SExpression(n, err)))
-         | Continue(parse) => continuation := Some(parse)
-         | Done(result) =>
-           // store the parsed s-expression in the log
-           Metadata.logSExpression(result, self.metadata);
-           switch (Response.parse(result)) {
-           | Error(err) => response(Error(err))
-           | Ok(result) =>
-             // store the parsed response in the log
-             Metadata.logResponse(result, self.metadata);
-             response(Data(result));
-           };
-           continuation := None;
-         };
-       });
-
-    if (endOfResponse) {
-      response(End);
+  /*The chunk may contain various fractions of the Agda output*/
+  let onData: Node.buffer => unit =
+    chunk => {
+      /* serialize the binary chunk into string */
+      let rawText = chunk |> Node.Buffer.toString;
+      /* store the raw text in the log */
+      let result: array(response) = parseAgdaOutput(rawText, continuation);
+      Metadata.logRawText(rawText, self.metadata);
+      //for each done, need to call Metadata.logSExpression(result, self.metadata);
+      // That opportunity is gone, though...
+      Array.forEach(
+        result => {
+          response(result);
+          switch (result) {
+          | Data(result) => Metadata.logResponse(result, self.metadata)
+          | _ => ()
+          };
+        },
+        result,
+      );
     };
-  };
   self.process
   |> N.ChildProcess.stdout
   |> N.Stream.Readable.on(`data(onData))

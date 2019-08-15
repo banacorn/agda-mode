@@ -7,7 +7,7 @@ let getPath = instance => {
   instance.editors.source
   |> Atom.TextEditor.getPath
   |> Option.getOr("untitled")
-  |> Parser.filepath
+  |> Parser.filepath;
 };
 
 let pointingAt = (~cursor=?, instance): option(Goal.t) => {
@@ -59,7 +59,7 @@ let getGoalIndex = (goal: Goal.t): Async.t((Goal.t, int), error) => {
 };
 
 /* shift cursor if in certain goal */
-let recoverCursor = (callback, instance) => {
+let updateCursorPosition = (callback, instance) => {
   let cursor =
     instance.editors.source |> Atom.TextEditor.getCursorBufferPosition;
   let result = callback();
@@ -94,7 +94,7 @@ let recoverCursor = (callback, instance) => {
      })
   |> ignore;
 
-  /* return the result of the callbak */
+  /* return the result of the callback */
   result;
 };
 

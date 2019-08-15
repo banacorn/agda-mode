@@ -134,7 +134,6 @@ module SExpression = {
     /* Replace window's \\ in paths with /, so that \n doesn't get treated as newline. */
     let result =
       ref(string |> Js.String.replaceByRe([%re "/\\\\\\\\/g"], "/"));
-
     /* handles Agda parse error */
     if (result^ |> Js.String.substring(~from=0, ~to_=13) === "cannot read: ") {
       Error(Js.String.sliceToEnd(~from=12, result^));

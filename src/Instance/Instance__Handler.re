@@ -296,7 +296,7 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
 
 let handleResponseAndRecoverCursor = (instance, response) =>
   instance
-  |> recoverCursor(() => handleResponse(instance, response))
+  |> updateCursorPosition(() => handleResponse(instance, response))
   |> mapOk(_ => ());
 
 /* Primitive Command => Remote Command */
@@ -653,7 +653,10 @@ let rec handleLocalCommand =
       switch (range) {
       | NoRange => (false, None)
       | Range(None, _) => (true, None)
-      | Range(Some(path), _) => (true, path == filePath ? None : Some(path))
+      | Range(Some(path), _) => (
+          true,
+          path == filePath ? None : Some(path),
+        )
       };
     if (shouldJump) {
       switch (otherFilePath) {
@@ -701,7 +704,9 @@ let rec handleLocalCommand =
     if (instance.isLoaded) {
       let name =
         instance
-        |> recoverCursor(() => Editors.getSelectedTextNode(instance.editors));
+        |> updateCursorPosition(() =>
+             Editors.getSelectedTextNode(instance.editors)
+           );
 
       instance
       |> getPointedGoal
@@ -724,7 +729,9 @@ let rec handleLocalCommand =
 
 /* Remote Command => Responses */
 let handleRemoteCommand =
-    (instance, handler, remote): Async.t(array('a), error) =>
+    /* This still builds even when type is changed from 'a to unit.
+       What is the point of an array of units? */
+    (instance, handler, remote): Async.t(array(unit), error) =>
   switch (remote) {
   | None => resolve([||])
   | Some(cmd) =>
@@ -737,19 +744,20 @@ let handleRemoteCommand =
            Connection.resetLog(connection);
          };
          // create log entry for each `cmd`
-         Metadata.createEntry(cmd.command, connection.metadata);
+         Metadata.createLogEntry(cmd.command, connection.metadata);
        })
     |> ignore;
 
     let handleResults = ref([||]);
     let parseErrors: ref(array(Parser.Error.t)) = ref([||]);
-    let serialized = Command.Remote.serialize(cmd);
+    let inputForAgda = Command.Remote.toAgdaReadableString(cmd);
 
     let onResponse = (resolve', reject') => (
       fun
       | Ok(Connection.Data(response)) => {
           let result =
-            instance |> recoverCursor(() => handler(instance, response));
+            instance
+            |> updateCursorPosition(() => handler(instance, response));
           handleResults := Array.concat([|result|], handleResults^);
         }
       | Ok(Connection.Error(error)) =>
@@ -772,7 +780,7 @@ let handleRemoteCommand =
       Connections.get(instance)
       |> mapOk(connection =>
            connection
-           |> Connection.send(serialized)
+           |> Connection.send(inputForAgda)
            |> Event.on(onResponse(resolve', reject'))
            |> ignore
          )

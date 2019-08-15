@@ -87,7 +87,7 @@ type t = {
   mutable entries: array(Log.Entry.t),
 };
 
-let createEntry = (cmd, metadata) => {
+let createLogEntry = (cmd, metadata) => {
   let entry: Log.Entry.t = {
     request: cmd,
     response: {
