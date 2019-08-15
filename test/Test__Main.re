@@ -136,13 +136,13 @@ describe("agda-mode", () => {
 
   before_each(() => {
     activationPromise :=
-      Some(Atom.Environment.Packages.activatePackage("agda-mode"));
+      Some(Atom.Packages.activatePackage("agda-mode"));
     resolve();
   });
 
   after_each(() => {
     activationPromise := None;
-    Atom.Environment.Packages.deactivatePackage("agda-mode", false);
+    Atom.Packages.deactivatePackage("agda-mode", false);
   });
 
   it(

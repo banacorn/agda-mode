@@ -30,14 +30,12 @@ module Focus = {
   let on = (sort, editors) =>
     switch (sort) {
     | Source =>
-      Environment.Views.getView(editors.source) |> HtmlElement.focus;
+      Views.getView(editors.source) |> HtmlElement.focus;
       editors.focused = Source;
     | Query =>
       editors.query
-      |> Option.forEach(editor =>
-           Atom.Environment.Views.getView(editor)
-           |> Webapi.Dom.HtmlElement.focus
-         );
+      |> Option.map(Atom.Views.getView)
+      |> Option.forEach(HtmlElement.focus);
       editors.focused = Query;
     };
 };

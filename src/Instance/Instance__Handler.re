@@ -578,7 +578,7 @@ let rec handleLocalCommand =
        )
 
   | InputSymbol(symbol) =>
-    let enabled = Atom.Environment.Config.get("agda-mode.inputMethod");
+    let enabled = Atom.Config.get("agda-mode.inputMethod");
     if (enabled) {
       instance.view.updateShouldDisplay(true);
       switch (symbol) {

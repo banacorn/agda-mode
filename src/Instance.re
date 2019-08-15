@@ -21,7 +21,7 @@ let destroy = instance => instance.view.destroy();
 
 let make = (textEditor: Atom.TextEditor.t) => {
   /* adds "agda" to the class-list */
-  Atom.Environment.Views.getView(textEditor)
+  Atom.Views.getView(textEditor)
   |> Webapi.Dom.HtmlElement.classList
   |> Webapi.Dom.DomTokenList.add("agda");
 

@@ -32,7 +32,7 @@ let observeFocus = (setFocused: bool => unit, editor) => {
     "subtree": false,
   };
   /* start observing */
-  let element = Atom.Environment.Views.getView(editor);
+  let element = Atom.Views.getView(editor);
   observer |> MutationObserver.observe(element, config);
 
   /* stop observing */
@@ -66,27 +66,25 @@ let make =
            /* WARNING: TextEditor.setGrammar is DEPRECATED!!! */
            /* pass the grammar down to enable input method */
            if (grammar === "agda") {
-             let agdaGrammar =
-               Atom.Environment.Grammar.grammarForScopeName("source.agda");
-             try (editor |> Atom.TextEditor.setGrammar(agdaGrammar)) {
-             | _ => () /* do nothing when we fail to load the grammar */
-             };
+             Atom.Grammars.grammarForScopeName("source.agda")
+             |> Option.forEach(grammar =>
+                  try (editor |> Atom.TextEditor.setGrammar(grammar)) {
+                  | _ => () /* do nothing when we fail to load the grammar */
+                  }
+                );
+             (); /* do nothing when we fail to load the grammar */
            };
            /* expose the editor */
            onEditorRef(editor);
            /* subscribe to Atom's core events */
            let disposables = Atom.CompositeDisposable.make();
-           Atom.Environment.Commands.add(
-             `HtmlElement(Atom.Environment.Views.getView(editor)),
-             "core:confirm",
-             _event =>
+
+           let element = Atom.Views.getView(editor);
+           Atom.Commands.add(`HtmlElement(element), "core:confirm", _event =>
              onConfirm(editor |> Atom.TextEditor.getText)
            )
            |> Atom.CompositeDisposable.add(disposables);
-           Atom.Environment.Commands.add(
-             `HtmlElement(Atom.Environment.Views.getView(editor)),
-             "core:cancel",
-             _event =>
+           Atom.Commands.add(`HtmlElement(element), "core:cancel", _event =>
              onCancel()
            )
            |> Atom.CompositeDisposable.add(disposables);

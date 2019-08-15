@@ -184,7 +184,7 @@ module Remote = {
   let serialize = self => {
     let {filepath, command, version} = self;
     let libraryPath: string = {
-      let path = Atom.Environment.Config.get("agda-mode.libraryPath");
+      let path = Atom.Config.get("agda-mode.libraryPath");
       path |> Js.Array.unshift(".") |> ignore;
       path
       |> Array.map(x => "\"" ++ Parser.filepath(x) ++ "\"")
@@ -193,7 +193,7 @@ module Remote = {
     };
     /* highlighting method */
     let highlightingMethod =
-      switch (Atom.Environment.Config.get("agda-mode.highlightingMethod")) {
+      switch (Atom.Config.get("agda-mode.highlightingMethod")) {
       | "Direct" => "Direct"
       | _ => "Indirect"
       };
@@ -221,7 +221,7 @@ module Remote = {
     | Abort => commonPart(NonInteractive) ++ {j|( Cmd_abort )|j}
 
     | Compile =>
-      let backend: string = Atom.Environment.Config.get("agda-mode.backend");
+      let backend: string = Atom.Config.get("agda-mode.backend");
 
       if (Util.Version.gte(version, "2.5.0")) {
         commonPart(NonInteractive)

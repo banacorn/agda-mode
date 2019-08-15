@@ -26,7 +26,7 @@ type action =
 let addClass = editor => {
   Webapi.Dom.(
     editor
-    |> Views.getView
+    |> Atom.Views.getView
     |> HtmlElement.classList
     |> DomTokenListRe.add("agda-mode-input-method-activated")
   );
@@ -35,7 +35,7 @@ let addClass = editor => {
 let removeClass = editor => {
   Webapi.Dom.(
     editor
-    |> Views.getView
+    |> Atom.Views.getView
     |> HtmlElement.classList
     |> DomTokenListRe.remove("agda-mode-input-method-activated")
   );

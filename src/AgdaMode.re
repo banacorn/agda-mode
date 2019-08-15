@@ -71,7 +71,7 @@ let onEditorActivationChange = () => {
 let onTriggerCommand = () => {
   Command.names
   |> Array.forEach(command =>
-       Environment.Commands.add(
+       Commands.add(
          `CSSSelector("atom-text-editor"), "agda-mode:" ++ command, _event =>
          Environment.Workspace.getActiveTextEditor()
          |> Option.flatMap(Instances.get)
@@ -88,7 +88,7 @@ let onTriggerCommand = () => {
 
 /* hijack UNDO */
 let onUndo = () => {
-  Environment.Commands.add(
+  Commands.add(
     `CSSSelector("atom-text-editor"),
     "core:undo",
     event => {

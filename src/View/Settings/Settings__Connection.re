@@ -55,7 +55,7 @@ let make =
         |> onOk(() =>
              editorRef
              |> Option.forEach(editor => {
-                  editor |> Atom.Environment.Views.getView |> HtmlElement.focus;
+                  editor |> Atom.Views.getView |> HtmlElement.focus;
                   editor |> Atom.TextEditor.selectAll;
                 })
            );

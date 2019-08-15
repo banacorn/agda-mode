@@ -52,10 +52,11 @@ let make =
             Js.Global.setTimeout(
               () => {
                 setMaxHeight(height);
-                Atom.Environment.Config.set(
+                Atom.Config.set(
                   "agda-mode.maxBodyHeight",
                   string_of_int(height),
-                );
+                )
+                |> ignore;
               },
               0,
             )
