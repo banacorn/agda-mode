@@ -129,14 +129,25 @@ describe("Instances", () => {
          resolve();
        })
   );
+
+  it("should include '.agda' in the classlist", () =>
+    openFile(asset("Blank1.agda"))
+    |> then_(editor => {
+         editor
+         |> Atom.Views.getView
+         |> Webapi.Dom.HtmlElement.classList
+         |> Webapi.Dom.DomTokenList.contains("agda")
+         |> Assert.ok;
+         resolve();
+       })
+  );
 });
 
 describe("agda-mode", () => {
   let activationPromise = ref(None);
 
   before_each(() => {
-    activationPromise :=
-      Some(Atom.Packages.activatePackage("agda-mode"));
+    activationPromise := Some(Atom.Packages.activatePackage("agda-mode"));
     resolve();
   });
 
