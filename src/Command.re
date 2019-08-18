@@ -181,8 +181,8 @@ module Remote = {
   };
 
   /* serializes Buffed Command into strings that can be sent to Agda */
-  let serialize = self => {
-    let {filepath, command, version} = self;
+  let toAgdaReadableString = cmd => {
+    let {filepath, command, version} = cmd;
     let libraryPath: string = {
       let path = Atom.Config.get("agda-mode.libraryPath");
       path |> Js.Array.unshift(".") |> ignore;
