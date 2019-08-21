@@ -17,6 +17,13 @@ module Error = {
       ++ Parser__Type.SExpression.toString(sexpr);
 };
 
+module Incr = {
+  type event('a) =
+    | OnResult('a)
+    | OnError(Error.t)
+    | OnFinish;
+};
+
 let captures = (handler, regex, raw) =>
   Js.Re.exec_(regex, raw)
   |> Option.map(result =>

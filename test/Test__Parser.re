@@ -21,9 +21,9 @@ let singleRegressionTest = (fileName, ()) => {
   let output = ref("");
   for (i in 0 to ArrayLabels.length(parsedOutput) - 1) {
     switch (parsedOutput[i]) {
-    | ResError(_) => BsMocha.Assert.fail("Parsing failed")
-    | ResData(a) => output := output^ ++ Response.toString(a) ++ "\n"
-    | ResEnd => ()
+    | OnError(_) => BsMocha.Assert.fail("Parsing failed")
+    | OnResult(a) => output := output^ ++ Response.toString(a) ++ "\n"
+    | OnFinish => ()
     };
   };
   /*print_string(output^);*/

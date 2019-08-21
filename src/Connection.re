@@ -75,10 +75,8 @@ It's probably because Agda's not happy about the arguments you fed her
       );
 };
 
-type response =
-  | ResError(Parser.Error.t)
-  | ResData(Response.t)
-  | ResEnd;
+type response = Parser.Incr.event(Response.t);
+open Parser.Incr;
 
 type t = {
   metadata: Metadata.t,
@@ -163,8 +161,8 @@ let parseAgdaOutput: string => array(response) =
 
     let toResponse: result(Response.t, Parser.Error.t) => response =
       fun
-      | Error(err) => ResError(err)
-      | Ok(result) => ResData(result);
+      | Error(err) => OnError(err)
+      | Ok(result) => OnResult(result);
 
     let results: array(response) =
       trimmed
@@ -173,7 +171,7 @@ let parseAgdaOutput: string => array(response) =
       |> Array.map(toResponse);
 
     if (isEndOfResponse) {
-      Array.concat(results, [|ResEnd|]);
+      Array.concat(results, [|OnFinish|]);
     } else {
       results;
     };
@@ -308,15 +306,15 @@ let wire = (self): t => {
     switch (self.queue[0]) {
     | None =>
       switch (res) {
-      | ResData(data) => self.errorEmitter |> Event.emitOk(data)
+      | OnResult(data) => self.errorEmitter |> Event.emitOk(data)
       | _ => ()
       }
     | Some(req) =>
       req |> Event.emitOk(res);
       switch (res) {
-      | ResData(_) => ()
-      | ResError(_) => ()
-      | ResEnd => self.queue |> Js.Array.pop |> Option.forEach(Event.destroy)
+      | OnResult(_) => ()
+      | OnError(_) => ()
+      | OnFinish => self.queue |> Js.Array.pop |> Option.forEach(Event.destroy)
       };
     };
   };
@@ -336,7 +334,7 @@ let wire = (self): t => {
         result => {
           response(result);
           switch (result) {
-          | ResData(result) => Metadata.logResponse(result, self.metadata)
+          | OnResult(result) => Metadata.logResponse(result, self.metadata)
           | _ => ()
           };
         },

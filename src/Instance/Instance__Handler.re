@@ -751,18 +751,18 @@ let handleRemoteCommand =
     let handleResults = ref([||]);
     let parseErrors: ref(array(Parser.Error.t)) = ref([||]);
     let inputForAgda = Command.Remote.toAgdaReadableString(cmd);
-
+    open Parser.Incr;
     let onResponse = (resolve', reject') => (
       fun
-      | Ok(Connection.ResData(response)) => {
+      | Ok(OnResult(response)) => {
           let result =
             instance
             |> updateCursorPosition(() => handler(instance, response));
           handleResults := Array.concat([|result|], handleResults^);
         }
-      | Ok(Connection.ResError(error)) =>
+      | Ok(OnError(error)) =>
         parseErrors := Array.concat([|error|], parseErrors^)
-      | Ok(Connection.ResEnd) =>
+      | Ok(OnFinish) =>
         if (Array.length(parseErrors^) > 0) {
           reject'(ParseError(parseErrors^)) |> ignore;
         } else {
