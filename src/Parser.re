@@ -131,12 +131,12 @@ module SExpression = {
     | Done(t);
 
   let preprocess = (string: string): result(string, string) => {
-    /* Replace window's \\ in paths with /, so that \n doesn't get treated as newline. */
-    let result =
-      ref(string |> Js.String.replaceByRe([%re "/\\\\\\\\/g"], "/"));
+    // /* Replace window's \\ in paths with /, so that \n doesn't get treated as newline. */
+    // let result =
+    //   ref(string |> Js.String.replaceByRe([%re "/\\\\\\\\/g"], "/"));
     /* handles Agda parse error */
-    if (result^ |> Js.String.substring(~from=0, ~to_=13) === "cannot read: ") {
-      Error(Js.String.sliceToEnd(~from=12, result^));
+    if (string |> Js.String.substring(~from=0, ~to_=13) === "cannot read: ") {
+      Error(Js.String.sliceToEnd(~from=12, string));
     } else if
       /* drop priority prefixes like ((last . 1)) as they are all constants with respect to responses
 
@@ -149,14 +149,14 @@ module SExpression = {
              interactive highlighting is complete. The last commands can have
              different integer priorities; those with the lowest priority are
              executed first. */
-      (result^ |> String.startsWith("((last")) {
-      let index = result^ |> Js.String.indexOf("(agda");
+      (string |> String.startsWith("((last")) {
+      let index = string |> Js.String.indexOf("(agda");
       Ok(
-        result^
-        |> Js.String.substring(~from=index, ~to_=String.length(result^) - 1),
+        string
+        |> Js.String.substring(~from=index, ~to_=String.length(string) - 1),
       );
     } else {
-      Ok(result^);
+      Ok(string);
     };
   };
 
