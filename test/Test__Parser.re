@@ -43,7 +43,10 @@ let singleRegressionTest = (fileName, ()) => {
         let errorMsg =
           "Line "
           ++ string_of_int(i)
-          ++ " differs. The parsed version is:\n"
+          ++ " differs.\n"
+          ++ "  Expecting:\n"
+          ++ a
+          ++ "\n  Got:\n"
           ++ b
           ++ "\n";
         errorString := errorString^ ++ errorMsg;
