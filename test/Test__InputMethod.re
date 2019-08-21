@@ -8,40 +8,40 @@ open Js.Promise;
 
 open Test__Util;
 
-describe("Input Method", () => {
-  // let size = dict => dict^ |> Js.Dict.keys |> Array.length;
-  // let openedFiles =
-
-  // let pane = Atom.Environment.Workspace.getActivePane();
-  // Atom.Pane.destroyItem_(editor, true, pane);
-
-  let instances = ref(Js.Dict.empty());
-  before(() => {
-    instances := AgdaMode.activate();
-    resolve();
-  });
-  after(() => {
-    Atom.Environment.Workspace.getActivePane() |> Atom.Pane.destroyItems;
-    resolve();
-  });
-  it("should respect the number of opened .agda file", () =>
-    openFile(asset("Blank1.agda"))
-    |> then_(editor
-         // Atom.Packages.activatePackage("agda-mode")
-         =>
-           dispatch(editor, "agda-mode:load")
-           |> then_(() => {
-                AgdaMode.Instances.get(editor)
-                |> Option.forEach((instance: Instance.t) => {
-                     instance |> AgdaMode.activate |> ignore;
-                     Js.log(instance.isLoaded);
-                     Js.log(instance.isLoaded);
-                   });
-                resolve();
-              })
-         )
-  );
-  ();
+// describe("Input Method", () => {
+//   // let size = dict => dict^ |> Js.Dict.keys |> Array.length;
+//   // let openedFiles =
+//
+//   // let pane = Atom.Environment.Workspace.getActivePane();
+//   // Atom.Pane.destroyItem_(editor, true, pane);
+//
+//   let instances = ref(Js.Dict.empty());
+//   before(() => {
+//     instances := AgdaMode.activate();
+//     resolve();
+//   });
+//   after(() => {
+//     Atom.Environment.Workspace.getActivePane() |> Atom.Pane.destroyItems;
+//     resolve();
+//   });
+//   it("should respect the number of opened .agda file", () =>
+//     openFile(asset("Blank1.agda"))
+//     |> then_(editor
+//          // Atom.Packages.activatePackage("agda-mode")
+//          =>
+//            dispatch(editor, "agda-mode:load")
+//            |> then_(() => {
+//                 AgdaMode.Instances.get(editor)
+//                 |> Option.forEach((instance: Instance.t) => {
+//                      instance |> AgdaMode.activate |> ignore;
+//                      Js.log(instance.isLoaded);
+//                      Js.log(instance.isLoaded);
+//                    });
+//                 resolve();
+//               })
+//          )
+//   );
+//   ();
   // let activationPromise = ref(None);
   // let editor = ref(None);
   //
@@ -139,4 +139,4 @@ describe("Input Method", () => {
   // //      resolve();
   // //    })
   // // |> ignore
-});
+// });
