@@ -41,21 +41,17 @@ let addFromFile = (filepath, instance): Async.t(unit, unit) => {
        content
        |> Node.Buffer.toString
        |> Parser.SExpression.parse
-       |> Result.map(
-            Array.map(tokens =>
+       |> Array.filterMap(Option.fromResult)  // throwing away errors
+       |> Array.map(tokens =>
               switch (tokens) {
               | L(xs) =>
                 xs |> Highlighting.Annotation.parseIndirectHighlightings
               | _ => [||]
               }
-            ),
-          )
-       |> Result.map(Array.flatMap(x => x))
-       |> Result.forEach(annotations =>
-            annotations
-            |> Array.filter(Highlighting.Annotation.shouldHighlight)
-            |> Array.forEach(annotation => instance |> add(annotation))
-          );
+            )
+       |> Array.flatMap(x => x)
+       |> Array.filter(Highlighting.Annotation.shouldHighlight)
+       |> Array.forEach(annotation => instance |> add(annotation));
        resolve();
      })
   /* print on error */

@@ -254,12 +254,12 @@ module SExpression = {
     | Ok(processed) => parseSExpression(initialState(), processed)
     };
   };
-  // (int, string) as the error index and the raw input
-  let parse = (string: string): result(array(t), (int, string)) => {
-    let results = ref([||]);
-    let error = ref(None);
+
+  // returns an array of S-expressions and errors ( with (int, string) as the error index and the raw input )
+  let parse = (input: string): array(result(t, (int, string))) => {
+    let resultAccum: ref(array(result(t, (int, string)))) = ref([||]);
     let continuation = ref(None);
-    string
+    input
     |> splitAndTrim
     |> Array.forEach(line => {
          // get the parsing continuation or initialize a new one
@@ -267,17 +267,14 @@ module SExpression = {
 
          // continue parsing with the given continuation
          switch (continue(line)) {
-         | Error(n, err) => error := Some((n, err))
+         | Error(n, err) =>
+            resultAccum^ |> Js.Array.push(Rebase.Error((n, err))) |> ignore;
          | Continue(continue) => continuation := Some(continue)
          | Done(result) =>
-           results^ |> Js.Array.push(result) |> ignore;
+           resultAccum^ |> Js.Array.push(Rebase.Ok(result)) |> ignore;
            continuation := None;
          };
        });
-
-    switch (error^) {
-    | Some((n, err)) => Error((n, err))
-    | None => Ok(results^)
-    };
+    resultAccum^
   };
 };
