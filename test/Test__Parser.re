@@ -17,13 +17,13 @@ let singleRegressionTest = (fileName, ()) => {
   let input = read("test/TestInputs/" ++ fileName ++ ".in");
   let expectedOutput: string = read("test/TestInputs/" ++ fileName ++ ".out");
   let parsedOutput: array(Connection.response) =
-    Connection.parseAgdaOutput(input, ref(None));
+    Connection.parseAgdaOutput(input);
   let output = ref("");
   for (i in 0 to ArrayLabels.length(parsedOutput) - 1) {
     switch (parsedOutput[i]) {
-    | Error(_) => BsMocha.Assert.fail("Parsing failed")
-    | Data(a) => output := output^ ++ Response.toString(a) ++ "\n"
-    | End => ()
+    | ResError(_) => BsMocha.Assert.fail("Parsing failed")
+    | ResData(a) => output := output^ ++ Response.toString(a) ++ "\n"
+    | ResEnd => ()
     };
   };
   /*print_string(output^);*/

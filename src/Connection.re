@@ -76,9 +76,9 @@ It's probably because Agda's not happy about the arguments you fed her
 };
 
 type response =
-  | Error(Parser.Error.t)
-  | Data(Response.t)
-  | End;
+  | ResError(Parser.Error.t)
+  | ResData(Response.t)
+  | ResEnd;
 
 type t = {
   metadata: Metadata.t,
@@ -145,8 +145,8 @@ let autoSearch = (path): Async.t(string, Error.t) =>
   )
   |> Async.mapError(e => Error.AutoSearchError(e));
 
-let parseAgdaOutput: (string, ref('a)) => array(response) =
-  (stringAgdaSpatOut, continuation) => {
+let parseAgdaOutput: string => array(response) =
+  stringAgdaSpatOut => {
     // we consider the chunk ended with if ends with "Agda2> "
     let isEndOfResponse = stringAgdaSpatOut |> String.endsWith("Agda2> ");
     // remove the trailing "Agda2> "
@@ -160,33 +160,20 @@ let parseAgdaOutput: (string, ref('a)) => array(response) =
       } else {
         stringAgdaSpatOut;
       };
-    let results =
+
+    let toResponse: result(Response.t, Parser.Error.t) => response =
+      fun
+      | Error(err) => ResError(err)
+      | Ok(result) => ResData(result);
+
+    let results: array(response) =
       trimmed
-      |> Parser.splitAndTrim
-      |> Array.map(line => {
-           // get the parsing continuation or initialize a new one
-           let continue =
-             continuation^ |> Option.getOr(Parser.SExpression.incrParse);
-           // continue parsing with the given continuation
-           let stuff: response =
-             switch (continue(line)) {
-             | Error(n, err) => Error(Parser.Error.SExpression(n, err))
-             | Continue(parse) =>
-               continuation := Some(parse);
-               Error(Parser.Error.SExpression(1, "should not be called"));
-             | Done(result) =>
-               let returnValue =
-                 switch (Response.parse(result)) {
-                 | Error(err) => Error(err)
-                 | Ok(result) => Data(result)
-                 };
-               continuation := None;
-               returnValue;
-             };
-           stuff;
-         });
+      |> Parser.SExpression.parse
+      |> Array.map(Result.flatMap(Response.parse))
+      |> Array.map(toResponse);
+
     if (isEndOfResponse) {
-      Array.concat(results, [|End|]);
+      Array.concat(results, [|ResEnd|]);
     } else {
       results;
     };
@@ -321,19 +308,18 @@ let wire = (self): t => {
     switch (self.queue[0]) {
     | None =>
       switch (res) {
-      | Data(data) => self.errorEmitter |> Event.emitOk(data)
+      | ResData(data) => self.errorEmitter |> Event.emitOk(data)
       | _ => ()
       }
     | Some(req) =>
       req |> Event.emitOk(res);
       switch (res) {
-      | Data(_) => ()
-      | Error(_) => ()
-      | End => self.queue |> Js.Array.pop |> Option.forEach(Event.destroy)
+      | ResData(_) => ()
+      | ResError(_) => ()
+      | ResEnd => self.queue |> Js.Array.pop |> Option.forEach(Event.destroy)
       };
     };
   };
-  let continuation = ref(None);
 
   /* listens to the "data" event on the stdout */
   /*The chunk may contain various fractions of the Agda output*/
@@ -342,7 +328,7 @@ let wire = (self): t => {
       /* serialize the binary chunk into string */
       let rawText = chunk |> Node.Buffer.toString;
       /* store the raw text in the log */
-      let result: array(response) = parseAgdaOutput(rawText, continuation);
+      let result: array(response) = parseAgdaOutput(rawText);
       Metadata.logRawText(rawText, self.metadata);
       //for each done, need to call Metadata.logSExpression(result, self.metadata);
       // That opportunity is gone, though...
@@ -350,7 +336,7 @@ let wire = (self): t => {
         result => {
           response(result);
           switch (result) {
-          | Data(result) => Metadata.logResponse(result, self.metadata)
+          | ResData(result) => Metadata.logResponse(result, self.metadata)
           | _ => ()
           };
         },

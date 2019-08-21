@@ -754,15 +754,15 @@ let handleRemoteCommand =
 
     let onResponse = (resolve', reject') => (
       fun
-      | Ok(Connection.Data(response)) => {
+      | Ok(Connection.ResData(response)) => {
           let result =
             instance
             |> updateCursorPosition(() => handler(instance, response));
           handleResults := Array.concat([|result|], handleResults^);
         }
-      | Ok(Connection.Error(error)) =>
+      | Ok(Connection.ResError(error)) =>
         parseErrors := Array.concat([|error|], parseErrors^)
-      | Ok(Connection.End) =>
+      | Ok(Connection.ResEnd) =>
         if (Array.length(parseErrors^) > 0) {
           reject'(ParseError(parseErrors^)) |> ignore;
         } else {
