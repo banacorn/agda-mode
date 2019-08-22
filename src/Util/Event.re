@@ -7,9 +7,17 @@ module Listener = {
     id: int,
   };
   let make = (resolve, id): t('a, 'e) => {resolve, id};
-  let map = (f: 'a => 'b, g: 'e => 'f, listener: t('b, 'f)): t('a, 'e) => {
-    resolve: (x: result('a, 'e)) =>
-      x |> Result.map2(f, g) |> listener.resolve,
+  // Listener(B, F) -> Listener(A, E)
+  let contraMap =
+      (f: result('a, 'e) => result('b, 'f), listener: t('b, 'f))
+      : t('a, 'e) => {
+    resolve: (event: result('a, 'e)) => listener.resolve(f(event)),
+    id: listener.id,
+  };
+  let contraMap_ =
+      (f: result('a, 'e) => array(result('b, 'f)), listener: t('b, 'f))
+      : t('a, 'e) => {
+    resolve: x => f(x) |> Array.forEach(listener.resolve),
     id: listener.id,
   };
 };
@@ -62,9 +70,17 @@ let destroyWhen =
 /* alias of `listen` */
 let on = listen;
 
-let map = (f: 'a => 'b, g: 'e => 'f, x: t('b, 'f)): t('a, 'e) => {
+let contraMap =
+    (f: result('a, 'e) => result('b, 'f), x: t('b, 'f)): t('a, 'e) => {
   counter: x.counter,
-  listeners: x.listeners |> Js.Dict.map((. l) => l |> Listener.map(f, g)),
+  listeners: x.listeners |> Js.Dict.map((. l) => l |> Listener.contraMap(f)),
+};
+
+let contraMap_ =
+    (f: result('a, 'e) => array(result('b, 'f)), x: t('b, 'f)): t('a, 'e) => {
+  counter: x.counter,
+  listeners:
+    x.listeners |> Js.Dict.map((. l) => l |> Listener.contraMap_(f)),
 };
 
 let onOk: ('a => unit, t('a, 'e), unit) => unit =
@@ -105,22 +121,16 @@ let once = (self: t('a, 'e)): Async.t('a, 'e) => {
   });
 };
 
+/* generic emit */
+let emit = (x: result('a, 'e), self: t('a, 'e)): unit => {
+  self.listeners
+  |> Js.Dict.values
+  |> Array.forEach((listener: Listener.t('a, 'e)) => listener.resolve(x));
+};
 /* successful emit */
-let emitOk = (x: 'a, self: t('a, 'e)): unit => {
-  self.listeners
-  |> Js.Dict.values
-  |> Array.forEach((listener: Listener.t('a, 'e)) =>
-       listener.resolve(Ok(x))
-     );
-};
+let emitOk = (x: 'a, self: t('a, 'e)): unit => emit(Ok(x), self);
 /* failed emit */
-let emitError = (x: 'e, self: t('a, 'e)): unit => {
-  self.listeners
-  |> Js.Dict.values
-  |> Array.forEach((listener: Listener.t('a, 'e)) =>
-       listener.resolve(Error(x))
-     );
-};
+let emitError = (e: 'e, self: t('a, 'e)): unit => emit(Error(e), self);
 
 /* from |> pipe(to_) */
 let pipe = (to_: t('a, 'e), from: t('a, 'e)): (unit => unit) =>
@@ -131,10 +141,11 @@ let pipe = (to_: t('a, 'e), from: t('a, 'e)): (unit => unit) =>
        | Error(err) => to_ |> emitError(err),
      );
 
-let pipeMap = (to_: t('b, 'e), f: 'a => 'b, from: t('a, 'e)): (unit => unit) =>
-  from
-  |> on(
-       fun
-       | Ok(ok) => to_ |> emitOk(f(ok))
-       | Error(err) => to_ |> emitError(err),
-     );
+let pipeMap =
+    (
+      to_: t('b, 'e),
+      f: result('a, 'e) => array(result('b, 'f)),
+      from: t('a, 'e),
+    )
+    : (unit => unit) =>
+  from |> on(a => f(a) |> Array.forEach(x => to_ |> emit(x)));
