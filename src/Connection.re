@@ -75,7 +75,7 @@ It's probably because Agda's not happy about the arguments you fed her
       );
 };
 
-type response = Parser.SExpression.Incr.event(Response.t);
+type response = Parser.Incr.Event.t(Response.t);
 
 type t = {
   metadata: Metadata.t,
@@ -142,7 +142,8 @@ let autoSearch = (path): Async.t(string, Error.t) =>
   )
   |> Async.mapError(e => Error.AutoSearchError(e));
 
-let parseAgdaOutput: (ref(Parser.SExpression.Incr.t), string) => unit =
+let parseAgdaOutput:
+  (ref(Parser.Incr.t(Parser.SExpression.t)), string) => unit =
   (parser, stringAgdaSpatOut) => {
     // we consider the chunk ended with if ends with "Agda2> "
     let isEndOfResponse = stringAgdaSpatOut |> String.endsWith("Agda2> ");
@@ -160,10 +161,10 @@ let parseAgdaOutput: (ref(Parser.SExpression.Incr.t), string) => unit =
 
     trimmed
     |> Parser.splitAndTrim
-    |> Array.forEach(Parser.SExpression.Incr.feed(parser^));
+    |> Array.forEach(Parser.Incr.feed(parser^));
 
     if (isEndOfResponse) {
-      parser^ |> Parser.SExpression.Incr.finish;
+      parser^ |> Parser.Incr.finish;
     };
   };
 
@@ -311,7 +312,8 @@ let wire = (self): t => {
   };
 
   let toResponse:
-    Parser.SExpression.Incr.event(Parser.SExpression.t) => response =
+    Parser.Incr.Event.t(Parser.SExpression.t) =>
+    Parser.Incr.Event.t(Response.t) =
     fun
     | OnResult(expr) => {
         Metadata.logSExpression(expr, self.metadata);
@@ -326,7 +328,11 @@ let wire = (self): t => {
     | OnFinish => OnFinish;
 
   let parser =
-    ref(Parser.SExpression.Incr.make(x => response(toResponse(x))));
+    ref(
+      Parser.Incr.make(Parser.SExpression.parseWithContinuation, x =>
+        response(toResponse(x))
+      ),
+    );
 
   /* listens to the "data" event on the stdout */
   /*The chunk may contain various fractions of the Agda output*/

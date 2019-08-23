@@ -751,7 +751,7 @@ let handleRemoteCommand =
     let handleResults = ref([||]);
     let parseErrors: ref(array(Parser.Error.t)) = ref([||]);
     let inputForAgda = Command.Remote.toAgdaReadableString(cmd);
-    open Parser.SExpression.Incr;
+    open Parser.Incr.Event;
     let onResponse = (resolve', reject') => (
       fun
       | Ok(OnResult(response)) => {

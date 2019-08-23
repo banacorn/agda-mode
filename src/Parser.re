@@ -113,6 +113,49 @@ let splitAndTrim = string =>
   |> Array.filterMap(x => x)
   |> Array.map(Js.String.trim);
 
+module Incr = {
+  module Event = {
+    type t('a) =
+      | OnResult('a)
+      | OnError(Error.t)
+      | OnFinish;
+  };
+
+  type continuation('a) =
+    | Error(int, string) // int for error index
+    | Continue(string => continuation('a))
+    | Done('a);
+
+  type t('a) = {
+    initialContinuation: string => continuation('a),
+    continuation: ref(option(string => continuation('a))),
+    callback: Event.t('a) => unit,
+  };
+  let make = (initialContinuation, callback) => {
+    initialContinuation,
+    continuation: ref(None),
+    callback,
+  };
+
+  let feed = (self: t('a), input: string): unit => {
+    // get the parsing continuation or initialize a new one
+    let continue =
+      self.continuation^ |> Option.getOr(self.initialContinuation);
+
+    // continue parsing with the given continuation
+    switch (continue(input)) {
+    | Error(n, err) => self.callback(OnError(Error.SExpression(n, err)))
+    | Continue(continue) => self.continuation := Some(continue)
+    | Done(result) =>
+      self.callback(OnResult(result));
+      self.continuation := None;
+    };
+  };
+
+  let finish = (self: t('a)): unit => {
+    self.callback(OnFinish);
+  };
+};
 /* Parsing S-Expressions */
 /* Courtesy of @NightRa */
 module SExpression = {
@@ -125,10 +168,6 @@ module SExpression = {
     escaped: ref(bool),
     in_str: ref(bool),
   };
-  type continuation =
-    | Error(int, string) // int for error index
-    | Continue(string => continuation)
-    | Done(t);
 
   let preprocess = (string: string): result(string, string) =>
     // /* Replace window's \\ in paths with /, so that \n doesn't get treated as newline. */
@@ -166,8 +205,9 @@ module SExpression = {
     | A(s) => [|s|]
     | L(xs) => xs |> Array.flatMap(flatten);
 
-  let parseWithContinuation = (string: string): continuation => {
-    let rec parseSExpression = (state: state, string: string): continuation => {
+  let parseWithContinuation = (string: string): Incr.continuation(t) => {
+    let rec parseSExpression =
+            (state: state, string: string): Incr.continuation(t) => {
       let {stack, word, escaped, in_str} = state;
 
       let pushToTheTop = (elem: t) => {
@@ -280,60 +320,7 @@ module SExpression = {
        });
     resultAccum^;
   };
-
-  let parse2 = (continuation, input: string): array(result(t, Error.t)) => {
-    let resultAccum: ref(array(result(t, Error.t))) = ref([||]);
-    input
-    |> splitAndTrim
-    |> Array.forEach(line => {
-         // get the parsing continuation or initialize a new one
-         let continue = continuation^ |> Option.getOr(parseWithContinuation);
-
-         // continue parsing with the given continuation
-         switch (continue(line)) {
-         | Error(n, err) =>
-           resultAccum^
-           |> Js.Array.push(Rebase.Error(Error.SExpression(n, err)))
-           |> ignore
-         | Continue(continue) => continuation := Some(continue)
-         | Done(result) =>
-           resultAccum^ |> Js.Array.push(Rebase.Ok(result)) |> ignore;
-           continuation := None;
-         };
-       });
-    resultAccum^;
-  };
-
-  module Incr = {
-    type event('a) =
-      | OnResult('a)
-      | OnError(Error.t)
-      | OnFinish;
-
-    type sexpr = t;
-    type t = {
-      continuation: ref(option(string => continuation)),
-      callback: event(sexpr) => unit,
-    };
-    let make = callback => {continuation: ref(None), callback};
-
-    let feed = (self: t, input: string): unit => {
-      // get the parsing continuation or initialize a new one
-      let continue =
-        self.continuation^ |> Option.getOr(parseWithContinuation);
-
-      // continue parsing with the given continuation
-      switch (continue(input)) {
-      | Error(n, err) => self.callback(OnError(Error.SExpression(n, err)))
-      | Continue(continue) => self.continuation := Some(continue)
-      | Done(result) =>
-        self.callback(OnResult(result));
-        self.continuation := None;
-      };
-    };
-
-    let finish = (self: t): unit => {
-      self.callback(OnFinish);
-    };
-  };
+  // let make = callback => {
+  //   Incr.make(parseWithContinuation, callback);
+  // };
 };
