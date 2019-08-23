@@ -142,8 +142,7 @@ let autoSearch = (path): Async.t(string, Error.t) =>
   )
   |> Async.mapError(e => Error.AutoSearchError(e));
 
-let parseAgdaOutput:
-  (ref(Parser.Incr.t(Parser.SExpression.t)), string) => unit =
+let parseAgdaOutput: (ref(Parser.SExpression.incr), string) => unit =
   (parser, stringAgdaSpatOut) => {
     // we consider the chunk ended with if ends with "Agda2> "
     let isEndOfResponse = stringAgdaSpatOut |> String.endsWith("Agda2> ");
@@ -311,38 +310,40 @@ let wire = (self): t => {
     };
   };
 
-  let toResponse:
-    Parser.Incr.Event.t(Parser.SExpression.t) =>
-    Parser.Incr.Event.t(Response.t) =
-    fun
-    | OnResult(expr) => {
-        Metadata.logSExpression(expr, self.metadata);
-        switch (Response.parse(expr)) {
-        | Error(err) => OnError(err)
-        | Ok(response) =>
-          Metadata.logResponse(response, self.metadata);
-          OnResult(response);
-        };
+  let logSExpression =
+    Parser.Incr.Event.flatMapOnResult(expr => {
+      Metadata.logSExpression(expr, self.metadata);
+      OnResult(expr);
+    });
+
+  let toResponse =
+    Parser.Incr.Event.flatMapOnResult(expr =>
+      switch (Response.parse(expr)) {
+      | Error(err) => OnError(err)
+      | Ok(response) => OnResult(response)
       }
-    | OnError(err) => OnError(err)
-    | OnFinish => OnFinish;
+    );
+
+  let logResponse =
+    Parser.Incr.Event.flatMapOnResult(result => {
+      Metadata.logResponse(result, self.metadata);
+      OnResult(result);
+    });
 
   let parser =
-    ref(
-      Parser.Incr.make(Parser.SExpression.parseWithContinuation, x =>
-        response(toResponse(x))
-      ),
+    Parser.SExpression.makeIncr(x =>
+      x |> logSExpression |> toResponse |> logResponse |> response
     );
 
   /* listens to the "data" event on the stdout */
-  /*The chunk may contain various fractions of the Agda output*/
+  /* The chunk may contain various fractions of the Agda output */
   let onData: Node.buffer => unit =
     chunk => {
       /* serialize the binary chunk into string */
       let rawText = chunk |> Node.Buffer.toString;
       /* store the raw text in the log */
       Metadata.logRawText(rawText, self.metadata);
-
+      // run the parser
       parseAgdaOutput(parser, rawText);
     };
   self.process

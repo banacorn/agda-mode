@@ -119,16 +119,22 @@ module Incr = {
       | OnResult('a)
       | OnError(Error.t)
       | OnFinish;
+
+    let flatMapOnResult = f =>
+      fun
+      | OnResult(x) => f(x)
+      | OnError(err) => OnError(err)
+      | OnFinish => OnFinish;
   };
 
-  type continuation('a) =
-    | Error(int, string) // int for error index
-    | Continue(string => continuation('a))
+  type continuation('a, 'e) =
+    | Error('e)
+    | Continue(string => continuation('a, 'e))
     | Done('a);
 
-  type t('a) = {
-    initialContinuation: string => continuation('a),
-    continuation: ref(option(string => continuation('a))),
+  type t('a, 'e) = {
+    initialContinuation: string => continuation('a, 'e),
+    continuation: ref(option(string => continuation('a, 'e))),
     callback: Event.t('a) => unit,
   };
   let make = (initialContinuation, callback) => {
@@ -137,14 +143,15 @@ module Incr = {
     callback,
   };
 
-  let feed = (self: t('a), input: string): unit => {
-    // get the parsing continuation or initialize a new one
+  // parsing with continuation
+  let feed = (self: t('a, 'e), input: string): unit => {
+    // get the existing continuation or initialize a new one
     let continue =
       self.continuation^ |> Option.getOr(self.initialContinuation);
 
     // continue parsing with the given continuation
     switch (continue(input)) {
-    | Error(n, err) => self.callback(OnError(Error.SExpression(n, err)))
+    | Error(err) => self.callback(OnError(err))
     | Continue(continue) => self.continuation := Some(continue)
     | Done(result) =>
       self.callback(OnResult(result));
@@ -152,7 +159,7 @@ module Incr = {
     };
   };
 
-  let finish = (self: t('a)): unit => {
+  let finish = (self: t('a, 'e)): unit => {
     self.callback(OnFinish);
   };
 };
@@ -205,9 +212,9 @@ module SExpression = {
     | A(s) => [|s|]
     | L(xs) => xs |> Array.flatMap(flatten);
 
-  let parseWithContinuation = (string: string): Incr.continuation(t) => {
+  let parseWithContinuation = (string: string): Incr.continuation(t, Error.t) => {
     let rec parseSExpression =
-            (state: state, string: string): Incr.continuation(t) => {
+            (state: state, string: string): Incr.continuation(t, Error.t) => {
       let {stack, word, escaped, in_str} = state;
 
       let pushToTheTop = (elem: t) => {
@@ -265,18 +272,18 @@ module SExpression = {
         };
       };
       switch (Array.length(stack)) {
-      | 0 => Error(0, string)
+      | 0 => Error(Error.SExpression(0, string))
       | 1 =>
         switch (stack[0]) {
-        | None => Error(1, string)
+        | None => Error(Error.SExpression(1, string))
         | Some(v) =>
           switch (v^) {
           | L(xs) =>
             switch (xs[0]) {
-            | None => Error(2, string)
+            | None => Error(Error.SExpression(2, string))
             | Some(w) => Done(w)
             }
-          | _ => Error(3, string)
+          | _ => Error(Error.SExpression(3, string))
           }
         }
       | _ => Continue(parseSExpression(state))
@@ -291,12 +298,12 @@ module SExpression = {
     };
 
     switch (preprocess(string)) {
-    | Error(_) => Error(4, string)
+    | Error(_) => Error(Error.SExpression(4, string))
     | Ok(processed) => parseSExpression(initialState(), processed)
     };
   };
 
-  // returns an array of S-expressions and errors ( with (int, string) as the error index and the raw input )
+  // returns an array of S-expressions and errors
   let parse = (input: string): array(result(t, Error.t)) => {
     let resultAccum: ref(array(result(t, Error.t))) = ref([||]);
     let continuation = ref(None);
@@ -308,10 +315,8 @@ module SExpression = {
 
          // continue parsing with the given continuation
          switch (continue(line)) {
-         | Error(n, err) =>
-           resultAccum^
-           |> Js.Array.push(Rebase.Error(Error.SExpression(n, err)))
-           |> ignore
+         | Error(err) =>
+           resultAccum^ |> Js.Array.push(Rebase.Error(err)) |> ignore
          | Continue(continue) => continuation := Some(continue)
          | Done(result) =>
            resultAccum^ |> Js.Array.push(Rebase.Ok(result)) |> ignore;
@@ -320,7 +325,7 @@ module SExpression = {
        });
     resultAccum^;
   };
-  // let make = callback => {
-  //   Incr.make(parseWithContinuation, callback);
-  // };
+
+  type incr = Incr.t(t, Error.t);
+  let makeIncr = callback => ref(Incr.make(parseWithContinuation, callback));
 };
