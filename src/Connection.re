@@ -75,8 +75,7 @@ It's probably because Agda's not happy about the arguments you fed her
       );
 };
 
-type response = Parser.Incr.event(Response.t);
-open Parser.Incr;
+type response = Parser.SExpression.Incr.event(Response.t);
 
 type t = {
   metadata: Metadata.t,
@@ -321,6 +320,16 @@ let wire = (self): t => {
   };
 
   let continuation = ref(None);
+
+  // let toResponse: result(Parser.SExpression.t, Parser.Error.t) => response =
+  //   fun
+  //   | Error(err) => OnError(err)
+  //   | Ok(expr) => {
+  //       Metadata.logSExpression(result, self.metadata);
+  //     };
+  // let parser = Parser.SExpression.Incr.make(fun
+  // | Error(err)
+  // |)
 
   /* listens to the "data" event on the stdout */
   /*The chunk may contain various fractions of the Agda output*/

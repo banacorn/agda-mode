@@ -17,13 +17,6 @@ module Error = {
       ++ Parser__Type.SExpression.toString(sexpr);
 };
 
-module Incr = {
-  type event('a) =
-    | OnResult('a)
-    | OnError(Error.t)
-    | OnFinish;
-};
-
 let captures = (handler, regex, raw) =>
   Js.Re.exec_(regex, raw)
   |> Option.map(result =>
@@ -309,5 +302,45 @@ module SExpression = {
          };
        });
     resultAccum^;
+  };
+
+  module Incr = {
+    type event('a) =
+      | OnResult('a)
+      | OnError(Error.t)
+      | OnFinish;
+
+    type sexpr = t;
+    type t = {
+      continuation: ref(option(string => continuation)),
+      callback: event(sexpr) => unit,
+    };
+    let make = callback => {continuation: ref(None), callback};
+
+    let feed = (input: string, self: t): t => {
+      input
+      |> splitAndTrim
+      |> Array.forEach(line => {
+           // get the parsing continuation or initialize a new one
+           let continue =
+             self.continuation^ |> Option.getOr(parseWithContinuation);
+
+           let next = continue(line);
+           // continue parsing with the given continuation
+           switch (next) {
+           | Error(n, err) =>
+             self.callback(OnError(Error.SExpression(n, err)))
+           | Continue(continue) => self.continuation := Some(continue)
+           | Done(result) =>
+             self.callback(OnResult(result));
+             self.continuation := None;
+           };
+         });
+      self;
+    };
+
+    let finish = (self: t): unit => {
+      self.callback(OnFinish);
+    };
   };
 };
