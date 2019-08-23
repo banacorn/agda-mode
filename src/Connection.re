@@ -142,8 +142,8 @@ let autoSearch = (path): Async.t(string, Error.t) =>
   )
   |> Async.mapError(e => Error.AutoSearchError(e));
 
-let parseAgdaOutput: (ref('a), string) => array(response) =
-  (continuation, stringAgdaSpatOut) => {
+let parseAgdaOutput: (ref(Parser.SExpression.Incr.t), string) => unit =
+  (parser, stringAgdaSpatOut) => {
     // we consider the chunk ended with if ends with "Agda2> "
     let isEndOfResponse = stringAgdaSpatOut |> String.endsWith("Agda2> ");
     // remove the trailing "Agda2> "
@@ -158,21 +158,12 @@ let parseAgdaOutput: (ref('a), string) => array(response) =
         stringAgdaSpatOut;
       };
 
-    let toResponse: result(Response.t, Parser.Error.t) => response =
-      fun
-      | Error(err) => OnError(err)
-      | Ok(result) => OnResult(result);
-
-    let results: array(response) =
-      trimmed
-      |> Parser.SExpression.parse2(continuation)
-      |> Array.map(Result.flatMap(Response.parse))
-      |> Array.map(toResponse);
+    trimmed
+    |> Parser.splitAndTrim
+    |> Array.forEach(Parser.SExpression.Incr.feed(parser^));
 
     if (isEndOfResponse) {
-      Array.concat(results, [|OnFinish|]);
-    } else {
-      results;
+      parser^ |> Parser.SExpression.Incr.finish;
     };
   };
 
@@ -319,17 +310,23 @@ let wire = (self): t => {
     };
   };
 
-  let continuation = ref(None);
+  let toResponse:
+    Parser.SExpression.Incr.event(Parser.SExpression.t) => response =
+    fun
+    | OnResult(expr) => {
+        Metadata.logSExpression(expr, self.metadata);
+        switch (Response.parse(expr)) {
+        | Error(err) => OnError(err)
+        | Ok(response) =>
+          Metadata.logResponse(response, self.metadata);
+          OnResult(response);
+        };
+      }
+    | OnError(err) => OnError(err)
+    | OnFinish => OnFinish;
 
-  // let toResponse: result(Parser.SExpression.t, Parser.Error.t) => response =
-  //   fun
-  //   | Error(err) => OnError(err)
-  //   | Ok(expr) => {
-  //       Metadata.logSExpression(result, self.metadata);
-  //     };
-  // let parser = Parser.SExpression.Incr.make(fun
-  // | Error(err)
-  // |)
+  let parser =
+    ref(Parser.SExpression.Incr.make(x => response(toResponse(x))));
 
   /* listens to the "data" event on the stdout */
   /*The chunk may contain various fractions of the Agda output*/
@@ -338,20 +335,9 @@ let wire = (self): t => {
       /* serialize the binary chunk into string */
       let rawText = chunk |> Node.Buffer.toString;
       /* store the raw text in the log */
-      let result: array(response) = parseAgdaOutput(continuation, rawText);
       Metadata.logRawText(rawText, self.metadata);
-      //for each done, need to call Metadata.logSExpression(result, self.metadata);
-      // That opportunity is gone, though...
-      Array.forEach(
-        result => {
-          response(result);
-          switch (result) {
-          | OnResult(result) => Metadata.logResponse(result, self.metadata)
-          | _ => ()
-          };
-        },
-        result,
-      );
+
+      parseAgdaOutput(parser, rawText);
     };
   self.process
   |> N.ChildProcess.stdout

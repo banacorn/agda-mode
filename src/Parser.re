@@ -317,26 +317,19 @@ module SExpression = {
     };
     let make = callback => {continuation: ref(None), callback};
 
-    let feed = (input: string, self: t): t => {
-      input
-      |> splitAndTrim
-      |> Array.forEach(line => {
-           // get the parsing continuation or initialize a new one
-           let continue =
-             self.continuation^ |> Option.getOr(parseWithContinuation);
+    let feed = (self: t, input: string): unit => {
+      // get the parsing continuation or initialize a new one
+      let continue =
+        self.continuation^ |> Option.getOr(parseWithContinuation);
 
-           let next = continue(line);
-           // continue parsing with the given continuation
-           switch (next) {
-           | Error(n, err) =>
-             self.callback(OnError(Error.SExpression(n, err)))
-           | Continue(continue) => self.continuation := Some(continue)
-           | Done(result) =>
-             self.callback(OnResult(result));
-             self.continuation := None;
-           };
-         });
-      self;
+      // continue parsing with the given continuation
+      switch (continue(input)) {
+      | Error(n, err) => self.callback(OnError(Error.SExpression(n, err)))
+      | Continue(continue) => self.continuation := Some(continue)
+      | Done(result) =>
+        self.callback(OnResult(result));
+        self.continuation := None;
+      };
     };
 
     let finish = (self: t): unit => {

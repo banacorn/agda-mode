@@ -12,50 +12,50 @@ open Test__Util;
 external promiseFiles: string => Js.Promise.t(array(string)) =
   "promiseFiles";
 
-let singleRegressionTest = (fileName, ()) => {
-  let read = Node.Fs.readFileAsUtf8Sync;
-  let input = read("test/TestInputs/" ++ fileName ++ ".in");
-  let expectedOutput: string = read("test/TestInputs/" ++ fileName ++ ".out");
-  let parsedOutput: array(Connection.response) =
-    Connection.parseAgdaOutput(ref(None), input);
-  let output = ref("");
-  for (i in 0 to ArrayLabels.length(parsedOutput) - 1) {
-    switch (parsedOutput[i]) {
-    | OnError(_) => BsMocha.Assert.fail("Parsing failed")
-    | OnResult(a) => output := output^ ++ Response.toString(a) ++ "\n"
-    | OnFinish => ()
-    };
-  };
-  /*print_string(output^);*/
-  if (output^ == expectedOutput) {
-    BsMocha.Assert.ok(true);
-  } else {
-    let splitExpected = Js.String.split("\n", expectedOutput);
-    let splitOutput = Js.String.split("\n", output^);
-    let errorString = ref("");
-    if (ArrayLabels.length(splitExpected) != ArrayLabels.length(splitOutput)) {
-      BsMocha.Assert.fail("Output has an unexpected number of lines.");
-    };
-    for (i in 0 to ArrayLabels.length(splitExpected) - 1) {
-      let a = splitExpected[i];
-      let b = splitOutput[i];
-      if (a != b) {
-        let errorMsg =
-          "Line "
-          ++ string_of_int(i)
-          ++ " differs.\n"
-          ++ "  Expecting:\n"
-          ++ a
-          ++ "\n  Got:\n"
-          ++ b
-          ++ "\n";
-        errorString := errorString^ ++ errorMsg;
-      };
-    };
-    BsMocha.Assert.fail("Unexpected output of parser\n" ++ errorString^);
-  };
-  resolve();
-};
+// let singleRegressionTest = (fileName, ()) => {
+//   let read = Node.Fs.readFileAsUtf8Sync;
+//   let input = read("test/TestInputs/" ++ fileName ++ ".in");
+//   let expectedOutput: string = read("test/TestInputs/" ++ fileName ++ ".out");
+//   let parsedOutput: array(Connection.response) =
+//     Connection.parseAgdaOutput(ref(None), input);
+//   let output = ref("");
+//   for (i in 0 to ArrayLabels.length(parsedOutput) - 1) {
+//     switch (parsedOutput[i]) {
+//     | OnError(_) => BsMocha.Assert.fail("Parsing failed")
+//     | OnResult(a) => output := output^ ++ Response.toString(a) ++ "\n"
+//     | OnFinish => ()
+//     };
+//   };
+//   /*print_string(output^);*/
+//   if (output^ == expectedOutput) {
+//     BsMocha.Assert.ok(true);
+//   } else {
+//     let splitExpected = Js.String.split("\n", expectedOutput);
+//     let splitOutput = Js.String.split("\n", output^);
+//     let errorString = ref("");
+//     if (ArrayLabels.length(splitExpected) != ArrayLabels.length(splitOutput)) {
+//       BsMocha.Assert.fail("Output has an unexpected number of lines.");
+//     };
+//     for (i in 0 to ArrayLabels.length(splitExpected) - 1) {
+//       let a = splitExpected[i];
+//       let b = splitOutput[i];
+//       if (a != b) {
+//         let errorMsg =
+//           "Line "
+//           ++ string_of_int(i)
+//           ++ " differs.\n"
+//           ++ "  Expecting:\n"
+//           ++ a
+//           ++ "\n  Got:\n"
+//           ++ b
+//           ++ "\n";
+//         errorString := errorString^ ++ errorMsg;
+//       };
+//     };
+//     BsMocha.Assert.fail("Unexpected output of parser\n" ++ errorString^);
+//   };
+//   resolve();
+// };
 
 describe("when loading files", () =>
   describe("when parsing responses from Agda", () => {
@@ -107,18 +107,18 @@ describe("when loading files", () =>
   })
 );
 
-describe("When doing regression tests", () => {
-  let contentArray = Node.Fs.readdirSync("test/TestInputs");
-  let isInFile = name => Js.String.endsWith(".in", name);
-  let ditchExt: string => string =
-    name =>
-      Js.String.substring(~from=0, ~to_=Js.String.length(name) - 3, name);
-  let testNames =
-    Js.Array.filter(isInFile, contentArray) |> Array.map(ditchExt);
-  for (i in 0 to ArrayLabels.length(testNames) - 1) {
-    it(
-      "should handle test " ++ testNames[i],
-      singleRegressionTest(testNames[i]),
-    );
-  };
-});
+// describe("When doing regression tests", () => {
+//   let contentArray = Node.Fs.readdirSync("test/TestInputs");
+//   let isInFile = name => Js.String.endsWith(".in", name);
+//   let ditchExt: string => string =
+//     name =>
+//       Js.String.substring(~from=0, ~to_=Js.String.length(name) - 3, name);
+//   let testNames =
+//     Js.Array.filter(isInFile, contentArray) |> Array.map(ditchExt);
+//   for (i in 0 to ArrayLabels.length(testNames) - 1) {
+//     it(
+//       "should handle test " ++ testNames[i],
+//       singleRegressionTest(testNames[i]),
+//     );
+//   };
+// });
