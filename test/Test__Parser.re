@@ -17,7 +17,7 @@ let singleRegressionTest = (fileName, ()) => {
   let input = read("test/TestInputs/" ++ fileName ++ ".in");
   let expectedOutput: string = read("test/TestInputs/" ++ fileName ++ ".out");
   let parsedOutput: array(Connection.response) =
-    Connection.parseAgdaOutput(input);
+    Connection.parseAgdaOutput(ref(None), input);
   let output = ref("");
   for (i in 0 to ArrayLabels.length(parsedOutput) - 1) {
     switch (parsedOutput[i]) {

@@ -143,8 +143,8 @@ let autoSearch = (path): Async.t(string, Error.t) =>
   )
   |> Async.mapError(e => Error.AutoSearchError(e));
 
-let parseAgdaOutput: string => array(response) =
-  stringAgdaSpatOut => {
+let parseAgdaOutput: (ref('a), string) => array(response) =
+  (continuation, stringAgdaSpatOut) => {
     // we consider the chunk ended with if ends with "Agda2> "
     let isEndOfResponse = stringAgdaSpatOut |> String.endsWith("Agda2> ");
     // remove the trailing "Agda2> "
@@ -166,7 +166,7 @@ let parseAgdaOutput: string => array(response) =
 
     let results: array(response) =
       trimmed
-      |> Parser.SExpression.parse
+      |> Parser.SExpression.parse2(continuation)
       |> Array.map(Result.flatMap(Response.parse))
       |> Array.map(toResponse);
 
@@ -314,10 +314,13 @@ let wire = (self): t => {
       switch (res) {
       | OnResult(_) => ()
       | OnError(_) => ()
-      | OnFinish => self.queue |> Js.Array.pop |> Option.forEach(Event.destroy)
+      | OnFinish =>
+        self.queue |> Js.Array.pop |> Option.forEach(Event.destroy)
       };
     };
   };
+
+  let continuation = ref(None);
 
   /* listens to the "data" event on the stdout */
   /*The chunk may contain various fractions of the Agda output*/
@@ -326,7 +329,7 @@ let wire = (self): t => {
       /* serialize the binary chunk into string */
       let rawText = chunk |> Node.Buffer.toString;
       /* store the raw text in the log */
-      let result: array(response) = parseAgdaOutput(rawText);
+      let result: array(response) = parseAgdaOutput(continuation, rawText);
       Metadata.logRawText(rawText, self.metadata);
       //for each done, need to call Metadata.logSExpression(result, self.metadata);
       // That opportunity is gone, though...

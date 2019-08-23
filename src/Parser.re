@@ -287,4 +287,27 @@ module SExpression = {
        });
     resultAccum^;
   };
+
+  let parse2 = (continuation, input: string): array(result(t, Error.t)) => {
+    let resultAccum: ref(array(result(t, Error.t))) = ref([||]);
+    input
+    |> splitAndTrim
+    |> Array.forEach(line => {
+         // get the parsing continuation or initialize a new one
+         let continue = continuation^ |> Option.getOr(parseWithContinuation);
+
+         // continue parsing with the given continuation
+         switch (continue(line)) {
+         | Error(n, err) =>
+           resultAccum^
+           |> Js.Array.push(Rebase.Error(Error.SExpression(n, err)))
+           |> ignore
+         | Continue(continue) => continuation := Some(continue)
+         | Done(result) =>
+           resultAccum^ |> Js.Array.push(Rebase.Ok(result)) |> ignore;
+           continuation := None;
+         };
+       });
+    resultAccum^;
+  };
 };
