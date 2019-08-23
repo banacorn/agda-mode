@@ -75,7 +75,7 @@ It's probably because Agda's not happy about the arguments you fed her
       );
 };
 
-type response = Parser.Incr.Event.t(Response.t);
+type response = Parser.Incr.Event.t(result(Response.t, Parser.Error.t));
 
 type t = {
   metadata: Metadata.t,
@@ -296,39 +296,36 @@ let wire = (self): t => {
     switch (self.queue[0]) {
     | None =>
       switch (res) {
-      | OnResult(data) => self.errorEmitter |> Event.emitOk(data)
+      | OnResult(Ok(data)) => self.errorEmitter |> Event.emitOk(data)
       | _ => ()
       }
     | Some(req) =>
       req |> Event.emitOk(res);
       switch (res) {
       | OnResult(_) => ()
-      | OnError(_) => ()
       | OnFinish =>
         self.queue |> Js.Array.pop |> Option.forEach(Event.destroy)
       };
     };
   };
-
   let logSExpression =
-    Parser.Incr.Event.flatMapOnResult(expr => {
-      Metadata.logSExpression(expr, self.metadata);
-      OnResult(expr);
-    });
-
-  let toResponse =
-    Parser.Incr.Event.flatMapOnResult(expr =>
-      switch (Response.parse(expr)) {
-      | Error(err) => OnError(err)
-      | Ok(response) => OnResult(response)
-      }
+    Parser.Incr.Event.map(
+      Result.map(expr => {
+        Metadata.logSExpression(expr, self.metadata);
+        expr;
+      }),
     );
 
+  // let toResponse = Parser.Incr.Event.map(x => x);
+  let toResponse = Parser.Incr.Event.map(Result.flatMap(Response.parse));
+
   let logResponse =
-    Parser.Incr.Event.flatMapOnResult(result => {
-      Metadata.logResponse(result, self.metadata);
-      OnResult(result);
-    });
+    Parser.Incr.Event.map(
+      Result.map(expr => {
+        Metadata.logResponse(expr, self.metadata);
+        expr;
+      }),
+    );
 
   let parser =
     Parser.SExpression.makeIncr(x =>

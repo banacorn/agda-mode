@@ -40,3 +40,55 @@ let dispatch = (editor: TextEditor.t, event) => {
   | Some(_) => Js.Promise.resolve()
   };
 };
+
+// bindings for jsdiff
+type diff = {
+  .
+  "value": string,
+  "added": bool,
+  "removed": bool,
+};
+
+[@bs.module "diff"]
+external diffLines: (string, string) => array(diff) = "diffLines";
+
+[@bs.module "diff"]
+external diffWordsWithSpace: (string, string) => array(diff) =
+  "diffWordsWithSpace";
+
+let singleRegressionTest = (fileName, ()) => {
+  // get the expected parsed output
+  let read = Node.Fs.readFileAsUtf8Sync;
+  let input = read("test/TestInputs/" ++ fileName ++ ".in");
+  let expectedOutput: string = read("test/TestInputs/" ++ fileName ++ ".out");
+  open Parser.Incr.Event;
+
+  // get the actual parsed output
+  let toResponse =
+    Parser.Incr.Event.map(Rebase.Result.flatMap(Response.parse));
+
+  let actualOutput = ref("");
+  let onResponse =
+    fun
+    | OnResult(Rebase.Error(_)) => BsMocha.Assert.fail("Parsing failed")
+    | OnResult(Rebase.Ok(a)) =>
+      actualOutput := actualOutput^ ++ Response.toString(a) ++ "\n"
+    | OnFinish => ();
+
+  let parser = Parser.SExpression.makeIncr(x => x |> toResponse |> onResponse);
+
+  Connection.parseAgdaOutput(parser, input);
+
+  // compare the expected with the actual
+  diffLines(expectedOutput, actualOutput^)
+  |> Array.filter(diff => diff##added || diff##removed)
+  |> Array.forEach(diff => {
+       if (diff##added) {
+         BsMocha.Assert.fail("Unexpected string added: " ++ diff##value);
+       };
+       if (diff##removed) {
+         BsMocha.Assert.fail("Unexpected string missing: " ++ diff##value);
+       };
+     });
+  Js.Promise.resolve();
+};

@@ -39,6 +39,7 @@
     "bs-platform": "^5.0.4",
     "bs-webapi": "^0.13.6",
     "chai": "^4.2.0",
+    "diff": "^4.0.1",
     "git-branch": "^2.0.1",
     "node-dir": "^0.1.17",
     "webpack": "^4.39.1",

@@ -117,13 +117,15 @@ module Incr = {
   module Event = {
     type t('a) =
       | OnResult('a)
-      | OnError(Error.t)
       | OnFinish;
-
-    let flatMapOnResult = f =>
+    let onResult = x => OnResult(x);
+    let map = f =>
+      fun
+      | OnResult(x) => OnResult(f(x))
+      | OnFinish => OnFinish;
+    let flatMap = f =>
       fun
       | OnResult(x) => f(x)
-      | OnError(err) => OnError(err)
       | OnFinish => OnFinish;
   };
 
@@ -135,7 +137,7 @@ module Incr = {
   type t('a, 'e) = {
     initialContinuation: string => continuation('a, 'e),
     continuation: ref(option(string => continuation('a, 'e))),
-    callback: Event.t('a) => unit,
+    callback: Event.t(result('a, 'e)) => unit,
   };
   let make = (initialContinuation, callback) => {
     initialContinuation,
@@ -151,10 +153,10 @@ module Incr = {
 
     // continue parsing with the given continuation
     switch (continue(input)) {
-    | Error(err) => self.callback(OnError(err))
+    | Error(err) => self.callback(OnResult(Error(err)))
     | Continue(continue) => self.continuation := Some(continue)
     | Done(result) =>
-      self.callback(OnResult(result));
+      self.callback(OnResult(Ok(result)));
       self.continuation := None;
     };
   };

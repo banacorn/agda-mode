@@ -754,13 +754,13 @@ let handleRemoteCommand =
     open Parser.Incr.Event;
     let onResponse = (resolve', reject') => (
       fun
-      | Ok(OnResult(response)) => {
+      | Ok(OnResult(Ok(response))) => {
           let result =
             instance
             |> updateCursorPosition(() => handler(instance, response));
           handleResults := Array.concat([|result|], handleResults^);
         }
-      | Ok(OnError(error)) =>
+      | Ok(OnResult(Error(error))) =>
         parseErrors := Array.concat([|error|], parseErrors^)
       | Ok(OnFinish) =>
         if (Array.length(parseErrors^) > 0) {
