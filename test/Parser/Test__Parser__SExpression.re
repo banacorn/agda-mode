@@ -1,24 +1,23 @@
 open Rebase;
 open BsMocha.Mocha;
-// open BsMocha;
-
-// open Async;
+open Fn;
 open Js.Promise;
 open Test__Util;
 
-let parse = input => {
+// String -> [SExpression]
+let parseSExpression = input => {
   open Parser.Incr.Event;
 
-  let output = ref("");
+  let output = ref([||]);
 
   let parser =
     Parser.SExpression.makeIncr(
       fun
-      | OnResult(Rebase.Error(_)) => BsMocha.Assert.fail("Parsing failed")
-      // | OnResult(Rebase.Ok(A(a))) =>
-      //   output := output^ ++ "[[[[[[" ++ a ++ "]]]]]]" ++ "\n"
-      | OnResult(Rebase.Ok(a)) =>
-        output := output^ ++ Parser.SExpression.toString(a) ++ "\n"
+      | OnResult(Rebase.Error(err)) =>
+        BsMocha.Assert.fail(
+          "Failed when parsing S-expression: " ++ Parser.Error.toString(err),
+        )
+      | OnResult(Rebase.Ok(a)) => Js.Array.push(a, output^) |> ignore
       | OnFinish => (),
     );
 
@@ -27,32 +26,17 @@ let parse = input => {
   output^;
 };
 
-let parseAndCompare = ((_, input, expected)) => {
-  let actual = parse(input);
-
-  // compare the expected with the actual
-
-  diffLines(expected, actual)
-  |> Array.filter(diff => diff##added || diff##removed)
-  |> Array.forEach(diff => {
-       if (diff##added) {
-         BsMocha.Assert.fail("Unexpected string added: " ++ diff##value);
-       };
-       if (diff##removed) {
-         BsMocha.Assert.fail(
-           "Unexpected string missing: ",
-           // BsMocha.Assert.fail("Unexpected string missing: " ++ diff##value);
-         );
-       };
-     });
-  Js.Promise.resolve();
-};
-
 describe("when parsing S-expressions", () =>
   getGoldenFilepathsSync("test/Parser/SExpression")
   |> Array.forEach(filepath =>
        BsMocha.Promise.it("should golden test " ++ filepath, () =>
-         readGoldenFile(filepath) |> then_(parseAndCompare)
+         Golden.readFile(filepath)
+         |> then_(
+              Golden.map(
+                parseSExpression >> serializeWith(Parser.SExpression.toString),
+              )
+              >> Golden.compare,
+            )
        )
      )
 );
