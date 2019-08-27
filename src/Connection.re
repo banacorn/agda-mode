@@ -144,38 +144,42 @@ let autoSearch = (path): Async.t(string, Error.t) =>
 
 let parseAgdaOutput: (ref(Parser.SExpression.incr), string) => unit =
   (parser, stringAgdaSpatOut) => {
+    // remove prefixing "Agda2>"
+    let trimmedFront =
+      String.startsWith("Agda2>", stringAgdaSpatOut)
+        ? Js.String.substring(
+            ~from=6,
+            ~to_=String.length(stringAgdaSpatOut),
+            stringAgdaSpatOut,
+          )
+        : stringAgdaSpatOut;
+
     // we consider the chunk ended with if ends with "Agda2> "
-    let isStartOfResponse = stringAgdaSpatOut |> String.startsWith("Agda2> ");
-    let isEndOfResponse = stringAgdaSpatOut |> String.endsWith("Agda2> ");
-    // remove the trailing "Agda2> "
-    let trimmed =
-      switch (isStartOfResponse, isEndOfResponse) {
-      | (true, true) =>
-        Js.String.substring(
-          ~from=7,
-          ~to_=String.length(stringAgdaSpatOut) - 7,
-          stringAgdaSpatOut,
-        )
-      | (true, false) =>
-        Js.String.substring(
-          ~from=7,
-          ~to_=String.length(stringAgdaSpatOut),
-          stringAgdaSpatOut,
-        )
-      | (false, true) =>
+    let chunkEnded = ref(false);
+    let trimmedBoth =
+      if (String.endsWith("Agda2>", trimmedFront)) {
+        chunkEnded := true;
         Js.String.substring(
           ~from=0,
-          ~to_=String.length(stringAgdaSpatOut) - 7,
-          stringAgdaSpatOut,
-        )
-      | (false, false) => stringAgdaSpatOut
+          ~to_=String.length(trimmedFront) - 6,
+          trimmedFront,
+        );
+      } else if (String.endsWith("Agda2> ", trimmedFront)) {
+        chunkEnded := true;
+        Js.String.substring(
+          ~from=0,
+          ~to_=String.length(trimmedFront) - 7,
+          trimmedFront,
+        );
+      } else {
+        trimmedFront;
       };
 
-    trimmed
+    trimmedBoth
     |> Parser.splitAndTrim
     |> Array.forEach(Parser.Incr.feed(parser^));
 
-    if (isEndOfResponse) {
+    if (chunkEnded^) {
       parser^ |> Parser.Incr.finish;
     };
   };

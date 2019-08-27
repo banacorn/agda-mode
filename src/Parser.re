@@ -1,4 +1,5 @@
 open Rebase;
+open Fn;
 
 // indicates at which stage the parse error happened
 module Error = {
@@ -9,12 +10,13 @@ module Error = {
   let toString =
     fun
     | SExpression(errno, string) =>
-      "Parse error code: S" ++ string_of_int(errno) ++ "\n" ++ string
+      "Parse error code: S" ++ string_of_int(errno) ++ " \"" ++ string ++ "\""
     | Response(errno, sexpr) =>
       "Parse error code: R"
       ++ string_of_int(errno)
-      ++ "\n"
-      ++ Parser__Type.SExpression.toString(sexpr);
+      ++ " \""
+      ++ Parser__Type.SExpression.toString(sexpr)
+      ++ "\"";
 };
 
 let captures = (handler, regex, raw) =>
@@ -100,18 +102,18 @@ let commandLine = s => {
   };
 };
 
-let splitAndTrim = string =>
-  string
-  |> Util.safeSplitByRe([%re "/\\r\\n|\\n/"])
-  |> Array.map(result =>
+let split =
+  Util.safeSplitByRe([%re "/\\r\\n|\\n/"])
+  >> Array.map(result =>
        switch (result) {
        | None => None
        | Some("") => None
        | Some(chunk) => Some(chunk)
        }
      )
-  |> Array.filterMap(x => x)
-  |> Array.map(Js.String.trim);
+  >> Array.filterMap(id);
+
+let splitAndTrim = split >> Array.map(Js.String.trim);
 
 module Incr = {
   module Event = {
@@ -180,7 +182,6 @@ module SExpression = {
 
   let preprocess = (string: string): result(string, string) =>
     // /* Replace window's \\ in paths with /, so that \n doesn't get treated as newline. */
-    // let result =
     /* handles Agda parse error */
     if (string |> Js.String.substring(~from=0, ~to_=13) === "cannot read: ") {
       Error(Js.String.sliceToEnd(~from=12, string));
@@ -203,6 +204,7 @@ module SExpression = {
         |> Js.String.substring(~from=index, ~to_=String.length(string) - 1),
       );
     } else {
+      // let result =
       //   ref(string |> Js.String.replaceByRe([%re "/\\\\\\\\/g"], "/"));
       Ok(
         string,
@@ -282,7 +284,13 @@ module SExpression = {
           switch (v^) {
           | L(xs) =>
             switch (xs[0]) {
-            | None => Error(Error.SExpression(2, string))
+            | None =>
+              if (totalLength == 0) {
+                // string is empty
+                Continue(parseSExpression(state));
+              } else {
+                Error(Error.SExpression(2, string));
+              }
             | Some(w) => Done(w)
             }
           | _ => Error(Error.SExpression(3, string))
