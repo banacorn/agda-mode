@@ -89,6 +89,7 @@ let readGoldenFile = filepath => {
        fun
        | [|input, output|] =>
          resolve((
+           filepath,
            Node.Buffer.toString(input),
            Node.Buffer.toString(output),
          ))
@@ -96,31 +97,31 @@ let readGoldenFile = filepath => {
      );
 };
 
-let readGoldenFiles = dirname => {
-  open Js.Promise;
-  let readFile = N.Fs.readFile |> N.Util.promisify;
-  getGoldenFilepaths(dirname)
-  |> then_(paths =>
-       paths
-       |> Array.map(path =>
-            [|readFile(. path ++ ".in"), readFile(. path ++ ".out")|]
-            |> all
-            |> then_(
-                 fun
-                 | [|input, output|] =>
-                   resolve(
-                     Some((
-                       Node.Buffer.toString(input),
-                       Node.Buffer.toString(output),
-                     )),
-                   )
-                 | _ => resolve(None),
-               )
-          )
-       |> all
-     )
-  |> then_(pairs => pairs |> Array.filterMap(Fn.id) |> resolve);
-};
+// let readGoldenFiles = dirname => {
+//   open Js.Promise;
+//   let readFile = N.Fs.readFile |> N.Util.promisify;
+//   getGoldenFilepaths(dirname)
+//   |> then_(paths =>
+//        paths
+//        |> Array.map(path =>
+//             [|readFile(. path ++ ".in"), readFile(. path ++ ".out")|]
+//             |> all
+//             |> then_(
+//                  fun
+//                  | [|input, output|] =>
+//                    resolve(
+//                      Some((
+//                        Node.Buffer.toString(input),
+//                        Node.Buffer.toString(output),
+//                      )),
+//                    )
+//                  | _ => resolve(None),
+//                )
+//           )
+//        |> all
+//      )
+//   |> then_(pairs => pairs |> Array.filterMap(Fn.id) |> resolve);
+// };
 
 let parseAsResponse = input => {
   open Parser.Incr.Event;
@@ -144,7 +145,7 @@ let parseAsResponse = input => {
   output^;
 };
 
-let parseAsResponseAndCompare = ((input, expected)) => {
+let parseAsResponseAndCompare = ((_, input, expected)) => {
   let actual = parseAsResponse(input);
   // compare the expected with the actual
 

@@ -145,17 +145,30 @@ let autoSearch = (path): Async.t(string, Error.t) =>
 let parseAgdaOutput: (ref(Parser.SExpression.incr), string) => unit =
   (parser, stringAgdaSpatOut) => {
     // we consider the chunk ended with if ends with "Agda2> "
+    let isStartOfResponse = stringAgdaSpatOut |> String.startsWith("Agda2> ");
     let isEndOfResponse = stringAgdaSpatOut |> String.endsWith("Agda2> ");
     // remove the trailing "Agda2> "
     let trimmed =
-      if (isEndOfResponse) {
+      switch (isStartOfResponse, isEndOfResponse) {
+      | (true, true) =>
+        Js.String.substring(
+          ~from=7,
+          ~to_=String.length(stringAgdaSpatOut) - 7,
+          stringAgdaSpatOut,
+        )
+      | (true, false) =>
+        Js.String.substring(
+          ~from=7,
+          ~to_=String.length(stringAgdaSpatOut),
+          stringAgdaSpatOut,
+        )
+      | (false, true) =>
         Js.String.substring(
           ~from=0,
           ~to_=String.length(stringAgdaSpatOut) - 7,
           stringAgdaSpatOut,
-        );
-      } else {
-        stringAgdaSpatOut;
+        )
+      | (false, false) => stringAgdaSpatOut
       };
 
     trimmed
