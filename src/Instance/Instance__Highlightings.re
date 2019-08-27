@@ -43,12 +43,11 @@ let addFromFile = (filepath, instance): Async.t(unit, unit) => {
        |> Parser.SExpression.parse
        |> Array.filterMap(Option.fromResult)  // throwing away errors
        |> Array.map(tokens =>
-              switch (tokens) {
-              | L(xs) =>
-                xs |> Highlighting.Annotation.parseIndirectHighlightings
-              | _ => [||]
-              }
-            )
+            switch (tokens) {
+            | L(xs) => xs |> Highlighting.Annotation.parseIndirectHighlightings
+            | _ => [||]
+            }
+          )
        |> Array.flatMap(x => x)
        |> Array.filter(Highlighting.Annotation.shouldHighlight)
        |> Array.forEach(annotation => instance |> add(annotation));

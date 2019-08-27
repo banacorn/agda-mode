@@ -1,7 +1,11 @@
 [@bs.module "fs"]
-external access: (string, Js.Nullable.t(Js.Exn.t) => unit) => unit = "access";
+external readdir: (string, (option(Js.Exn.t), array(string)) => unit) => unit =
+  "readdir";
+
 [@bs.module "fs"]
-external readFile: (string, (Js.Exn.t, Node.Buffer.t) => unit) => unit =
+external access: (string, option(Js.Exn.t) => unit) => unit = "access";
+[@bs.module "fs"]
+external readFile: (string, (option(Js.Exn.t), Node.Buffer.t) => unit) => unit =
   "readFile";
 [@bs.module "fs"]
-external unlink: (string, Js.Exn.t => unit) => unit = "unlink";
+external unlink: (string, option(Js.Exn.t) => unit) => unit = "unlink";

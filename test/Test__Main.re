@@ -73,7 +73,7 @@ Branch.onProd(() =>
     it("has the production bundle ready", () =>
       make((~resolve, ~reject) =>
         N.Fs.access(file("lib/js/bundled.js"), err =>
-          switch (Js.Nullable.toOption(err)) {
+          switch (err) {
           | None => resolve(. 0)
           | Some(e) => reject(. N.Exception(e))
           }

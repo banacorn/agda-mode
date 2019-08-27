@@ -4,7 +4,6 @@ open! BsMocha.Promise;
 // open BsChai.Expect.Expect;
 // open BsChai.Expect.Combos;
 
-open Async;
 open Test__Util;
 
 // bindings for node-dir
@@ -14,6 +13,7 @@ external promiseFiles: string => Js.Promise.t(array(string)) =
 
 describe("when loading files", () =>
   describe("when parsing responses from Agda", () => {
+    open Async;
     let loadAndParse = path => {
       openFile(path)
       |> Js.Promise.then_(editor => {
@@ -62,16 +62,13 @@ describe("when loading files", () =>
   })
 );
 
-describe("When doing regression tests", () => {
-  let contentArray = Node.Fs.readdirSync("test/TestInputs");
-  let isInFile = name => Js.String.endsWith(".in", name);
-  let ditchExt: string => string =
-    name =>
-      Js.String.substring(~from=0, ~to_=Js.String.length(name) - 3, name);
-  contentArray
-  |> Array.filter(isInFile)
-  |> Array.map(ditchExt)
-  |> Array.forEach(name =>
-       it("should handle test " ++ name, singleRegressionTest(name))
-     );
-});
+open Js.Promise;
+
+describe("When doing regression tests", () =>
+  getGoldenFilepathsSync("test/TestInputs")
+  |> Array.forEach(filepath =>
+       BsMocha.Promise.it("should golden test " ++ filepath, () =>
+         readGoldenFile(filepath) |> then_(parseAsResponseAndCompare)
+       )
+     )
+);
