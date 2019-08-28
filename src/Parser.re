@@ -104,12 +104,11 @@ let commandLine = s => {
 
 let split =
   Util.safeSplitByRe([%re "/\\r\\n|\\n/"])
-  >> Array.map(result =>
-       switch (result) {
+  >> Array.map(
+       fun
        | None => None
        | Some("") => None
-       | Some(chunk) => Some(chunk)
-       }
+       | Some(chunk) => Some(chunk),
      )
   >> Array.filterMap(id);
 

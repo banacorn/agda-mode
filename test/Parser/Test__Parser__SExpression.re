@@ -27,7 +27,7 @@ let parseSExpression = input => {
 };
 
 // [String] -> [SExpression]
-let parseSExpressionIncr = lines => {
+let parseSExpressionIncr = input => {
   open Parser.Incr.Event;
 
   let output = ref([||]);
@@ -43,7 +43,7 @@ let parseSExpressionIncr = lines => {
       | OnFinish => (),
     );
 
-  lines |> Parser.split |> Array.forEach(Connection.parseAgdaOutput(parser));
+  input |> Parser.split |> Array.forEach(Connection.parseAgdaOutput(parser));
 
   output^;
 };

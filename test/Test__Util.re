@@ -114,15 +114,70 @@ module Golden = {
   };
 
   // Golden String -> Promise ()
-  let compare = (Golden(_, actual, expected)) => {
-    diffLines(expected, actual)
-    |> Array.filter(diff => diff##added || diff##removed)
+  let compare = (Golden(path, actual, expected)) => {
+    // for keeping the count of charactors before the first error occured
+    let erred = ref(false);
+    let count = ref(0);
+    diffWordsWithSpace(expected, actual)
+    |> Array.filter(diff =>
+         if (diff##added || diff##removed) {
+           // erred!
+           if (! erred^) {
+             erred := true;
+           };
+           true;
+         } else {
+           if (! erred^) {
+             count := count^ + String.length(diff##value);
+           };
+           false;
+         }
+       )
     |> Array.forEach(diff => {
+         let change =
+           String.length(diff##value) > 100
+             ? String.sub(~from=0, ~length=100, diff##value) ++ " ..."
+             : diff##value;
+
+         let expected' =
+           String.sub(
+             ~from=count^ - 50,
+             ~length=50 + String.length(diff##value) + 50,
+             expected,
+           );
+
+         let actual' =
+           String.sub(
+             ~from=count^ - 50,
+             ~length=50 + String.length(diff##value) + 50,
+             actual,
+           );
+
+         let message =
+           "\n\nexpected => "
+           ++ expected'
+           ++ "\n\nactual   => "
+           ++ actual'
+           ++ "\n\nchange => ";
+         // let after = "[after]: " ++ lastNormalPiece^ ++ "";
+
          if (diff##added) {
-           BsMocha.Assert.fail("Unexpected string added: " ++ diff##value);
+           BsMocha.Assert.fail(
+             message
+             ++ " added "
+             ++ change
+             ++ "\n at position "
+             ++ string_of_int(count^),
+           );
          };
          if (diff##removed) {
-           BsMocha.Assert.fail("Unexpected string missing: " ++ diff##value);
+           BsMocha.Assert.fail(
+             message
+             ++ " removed "
+             ++ change
+             ++ "\n\n at position "
+             ++ string_of_int(count^),
+           );
          };
        });
     Js.Promise.resolve();
