@@ -141,14 +141,14 @@ module Golden = {
 
          let expected' =
            String.sub(
-             ~from=count^ - 50,
+             ~from=max(0, count^ - 50),
              ~length=50 + String.length(diff##value) + 50,
              expected,
            );
 
          let actual' =
            String.sub(
-             ~from=count^ - 50,
+             ~from=max(0, count^ - 50),
              ~length=50 + String.length(diff##value) + 50,
              actual,
            );

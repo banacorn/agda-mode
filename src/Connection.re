@@ -1,4 +1,5 @@
 open Rebase;
+open Fn;
 
 module Error = {
   type autoSearch =
@@ -141,45 +142,6 @@ let autoSearch = (path): Async.t(string, Error.t) =>
     }
   )
   |> Async.mapError(e => Error.AutoSearchError(e));
-
-let parseAgdaOutput: (ref(Parser.SExpression.incr), string) => unit =
-  (parser, stringAgdaSpatOut) => {
-    // we consider the chunk ended with if ends with "Agda2> "
-    let chunkEnded = ref(false);
-    let trimmedBack =
-      if (String.endsWith("Agda2>", stringAgdaSpatOut)) {
-        chunkEnded := true;
-        Js.String.substring(
-          ~from=0,
-          ~to_=String.length(stringAgdaSpatOut) - 6,
-          stringAgdaSpatOut,
-        );
-      } else if (String.endsWith("Agda2> ", stringAgdaSpatOut)) {
-        chunkEnded := true;
-        Js.String.substring(
-          ~from=0,
-          ~to_=String.length(stringAgdaSpatOut) - 7,
-          stringAgdaSpatOut,
-        );
-      } else {
-        stringAgdaSpatOut;
-      };
-
-    // remove prefixing "Agda2>"
-    let trimmedBoth =
-      String.startsWith("Agda2>", trimmedBack)
-        ? Js.String.substring(
-            ~from=6,
-            ~to_=String.length(trimmedBack),
-            trimmedBack,
-          )
-        : trimmedBack;
-    trimmedBoth |> Parser.split |> Array.forEach(Parser.Incr.feed(parser^));
-
-    if (chunkEnded^) {
-      parser^ |> Parser.Incr.finish;
-    };
-  };
 
 /* a more sophiscated "make" */
 let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
@@ -331,7 +293,13 @@ let wire = (self): t => {
     );
 
   // let toResponse = Parser.Incr.Event.map(x => x);
-  let toResponse = Parser.Incr.Event.map(Result.flatMap(Response.parse));
+  let toResponse =
+    Parser.Incr.Event.flatMap(
+      fun
+      | Error(parseError) => Parser.Incr.Event.OnResult(Error(parseError))
+      | Ok(Parser__Type.SExpression.A("Agda2>")) => Parser.Incr.Event.OnFinish
+      | Ok(tokens) => Parser.Incr.Event.OnResult(Response.parse(tokens)),
+    );
 
   let logResponse =
     Parser.Incr.Event.map(
@@ -341,9 +309,9 @@ let wire = (self): t => {
       }),
     );
 
-  let parser =
-    Parser.SExpression.makeIncr(x =>
-      x |> logSExpression |> toResponse |> logResponse |> response
+  let callback =
+    Parser.SExpression.makeIncr(
+      logSExpression >> toResponse >> logResponse >> response,
     );
 
   /* listens to the "data" event on the stdout */
@@ -355,7 +323,7 @@ let wire = (self): t => {
       /* store the raw text in the log */
       Metadata.logRawText(rawText, self.metadata);
       // run the parser
-      parseAgdaOutput(parser, rawText);
+      rawText |> Parser.split |> Array.forEach(Parser.Incr.feed(callback));
     };
   self.process
   |> N.ChildProcess.stdout

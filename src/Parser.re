@@ -186,37 +186,6 @@ module SExpression = {
       Ok(string);
     };
 
-  // let preprocess = (string: string): result(string, string) =>
-  //   // /* Replace window's \\ in paths with /, so that \n doesn't get treated as newline. */
-  //   /* handles Agda parse error */
-  //   if (string |> Js.String.substring(~from=0, ~to_=13) === "cannot read: ") {
-  //     Error(Js.String.sliceToEnd(~from=12, string));
-  //   } else if
-  //     /* drop priority prefixes like ((last . 1)) as they are all constants with respect to responses
-  //
-  //        the following text from agda-mode.el explains what are those
-  //        "last . n" prefixes for:
-  //            Every command is run by this function, unless it has the form
-  //            "(('last . priority) . cmd)", in which case it is run by
-  //            `agda2-run-last-commands' at the end, after the Agda2 prompt
-  //            has reappeared, after all non-last commands, and after all
-  //            interactive highlighting is complete. The last commands can have
-  //            different integer priorities; those with the lowest priority are
-  //            executed first. */
-  //     (string |> String.startsWith("((last")) {
-  //     let index = string |> Js.String.indexOf("(agda");
-  //     Ok(
-  //       string
-  //       |> Js.String.substring(~from=index, ~to_=String.length(string) - 1),
-  //     );
-  //   } else {
-  //     // let result =
-  //     //   ref(string |> Js.String.replaceByRe([%re "/\\\\\\\\/g"], "/"));
-  //     Ok(
-  //       string,
-  //     );
-  //   };
-
   let rec flatten: t => array(string) =
     fun
     | A(s) => [|s|]
@@ -290,13 +259,7 @@ module SExpression = {
           switch (v^) {
           | L(xs) =>
             switch (xs[0]) {
-            | None =>
-              if (totalLength == 0) {
-                // string is empty
-                Continue(parseSExpression(state));
-              } else {
-                Error(Error.SExpression(2, string));
-              }
+            | None => Continue(parseSExpression(state))
             | Some(w) => Done(w)
             }
           | _ => Error(Error.SExpression(3, string))
@@ -343,5 +306,5 @@ module SExpression = {
   };
 
   type incr = Incr.t(t, Error.t);
-  let makeIncr = callback => ref(Incr.make(parseWithContinuation, callback));
+  let makeIncr = callback => Incr.make(parseWithContinuation, callback);
 };

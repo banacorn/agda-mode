@@ -24,7 +24,8 @@ let parseSExpression = (breakpoints, input) => {
   input
   |> String.trim
   |> breakInput(breakpoints)
-  |> Array.forEach(Connection.parseAgdaOutput(parser));
+  |> Array.flatMap(Parser.split)
+  |> Array.forEach(Parser.Incr.feed(parser));
 
   output^;
 };
@@ -49,7 +50,9 @@ describe("when parsing S-expressions incrementally", () =>
        BsMocha.Promise.it("should golden test " ++ filepath, () =>
          Golden.readFile(filepath)
          |> then_(
-              Golden.map(parseSExpression([|3, 23, 171, 1234, 2342, 3453|]))
+              Golden.map(
+                parseSExpression([|3, 23, 171, 217, 1234, 2342, 3453|]),
+              )
               >> Golden.map(serializeWith(Parser.SExpression.toString))
               >> Golden.compare,
             )
