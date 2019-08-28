@@ -85,7 +85,7 @@ describe("When doing regression tests", () =>
          Golden.readFile(filepath)
          |> then_(
               Golden.map(
-                parseSExpression
+                parseSExpression([||])
                 >> toResponses
                 >> serializeWith(Response.toString),
               )

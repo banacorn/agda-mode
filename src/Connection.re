@@ -144,40 +144,37 @@ let autoSearch = (path): Async.t(string, Error.t) =>
 
 let parseAgdaOutput: (ref(Parser.SExpression.incr), string) => unit =
   (parser, stringAgdaSpatOut) => {
-    // remove prefixing "Agda2>"
-    let trimmedFront =
-      String.startsWith("Agda2>", stringAgdaSpatOut)
-        ? Js.String.substring(
-            ~from=6,
-            ~to_=String.length(stringAgdaSpatOut),
-            stringAgdaSpatOut,
-          )
-        : stringAgdaSpatOut;
-
     // we consider the chunk ended with if ends with "Agda2> "
     let chunkEnded = ref(false);
-    let trimmedBoth =
-      if (String.endsWith("Agda2>", trimmedFront)) {
+    let trimmedBack =
+      if (String.endsWith("Agda2>", stringAgdaSpatOut)) {
         chunkEnded := true;
         Js.String.substring(
           ~from=0,
-          ~to_=String.length(trimmedFront) - 6,
-          trimmedFront,
+          ~to_=String.length(stringAgdaSpatOut) - 6,
+          stringAgdaSpatOut,
         );
-      } else if (String.endsWith("Agda2> ", trimmedFront)) {
+      } else if (String.endsWith("Agda2> ", stringAgdaSpatOut)) {
         chunkEnded := true;
         Js.String.substring(
           ~from=0,
-          ~to_=String.length(trimmedFront) - 7,
-          trimmedFront,
+          ~to_=String.length(stringAgdaSpatOut) - 7,
+          stringAgdaSpatOut,
         );
       } else {
-        trimmedFront;
+        stringAgdaSpatOut;
       };
 
-    trimmedBoth
-    |> Parser.splitAndTrim
-    |> Array.forEach(Parser.Incr.feed(parser^));
+    // remove prefixing "Agda2>"
+    let trimmedBoth =
+      String.startsWith("Agda2>", trimmedBack)
+        ? Js.String.substring(
+            ~from=6,
+            ~to_=String.length(trimmedBack),
+            trimmedBack,
+          )
+        : trimmedBack;
+    trimmedBoth |> Parser.split |> Array.forEach(Parser.Incr.feed(parser^));
 
     if (chunkEnded^) {
       parser^ |> Parser.Incr.finish;

@@ -189,3 +189,16 @@ let serialize = List.fromArray >> String.joinWith("\n") >> (x => x ++ "\n");
 
 let serializeWith = f =>
   Array.map(f) >> List.fromArray >> String.joinWith("\n") >> (x => x ++ "\n");
+
+let breakInput = (breakpoints: array(int), input: string) => {
+  let breakpoints' = Array.concat(breakpoints, [|0|]);
+
+  breakpoints'
+  |> Array.mapi((x: int, i) =>
+       switch (breakpoints'[i + 1]) {
+       | Some(next) => (x, next - x)
+       | None => (x, String.length(input) - x)
+       }
+     )
+  |> Array.map(((from, length)) => String.sub(~from, ~length, input));
+};
