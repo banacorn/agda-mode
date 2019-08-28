@@ -191,7 +191,9 @@ let toString =
   | ClearHighlighting => "ClearHighlighting"
   | DoneAborting => "DoneAborting";
 
-let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
+// TODO: execute responses with priority
+let parseWithPriority =
+    (_priority: int, tokens: Token.t): result(t, Parser.Error.t) => {
   let err = n => Error(Parser.Error.Response(n, tokens));
   switch (tokens) {
   | A(_) => err(0)
@@ -325,5 +327,27 @@ let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
     | Some(A("agda2-abort-done")) => Ok(DoneAborting)
     | _ => err(14)
     }
+  };
+};
+
+let parse = (tokens: Token.t): result(t, Parser.Error.t) => {
+  //        the following text from `agda-mode.el` explains what are those
+  //        "last . n" prefixes for:
+  //            Every command is run by this function, unless it has the form
+  //            "(('last . priority) . cmd)", in which case it is run by
+  //            `agda2-run-last-commands' at the end, after the Agda2 prompt
+  //            has reappeared, after all non-last commands, and after all
+  //            interactive highlighting is complete. The last commands can have
+  //            different integer priorities; those with the lowest priority are
+  //            executed first.
+  // Read the priorities of expressions like this:
+  //  [["last", ".", "1"], ".", ["agda2-goals-action", []]]
+  // Expressions without the prefix have priority `0` (gets executed first)
+  switch (tokens) {
+  // with prefix
+  | L([|L([|A("last"), A("."), A(priority)|]), A("."), xs|]) =>
+    parseWithPriority(int_of_string(priority), xs)
+  // without prefix
+  | _ => parseWithPriority(0, tokens)
   };
 };

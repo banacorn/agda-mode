@@ -3,4 +3,4 @@
 ["agda2-highlight-clear"]
 ["agda2-status-action", "Checked"]
 ["agda2-info-action", "*All Done*", "nil"]
-["agda2-goals-action", []]
+[["last", ".", "1"], ".", ["agda2-goals-action", []]]
