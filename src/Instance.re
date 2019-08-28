@@ -27,10 +27,11 @@ let make = (textEditor: Atom.TextEditor.t) => {
 
   /*  */
   let editors = Editors.make(textEditor);
+  let view = Root.initialize(editors);
   let instance = {
     isLoaded: false,
     editors,
-    view: Root.initialize(editors),
+    view,
     goals: [||],
     history: {
       checkpoints: [||],
@@ -41,6 +42,7 @@ let make = (textEditor: Atom.TextEditor.t) => {
     connection: None,
     dispatch: Handler.dispatch,
     handleResponse: Handler.handleResponseAndRecoverCursor,
+    handles: view.handles,
   };
 
   /* listen to `onInquireConnection` */

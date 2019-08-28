@@ -20,6 +20,16 @@ let createBottomPanel = (): Webapi.Dom.Element.t => {
     "visible": true,
   })
   |> ignore;
+
+  // Webapi.Dom.document
+  // |> Webapi.Dom.Document.documentElement
+  // |> Webapi.Dom.Element.querySelector(".agda-mode")
+  // |> Js.log;
+
+  // Js.log(Atom.Environment.workspace);
+  // atom.views.getView(atom.workspace)
+
+  // Js.log(element);
   element;
 };
 
@@ -119,7 +129,14 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
   switch (action) {
   | Activate =>
     switch (state.mountAt) {
-    | Bottom(_) => Update({...state, isActive: true})
+    | Bottom(_) =>
+      UpdateWithSideEffects(
+        {...state, isActive: true},
+        _ => {
+          handles.onActivatePanel |> Event.emitOk();
+          None;
+        },
+      )
     | Pane(tab) =>
       UpdateWithSideEffects(
         {...state, isActive: true},

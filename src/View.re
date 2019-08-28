@@ -10,6 +10,7 @@ type handles = {
   inquire: Event.t((Header.t, string, string), unit),
   toggleDocking: Event.t(unit, unit),
   activatePanel: Event.t(bool, unit),
+  onActivatePanel: Event.t(unit, unit),
   updateIsPending: Event.t(bool, unit),
   updateShouldDisplay: Event.t(bool, unit),
   updateConnection:
@@ -33,6 +34,7 @@ type handles = {
 let makeHandles = () => {
   /* public */
   let activatePanel = make();
+  let onActivatePanel = make();
   let display = make();
   let inquire = make();
   let toggleDocking = make();
@@ -67,6 +69,7 @@ let makeHandles = () => {
     display,
     inquire,
     activatePanel,
+    onActivatePanel,
     toggleDocking,
     updateIsPending,
     updateShouldDisplay,
@@ -110,6 +113,7 @@ type t = {
   inquireConnection: unit => Async.t(string, MiniEditor.error),
   // <Tab> related
   toggleDocking: unit => unit,
+  handles,
 };
 let make = (handles: handles) => {
   let activate = () => handles.activatePanel |> emitOk(true);
@@ -195,5 +199,6 @@ let make = (handles: handles) => {
     onInquireConnection,
     inquireConnection,
     toggleDocking,
+    handles,
   };
 };
