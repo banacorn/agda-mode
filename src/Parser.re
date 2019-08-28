@@ -26,9 +26,6 @@ let captures = (handler, regex, raw) =>
      )
   |> Option.flatMap(handler);
 
-let agdaOutput = s => {
-  s |> Js.String.replaceByRe([%re "/\\\\n/g"], "\n");
-};
 let at =
     (i: int, parser: string => option('a), captured: array(option(string)))
     : option('a) =>
@@ -50,10 +47,6 @@ let choice = (res: array(string => option('a)), raw) =>
     None,
     res,
   );
-
-// let many = (parse: string => option('a), raw: string): array('a) => {
-//   raw |> Array.map(parse) |> Array.filterMap(x => x);
-// };
 
 // replacement of `int_of_string`
 let int = s =>
@@ -90,6 +83,10 @@ let filepath = s => {
   replaced;
 };
 
+let agdaOutput = s => {
+  s |> Js.String.replaceByRe([%re "/\\\\n/g"], "\n");
+};
+
 let commandLine = s => {
   let parts =
     s
@@ -111,8 +108,6 @@ let split =
        | Some(chunk) => Some(chunk),
      )
   >> Array.filterMap(id);
-
-let splitAndTrim = split >> Array.map(Js.String.trim);
 
 module Incr = {
   module Event = {
@@ -287,7 +282,7 @@ module SExpression = {
     let resultAccum: ref(array(result(t, Error.t))) = ref([||]);
     let continuation = ref(None);
     input
-    |> splitAndTrim
+    |> split
     |> Array.forEach(line => {
          // get the parsing continuation or initialize a new one
          let continue = continuation^ |> Option.getOr(parseWithContinuation);

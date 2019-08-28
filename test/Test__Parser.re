@@ -1,12 +1,7 @@
-open Rebase;
-open Fn;
 open! BsMocha.Mocha;
 open! BsMocha.Promise;
-// open BsChai.Expect.Expect;
-// open BsChai.Expect.Combos;
 
 open Test__Util;
-open Test__Parser__SExpression;
 
 // bindings for node-dir
 [@bs.module "node-dir"]
@@ -62,35 +57,4 @@ describe("when loading files", () =>
     //      paths |> Array.map(loadAndParse) |> Js.Promise.all
     //    )
   })
-);
-
-open Js.Promise;
-
-let toResponses = exprs => {
-  let result = Array.map(Response.parse, exprs);
-  let extractError =
-    fun
-    | Error(e) => Some(e)
-    | Ok(_) => None;
-  let extractOk = Option.fromResult;
-  let failures = Array.filterMap(extractError, result);
-  failures |> Array.forEach(BsMocha.Assert.fail);
-  Array.filterMap(extractOk, result);
-};
-
-describe("When doing regression tests", () =>
-  getGoldenFilepathsSync("test/TestInputs")
-  |> Array.forEach(filepath =>
-       BsMocha.Promise.it("should golden test " ++ filepath, () =>
-         Golden.readFile(filepath)
-         |> then_(
-              Golden.map(
-                parseSExpression([||])
-                >> toResponses
-                >> serializeWith(Response.toString),
-              )
-              >> Golden.compare,
-            )
-       )
-     )
 );
