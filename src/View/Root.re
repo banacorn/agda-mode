@@ -10,13 +10,18 @@ external unsafeCast: (Mouse.event => unit) => string = "%identity";
 
 /************************************************************************************************************/
 
+external fromDomElement: Dom.element => Atom.Workspace.item = "%identity";
+external fromTextEditor: Atom.TextEditor.t => Atom.Workspace.item =
+  "%identity";
+
 let createBottomPanel = (): Webapi.Dom.Element.t => {
   open Webapi.Dom;
   open DomTokenListRe;
   let element = document |> Document.createElement("article");
   element |> Element.classList |> add("agda-mode");
-  Atom.Environment.Workspace.addBottomPanel({
-    "item": element,
+  Atom.Workspace.addBottomPanel({
+    "item": fromDomElement(element),
+    "priority": 0,
     "visible": true,
   })
   |> ignore;
@@ -68,7 +73,7 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
       ~onOpen=
         (_, _, previousItem) =>
           /* activate the previous pane (which opened this pane item) */
-          Atom.Environment.Workspace.paneForItem(previousItem)
+          Atom.Workspace.paneForItem(fromTextEditor(previousItem))
           |> Rebase.Option.forEach(pane => {
                pane |> Atom.Pane.activate;
                pane |> Atom.Pane.activateItem(previousItem);

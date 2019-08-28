@@ -45,7 +45,7 @@ let add = (info, self) =>
     } else {
       self.isOpeningEditor = true;
       let itemURI = "agda-mode://running-info";
-      Environment.Workspace.open_(itemURI, itemOptions)
+      Workspace.open_(itemURI, itemOptions)
       |> fromPromise
       |> thenOk(newItem => {
            self.isOpeningEditor = false;

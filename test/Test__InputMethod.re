@@ -11,7 +11,7 @@
 //   // let size = dict => dict^ |> Js.Dict.keys |> Array.length;
 //   // let openedFiles =
 //
-//   // let pane = Atom.Environment.Workspace.getActivePane();
+//   // let pane = Atom.Workspace.getActivePane();
 //   // Atom.Pane.destroyItem_(editor, true, pane);
 //
 //   let instances = ref(Js.Dict.empty());
@@ -20,7 +20,7 @@
 //     resolve();
 //   });
 //   after(() => {
-//     Atom.Environment.Workspace.getActivePane() |> Atom.Pane.destroyItems;
+//     Atom.Workspace.getActivePane() |> Atom.Pane.destroyItems;
 //     resolve();
 //   });
 //   it("should respect the number of opened .agda file", () =>

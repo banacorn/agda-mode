@@ -41,6 +41,9 @@ type t = {
   activate: unit => unit,
 };
 
+external asWorkspaceItem: Atom.TextEditor.t => Atom.Workspace.item =
+  "%identity";
+
 let make =
     (
       ~editor: TextEditor.t,
@@ -55,18 +58,21 @@ let make =
   let itemResource = Util.Resource.make();
   let closedDeliberately = ref(false);
   let subscriptions = CompositeDisposable.make();
-  let previousItem =
-    Environment.Workspace.getActivePane() |> Pane.getActiveItem;
+  let previousItem = Workspace.getActivePane() |> Pane.getActiveItem;
   /* mount the view onto the element */
-  let itemURI = "agda-mode://" ++ Option.getOr("untitled", TextEditor.getPath(editor)) ++ "/" ++ path;
+  let itemURI =
+    "agda-mode://"
+    ++ Option.getOr("untitled", TextEditor.getPath(editor))
+    ++ "/"
+    ++ path;
   let itemOpener = {"element": makeTabElement(), "getTitle": getTitle};
   /* add tab opener */
-  Environment.Workspace.addOpener(givenURI =>
+  Workspace.addOpener(givenURI =>
     givenURI == itemURI ? Some(itemOpener) : None
   )
   |> CompositeDisposable.add(subscriptions);
   /* open the registered tab opener */
-  Environment.Workspace.open_(itemURI, itemOptions)
+  Workspace.open_(itemURI, itemOptions)
   |> then_(newItem => {
        itemResource.supply(newItem);
        /* trigger the "onOpen" callback */
@@ -76,7 +82,7 @@ let make =
        | None => ()
        };
        /* this pane onWillDestroyItem */
-       let pane = Environment.Workspace.paneForItem(newItem);
+       let pane = Workspace.paneForItem(asWorkspaceItem(newItem));
        pane
        |> Option.forEach(pane' =>
             pane'
@@ -113,19 +119,19 @@ let make =
             |> CompositeDisposable.add(subscriptions)
           );
        /* return the previously active pane */
-       resolve(Environment.Workspace.getActivePane());
+       resolve(Workspace.getActivePane());
      })
   |> ignore;
   {
     element: itemOpener##element,
     kill: () =>
       itemResource.acquire()
-      |> Js.Promise.then_(item => {
+      |> Js.Promise.then_((item: Atom.TextEditor.t) => {
            /* dispose subscriptions */
            CompositeDisposable.dispose(subscriptions);
            /* set the "closedDeliberately" to true to trigger "onKill" */
            closedDeliberately := true;
-           Environment.Workspace.paneForItem(item)
+           Workspace.paneForItem(asWorkspaceItem(item))
            |> Option.forEach(pane => Pane.destroyItem(item, pane) |> ignore);
 
            Js.Promise.resolve();
@@ -134,8 +140,8 @@ let make =
 
     activate: () =>
       itemResource.acquire()
-      |> Js.Promise.then_(item => {
-           Environment.Workspace.paneForItem(item)
+      |> Js.Promise.then_((item: Atom.TextEditor.t) => {
+           Workspace.paneForItem(asWorkspaceItem(item))
            |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore);
 
            Js.Promise.resolve();

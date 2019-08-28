@@ -56,8 +56,8 @@ let subscriptions = CompositeDisposable.make();
 
 /* textEditor active/inactive event */
 let onEditorActivationChange = () => {
-  let previous = ref(Environment.Workspace.getActiveTextEditor());
-  Environment.Workspace.onDidChangeActiveTextEditor(next => {
+  let previous = ref(Workspace.getActiveTextEditor());
+  Workspace.onDidChangeActiveTextEditor(next => {
     /* decativate the previously activated editor */
     previous^ |> Option.forEach(Instances.getThen(Instance.deactivate));
     /* activate the next editor */
@@ -77,7 +77,7 @@ let onTriggerCommand = () => {
   |> Array.forEach(command =>
        Commands.add(
          `CSSSelector("atom-text-editor"), "agda-mode:" ++ command, _event =>
-         Environment.Workspace.getActiveTextEditor()
+         Workspace.getActiveTextEditor()
          |> Option.flatMap(Instances.get)
          |> Option.forEach(instance =>
               instance
@@ -97,7 +97,7 @@ let onUndo = () => {
     "core:undo",
     event => {
       event |> Webapi.Dom.Event.stopImmediatePropagation;
-      let activated = Environment.Workspace.getActiveTextEditor();
+      let activated = Workspace.getActiveTextEditor();
       activated
       |> Option.flatMap(Instances.get)
       |> Option.forEach(Instance.dispatchUndo);
@@ -109,7 +109,7 @@ let onUndo = () => {
 /* the entry point of the whole package */
 let activate = _ => {
   /* triggered everytime when a new text editor is opened */
-  Environment.Workspace.observeTextEditors(textEditor => {
+  Workspace.observeTextEditors(textEditor => {
     open CompositeDisposable;
     let textEditorSubscriptions = make();
 

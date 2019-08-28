@@ -693,7 +693,7 @@ let rec handleLocalCommand =
           "location": (None: option(string)),
         };
 
-        Atom.Environment.Workspace.open_(uri, option)
+        Atom.Workspace.open_(uri, option)
         |> fromPromise
         |> then_(_ => resolve(None), _ => reject(Cancelled));
       };

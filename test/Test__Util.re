@@ -10,10 +10,10 @@ let asset = path =>
   Node.Path.join2(Node.Path.join2(base, "test/asset"), path);
 
 let openFile = (uri: string): Js.Promise.t(TextEditor.t) =>
-  Environment.Workspace.openWithOnlyURI(uri);
+  Workspace.openWithURI(uri);
 
 let closeFile = (uri: string): Js.Promise.t(bool) => {
-  let pane = Environment.Workspace.paneForURI(uri);
+  let pane = Workspace.paneForURI(uri);
   switch (pane) {
   | None => Js.Promise.resolve(false)
   | Some(p) =>

@@ -91,8 +91,7 @@ Branch.onProd(() =>
   })
 );
 
-let openFile = path =>
-  Atom.Environment.Workspace.openWithOnlyURI(asset(path));
+let openFile = path => Atom.Workspace.openWithURI(asset(path));
 
 describe("Instances", () => {
   let instances = ref(Js.Dict.empty());
@@ -112,7 +111,7 @@ describe("Instances", () => {
     openFile(asset("Blank1.agda"))
     |> then_(editor => {
          Assert.equal(size(instances), 1);
-         let pane = Atom.Environment.Workspace.getActivePane();
+         let pane = Atom.Workspace.getActivePane();
          Atom.Pane.destroyItem_(editor, true, pane);
        })
     |> then_(destroyed => {
@@ -125,7 +124,7 @@ describe("Instances", () => {
     openFile(asset("Blank2.lagda"))
     |> then_(editor => {
          Assert.equal(size(instances), 1);
-         let pane = Atom.Environment.Workspace.getActivePane();
+         let pane = Atom.Workspace.getActivePane();
          Atom.Pane.destroyItem_(editor, true, pane);
        })
     |> then_(destroyed => {
