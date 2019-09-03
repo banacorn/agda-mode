@@ -1,3 +1,5 @@
+open Rebase;
+open Fn;
 open ReactUpdate;
 
 open Type.View;
@@ -6,6 +8,9 @@ module Event = Event;
 
 external unsafeCast: (Mouse.event => unit) => string = "%identity";
 
+external asElement:
+  Webapi.Dom.HtmlElement.t_htmlElement => Webapi.Dom.Element.t =
+  "%identity";
 /************************************************************************************************************/
 
 /************************************************************************************************************/
@@ -16,7 +21,7 @@ external fromTextEditor: Atom.TextEditor.t => Atom.Workspace.item =
 
 let createBottomPanel = (): Webapi.Dom.Element.t => {
   open Webapi.Dom;
-  open DomTokenListRe;
+  open DomTokenList;
   let element = document |> Document.createElement("article");
   element |> Element.classList |> add("agda-mode");
   Atom.Workspace.addBottomPanel({
@@ -25,16 +30,6 @@ let createBottomPanel = (): Webapi.Dom.Element.t => {
     "visible": true,
   })
   |> ignore;
-
-  // Webapi.Dom.document
-  // |> Webapi.Dom.Document.documentElement
-  // |> Webapi.Dom.Element.querySelector(".agda-mode")
-  // |> Js.log;
-
-  // Js.log(Atom.Environment.workspace);
-  // atom.views.getView(atom.workspace)
-
-  // Js.log(element);
   element;
 };
 
@@ -134,11 +129,12 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
   switch (action) {
   | Activate =>
     switch (state.mountAt) {
-    | Bottom(_) =>
+    | Bottom(element) =>
       UpdateWithSideEffects(
         {...state, isActive: true},
         _ => {
-          handles.onActivatePanel |> Event.emitOk();
+          // Js.log(element |> Webapi.Dom.Element.parentNode);
+          handles.onActivatePanel |> Event.emitOk(element);
           None;
         },
       )

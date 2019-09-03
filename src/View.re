@@ -10,7 +10,7 @@ type handles = {
   inquire: Event.t((Header.t, string, string), unit),
   toggleDocking: Event.t(unit, unit),
   activatePanel: Event.t(bool, unit),
-  onActivatePanel: Event.t(unit, unit),
+  onActivatePanel: Event.t(Dom.element, unit),
   updateIsPending: Event.t(bool, unit),
   updateShouldDisplay: Event.t(bool, unit),
   updateConnection:

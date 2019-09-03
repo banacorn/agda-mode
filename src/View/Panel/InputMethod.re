@@ -27,7 +27,7 @@ let addClass = editor => {
     editor
     |> Atom.Views.getView
     |> HtmlElement.classList
-    |> DomTokenListRe.add("agda-mode-input-method-activated")
+    |> DomTokenList.add("agda-mode-input-method-activated")
   );
 };
 /* remove class 'agda-mode-input-method-activated' */
@@ -36,7 +36,7 @@ let removeClass = editor => {
     editor
     |> Atom.Views.getView
     |> HtmlElement.classList
-    |> DomTokenListRe.remove("agda-mode-input-method-activated")
+    |> DomTokenList.remove("agda-mode-input-method-activated")
   );
 };
 

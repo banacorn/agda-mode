@@ -6,7 +6,7 @@ open Rebase;
 open Atom;
 
 let makeTabElement = () => {
-  open DomTokenListRe;
+  open DomTokenList;
   let element = document |> Document.createElement("article");
   element |> Element.classList |> add("agda-mode");
   element;

@@ -1,5 +1,3 @@
-
-
 open ReasonReact;
 
 open Rebase;
@@ -12,11 +10,19 @@ let calculateBodyHeight = (handleRef, handleY: int): option(int) => {
   |> Js.Nullable.toOption
   |> Option.flatMap(elem => {
        let top =
-         (Dom.Element.getBoundingClientRect(elem) |> Dom.DomRect.top) + 51; /* border-width: 1px */
+         (
+           Dom.Element.getBoundingClientRect(elem)
+           |> Dom.DomRect.top
+           |> int_of_float
+         )
+         + 51; /* border-width: 1px */
        Dom.Document.querySelector("atom-panel-container.footer", Dom.document)
        |> Option.flatMap(element => {
             let bottom =
-              element |> Dom.Element.getBoundingClientRect |> Dom.DomRect.top;
+              element
+              |> Dom.Element.getBoundingClientRect
+              |> Dom.DomRect.top
+              |> int_of_float;
             if (top > 0) {
               Some(bottom - handleY - 51);
             } else {

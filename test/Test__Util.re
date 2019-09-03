@@ -4,6 +4,9 @@ open Atom;
 
 [@bs.get] external not: BsChai.Expect.chai => BsChai.Expect.chai = "not";
 
+external asElement:
+  Webapi.Dom.HtmlElement.t_htmlElement => Webapi.Dom.Element.t =
+  "%identity";
 let base = Node.Path.join2([%raw "__dirname"], "../../../");
 let file = path => Node.Path.join2(base, path);
 let asset = path =>
@@ -35,6 +38,13 @@ let getLoadedPackageNames = () =>
 exception DispatchFailure(string);
 let dispatch = (editor: TextEditor.t, event) => {
   let element = Views.getView(editor);
+  let result = Commands.dispatch(element, event);
+  switch (result) {
+  | None => Js.Promise.reject(DispatchFailure(event))
+  | Some(_) => Js.Promise.resolve()
+  };
+};
+let dispatchAt = (element: Dom.htmlElement, event) => {
   let result = Commands.dispatch(element, event);
   switch (result) {
   | None => Js.Promise.reject(DispatchFailure(event))
