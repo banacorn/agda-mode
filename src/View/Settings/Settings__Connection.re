@@ -56,7 +56,7 @@ let make =
              editorRef
              |> Option.forEach(editor => {
                   editor |> Atom.Views.getView |> HtmlElement.focus;
-                  editor |> Atom.TextEditor.selectAll;
+                  editor |> Atom.TextEditor.selectAll |> ignore;
                 })
            );
       Some(destructor);

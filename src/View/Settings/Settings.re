@@ -22,7 +22,7 @@ let make =
 
   React.useEffect1(() => Some(navigate |> Event.onOk(setURI)), [||]);
 
-  let inDevMode = Atom.Environment.inDevMode();
+  let inDevMode = Atom.inDevMode();
   switch (element) {
   | None => null
   | Some(anchor) =>

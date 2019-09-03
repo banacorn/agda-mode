@@ -157,11 +157,11 @@ let monitor = (editor, send) => {
          editor
          |> TextEditor.decorateMarker(
               marker,
-              TextEditor.decorationParams(
-                ~type_="highlight",
-                ~class_="input-method-decoration",
-                (),
-              ),
+              {
+                "type": "highlight",
+                "class": "input-method-decoration",
+                "style": Js.Obj.empty(),
+              },
             )
        );
   // destructor
@@ -277,7 +277,7 @@ let make =
   let debugDispatch = React.useContext(Type.View.Debug.debugDispatch);
   React.useEffect1(
     () => {
-      if (Atom.Environment.inDevMode()) {
+      if (Atom.inDevMode()) {
         debugDispatch(
           UpdateInputMethod({
             activated: state.activated,

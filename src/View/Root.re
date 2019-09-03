@@ -16,8 +16,6 @@ external asElement:
 /************************************************************************************************************/
 
 external fromDomElement: Dom.element => Atom.Workspace.item = "%identity";
-external fromTextEditor: Atom.TextEditor.t => Atom.Workspace.item =
-  "%identity";
 
 let createBottomPanel = (): Webapi.Dom.Element.t => {
   open Webapi.Dom;
@@ -68,7 +66,7 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
       ~onOpen=
         (_, _, previousItem) =>
           /* activate the previous pane (which opened this pane item) */
-          Atom.Workspace.paneForItem(fromTextEditor(previousItem))
+          Atom.Workspace.paneForItem(previousItem)
           |> Rebase.Option.forEach(pane => {
                pane |> Atom.Pane.activate;
                pane |> Atom.Pane.activateItem(previousItem);

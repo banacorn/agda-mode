@@ -49,13 +49,13 @@ let make =
       ~editor: TextEditor.t,
       ~getTitle: unit => string,
       ~path: string,
-      ~onOpen: option((Element.t, TextEditor.t, TextEditor.t) => unit)=?,
+      ~onOpen: option((Element.t, Workspace.item, Workspace.item) => unit)=?,
       ~onKill: option(Element.t => unit)=?,
       ~onClose: option(Element.t => unit)=?,
       ~onDidChangeActive: option(bool => unit)=?,
       (),
     ) => {
-  let itemResource = Util.Resource.make();
+  let itemResource: Util.Resource.t(Workspace.item) = Util.Resource.make();
   let closedDeliberately = ref(false);
   let subscriptions = CompositeDisposable.make();
   let previousItem = Workspace.getActivePane() |> Pane.getActiveItem;
@@ -73,7 +73,8 @@ let make =
   |> CompositeDisposable.add(subscriptions);
   /* open the registered tab opener */
   Workspace.open_(itemURI, itemOptions)
-  |> then_(newItem => {
+  |> then_(newEditor => {
+       let newItem = asWorkspaceItem(newEditor);
        itemResource.supply(newItem);
        /* trigger the "onOpen" callback */
        switch (onOpen) {
@@ -82,13 +83,13 @@ let make =
        | None => ()
        };
        /* this pane onWillDestroyItem */
-       let pane = Workspace.paneForItem(asWorkspaceItem(newItem));
+       let pane = Workspace.paneForItem(newItem);
        pane
        |> Option.forEach(pane' =>
             pane'
             |> Pane.onWillDestroyItem(event => {
                  /* if the item that's going to be destroyed happens to be this tab */
-                 let destroyedTitle = Pane.getTitle(event##item);
+                 let destroyedTitle = event##item.getTitle();
                  let getTitle = itemOpener##getTitle;
                  if (destroyedTitle === getTitle()) {
                    /* invoke the onKill or onClose */
@@ -108,7 +109,7 @@ let make =
        |> Option.forEach(pane' =>
             pane'
             |> Pane.onDidChangeActiveItem(item => {
-                 let activatedTitle = Pane.getTitle(item);
+                 let activatedTitle = item.getTitle();
                  let getTitle = itemOpener##getTitle;
                  if (activatedTitle == getTitle()) {
                    triggerArg(onDidChangeActive, true);
@@ -126,12 +127,12 @@ let make =
     element: itemOpener##element,
     kill: () =>
       itemResource.acquire()
-      |> Js.Promise.then_((item: Atom.TextEditor.t) => {
+      |> Js.Promise.then_((item: Workspace.item) => {
            /* dispose subscriptions */
            CompositeDisposable.dispose(subscriptions);
            /* set the "closedDeliberately" to true to trigger "onKill" */
            closedDeliberately := true;
-           Workspace.paneForItem(asWorkspaceItem(item))
+           Workspace.paneForItem(item)
            |> Option.forEach(pane => Pane.destroyItem(item, pane) |> ignore);
 
            Js.Promise.resolve();
@@ -140,8 +141,8 @@ let make =
 
     activate: () =>
       itemResource.acquire()
-      |> Js.Promise.then_((item: Atom.TextEditor.t) => {
-           Workspace.paneForItem(asWorkspaceItem(item))
+      |> Js.Promise.then_((item: Workspace.item) => {
+           Workspace.paneForItem(item)
            |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore);
 
            Js.Promise.resolve();

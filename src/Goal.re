@@ -20,9 +20,15 @@ module FileType = {
   let parse = filepath =>
     if (Js.Re.test_([%re "/\\.lagda.rst$/i"], Parser.filepath(filepath))) {
       LiterateReStructuredText;
-    } else if (Js.Re.test_([%re "/\\.lagda.md$/i"], Parser.filepath(filepath))) {
+    } else if (Js.Re.test_(
+                 [%re "/\\.lagda.md$/i"],
+                 Parser.filepath(filepath),
+               )) {
       LiterateMarkdown;
-    } else if (Js.Re.test_([%re "/\\.lagda.tex$|\\.lagda$/i"], Parser.filepath(filepath))) {
+    } else if (Js.Re.test_(
+                 [%re "/\\.lagda.tex$|\\.lagda$/i"],
+                 Parser.filepath(filepath),
+               )) {
       LiterateTeX;
     } else {
       Agda;
@@ -194,18 +200,25 @@ let make = (textEditor: TextEditor.t, index: option(int), range: (int, int)) => 
   textEditor
   |> TextEditor.decorateMarker(
        marker,
-       TextEditor.decorationParams(~type_="highlight", ~class_="goal", ()),
+       {"type": "highlight", "class": "goal", "style": Js.Obj.empty()},
      )
   |> ignore;
   textEditor
-  |> TextEditor.decorateMarker(
+  |> TextEditor.decorateMarker_(
        marker,
-       TextEditor.decorationParams(
-         ~type_="overlay",
-         ~position="head",
-         ~item=Element.unsafeAsHtmlElement(element),
-         (),
-       ),
+       {
+         "type": "overlay",
+         "class": "",
+         "style": Js.Obj.empty(),
+         "item": Element.unsafeAsHtmlElement(element),
+         "onlyHead": false,
+         "onlyEmpty": false,
+         "onlyNonEmpty": false,
+         "omitEmptyLastRow": true,
+         "position": "head",
+         "order": None,
+         "avoidOverflow": true,
+       },
      )
   |> ignore;
   /* monitoring events */

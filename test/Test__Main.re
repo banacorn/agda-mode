@@ -112,7 +112,11 @@ describe("Instances", () => {
     |> then_(editor => {
          Assert.equal(size(instances), 1);
          let pane = Atom.Workspace.getActivePane();
-         Atom.Pane.destroyItem_(editor, true, pane);
+         Atom.Pane.destroyItem_(
+           Atom.TextEditor.asWorkspaceItem(editor),
+           true,
+           pane,
+         );
        })
     |> then_(destroyed => {
          Assert.equal(size(instances), destroyed ? 0 : 1);
@@ -125,7 +129,11 @@ describe("Instances", () => {
     |> then_(editor => {
          Assert.equal(size(instances), 1);
          let pane = Atom.Workspace.getActivePane();
-         Atom.Pane.destroyItem_(editor, true, pane);
+         Atom.Pane.destroyItem_(
+           Atom.TextEditor.asWorkspaceItem(editor),
+           true,
+           pane,
+         );
        })
     |> then_(destroyed => {
          Assert.equal(size(instances), destroyed ? 0 : 1);
