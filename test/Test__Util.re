@@ -212,3 +212,48 @@ let breakInput = (breakpoints: array(int), input: string) => {
      )
   |> Array.map(((from, length)) => String.sub(~from, ~length, input));
 };
+
+module View = {
+  open Webapi.Dom;
+  open Js.Promise;
+  let queryMochaContent = () =>
+    document
+    |> Document.documentElement
+    |> Element.querySelector("#mocha-content");
+
+  let createMochaContent = () => {
+    // create `mochaElement`
+    let mochaElement = document |> Document.createElement("div");
+    Element.setId(mochaElement, "mocha-content");
+    // attach `mochaElement` to DOM
+    document
+    |> Document.asHtmlDocument
+    |> Option.flatMap(HtmlDocument.body)
+    |> Option.forEach(body =>
+         mochaElement
+         |> Element.asHtmlElement
+         |> Option.forEach(el => Element.appendChild(el, body))
+       );
+
+    resolve();
+  };
+
+  // attach the given element to #mocha-content
+  let attachToDOM = (htmlElement: HtmlElement.t_htmlElement) => {
+    let mochaElement = queryMochaContent();
+
+    let alreadyAttached =
+      mochaElement
+      |> Option.map(Element.contains(htmlElement))
+      |> Option.getOr(true);
+    ();
+
+    // attach the `htmlElement` to `mochaElement`
+    if (!alreadyAttached) {
+      mochaElement
+      |> Option.forEach(element => Element.appendChild(htmlElement, element));
+    };
+
+    resolve();
+  };
+};
