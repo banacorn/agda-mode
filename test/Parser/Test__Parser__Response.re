@@ -20,7 +20,7 @@ let toResponses = exprs => {
 };
 
 describe("when parsing responses", () =>
-  getGoldenFilepathsSync("test/Parser/Response")
+  Golden.getGoldenFilepathsSync("test/Parser/Response")
   |> Array.forEach(filepath =>
        BsMocha.Promise.it("should golden test " ++ filepath, () =>
          Golden.readFile(filepath)

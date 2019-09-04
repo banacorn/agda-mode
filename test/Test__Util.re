@@ -6,14 +6,12 @@ open Js.Promise;
 
 exception Exn(string);
 
-[@bs.get] external not: BsChai.Expect.chai => BsChai.Expect.chai = "not";
-
 external asElement:
   Webapi.Dom.HtmlElement.t_htmlElement => Webapi.Dom.Element.t =
   "%identity";
 
 exception DispatchFailure(string);
-let dispatch' = (event, editor: TextEditor.t): Js.Promise.t(TextEditor.t) => {
+let dispatch = (event, editor: TextEditor.t): Js.Promise.t(TextEditor.t) => {
   let element = Views.getView(editor);
   let result = Commands.dispatch(element, event);
   switch (result) {
@@ -21,60 +19,44 @@ let dispatch' = (event, editor: TextEditor.t): Js.Promise.t(TextEditor.t) => {
   | Some(_) => Js.Promise.resolve(editor)
   };
 };
-let dispatch = (editor: TextEditor.t, event) => {
-  let element = Views.getView(editor);
-  let result = Commands.dispatch(element, event);
-  switch (result) {
-  | None => Js.Promise.reject(DispatchFailure(event))
-  | Some(_) => Js.Promise.resolve()
-  };
-};
-let dispatchAt = (element: Dom.htmlElement, event) => {
-  let result = Commands.dispatch(element, event);
-  switch (result) {
-  | None => Js.Promise.reject(DispatchFailure(event))
-  | Some(_) => Js.Promise.resolve()
-  };
-};
-
-// bindings for jsdiff
-type diff = {
-  .
-  "value": string,
-  "added": bool,
-  "removed": bool,
-};
-
-[@bs.module "diff"]
-external diffLines: (string, string) => array(diff) = "diffLines";
-
-[@bs.module "diff"]
-external diffWordsWithSpace: (string, string) => array(diff) =
-  "diffWordsWithSpace";
-
-// get all filepaths of golden tests (asynchronously)
-let getGoldenFilepaths = dirname => {
-  open Js.Promise;
-  let readdir = N.Fs.readdir |> N.Util.promisify;
-  let isInFile = Js.String.endsWith(".in");
-  let toBasename = path =>
-    Node.Path.join2(dirname, Node.Path.basename_ext(path, ".in"));
-  readdir(. dirname)
-  |> then_(paths =>
-       paths |> Array.filter(isInFile) |> Array.map(toBasename) |> resolve
-     );
-};
-
-// get all filepaths of golden tests (synchronously)
-let getGoldenFilepathsSync = dirname => {
-  let readdir = Node.Fs.readdirSync;
-  let isInFile = Js.String.endsWith(".in");
-  let toBasename = path =>
-    Node.Path.join2(dirname, Node.Path.basename_ext(path, ".in"));
-  readdir(dirname) |> Array.filter(isInFile) |> Array.map(toBasename);
-};
 
 module Golden = {
+  // bindings for jsdiff
+  type diff = {
+    .
+    "value": string,
+    "added": bool,
+    "removed": bool,
+  };
+
+  [@bs.module "diff"]
+  external diffLines: (string, string) => array(diff) = "diffLines";
+
+  [@bs.module "diff"]
+  external diffWordsWithSpace: (string, string) => array(diff) =
+    "diffWordsWithSpace";
+
+  // get all filepaths of golden tests (asynchronously)
+  let getGoldenFilepaths = dirname => {
+    let readdir = N.Fs.readdir |> N.Util.promisify;
+    let isInFile = Js.String.endsWith(".in");
+    let toBasename = path =>
+      Node.Path.join2(dirname, Node.Path.basename_ext(path, ".in"));
+    readdir(. dirname)
+    |> then_(paths =>
+         paths |> Array.filter(isInFile) |> Array.map(toBasename) |> resolve
+       );
+  };
+
+  // get all filepaths of golden tests (synchronously)
+  let getGoldenFilepathsSync = dirname => {
+    let readdir = Node.Fs.readdirSync;
+    let isInFile = Js.String.endsWith(".in");
+    let toBasename = path =>
+      Node.Path.join2(dirname, Node.Path.basename_ext(path, ".in"));
+    readdir(dirname) |> Array.filter(isInFile) |> Array.map(toBasename);
+  };
+
   exception FileMissing(string);
 
   type filepath = string;
@@ -89,7 +71,6 @@ module Golden = {
 
   // FilePath -> Promise (Golden String)
   let readFile = filepath => {
-    open Js.Promise;
     let readFile = N.Fs.readFile |> N.Util.promisify;
 
     [|readFile(. filepath ++ ".in"), readFile(. filepath ++ ".out")|]
@@ -109,7 +90,7 @@ module Golden = {
   };
 
   // Golden String -> Promise ()
-  let compare = (Golden(path, actual, expected)) => {
+  let compare = (Golden(_path, actual, expected)) => {
     // for keeping the count of charactors before the first error occured
     let erred = ref(false);
     let count = ref(0);
@@ -200,7 +181,6 @@ let breakInput = (breakpoints: array(int), input: string) => {
 
 module View = {
   open Webapi.Dom;
-  open Js.Promise;
   let queryMochaContent = () =>
     document
     |> Document.documentElement

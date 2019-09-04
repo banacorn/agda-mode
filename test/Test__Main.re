@@ -5,6 +5,7 @@ open! BsMocha.Promise;
 open Js.Promise;
 open BsChai.Expect.Expect; // exports `expect`
 open BsChai.Expect.Combos;
+open BsChai.Expect;
 
 open Test__Util;
 
@@ -16,12 +17,12 @@ describe("Package", () => {
     "should be activated after triggering 'agda-mode:load' on .agda files", () => {
     // before
     expect("agda-mode")
-    |> not
+    |> Modifiers.not
     |> to_be_one_of(Package.activeNames())
     |> ignore;
 
     File.openAsset("Blank1.agda")
-    |> then_(dispatch'("agda-mode:load"))
+    |> then_(dispatch("agda-mode:load"))
     |> then_(_
          // after
          =>
@@ -35,12 +36,12 @@ describe("Package", () => {
     "should be activated after triggering 'agda-mode:load' on .lagda files", () => {
     // before
     expect("agda-mode")
-    |> not
+    |> Modifiers.not
     |> to_be_one_of(Package.activeNames())
     |> ignore;
 
     File.openAsset("Blank2.lagda")
-    |> then_(dispatch'("agda-mode:load"))
+    |> then_(dispatch("agda-mode:load"))
     |> then_(_
          // after
          =>

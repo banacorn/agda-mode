@@ -31,7 +31,7 @@ let parseSExpression = (breakpoints, input) => {
 };
 
 describe("when parsing S-expressions wholly", () =>
-  getGoldenFilepathsSync("test/Parser/SExpression")
+  Golden.getGoldenFilepathsSync("test/Parser/SExpression")
   |> Array.forEach(filepath =>
        BsMocha.Promise.it("should golden test " ++ filepath, () =>
          Golden.readFile(filepath)
@@ -45,7 +45,7 @@ describe("when parsing S-expressions wholly", () =>
 );
 
 describe("when parsing S-expressions incrementally", () =>
-  getGoldenFilepathsSync("test/Parser/SExpression")
+  Golden.getGoldenFilepathsSync("test/Parser/SExpression")
   |> Array.forEach(filepath =>
        BsMocha.Promise.it("should golden test " ++ filepath, () =>
          Golden.readFile(filepath)
