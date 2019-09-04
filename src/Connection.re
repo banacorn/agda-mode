@@ -105,46 +105,49 @@ let autoSearch = (path): Async.t(string, Error.t) =>
         () => reject(ProcessHanging: Error.autoSearch),
         1000,
       );
-    let commandName = switch (N.OS.type_()) {
+    let commandName =
+      switch (N.OS.type_()) {
       | "Linux"
       | "Darwin" => Ok("which")
       | "Windows_NT" => Ok("where.exe")
       | os => Error(os)
-    };
+      };
 
-    switch commandName {
+    switch (commandName) {
     | Error(os) => reject(NotSupported(os))
     | Ok(commandName') =>
-        N.ChildProcess.exec(
-          commandName' ++ " " ++ path,
-          (error, stdout, stderr) => {
-            /* clear timeout as the process has responded */
-            Js.Global.clearTimeout(hangTimeout);
+      N.ChildProcess.exec(
+        commandName' ++ " " ++ path,
+        (error, stdout, stderr) => {
+          /* clear timeout as the process has responded */
+          Js.Global.clearTimeout(hangTimeout);
 
-            /* error */
-            switch (error |> Js.Nullable.toOption) {
-            | None => ()
-            | Some(err) =>
-              reject(NotFound(err |> Js.Exn.message |> Option.getOr("")))
-            };
+          /* error */
+          switch (error |> Js.Nullable.toOption) {
+          | None => ()
+          | Some(err) =>
+            reject(NotFound(err |> Js.Exn.message |> Option.getOr("")))
+          };
 
-            /* stderr */
-            let stderr' = stderr |> Node.Buffer.toString;
-            if (stderr' |> String.isEmpty |> (!)) {
-              reject(NotFound(stderr'));
-            };
+          /* stderr */
+          let stderr' = stderr |> Node.Buffer.toString;
+          if (stderr' |> String.isEmpty |> (!)) {
+            reject(NotFound(stderr'));
+          };
 
-            /* stdout */
-            let stdout' = stdout |> Node.Buffer.toString;
-            if (stdout' |> String.isEmpty) {
-              reject(NotFound(""));
-            } else {
-              resolve(Parser.filepath(stdout'));
-            };
-          },
-        ) |> ignore
-    }
-  }) |> Async.mapError(e => Error.AutoSearchError(e));
+          /* stdout */
+          let stdout' = stdout |> Node.Buffer.toString;
+          if (stdout' |> String.isEmpty) {
+            reject(NotFound(""));
+          } else {
+            resolve(Parser.filepath(stdout'));
+          };
+        },
+      )
+      |> ignore
+    };
+  })
+  |> Async.mapError(e => Error.AutoSearchError(e));
 
 /* a more sophiscated "make" */
 let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>

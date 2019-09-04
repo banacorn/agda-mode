@@ -89,7 +89,7 @@ let make =
             pane'
             |> Pane.onWillDestroyItem(event => {
                  /* if the item that's going to be destroyed happens to be this tab */
-                 let destroyedTitle = event##item.getTitle();
+                 let destroyedTitle = event##item##getTitle();
                  let getTitle = itemOpener##getTitle;
                  if (destroyedTitle === getTitle()) {
                    /* invoke the onKill or onClose */
@@ -109,7 +109,7 @@ let make =
        |> Option.forEach(pane' =>
             pane'
             |> Pane.onDidChangeActiveItem(item => {
-                 let activatedTitle = item.getTitle();
+                 let activatedTitle = item##getTitle();
                  let getTitle = itemOpener##getTitle;
                  if (activatedTitle == getTitle()) {
                    triggerArg(onDidChangeActive, true);
