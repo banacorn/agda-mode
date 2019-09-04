@@ -19,7 +19,7 @@ describe("View", () => {
   before(Package.activate);
   describe("when activating agda-mode", () =>
     it("should mount the panel at the bottom", () =>
-      File.open_(Path.asset("Blank1.agda"))
+      File.openAsset("Blank1.agda")
       |> then_(dispatch'("agda-mode:load"))
       |> then_(getInstance)
       |> then_((instance: Instance.t) =>

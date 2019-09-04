@@ -254,6 +254,7 @@ module Path = {
 module File = {
   let open_ = (uri: string): Js.Promise.t(TextEditor.t) =>
     Workspace.openWithURI(uri);
+  let openAsset = Path.asset >> open_;
 
   let close = (uri: string): Js.Promise.t(bool) => {
     let pane = Workspace.paneForURI(uri);
@@ -284,6 +285,9 @@ module Package = {
   };
 
   let deactivate = () => {
+    // destroy all textEditors
+    Atom.Workspace.getPanes() |> Array.forEach(Atom.Pane.destroyItems);
+    // and the deactivate agda-mode
     Atom.Packages.deactivatePackage("agda-mode", false);
   };
 };
