@@ -1,4 +1,37 @@
 // open Rebase;
+// open Fn;
+// open BsChai.Expect;
+open BsMocha;
+open! BsMocha.Mocha;
+open! BsMocha.Promise;
+open Js.Promise;
+open Test__Util;
+
+describe("Input Method", () => {
+  open Webapi.Dom;
+
+  before(Package.activate);
+  after(Package.deactivate);
+
+  it(
+    "should not add class '.agda-mode-input-method-activated' to the editor element before triggering",
+    () =>
+    File.openAsset("Blank1.agda")
+    |> then_(dispatch("agda-mode:load"))
+    |> then_(editor => {
+         let element = Atom.Views.getView(editor);
+
+         element
+         |> HtmlElement.classList
+         |> DomTokenList.contains("agda-mode-input-method-activated")
+         |> Assert.equal(false);
+
+         resolve();
+       })
+  );
+});
+
+// open Rebase;
 // open! BsMocha;
 // open! BsMocha.Mocha;
 // open! BsMocha.Promise;
