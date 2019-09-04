@@ -12,7 +12,7 @@ describe("when loading files", () =>
   describe("when parsing responses from Agda", () => {
     open Async;
     let loadAndParse = path => {
-      openFile(path)
+      File.open_(path)
       |> Js.Promise.then_(editor => {
            let instance = Instance.make(editor);
            Connection.autoSearch("agda")
@@ -47,7 +47,7 @@ describe("when loading files", () =>
     };
 
     it("should succeed", () =>
-      loadAndParse(asset("Algebra.agda"))
+      loadAndParse(Path.asset("Algebra.agda"))
     );
     // promiseFiles("test/asset/agda-stdlib-1.0")
     // |> Js.Promise.then_(paths =>

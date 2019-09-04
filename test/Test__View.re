@@ -15,11 +15,11 @@ let getInstance = editor => {
   |> Option.getOr(reject(Exn("instance doesn't exist")));
 };
 
-describe_only("View", () => {
+describe("View", () => {
   before(Package.activate);
   describe("when activating agda-mode", () =>
     it("should mount the panel at the bottom", () =>
-      openFile(asset("Blank1.agda"))
+      File.open_(Path.asset("Blank1.agda"))
       |> then_(dispatch'("agda-mode:load"))
       |> then_(getInstance)
       |> then_((instance: Instance.t) =>

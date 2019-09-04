@@ -11,33 +11,6 @@ exception Exn(string);
 external asElement:
   Webapi.Dom.HtmlElement.t_htmlElement => Webapi.Dom.Element.t =
   "%identity";
-let base = Node.Path.join2([%raw "__dirname"], "../../../");
-let file = path => Node.Path.join2(base, path);
-let asset = path =>
-  Node.Path.join2(Node.Path.join2(base, "test/asset"), path);
-
-let openFile = (uri: string): Js.Promise.t(TextEditor.t) =>
-  Workspace.openWithURI(uri);
-
-let closeFile = (uri: string): Js.Promise.t(bool) => {
-  let pane = Workspace.paneForURI(uri);
-  switch (pane) {
-  | None => Js.Promise.resolve(false)
-  | Some(p) =>
-    let item = Pane.itemForURI(uri, p);
-    switch (item) {
-    | None => Js.Promise.resolve(false)
-    | Some(i) => Pane.destroyItem_(i, true, p)
-    };
-  };
-};
-
-let getActivePackageNames = () =>
-  Packages.getActivePackages() |> Array.map(o => o |> Package.name);
-
-let getLoadedPackageNames = () =>
-  Packages.getLoadedPackages()
-  |> Array.map((o: Package.t) => o |> Package.name);
 
 exception DispatchFailure(string);
 let dispatch' = (event, editor: TextEditor.t): Js.Promise.t(TextEditor.t) => {
@@ -270,7 +243,39 @@ module View = {
   };
 };
 
+module Path = {
+  open Node.Path;
+
+  let base = join2([%raw "__dirname"], "../../../");
+  let file = path => join2(base, path);
+  let asset = path => join2(join2(base, "test/asset"), path);
+};
+
+module File = {
+  let open_ = (uri: string): Js.Promise.t(TextEditor.t) =>
+    Workspace.openWithURI(uri);
+
+  let close = (uri: string): Js.Promise.t(bool) => {
+    let pane = Workspace.paneForURI(uri);
+    switch (pane) {
+    | None => Js.Promise.resolve(false)
+    | Some(p) =>
+      let item = Pane.itemForURI(uri, p);
+      switch (item) {
+      | None => Js.Promise.resolve(false)
+      | Some(i) => Pane.destroyItem_(i, true, p)
+      };
+    };
+  };
+};
+
 module Package = {
+  let activeNames = () =>
+    Packages.getActivePackages() |> Array.map(Package.name);
+
+  let loadedNames = () =>
+    Packages.getLoadedPackages() |> Array.map(Package.name);
+
   let activate = () => {
     // don't wait for this
     Atom.Packages.activatePackage("agda-mode") |> ignore;
@@ -279,9 +284,6 @@ module Package = {
   };
 
   let deactivate = () => {
-    // don't wait for this
-    Atom.Packages.deactivatePackage("agda-mode") |> ignore;
-    // resolve anyway
-    resolve();
+    Atom.Packages.deactivatePackage("agda-mode", false);
   };
 };
