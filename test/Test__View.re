@@ -1,56 +1,63 @@
 open Rebase;
-open! BsMocha;
+open Fn;
+
+open BsChai.Expect;
+open BsMocha;
 open! BsMocha.Mocha;
 open! BsMocha.Promise;
 open Js.Promise;
-// open BsChai.Expect.Expect; // exports `expect`
-// open BsChai.Expect.Combos;
 
 open Test__Util;
 
-describe_skip("View", () => {
-  let activationPromise = ref(None);
+let getInstance = editor => {
+  AgdaMode.Instances.get(editor)
+  |> Option.map((instance: Instance.t) => resolve(instance))
+  |> Option.getOr(reject(Exn("instance doesn't exist")));
+};
 
-  before_each(() => {
-    activationPromise := Some(Atom.Packages.activatePackage("agda-mode"));
-    resolve();
-  });
+describe_only("View", () => {
+  before(Package.activate);
+  describe("when activating agda-mode", () =>
+    it("should mount the panel at the bottom", () =>
+      openFile(asset("Blank1.agda"))
+      |> then_(dispatch'("agda-mode:load"))
+      |> then_(getInstance)
+      |> then_((instance: Instance.t) =>
+           instance.view.handles.onActivatePanel |> Event.once
+         )
+      |> then_(result => {
+           switch (result) {
+           | Error(_) => BsMocha.Assert.fail("failed to activate the panel")
+           | Ok(element) =>
+             open Webapi.Dom;
 
-  after_each(() => {
-    activationPromise := None;
-    Atom.Packages.deactivatePackage("agda-mode", false);
-  });
+             // the activated panel as class ".agda-mode"
+             element
+             |> Element.className
+             |> Expect.expect
+             |> Combos.End.to_be("agda-mode");
 
-  it("should activate the panel", () =>
-    openFile(asset("Blank1.agda"))
-    |> then_(editor =>
-         dispatch(editor, "agda-mode:load")
-         |> then_(() => activationPromise^ |> Option.getOr(resolve()))
-         |> then_(() =>
-              AgdaMode.Instances.get(editor)
-              |> Option.map((instance: Instance.t) => {
-                   let handles = instance.view.handles;
-                   handles.onActivatePanel |> Event.once;
-                 })
-              |> Option.getOr(resolve(Error()))
-            )
-         |> then_(element => {
-              AgdaMode.Instances.get(editor)
-              |> Option.map((instance: Instance.t) =>
-                   BsMocha.Assert.equal(instance.isLoaded, true)
-                 )
-              |> ignore;
+             // there be exactly 1 bottom panel opened
+             let panels = Atom.Workspace.getBottomPanels();
+             Assert.equal(
+               ~message="there should be exactly 1 bottom panel",
+               Array.length(panels),
+               1,
+             );
 
-              switch (element) {
-              | Error(_) =>
-                BsMocha.Assert.fail("failed to activate the panel");
-                resolve();
-              | Ok(element) =>
-                Js.log(element);
-                BsMocha.Assert.ok(true);
-                resolve();
-              };
-            })
-       )
+             // the `element` is the child of one of the panels
+             let children =
+               panels
+               |> Array.flatMap(
+                    Atom.Views.getView
+                    >> HtmlElement.childNodes
+                    >> NodeList.toArray,
+                  )
+               |> Array.filterMap(Element.ofNode);
+             Expect.expect(children) |> Combos.End.to_include(element);
+           };
+           resolve();
+         })
+    )
   );
 });

@@ -2,6 +2,10 @@ open Rebase;
 open Fn;
 open Atom;
 
+open Js.Promise;
+
+exception Exn(string);
+
 [@bs.get] external not: BsChai.Expect.chai => BsChai.Expect.chai = "not";
 
 external asElement:
@@ -36,6 +40,14 @@ let getLoadedPackageNames = () =>
   |> Array.map((o: Package.t) => o |> Package.name);
 
 exception DispatchFailure(string);
+let dispatch' = (event, editor: TextEditor.t): Js.Promise.t(TextEditor.t) => {
+  let element = Views.getView(editor);
+  let result = Commands.dispatch(element, event);
+  switch (result) {
+  | None => Js.Promise.reject(DispatchFailure(event))
+  | Some(_) => Js.Promise.resolve(editor)
+  };
+};
 let dispatch = (editor: TextEditor.t, event) => {
   let element = Views.getView(editor);
   let result = Commands.dispatch(element, event);
@@ -254,6 +266,22 @@ module View = {
       |> Option.forEach(element => Element.appendChild(htmlElement, element));
     };
 
+    resolve();
+  };
+};
+
+module Package = {
+  let activate = () => {
+    // don't wait for this
+    Atom.Packages.activatePackage("agda-mode") |> ignore;
+    // resolve anyway
+    resolve();
+  };
+
+  let deactivate = () => {
+    // don't wait for this
+    Atom.Packages.deactivatePackage("agda-mode") |> ignore;
+    // resolve anyway
     resolve();
   };
 };
