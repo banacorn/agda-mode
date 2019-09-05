@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [8.x, 10.x, 12.x]
+        node-version: [10.x]
 
     steps:
     - uses: actions/checkout@v1
@@ -17,18 +17,34 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-        
+
     - name: install atom
       run: |
-        sudo add-apt-repository ppa:webupd8team/atom
-        sudo apt update
-        sudo apt install atom
-        atom -v
-        
+        curl -s -L "https://atom.io/download/deb?channel=stable" -H 'Accept: application/octet-stream' -o "atom-amd64.deb"
+        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
+        export DISPLAY=":99"
+        dpkg-deb -x atom-amd64.deb "${HOME}/atom"
+        export ATOM_SCRIPT_NAME="atom"
+        export APM_SCRIPT_NAME="apm"
+        export ATOM_SCRIPT_PATH="${HOME}/atom/usr/bin/${ATOM_SCRIPT_NAME}"
+        export APM_SCRIPT_PATH="${HOME}/atom/usr/bin/${APM_SCRIPT_NAME}"
+        export NPM_SCRIPT_PATH="${HOME}/atom/usr/share/${ATOM_SCRIPT_NAME}/resources/app/apm/node_modules/.bin/npm"
+        export PATH="${PATH}:${HOME}/atom/usr/bin"
+
+        echo "Using Atom version:"
+        "${ATOM_SCRIPT_PATH}" -v
+        echo "Using APM version:"
+        "${APM_SCRIPT_PATH}" -v
+
     - name: npm install, build, and test
       run: |
         npm install
         npm run build --if-present
+
+        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
+        export DISPLAY=":99"
+        export PATH="${PATH}:${HOME}/atom/usr/bin"
+
         npm test
       env:
         CI: true
