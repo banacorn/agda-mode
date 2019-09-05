@@ -43,6 +43,11 @@ jobs:
 
         export PATH="${PATH}:${HOME}/atom/usr/bin"
 
+        apm list --installed
+
+        apm dev agda-mode
+
+        ls ~/.atom/dev/packages
 
         xvfb-run -a atom -t lib/js/test/
       env:
