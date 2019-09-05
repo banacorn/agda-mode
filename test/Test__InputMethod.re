@@ -7,7 +7,7 @@ open! BsMocha.Promise;
 open Js.Promise;
 open Test__Util;
 
-describe("Input Method", () => {
+describe_only("Input Method", () => {
   open Webapi.Dom;
 
   before(Package.activate);
@@ -28,6 +28,45 @@ describe("Input Method", () => {
 
          resolve();
        })
+  );
+
+  BsMocha.Async.it(
+    "should add class '.agda-mode-input-method-activated' to the editor element after triggering",
+    done_ =>
+    File.openAsset("Blank1.agda")
+    |> then_(dispatch("agda-mode:load"))
+    |> then_(editor => {
+         let element = Atom.Views.getView(editor);
+
+         // building and triggering the event
+         let press = key =>
+           Atom.Keymaps.buildKeydownEvent_(
+             key,
+             {
+               "ctrl": false,
+               "alt": false,
+               "shift": false,
+               "cmd": false,
+               "which": 0,
+               "target": element,
+             },
+           );
+         Atom.Keymaps.handleKeyboardEvent(press("\\"));
+
+         Js.Global.setTimeout(
+           () => {
+             element
+             |> HtmlElement.classList
+             |> DomTokenList.contains("agda-mode-input-method-activated")
+             |> Js.log;
+             done_();
+           },
+           1000,
+         )
+         |> ignore;
+         resolve();
+       })
+    |> ignore
   );
 });
 
