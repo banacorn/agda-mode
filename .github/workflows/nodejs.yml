@@ -41,10 +41,9 @@ jobs:
         npm install
         npm run build --if-present
 
-        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
-        export DISPLAY=":99"
         export PATH="${PATH}:${HOME}/atom/usr/bin"
 
-        npm test
+
+        xvfb-run -a atom -t lib/js/test/
       env:
         CI: true
