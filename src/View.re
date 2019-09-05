@@ -11,8 +11,7 @@ type handles = {
   toggleDocking: Event.t(unit, unit),
   activatePanel: Event.t(bool, unit),
   // events
-  onActivatePanel: Event.t(Dom.element, unit),
-  onDeactivatePanel: Event.t(unit, unit),
+  onPanelActivationChange: Event.t(option(Dom.element), unit),
   onInputMethodActivationChange: Event.t(bool, unit),
   updateIsPending: Event.t(bool, unit),
   updateShouldDisplay: Event.t(bool, unit),
@@ -45,8 +44,7 @@ let makeHandles = () => {
   let updateShouldDisplay = make();
 
   // events
-  let onActivatePanel = make();
-  let onDeactivatePanel = make();
+  let onPanelActivationChange = make();
   let onInputMethodActivationChange = make();
 
   /* connection-related */
@@ -74,8 +72,7 @@ let makeHandles = () => {
     display,
     inquire,
     activatePanel,
-    onActivatePanel,
-    onDeactivatePanel,
+    onPanelActivationChange,
     onInputMethodActivationChange,
     toggleDocking,
     updateIsPending,
@@ -125,11 +122,23 @@ type t = {
 let make = (handles: handles) => {
   let activate = () => {
     handles.activatePanel |> emitOk(true);
-    handles.onActivatePanel |> once;
+    handles.onPanelActivationChange
+    |> once
+    |> Async.thenOk(
+         fun
+         | None => Async.reject()
+         | Some(element) => Async.resolve(element),
+       );
   };
   let deactivate = () => {
     handles.activatePanel |> emitOk(false);
-    handles.onDeactivatePanel |> once;
+    handles.onPanelActivationChange
+    |> once
+    |> Async.thenOk(
+         fun
+         | None => Async.resolve()
+         | Some(_) => Async.reject(),
+       );
   };
 
   let destroy = () => {

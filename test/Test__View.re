@@ -2,7 +2,6 @@ open Rebase;
 open Fn;
 
 open BsChai.Expect;
-open BsMocha;
 open! BsMocha.Mocha;
 open! BsMocha.Promise;
 open Js.Promise;
@@ -17,7 +16,13 @@ describe("View", () => {
       |> then_(dispatch("agda-mode:load"))
       |> then_(getInstance)
       |> then_((instance: Instance.t) =>
-           instance.view.handles.onActivatePanel |> Event.once
+           instance.view.handles.onPanelActivationChange
+           |> Event.once
+           |> Async.thenOk(
+                fun
+                | None => Async.reject()
+                | Some(element) => Async.resolve(element),
+              )
          )
       |> then_(result => {
            switch (result) {
@@ -33,7 +38,7 @@ describe("View", () => {
 
              // there be exactly 1 bottom panel opened
              let panels = Atom.Workspace.getBottomPanels();
-             Assert.equal(
+             BsMocha.Assert.equal(
                ~message="there should be exactly 1 bottom panel",
                Array.length(panels),
                1,

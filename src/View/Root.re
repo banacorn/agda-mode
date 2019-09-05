@@ -129,7 +129,7 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
       UpdateWithSideEffects(
         {...state, isActive: true},
         _ => {
-          handles.onActivatePanel |> Event.emitOk(element);
+          handles.onPanelActivationChange |> Event.emitOk(Some(element));
           None;
         },
       )
@@ -146,7 +146,7 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
     UpdateWithSideEffects(
       {...state, isActive: false},
       _ => {
-        handles.onDeactivatePanel |> Event.emitOk();
+        handles.onPanelActivationChange |> Event.emitOk(None);
         None;
       },
     )
