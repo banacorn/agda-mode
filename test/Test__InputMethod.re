@@ -7,7 +7,7 @@ open! BsMocha.Promise;
 open Js.Promise;
 open Test__Util;
 
-describe_only("Input Method", () => {
+describe("Input Method", () => {
   before(Package.activate);
   after(Package.deactivate);
 
@@ -30,37 +30,36 @@ describe_only("Input Method", () => {
        })
   );
 
-  BsMocha.Async.it(
+  it(
     "should add class '.agda-mode-input-method-activated' to the editor element after triggering",
-    done_ =>
+    () =>
     File.openAsset("Blank1.agda")
     |> then_(dispatch("agda-mode:load"))
     |> then_(editor => {
          let element = Atom.Views.getView(editor);
 
-         getInstance(editor)
-         |> then_((instance: Instance.t) =>
-              instance.view.onInputMethodActivationChange()
-              |> then_(
-                   fun
-                   | Ok(true) => resolve()
-                   | _ =>
-                     reject(
-                       Exn("input method not activated for some reason"),
-                     ),
-                 )
-            )
-         |> then_(() => {
-              element
-              |> Webapi.Dom.HtmlElement.classList
-              |> Webapi.Dom.DomTokenList.contains(
-                   "agda-mode-input-method-activated",
-                 )
-              |> BsMocha.Assert.ok;
-              done_();
-              resolve();
-            })
-         |> ignore;
+         let result =
+           getInstance(editor)
+           |> then_((instance: Instance.t) =>
+                instance.view.onInputMethodActivationChange()
+                |> then_(
+                     fun
+                     | Ok(true) => resolve()
+                     | _ =>
+                       reject(
+                         Exn("input method not activated for some reason"),
+                       ),
+                   )
+              )
+           |> then_(() => {
+                element
+                |> Webapi.Dom.HtmlElement.classList
+                |> Webapi.Dom.DomTokenList.contains(
+                     "agda-mode-input-method-activated",
+                   )
+                |> BsMocha.Assert.ok;
+                resolve();
+              });
 
          // building and triggering the event
          let press = key =>
@@ -77,8 +76,7 @@ describe_only("Input Method", () => {
            );
          Atom.Keymaps.handleKeyboardEvent(press("\\"));
 
-         resolve();
+         result;
        })
-    |> ignore
   );
 });
