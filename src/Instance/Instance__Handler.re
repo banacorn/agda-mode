@@ -583,24 +583,41 @@ let rec handleLocalCommand =
       instance.view.updateShouldDisplay(true);
       switch (symbol) {
       | Ordinary =>
-        instance.view.activate();
-        instance.view.activateInputMethod(true);
-      | CurlyBracket => instance.view.interceptAndInsertKey("{")
-      | Bracket => instance.view.interceptAndInsertKey("[")
-      | Parenthesis => instance.view.interceptAndInsertKey("(")
-      | DoubleQuote => instance.view.interceptAndInsertKey("\"")
-      | SingleQuote => instance.view.interceptAndInsertKey("'")
-      | BackQuote => instance.view.interceptAndInsertKey("`")
-      | Abort => instance.view.activateInputMethod(false)
+        instance.view.activate()
+        |> mapError(_ => Cancelled)
+        |> thenOk(_ => {
+             instance.view.activateInputMethod(true);
+             resolve(None);
+           })
+      | CurlyBracket =>
+        instance.view.interceptAndInsertKey("{");
+        resolve(None);
+      | Bracket =>
+        instance.view.interceptAndInsertKey("[");
+        resolve(None);
+      | Parenthesis =>
+        instance.view.interceptAndInsertKey("(");
+        resolve(None);
+      | DoubleQuote =>
+        instance.view.interceptAndInsertKey("\"");
+        resolve(None);
+      | SingleQuote =>
+        instance.view.interceptAndInsertKey("'");
+        resolve(None);
+      | BackQuote =>
+        instance.view.interceptAndInsertKey("`");
+        resolve(None);
+      | Abort =>
+        instance.view.activateInputMethod(false);
+        resolve(None);
       };
-      ();
     } else {
       instance.editors
       |> Editors.Focus.get
       |> Atom.TextEditor.insertText("\\")
       |> ignore;
+      resolve(None);
     };
-    resolve(None);
 
   | QuerySymbol =>
     let selected = instance.editors |> Editors.getSelectedSymbol;

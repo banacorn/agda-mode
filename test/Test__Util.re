@@ -13,10 +13,9 @@ external asElement:
 exception DispatchFailure(string);
 let dispatch = (event, editor: TextEditor.t): Js.Promise.t(TextEditor.t) => {
   let element = Views.getView(editor);
-  let result = Commands.dispatch(element, event);
-  switch (result) {
+  switch (Commands.dispatch(element, event)) {
   | None => Js.Promise.reject(DispatchFailure(event))
-  | Some(_) => Js.Promise.resolve(editor)
+  | Some(result) => result |> then_(() => resolve(editor))
   };
 };
 

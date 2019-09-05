@@ -1,4 +1,5 @@
 open Rebase;
+open Fn;
 
 let instances: Js.Dict.t(Instance.t) = Js.Dict.empty();
 
@@ -64,7 +65,7 @@ let onEditorActivationChange = () => {
     switch (next) {
     | None => ()
     | Some(nextEditor) =>
-      nextEditor |> Instances.getThen(Instance.activate);
+      nextEditor |> Instances.getThen(Instance.activate >> ignore);
       previous := Some(nextEditor);
     };
   })

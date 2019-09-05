@@ -89,7 +89,7 @@ let makeHandles = () => {
 };
 
 type t = {
-  activate: unit => unit,
+  activate: unit => Async.t(Dom.element, unit),
   deactivate: unit => unit,
   destroy: unit => unit,
   onDestroy: unit => Async.t(unit, unit),
@@ -116,7 +116,10 @@ type t = {
   handles,
 };
 let make = (handles: handles) => {
-  let activate = () => handles.activatePanel |> emitOk(true);
+  let activate = () => {
+    handles.activatePanel |> emitOk(true);
+    handles.onActivatePanel |> once;
+  };
   let deactivate = () => handles.activatePanel |> emitOk(false);
   let destroy = () => {
     deactivate();
