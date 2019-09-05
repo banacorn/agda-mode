@@ -16,8 +16,7 @@ describe("View", () => {
       |> then_(dispatch("agda-mode:load"))
       |> then_(getInstance)
       |> then_((instance: Instance.t) =>
-           instance.view.handles.onPanelActivationChange
-           |> Event.once
+           instance.view.onPanelActivationChange()
            |> Async.thenOk(
                 fun
                 | None => Async.reject()

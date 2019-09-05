@@ -40,8 +40,7 @@ describe_only("Input Method", () => {
 
          getInstance(editor)
          |> then_((instance: Instance.t) =>
-              instance.handles.onInputMethodActivationChange
-              |> Event.once
+              instance.view.onInputMethodActivationChange()
               |> then_(
                    fun
                    | Ok(true) => resolve()

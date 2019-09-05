@@ -99,12 +99,14 @@ type t = {
   onDestroy: unit => Async.t(unit, unit),
   updateShouldDisplay: bool => unit,
   // <Panel> related
+  onPanelActivationChange: unit => Async.t(option(Dom.element), unit),
   display: (string, Type.View.Header.style, Body.t) => unit,
   inquire: (string, string, string) => Async.t(string, MiniEditor.error),
   updateIsPending: bool => unit,
   onMouseEvent: Event.t(Mouse.event, unit),
   // <InputMethod> related
   activateInputMethod: bool => unit,
+  onInputMethodActivationChange: unit => Async.t(bool, unit),
   interceptAndInsertKey: string => unit,
   // <Settings> related
   navigateSettings: Settings__Breadcrumb.uri => unit,
@@ -117,7 +119,6 @@ type t = {
   inquireConnection: unit => Async.t(string, MiniEditor.error),
   // <Tab> related
   toggleDocking: unit => unit,
-  handles,
 };
 let make = (handles: handles) => {
   let activate = () => {
@@ -152,6 +153,8 @@ let make = (handles: handles) => {
   let updateShouldDisplay = shouldDisplay =>
     handles.updateShouldDisplay |> emitOk(shouldDisplay) |> ignore;
 
+  let onPanelActivationChange = () => handles.onPanelActivationChange |> once;
+
   let display = (text, style, body) => {
     handles.display |> emitOk(({Type.View.Header.text, style}, body));
   };
@@ -173,6 +176,9 @@ let make = (handles: handles) => {
 
   let activateInputMethod = activate =>
     handles.activateInputMethod |> emitOk(activate);
+  let onInputMethodActivationChange = () =>
+    handles.onInputMethodActivationChange |> once;
+
   let interceptAndInsertKey = symbol =>
     handles.interceptAndInsertKey |> emitOk(symbol);
 
@@ -209,11 +215,13 @@ let make = (handles: handles) => {
     destroy,
     onDestroy,
     updateShouldDisplay,
+    onPanelActivationChange,
     display,
     inquire,
     updateIsPending,
     onMouseEvent,
     activateInputMethod,
+    onInputMethodActivationChange,
     interceptAndInsertKey,
     navigateSettings,
     activateSettings,
@@ -222,6 +230,5 @@ let make = (handles: handles) => {
     onInquireConnection,
     inquireConnection,
     toggleDocking,
-    handles,
   };
 };

@@ -42,7 +42,6 @@ let make = (textEditor: Atom.TextEditor.t) => {
     connection: None,
     dispatch: Handler.dispatch,
     handleResponse: Handler.handleResponseAndRecoverCursor,
-    handles: view.handles,
   };
 
   /* listen to `onInquireConnection` */
