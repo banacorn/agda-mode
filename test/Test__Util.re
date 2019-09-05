@@ -276,3 +276,20 @@ module Package = {
     Atom.Packages.deactivatePackage("agda-mode", false);
   };
 };
+
+module Keyboard = {
+  // building and triggering the event
+  let press = (element, key) =>
+    Atom.Keymaps.buildKeydownEvent_(
+      key,
+      {
+        "ctrl": false,
+        "alt": false,
+        "shift": false,
+        "cmd": false,
+        "which": 0,
+        "target": element,
+      },
+    )
+    |> Atom.Keymaps.handleKeyboardEvent;
+};

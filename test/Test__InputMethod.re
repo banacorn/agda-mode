@@ -72,41 +72,9 @@ describe("Input Method", () => {
                 resolve();
               });
 
-         // building and triggering the event
-         let press = key =>
-           Atom.Keymaps.buildKeydownEvent_(
-             key,
-             {
-               "ctrl": false,
-               "alt": false,
-               "shift": false,
-               "cmd": false,
-               "which": 0,
-               "target": element,
-             },
-           );
-         Atom.Keymaps.handleKeyboardEvent(press("\\"));
+         Keyboard.press(element, "\\");
 
          result;
-       })
-  );
-
-  it(
-    "should not add class '.agda-mode-input-method-activated' to the editor element before triggering",
-    () =>
-    File.openAsset("Blank1.agda")
-    |> then_(dispatch("agda-mode:load"))
-    |> then_(editor => {
-         open Webapi.Dom;
-
-         let element = Atom.Views.getView(editor);
-
-         element
-         |> HtmlElement.classList
-         |> DomTokenList.contains("agda-mode-input-method-activated")
-         |> BsMocha.Assert.equal(false);
-
-         resolve();
        })
   );
 });
