@@ -10,7 +10,9 @@ type handles = {
   inquire: Event.t((Header.t, string, string), unit),
   toggleDocking: Event.t(unit, unit),
   activatePanel: Event.t(bool, unit),
+  // events
   onActivatePanel: Event.t(Dom.element, unit),
+  onDeactivatePanel: Event.t(unit, unit),
   updateIsPending: Event.t(bool, unit),
   updateShouldDisplay: Event.t(bool, unit),
   updateConnection:
@@ -32,9 +34,13 @@ type handles = {
 
 /* creates all refs and return them */
 let makeHandles = () => {
+  // events
+  let onActivatePanel = make();
+  let onDeactivatePanel = make();
+
   /* public */
   let activatePanel = make();
-  let onActivatePanel = make();
+
   let display = make();
   let inquire = make();
   let toggleDocking = make();
@@ -70,6 +76,7 @@ let makeHandles = () => {
     inquire,
     activatePanel,
     onActivatePanel,
+    onDeactivatePanel,
     toggleDocking,
     updateIsPending,
     updateShouldDisplay,
@@ -90,7 +97,7 @@ let makeHandles = () => {
 
 type t = {
   activate: unit => Async.t(Dom.element, unit),
-  deactivate: unit => unit,
+  deactivate: unit => Async.t(unit, unit),
   destroy: unit => unit,
   onDestroy: unit => Async.t(unit, unit),
   updateShouldDisplay: bool => unit,
@@ -120,9 +127,13 @@ let make = (handles: handles) => {
     handles.activatePanel |> emitOk(true);
     handles.onActivatePanel |> once;
   };
-  let deactivate = () => handles.activatePanel |> emitOk(false);
+  let deactivate = () => {
+    handles.activatePanel |> emitOk(false);
+    handles.onDeactivatePanel |> once;
+  };
+
   let destroy = () => {
-    deactivate();
+    deactivate() |> ignore;
     handles.destroy |> emitOk();
   };
   let onDestroy = () => {

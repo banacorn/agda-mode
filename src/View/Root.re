@@ -1,5 +1,3 @@
-open Rebase;
-open Fn;
 open ReactUpdate;
 
 open Type.View;
@@ -131,7 +129,6 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
       UpdateWithSideEffects(
         {...state, isActive: true},
         _ => {
-          // Js.log(element |> Webapi.Dom.Element.parentNode);
           handles.onActivatePanel |> Event.emitOk(element);
           None;
         },
@@ -145,7 +142,14 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
         },
       )
     }
-  | Deactivate => Update({...state, isActive: false})
+  | Deactivate =>
+    UpdateWithSideEffects(
+      {...state, isActive: false},
+      _ => {
+        handles.onDeactivatePanel |> Event.emitOk();
+        None;
+      },
+    )
   | MountTo(mountTo) => SideEffects(mountPanel(editors, mountTo))
   | ToggleDocking =>
     switch (state.mountAt) {

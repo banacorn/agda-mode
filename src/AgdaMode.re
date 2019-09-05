@@ -60,7 +60,8 @@ let onEditorActivationChange = () => {
   let previous = ref(Workspace.getActiveTextEditor());
   Workspace.onDidChangeActiveTextEditor(next => {
     /* decativate the previously activated editor */
-    previous^ |> Option.forEach(Instances.getThen(Instance.deactivate));
+    previous^
+    |> Option.forEach(Instances.getThen(Instance.deactivate >> ignore));
     /* activate the next editor */
     switch (next) {
     | None => ()
