@@ -11,6 +11,17 @@ describe("Input Method", () => {
   before(Package.activate);
   after(Package.deactivate);
 
+  // deactivate the input method after each tests
+  after_each(() => {
+    AgdaMode.instances
+    |> Js.Dict.entries
+    |> Array.forEach(((_, instance: Instance.t)) =>
+         instance.view.activateInputMethod(false)
+       )
+    |> ignore;
+    resolve();
+  });
+
   it(
     "should not add class '.agda-mode-input-method-activated' to the editor element before triggering",
     () =>
@@ -77,6 +88,25 @@ describe("Input Method", () => {
          Atom.Keymaps.handleKeyboardEvent(press("\\"));
 
          result;
+       })
+  );
+
+  it(
+    "should not add class '.agda-mode-input-method-activated' to the editor element before triggering",
+    () =>
+    File.openAsset("Blank1.agda")
+    |> then_(dispatch("agda-mode:load"))
+    |> then_(editor => {
+         open Webapi.Dom;
+
+         let element = Atom.Views.getView(editor);
+
+         element
+         |> HtmlElement.classList
+         |> DomTokenList.contains("agda-mode-input-method-activated")
+         |> BsMocha.Assert.equal(false);
+
+         resolve();
        })
   );
 });
