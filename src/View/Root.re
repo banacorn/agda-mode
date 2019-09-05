@@ -260,6 +260,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     activateInputMethod,
     inquireConnection,
     onInquireConnection,
+    onInputMethodActivationChange,
     navigateSettingsView,
   } = handles;
   let panelElement: Webapi.Dom.Element.t =
@@ -301,10 +302,11 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
           // {editors.query.value}
           // {editors.query.placeholder}
           editorPlaceholder=""
-          interceptAndInsertKey
           activateInputMethod
           settingsView
           onSettingsViewToggle={status => send(ToggleSettingsTab(status))}
+          interceptAndInsertKey
+          onInputMethodActivationChange
         />
         <Settings
           inquireConnection

@@ -22,6 +22,7 @@ let make =
       ~interceptAndInsertKey: Event.t(string, unit),
       ~activateInputMethod: Event.t(bool, unit),
       ~onSettingsViewToggle: bool => unit,
+      ~onInputMethodActivationChange: Event.t(bool, unit),
     ) => {
   let (maxHeight, setMaxHeight) = Hook.useState(170);
   let (inputMethodActivated, setInputMethodActivation) =
@@ -70,6 +71,7 @@ let make =
           activateInputMethod
           isActive
           onActivationChange=setInputMethodActivation
+          onInputMethodActivationChange
         />
         <Dashboard
           header

@@ -19,6 +19,12 @@ let dispatch = (event, editor: TextEditor.t): Js.Promise.t(TextEditor.t) => {
   };
 };
 
+let getInstance = editor => {
+  AgdaMode.Instances.get(editor)
+  |> Option.map((instance: Instance.t) => resolve(instance))
+  |> Option.getOr(reject(Exn("instance doesn't exist")));
+};
+
 module Golden = {
   // bindings for jsdiff
   type diff = {

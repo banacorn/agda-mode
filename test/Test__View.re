@@ -9,12 +9,6 @@ open Js.Promise;
 
 open Test__Util;
 
-let getInstance = editor => {
-  AgdaMode.Instances.get(editor)
-  |> Option.map((instance: Instance.t) => resolve(instance))
-  |> Option.getOr(reject(Exn("instance doesn't exist")));
-};
-
 describe("View", () => {
   before(Package.activate);
   describe("when activating agda-mode", () =>

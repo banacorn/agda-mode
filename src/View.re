@@ -13,6 +13,7 @@ type handles = {
   // events
   onActivatePanel: Event.t(Dom.element, unit),
   onDeactivatePanel: Event.t(unit, unit),
+  onInputMethodActivationChange: Event.t(bool, unit),
   updateIsPending: Event.t(bool, unit),
   updateShouldDisplay: Event.t(bool, unit),
   updateConnection:
@@ -34,13 +35,8 @@ type handles = {
 
 /* creates all refs and return them */
 let makeHandles = () => {
-  // events
-  let onActivatePanel = make();
-  let onDeactivatePanel = make();
-
-  /* public */
+  // View related
   let activatePanel = make();
-
   let display = make();
   let inquire = make();
   let toggleDocking = make();
@@ -48,7 +44,10 @@ let makeHandles = () => {
   let updateIsPending = make();
   let updateShouldDisplay = make();
 
-  /* private */
+  // events
+  let onActivatePanel = make();
+  let onDeactivatePanel = make();
+  let onInputMethodActivationChange = make();
 
   /* connection-related */
   let updateConnection = make();
@@ -77,6 +76,7 @@ let makeHandles = () => {
     activatePanel,
     onActivatePanel,
     onDeactivatePanel,
+    onInputMethodActivationChange,
     toggleDocking,
     updateIsPending,
     updateShouldDisplay,
