@@ -302,11 +302,11 @@ let make =
     [||],
   );
 
-  React.useEffect1(
+  // triggers events on change
+  Hook.useDidUpdateEffect(
     () => {
       onActivationChange(state.activated);
       onInputMethodActivationChange |> Event.emitOk(state.activated);
-      None;
     },
     [|state.activated|],
   );

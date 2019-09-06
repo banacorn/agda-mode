@@ -176,6 +176,7 @@ let make = (handles: handles) => {
 
   let activateInputMethod = activate =>
     handles.activateInputMethod |> emitOk(activate);
+
   let onInputMethodActivationChange = () =>
     handles.onInputMethodActivationChange |> once;
 

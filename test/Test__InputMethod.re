@@ -1,5 +1,4 @@
 open Rebase;
-open Fn;
 // open BsChai.Expect;
 // open BsMocha;
 open! BsMocha.Mocha;
@@ -31,9 +30,6 @@ describe("Input Method", () => {
     |> then_(dispatch("agda-mode:load"))
     |> then_(editor => {
          open Webapi.Dom;
-
-         Js.log(AgdaMode.instances);
-
          let element = Atom.Views.getView(editor);
 
          element
@@ -52,32 +48,33 @@ describe("Input Method", () => {
     |> then_(dispatch("agda-mode:load"))
     |> then_(editor => {
          let element = Atom.Views.getView(editor);
-         Js.log(AgdaMode.instances);
          let result =
            getInstance(editor)
            |> then_((instance: Instance.t) =>
                 instance.view.onInputMethodActivationChange()
                 |> then_(
                      fun
-                     | Ok(true) => resolve()
-                     | _ =>
+                     | Ok(result) => resolve(result)
+                     | Error(_) =>
                        reject(
                          Exn("input method not activated for some reason"),
                        ),
                    )
               )
-           |> then_(() => {
+           |> then_(result => {
+                BsMocha.Assert.ok(result);
+
                 element
                 |> Webapi.Dom.HtmlElement.classList
                 |> Webapi.Dom.DomTokenList.contains(
                      "agda-mode-input-method-activated",
                    )
                 |> BsMocha.Assert.ok;
+
                 resolve();
               });
 
          Keyboard.press(element, "\\");
-
          result;
        })
   );

@@ -1,5 +1,20 @@
 open Rebase;
 
+let useDidUpdateEffect = (f, inputs) => {
+  let didMountRef = React.useRef(false);
+  React.useEffect1(
+    () => {
+      if (React.Ref.current(didMountRef)) {
+        f();
+      } else {
+        React.Ref.setCurrent(didMountRef, true);
+      };
+      None;
+    },
+    inputs,
+  );
+};
+
 let useState = init => {
   let (state, setState) = React.useState(_ => init);
   let setState' = value => setState(_ => value);
