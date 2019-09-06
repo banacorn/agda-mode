@@ -36,19 +36,20 @@ jobs:
         echo "Using APM version:"
         "${APM_SCRIPT_PATH}" -v
 
-    - name: npm install, build, and test
+    - name: npm install & build
       run: |
         npm install
         npm run build --if-present
-
+        
+    - name: test
+      run: |
+        # so that we can see "atom" and "apm"
         export PATH="${PATH}:${HOME}/atom/usr/bin"
 
-        apm list --installed
-
+        # linking "agda-mode" to "~/.atom/dev/packages"
         apm dev agda-mode
 
-        ls ~/.atom/dev/packages
-
+        # run the test with "xvfb-run" to simulate X windows
         xvfb-run -a atom -t lib/js/test/
       env:
         CI: true
