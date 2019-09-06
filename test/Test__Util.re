@@ -264,7 +264,14 @@ module Package = {
 
   let activate = () => {
     // don't wait for this
-    Atom.Packages.activatePackage("agda-mode") |> ignore;
+    Atom.Packages.activatePackage("agda-mode")
+    |> then_(_ => {
+         Js.log("\n== after Atom.Packages.activatePackage");
+         Js.log(AgdaMode.instances |> Js.Dict.entries |> Array.length);
+         Js.log("\n==");
+         resolve();
+       })
+    |> ignore;
     // resolve anyway
     resolve();
   };

@@ -35,23 +35,16 @@ describe("View", () => {
              |> Expect.expect
              |> Combos.End.to_be("agda-mode");
 
-             // there be exactly 1 bottom panel opened
-             let panels = Atom.Workspace.getBottomPanels();
-             BsMocha.Assert.equal(
-               ~message="there should be exactly 1 bottom panel",
-               Array.length(panels),
-               1,
-             );
-
-             // the `element` is the child of one of the panels
              let children =
-               panels
+               Atom.Workspace.getBottomPanels()
                |> Array.flatMap(
                     Atom.Views.getView
                     >> HtmlElement.childNodes
                     >> NodeList.toArray,
                   )
                |> Array.filterMap(Element.ofNode);
+
+             // the `element` is the child of one of the panels
              Expect.expect(children) |> Combos.End.to_include(element);
            };
            resolve();

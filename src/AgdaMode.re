@@ -110,8 +110,10 @@ let onUndo = () => {
 
 /* the entry point of the whole package */
 let activate = _ => {
+  Js.log("ACTIVATE!!");
   /* triggered everytime when a new text editor is opened */
   Workspace.observeTextEditors(textEditor => {
+    Js.log("OPEN!!!");
     open CompositeDisposable;
     let textEditorSubscriptions = make();
 

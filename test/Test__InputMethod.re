@@ -8,7 +8,8 @@ open Js.Promise;
 open Test__Util;
 
 describe("Input Method", () => {
-  before_each(Package.deactivate >> then_(Package.activate));
+  before_each(Package.activate);
+  after_each(Package.deactivate);
 
   // deactivate the input method after each tests
   let deactivateAllInputMethod = () => {
