@@ -295,10 +295,9 @@ let make =
   React.useEffect1(
     () =>
       activateInputMethod
-      |> Event.onOk(shouldActivate => {
-           Js.log2("[IM] in", shouldActivate);
-           send(shouldActivate ? Activate : Deactivate);
-         })
+      |> Event.onOk(shouldActivate =>
+           send(shouldActivate ? Activate : Deactivate)
+         )
       |> Option.some,
     [||],
   );
@@ -306,7 +305,6 @@ let make =
   // triggers events on change
   Hook.useDidUpdateEffect(
     () => {
-      Js.log2("[IM] out", state.activated);
       onActivationChange(state.activated);
       onInputMethodActivationChange |> Event.emitOk(state.activated);
       None;

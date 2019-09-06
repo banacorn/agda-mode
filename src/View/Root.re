@@ -125,7 +125,7 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
   switch (action) {
   | Activate =>
     switch (state.mountAt) {
-    | Bottom(element) => Update({...state, isActive: true})
+    | Bottom(_) => Update({...state, isActive: true})
     | Pane(tab) =>
       UpdateWithSideEffects(
         {...state, isActive: true},

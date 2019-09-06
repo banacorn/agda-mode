@@ -583,15 +583,12 @@ let rec handleLocalCommand =
       instance.view.updateShouldDisplay(true);
       switch (symbol) {
       | Ordinary =>
-        Js.log("[HAN] trigger 1");
         instance.view.activate()
         |> mapError(_ => Cancelled)
         |> thenOk(_ => {
-             Js.log("[HAN] trigger 2");
-
              instance.view.activateInputMethod(true);
              resolve(None);
-           });
+           })
       | CurlyBracket =>
         instance.view.interceptAndInsertKey("{");
         resolve(None);
