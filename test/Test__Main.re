@@ -13,8 +13,6 @@ describe("Package", () => {
   before_each(Package.activate);
   after_each(Package.deactivate);
 
-  after(Package.deactivate);
-
   it(
     "should be activated after triggering 'agda-mode:load' on .agda files", () => {
     // before

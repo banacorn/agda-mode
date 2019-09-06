@@ -265,6 +265,8 @@ module Package = {
   let activate = () => {
     // don't wait for this
     Atom.Packages.activatePackage("agda-mode") |> ignore;
+    // manually invoking AgdaMode.activate, because it doesn't get invoked somehow
+    AgdaMode.activate() |> ignore;
     // resolve anyway
     resolve();
   };
@@ -272,6 +274,8 @@ module Package = {
   let deactivate = () => {
     // destroy all textEditors
     Atom.Workspace.getPanes() |> Array.forEach(Atom.Pane.destroyItems);
+    // manually invoking AgdaMode.deactivate
+    AgdaMode.deactivate() |> ignore;
     // and the deactivate agda-mode
     Atom.Packages.deactivatePackage("agda-mode", false);
   };

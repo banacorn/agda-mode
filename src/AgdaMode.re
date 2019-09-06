@@ -114,7 +114,6 @@ let onUndo = () => {
 };
 
 let setup = () => {
-  Js.log("activated!!!");
   /* triggered everytime when a new text editor is opened */
   Workspace.observeTextEditors(textEditor => {
     open CompositeDisposable;
