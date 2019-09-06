@@ -1,6 +1,7 @@
 open Rebase;
 open Fn;
 
+let activated: ref(bool) = ref(false);
 let instances: Js.Dict.t(Instance.t) = Js.Dict.empty();
 
 module Instances = {
@@ -32,6 +33,10 @@ module Instances = {
     | Some(_instance) => true
     | None => false
     };
+  };
+
+  let size = () => {
+    instances |> Js.Dict.keys |> Array.length;
   };
 };
 
@@ -108,9 +113,8 @@ let onUndo = () => {
   |> CompositeDisposable.add(subscriptions);
 };
 
-/* the entry point of the whole package */
-let activate = _ => {
-  Js.log("AgdaMode ACTIVATED");
+let setup = () => {
+  Js.log("activated!!!");
   /* triggered everytime when a new text editor is opened */
   Workspace.observeTextEditors(textEditor => {
     open CompositeDisposable;
@@ -149,12 +153,25 @@ let activate = _ => {
   onEditorActivationChange();
   onTriggerCommand();
   onUndo();
+};
 
-  instances;
+/* the entry point of the whole package, should only be called once (before deactivation) */
+let activate = _ => {
+  // make `activate` idempotent
+  if (! activated^) {
+    activated := true;
+    setup();
+  };
+
+  Js.Promise.resolve();
 };
-let deactivate = _ => {
-  CompositeDisposable.dispose(subscriptions);
-};
+
+let deactivate = _ =>
+  // make `deactivate` idempotent
+  if (activated^) {
+    activated := false;
+    CompositeDisposable.dispose(subscriptions);
+  };
 
 /* https://atom.io/docs/api/latest/Config */
 let config = {

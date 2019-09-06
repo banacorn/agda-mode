@@ -55,18 +55,16 @@ describe("Package", () => {
 });
 
 describe("Instances", () => {
-  let instances = ref(Js.Dict.empty());
-  let size = dict => dict^ |> Js.Dict.keys |> Array.length;
+  before(AgdaMode.activate);
 
-  it("should have no instances before opening any files", () => {
-    instances := AgdaMode.activate();
-    Assert.equal(size(instances), 0) |> resolve;
-  });
+  it("should have no instances before opening any files", () =>
+    Assert.equal(AgdaMode.Instances.size(), 0) |> resolve
+  );
 
   it("should respect the number of opened .agda file", () =>
     File.openAsset("Blank1.agda")
     |> then_(editor => {
-         Assert.equal(size(instances), 1);
+         Assert.equal(AgdaMode.Instances.size(), 1);
          let pane = Atom.Workspace.getActivePane();
          Atom.Pane.destroyItem_(
            Atom.TextEditor.asWorkspaceItem(editor),
@@ -75,7 +73,7 @@ describe("Instances", () => {
          );
        })
     |> then_(destroyed => {
-         Assert.equal(size(instances), destroyed ? 0 : 1);
+         Assert.equal(AgdaMode.Instances.size(), destroyed ? 0 : 1);
          resolve();
        })
   );
@@ -83,7 +81,7 @@ describe("Instances", () => {
   it("should respect the number of opened .lagda file", () =>
     File.openAsset("Blank2.lagda")
     |> then_(editor => {
-         Assert.equal(size(instances), 1);
+         Assert.equal(AgdaMode.Instances.size(), 1);
          let pane = Atom.Workspace.getActivePane();
          Atom.Pane.destroyItem_(
            Atom.TextEditor.asWorkspaceItem(editor),
@@ -92,7 +90,7 @@ describe("Instances", () => {
          );
        })
     |> then_(destroyed => {
-         Assert.equal(size(instances), destroyed ? 0 : 1);
+         Assert.equal(AgdaMode.Instances.size(), destroyed ? 0 : 1);
          resolve();
        })
   );
