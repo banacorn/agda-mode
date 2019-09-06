@@ -125,14 +125,7 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
   switch (action) {
   | Activate =>
     switch (state.mountAt) {
-    | Bottom(element) =>
-      UpdateWithSideEffects(
-        {...state, isActive: true},
-        _ => {
-          handles.onPanelActivationChange |> Event.emitOk(Some(element));
-          None;
-        },
-      )
+    | Bottom(element) => Update({...state, isActive: true})
     | Pane(tab) =>
       UpdateWithSideEffects(
         {...state, isActive: true},
@@ -142,14 +135,7 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
         },
       )
     }
-  | Deactivate =>
-    UpdateWithSideEffects(
-      {...state, isActive: false},
-      _ => {
-        handles.onPanelActivationChange |> Event.emitOk(None);
-        None;
-      },
-    )
+  | Deactivate => Update({...state, isActive: false})
   | MountTo(mountTo) => SideEffects(mountPanel(editors, mountTo))
   | ToggleDocking =>
     switch (state.mountAt) {
@@ -201,6 +187,21 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
       None;
     },
     [|state.mountAt|],
+  );
+
+  // trigger `onPanelActivationChange` only when it's changed
+  Hook.useDidUpdateEffect2(
+    () => {
+      switch (state.mountAt, state.isActive) {
+      | (Bottom(element), true) =>
+        handles.onPanelActivationChange |> Event.emitOk(Some(element))
+      | (Pane(tab), true) =>
+        handles.onPanelActivationChange |> Event.emitOk(Some(tab.element))
+      | (_, false) => handles.onPanelActivationChange |> Event.emitOk(None)
+      };
+      None;
+    },
+    (state.mountAt, state.isActive),
   );
 
   /* activate/deactivate <Panel> */

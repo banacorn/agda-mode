@@ -309,6 +309,7 @@ let make =
       Js.log2("[IM] out", state.activated);
       onActivationChange(state.activated);
       onInputMethodActivationChange |> Event.emitOk(state.activated);
+      None;
     },
     [|state.activated|],
   );
