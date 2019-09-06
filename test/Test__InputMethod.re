@@ -1,5 +1,5 @@
 open Rebase;
-// open Fn;
+open Fn;
 // open BsChai.Expect;
 // open BsMocha;
 open! BsMocha.Mocha;
@@ -8,11 +8,10 @@ open Js.Promise;
 open Test__Util;
 
 describe("Input Method", () => {
-  before(Package.activate);
-  after(Package.deactivate);
+  before_each(Package.deactivate >> then_(Package.activate));
 
   // deactivate the input method after each tests
-  after_each(() => {
+  let deactivateAllInputMethod = () => {
     AgdaMode.instances
     |> Js.Dict.entries
     |> Array.forEach(((_, instance: Instance.t)) =>
@@ -20,7 +19,9 @@ describe("Input Method", () => {
        )
     |> ignore;
     resolve();
-  });
+  };
+
+  after_each(deactivateAllInputMethod);
 
   it(
     "should not add class '.agda-mode-input-method-activated' to the editor element before triggering",
@@ -29,6 +30,8 @@ describe("Input Method", () => {
     |> then_(dispatch("agda-mode:load"))
     |> then_(editor => {
          open Webapi.Dom;
+
+         Js.log(AgdaMode.instances);
 
          let element = Atom.Views.getView(editor);
 
@@ -48,7 +51,7 @@ describe("Input Method", () => {
     |> then_(dispatch("agda-mode:load"))
     |> then_(editor => {
          let element = Atom.Views.getView(editor);
-
+         Js.log(AgdaMode.instances);
          let result =
            getInstance(editor)
            |> then_((instance: Instance.t) =>

@@ -21,9 +21,7 @@ describe("when loading files", () =>
            |> thenOk(Connection.connect)
            |> mapOk(Connection.wire)
            |> mapOk(Instance.Connections.set(instance))
-           |> mapError(_ =>
-                BsMocha.Assert.fail(Atom.TextEditor.getPath(editor))
-              )
+           |> mapError(error => BsMocha.Assert.fail(error))
            |> thenOk(_ =>
                 instance
                 |> Instance.Handler.handleLocalCommand(
