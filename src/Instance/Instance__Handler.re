@@ -527,7 +527,7 @@ let rec handleLocalCommand =
     instance
     |> getPointedGoal
     |> thenOk(getGoalIndex)
-    |> thenOk(((goal, index)) => instance |> buff(Refine(goal, index)))
+    |> thenOk(((goal, index)) => instance |> buff(Auto(goal, index)))
 
   | Case =>
     instance
