@@ -36,6 +36,10 @@ jobs:
         echo "Using APM version:"
         "${APM_SCRIPT_PATH}" -v
 
+    - name: Install Agda
+      run: |
+        docker run -i --rm banacorn/agda agda -V
+
     - name: npm install & build
       run: |
         npm install
