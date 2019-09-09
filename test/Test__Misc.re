@@ -36,8 +36,8 @@ describe("when loading files", () =>
                      BsMocha.Assert.ok(true);
                      resolve();
                    })
-                |> mapError(_ => {
-                     BsMocha.Assert.fail(Atom.TextEditor.getPath(editor));
+                |> mapError(error => {
+                     BsMocha.Assert.fail(error);
                      ();
                    })
               );
