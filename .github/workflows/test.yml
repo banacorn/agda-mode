@@ -38,7 +38,22 @@ jobs:
 
     - name: Install Agda
       run: |
-        docker run -i --rm banacorn/agda agda -V
+        echo "Pulling Agda from Docker Hub"
+        docker pull banacorn/agda
+
+        echo "Aliasing docker run"
+        mkdir ${HOME}/bin
+        echo "Aliasing docker run 1 "
+        export PATH="${PATH}:${HOME}/bin"
+        echo "Aliasing docker run 2 "
+        echo -e '#!/bin/bash\ndocker run -i --rm banacorn/agda agda' > ${HOME}/bin/agda
+        echo "Aliasing docker run 3 "
+        chmod +x ${HOME}/bin/agda
+        echo "Aliasing docker run 4 "
+
+        agda -V
+
+        which agda
 
     - name: npm install & build
       run: |
