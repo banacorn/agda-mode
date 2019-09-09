@@ -8,7 +8,7 @@ open Test__Util;
 external promiseFiles: string => Js.Promise.t(array(string)) =
   "promiseFiles";
 
-describe_skip("when loading files", () =>
+describe("when loading files", () =>
   describe("when parsing responses from Agda", () => {
     open Async;
     let loadAndParse = path => {
