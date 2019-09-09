@@ -200,25 +200,22 @@ let make = (textEditor: TextEditor.t, index: option(int), range: (int, int)) => 
   textEditor
   |> TextEditor.decorateMarker(
        marker,
-       {"type": "highlight", "class": "goal", "style": Js.Obj.empty()},
+       TextEditor.decorateMarkerOptions(
+         ~type_="highlight",
+         ~class_="goal",
+         (),
+       ),
      )
   |> ignore;
   textEditor
-  |> TextEditor.decorateMarker_(
+  |> TextEditor.decorateMarker(
        marker,
-       {
-         "type": "overlay",
-         "class": "",
-         "style": Js.Obj.empty(),
-         "item": Element.unsafeAsHtmlElement(element),
-         "onlyHead": false,
-         "onlyEmpty": false,
-         "onlyNonEmpty": false,
-         "omitEmptyLastRow": true,
-         "position": "head",
-         "order": None,
-         "avoidOverflow": true,
-       },
+       TextEditor.decorateMarkerOptions(
+         ~type_="overlay",
+         ~position="head",
+         ~item=Element.unsafeAsHtmlElement(element),
+         (),
+       ),
      )
   |> ignore;
   /* monitoring events */

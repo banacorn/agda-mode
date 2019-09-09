@@ -22,11 +22,11 @@ let add = (annotation: Highlighting.Annotation.t, instance) => {
   textEditor
   |> TextEditor.decorateMarker(
        marker,
-       {
-         "type": "highlight",
-         "class": "highlight-decoration " ++ types,
-         "style": Js.Obj.empty(),
-       },
+       TextEditor.decorateMarkerOptions(
+         ~type_="highlight",
+         ~class_="highlight-decoration " ++ types,
+         (),
+       ),
      )
   |> ignore;
 };

@@ -157,11 +157,11 @@ let monitor = (editor, send) => {
          editor
          |> TextEditor.decorateMarker(
               marker,
-              {
-                "type": "highlight",
-                "class": "input-method-decoration",
-                "style": Js.Obj.empty(),
-              },
+              TextEditor.decorateMarkerOptions(
+                ~type_="highlight",
+                ~class_="input-method-decoration",
+                (),
+              ),
             )
        );
   // destructor
