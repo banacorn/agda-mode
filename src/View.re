@@ -54,9 +54,6 @@ let makeHandles = () => {
   let inquireConnection = make();
   let onInquireConnection = make();
 
-  /* query-related */
-  let onInquireQuery = make();
-
   /* <Settings> related */
   let activateSettingsView = make();
   let onSettingsView = make();

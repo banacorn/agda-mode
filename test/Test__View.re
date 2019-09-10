@@ -13,9 +13,7 @@ describe("View", () => {
   describe("when activating agda-mode", () =>
     it("should mount the panel at the bottom", () =>
       File.openAsset("Blank1.agda")
-      |> then_(dispatch("agda-mode:load"))
-      |> then_(getInstance)
-      |> then_((instance: Instance.t) => instance.onDispatch |> Event.once)
+      |> then_(dispatch2("agda-mode:load"))
       |> then_(_ => {
            open Webapi.Dom;
            let children =

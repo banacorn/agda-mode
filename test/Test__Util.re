@@ -25,6 +25,22 @@ let getInstance = editor => {
   |> Option.getOr(reject(Exn("instance doesn't exist")));
 };
 
+let dispatch2 = (event, editor: TextEditor.t): Js.Promise.t(Instance.t) => {
+  let element = Views.getView(editor);
+
+  editor
+  |> getInstance
+  |> then_(instance => {
+       let onDispatch = instance.Instance__Type.onDispatch |> Event.once;
+
+       switch (Commands.dispatch(element, event)) {
+       | None => reject(DispatchFailure(event))
+       | Some(result) =>
+         result |> then_(() => onDispatch) |> then_(_ => resolve(instance))
+       };
+     });
+};
+
 module Golden = {
   // bindings for jsdiff
   type diff = {
