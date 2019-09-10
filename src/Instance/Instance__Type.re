@@ -21,6 +21,7 @@ type t = {
   mutable goals: array(Goal.t),
   mutable connection: option(Connection.t),
   mutable runningInfo: RunningInfo.t,
-  dispatch: (Command.Primitive.t, t) => Async.t(unit, error),
   handleResponse: (t, Response.t) => Async.t(unit, error),
+  dispatch: (Command.Primitive.t, t) => Async.t(unit, error),
+  onDispatch: Event.t(unit, unit),
 };

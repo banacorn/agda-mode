@@ -330,15 +330,17 @@ let rec handleLocalCommand =
     |> mapError(_ => Cancelled)
     |> thenOk(() => {
          instance.isLoaded = true;
-         instance.view.activate();
-         instance.view.updateShouldDisplay(true);
-         instance.view.display(
-           "Connecting ...",
-           Type.View.Header.PlainText,
-           Emacs(PlainText("")),
-         )
-         |> ignore;
-         instance |> buff(Load);
+         instance.view.activate()
+         |> mapError(_ => Cancelled)
+         |> thenOk(_ => {
+              instance.view.updateShouldDisplay(true);
+              instance.view.display(
+                "Connecting ...",
+                Type.View.Header.PlainText,
+                Emacs(PlainText("")),
+              );
+              instance |> buff(Load);
+            });
        })
   | Abort => instance |> buff(Abort)
   | Quit =>
@@ -813,5 +815,5 @@ let dispatch = (command, instance): Async.t(unit, error) => {
   |> thenOk(handleRemoteCommand(instance, handleResponse))
   |> pass(_ => endCheckpoint(instance))
   |> pass(_ => instance.view.updateIsPending(false))
-  |> mapOk(_ => ());
+  |> mapOk(_ => instance.onDispatch |> Event.emitOk());
 };
