@@ -205,7 +205,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
 
   React.useEffect1(
     () => {
-      handles.activatePanel.send(() => {
+      handles.activatePanel.supply(() => {
         send(Activate);
         let state = React.Ref.current(stateRef);
         if (state.isActive) {
@@ -220,7 +220,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   );
   React.useEffect1(
     () => {
-      handles.deactivatePanel.send(() => {
+      handles.deactivatePanel.supply(() => {
         send(Deactivate);
         let state = React.Ref.current(stateRef);
         if (state.isActive) {

@@ -55,7 +55,7 @@ let make =
       ~onDidChangeActive: option(bool => unit)=?,
       (),
     ) => {
-  let itemResource: Util.Resource.t(Workspace.item) = Util.Resource.make();
+  let itemResource: Resource.t(Workspace.item) = Resource.make();
   let closedDeliberately = ref(false);
   let subscriptions = CompositeDisposable.make();
   let previousItem = Workspace.getActivePane() |> Pane.getActiveItem;
@@ -127,26 +127,20 @@ let make =
     element: itemOpener##element,
     kill: () =>
       itemResource.acquire()
-      |> Js.Promise.then_((item: Workspace.item) => {
+      |> Async.finalOk((item: Workspace.item) => {
            /* dispose subscriptions */
            CompositeDisposable.dispose(subscriptions);
            /* set the "closedDeliberately" to true to trigger "onKill" */
            closedDeliberately := true;
            Workspace.paneForItem(item)
            |> Option.forEach(pane => Pane.destroyItem(item, pane) |> ignore);
-
-           Js.Promise.resolve();
-         })
-      |> ignore,
+         }),
 
     activate: () =>
       itemResource.acquire()
-      |> Js.Promise.then_((item: Workspace.item) => {
+      |> Async.finalOk((item: Workspace.item) =>
            Workspace.paneForItem(item)
-           |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore);
-
-           Js.Promise.resolve();
-         })
-      |> ignore,
+           |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore)
+         ),
   };
 };

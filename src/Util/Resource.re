@@ -1,8 +1,8 @@
 open Rebase;
 
 type t('a) = {
-  recv: unit => Async.t('a, unit),
-  send: 'a => unit,
+  acquire: unit => Async.t('a, unit),
+  supply: 'a => unit,
 };
 let make = (): t('a) => {
   // resource that is temporarily unavailable
@@ -10,15 +10,15 @@ let make = (): t('a) => {
   // queue of callbacks waiting to be resolved
   let queue = ref([]);
   // return the resource if it's immediately available, else waits in the queue
-  let recv = () =>
+  let acquire = () =>
     switch (resource^) {
     | None => Async.make((resolve, _) => queue := [resolve, ...queue^])
     | Some(x) => Async.resolve(x)
     };
   // iterate through the list of waiting callbacks and resolve them
-  let send = x => {
+  let supply = x => {
     resource := Some(x);
     queue^ |> List.forEach(resolve => resolve(x));
   };
-  {recv, send};
+  {acquire, supply};
 };

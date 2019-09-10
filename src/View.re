@@ -9,8 +9,8 @@ type handles = {
   display: Event.t((Header.t, Body.t), unit),
   inquire: Event.t((Header.t, string, string), unit),
   toggleDocking: Event.t(unit, unit),
-  activatePanel: Channel.t(unit => Async.t(Dom.element, unit)),
-  deactivatePanel: Channel.t(unit => Async.t(unit, unit)),
+  activatePanel: Resource.t(unit => Async.t(Dom.element, unit)),
+  deactivatePanel: Resource.t(unit => Async.t(unit, unit)),
   // events
   // onPanelActivationChange: Event.t(option(Dom.element), unit),
   onInputMethodActivationChange: Event.t(bool, unit),
@@ -36,8 +36,8 @@ type handles = {
 /* creates all refs and return them */
 let makeHandles = () => {
   // View related
-  let activatePanel = Channel.make();
-  let deactivatePanel = Channel.make();
+  let activatePanel = Resource.make();
+  let deactivatePanel = Resource.make();
   let display = make();
   let inquire = make();
   let toggleDocking = make();
@@ -125,11 +125,11 @@ type t = {
 };
 let make = (handles: handles) => {
   let activate = () => {
-    handles.activatePanel.recv() |> Async.thenOk(trigger => trigger());
+    handles.activatePanel.acquire() |> Async.thenOk(trigger => trigger());
   };
 
   let deactivate = () => {
-    handles.deactivatePanel.recv() |> Async.thenOk(trigger => trigger());
+    handles.deactivatePanel.acquire() |> Async.thenOk(trigger => trigger());
   };
 
   let destroy = () => {
