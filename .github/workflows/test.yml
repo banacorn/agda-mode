@@ -39,7 +39,7 @@ jobs:
     - name: Install Agda
       run: |
         echo "Pulling Agda from Docker Hub"
-        docker pull banacorn/agda
+        docker pull banacorn/agda:2.6.0.1
 
         echo "Create a script for aliasing docker run"
         mkdir ${HOME}/bin
