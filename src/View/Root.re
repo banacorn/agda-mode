@@ -205,19 +205,21 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
 
   React.useEffect1(
     () => {
-      handles.activatePanel.supply(() => {
-        send(Activate);
-        let state = React.Ref.current(stateRef);
-        if (state.isActive) {
-          Async.resolve(mountingElement(state));
-        } else {
-          onPanelActivated |> Event.once;
-        };
-      });
+      handles.activatePanel
+      |> Channel.recv(() => {
+           send(Activate);
+           let state = React.Ref.current(stateRef);
+           if (state.isActive) {
+             Async.resolve(mountingElement(state));
+           } else {
+             onPanelActivated |> Event.once;
+           };
+         });
       None;
     },
     [||],
   );
+
   React.useEffect1(
     () => {
       handles.deactivatePanel.supply(() => {

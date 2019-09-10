@@ -9,8 +9,8 @@ type handles = {
   display: Event.t((Header.t, Body.t), unit),
   inquire: Event.t((Header.t, string, string), unit),
   toggleDocking: Event.t(unit, unit),
-  activatePanel: Resource.t(unit => Async.t(Dom.element, unit)),
-  deactivatePanel: Resource.t(unit => Async.t(unit, unit)),
+  activatePanel: Channel.t(unit, Dom.element),
+  deactivatePanel: Channel.t(unit, unit),
   // events
   // onPanelActivationChange: Event.t(option(Dom.element), unit),
   onInputMethodActivationChange: Event.t(bool, unit),
@@ -124,13 +124,8 @@ type t = {
   toggleDocking: unit => unit,
 };
 let make = (handles: handles) => {
-  let activate = () => {
-    handles.activatePanel.acquire() |> Async.thenOk(trigger => trigger());
-  };
-
-  let deactivate = () => {
-    handles.deactivatePanel.acquire() |> Async.thenOk(trigger => trigger());
-  };
+  let activate = () => handles.activatePanel |> Channel.send();
+  let deactivate = () => handles.deactivatePanel |> Channel.send();
 
   let destroy = () => {
     deactivate() |> ignore;
