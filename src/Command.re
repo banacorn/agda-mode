@@ -335,8 +335,15 @@ module Remote = {
     | Auto(goal, index) =>
       let content = Goal.getContent(goal);
       let range = buildRange(goal);
-      commonPart(NonInteractive)
-      ++ {j|( Cmd_auto $(index) $(range) "$(content)" )|j};
+      if (Util.Version.gte(version, "2.6.0.1")) {
+        // after 2.6.0.1
+        commonPart(NonInteractive)
+        ++ {j|( Cmd_autoOne $(index) $(range) "$(content)" )|j};
+      } else {
+        // the old way
+        commonPart(NonInteractive)
+        ++ {j|( Cmd_auto $(index) $(range) "$(content)" )|j};
+      };
 
     | Case(goal, index) =>
       let content = Goal.getContent(goal);
