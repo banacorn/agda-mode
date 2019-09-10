@@ -27,7 +27,8 @@ let handleCommandError = instance =>
                "Parse Error",
                Type.View.Header.Error,
                Emacs(ParseError(conn.Connection.metadata)),
-             );
+             )
+             |> ignore;
            })
 
       | ConnectionError(error) =>
@@ -36,25 +37,29 @@ let handleCommandError = instance =>
           "Connection-related Error: " ++ header,
           Type.View.Header.Error,
           Emacs(PlainText(body)),
-        );
+        )
+        |> ignore;
       | Cancelled =>
         instance.view.display(
           "Query Cancelled",
           Type.View.Header.Error,
           Emacs(PlainText("")),
         )
+        |> ignore
       | GoalNotIndexed =>
         instance.view.display(
           "Goal not indexed",
           Type.View.Header.Error,
           Emacs(PlainText("Please reload to re-index the goal")),
         )
+        |> ignore
       | OutOfGoal =>
         instance.view.display(
           "Out of goal",
           Type.View.Header.Error,
           Emacs(PlainText("Please place the cursor in a goal")),
         )
+        |> ignore
       }
     )
     |> ignore;
@@ -650,6 +655,7 @@ let rec handleLocalCommand =
                   ),
                 ),
               )
+              |> ignore
             )
        )
     |> ignore;

@@ -1,4 +1,5 @@
-type t('input, 'output) = Resource.t('input => Async.t('output, unit));
+type t('input, 'output, 'error) =
+  Resource.t('input => Async.t('output, 'error));
 
 let make = Resource.make;
 

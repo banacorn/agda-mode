@@ -203,37 +203,50 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   let onPanelActivated = Event.make();
   let onPanelDeactivated = Event.make();
 
-  React.useEffect1(
+  Hook.useChannel(
     () => {
-      handles.activatePanel
-      |> Channel.recv(() => {
-           send(Activate);
-           let state = React.Ref.current(stateRef);
-           if (state.isActive) {
-             Async.resolve(mountingElement(state));
-           } else {
-             onPanelActivated |> Event.once;
-           };
-         });
-      None;
+      send(Activate);
+      let state = React.Ref.current(stateRef);
+      if (state.isActive) {
+        Async.resolve(mountingElement(state));
+      } else {
+        onPanelActivated |> Event.once;
+      };
     },
-    [||],
+    handles.activatePanel,
   );
 
-  React.useEffect1(
+  Hook.useChannel(
     () => {
-      handles.deactivatePanel.supply(() => {
-        send(Deactivate);
-        let state = React.Ref.current(stateRef);
-        if (state.isActive) {
-          onPanelDeactivated |> Event.once;
-        } else {
-          Async.resolve();
-        };
-      });
-      None;
+      send(Deactivate);
+      let state = React.Ref.current(stateRef);
+      if (state.isActive) {
+        onPanelDeactivated |> Event.once;
+      } else {
+        Async.resolve();
+      };
     },
-    [||],
+    handles.deactivatePanel,
+  );
+
+  /* toggle docking */
+  Hook.useChannel(
+    () => {
+      send(ToggleDocking);
+      Async.resolve();
+    },
+    handles.toggleDocking,
+  );
+
+  /* display mode! */
+  Hook.useChannel(
+    ((header, body)) => {
+      setMode(Display);
+      setHeader(header);
+      setBody(body);
+      Async.resolve();
+    },
+    handles.display,
   );
 
   // trigger `onPanelActivationChange` only when it's changed
@@ -249,15 +262,6 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     (state.mountAt, state.isActive),
   );
 
-  /* display mode! */
-  Hook.useEventListener(
-    ((header, body)) => {
-      setMode(Display);
-      setHeader(header);
-      setBody(body);
-    },
-    handles.display,
-  );
   /* inquire mode! */
   Hook.useEventListener(
     ((header, placeholder, value)) => {
@@ -270,8 +274,6 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     },
     handles.inquire,
   );
-  /* toggle docking */
-  Hook.useEventListener(() => send(ToggleDocking), handles.toggleDocking);
   /* toggle pending spinner */
   Hook.useEventListener(setIsPending, handles.updateIsPending);
   /* toggle state of shouldDisplay */

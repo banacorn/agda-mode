@@ -89,3 +89,13 @@ let useEventListener = (listener, emitter) => {
     [||],
   );
 };
+
+let useChannel = (callback, channel) => {
+  React.useEffect1(
+    () => {
+      channel |> Channel.recv(callback);
+      None;
+    },
+    [||],
+  );
+};
