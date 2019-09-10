@@ -76,6 +76,8 @@ let connectWithAgdaPath =
     connection;
   };
 
+  Js.log(path);
+
   path
   |> getMetadata(instance)
   |> thenOk(getConnection(instance))

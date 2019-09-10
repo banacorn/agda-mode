@@ -1,4 +1,3 @@
-open Rebase;
 open BsMocha;
 open! BsMocha.Mocha;
 open! BsMocha.Promise;

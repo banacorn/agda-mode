@@ -153,6 +153,7 @@ let autoSearch = (path): Async.t(string, Error.t) =>
 let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
   {
     let (path, args) = Parser.commandLine(pathAndParams);
+    Js.log2(path, args);
     let parseError =
         (error: Js.Nullable.t(Js.Exn.t)): option(Error.validation) => {
       switch (error |> Js.Nullable.toOption) {
@@ -225,7 +226,10 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
       |> ignore;
     });
   }
-  |> Async.mapError(e => Error.ValidationError(pathAndParams, e));
+  |> Async.mapError(e => {
+       Js.log2("[ conn ][ validate error ]", e);
+       Error.ValidationError(pathAndParams, e);
+     });
 
 let connect = (metadata: Metadata.t): Async.t(t, Error.t) =>
   {

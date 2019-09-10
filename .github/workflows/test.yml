@@ -58,6 +58,8 @@ jobs:
         # so that we can see "atom" and "apm"
         export PATH="${PATH}:${HOME}/atom/usr/bin:${HOME}/bin"
 
+        agda -V
+        echo "Path of agda: "
         which agda
 
         # linking "agda-mode" to "~/.atom/dev/packages"
