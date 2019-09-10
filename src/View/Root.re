@@ -35,6 +35,12 @@ type state = {
   settingsView: option(Tab.t),
 };
 
+let mountingElement = state =>
+  switch (state.mountAt) {
+  | Bottom(element) => element
+  | Pane(tab) => tab.element
+  };
+
 let initialState = {
   mountAt: Bottom(createBottomPanel()),
   isActive: false,
@@ -179,6 +185,10 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   let ((connection, connectionError), setConnectionAndError) =
     Hook.useState((None, None));
 
+  // ref of state
+  let stateRef = React.useRef(state);
+  React.Ref.setCurrent(stateRef, state);
+
   // reset the element of editors.query  everytime <Panel> got remounted
   // issue #104: https://github.com/banacorn/agda-mode/issues/104
   React.useEffect1(
@@ -189,25 +199,52 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     [|state.mountAt|],
   );
 
+  /* activate/deactivate <Panel> */
+  let onPanelActivated = Event.make();
+  let onPanelDeactivated = Event.make();
+
+  React.useEffect1(
+    () => {
+      handles.activatePanel.send(() => {
+        send(Activate);
+        let state = React.Ref.current(stateRef);
+        if (state.isActive) {
+          Async.resolve(mountingElement(state));
+        } else {
+          onPanelActivated |> Event.once;
+        };
+      });
+      None;
+    },
+    [||],
+  );
+  React.useEffect1(
+    () => {
+      handles.deactivatePanel.send(() => {
+        send(Deactivate);
+        let state = React.Ref.current(stateRef);
+        if (state.isActive) {
+          onPanelDeactivated |> Event.once;
+        } else {
+          Async.resolve();
+        };
+      });
+      None;
+    },
+    [||],
+  );
+
   // trigger `onPanelActivationChange` only when it's changed
   Hook.useDidUpdateEffect2(
     () => {
-      switch (state.mountAt, state.isActive) {
-      | (Bottom(element), true) =>
-        handles.onPanelActivationChange |> Event.emitOk(Some(element))
-      | (Pane(tab), true) =>
-        handles.onPanelActivationChange |> Event.emitOk(Some(tab.element))
-      | (_, false) => handles.onPanelActivationChange |> Event.emitOk(None)
+      if (state.isActive) {
+        onPanelActivated |> Event.emitOk(mountingElement(state));
+      } else {
+        onPanelDeactivated |> Event.emitOk();
       };
       None;
     },
     (state.mountAt, state.isActive),
-  );
-
-  /* activate/deactivate <Panel> */
-  Hook.useEventListener(
-    activate => send(activate ? Activate : Deactivate),
-    handles.activatePanel,
   );
 
   /* display mode! */

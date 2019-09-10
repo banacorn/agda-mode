@@ -9,9 +9,10 @@ type handles = {
   display: Event.t((Header.t, Body.t), unit),
   inquire: Event.t((Header.t, string, string), unit),
   toggleDocking: Event.t(unit, unit),
-  activatePanel: Event.t(bool, unit),
+  activatePanel: Channel.t(unit => Async.t(Dom.element, unit)),
+  deactivatePanel: Channel.t(unit => Async.t(unit, unit)),
   // events
-  onPanelActivationChange: Event.t(option(Dom.element), unit),
+  // onPanelActivationChange: Event.t(option(Dom.element), unit),
   onInputMethodActivationChange: Event.t(bool, unit),
   updateIsPending: Event.t(bool, unit),
   updateShouldDisplay: Event.t(bool, unit),
@@ -35,7 +36,8 @@ type handles = {
 /* creates all refs and return them */
 let makeHandles = () => {
   // View related
-  let activatePanel = make();
+  let activatePanel = Channel.make();
+  let deactivatePanel = Channel.make();
   let display = make();
   let inquire = make();
   let toggleDocking = make();
@@ -44,7 +46,7 @@ let makeHandles = () => {
   let updateShouldDisplay = make();
 
   // events
-  let onPanelActivationChange = make();
+  // let onPanelActivationChange = make();
   let onInputMethodActivationChange = make();
 
   /* connection-related */
@@ -72,7 +74,8 @@ let makeHandles = () => {
     display,
     inquire,
     activatePanel,
-    onPanelActivationChange,
+    deactivatePanel,
+    // onPanelActivationChange,
     onInputMethodActivationChange,
     toggleDocking,
     updateIsPending,
@@ -99,7 +102,7 @@ type t = {
   onDestroy: unit => Async.t(unit, unit),
   updateShouldDisplay: bool => unit,
   // <Panel> related
-  onPanelActivationChange: unit => Async.t(option(Dom.element), unit),
+  // onPanelActivationChange: unit => Async.t(option(Dom.element), unit),
   display: (string, Type.View.Header.style, Body.t) => unit,
   inquire: (string, string, string) => Async.t(string, MiniEditor.error),
   updateIsPending: bool => unit,
@@ -122,24 +125,11 @@ type t = {
 };
 let make = (handles: handles) => {
   let activate = () => {
-    handles.activatePanel |> emitOk(true);
-    handles.onPanelActivationChange
-    |> once
-    |> Async.thenOk(
-         fun
-         | None => Async.reject()
-         | Some(element) => Async.resolve(element),
-       );
+    handles.activatePanel.recv() |> Async.thenOk(trigger => trigger());
   };
+
   let deactivate = () => {
-    handles.activatePanel |> emitOk(false);
-    handles.onPanelActivationChange
-    |> once
-    |> Async.thenOk(
-         fun
-         | None => Async.resolve()
-         | Some(_) => Async.reject(),
-       );
+    handles.deactivatePanel.recv() |> Async.thenOk(trigger => trigger());
   };
 
   let destroy = () => {
@@ -153,7 +143,7 @@ let make = (handles: handles) => {
   let updateShouldDisplay = shouldDisplay =>
     handles.updateShouldDisplay |> emitOk(shouldDisplay) |> ignore;
 
-  let onPanelActivationChange = () => handles.onPanelActivationChange |> once;
+  // let onPanelActivationChange = () => handles.onPanelActivationChange |> once;
 
   let display = (text, style, body) => {
     handles.display |> emitOk(({Type.View.Header.text, style}, body));
@@ -216,7 +206,6 @@ let make = (handles: handles) => {
     destroy,
     onDestroy,
     updateShouldDisplay,
-    onPanelActivationChange,
     display,
     inquire,
     updateIsPending,
