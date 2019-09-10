@@ -153,7 +153,6 @@ let autoSearch = (path): Async.t(string, Error.t) =>
 let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
   {
     let (path, args) = Parser.commandLine(pathAndParams);
-    Js.log2(path, args);
     let parseError =
         (error: Js.Nullable.t(Js.Exn.t)): option(Error.validation) => {
       switch (error |> Js.Nullable.toOption) {
@@ -227,7 +226,15 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
     });
   }
   |> Async.mapError(e => {
-       Js.log2("[ conn ][ validate error ]", e);
+       open Error;
+       switch (e) {
+       | PathMalformed(s) => Js.log2("[PathMalformed]", s)
+       | ProcessHanging => Js.log("[ProcessHanging]")
+       | NotFound(s) => Js.log2("[NotFound]", s)
+       | ShellError(s) => Js.log2("[ShellError]", s)
+       | ProcessError(s) => Js.log2("[ProcessError]", s)
+       | IsNotAgda(s) => Js.log2("[IsNotAgda]", s)
+       };
        Error.ValidationError(pathAndParams, e);
      });
 

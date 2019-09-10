@@ -44,7 +44,7 @@ jobs:
         echo "Create a script for aliasing docker run"
         mkdir ${HOME}/bin
         export PATH="${PATH}:${HOME}/bin"
-        echo -e '#!/bin/bash\ndocker run -i --rm banacorn/agda agda' > ${HOME}/bin/agda
+        echo -e '#!/bin/bash\ndocker run -i --rm banacorn/agda:2.6.0.1 agda "$@"' > ${HOME}/bin/agda
         chmod +x ${HOME}/bin/agda
 
     - name: npm install & build
