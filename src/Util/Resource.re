@@ -1,10 +1,10 @@
 open Rebase;
 
-type t('a) = {
-  acquire: unit => Async.t('a, unit),
+type t('a, 'e) = {
+  acquire: unit => Async.t('a, 'e),
   supply: 'a => unit,
 };
-let make = (): t('a) => {
+let make = (): t('a, 'e) => {
   // resource that is temporarily unavailable
   let resource = ref(None: option('a));
   // queue of callbacks waiting to be resolved

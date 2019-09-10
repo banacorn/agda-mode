@@ -55,7 +55,7 @@ let make =
       ~onDidChangeActive: option(bool => unit)=?,
       (),
     ) => {
-  let itemResource: Resource.t(Workspace.item) = Resource.make();
+  let itemResource: Resource.t(Workspace.item, unit) = Resource.make();
   let closedDeliberately = ref(false);
   let subscriptions = CompositeDisposable.make();
   let previousItem = Workspace.getActivePane() |> Pane.getActiveItem;

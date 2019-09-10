@@ -1,3 +1,5 @@
+open Rebase.Fn;
+
 open ReactUpdate;
 
 open Type.View;
@@ -249,6 +251,35 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     handles.display,
   );
 
+  // inquire mode!
+  let onInquireQuery = Event.make();
+
+  Hook.useChannel(
+    ((header, placeholder, value)) => {
+      send(Activate);
+      setMode(Inquire);
+      editors |> Editors.Focus.on(Query);
+      setHeader(header);
+      // after inquireing
+      onInquireQuery
+      |> Event.once
+      |> Async.pass(_ => {
+           setMode(Display);
+           editors |> Editors.Focus.on(Source);
+         });
+    },
+    handles.inquire,
+  );
+
+  // toggle pending spinner
+  Hook.useChannel(setIsPending >> Async.resolve, handles.updateIsPending);
+
+  // toggle state of shouldDisplay
+  Hook.useChannel(
+    setShouldDisplay >> Async.resolve,
+    handles.updateShouldDisplay,
+  );
+
   // trigger `onPanelActivationChange` only when it's changed
   Hook.useDidUpdateEffect2(
     () => {
@@ -262,29 +293,6 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     (state.mountAt, state.isActive),
   );
 
-  /* inquire mode! */
-  Hook.useEventListener(
-    ((header, placeholder, value)) => {
-      send(Activate);
-      setMode(Inquire);
-      editors |> Editors.Focus.on(Query);
-      setHeader(header);
-      /* pass it on */
-      handles.inquireQuery |> Event.emitOk((placeholder, value));
-    },
-    handles.inquire,
-  );
-  /* toggle pending spinner */
-  Hook.useEventListener(setIsPending, handles.updateIsPending);
-  /* toggle state of shouldDisplay */
-  Hook.useEventListener(setShouldDisplay, handles.updateShouldDisplay);
-  Hook.useEventListener(
-    _ => {
-      setMode(Display);
-      editors |> Editors.Focus.on(Source);
-    },
-    handles.onInquireQuery,
-  );
   /* destroy everything */
   Hook.useEventListener(_ => (), handles.destroy);
 
@@ -335,7 +343,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
           hidden
           onMountAtChange={mountTo => send(MountTo(mountTo))}
           mode
-          onInquireQuery={handles.onInquireQuery}
+          onInquireQuery
           isPending
           isActive
           /* editors */

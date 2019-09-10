@@ -817,9 +817,9 @@ let dispatch = (command, instance): Async.t(unit, error) => {
   instance
   |> handleLocalCommand(command)
   |> pass(_ => startCheckpoint(command, instance))
-  |> pass(_ => instance.view.updateIsPending(true))
+  |> wait(_ => instance.view.updateIsPending(true))
   |> thenOk(handleRemoteCommand(instance, handleResponse))
   |> pass(_ => endCheckpoint(instance))
-  |> pass(_ => instance.view.updateIsPending(false))
+  |> wait(_ => instance.view.updateIsPending(false))
   |> mapOk(_ => instance.onDispatch |> Event.emitOk());
 };

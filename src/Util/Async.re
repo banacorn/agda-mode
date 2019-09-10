@@ -68,6 +68,13 @@ let pass = (f: result('a, 'e) => unit): (t('a, 'e) => t('a, 'e)) =>
       },
   );
 
+let wait = (f: result('a, 'e) => t('a0, 'e0)): (t('a, 'e) => t('a, 'e)) =>
+  P.then_(
+    fun
+    | Ok(v) => f(Ok(v)) |> P.then_(_ => resolve(v))
+    | Error(e) => f(Error(e)) |> P.then_(_ => reject(e)),
+  );
+
 let mapOk = (f: 'a => 'b): (t('a, 'e) => t('b, 'e)) => map(f, e => e);
 
 let passOk = (f: 'a => unit): (t('a, 'e) => t('a, 'e)) =>

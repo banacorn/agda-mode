@@ -6,23 +6,21 @@ open Event;
 /************************************************************************************************************/
 
 type handles = {
-  inquire: Event.t((Header.t, string, string), unit),
   // <Panel>
   activatePanel: Channel.t(unit, Dom.element, unit),
   deactivatePanel: Channel.t(unit, unit, unit),
   toggleDocking: Channel.t(unit, unit, unit),
   display: Channel.t((Header.t, Body.t), unit, unit),
+  inquire: Channel.t((Header.t, string, string), string, MiniEditor.error),
   // events
   // onPanelActivationChange: Event.t(option(Dom.element), unit),
   onInputMethodActivationChange: Event.t(bool, unit),
-  updateIsPending: Event.t(bool, unit),
-  updateShouldDisplay: Event.t(bool, unit),
+  updateIsPending: Channel.t(bool, unit, unit),
+  updateShouldDisplay: Channel.t(bool, unit, unit),
   updateConnection:
     Event.t((option(Connection.t), option(Connection.Error.t)), unit),
   inquireConnection: Event.t(unit, unit),
   onInquireConnection: Event.t(string, MiniEditor.error),
-  inquireQuery: Event.t((string, string), unit),
-  onInquireQuery: Event.t(string, MiniEditor.error),
   activateSettingsView: Event.t(bool, unit),
   onSettingsView: Event.t(bool, unit),
   navigateSettingsView: Event.t(Settings.uri, unit),
@@ -42,10 +40,10 @@ let makeHandles = () => {
   let toggleDocking = Channel.make();
 
   let display = Channel.make();
-  let inquire = make();
+  let inquire = Channel.make();
 
-  let updateIsPending = make();
-  let updateShouldDisplay = make();
+  let updateIsPending = Channel.make();
+  let updateShouldDisplay = Channel.make();
 
   // events
   // let onPanelActivationChange = make();
@@ -58,7 +56,6 @@ let makeHandles = () => {
 
   /* query-related */
   let onInquireQuery = make();
-  let inquireQuery = make();
 
   /* <Settings> related */
   let activateSettingsView = make();
@@ -73,20 +70,19 @@ let makeHandles = () => {
 
   let destroy = make();
   {
-    display,
-    inquire,
     activatePanel,
     deactivatePanel,
-    // onPanelActivationChange,
-    onInputMethodActivationChange,
     toggleDocking,
+    display,
+    inquire,
+
     updateIsPending,
     updateShouldDisplay,
+    // onPanelActivationChange,
+    onInputMethodActivationChange,
     updateConnection,
     inquireConnection,
     onInquireConnection,
-    onInquireQuery,
-    inquireQuery,
     activateSettingsView,
     onSettingsView,
     navigateSettingsView,
@@ -103,13 +99,13 @@ type t = {
   deactivate: unit => Async.t(unit, unit),
   toggleDocking: unit => Async.t(unit, unit),
   display: (string, Type.View.Header.style, Body.t) => Async.t(unit, unit),
+  inquire: (string, string, string) => Async.t(string, MiniEditor.error),
+  updateIsPending: bool => Async.t(unit, unit),
+  updateShouldDisplay: bool => Async.t(unit, unit),
   destroy: unit => unit,
   onDestroy: unit => Async.t(unit, unit),
-  updateShouldDisplay: bool => unit,
   // <Panel> related
   // onPanelActivationChange: unit => Async.t(option(Dom.element), unit),
-  inquire: (string, string, string) => Async.t(string, MiniEditor.error),
-  updateIsPending: bool => unit,
   onMouseEvent: Event.t(Mouse.event, unit),
   // <InputMethod> related
   activateInputMethod: bool => unit,
@@ -130,6 +126,22 @@ let make = (handles: handles) => {
   let deactivate = () => handles.deactivatePanel |> Channel.send();
   let toggleDocking = () => handles.toggleDocking |> Channel.send();
 
+  let display = (text, style, body) =>
+    handles.display |> Channel.send(({Type.View.Header.text, style}, body));
+
+  let inquire = (text, placeholder, value) =>
+    handles.inquire
+    |> Channel.send((
+         {Type.View.Header.text, style: PlainText},
+         placeholder,
+         value,
+       ));
+
+  let updateIsPending = isPending =>
+    handles.updateIsPending |> Channel.send(isPending);
+  let updateShouldDisplay = shouldDisplay =>
+    handles.updateShouldDisplay |> Channel.send(shouldDisplay);
+
   let destroy = () => {
     deactivate() |> ignore;
     handles.destroy |> emitOk();
@@ -137,29 +149,8 @@ let make = (handles: handles) => {
   let onDestroy = () => {
     handles.destroy |> once;
   };
-
-  let updateShouldDisplay = shouldDisplay =>
-    handles.updateShouldDisplay |> emitOk(shouldDisplay) |> ignore;
-
   // let onPanelActivationChange = () => handles.onPanelActivationChange |> once;
 
-  let display = (text, style, body) =>
-    handles.display |> Channel.send(({Type.View.Header.text, style}, body));
-
-  let inquire = (text, placeholder, value) => {
-    let promise = handles.onInquireQuery |> once;
-    handles.inquire
-    |> emitOk((
-         {Type.View.Header.text, style: PlainText},
-         placeholder,
-         value,
-       ));
-    promise;
-  };
-
-  let updateIsPending = isPending => {
-    handles.updateIsPending |> emitOk(isPending);
-  };
   let onMouseEvent = handles.onMouseEvent;
 
   let activateInputMethod = activate =>
@@ -198,12 +189,12 @@ let make = (handles: handles) => {
   {
     activate,
     deactivate,
-    destroy,
-    onDestroy,
-    updateShouldDisplay,
     display,
     inquire,
     updateIsPending,
+    updateShouldDisplay,
+    destroy,
+    onDestroy,
     onMouseEvent,
     activateInputMethod,
     onInputMethodActivationChange,
