@@ -280,17 +280,16 @@ module Keyboard = {
     |> Atom.Keymaps.handleKeyboardEvent;
 
   let press = (key, instance: Instance.t): Js.Promise.t(Instance.t) => {
-    Js.log("[ key ] start");
     open Instance__Type;
     let element = instance.editors.source |> Views.getView;
     // resolves on command dispatch
     let onDispatch = instance.onDispatch |> Event.once;
 
     press'(element, key);
-    Js.log("[ key ] pressed");
 
     onDispatch
-    |> then_(_ => {
+    |> Async.toPromise
+    |> then_(() => {
          Js.log("[ key ] resolved");
          resolve(instance);
        });

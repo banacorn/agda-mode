@@ -585,7 +585,6 @@ let rec handleLocalCommand =
        )
 
   | InputSymbol(symbol) =>
-    Js.log("[ dispatch ][ input-symbol ]");
     let enabled = Atom.Config.get("agda-mode.inputMethod");
     if (enabled) {
       instance.view.updateShouldDisplay(true);
@@ -819,10 +818,9 @@ let dispatch = (command, instance): Async.t(unit, error) => {
   |> handleLocalCommand(command)
   |> pass(_ => startCheckpoint(command, instance))
   |> wait(_ => instance.view.updateIsPending(true))
-  |> pass(_ => Js.log("[ dispatch ] local"))
   |> thenOk(handleRemoteCommand(instance, handleResponse))
   |> pass(_ => endCheckpoint(instance))
   |> wait(_ => instance.view.updateIsPending(false))
-  |> pass(_ => Js.log("[ dispatch ] remote"))
-  |> mapOk(_ => instance.onDispatch |> Event.emitOk());
+  |> mapOk(_ => instance.onDispatch |> Event.emitOk())
+  |> passError(error => instance.onDispatch |> Event.emitError(error));
 };

@@ -23,5 +23,5 @@ type t = {
   mutable runningInfo: RunningInfo.t,
   handleResponse: (t, Response.t) => Async.t(unit, error),
   dispatch: (Command.Primitive.t, t) => Async.t(unit, error),
-  onDispatch: Event.t(unit, unit),
+  onDispatch: Event.t(unit, error),
 };
