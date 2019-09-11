@@ -28,9 +28,11 @@ describe("Input Method", () => {
     () =>
     File.openAsset("Blank1.agda")
     |> then_(dispatch("agda-mode:load"))
-    |> then_(editor => {
+    |> then_(instance => {
+         open Instance__Type;
          open Webapi.Dom;
-         let element = Atom.Views.getView(editor);
+
+         let element = Atom.Views.getView(instance.editors.source);
 
          element
          |> HtmlElement.classList
@@ -46,20 +48,16 @@ describe("Input Method", () => {
     () =>
     File.openAsset("Blank1.agda")
     |> then_(dispatch("agda-mode:load"))
-    |> then_(editor => {
-         let element = Atom.Views.getView(editor);
+    |> then_(instance => {
+         open Instance__Type;
+         let element = Atom.Views.getView(instance.editors.source);
          let result =
-           getInstance(editor)
-           |> then_((instance: Instance.t) =>
-                instance.view.onInputMethodActivationChange()
-                |> then_(
-                     fun
-                     | Ok(result) => resolve(result)
-                     | Error(_) =>
-                       reject(
-                         Exn("input method not activated for some reason"),
-                       ),
-                   )
+           instance.view.onInputMethodActivationChange()
+           |> then_(
+                fun
+                | Ok(result) => resolve(result)
+                | Error(_) =>
+                  reject(Exn("input method not activated for some reason")),
               )
            |> then_(result => {
                 BsMocha.Assert.ok(result);

@@ -10,14 +10,13 @@ external asElement:
   Webapi.Dom.HtmlElement.t_htmlElement => Webapi.Dom.Element.t =
   "%identity";
 
-exception DispatchFailure(string);
-let dispatch = (event, editor: TextEditor.t): Js.Promise.t(TextEditor.t) => {
-  let element = Views.getView(editor);
-  switch (Commands.dispatch(element, event)) {
-  | None => Js.Promise.reject(DispatchFailure(event))
-  | Some(result) => result |> then_(() => resolve(editor))
-  };
-};
+// let dispatch = (event, editor: TextEditor.t): Js.Promise.t(TextEditor.t) => {
+//   let element = Views.getView(editor);
+//   switch (Commands.dispatch(element, event)) {
+//   | None => Js.Promise.reject(DispatchFailure(event))
+//   | Some(result) => result |> then_(() => resolve(editor))
+//   };
+// };
 
 let getInstance = editor => {
   AgdaMode.Instances.get(editor)
@@ -25,7 +24,8 @@ let getInstance = editor => {
   |> Option.getOr(reject(Exn("instance doesn't exist")));
 };
 
-let dispatch2 = (event, editor: TextEditor.t): Js.Promise.t(Instance.t) => {
+exception DispatchFailure(string);
+let dispatch = (event, editor: TextEditor.t): Js.Promise.t(Instance.t) => {
   let element = Views.getView(editor);
 
   editor
