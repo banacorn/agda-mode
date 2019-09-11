@@ -171,9 +171,9 @@ let breakInput = (breakpoints: array(int), input: string) => {
 
 module View = {
   exception PanelNotFound;
-  let getPanelAtBottom = _ => {
+  let getPanelAtBottom = (instance: Instance.t) => {
     open Webapi.Dom;
-    let results =
+    let panels =
       Atom.Workspace.getBottomPanels()
       |> Array.flatMap(
            Atom.Views.getView >> HtmlElement.childNodes >> NodeList.toArray,
@@ -181,7 +181,14 @@ module View = {
       |> Array.filterMap(Element.ofNode)
       |> Array.filter(elem => elem |> Element.className == "agda-mode");
 
-    switch (results[0]) {
+    let targetID = "agda-mode:" ++ Instance.getID(instance);
+    let agdaPanel =
+      panels
+      |> Array.flatMap(Element.childNodes >> NodeList.toArray)
+      |> Array.filterMap(Element.ofNode)
+      |> Array.filter(elem => elem |> Element.id == targetID);
+
+    switch (agdaPanel[0]) {
     | Some(element) => resolve(element)
     | None => reject(PanelNotFound)
     };
