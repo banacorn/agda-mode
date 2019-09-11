@@ -594,6 +594,7 @@ let rec handleLocalCommand =
         |> mapError(_ => Cancelled)
         |> thenOk(_ => {
              instance.view.activateInputMethod(true);
+             Js.log("[ command ][ IM ] done");
              resolve(None);
            })
       | CurlyBracket =>

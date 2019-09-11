@@ -14,7 +14,6 @@ type handles = {
   inquire: Channel.t((Header.t, string, string), string, MiniEditor.error),
   // events
   // onPanelActivationChange: Event.t(option(Dom.element), unit),
-  onInputMethodActivationChange: Event.t(bool, unit),
   updateIsPending: Channel.t(bool, unit, unit),
   updateShouldDisplay: Channel.t(bool, unit, unit),
   updateConnection:
@@ -47,7 +46,6 @@ let makeHandles = () => {
 
   // events
   // let onPanelActivationChange = make();
-  let onInputMethodActivationChange = make();
 
   /* connection-related */
   let updateConnection = make();
@@ -76,7 +74,6 @@ let makeHandles = () => {
     updateIsPending,
     updateShouldDisplay,
     // onPanelActivationChange,
-    onInputMethodActivationChange,
     updateConnection,
     inquireConnection,
     onInquireConnection,
@@ -106,7 +103,6 @@ type t = {
   onMouseEvent: Event.t(Mouse.event, unit),
   // <InputMethod> related
   activateInputMethod: bool => unit,
-  onInputMethodActivationChange: unit => Async.t(bool, unit),
   interceptAndInsertKey: string => unit,
   // <Settings> related
   navigateSettings: Settings__Breadcrumb.uri => unit,
@@ -153,9 +149,6 @@ let make = (handles: handles) => {
   let activateInputMethod = activate =>
     handles.activateInputMethod |> emitOk(activate);
 
-  let onInputMethodActivationChange = () =>
-    handles.onInputMethodActivationChange |> once;
-
   let interceptAndInsertKey = symbol =>
     handles.interceptAndInsertKey |> emitOk(symbol);
 
@@ -194,7 +187,6 @@ let make = (handles: handles) => {
     onDestroy,
     onMouseEvent,
     activateInputMethod,
-    onInputMethodActivationChange,
     interceptAndInsertKey,
     navigateSettings,
     activateSettings,

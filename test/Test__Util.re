@@ -10,37 +10,6 @@ external asElement:
   Webapi.Dom.HtmlElement.t_htmlElement => Webapi.Dom.Element.t =
   "%identity";
 
-// let dispatch = (event, editor: TextEditor.t): Js.Promise.t(TextEditor.t) => {
-//   let element = Views.getView(editor);
-//   switch (Commands.dispatch(element, event)) {
-//   | None => Js.Promise.reject(DispatchFailure(event))
-//   | Some(result) => result |> then_(() => resolve(editor))
-//   };
-// };
-
-let getInstance = editor => {
-  AgdaMode.Instances.get(editor)
-  |> Option.map((instance: Instance.t) => resolve(instance))
-  |> Option.getOr(reject(Exn("instance doesn't exist")));
-};
-
-exception DispatchFailure(string);
-let dispatch = (event, editor: TextEditor.t): Js.Promise.t(Instance.t) => {
-  let element = Views.getView(editor);
-
-  editor
-  |> getInstance
-  |> then_(instance => {
-       let onDispatch = instance.Instance__Type.onDispatch |> Event.once;
-
-       switch (Commands.dispatch(element, event)) {
-       | None => reject(DispatchFailure(event))
-       | Some(result) =>
-         result |> then_(() => onDispatch) |> then_(_ => resolve(instance))
-       };
-     });
-};
-
 module Golden = {
   // bindings for jsdiff
   type diff = {
@@ -297,9 +266,31 @@ module Package = {
   };
 };
 
+let getInstance = editor => {
+  AgdaMode.Instances.get(editor)
+  |> Option.map((instance: Instance.t) => resolve(instance))
+  |> Option.getOr(reject(Exn("instance doesn't exist")));
+};
+
+exception DispatchFailure(string);
+let dispatch = (event, editor: TextEditor.t): Js.Promise.t(Instance.t) => {
+  editor
+  |> getInstance
+  |> then_(instance => {
+       // resolves on command dispatch
+       let onDispatch = instance.Instance__Type.onDispatch |> Event.once;
+       // dispatch command using Atom's API
+       switch (Commands.dispatch(Views.getView(editor), event)) {
+       | None => reject(DispatchFailure(event))
+       | Some(result) =>
+         result |> then_(() => onDispatch) |> then_(_ => resolve(instance))
+       };
+     });
+};
+
 module Keyboard = {
   // building and triggering the event
-  let press = (element, key) =>
+  let press' = (element, key) =>
     Atom.Keymaps.buildKeydownEvent_(
       key,
       {
@@ -312,4 +303,15 @@ module Keyboard = {
       },
     )
     |> Atom.Keymaps.handleKeyboardEvent;
+
+  let press = (key, instance: Instance.t): Js.Promise.t(Instance.t) => {
+    open Instance__Type;
+    let element = instance.editors.source |> Views.getView;
+    // resolves on command dispatch
+    let onDispatch = instance.onDispatch |> Event.once;
+
+    press'(element, key);
+
+    onDispatch |> then_(_ => resolve(instance));
+  };
 };

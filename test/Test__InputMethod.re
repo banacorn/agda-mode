@@ -32,9 +32,8 @@ describe("Input Method", () => {
          open Instance__Type;
          open Webapi.Dom;
 
-         let element = Atom.Views.getView(instance.editors.source);
-
-         element
+         instance.editors.source
+         |> Atom.Views.getView
          |> HtmlElement.classList
          |> DomTokenList.contains("agda-mode-input-method-activated")
          |> BsMocha.Assert.equal(false);
@@ -48,32 +47,18 @@ describe("Input Method", () => {
     () =>
     File.openAsset("Blank1.agda")
     |> then_(dispatch("agda-mode:load"))
-    |> then_(instance => {
-         open Instance__Type;
-         let element = Atom.Views.getView(instance.editors.source);
-         let result =
-           instance.view.onInputMethodActivationChange()
-           |> then_(
-                fun
-                | Ok(result) => resolve(result)
-                | Error(_) =>
-                  reject(Exn("input method not activated for some reason")),
-              )
-           |> then_(result => {
-                BsMocha.Assert.ok(result);
-
-                element
-                |> Webapi.Dom.HtmlElement.classList
-                |> Webapi.Dom.DomTokenList.contains(
-                     "agda-mode-input-method-activated",
-                   )
-                |> BsMocha.Assert.ok;
-
-                resolve();
-              });
-
-         Keyboard.press(element, "\\");
-         result;
-       })
+    |> then_(instance =>
+         instance
+         |> Keyboard.press("\\")
+         |> then_(_ => {
+              open Webapi.Dom;
+              instance.editors.source
+              |> Atom.Views.getView
+              |> HtmlElement.classList
+              |> DomTokenList.contains("agda-mode-input-method-activated")
+              |> BsMocha.Assert.ok;
+              resolve();
+            })
+       )
   );
 });

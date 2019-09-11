@@ -310,7 +310,6 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     activateInputMethod,
     inquireConnection,
     onInquireConnection,
-    onInputMethodActivationChange,
     navigateSettingsView,
   } = handles;
   let panelElement: Webapi.Dom.Element.t =
@@ -356,7 +355,6 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
           settingsView
           onSettingsViewToggle={status => send(ToggleSettingsTab(status))}
           interceptAndInsertKey
-          onInputMethodActivationChange
         />
         <Settings
           inquireConnection
