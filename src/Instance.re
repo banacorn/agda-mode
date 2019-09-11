@@ -79,3 +79,7 @@ let dispatchUndo = (instance: t) => {
     instance.history.needsReloading = false;
   };
 };
+
+let getID = (instance: t): string => {
+  instance.editors.source |> Atom.TextEditor.id |> string_of_int;
+};

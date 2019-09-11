@@ -5,21 +5,23 @@ let activated: ref(bool) = ref(false);
 let instances: Js.Dict.t(Instance.t) = Js.Dict.empty();
 
 module Instances = {
+  let textEditorID = Atom.TextEditor.id >> string_of_int;
+
   let get = textEditor => {
-    let id = textEditor |> Atom.TextEditor.id |> string_of_int;
-    Js.Dict.get(instances, id);
+    Js.Dict.get(instances, textEditorID(textEditor));
   };
   let getThen = (f, textEditor) => textEditor |> get |> Option.forEach(f);
 
   let add = textEditor => {
-    let id = textEditor |> Atom.TextEditor.id |> string_of_int;
     switch (get(textEditor)) {
     | Some(_instance) => ()
-    | None => Instance.make(textEditor) |> Js.Dict.set(instances, id)
+    | None =>
+      Instance.make(textEditor)
+      |> Js.Dict.set(instances, textEditorID(textEditor))
     };
   };
   let remove = textEditor => {
-    let id = textEditor |> Atom.TextEditor.id |> string_of_int;
+    let id = textEditorID(textEditor);
     switch (Js.Dict.get(instances, id)) {
     | Some(instance) =>
       Instance.destroy(instance);

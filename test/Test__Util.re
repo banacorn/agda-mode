@@ -170,46 +170,21 @@ let breakInput = (breakpoints: array(int), input: string) => {
 };
 
 module View = {
-  open Webapi.Dom;
-  let queryMochaContent = () =>
-    document
-    |> Document.documentElement
-    |> Element.querySelector("#mocha-content");
+  exception PanelNotFound;
+  let getPanelAtBottom = _ => {
+    open Webapi.Dom;
+    let results =
+      Atom.Workspace.getBottomPanels()
+      |> Array.flatMap(
+           Atom.Views.getView >> HtmlElement.childNodes >> NodeList.toArray,
+         )
+      |> Array.filterMap(Element.ofNode)
+      |> Array.filter(elem => elem |> Element.className == "agda-mode");
 
-  let createMochaContent = () => {
-    // create `mochaElement`
-    let mochaElement = document |> Document.createElement("div");
-    Element.setId(mochaElement, "mocha-content");
-    // attach `mochaElement` to DOM
-    document
-    |> Document.asHtmlDocument
-    |> Option.flatMap(HtmlDocument.body)
-    |> Option.forEach(body =>
-         mochaElement
-         |> Element.asHtmlElement
-         |> Option.forEach(el => Element.appendChild(el, body))
-       );
-
-    resolve();
-  };
-
-  // attach the given element to #mocha-content
-  let attachToDOM = (htmlElement: HtmlElement.t_htmlElement) => {
-    let mochaElement = queryMochaContent();
-
-    let alreadyAttached =
-      mochaElement
-      |> Option.map(Element.contains(htmlElement))
-      |> Option.getOr(true);
-    ();
-
-    // attach the `htmlElement` to `mochaElement`
-    if (!alreadyAttached) {
-      mochaElement
-      |> Option.forEach(element => Element.appendChild(htmlElement, element));
+    switch (results[0]) {
+    | Some(element) => resolve(element)
+    | None => reject(PanelNotFound)
     };
-
-    resolve();
   };
 };
 
@@ -305,13 +280,19 @@ module Keyboard = {
     |> Atom.Keymaps.handleKeyboardEvent;
 
   let press = (key, instance: Instance.t): Js.Promise.t(Instance.t) => {
+    Js.log("[ key ] start");
     open Instance__Type;
     let element = instance.editors.source |> Views.getView;
     // resolves on command dispatch
     let onDispatch = instance.onDispatch |> Event.once;
 
     press'(element, key);
+    Js.log("[ key ] pressed");
 
-    onDispatch |> then_(_ => resolve(instance));
+    onDispatch
+    |> then_(_ => {
+         Js.log("[ key ] resolved");
+         resolve(instance);
+       });
   };
 };
