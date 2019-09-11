@@ -55,11 +55,12 @@ jobs:
     - name: Run tests
       run: |
 
-        # so that we can see "atom" and "apm"
+        # so that we can see "atom" and "apm" and "agda"
         export PATH="${PATH}:${HOME}/atom/usr/bin:${HOME}/bin"
 
+        echo "Version of Agda: "
         agda -V
-        echo "Path of agda: "
+        echo "Path of Agda: "
         which agda
 
         # linking "agda-mode" to "~/.atom/dev/packages"

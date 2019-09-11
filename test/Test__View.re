@@ -8,7 +8,7 @@ open Js.Promise;
 
 open Test__Util;
 
-describe_only("View", () => {
+describe("View", () => {
   before_each(Package.deactivate >> then_(Package.activate));
   describe("when activating agda-mode", () =>
     it("should mount the panel at the bottom", () =>

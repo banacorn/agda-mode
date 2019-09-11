@@ -195,9 +195,10 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
         reject(Error.PathMalformed("the path must not be empty"));
       };
 
-      /* reject if the process hasn't responded for more than 1 second */
+      // reject if the process hasn't responded for more than 20 second
+      // (it may take longer for dockerized Agda to take off)
       let hangTimeout =
-        Js.Global.setTimeout(() => reject(Error.ProcessHanging), 1000);
+        Js.Global.setTimeout(() => reject(Error.ProcessHanging), 20000);
 
       N.ChildProcess.exec(
         path,
@@ -225,18 +226,7 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
       |> ignore;
     });
   }
-  |> Async.mapError(e => {
-       open Error;
-       switch (e) {
-       | PathMalformed(s) => Js.log2("[PathMalformed]", s)
-       | ProcessHanging => Js.log("[ProcessHanging]")
-       | NotFound(s) => Js.log2("[NotFound]", s)
-       | ShellError(s) => Js.log2("[ShellError]", s)
-       | ProcessError(s) => Js.log2("[ProcessError]", s)
-       | IsNotAgda(s) => Js.log2("[IsNotAgda]", s)
-       };
-       Error.ValidationError(pathAndParams, e);
-     });
+  |> Async.mapError(e => Error.ValidationError(pathAndParams, e));
 
 let connect = (metadata: Metadata.t): Async.t(t, Error.t) =>
   {

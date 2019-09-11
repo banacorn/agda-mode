@@ -1,5 +1,5 @@
 module.exports = {
   "specPattern": /.*\.bs\.js$/i,
-  "timeout": 10000,
+  "timeout": 20000,
   "recursive": true
 }
