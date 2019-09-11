@@ -287,11 +287,6 @@ module Keyboard = {
 
     press'(element, key);
 
-    onDispatch
-    |> Async.toPromise
-    |> then_(() => {
-         Js.log("[ key ] resolved");
-         resolve(instance);
-       });
+    onDispatch |> Async.toPromise |> then_(() => resolve(instance));
   };
 };

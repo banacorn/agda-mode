@@ -80,43 +80,42 @@ let onEditorActivationChange = () => {
   |> CompositeDisposable.add(subscriptions);
 };
 
+// find the <TextEditor> targeted by the given event
+let eventTargetEditor = (event: Webapi.Dom.Event.t): option(TextEditor.t) => {
+  // the HtmlElement of the event target
+  let targetSubElement =
+    event
+    |> Webapi.Dom.Event.target
+    |> Webapi.Dom.EventTarget.unsafeAsElement
+    |> Webapi.Dom.Element.unsafeAsHtmlElement;
+
+  // the <TextEditor>s that contain the event target
+  let targetedEditors =
+    Workspace.getTextEditors()
+    |> Array.filter(
+         Views.getView
+         >> Webapi.Dom.HtmlElement.asNode
+         >> Webapi.Dom.Node.contains(targetSubElement),
+       );
+
+  targetedEditors[0];
+};
+
 /* register keymap bindings and emit commands */
 let onTriggerCommand = () => {
   Command.names
   |> Array.forEach(command =>
        Commands.add(
-         `CSSSelector("atom-text-editor"),
-         "agda-mode:" ++ command,
-         _event => {
-           Js.log("[ AgdaMode ][ command ] " ++ command);
-           Js.log2("[ AgdaMode ][ event ] ", _event);
-           Js.log2(
-             "[ AgdaMode ][ active ] ",
-             Workspace.getActiveTextEditor() |> Views.getView,
-           );
-           Js.log2("[ AgdaMode ][ all ] ", Workspace.getTextEditors() |> Array.map(Views.getView));
-           Js.log2(
-             "[ AgdaMode ][ all sizE ] ",
-             Workspace.getTextEditors() |> Array.length,
-           );
-           Workspace.getActiveTextEditor()
-           |> Option.map(x => {
-                Js.log("[ AgdaMode ][ got active text editor ]");
-                x;
-              })
-           |> Option.flatMap(Instances.get)
-           |> Option.map(x => {
-                Js.log("[ AgdaMode ][ got instance ]");
-                x;
-              })
-           |> Option.forEach(instance => {
-                Js.log("[ AgdaMode ] " ++ command);
-                instance
-                |> Instance.dispatch(Command.Primitive.parse(command))
-                |> Instance.handleCommandError(instance)
-                |> ignore;
-              });
-         },
+         `CSSSelector("atom-text-editor"), "agda-mode:" ++ command, event =>
+         event
+         |> eventTargetEditor
+         |> Option.flatMap(Instances.get)
+         |> Option.forEach(instance =>
+              instance
+              |> Instance.dispatch(Command.Primitive.parse(command))
+              |> Instance.handleCommandError(instance)
+              |> ignore
+            )
        )
        |> CompositeDisposable.add(subscriptions)
      );

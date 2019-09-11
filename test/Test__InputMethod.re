@@ -1,5 +1,5 @@
 open Rebase;
-open Fn;
+
 // open BsChai.Expect;
 // open BsMocha;
 open! BsMocha.Mocha;
@@ -7,7 +7,7 @@ open! BsMocha.Promise;
 open Js.Promise;
 open Test__Util;
 
-describe_only("Input Method", () => {
+describe("Input Method", () => {
   before_each(Package.activate);
   after_each(Package.deactivate);
 
