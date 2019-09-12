@@ -63,24 +63,17 @@ describe("View", () => {
     );
   });
 
-  describe("when toggle docking", () => {
+  describe_only("when toggle docking", () => {
     after_each(Package.cleanup);
 
     it("should open a new tab", () =>
       openAndLoad("Blank1.agda")
+      |> then_(dispatch("agda-mode:toggle-docking"))
       |> then_(_ => {
-           let children =
-             Atom.Workspace.getBottomPanels()
-             |> Array.flatMap(
-                  Atom.Views.getView
-                  >> HtmlElement.childNodes
-                  >> NodeList.toArray,
-                )
-             |> Array.filterMap(Element.ofNode);
-
-           // we've activated a panel with the class name ".agda-mode-panel-container"
-           Expect.expect(children |> Array.map(Element.className))
-           |> Combos.End.to_include("agda-mode-panel-container");
+           View.getPanelContainersAtPanes()
+           |> Array.map(HtmlElement.className)
+           |> Js.Array.includes("agda-mode-panel-container")
+           |> BsMocha.Assert.ok;
            resolve();
          })
     );

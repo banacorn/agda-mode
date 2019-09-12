@@ -42,7 +42,7 @@ describe("Input Method", () => {
   );
   it("should not display the keyboard before triggering", () =>
     openAndLoad("Blank1.agda")
-    |> then_(View.getPanelAtBottom)
+    |> then_(View.getPanel)
     |> then_(panel => {
          switch (
            panel |> View.asElement |> Element.querySelector(".input-method")
@@ -61,7 +61,7 @@ describe("Input Method", () => {
   it("should display the keyboard after triggering", () =>
     openAndLoad("Blank1.agda")
     |> then_(Keyboard.press("\\"))
-    |> then_(View.getPanelAtBottom)
+    |> then_(View.getPanel)
     |> then_(panel => {
          switch (
            panel |> View.asElement |> Element.querySelector(".input-method")

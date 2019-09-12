@@ -175,53 +175,48 @@ module View = {
     >> NodeList.toArray
     >> Array.filterMap(HtmlElement.ofNode);
 
-  exception PanelContainerNotFound;
-  let getPanelContainerAtBottom = () => {
-    let containers: array(HtmlElement.t) =
-      Atom.Workspace.getBottomPanels()
-      |> Array.map(Atom.Views.getView)
-      |> Array.flatMap(childHtmlElements)
-      |> Array.filter(elem =>
-           elem |> HtmlElement.className == "agda-mode-panel-container"
-         );
+  // exception PanelContainerNotFound;
 
-    switch (containers[0]) {
-    | None => reject(PanelContainerNotFound)
-    | Some(container) => resolve(container)
-    };
+  // get all panel containers at bottom
+  let getPanelContainersAtBottom = () => {
+    Atom.Workspace.getBottomPanels()
+    |> Array.map(Atom.Views.getView)
+    |> Array.flatMap(childHtmlElements)
+    |> Array.filter(elem =>
+         elem |> HtmlElement.className == "agda-mode-panel-container"
+       );
   };
-  //
-  // let getPanelContainerAtBottom2 = () => {
-  //   let containers: array(HtmlElement.t) =
-  //     Atom.Workspace.getBottomPanels()
-  //     |> Array.map(Atom.Views.getView)
-  //     |> Array.flatMap(childHtmlElements)
-  //     |> Array.filter(elem =>
-  //          elem |> HtmlElement.className == "agda-mode-panel-container"
-  //        );
-  //
-  //   switch (containers[0]) {
-  //   | None => reject(PanelContainerNotFound)
-  //   | Some(container) => resolve(container)
-  //   };
-  // };
 
+  // get all panel containers in all panes
+  let getPanelContainersAtPanes = () => {
+    Atom.Workspace.getPaneItems()
+    |> Array.map(Atom.Views.getView)
+    |> Array.filter(elem =>
+         elem |> HtmlElement.className == "agda-mode-panel-container"
+       );
+  };
+
+  // get all panel containers
+  let getPanelContainers = () =>
+    Js.Array.concat(
+      getPanelContainersAtBottom(),
+      getPanelContainersAtPanes(),
+    );
+
+  // get the <Panel> of a given Instance
   exception PanelNotFound;
-  let getPanelAtBottom = (instance: Instance.t) => {
-    let targetID = "agda-mode:" ++ Instance.getID(instance);
+  let getPanel = (instance: Instance.t) => {
+    let isTarget = element =>
+      HtmlElement.id(element) == "agda-mode:" ++ Instance.getID(instance);
 
-    getPanelContainerAtBottom()
-    |> then_(container => {
-         let panels =
-           container
-           |> childHtmlElements
-           |> Array.filter(elem => elem |> HtmlElement.id == targetID);
+    let panels =
+      getPanelContainers()
+      |> Array.flatMap(childHtmlElements >> Array.filter(isTarget));
 
-         switch (panels[0]) {
-         | None => reject(PanelNotFound)
-         | Some(panel) => resolve(panel)
-         };
-       });
+    switch (panels[0]) {
+    | None => reject(PanelNotFound)
+    | Some(panel) => resolve(panel)
+    };
   };
 };
 
