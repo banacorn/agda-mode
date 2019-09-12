@@ -233,18 +233,24 @@ module Package = {
     // don't wait for this
     Atom.Packages.activatePackage("agda-mode") |> ignore;
     // manually invoking AgdaMode.activate, because it doesn't get invoked somehow
-    AgdaMode.activate() |> ignore;
-    // resolve anyway
-    resolve();
+    AgdaMode.activate();
   };
 
   let deactivate = () => {
+    // // manually invoking AgdaMode.deactivate
+    // AgdaMode.deactivate() |> ignore;
+    // and then deactivate agda-mode
+    Atom.Packages.deactivatePackage(
+      "agda-mode",
+      false,
+    );
+  };
+
+  let cleanup = () => {
     // destroy all textEditors
     Atom.Workspace.getPanes() |> Array.forEach(Atom.Pane.destroyItems);
-    // manually invoking AgdaMode.deactivate
-    AgdaMode.deactivate() |> ignore;
-    // and the deactivate agda-mode
-    Atom.Packages.deactivatePackage("agda-mode", false);
+
+    resolve();
   };
 };
 

@@ -8,8 +8,7 @@ open Js.Promise;
 
 open Test__Util;
 
-describe("View", () => {
-  before_each(Package.deactivate >> then_(Package.activate));
+describe("View", () =>
   describe("when activating agda-mode", () =>
     it("should mount the panel at the bottom", () =>
       File.openAsset("Blank1.agda")
@@ -31,5 +30,5 @@ describe("View", () => {
            resolve();
          })
     )
-  );
-});
+  )
+);

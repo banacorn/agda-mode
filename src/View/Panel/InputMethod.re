@@ -326,6 +326,7 @@ let make =
   open Util.ClassName;
   let className =
     ["input-method"] |> addWhen("hidden", !state.activated) |> serialize;
+
   let bufferClassName =
     ["inline-block", "buffer"]
     |> addWhen("hidden", Buffer.isEmpty(state.buffer))

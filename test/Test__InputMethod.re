@@ -1,29 +1,15 @@
-open Rebase;
-open Fn;
+// open Rebase;
+// open Fn;
 
 // open BsChai.Expect;
 // open BsMocha;
 open! BsMocha.Mocha;
 open! BsMocha.Promise;
 open Js.Promise;
-open Test__Util;
+open! Test__Util;
 
 describe("Input Method", () => {
-  before_each(Package.activate);
-  after_each(Package.deactivate);
-
-  // deactivate the input method after each tests
-  let deactivateAllInputMethod = () => {
-    AgdaMode.instances
-    |> Js.Dict.entries
-    |> Array.forEach(((_, instance: Instance.t)) =>
-         instance.view.activateInputMethod(false)
-       )
-    |> ignore;
-    resolve();
-  };
-
-  after_each(deactivateAllInputMethod);
+  after_each(Package.cleanup);
   open Instance__Type;
   open Webapi.Dom;
   it(
@@ -56,7 +42,6 @@ describe("Input Method", () => {
          resolve();
        })
   );
-
   it("should not display the keyboard before triggering", () =>
     File.openAsset("Blank1.agda")
     |> then_(dispatch("agda-mode:load"))
@@ -69,6 +54,24 @@ describe("Input Method", () => {
            |> Element.classList
            |> DomTokenList.contains("hidden")
            |> BsMocha.Assert.ok
+         };
+         resolve();
+       })
+  );
+
+  it("should display the keyboard after triggering", () =>
+    File.openAsset("Blank1.agda")
+    |> then_(dispatch("agda-mode:load"))
+    |> then_(Keyboard.press("\\"))
+    |> then_(View.getPanelAtBottom)
+    |> then_(panel => {
+         switch (Element.querySelector(".input-method", panel)) {
+         | None => BsMocha.Assert.fail("cannot find `.input-method`")
+         | Some(element) =>
+           element
+           |> Element.classList
+           |> DomTokenList.contains("hidden")
+           |> BsMocha.Assert.equal(false)
          };
          resolve();
        })

@@ -135,10 +135,6 @@ let make = (handles: handles) => {
   let updateShouldDisplay = shouldDisplay =>
     handles.updateShouldDisplay |> Channel.send(shouldDisplay);
 
-  let destroy = () => {
-    deactivate() |> ignore;
-    handles.destroy |> emitOk();
-  };
   let onDestroy = () => {
     handles.destroy |> once;
   };
@@ -146,8 +142,9 @@ let make = (handles: handles) => {
 
   let onMouseEvent = handles.onMouseEvent;
 
-  let activateInputMethod = activate =>
+  let activateInputMethod = activate => {
     handles.activateInputMethod |> emitOk(activate);
+  };
 
   let interceptAndInsertKey = symbol =>
     handles.interceptAndInsertKey |> emitOk(symbol);
@@ -174,6 +171,12 @@ let make = (handles: handles) => {
     let promise = onInquireConnection |> once;
     handles.inquireConnection |> emitOk();
     promise;
+  };
+
+  let destroy = () => {
+    deactivate() |> ignore;
+    activateInputMethod(false);
+    handles.destroy |> emitOk();
   };
 
   {

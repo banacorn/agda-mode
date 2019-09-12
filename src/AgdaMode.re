@@ -20,15 +20,26 @@ module Instances = {
       |> Js.Dict.set(instances, textEditorID(textEditor))
     };
   };
+
+  let delete_: string => unit = [%raw id => "{delete instances[id]}"];
+  // destroy a certain Instance and remove it from `instances`
   let remove = textEditor => {
     let id = textEditorID(textEditor);
     switch (Js.Dict.get(instances, id)) {
     | Some(instance) =>
       Instance.destroy(instance);
-      %raw
-      "delete instances[id]";
+      delete_(id) |> ignore;
     | None => ()
     };
+  };
+  // destroy all Instance in `instances` and empty it
+  let destroyAll = () => {
+    instances
+    |> Js.Dict.entries
+    |> Array.forEach(((id, instance)) => {
+         Instance.destroy(instance);
+         delete_(id) |> ignore;
+       });
   };
   let contains = textEditor => {
     switch (get(textEditor)) {
@@ -137,8 +148,8 @@ let onUndo = () => {
   |> CompositeDisposable.add(subscriptions);
 };
 
-let setup = () => {
-  /* triggered everytime when a new text editor is opened */
+/* triggered everytime when a new text editor is opened */
+let onOpenEditor = () => {
   Workspace.observeTextEditors(textEditor => {
     open CompositeDisposable;
     let textEditorSubscriptions = make();
@@ -173,6 +184,10 @@ let setup = () => {
     |> add(textEditorSubscriptions);
   })
   |> CompositeDisposable.add(subscriptions);
+};
+
+let setup = () => {
+  onOpenEditor();
   onEditorActivationChange();
   onTriggerCommand();
   onUndo();
@@ -181,11 +196,11 @@ let setup = () => {
 /* the entry point of the whole package, should only be called once (before deactivation) */
 let activate = _ => {
   // make `activate` idempotent
+
   if (! activated^) {
     activated := true;
     setup();
   };
-
   Js.Promise.resolve();
 };
 
@@ -193,6 +208,7 @@ let deactivate = _ =>
   // make `deactivate` idempotent
   if (activated^) {
     activated := false;
+    Instances.destroyAll();
     CompositeDisposable.dispose(subscriptions);
   };
 

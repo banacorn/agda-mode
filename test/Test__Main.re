@@ -8,48 +8,48 @@ open BsChai.Expect;
 
 open Test__Util;
 
-describe("Package", () => {
-  before_each(Package.activate);
-  after_each(Package.deactivate);
+before(Package.activate);
+after(Package.deactivate);
 
-  it(
-    "should be activated after triggering 'agda-mode:load' on .agda files", () => {
-    // before
-    expect("agda-mode")
-    |> Modifiers.not
-    |> to_be_one_of(Package.activeNames())
-    |> ignore;
-
-    File.openAsset("Blank1.agda")
-    |> then_(dispatch("agda-mode:load"))
-    |> then_(_
-         // after
-         =>
-           expect("agda-mode")
-           |> to_be_one_of(Package.activeNames())
-           |> resolve
-         );
-  });
-
-  it(
-    "should be activated after triggering 'agda-mode:load' on .lagda files", () => {
-    // before
-    expect("agda-mode")
-    |> Modifiers.not
-    |> to_be_one_of(Package.activeNames())
-    |> ignore;
-
-    File.openAsset("Blank2.lagda")
-    |> then_(dispatch("agda-mode:load"))
-    |> then_(_
-         // after
-         =>
-           expect("agda-mode")
-           |> to_be_one_of(Package.activeNames())
-           |> resolve
-         );
-  });
-});
+// describe("Package", () => {
+//   it(
+//     "should be activated after triggering 'agda-mode:load' on .agda files", () => {
+//     // before
+//     expect("agda-mode")
+//     |> Modifiers.not
+//     |> to_be_one_of(Package.activeNames())
+//     |> ignore;
+//
+//     File.openAsset("Blank1.agda")
+//     |> then_(dispatch("agda-mode:load"))
+//     |> then_(_
+//          // after
+//          =>
+//            expect("agda-mode")
+//            |> to_be_one_of(Package.activeNames())
+//            |> resolve
+//          );
+//   });
+//
+//   it(
+//     "should be activated after triggering 'agda-mode:load' on .lagda files", () => {
+//     // before
+//     expect("agda-mode")
+//     |> Modifiers.not
+//     |> to_be_one_of(Package.activeNames())
+//     |> ignore;
+//
+//     File.openAsset("Blank2.lagda")
+//     |> then_(dispatch("agda-mode:load"))
+//     |> then_(_
+//          // after
+//          =>
+//            expect("agda-mode")
+//            |> to_be_one_of(Package.activeNames())
+//            |> resolve
+//          );
+//   });
+// });
 
 describe("Instances", () => {
   before(AgdaMode.activate);
