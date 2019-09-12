@@ -6,10 +6,6 @@ open Js.Promise;
 
 exception Exn(string);
 
-external asElement:
-  Webapi.Dom.HtmlElement.t_htmlElement => Webapi.Dom.Element.t =
-  "%identity";
-
 module Golden = {
   // bindings for jsdiff
   type diff = {
@@ -170,30 +166,62 @@ let breakInput = (breakpoints: array(int), input: string) => {
 };
 
 module View = {
-  exception PanelNotFound;
-  let getPanelAtBottom = (instance: Instance.t) => {
-    open Webapi.Dom;
-    let panels =
+  open Webapi.Dom;
+
+  external asElement: HtmlElement.t_htmlElement => Element.t = "%identity";
+
+  let childHtmlElements: HtmlElement.t => array(HtmlElement.t) =
+    HtmlElement.childNodes
+    >> NodeList.toArray
+    >> Array.filterMap(HtmlElement.ofNode);
+
+  exception PanelContainerNotFound;
+  let getPanelContainerAtBottom = () => {
+    let containers: array(HtmlElement.t) =
       Atom.Workspace.getBottomPanels()
-      |> Array.flatMap(
-           Atom.Views.getView >> HtmlElement.childNodes >> NodeList.toArray,
-         )
-      |> Array.filterMap(Element.ofNode)
+      |> Array.map(Atom.Views.getView)
+      |> Array.flatMap(childHtmlElements)
       |> Array.filter(elem =>
-           elem |> Element.className == "agda-mode-panel-container"
+           elem |> HtmlElement.className == "agda-mode-panel-container"
          );
 
-    let targetID = "agda-mode:" ++ Instance.getID(instance);
-    let agdaPanel =
-      panels
-      |> Array.flatMap(Element.childNodes >> NodeList.toArray)
-      |> Array.filterMap(Element.ofNode)
-      |> Array.filter(elem => elem |> Element.id == targetID);
-
-    switch (agdaPanel[0]) {
-    | Some(element) => resolve(element)
-    | None => reject(PanelNotFound)
+    switch (containers[0]) {
+    | None => reject(PanelContainerNotFound)
+    | Some(container) => resolve(container)
     };
+  };
+  //
+  // let getPanelContainerAtBottom2 = () => {
+  //   let containers: array(HtmlElement.t) =
+  //     Atom.Workspace.getBottomPanels()
+  //     |> Array.map(Atom.Views.getView)
+  //     |> Array.flatMap(childHtmlElements)
+  //     |> Array.filter(elem =>
+  //          elem |> HtmlElement.className == "agda-mode-panel-container"
+  //        );
+  //
+  //   switch (containers[0]) {
+  //   | None => reject(PanelContainerNotFound)
+  //   | Some(container) => resolve(container)
+  //   };
+  // };
+
+  exception PanelNotFound;
+  let getPanelAtBottom = (instance: Instance.t) => {
+    let targetID = "agda-mode:" ++ Instance.getID(instance);
+
+    getPanelContainerAtBottom()
+    |> then_(container => {
+         let panels =
+           container
+           |> childHtmlElements
+           |> Array.filter(elem => elem |> HtmlElement.id == targetID);
+
+         switch (panels[0]) {
+         | None => reject(PanelNotFound)
+         | Some(panel) => resolve(panel)
+         };
+       });
   };
 };
 
@@ -257,19 +285,21 @@ let getInstance = editor => {
 };
 
 exception DispatchFailure(string);
-let dispatch = (event, editor: TextEditor.t): Js.Promise.t(Instance.t) => {
-  editor
-  |> getInstance
-  |> then_(instance => {
-       // resolves on command dispatch
-       let onDispatch = instance.Instance__Type.onDispatch |> Event.once;
-       // dispatch command using Atom's API
-       switch (Commands.dispatch(Views.getView(editor), event)) {
-       | None => reject(DispatchFailure(event))
-       | Some(result) =>
-         result |> then_(() => onDispatch) |> then_(_ => resolve(instance))
-       };
-     });
+let dispatch = (event, instance: Instance.t): Js.Promise.t(Instance.t) => {
+  // resolves on command dispatch
+  let onDispatch = instance.Instance__Type.onDispatch |> Event.once;
+  // dispatch command using Atom's API
+  switch (Commands.dispatch(Views.getView(instance.editors.source), event)) {
+  | None => reject(DispatchFailure(event))
+  | Some(result) =>
+    result |> then_(() => onDispatch) |> then_(_ => resolve(instance))
+  };
+};
+
+let openAndLoad = (path): Js.Promise.t(Instance.t) => {
+  File.openAsset(path)
+  |> then_(getInstance)
+  |> then_(dispatch("agda-mode:load"));
 };
 
 module Keyboard = {

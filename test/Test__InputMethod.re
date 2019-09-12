@@ -15,8 +15,7 @@ describe("Input Method", () => {
   it(
     "should not add class '.agda-mode-input-method-activated' to the editor element before triggering",
     () =>
-    File.openAsset("Blank1.agda")
-    |> then_(dispatch("agda-mode:load"))
+    openAndLoad("Blank1.agda")
     |> then_(instance => {
          instance.editors.source
          |> Atom.Views.getView
@@ -30,8 +29,7 @@ describe("Input Method", () => {
   it(
     "should add class '.agda-mode-input-method-activated' to the editor element after triggering",
     () =>
-    File.openAsset("Blank1.agda")
-    |> then_(dispatch("agda-mode:load"))
+    openAndLoad("Blank1.agda")
     |> then_(Keyboard.press("\\"))
     |> then_(instance => {
          instance.editors.source
@@ -43,11 +41,12 @@ describe("Input Method", () => {
        })
   );
   it("should not display the keyboard before triggering", () =>
-    File.openAsset("Blank1.agda")
-    |> then_(dispatch("agda-mode:load"))
+    openAndLoad("Blank1.agda")
     |> then_(View.getPanelAtBottom)
     |> then_(panel => {
-         switch (Element.querySelector(".input-method", panel)) {
+         switch (
+           panel |> View.asElement |> Element.querySelector(".input-method")
+         ) {
          | None => BsMocha.Assert.fail("cannot find `.input-method`")
          | Some(element) =>
            element
@@ -60,12 +59,13 @@ describe("Input Method", () => {
   );
 
   it("should display the keyboard after triggering", () =>
-    File.openAsset("Blank1.agda")
-    |> then_(dispatch("agda-mode:load"))
+    openAndLoad("Blank1.agda")
     |> then_(Keyboard.press("\\"))
     |> then_(View.getPanelAtBottom)
     |> then_(panel => {
-         switch (Element.querySelector(".input-method", panel)) {
+         switch (
+           panel |> View.asElement |> Element.querySelector(".input-method")
+         ) {
          | None => BsMocha.Assert.fail("cannot find `.input-method`")
          | Some(element) =>
            element
