@@ -1,3 +1,4 @@
+open Rebase;
 open Rebase.Fn;
 
 open ReactUpdate;
@@ -17,20 +18,41 @@ external asElement:
 
 external fromDomElement: Dom.element => Atom.Workspace.item = "%identity";
 
-// create "article.agda-mode-panel-container"
-// shared by all instances
-let createBottomPanelContainer = (): Webapi.Dom.Element.t => {
+// get "article.agda-mode-panel-container", create one if not found
+let getBottomPanelContainer = (): Webapi.Dom.Element.t => {
   open Webapi.Dom;
   open DomTokenList;
-  let panelContainer = document |> Document.createElement("article");
-  panelContainer |> Element.classList |> add("agda-mode-panel-container");
-  Atom.Workspace.addBottomPanel({
-    "item": fromDomElement(panelContainer),
-    "priority": 0,
-    "visible": true,
-  })
-  |> ignore;
-  panelContainer;
+
+  // create "article.agda-mode-panel-container"
+  // shared by all instances, should only be invoked once!
+  let createBottomPanelContainer = (): Element.t => {
+    let panelContainer = document |> Document.createElement("article");
+    panelContainer |> Element.classList |> add("agda-mode-panel-container");
+    Atom.Workspace.addBottomPanel({
+      "item": fromDomElement(panelContainer),
+      "priority": 0,
+      "visible": true,
+    })
+    |> ignore;
+    panelContainer;
+  };
+
+  let containers =
+    Atom.Workspace.getBottomPanels()
+    |> Array.map(Atom.Views.getView)
+    |> Array.flatMap(
+         HtmlElement.childNodes
+         >> NodeList.toArray
+         >> Array.filterMap(HtmlElement.ofNode),
+       )
+    |> Array.filter(elem =>
+         elem |> HtmlElement.className == "agda-mode-panel-container"
+       );
+
+  switch (containers[0]) {
+  | None => createBottomPanelContainer()
+  | Some(container) => asElement(container)
+  };
 };
 
 type state = {
@@ -46,7 +68,7 @@ let mountingElement = state =>
   };
 
 let initialState = {
-  mountAt: Bottom(createBottomPanelContainer()),
+  mountAt: Bottom(getBottomPanelContainer()),
   isActive: false,
   settingsView: None,
 };
@@ -86,7 +108,7 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
   | (Bottom(_), ToPane) => self.send(UpdateMountAt(Pane(createTab())))
   | (Pane(tab), ToBottom) =>
     tab.kill();
-    self.send(UpdateMountAt(Bottom(createBottomPanelContainer())));
+    self.send(UpdateMountAt(Bottom(getBottomPanelContainer())));
   | (Pane(_), ToPane) => ()
   };
   None;

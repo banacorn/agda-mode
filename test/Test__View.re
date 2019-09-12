@@ -63,19 +63,51 @@ describe("View", () => {
     );
   });
 
-  describe_only("when toggle docking", () => {
-    after_each(Package.cleanup);
+  describe("Docking", () => {
+    describe("when toggle docking", () => {
+      after_each(Package.cleanup);
 
-    it("should open a new tab", () =>
-      openAndLoad("Blank1.agda")
-      |> then_(dispatch("agda-mode:toggle-docking"))
-      |> then_(_ => {
-           View.getPanelContainersAtPanes()
-           |> Array.map(HtmlElement.className)
-           |> Js.Array.includes("agda-mode-panel-container")
-           |> BsMocha.Assert.ok;
-           resolve();
-         })
-    );
+      it("should open a new tab", () =>
+        openAndLoad("Blank1.agda")
+        |> then_(dispatch("agda-mode:toggle-docking"))
+        |> then_(_ => {
+             View.getPanelContainersAtPanes()
+             |> Array.map(HtmlElement.className)
+             |> Js.Array.includes("agda-mode-panel-container")
+             |> BsMocha.Assert.ok;
+             resolve();
+           })
+      );
+    });
+
+    describe("when toggle docking again", () => {
+      after_each(Package.cleanup);
+
+      it("should close the opened tab", () =>
+        openAndLoad("Blank1.agda")
+        |> then_(dispatch("agda-mode:toggle-docking"))
+        |> then_(dispatch("agda-mode:toggle-docking"))
+        |> then_(_ => {
+             View.getPanelContainersAtPanes()
+             |> Array.map(HtmlElement.className)
+             |> Js.Array.includes("agda-mode-panel-container")
+             |> BsMocha.Assert.equal(false);
+             resolve();
+           })
+      );
+
+      it(
+        "should dock the panel back to the existing bottom panel container", () =>
+        openAndLoad("Blank1.agda")
+        |> then_(dispatch("agda-mode:toggle-docking"))
+        |> then_(dispatch("agda-mode:toggle-docking"))
+        |> then_(_ => {
+             View.getPanelContainersAtBottom()
+             |> Array.length
+             |> BsMocha.Assert.equal(1);
+             resolve();
+           })
+      );
+    });
   });
 });
