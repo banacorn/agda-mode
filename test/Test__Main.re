@@ -20,7 +20,7 @@ after(Package.deactivate);
 //     |> to_be_one_of(Package.activeNames())
 //     |> ignore;
 //
-//     File.openAsset("Blank1.agda")
+//     File.openAsset("Temp.agda")
 //     |> then_(dispatch("agda-mode:load"))
 //     |> then_(_
 //          // after
@@ -52,14 +52,12 @@ after(Package.deactivate);
 // });
 
 describe("Instances", () => {
-  before(AgdaMode.activate);
-
-  it("should have no instances before opening any files", () =>
+  it_skip("should have no instances before opening any files", () =>
     Assert.equal(AgdaMode.Instances.size(), 0) |> resolve
   );
 
   it("should respect the number of opened .agda file", () =>
-    File.openAsset("Blank1.agda")
+    File.openAsset("Temp.agda")
     |> then_(editor => {
          Assert.equal(AgdaMode.Instances.size(), 1);
          let pane = Atom.Workspace.getActivePane();
@@ -93,7 +91,7 @@ describe("Instances", () => {
   );
 
   it("should include '.agda' in the classlist", () =>
-    File.openAsset("Blank1.agda")
+    File.openAsset("Temp.agda")
     |> then_(editor => {
          editor
          |> Atom.Views.getView

@@ -266,10 +266,21 @@ module Package = {
   };
 
   let cleanup = () => {
-    // destroy all textEditors
-    Atom.Workspace.getPanes() |> Array.forEach(Atom.Pane.destroyItems);
+    let destroyAllTextEditors = () =>
+      Atom.Workspace.getPanes()
+      |> Array.flatMap(pane =>
+           pane
+           |> Atom.Pane.getItems
+           |> Array.map(item => Atom.Pane.destroyItem_(item, true, pane))
+         )
+      |> all
+      |> then_(_ => resolve());
+    let clearAllFiles = () => {
+      File.openAsset("Temp.agda")
+      |> then_(Atom.TextEditor.setText("") >> resolve);
+    };
 
-    resolve();
+    destroyAllTextEditors() |> then_(clearAllFiles);
   };
 };
 
