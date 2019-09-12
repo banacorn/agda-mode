@@ -8,13 +8,16 @@ open Js.Promise;
 
 open Test__Util;
 
+open Webapi.Dom;
+
 describe("View", () =>
-  describe("when activating agda-mode", () =>
-    it("should mount the panel at the bottom", () =>
+  describe("when activating agda-mode", () => {
+    after_each(Package.cleanup);
+
+    it("should mount `article.agda-mode` at the bottom", () =>
       File.openAsset("Blank1.agda")
       |> then_(dispatch("agda-mode:load"))
       |> then_(_ => {
-           open Webapi.Dom;
            let children =
              Atom.Workspace.getBottomPanels()
              |> Array.flatMap(
@@ -29,6 +32,32 @@ describe("View", () =>
            |> Combos.End.to_include("agda-mode");
            resolve();
          })
-    )
-  )
+    );
+
+    it("should mount `section#agda-mode:xxx` inside `article.agda-mode`", () =>
+      File.openAsset("Blank1.agda")
+      |> then_(dispatch("agda-mode:load"))
+      |> then_(instance => {
+           let panels =
+             Atom.Workspace.getBottomPanels()
+             |> Array.flatMap(
+                  Atom.Views.getView
+                  >> HtmlElement.childNodes
+                  >> NodeList.toArray,
+                )
+             |> Array.filterMap(Element.ofNode)
+             |> Array.filter(elem => elem |> Element.className == "agda-mode");
+           let targetID = "agda-mode:" ++ Instance.getID(instance);
+
+           panels
+           |> Array.flatMap(Element.childNodes >> NodeList.toArray)
+           |> Array.filterMap(Element.ofNode)
+           |> Array.map(Element.id)
+           |> Js.Array.includes(targetID)
+           |> BsMocha.Assert.ok;
+
+           resolve();
+         })
+    );
+  })
 );
