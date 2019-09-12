@@ -5,10 +5,10 @@ open Rebase;
 
 open Atom;
 
-let makeTabElement = () => {
+let createPanelContainer = () => {
   open DomTokenList;
   let element = document |> Document.createElement("article");
-  element |> Element.classList |> add("agda-mode");
+  element |> Element.classList |> add("agda-mode-panel-container");
   element;
 };
 
@@ -65,7 +65,7 @@ let make =
     ++ Option.getOr("untitled", TextEditor.getPath(editor))
     ++ "/"
     ++ path;
-  let itemOpener = {"element": makeTabElement(), "getTitle": getTitle};
+  let itemOpener = {"element": createPanelContainer(), "getTitle": getTitle};
   /* add tab opener */
   Workspace.addOpener(givenURI =>
     givenURI == itemURI ? Some(itemOpener) : None

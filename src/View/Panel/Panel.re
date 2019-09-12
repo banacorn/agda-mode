@@ -42,7 +42,9 @@ let make =
         )
       : None;
   let className =
-    Util.ClassName.([] |> addWhen("hidden", hidden) |> serialize);
+    Util.ClassName.(
+      ["agda-mode-panel"] |> addWhen("hidden", hidden) |> serialize
+    );
   let id = "agda-mode:" ++ string_of_int(Atom.TextEditor.id(editors.source));
   ReactDOMRe.createPortal(
     <section className id>

@@ -3,7 +3,7 @@
 @import "syntax-variables";
 
 // the main component that houses everything
-.agda-mode {
+.agda-mode-panel-container {
     // font-size: var(--editor-font-size) !important;
 	// line-height: var(--editor-line-height) !important;
     @line-height: var(--editor-line-height);
@@ -21,7 +21,7 @@
 
     // so that .agda-body will overflow and be scrollable
     height: 100%;
-    > section { height: 100% }
+    > section.agda-mode-panel { height: 100% }
 
     //////////////////////////////////////////////////////
     // Header Container

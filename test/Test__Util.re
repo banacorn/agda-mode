@@ -179,7 +179,9 @@ module View = {
            Atom.Views.getView >> HtmlElement.childNodes >> NodeList.toArray,
          )
       |> Array.filterMap(Element.ofNode)
-      |> Array.filter(elem => elem |> Element.className == "agda-mode");
+      |> Array.filter(elem =>
+           elem |> Element.className == "agda-mode-panel-container"
+         );
 
     let targetID = "agda-mode:" ++ Instance.getID(instance);
     let agdaPanel =
@@ -237,13 +239,7 @@ module Package = {
   };
 
   let deactivate = () => {
-    // // manually invoking AgdaMode.deactivate
-    // AgdaMode.deactivate() |> ignore;
-    // and then deactivate agda-mode
-    Atom.Packages.deactivatePackage(
-      "agda-mode",
-      false,
-    );
+    Atom.Packages.deactivatePackage("agda-mode", false);
   };
 
   let cleanup = () => {

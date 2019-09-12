@@ -14,7 +14,7 @@ describe("View", () =>
   describe("when activating agda-mode", () => {
     after_each(Package.cleanup);
 
-    it("should mount `article.agda-mode` at the bottom", () =>
+    it("should mount `article.agda-mode-panel-container` at the bottom", () =>
       File.openAsset("Blank1.agda")
       |> then_(dispatch("agda-mode:load"))
       |> then_(_ => {
@@ -27,14 +27,16 @@ describe("View", () =>
                 )
              |> Array.filterMap(Element.ofNode);
 
-           // we've activated a panel with the class name ".agda-mode"
+           // we've activated a panel with the class name ".agda-mode-panel-container"
            Expect.expect(children |> Array.map(Element.className))
-           |> Combos.End.to_include("agda-mode");
+           |> Combos.End.to_include("agda-mode-panel-container");
            resolve();
          })
     );
 
-    it("should mount `section#agda-mode:xxx` inside `article.agda-mode`", () =>
+    it(
+      "should mount `section#agda-mode:xxx` inside `article.agda-mode-panel-container`",
+      () =>
       File.openAsset("Blank1.agda")
       |> then_(dispatch("agda-mode:load"))
       |> then_(instance => {
@@ -46,7 +48,9 @@ describe("View", () =>
                   >> NodeList.toArray,
                 )
              |> Array.filterMap(Element.ofNode)
-             |> Array.filter(elem => elem |> Element.className == "agda-mode");
+             |> Array.filter(elem =>
+                  elem |> Element.className == "agda-mode-panel-container"
+                );
            let targetID = "agda-mode:" ++ Instance.getID(instance);
 
            panels

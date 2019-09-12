@@ -17,18 +17,20 @@ external asElement:
 
 external fromDomElement: Dom.element => Atom.Workspace.item = "%identity";
 
-let createBottomPanel = (): Webapi.Dom.Element.t => {
+// create "article.agda-mode-panel-container"
+// shared by all instances
+let createBottomPanelContainer = (): Webapi.Dom.Element.t => {
   open Webapi.Dom;
   open DomTokenList;
-  let element = document |> Document.createElement("article");
-  element |> Element.classList |> add("agda-mode");
+  let panelContainer = document |> Document.createElement("article");
+  panelContainer |> Element.classList |> add("agda-mode-panel-container");
   Atom.Workspace.addBottomPanel({
-    "item": fromDomElement(element),
+    "item": fromDomElement(panelContainer),
     "priority": 0,
     "visible": true,
   })
   |> ignore;
-  element;
+  panelContainer;
 };
 
 type state = {
@@ -44,7 +46,7 @@ let mountingElement = state =>
   };
 
 let initialState = {
-  mountAt: Bottom(createBottomPanel()),
+  mountAt: Bottom(createBottomPanelContainer()),
   isActive: false,
   settingsView: None,
 };
@@ -84,7 +86,7 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
   | (Bottom(_), ToPane) => self.send(UpdateMountAt(Pane(createTab())))
   | (Pane(tab), ToBottom) =>
     tab.kill();
-    self.send(UpdateMountAt(Bottom(createBottomPanel())));
+    self.send(UpdateMountAt(Bottom(createBottomPanelContainer())));
   | (Pane(_), ToPane) => ()
   };
   None;
