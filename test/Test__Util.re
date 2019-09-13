@@ -323,7 +323,14 @@ let openAndLoad = (path): Js.Promise.t(Instance.t) => {
 
 module Keyboard = {
   // building and triggering the event
-  let press' = (element, key) =>
+
+  let dispatch = (key, instance: Instance.t): Js.Promise.t(Instance.t) => {
+    open Instance__Type;
+    let element = instance.editors.source |> Views.getView;
+    // resolves on command dispatch
+    let onDispatch = instance.onDispatch |> Event.once;
+
+    // build and dispatch the keyboard event
     Atom.Keymaps.buildKeydownEvent_(
       key,
       {
@@ -337,14 +344,11 @@ module Keyboard = {
     )
     |> Atom.Keymaps.handleKeyboardEvent;
 
-  let dispatch = (key, instance: Instance.t): Js.Promise.t(Instance.t) => {
-    open Instance__Type;
-    let element = instance.editors.source |> Views.getView;
-    // resolves on command dispatch
-    let onDispatch = instance.onDispatch |> Event.once;
-
-    press'(element, key);
-
     onDispatch |> Async.toPromise |> then_(() => resolve(instance));
+  };
+
+  let insert = (key, instance: Instance.t) => {
+    instance.editors.source |> TextEditor.insertText(key) |> ignore;
+                                                                    // resolve(instance);
   };
 };
