@@ -218,6 +218,19 @@ module View = {
     | Some(panel) => resolve(panel)
     };
   };
+
+  exception ElementNotFound(string);
+  let querySelector =
+      (selector: string, elem: HtmlElement.t): Js.Promise.t(HtmlElement.t) => {
+    elem
+    |> asElement
+    |> Element.querySelector(selector)
+    |> Option.flatMap(Element.asHtmlElement)
+    |> Option.mapOr(
+         resolve,
+         reject(ElementNotFound("cannot find `" ++ selector ++ "`")),
+       );
+  };
 };
 
 module Path = {
@@ -324,7 +337,7 @@ module Keyboard = {
     )
     |> Atom.Keymaps.handleKeyboardEvent;
 
-  let press = (key, instance: Instance.t): Js.Promise.t(Instance.t) => {
+  let dispatch = (key, instance: Instance.t): Js.Promise.t(Instance.t) => {
     open Instance__Type;
     let element = instance.editors.source |> Views.getView;
     // resolves on command dispatch
