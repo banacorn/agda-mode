@@ -21,11 +21,21 @@ let make =
       ~editorValue: string,
       ~interceptAndInsertKey: Event.t(string, unit),
       ~activateInputMethod: Event.t(bool, unit),
+      ~onInputMethodActivationChange: Event.t(bool, unit),
       ~onSettingsViewToggle: bool => unit,
     ) => {
   let (maxHeight, setMaxHeight) = Hook.useState(170);
   let (inputMethodActivated, setInputMethodActivation) =
     Hook.useState(false);
+
+  React.useEffect1(
+    () => {
+      let destructor =
+        onInputMethodActivationChange |> Event.onOk(setInputMethodActivation);
+      Some(destructor);
+    },
+    [||],
+  );
 
   let mountAtBottom =
     switch (mountAt) {
@@ -72,7 +82,7 @@ let make =
           interceptAndInsertKey
           activateInputMethod
           isActive
-          onActivationChange=setInputMethodActivation
+          onActivationChange=onInputMethodActivationChange
         />
         <Dashboard
           header

@@ -266,7 +266,7 @@ let make =
          */
       ~interceptAndInsertKey: Event.t(string, unit),
       ~activateInputMethod: Event.t(bool, unit),
-      ~onActivationChange: bool => unit,
+      ~onActivationChange: Event.t(bool, unit),
       ~isActive: bool,
     ) => {
   let editor = Editors.Focus.get(editors);
@@ -304,7 +304,7 @@ let make =
   // triggers events on change
   Hook.useDidUpdateEffect(
     () => {
-      onActivationChange(state.activated);
+      onActivationChange |> Event.emitOk(state.activated);
       None;
     },
     [|state.activated|],

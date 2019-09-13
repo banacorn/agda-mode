@@ -27,6 +27,7 @@ type handles = {
   /* Input Method */
   activateInputMethod: Event.t(bool, unit),
   interceptAndInsertKey: Event.t(string, unit),
+  onInputMethodActivationChange: Event.t(bool, unit),
   /* Mouse Events */
   onMouseEvent: Event.t(Mouse.event, unit),
 };
@@ -60,7 +61,7 @@ let makeHandles = () => {
   /* <InputMethod> related */
   let interceptAndInsertKey = make();
   let activateInputMethod = make();
-
+  let onInputMethodActivationChange = Event.make();
   let onMouseEvent = make();
 
   let destroy = make();
@@ -83,6 +84,7 @@ let makeHandles = () => {
     destroy,
     activateInputMethod,
     interceptAndInsertKey,
+    onInputMethodActivationChange,
     onMouseEvent,
   };
 };
