@@ -1,4 +1,4 @@
-// open Rebase;
+open Rebase;
 // open Fn;
 
 // open BsChai.Expect;
@@ -11,12 +11,13 @@ open! Test__Util;
 describe("Input Method", () => {
   after_each(Package.cleanup);
   open Instance__Type;
-  open Webapi.Dom;
   it(
     "should not add class '.agda-mode-input-method-activated' to the editor element before triggering",
     () =>
     openAndLoad("Blank1.agda")
     |> then_(instance => {
+         open Webapi.Dom;
+
          instance.editors.source
          |> Atom.Views.getView
          |> HtmlElement.classList
@@ -32,6 +33,8 @@ describe("Input Method", () => {
     openAndLoad("Blank1.agda")
     |> then_(Keyboard.dispatch("\\"))
     |> then_(instance => {
+         open Webapi.Dom;
+
          instance.editors.source
          |> Atom.Views.getView
          |> HtmlElement.classList
@@ -48,6 +51,8 @@ describe("Input Method", () => {
          |> View.getPanel
          |> then_(View.querySelector(".input-method"))
          |> then_(element => {
+              open Webapi.Dom;
+
               element
               |> HtmlElement.classList
               |> DomTokenList.contains("hidden")
@@ -61,6 +66,8 @@ describe("Input Method", () => {
          |> View.getPanel
          |> then_(View.querySelector(".input-method"))
          |> then_(element => {
+              open Webapi.Dom;
+
               element
               |> HtmlElement.classList
               |> DomTokenList.contains("hidden")
@@ -68,5 +75,43 @@ describe("Input Method", () => {
               resolve();
             })
        )
+  );
+
+  it("should notify when triggered", () =>
+    openAndLoad("Blank1.agda")
+    |> then_(instance => {
+         let onDispatch =
+           instance.view.onInputMethodActivationChange
+           |> Event.once
+           |> Async.toPromise;
+
+         // dispatch!
+         instance
+         |> Keyboard.dispatch("\\")
+         |> then_(_ =>
+              onDispatch
+              |> then_(activated => {
+                   BsMocha.Assert.equal(true, activated);
+                   resolve(instance);
+                 })
+            );
+       })
+    |> then_(instance => {
+         let onDispatch =
+           instance.view.onInputMethodActivationChange
+           |> Event.once
+           |> Async.toPromise;
+
+         // dispatch!
+         instance
+         |> Keyboard.dispatch("\\")
+         |> then_(_ =>
+              onDispatch
+              |> then_(activated => {
+                   BsMocha.Assert.equal(false, activated);
+                   resolve(instance);
+                 })
+            );
+       })
   );
 });

@@ -106,6 +106,7 @@ type t = {
   // <InputMethod> related
   activateInputMethod: bool => unit,
   interceptAndInsertKey: string => unit,
+  onInputMethodActivationChange: Event.t(bool, unit),
   // <Settings> related
   navigateSettings: Settings__Breadcrumb.uri => unit,
   activateSettings: unit => unit,
@@ -151,6 +152,8 @@ let make = (handles: handles) => {
   let interceptAndInsertKey = symbol =>
     handles.interceptAndInsertKey |> emitOk(symbol);
 
+  let onInputMethodActivationChange = handles.onInputMethodActivationChange;
+
   let navigateSettings = where =>
     handles.navigateSettingsView |> emitOk(where);
 
@@ -193,6 +196,7 @@ let make = (handles: handles) => {
     onMouseEvent,
     activateInputMethod,
     interceptAndInsertKey,
+    onInputMethodActivationChange,
     navigateSettings,
     activateSettings,
     openSettings,
