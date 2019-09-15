@@ -15,6 +15,8 @@ exception QueryCancelled;
 
 let make = editor => {focused: Source, source: editor, query: None};
 
+let getID = self => self.source |> Atom.TextEditor.id |> string_of_int;
+
 module Focus = {
   open Webapi.Dom;
   let get = (editors): TextEditor.t =>

@@ -61,8 +61,10 @@ let make = (textEditor: Atom.TextEditor.t) => {
          | _ => ()
          }
        );
-  instance.view.onDestroy()
-  |> finalOk(_ => {
+
+  instance.view.onDestroy
+  |> Event.once
+  |> Async.finalOk(_ => {
        destructor0();
        destructor1();
      });
@@ -81,5 +83,5 @@ let dispatchUndo = (instance: t) => {
 };
 
 let getID = (instance: t): string => {
-  instance.editors.source |> Atom.TextEditor.id |> string_of_int;
+  instance.editors |> Editors.getID;
 };

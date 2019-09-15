@@ -61,7 +61,7 @@ type state = {
   settingsView: option(Tab.t),
 };
 
-let mountingElement = state =>
+let getPanelContainerFromState = state =>
   switch (state.mountAt) {
   | Bottom(element) => element
   | Pane(tab) => tab.element
@@ -234,7 +234,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
       send(Activate);
       let state = React.Ref.current(stateRef);
       if (state.isActive) {
-        Async.resolve(mountingElement(state));
+        Async.resolve(getPanelContainerFromState(state));
       } else {
         onPanelActivated |> Event.once;
       };
@@ -308,7 +308,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   Hook.useDidUpdateEffect2(
     () => {
       if (state.isActive) {
-        onPanelActivated |> Event.emitOk(mountingElement(state));
+        onPanelActivated |> Event.emitOk(getPanelContainerFromState(state));
       } else {
         onPanelDeactivated |> Event.emitOk();
       };
@@ -317,8 +317,35 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     (state.mountAt, state.isActive),
   );
 
-  /* destroy everything */
-  Hook.useEventListener(_ => (), handles.destroy);
+  // destroy everything
+  Hook.useChannel(
+    () => {
+      open Webapi.Dom;
+      // removes `.agda-mode-panel` from the `.agda-mode-panel-container`
+      let targetID = "agda-mode:" ++ Editors.getID(editors);
+      let container = getPanelContainerFromState(state);
+      // TODO: refactor this
+      let panel =
+        container
+        |> HtmlElement.ofElement
+        |> Option.map(
+             HtmlElement.childNodes
+             >> NodeList.toArray
+             >> Array.filterMap(HtmlElement.ofNode),
+           )
+        |> Option.map(
+             Array.filter(elem => HtmlElement.id(elem) == targetID),
+           )
+        |> Option.flatMap(xs => xs[0]);
+
+      panel
+      |> Option.forEach(elem =>
+           container |> Element.removeChild(elem) |> ignore
+         );
+      Async.resolve();
+    },
+    handles.destroy,
+  );
 
   /* opening/closing <Settings> */
   Hook.useEventListener(
@@ -337,11 +364,8 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     onInputMethodActivationChange,
     navigateSettingsView,
   } = handles;
-  let panelElement: Webapi.Dom.Element.t =
-    switch (mountAt) {
-    | Bottom(element) => element
-    | Pane(tab) => tab.element
-    };
+  let containerElement = getPanelContainerFromState(state);
+
   let settingsElement: option(Webapi.Dom.Element.t) =
     switch (settingsView) {
     | None => None
@@ -360,7 +384,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
       <Debug.Provider value=debugDispatch>
         <Panel
           editors
-          element=panelElement
+          containerElement
           header
           body
           mountAt

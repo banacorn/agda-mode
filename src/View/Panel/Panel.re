@@ -4,7 +4,7 @@ open Type.View;
 let make =
     (
       ~editors: Editors.t,
-      ~element: Webapi.Dom.Element.t,
+      ~containerElement: Webapi.Dom.Element.t,
       ~onMountAtChange: mountTo => unit,
       ~body: Body.t,
       ~header: Header.t,
@@ -55,7 +55,7 @@ let make =
     Util.ClassName.(
       ["agda-mode-panel"] |> addWhen("hidden", hidden) |> serialize
     );
-  let id = "agda-mode:" ++ string_of_int(Atom.TextEditor.id(editors.source));
+  let id = "agda-mode:" ++ Editors.getID(editors);
   ReactDOMRe.createPortal(
     <section className id>
       <section className="panel-heading agda-header-container">
@@ -109,6 +109,6 @@ let make =
         />
       </section>
     </section>,
-    element,
+    containerElement,
   );
 };

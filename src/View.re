@@ -23,7 +23,7 @@ type handles = {
   activateSettingsView: Event.t(bool, unit),
   onSettingsView: Event.t(bool, unit),
   navigateSettingsView: Event.t(Settings.uri, unit),
-  destroy: Event.t(unit, unit),
+  destroy: Channel.t(unit, unit, unit),
   /* Input Method */
   activateInputMethod: Event.t(bool, unit),
   interceptAndInsertKey: Event.t(string, unit),
@@ -64,7 +64,7 @@ let makeHandles = () => {
   let onInputMethodActivationChange = Event.make();
   let onMouseEvent = make();
 
-  let destroy = make();
+  let destroy = Channel.make();
   {
     activatePanel,
     deactivatePanel,
@@ -98,8 +98,8 @@ type t = {
   inquire: (string, string, string) => Async.t(string, MiniEditor.error),
   updateIsPending: bool => Async.t(unit, unit),
   updateShouldDisplay: bool => Async.t(unit, unit),
-  destroy: unit => unit,
-  onDestroy: unit => Async.t(unit, unit),
+  destroy: unit => Async.t(unit, unit),
+  onDestroy: Event.t(unit, unit),
   // <Panel> related
   // onPanelActivationChange: unit => Async.t(option(Dom.element), unit),
   onMouseEvent: Event.t(Mouse.event, unit),
@@ -138,9 +138,6 @@ let make = (handles: handles) => {
   let updateShouldDisplay = shouldDisplay =>
     handles.updateShouldDisplay |> Channel.send(shouldDisplay);
 
-  let onDestroy = () => {
-    handles.destroy |> once;
-  };
   // let onPanelActivationChange = () => handles.onPanelActivationChange |> once;
 
   let onMouseEvent = handles.onMouseEvent;
@@ -178,11 +175,15 @@ let make = (handles: handles) => {
     promise;
   };
 
-  let destroy = () => {
-    deactivate() |> ignore;
-    activateInputMethod(false);
-    handles.destroy |> emitOk();
-  };
+  let onDestroy = Event.make();
+  let destroy = () =>
+    deactivate()
+    |> Async.thenOk(_ => {
+         activateInputMethod(false);
+         Async.resolve();
+       })
+    |> Async.thenOk(_ => handles.destroy |> Channel.send())
+    |> Async.passOk(_ => onDestroy |> Event.emitOk());
 
   {
     activate,

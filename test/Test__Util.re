@@ -321,6 +321,17 @@ let openAndLoad = (path): Js.Promise.t(Instance.t) => {
   |> then_(dispatch("agda-mode:load"));
 };
 
+let close = (instance: Instance.t): Js.Promise.t(unit) => {
+  let onDestroy = instance.view.onDestroy |> Event.once |> Async.toPromise;
+
+  instance.editors.source
+  |> Atom.TextEditor.asWorkspaceItem
+  |> Atom.Workspace.hideItem
+  |> ignore;
+
+  onDestroy;
+};
+
 module Keyboard = {
   // building and triggering the event
 
@@ -351,4 +362,11 @@ module Keyboard = {
     instance.editors.source |> TextEditor.insertText(key) |> ignore;
                                                                     // resolve(instance);
   };
+};
+
+module Assert = {
+  let equal = (~message=?, expected, actual) =>
+    BsMocha.Assert.equal(~message?, actual, expected);
+  // let not_equal = (~message=?, expected, actual) =>
+  //   BsMocha.Assert.not_equal(~message?, actual, expected);
 };
