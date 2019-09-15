@@ -211,6 +211,8 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   let ((connection, connectionError), setConnectionAndError) =
     Hook.useState((None, None));
 
+  let panelRef = React.useRef(Js.Nullable.null);
+
   // ref of state
   let stateRef = React.useRef(state);
   React.Ref.setCurrent(stateRef, state);
@@ -322,26 +324,14 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     () => {
       open Webapi.Dom;
       // removes `.agda-mode-panel` from the `.agda-mode-panel-container`
-      let targetID = "agda-mode:" ++ Editors.getID(editors);
       let container = getPanelContainerFromState(state);
-      // TODO: refactor this
-      let panel =
-        container
-        |> HtmlElement.ofElement
-        |> Option.map(
-             HtmlElement.childNodes
-             >> NodeList.toArray
-             >> Array.filterMap(HtmlElement.ofNode),
-           )
-        |> Option.map(
-             Array.filter(elem => HtmlElement.id(elem) == targetID),
-           )
-        |> Option.flatMap(xs => xs[0]);
+      let panel = React.Ref.current(panelRef) |> Js.Nullable.toOption;
 
-      panel
-      |> Option.forEach(elem =>
-           container |> Element.removeChild(elem) |> ignore
-         );
+      switch (panel) {
+      | None => ()
+      | Some(elem) => container |> Element.removeChild(elem) |> ignore
+      };
+
       Async.resolve();
     },
     handles.destroy,
@@ -383,6 +373,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
       value={event => handles.onMouseEvent |> Event.emitOk(event)}>
       <Debug.Provider value=debugDispatch>
         <Panel
+          panelRef
           editors
           containerElement
           header
@@ -395,7 +386,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
           isPending
           isActive
           /* editors */
-          onEditorRef={ref => React.Ref.setCurrent(queryRef, Some(ref))}
+          onQueryEditorRef={ref => React.Ref.setCurrent(queryRef, Some(ref))}
           editorValue=""
           // {editors.query.value}
           // {editors.query.placeholder}

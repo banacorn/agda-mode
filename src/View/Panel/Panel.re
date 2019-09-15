@@ -14,9 +14,10 @@ let make =
       ~settingsView: option(Tab.t),
       ~isPending: bool,
       ~isActive: bool,
+      ~panelRef: ReactDOMRe.Ref.currentDomRef,
       /* Editors */
       ~onInquireQuery: Event.t(string, MiniEditor.error),
-      ~onEditorRef: Atom.TextEditor.t => unit,
+      ~onQueryEditorRef: Atom.TextEditor.t => unit,
       ~editorPlaceholder: string,
       ~editorValue: string,
       ~interceptAndInsertKey: Event.t(string, unit),
@@ -56,8 +57,9 @@ let make =
       ["agda-mode-panel"] |> addWhen("hidden", hidden) |> serialize
     );
   let id = "agda-mode:" ++ Editors.getID(editors);
+
   ReactDOMRe.createPortal(
-    <section className id>
+    <section ref={ReactDOMRe.Ref.domRef(panelRef)} className id>
       <section className="panel-heading agda-header-container">
         <SizingHandle
           onResizeStart=setMaxHeight
@@ -101,7 +103,7 @@ let make =
           value=editorValue
           placeholder=editorPlaceholder
           grammar="agda"
-          onEditorRef
+          onEditorRef=onQueryEditorRef
           onConfirm={result => onInquireQuery |> Event.emitOk(result)}
           onCancel={() =>
             onInquireQuery |> Event.emitError(MiniEditor.Cancelled) |> ignore
