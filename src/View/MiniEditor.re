@@ -1,4 +1,7 @@
+// Binding to Atom's <atom-text-editor>
+
 open Rebase;
+open Fn;
 
 type error =
   | Cancelled;
@@ -12,16 +15,13 @@ let observeFocus = (setFocused: bool => unit, editor) => {
     MutationObserver.make((mutations, _) => {
       let focusedNow =
         mutations
-        |> Array.exists(m =>
-             m
-             |> MutationRecord.target
-             |> Element.ofNode
-             |> Option.map(elem =>
-                  elem
-                  |> Element.classList
-                  |> DomTokenList.contains("is-focused")
+        |> Array.exists(
+             MutationRecord.target
+             >> Element.ofNode
+             >> Option.map(
+                  Element.classList >> DomTokenList.contains("is-focused"),
                 )
-             |> Option.mapOr(Fn.id, false)
+             >> Option.mapOr(id, false),
            );
       /* modify the state */
       setFocused(focusedNow);
@@ -38,6 +38,10 @@ let observeFocus = (setFocused: bool => unit, editor) => {
   /* stop observing */
   Some(() => observer |> MutationObserver.disconnect);
 };
+
+// converting from a React ref to a <TextEditor>
+let ofTextEditor: ReasonReact.reactRef => Atom.TextEditor.t =
+  r => ReasonReact.refToJsObj(r)##getModel();
 
 [@react.component]
 let make =
@@ -59,7 +63,7 @@ let make =
   React.useEffect1(
     () =>
       React.Ref.current(editorElem)
-      |> Option.map(r => ReasonReact.refToJsObj(r)##getModel())
+      |> Option.map(ofTextEditor)
       |> Option.flatMap(editor => {
            // storing the Editor
            setEditorRef(Some(editor));
