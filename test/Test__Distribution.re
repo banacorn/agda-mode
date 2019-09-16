@@ -47,7 +47,7 @@ describe("Distribution", () => {
       onProd(() =>
         make((~resolve, ~reject) =>
           N.Fs.access(Path.file("lib/js/bundled.js"), err =>
-            switch (err) {
+            switch (Js.nullToOption(err)) {
             | None => resolve(. 0)
             | Some(e) => reject(. N.Exception(e))
             }

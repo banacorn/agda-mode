@@ -278,17 +278,15 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     handles.display,
   );
 
-  // inquire mode!
-  let onInquireQuery = Event.make();
-
   Hook.useChannel(
-    ((header, placeholder, value)) => {
+    ((header, _placeholder, _value)) => {
       send(Activate);
       setMode(Inquire);
       editors |> Editors.Focus.on(Query);
       setHeader(header);
-      // after inquireing
-      onInquireQuery
+
+      // after inquiring
+      handles.onInquire
       |> Event.once
       |> Async.pass(_ => {
            setMode(Display);
@@ -389,11 +387,11 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
           hidden
           onMountAtChange={mountTo => send(MountTo(mountTo))}
           mode
-          onInquireQuery
           isPending
           isActive
           /* editors */
           onQueryEditorRef={ref => React.Ref.setCurrent(queryRef, Some(ref))}
+          onInquireQuery={handles.onInquire}
           editorValue=""
           // {editors.query.value}
           // {editors.query.placeholder}
