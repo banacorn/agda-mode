@@ -12,6 +12,7 @@ type handles = {
   toggleDocking: Channel.t(unit, unit, unit),
   display: Channel.t((Header.t, Body.t), unit, unit),
   inquire: Channel.t((Header.t, string, string), string, MiniEditor.error),
+  onInquire: Event.t(string, MiniEditor.error),
   // events
   // onPanelActivationChange: Event.t(option(Dom.element), unit),
   updateIsPending: Channel.t(bool, unit, unit),
@@ -41,6 +42,7 @@ let makeHandles = () => {
 
   let display = Channel.make();
   let inquire = Channel.make();
+  let onInquire = Event.make();
 
   let updateIsPending = Channel.make();
   let updateShouldDisplay = Channel.make();
@@ -71,6 +73,7 @@ let makeHandles = () => {
     toggleDocking,
     display,
     inquire,
+    onInquire,
 
     updateIsPending,
     updateShouldDisplay,
