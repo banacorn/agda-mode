@@ -67,9 +67,22 @@ describe("View", () => {
       after_each(Package.cleanup);
 
       it(
-        "should unmount `section#agda-mode:xxx` from `article.agda-mode-panel-container`",
+        "should unmount `section#agda-mode:xxx` from `article.agda-mode-panel-container` when docker at bottom",
         () =>
         openAndLoad("Temp.agda")
+        |> then_(close)
+        |> then_(() => {
+             View.getPanelContainers()
+             |> Array.flatMap(View.childHtmlElements)
+             |> Array.length
+             |> Assert.equal(0);
+             resolve();
+           })
+      );
+
+      it("should close the tab when docked at pane", () =>
+        openAndLoad("Temp.agda")
+        |> then_(dispatch("agda-mode:toggle-docking"))
         |> then_(close)
         |> then_(() => {
              View.getPanelContainers()

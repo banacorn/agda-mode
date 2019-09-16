@@ -213,7 +213,8 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
 
   let panelRef = React.useRef(Js.Nullable.null);
 
-  // ref of state
+  // in case that we need to access the latest state from Hook.useChannel
+  // as the closure of the callback of Hook.useChannel is only captured at the first render
   let stateRef = React.useRef(state);
   React.Ref.setCurrent(stateRef, state);
 
@@ -324,12 +325,18 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     () => {
       open Webapi.Dom;
       // removes `.agda-mode-panel` from the `.agda-mode-panel-container`
-      let container = getPanelContainerFromState(state);
-      let panel = React.Ref.current(panelRef) |> Js.Nullable.toOption;
 
-      switch (panel) {
-      | None => ()
-      | Some(elem) => container |> Element.removeChild(elem) |> ignore
+      // `stateRef` is permanant
+      let state = React.Ref.current(stateRef);
+      switch (state.mountAt) {
+      | Bottom(container) =>
+        let panel = React.Ref.current(panelRef) |> Js.Nullable.toOption;
+
+        switch (panel) {
+        | None => ()
+        | Some(elem) => container |> Element.removeChild(elem) |> ignore
+        };
+      | Pane(tab) => tab.kill()
       };
 
       Async.resolve();
