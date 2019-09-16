@@ -3,7 +3,7 @@ external readdir: (string, (option(Js.Exn.t), array(string)) => unit) => unit =
   "readdir";
 
 [@bs.module "fs"]
-external access: (string, option(Js.Exn.t) => unit) => unit = "access";
+external access: (string, Js.null(Js.Exn.t) => unit) => unit = "access";
 [@bs.module "fs"]
 external readFile: (string, (option(Js.Exn.t), Node.Buffer.t) => unit) => unit =
   "readFile";

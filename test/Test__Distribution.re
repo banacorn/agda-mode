@@ -10,7 +10,8 @@ open Test__Util;
 exception CannotReadPackageJson;
 
 // bindings for git-branch
-[@bs.module] external branch: unit => Js.Promise.t(string) = "git-branch";
+[@bs.module]
+external branch: unit => Js.Promise.t(Js.null(string)) = "git-branch";
 
 let readFile = N.Fs.readFile |> N.Util.promisify;
 let readPackageJSONMain = () => {
@@ -27,18 +28,22 @@ let readPackageJSONMain = () => {
 
 let onProd = callback =>
   branch()
-  |> then_(
-       fun
-       | "master" => callback()
-       | _ => resolve(0),
+  |> then_(x =>
+       switch (Js.nullToOption(x)) {
+       | None => callback()
+       | Some("master") => callback()
+       | _ => resolve(0)
+       }
      );
 
 let onDev = callback =>
   branch()
-  |> then_(
-       fun
-       | "master" => resolve(0)
-       | _ => callback(),
+  |> then_(x =>
+       switch (Js.nullToOption(x)) {
+       | None => resolve(0)
+       | Some("master") => resolve(0)
+       | _ => callback()
+       }
      );
 
 describe("Distribution", () => {
@@ -47,7 +52,7 @@ describe("Distribution", () => {
       onProd(() =>
         make((~resolve, ~reject) =>
           N.Fs.access(Path.file("lib/js/bundled.js"), err =>
-            switch (err) {
+            switch (Js.nullToOption(err)) {
             | None => resolve(. 0)
             | Some(e) => reject(. N.Exception(e))
             }

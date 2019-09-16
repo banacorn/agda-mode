@@ -1,3 +1,7 @@
+## 0.9.8
+* Testing with GitHub Actions CI 🤖️
+* Fix #112
+
 ## 0.9.7
 * Fix #12 and #108
 
