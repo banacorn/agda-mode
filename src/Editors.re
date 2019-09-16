@@ -15,6 +15,8 @@ exception QueryCancelled;
 
 let make = editor => {focused: Source, source: editor, query: None};
 
+let getID = self => self.source |> Atom.TextEditor.id |> string_of_int;
+
 module Focus = {
   open Webapi.Dom;
   let get = (editors): TextEditor.t =>
@@ -30,14 +32,12 @@ module Focus = {
   let on = (sort, editors) =>
     switch (sort) {
     | Source =>
-      Environment.Views.getView(editors.source) |> HtmlElement.focus;
+      Views.getView(editors.source) |> HtmlElement.focus;
       editors.focused = Source;
     | Query =>
       editors.query
-      |> Option.forEach(editor =>
-           Atom.Environment.Views.getView(editor)
-           |> Webapi.Dom.HtmlElement.focus
-         );
+      |> Option.map(Atom.Views.getView)
+      |> Option.forEach(HtmlElement.focus);
       editors.focused = Query;
     };
 };

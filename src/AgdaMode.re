@@ -1,30 +1,45 @@
 open Rebase;
+open Fn;
 
+let activated: ref(bool) = ref(false);
 let instances: Js.Dict.t(Instance.t) = Js.Dict.empty();
 
 module Instances = {
+  let textEditorID = Atom.TextEditor.id >> string_of_int;
+
   let get = textEditor => {
-    let id = textEditor |> Atom.TextEditor.id |> string_of_int;
-    Js.Dict.get(instances, id);
+    Js.Dict.get(instances, textEditorID(textEditor));
   };
   let getThen = (f, textEditor) => textEditor |> get |> Option.forEach(f);
 
   let add = textEditor => {
-    let id = textEditor |> Atom.TextEditor.id |> string_of_int;
     switch (get(textEditor)) {
     | Some(_instance) => ()
-    | None => Instance.make(textEditor) |> Js.Dict.set(instances, id)
+    | None =>
+      Instance.make(textEditor)
+      |> Js.Dict.set(instances, textEditorID(textEditor))
     };
   };
+
+  let delete_: string => unit = [%raw id => "{delete instances[id]}"];
+  // destroy a certain Instance and remove it from `instances`
   let remove = textEditor => {
-    let id = textEditor |> Atom.TextEditor.id |> string_of_int;
+    let id = textEditorID(textEditor);
     switch (Js.Dict.get(instances, id)) {
     | Some(instance) =>
       Instance.destroy(instance);
-      %raw
-      "delete instances[id]";
+      delete_(id) |> ignore;
     | None => ()
     };
+  };
+  // destroy all Instance in `instances` and empty it
+  let destroyAll = () => {
+    instances
+    |> Js.Dict.entries
+    |> Array.forEach(((id, instance)) => {
+         Instance.destroy(instance);
+         delete_(id) |> ignore;
+       });
   };
   let contains = textEditor => {
     switch (get(textEditor)) {
@@ -32,11 +47,19 @@ module Instances = {
     | None => false
     };
   };
+
+  let size = () => {
+    instances |> Js.Dict.keys |> Array.length;
+  };
 };
 
 /* if end with '.agda' or '.lagda' */
 let isAgdaFile = (textEditor): bool => {
-  let filepath = textEditor |> Atom.TextEditor.getPath |> Option.getOr("untitled") |> Parser.filepath;
+  let filepath =
+    textEditor
+    |> Atom.TextEditor.getPath
+    |> Option.getOr("untitled")
+    |> Parser.filepath;
   /* filenames are case insensitive on Windows */
   let onWindows = N.OS.type_() == "Windows_NT";
   if (onWindows) {
@@ -52,28 +75,51 @@ let subscriptions = CompositeDisposable.make();
 
 /* textEditor active/inactive event */
 let onEditorActivationChange = () => {
-  let previous = ref(Environment.Workspace.getActiveTextEditor());
-  Environment.Workspace.onDidChangeActiveTextEditor(next => {
+  let previous = ref(Workspace.getActiveTextEditor());
+  Workspace.onDidChangeActiveTextEditor(next => {
     /* decativate the previously activated editor */
-    previous^ |> Option.forEach(Instances.getThen(Instance.deactivate));
+    previous^
+    |> Option.forEach(Instances.getThen(Instance.deactivate >> ignore));
     /* activate the next editor */
     switch (next) {
     | None => ()
     | Some(nextEditor) =>
-      nextEditor |> Instances.getThen(Instance.activate);
+      nextEditor |> Instances.getThen(Instance.activate >> ignore);
       previous := Some(nextEditor);
     };
   })
   |> CompositeDisposable.add(subscriptions);
 };
 
+// find the <TextEditor> targeted by the given event
+let eventTargetEditor = (event: Webapi.Dom.Event.t): option(TextEditor.t) => {
+  // the HtmlElement of the event target
+  let targetSubElement =
+    event
+    |> Webapi.Dom.Event.target
+    |> Webapi.Dom.EventTarget.unsafeAsElement
+    |> Webapi.Dom.Element.unsafeAsHtmlElement;
+
+  // the <TextEditor>s that contain the event target
+  let targetedEditors =
+    Workspace.getTextEditors()
+    |> Array.filter(
+         Views.getView
+         >> Webapi.Dom.HtmlElement.asNode
+         >> Webapi.Dom.Node.contains(targetSubElement),
+       );
+
+  targetedEditors[0];
+};
+
 /* register keymap bindings and emit commands */
 let onTriggerCommand = () => {
   Command.names
   |> Array.forEach(command =>
-       Environment.Commands.add(
-         `CSSSelector("atom-text-editor"), "agda-mode:" ++ command, _event =>
-         Environment.Workspace.getActiveTextEditor()
+       Commands.add(
+         `CSSSelector("atom-text-editor"), "agda-mode:" ++ command, event =>
+         event
+         |> eventTargetEditor
          |> Option.flatMap(Instances.get)
          |> Option.forEach(instance =>
               instance
@@ -88,12 +134,12 @@ let onTriggerCommand = () => {
 
 /* hijack UNDO */
 let onUndo = () => {
-  Environment.Commands.add(
+  Commands.add(
     `CSSSelector("atom-text-editor"),
     "core:undo",
     event => {
       event |> Webapi.Dom.Event.stopImmediatePropagation;
-      let activated = Environment.Workspace.getActiveTextEditor();
+      let activated = Workspace.getActiveTextEditor();
       activated
       |> Option.flatMap(Instances.get)
       |> Option.forEach(Instance.dispatchUndo);
@@ -102,10 +148,9 @@ let onUndo = () => {
   |> CompositeDisposable.add(subscriptions);
 };
 
-/* the entry point of the whole package */
-let activate = _ => {
-  /* triggered everytime when a new text editor is opened */
-  Environment.Workspace.observeTextEditors(textEditor => {
+/* triggered everytime when a new text editor is opened */
+let onOpenEditor = () => {
+  Workspace.observeTextEditors(textEditor => {
     open CompositeDisposable;
     let textEditorSubscriptions = make();
 
@@ -139,15 +184,33 @@ let activate = _ => {
     |> add(textEditorSubscriptions);
   })
   |> CompositeDisposable.add(subscriptions);
+};
+
+let setup = () => {
+  onOpenEditor();
   onEditorActivationChange();
   onTriggerCommand();
   onUndo();
+};
 
-  instances;
+/* the entry point of the whole package, should only be called once (before deactivation) */
+let activate = _ => {
+  // make `activate` idempotent
+
+  if (! activated^) {
+    activated := true;
+    setup();
+  };
+  Js.Promise.resolve();
 };
-let deactivate = _ => {
-  CompositeDisposable.dispose(subscriptions);
-};
+
+let deactivate = _ =>
+  // make `deactivate` idempotent
+  if (activated^) {
+    activated := false;
+    Instances.destroyAll();
+    CompositeDisposable.dispose(subscriptions);
+  };
 
 /* https://atom.io/docs/api/latest/Config */
 let config = {

@@ -24,8 +24,8 @@ let make =
       |> Js.Nullable.toOption
       |> Option.flatMap(settingsButton => {
            let disposable =
-             Atom.Environment.Tooltips.add(
-               Atom.Environment.Views.getView(settingsButton),
+             Atom.Tooltips.add(
+               Atom.Views.getView(settingsButton),
                {
                  "title": "settings",
                  "delay": {
@@ -46,8 +46,8 @@ let make =
       |> Js.Nullable.toOption
       |> Option.flatMap(dockingButton => {
            let disposable =
-             Atom.Environment.Tooltips.add(
-               Atom.Environment.Views.getView(dockingButton),
+             Atom.Tooltips.add(
+               Atom.Views.getView(dockingButton),
                {
                  "title": "toggle panel docking position",
                  "delay": {

@@ -181,10 +181,10 @@ module Remote = {
   };
 
   /* serializes Buffed Command into strings that can be sent to Agda */
-  let serialize = self => {
-    let {filepath, command, version} = self;
+  let toAgdaReadableString = cmd => {
+    let {filepath, command, version} = cmd;
     let libraryPath: string = {
-      let path = Atom.Environment.Config.get("agda-mode.libraryPath");
+      let path = Atom.Config.get("agda-mode.libraryPath");
       path |> Js.Array.unshift(".") |> ignore;
       path
       |> Array.map(x => "\"" ++ Parser.filepath(x) ++ "\"")
@@ -193,7 +193,7 @@ module Remote = {
     };
     /* highlighting method */
     let highlightingMethod =
-      switch (Atom.Environment.Config.get("agda-mode.highlightingMethod")) {
+      switch (Atom.Config.get("agda-mode.highlightingMethod")) {
       | "Direct" => "Direct"
       | _ => "Indirect"
       };
@@ -221,7 +221,7 @@ module Remote = {
     | Abort => commonPart(NonInteractive) ++ {j|( Cmd_abort )|j}
 
     | Compile =>
-      let backend: string = Atom.Environment.Config.get("agda-mode.backend");
+      let backend: string = Atom.Config.get("agda-mode.backend");
 
       if (Util.Version.gte(version, "2.5.0")) {
         commonPart(NonInteractive)
@@ -335,8 +335,15 @@ module Remote = {
     | Auto(goal, index) =>
       let content = Goal.getContent(goal);
       let range = buildRange(goal);
-      commonPart(NonInteractive)
-      ++ {j|( Cmd_auto $(index) $(range) "$(content)" )|j};
+      if (Util.Version.gte(version, "2.6.0.1")) {
+        // after 2.6.0.1
+        commonPart(NonInteractive)
+        ++ {j|( Cmd_autoOne $(index) $(range) "$(content)" )|j};
+      } else {
+        // the old way
+        commonPart(NonInteractive)
+        ++ {j|( Cmd_auto $(index) $(range) "$(content)" )|j};
+      };
 
     | Case(goal, index) =>
       let content = Goal.getContent(goal);

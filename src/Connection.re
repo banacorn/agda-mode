@@ -1,4 +1,5 @@
 open Rebase;
+open Fn;
 
 module Error = {
   type autoSearch =
@@ -75,10 +76,7 @@ It's probably because Agda's not happy about the arguments you fed her
       );
 };
 
-type response =
-  | Error(Parser.Error.t)
-  | Data(Response.t)
-  | End;
+type response = Parser.Incr.Event.t(result(Response.t, Parser.Error.t));
 
 type t = {
   metadata: Metadata.t,
@@ -100,18 +98,26 @@ let disconnect = (error, self) => {
 
 /* a more sophiscated "make" */
 let autoSearch = (path): Async.t(string, Error.t) =>
-  Async.make((resolve, reject) =>
-    switch (N.OS.type_()) {
-    | "Linux"
-    | "Darwin" =>
-      /* reject if the process hasn't responded for more than 1 second */
-      let hangTimeout =
-        Js.Global.setTimeout(
-          () => reject(ProcessHanging: Error.autoSearch),
-          1000,
-        );
+  Async.make((resolve, reject) => {
+    /* reject if the process hasn't responded for more than 1 second */
+    let hangTimeout =
+      Js.Global.setTimeout(
+        () => reject(ProcessHanging: Error.autoSearch),
+        1000,
+      );
+    let commandName =
+      switch (N.OS.type_()) {
+      | "Linux"
+      | "Darwin" => Ok("which")
+      | "Windows_NT" => Ok("where.exe")
+      | os => Error(os)
+      };
+
+    switch (commandName) {
+    | Error(os) => reject(NotSupported(os))
+    | Ok(commandName') =>
       N.ChildProcess.exec(
-        "which " ++ path,
+        commandName' ++ " " ++ path,
         (error, stdout, stderr) => {
           /* clear timeout as the process has responded */
           Js.Global.clearTimeout(hangTimeout);
@@ -138,11 +144,9 @@ let autoSearch = (path): Async.t(string, Error.t) =>
           };
         },
       )
-      |> ignore;
-    | "Windows_NT" => reject(NotSupported("Windows_NT"))
-    | os => reject(NotSupported(os))
-    }
-  )
+      |> ignore
+    };
+  })
   |> Async.mapError(e => Error.AutoSearchError(e));
 
 /* a more sophiscated "make" */
@@ -164,7 +168,7 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
         };
       };
     };
-    let parseStdout =
+    let parseVersion =
         (stdout: Node.Buffer.t): result(Metadata.t, Error.validation) => {
       let message = stdout |> Node.Buffer.toString;
       switch (Js.String.match([%re "/Agda version (.*)/"], message)) {
@@ -191,9 +195,10 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
         reject(Error.PathMalformed("the path must not be empty"));
       };
 
-      /* reject if the process hasn't responded for more than 1 second */
+      // reject if the process hasn't responded for more than 20 second
+      // (it may take longer for dockerized Agda to take off)
       let hangTimeout =
-        Js.Global.setTimeout(() => reject(Error.ProcessHanging), 1000);
+        Js.Global.setTimeout(() => reject(Error.ProcessHanging), 20000);
 
       N.ChildProcess.exec(
         path,
@@ -212,7 +217,7 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
             reject(ProcessError(stderr'));
           };
           /* stdout */
-          switch (parseStdout(stdout)) {
+          switch (parseVersion(stdout)) {
           | Error(err) => reject(err)
           | Ok(self) => resolve(self)
           };
@@ -274,69 +279,59 @@ let wire = (self): t => {
     switch (self.queue[0]) {
     | None =>
       switch (res) {
-      | Data(data) => self.errorEmitter |> Event.emitOk(data)
+      | OnResult(Ok(data)) => self.errorEmitter |> Event.emitOk(data)
       | _ => ()
       }
     | Some(req) =>
       req |> Event.emitOk(res);
       switch (res) {
-      | Data(_) => ()
-      | Error(_) => ()
-      | End => self.queue |> Js.Array.pop |> Option.forEach(Event.destroy)
+      | OnResult(_) => ()
+      | OnFinish =>
+        self.queue |> Js.Array.pop |> Option.forEach(Event.destroy)
       };
     };
   };
-  let continuation = ref(None);
+  let logSExpression =
+    Parser.Incr.Event.map(
+      Result.map(expr => {
+        Metadata.logSExpression(expr, self.metadata);
+        expr;
+      }),
+    );
+
+  // let toResponse = Parser.Incr.Event.map(x => x);
+  let toResponse =
+    Parser.Incr.Event.flatMap(
+      fun
+      | Error(parseError) => Parser.Incr.Event.OnResult(Error(parseError))
+      | Ok(Parser__Type.SExpression.A("Agda2>")) => Parser.Incr.Event.OnFinish
+      | Ok(tokens) => Parser.Incr.Event.OnResult(Response.parse(tokens)),
+    );
+
+  let logResponse =
+    Parser.Incr.Event.map(
+      Result.map(expr => {
+        Metadata.logResponse(expr, self.metadata);
+        expr;
+      }),
+    );
+
+  let callback =
+    Parser.SExpression.makeIncr(
+      logSExpression >> toResponse >> logResponse >> response,
+    );
 
   /* listens to the "data" event on the stdout */
-  let onData = chunk => {
-    /* serialize the binary chunk into string */
-    let rawText = chunk |> Node.Buffer.toString;
-    /* store the raw text in the log */
-    Metadata.logRawText(rawText, self.metadata);
-    // we consider the chunk ended with if ends with "Agda2> "
-    let endOfResponse = rawText |> String.endsWith("Agda2> ");
-    // remove the trailing "Agda2> "
-    let trimmed =
-      if (endOfResponse) {
-        Js.String.substring(
-          ~from=0,
-          ~to_=String.length(rawText) - 7,
-          rawText,
-        );
-      } else {
-        rawText;
-      };
-    //
-    trimmed
-    |> Parser.splitAndTrim
-    |> Array.forEach(line => {
-         // get the parsing continuation or initialize a new one
-         let continue =
-           continuation^ |> Option.getOr(Parser.SExpression.incrParse);
-         // continue parsing with the given continuation
-         switch (continue(line)) {
-         | Error(n, err) =>
-           response(Error(Parser.Error.SExpression(n, err)))
-         | Continue(parse) => continuation := Some(parse)
-         | Done(result) =>
-           // store the parsed s-expression in the log
-           Metadata.logSExpression(result, self.metadata);
-           switch (Response.parse(result)) {
-           | Error(err) => response(Error(err))
-           | Ok(result) =>
-             // store the parsed response in the log
-             Metadata.logResponse(result, self.metadata);
-             response(Data(result));
-           };
-           continuation := None;
-         };
-       });
-
-    if (endOfResponse) {
-      response(End);
+  /* The chunk may contain various fractions of the Agda output */
+  let onData: Node.buffer => unit =
+    chunk => {
+      /* serialize the binary chunk into string */
+      let rawText = chunk |> Node.Buffer.toString;
+      /* store the raw text in the log */
+      Metadata.logRawText(rawText, self.metadata);
+      // run the parser
+      rawText |> Parser.split |> Array.forEach(Parser.Incr.feed(callback));
     };
-  };
   self.process
   |> N.ChildProcess.stdout
   |> N.Stream.Readable.on(`data(onData))

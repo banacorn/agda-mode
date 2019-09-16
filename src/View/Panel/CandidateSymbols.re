@@ -33,7 +33,7 @@ let make =
 
   Hook.useAtomListenerWhen(
     () =>
-      Atom.Environment.Commands.add(
+      Atom.Commands.add(
         `CSSSelector("atom-text-editor.agda-mode-input-method-activated"),
         "core:move-up",
         event => {
@@ -46,7 +46,7 @@ let make =
 
   Hook.useAtomListenerWhen(
     () =>
-      Atom.Environment.Commands.add(
+      Atom.Commands.add(
         `CSSSelector("atom-text-editor.agda-mode-input-method-activated"),
         "core:move-right",
         event => {
@@ -59,7 +59,7 @@ let make =
 
   Hook.useAtomListenerWhen(
     () =>
-      Atom.Environment.Commands.add(
+      Atom.Commands.add(
         `CSSSelector("atom-text-editor.agda-mode-input-method-activated"),
         "core:move-down",
         event => {
@@ -72,7 +72,7 @@ let make =
 
   Hook.useAtomListenerWhen(
     () =>
-      Atom.Environment.Commands.add(
+      Atom.Commands.add(
         `CSSSelector("atom-text-editor.agda-mode-input-method-activated"),
         "core:move-left",
         event => {

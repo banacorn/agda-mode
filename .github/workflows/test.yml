@@ -1,0 +1,72 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install atom
+      run: |
+        curl -s -L "https://atom.io/download/deb?channel=stable" -H 'Accept: application/octet-stream' -o "atom-amd64.deb"
+        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
+        export DISPLAY=":99"
+        dpkg-deb -x atom-amd64.deb "${HOME}/atom"
+        export ATOM_SCRIPT_NAME="atom"
+        export APM_SCRIPT_NAME="apm"
+        export ATOM_SCRIPT_PATH="${HOME}/atom/usr/bin/${ATOM_SCRIPT_NAME}"
+        export APM_SCRIPT_PATH="${HOME}/atom/usr/bin/${APM_SCRIPT_NAME}"
+        export NPM_SCRIPT_PATH="${HOME}/atom/usr/share/${ATOM_SCRIPT_NAME}/resources/app/apm/node_modules/.bin/npm"
+        export PATH="${PATH}:${HOME}/atom/usr/bin"
+
+        echo "Using Atom version:"
+        "${ATOM_SCRIPT_PATH}" -v
+        echo "Using APM version:"
+        "${APM_SCRIPT_PATH}" -v
+
+    - name: Install Agda
+      run: |
+        echo "Pulling Agda from Docker Hub"
+        docker pull banacorn/agda:2.6.0.1
+
+        echo "Create a script for aliasing docker run"
+        mkdir ${HOME}/bin
+        export PATH="${PATH}:${HOME}/bin"
+        echo -e '#!/bin/bash\ndocker run -i --rm banacorn/agda:2.6.0.1 agda "$@"' > ${HOME}/bin/agda
+        chmod +x ${HOME}/bin/agda
+
+    - name: npm install & build
+      run: |
+        npm install
+        npm run build --if-present
+
+    - name: Run tests
+      run: |
+
+        # so that we can see "atom" and "apm" and "agda"
+        export PATH="${PATH}:${HOME}/atom/usr/bin:${HOME}/bin"
+
+        echo "Version of Agda: "
+        agda -V
+        echo "Path of Agda: "
+        which agda
+
+        # linking "agda-mode" to "~/.atom/dev/packages"
+        apm dev agda-mode
+
+        # run the test with "xvfb-run" to simulate X windows
+        xvfb-run -a atom -t lib/js/test/
+      env:
+        CI: true

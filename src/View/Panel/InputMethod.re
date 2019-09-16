@@ -1,7 +1,6 @@
 let sort = Array.sort;
 open ReactUpdate;
 open Rebase;
-open Atom.Environment;
 
 /********************************************************************************************/
 
@@ -26,18 +25,18 @@ type action =
 let addClass = editor => {
   Webapi.Dom.(
     editor
-    |> Views.getView
+    |> Atom.Views.getView
     |> HtmlElement.classList
-    |> DomTokenListRe.add("agda-mode-input-method-activated")
+    |> DomTokenList.add("agda-mode-input-method-activated")
   );
 };
 /* remove class 'agda-mode-input-method-activated' */
 let removeClass = editor => {
   Webapi.Dom.(
     editor
-    |> Views.getView
+    |> Atom.Views.getView
     |> HtmlElement.classList
-    |> DomTokenListRe.remove("agda-mode-input-method-activated")
+    |> DomTokenList.remove("agda-mode-input-method-activated")
   );
 };
 
@@ -158,7 +157,7 @@ let monitor = (editor, send) => {
          editor
          |> TextEditor.decorateMarker(
               marker,
-              TextEditor.decorationParams(
+              TextEditor.decorateMarkerOptions(
                 ~type_="highlight",
                 ~class_="input-method-decoration",
                 (),
@@ -267,7 +266,7 @@ let make =
          */
       ~interceptAndInsertKey: Event.t(string, unit),
       ~activateInputMethod: Event.t(bool, unit),
-      ~onActivationChange: bool => unit,
+      ~onActivationChange: Event.t(bool, unit),
       ~isActive: bool,
     ) => {
   let editor = Editors.Focus.get(editors);
@@ -278,7 +277,7 @@ let make =
   let debugDispatch = React.useContext(Type.View.Debug.debugDispatch);
   React.useEffect1(
     () => {
-      if (Atom.Environment.inDevMode()) {
+      if (Atom.inDevMode()) {
         debugDispatch(
           UpdateInputMethod({
             activated: state.activated,
@@ -302,9 +301,10 @@ let make =
     [||],
   );
 
-  React.useEffect1(
+  // triggers events on change
+  Hook.useDidUpdateEffect(
     () => {
-      onActivationChange(state.activated);
+      onActivationChange |> Event.emitOk(state.activated);
       None;
     },
     [|state.activated|],
@@ -326,6 +326,7 @@ let make =
   open Util.ClassName;
   let className =
     ["input-method"] |> addWhen("hidden", !state.activated) |> serialize;
+
   let bufferClassName =
     ["inline-block", "buffer"]
     |> addWhen("hidden", Buffer.isEmpty(state.buffer))

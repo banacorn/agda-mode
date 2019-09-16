@@ -20,9 +20,15 @@ module FileType = {
   let parse = filepath =>
     if (Js.Re.test_([%re "/\\.lagda.rst$/i"], Parser.filepath(filepath))) {
       LiterateReStructuredText;
-    } else if (Js.Re.test_([%re "/\\.lagda.md$/i"], Parser.filepath(filepath))) {
+    } else if (Js.Re.test_(
+                 [%re "/\\.lagda.md$/i"],
+                 Parser.filepath(filepath),
+               )) {
       LiterateMarkdown;
-    } else if (Js.Re.test_([%re "/\\.lagda.tex$|\\.lagda$/i"], Parser.filepath(filepath))) {
+    } else if (Js.Re.test_(
+                 [%re "/\\.lagda.tex$|\\.lagda$/i"],
+                 Parser.filepath(filepath),
+               )) {
       LiterateTeX;
     } else {
       Agda;
@@ -194,13 +200,17 @@ let make = (textEditor: TextEditor.t, index: option(int), range: (int, int)) => 
   textEditor
   |> TextEditor.decorateMarker(
        marker,
-       TextEditor.decorationParams(~type_="highlight", ~class_="goal", ()),
+       TextEditor.decorateMarkerOptions(
+         ~type_="highlight",
+         ~class_="goal",
+         (),
+       ),
      )
   |> ignore;
   textEditor
   |> TextEditor.decorateMarker(
        marker,
-       TextEditor.decorationParams(
+       TextEditor.decorateMarkerOptions(
          ~type_="overlay",
          ~position="head",
          ~item=Element.unsafeAsHtmlElement(element),

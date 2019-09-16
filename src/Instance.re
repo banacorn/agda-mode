@@ -21,16 +21,17 @@ let destroy = instance => instance.view.destroy();
 
 let make = (textEditor: Atom.TextEditor.t) => {
   /* adds "agda" to the class-list */
-  Atom.Environment.Views.getView(textEditor)
+  Atom.Views.getView(textEditor)
   |> Webapi.Dom.HtmlElement.classList
   |> Webapi.Dom.DomTokenList.add("agda");
 
   /*  */
   let editors = Editors.make(textEditor);
+  let view = Root.initialize(editors);
   let instance = {
     isLoaded: false,
     editors,
-    view: Root.initialize(editors),
+    view,
     goals: [||],
     history: {
       checkpoints: [||],
@@ -39,8 +40,9 @@ let make = (textEditor: Atom.TextEditor.t) => {
     highlightings: [||],
     runningInfo: RunningInfo.make(),
     connection: None,
-    dispatch: Handler.dispatch,
     handleResponse: Handler.handleResponseAndRecoverCursor,
+    dispatch: Handler.dispatch,
+    onDispatch: Event.make(),
   };
 
   /* listen to `onInquireConnection` */
@@ -59,8 +61,10 @@ let make = (textEditor: Atom.TextEditor.t) => {
          | _ => ()
          }
        );
-  instance.view.onDestroy()
-  |> finalOk(_ => {
+
+  instance.view.onDestroy
+  |> Event.once
+  |> Async.finalOk(_ => {
        destructor0();
        destructor1();
      });
@@ -76,4 +80,8 @@ let dispatchUndo = (instance: t) => {
     instance |> dispatch(Load) |> ignore;
     instance.history.needsReloading = false;
   };
+};
+
+let getID = (instance: t): string => {
+  instance.editors |> Editors.getID;
 };

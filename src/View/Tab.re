@@ -5,10 +5,10 @@ open Rebase;
 
 open Atom;
 
-let makeTabElement = () => {
-  open DomTokenListRe;
+let createPanelContainer = () => {
+  open DomTokenList;
   let element = document |> Document.createElement("article");
-  element |> Element.classList |> add("agda-mode");
+  element |> Element.classList |> add("agda-mode-panel-container");
   element;
 };
 
@@ -41,33 +41,40 @@ type t = {
   activate: unit => unit,
 };
 
+external asWorkspaceItem: Atom.TextEditor.t => Atom.Workspace.item =
+  "%identity";
+
 let make =
     (
       ~editor: TextEditor.t,
       ~getTitle: unit => string,
       ~path: string,
-      ~onOpen: option((Element.t, TextEditor.t, TextEditor.t) => unit)=?,
+      ~onOpen: option((Element.t, Workspace.item, Workspace.item) => unit)=?,
       ~onKill: option(Element.t => unit)=?,
       ~onClose: option(Element.t => unit)=?,
       ~onDidChangeActive: option(bool => unit)=?,
       (),
     ) => {
-  let itemResource = Util.Resource.make();
+  let itemResource: Resource.t(Workspace.item, unit) = Resource.make();
   let closedDeliberately = ref(false);
   let subscriptions = CompositeDisposable.make();
-  let previousItem =
-    Environment.Workspace.getActivePane() |> Pane.getActiveItem;
+  let previousItem = Workspace.getActivePane() |> Pane.getActiveItem;
   /* mount the view onto the element */
-  let itemURI = "agda-mode://" ++ Option.getOr("untitled", TextEditor.getPath(editor)) ++ "/" ++ path;
-  let itemOpener = {"element": makeTabElement(), "getTitle": getTitle};
+  let itemURI =
+    "agda-mode://"
+    ++ Option.getOr("untitled", TextEditor.getPath(editor))
+    ++ "/"
+    ++ path;
+  let itemOpener = {"element": createPanelContainer(), "getTitle": getTitle};
   /* add tab opener */
-  Environment.Workspace.addOpener(givenURI =>
+  Workspace.addOpener(givenURI =>
     givenURI == itemURI ? Some(itemOpener) : None
   )
   |> CompositeDisposable.add(subscriptions);
   /* open the registered tab opener */
-  Environment.Workspace.open_(itemURI, itemOptions)
-  |> then_(newItem => {
+  Workspace.open_(itemURI, itemOptions)
+  |> then_(newEditor => {
+       let newItem = asWorkspaceItem(newEditor);
        itemResource.supply(newItem);
        /* trigger the "onOpen" callback */
        switch (onOpen) {
@@ -76,13 +83,13 @@ let make =
        | None => ()
        };
        /* this pane onWillDestroyItem */
-       let pane = Environment.Workspace.paneForItem(newItem);
+       let pane = Workspace.paneForItem(newItem);
        pane
        |> Option.forEach(pane' =>
             pane'
             |> Pane.onWillDestroyItem(event => {
                  /* if the item that's going to be destroyed happens to be this tab */
-                 let destroyedTitle = Pane.getTitle(event##item);
+                 let destroyedTitle = event##item##getTitle();
                  let getTitle = itemOpener##getTitle;
                  if (destroyedTitle === getTitle()) {
                    /* invoke the onKill or onClose */
@@ -102,7 +109,7 @@ let make =
        |> Option.forEach(pane' =>
             pane'
             |> Pane.onDidChangeActiveItem(item => {
-                 let activatedTitle = Pane.getTitle(item);
+                 let activatedTitle = item##getTitle();
                  let getTitle = itemOpener##getTitle;
                  if (activatedTitle == getTitle()) {
                    triggerArg(onDidChangeActive, true);
@@ -113,33 +120,27 @@ let make =
             |> CompositeDisposable.add(subscriptions)
           );
        /* return the previously active pane */
-       resolve(Environment.Workspace.getActivePane());
+       resolve(Workspace.getActivePane());
      })
   |> ignore;
   {
     element: itemOpener##element,
     kill: () =>
       itemResource.acquire()
-      |> Js.Promise.then_(item => {
+      |> Async.finalOk((item: Workspace.item) => {
            /* dispose subscriptions */
            CompositeDisposable.dispose(subscriptions);
            /* set the "closedDeliberately" to true to trigger "onKill" */
            closedDeliberately := true;
-           Environment.Workspace.paneForItem(item)
+           Workspace.paneForItem(item)
            |> Option.forEach(pane => Pane.destroyItem(item, pane) |> ignore);
-
-           Js.Promise.resolve();
-         })
-      |> ignore,
+         }),
 
     activate: () =>
       itemResource.acquire()
-      |> Js.Promise.then_(item => {
-           Environment.Workspace.paneForItem(item)
-           |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore);
-
-           Js.Promise.resolve();
-         })
-      |> ignore,
+      |> Async.finalOk((item: Workspace.item) =>
+           Workspace.paneForItem(item)
+           |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore)
+         ),
   };
 };

@@ -1,3 +1,6 @@
+open Rebase;
+open Rebase.Fn;
+
 open ReactUpdate;
 
 open Type.View;
@@ -6,21 +9,50 @@ module Event = Event;
 
 external unsafeCast: (Mouse.event => unit) => string = "%identity";
 
+external asElement:
+  Webapi.Dom.HtmlElement.t_htmlElement => Webapi.Dom.Element.t =
+  "%identity";
 /************************************************************************************************************/
 
 /************************************************************************************************************/
 
-let createBottomPanel = (): Webapi.Dom.Element.t => {
+external fromDomElement: Dom.element => Atom.Workspace.item = "%identity";
+
+// get "article.agda-mode-panel-container", create one if not found
+let getBottomPanelContainer = (): Webapi.Dom.Element.t => {
   open Webapi.Dom;
-  open DomTokenListRe;
-  let element = document |> Document.createElement("article");
-  element |> Element.classList |> add("agda-mode");
-  Atom.Environment.Workspace.addBottomPanel({
-    "item": element,
-    "visible": true,
-  })
-  |> ignore;
-  element;
+  open DomTokenList;
+
+  // create "article.agda-mode-panel-container"
+  // shared by all instances, should only be invoked once!
+  let createBottomPanelContainer = (): Element.t => {
+    let panelContainer = document |> Document.createElement("article");
+    panelContainer |> Element.classList |> add("agda-mode-panel-container");
+    Atom.Workspace.addBottomPanel({
+      "item": fromDomElement(panelContainer),
+      "priority": 0,
+      "visible": true,
+    })
+    |> ignore;
+    panelContainer;
+  };
+
+  let containers =
+    Atom.Workspace.getBottomPanels()
+    |> Array.map(Atom.Views.getView)
+    |> Array.flatMap(
+         HtmlElement.childNodes
+         >> NodeList.toArray
+         >> Array.filterMap(HtmlElement.ofNode),
+       )
+    |> Array.filter(elem =>
+         elem |> HtmlElement.className == "agda-mode-panel-container"
+       );
+
+  switch (containers[0]) {
+  | None => createBottomPanelContainer()
+  | Some(container) => asElement(container)
+  };
 };
 
 type state = {
@@ -29,8 +61,14 @@ type state = {
   settingsView: option(Tab.t),
 };
 
+let getPanelContainerFromState = state =>
+  switch (state.mountAt) {
+  | Bottom(element) => element
+  | Pane(tab) => tab.element
+  };
+
 let initialState = {
-  mountAt: Bottom(createBottomPanel()),
+  mountAt: Bottom(getBottomPanelContainer()),
   isActive: false,
   settingsView: None,
 };
@@ -58,7 +96,7 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
       ~onOpen=
         (_, _, previousItem) =>
           /* activate the previous pane (which opened this pane item) */
-          Atom.Environment.Workspace.paneForItem(previousItem)
+          Atom.Workspace.paneForItem(previousItem)
           |> Rebase.Option.forEach(pane => {
                pane |> Atom.Pane.activate;
                pane |> Atom.Pane.activateItem(previousItem);
@@ -70,7 +108,7 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
   | (Bottom(_), ToPane) => self.send(UpdateMountAt(Pane(createTab())))
   | (Pane(tab), ToBottom) =>
     tab.kill();
-    self.send(UpdateMountAt(Bottom(createBottomPanel())));
+    self.send(UpdateMountAt(Bottom(getBottomPanelContainer())));
   | (Pane(_), ToPane) => ()
   };
   None;
@@ -173,6 +211,13 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   let ((connection, connectionError), setConnectionAndError) =
     Hook.useState((None, None));
 
+  let panelRef = React.useRef(Js.Nullable.null);
+
+  // in case that we need to access the latest state from Hook.useChannel
+  // as the closure of the callback of Hook.useChannel is only captured at the first render
+  let stateRef = React.useRef(state);
+  React.Ref.setCurrent(stateRef, state);
+
   // reset the element of editors.query  everytime <Panel> got remounted
   // issue #104: https://github.com/banacorn/agda-mode/issues/104
   React.useEffect1(
@@ -184,47 +229,118 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   );
 
   /* activate/deactivate <Panel> */
-  Hook.useEventListener(
-    activate => send(activate ? Activate : Deactivate),
+  let onPanelActivated = Event.make();
+  let onPanelDeactivated = Event.make();
+
+  Hook.useChannel(
+    () => {
+      send(Activate);
+      let state = React.Ref.current(stateRef);
+      if (state.isActive) {
+        Async.resolve(getPanelContainerFromState(state));
+      } else {
+        onPanelActivated |> Event.once;
+      };
+    },
     handles.activatePanel,
   );
 
+  Hook.useChannel(
+    () => {
+      send(Deactivate);
+      let state = React.Ref.current(stateRef);
+      if (state.isActive) {
+        onPanelDeactivated |> Event.once;
+      } else {
+        Async.resolve();
+      };
+    },
+    handles.deactivatePanel,
+  );
+
+  /* toggle docking */
+  Hook.useChannel(
+    () => {
+      send(ToggleDocking);
+      Async.resolve();
+    },
+    handles.toggleDocking,
+  );
+
   /* display mode! */
-  Hook.useEventListener(
+  Hook.useChannel(
     ((header, body)) => {
       setMode(Display);
       setHeader(header);
       setBody(body);
+      Async.resolve();
     },
     handles.display,
   );
-  /* inquire mode! */
-  Hook.useEventListener(
-    ((header, placeholder, value)) => {
+
+  Hook.useChannel(
+    ((header, _placeholder, _value)) => {
       send(Activate);
       setMode(Inquire);
       editors |> Editors.Focus.on(Query);
       setHeader(header);
-      /* pass it on */
-      handles.inquireQuery |> Event.emitOk((placeholder, value));
+
+      // after inquiring
+      handles.onInquire
+      |> Event.once
+      |> Async.pass(_ => {
+           setMode(Display);
+           editors |> Editors.Focus.on(Source);
+         });
     },
     handles.inquire,
   );
-  /* toggle docking */
-  Hook.useEventListener(() => send(ToggleDocking), handles.toggleDocking);
-  /* toggle pending spinner */
-  Hook.useEventListener(setIsPending, handles.updateIsPending);
-  /* toggle state of shouldDisplay */
-  Hook.useEventListener(setShouldDisplay, handles.updateShouldDisplay);
-  Hook.useEventListener(
-    _ => {
-      setMode(Display);
-      editors |> Editors.Focus.on(Source);
-    },
-    handles.onInquireQuery,
+
+  // toggle pending spinner
+  Hook.useChannel(setIsPending >> Async.resolve, handles.updateIsPending);
+
+  // toggle state of shouldDisplay
+  Hook.useChannel(
+    setShouldDisplay >> Async.resolve,
+    handles.updateShouldDisplay,
   );
-  /* destroy everything */
-  Hook.useEventListener(_ => Js.log("destroy!"), handles.destroy);
+
+  // trigger `onPanelActivationChange` only when it's changed
+  Hook.useDidUpdateEffect2(
+    () => {
+      if (state.isActive) {
+        onPanelActivated |> Event.emitOk(getPanelContainerFromState(state));
+      } else {
+        onPanelDeactivated |> Event.emitOk();
+      };
+      None;
+    },
+    (state.mountAt, state.isActive),
+  );
+
+  // destroy everything
+  Hook.useChannel(
+    () => {
+      open Webapi.Dom;
+      // removes `.agda-mode-panel` from the `.agda-mode-panel-container`
+
+      // `stateRef` is permanant
+      let state = React.Ref.current(stateRef);
+      switch (state.mountAt) {
+      | Bottom(container) =>
+        let panel = React.Ref.current(panelRef) |> Js.Nullable.toOption;
+
+        switch (panel) {
+        | None => ()
+        | Some(elem) => container |> Element.removeChild(elem) |> ignore
+        };
+      | Pane(tab) => tab.kill()
+      };
+
+      Async.resolve();
+    },
+    handles.destroy,
+  );
 
   /* opening/closing <Settings> */
   Hook.useEventListener(
@@ -240,13 +356,11 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     activateInputMethod,
     inquireConnection,
     onInquireConnection,
+    onInputMethodActivationChange,
     navigateSettingsView,
   } = handles;
-  let panelElement: Webapi.Dom.Element.t =
-    switch (mountAt) {
-    | Bottom(element) => element
-    | Pane(tab) => tab.element
-    };
+  let containerElement = getPanelContainerFromState(state);
+
   let settingsElement: option(Webapi.Dom.Element.t) =
     switch (settingsView) {
     | None => None
@@ -264,27 +378,29 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
       value={event => handles.onMouseEvent |> Event.emitOk(event)}>
       <Debug.Provider value=debugDispatch>
         <Panel
+          panelRef
           editors
-          element=panelElement
+          containerElement
           header
           body
           mountAt
           hidden
           onMountAtChange={mountTo => send(MountTo(mountTo))}
           mode
-          onInquireQuery={handles.onInquireQuery}
           isPending
           isActive
           /* editors */
-          onEditorRef={ref => React.Ref.setCurrent(queryRef, Some(ref))}
+          onQueryEditorRef={ref => React.Ref.setCurrent(queryRef, Some(ref))}
+          onInquireQuery={handles.onInquire}
           editorValue=""
           // {editors.query.value}
           // {editors.query.placeholder}
           editorPlaceholder=""
-          interceptAndInsertKey
           activateInputMethod
+          onInputMethodActivationChange
           settingsView
           onSettingsViewToggle={status => send(ToggleSettingsTab(status))}
+          interceptAndInsertKey
         />
         <Settings
           inquireConnection

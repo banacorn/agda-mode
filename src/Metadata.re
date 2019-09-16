@@ -87,7 +87,7 @@ type t = {
   mutable entries: array(Log.Entry.t),
 };
 
-let createEntry = (cmd, metadata) => {
+let createLogEntry = (cmd, metadata) => {
   let entry: Log.Entry.t = {
     request: cmd,
     response: {
@@ -159,7 +159,7 @@ let dump = self => {
     "location": (None: option(string)),
   };
   let itemURI = "agda-mode://log.md";
-  Atom.Environment.Workspace.open_(itemURI, itemOptions)
+  Atom.Workspace.open_(itemURI, itemOptions)
   |> fromPromise
   |> thenOk(newItem => {
        newItem |> Atom.TextEditor.insertText(text) |> ignore;

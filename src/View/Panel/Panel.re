@@ -4,7 +4,7 @@ open Type.View;
 let make =
     (
       ~editors: Editors.t,
-      ~element: Webapi.Dom.Element.t,
+      ~containerElement: Webapi.Dom.Element.t,
       ~onMountAtChange: mountTo => unit,
       ~body: Body.t,
       ~header: Header.t,
@@ -14,18 +14,29 @@ let make =
       ~settingsView: option(Tab.t),
       ~isPending: bool,
       ~isActive: bool,
+      ~panelRef: ReactDOMRe.Ref.currentDomRef,
       /* Editors */
       ~onInquireQuery: Event.t(string, MiniEditor.error),
-      ~onEditorRef: Atom.TextEditor.t => unit,
+      ~onQueryEditorRef: Atom.TextEditor.t => unit,
       ~editorPlaceholder: string,
       ~editorValue: string,
       ~interceptAndInsertKey: Event.t(string, unit),
       ~activateInputMethod: Event.t(bool, unit),
+      ~onInputMethodActivationChange: Event.t(bool, unit),
       ~onSettingsViewToggle: bool => unit,
     ) => {
   let (maxHeight, setMaxHeight) = Hook.useState(170);
   let (inputMethodActivated, setInputMethodActivation) =
     Hook.useState(false);
+
+  React.useEffect1(
+    () => {
+      let destructor =
+        onInputMethodActivationChange |> Event.onOk(setInputMethodActivation);
+      Some(destructor);
+    },
+    [||],
+  );
 
   let mountAtBottom =
     switch (mountAt) {
@@ -42,9 +53,13 @@ let make =
         )
       : None;
   let className =
-    Util.ClassName.([] |> addWhen("hidden", hidden) |> serialize);
+    Util.ClassName.(
+      ["agda-mode-panel"] |> addWhen("hidden", hidden) |> serialize
+    );
+  let id = "agda-mode:" ++ Editors.getID(editors);
+
   ReactDOMRe.createPortal(
-    <section className>
+    <section ref={ReactDOMRe.Ref.domRef(panelRef)} className id>
       <section className="panel-heading agda-header-container">
         <SizingHandle
           onResizeStart=setMaxHeight
@@ -52,10 +67,11 @@ let make =
             Js.Global.setTimeout(
               () => {
                 setMaxHeight(height);
-                Atom.Environment.Config.set(
+                Atom.Config.set(
                   "agda-mode.maxBodyHeight",
                   string_of_int(height),
-                );
+                )
+                |> ignore;
               },
               0,
             )
@@ -68,7 +84,7 @@ let make =
           interceptAndInsertKey
           activateInputMethod
           isActive
-          onActivationChange=setInputMethodActivation
+          onActivationChange=onInputMethodActivationChange
         />
         <Dashboard
           header
@@ -87,7 +103,7 @@ let make =
           value=editorValue
           placeholder=editorPlaceholder
           grammar="agda"
-          onEditorRef
+          onEditorRef=onQueryEditorRef
           onConfirm={result => onInquireQuery |> Event.emitOk(result)}
           onCancel={() =>
             onInquireQuery |> Event.emitError(MiniEditor.Cancelled) |> ignore
@@ -95,6 +111,6 @@ let make =
         />
       </section>
     </section>,
-    element,
+    containerElement,
   );
 };

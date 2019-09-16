@@ -27,7 +27,8 @@ let handleCommandError = instance =>
                "Parse Error",
                Type.View.Header.Error,
                Emacs(ParseError(conn.Connection.metadata)),
-             );
+             )
+             |> ignore;
            })
 
       | ConnectionError(error) =>
@@ -36,25 +37,29 @@ let handleCommandError = instance =>
           "Connection-related Error: " ++ header,
           Type.View.Header.Error,
           Emacs(PlainText(body)),
-        );
+        )
+        |> ignore;
       | Cancelled =>
         instance.view.display(
           "Query Cancelled",
           Type.View.Header.Error,
           Emacs(PlainText("")),
         )
+        |> ignore
       | GoalNotIndexed =>
         instance.view.display(
           "Goal not indexed",
           Type.View.Header.Error,
           Emacs(PlainText("Please reload to re-index the goal")),
         )
+        |> ignore
       | OutOfGoal =>
         instance.view.display(
           "Out of goal",
           Type.View.Header.Error,
           Emacs(PlainText("Please place the cursor in a goal")),
         )
+        |> ignore
       }
     )
     |> ignore;
@@ -296,7 +301,7 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
 
 let handleResponseAndRecoverCursor = (instance, response) =>
   instance
-  |> recoverCursor(() => handleResponse(instance, response))
+  |> updateCursorPosition(() => handleResponse(instance, response))
   |> mapOk(_ => ());
 
 /* Primitive Command => Remote Command */
@@ -330,15 +335,17 @@ let rec handleLocalCommand =
     |> mapError(_ => Cancelled)
     |> thenOk(() => {
          instance.isLoaded = true;
-         instance.view.activate();
-         instance.view.updateShouldDisplay(true);
-         instance.view.display(
-           "Connecting ...",
-           Type.View.Header.PlainText,
-           Emacs(PlainText("")),
-         )
-         |> ignore;
-         instance |> buff(Load);
+         instance.view.activate()
+         |> mapError(_ => Cancelled)
+         |> thenOk(_ => {
+              instance.view.updateShouldDisplay(true);
+              instance.view.display(
+                "Connecting ...",
+                Type.View.Header.PlainText,
+                Emacs(PlainText("")),
+              );
+              instance |> buff(Load);
+            });
        })
   | Abort => instance |> buff(Abort)
   | Quit =>
@@ -527,7 +534,7 @@ let rec handleLocalCommand =
     instance
     |> getPointedGoal
     |> thenOk(getGoalIndex)
-    |> thenOk(((goal, index)) => instance |> buff(Refine(goal, index)))
+    |> thenOk(((goal, index)) => instance |> buff(Auto(goal, index)))
 
   | Case =>
     instance
@@ -578,29 +585,46 @@ let rec handleLocalCommand =
        )
 
   | InputSymbol(symbol) =>
-    let enabled = Atom.Environment.Config.get("agda-mode.inputMethod");
+    let enabled = Atom.Config.get("agda-mode.inputMethod");
     if (enabled) {
       instance.view.updateShouldDisplay(true);
       switch (symbol) {
       | Ordinary =>
-        instance.view.activate();
-        instance.view.activateInputMethod(true);
-      | CurlyBracket => instance.view.interceptAndInsertKey("{")
-      | Bracket => instance.view.interceptAndInsertKey("[")
-      | Parenthesis => instance.view.interceptAndInsertKey("(")
-      | DoubleQuote => instance.view.interceptAndInsertKey("\"")
-      | SingleQuote => instance.view.interceptAndInsertKey("'")
-      | BackQuote => instance.view.interceptAndInsertKey("`")
-      | Abort => instance.view.activateInputMethod(false)
+        instance.view.activate()
+        |> mapError(_ => Cancelled)
+        |> thenOk(_ => {
+             instance.view.activateInputMethod(true);
+             resolve(None);
+           })
+      | CurlyBracket =>
+        instance.view.interceptAndInsertKey("{");
+        resolve(None);
+      | Bracket =>
+        instance.view.interceptAndInsertKey("[");
+        resolve(None);
+      | Parenthesis =>
+        instance.view.interceptAndInsertKey("(");
+        resolve(None);
+      | DoubleQuote =>
+        instance.view.interceptAndInsertKey("\"");
+        resolve(None);
+      | SingleQuote =>
+        instance.view.interceptAndInsertKey("'");
+        resolve(None);
+      | BackQuote =>
+        instance.view.interceptAndInsertKey("`");
+        resolve(None);
+      | Abort =>
+        instance.view.activateInputMethod(false);
+        resolve(None);
       };
-      ();
     } else {
       instance.editors
       |> Editors.Focus.get
       |> Atom.TextEditor.insertText("\\")
       |> ignore;
+      resolve(None);
     };
-    resolve(None);
 
   | QuerySymbol =>
     let selected = instance.editors |> Editors.getSelectedSymbol;
@@ -631,6 +655,7 @@ let rec handleLocalCommand =
                   ),
                 ),
               )
+              |> ignore
             )
        )
     |> ignore;
@@ -653,7 +678,10 @@ let rec handleLocalCommand =
       switch (range) {
       | NoRange => (false, None)
       | Range(None, _) => (true, None)
-      | Range(Some(path), _) => (true, path == filePath ? None : Some(path))
+      | Range(Some(path), _) => (
+          true,
+          path == filePath ? None : Some(path),
+        )
       };
     if (shouldJump) {
       switch (otherFilePath) {
@@ -690,7 +718,7 @@ let rec handleLocalCommand =
           "location": (None: option(string)),
         };
 
-        Atom.Environment.Workspace.open_(uri, option)
+        Atom.Workspace.open_(uri, option)
         |> fromPromise
         |> then_(_ => resolve(None), _ => reject(Cancelled));
       };
@@ -701,7 +729,9 @@ let rec handleLocalCommand =
     if (instance.isLoaded) {
       let name =
         instance
-        |> recoverCursor(() => Editors.getSelectedTextNode(instance.editors));
+        |> updateCursorPosition(() =>
+             Editors.getSelectedTextNode(instance.editors)
+           );
 
       instance
       |> getPointedGoal
@@ -724,7 +754,9 @@ let rec handleLocalCommand =
 
 /* Remote Command => Responses */
 let handleRemoteCommand =
-    (instance, handler, remote): Async.t(array('a), error) =>
+    /* This still builds even when type is changed from 'a to unit.
+       What is the point of an array of units? */
+    (instance, handler, remote): Async.t(array(unit), error) =>
   switch (remote) {
   | None => resolve([||])
   | Some(cmd) =>
@@ -737,24 +769,25 @@ let handleRemoteCommand =
            Connection.resetLog(connection);
          };
          // create log entry for each `cmd`
-         Metadata.createEntry(cmd.command, connection.metadata);
+         Metadata.createLogEntry(cmd.command, connection.metadata);
        })
     |> ignore;
 
     let handleResults = ref([||]);
     let parseErrors: ref(array(Parser.Error.t)) = ref([||]);
-    let serialized = Command.Remote.serialize(cmd);
-
+    let inputForAgda = Command.Remote.toAgdaReadableString(cmd);
+    open Parser.Incr.Event;
     let onResponse = (resolve', reject') => (
       fun
-      | Ok(Connection.Data(response)) => {
+      | Ok(OnResult(Ok(response))) => {
           let result =
-            instance |> recoverCursor(() => handler(instance, response));
+            instance
+            |> updateCursorPosition(() => handler(instance, response));
           handleResults := Array.concat([|result|], handleResults^);
         }
-      | Ok(Connection.Error(error)) =>
+      | Ok(OnResult(Error(error))) =>
         parseErrors := Array.concat([|error|], parseErrors^)
-      | Ok(Connection.End) =>
+      | Ok(OnFinish) =>
         if (Array.length(parseErrors^) > 0) {
           reject'(ParseError(parseErrors^)) |> ignore;
         } else {
@@ -772,7 +805,7 @@ let handleRemoteCommand =
       Connections.get(instance)
       |> mapOk(connection =>
            connection
-           |> Connection.send(serialized)
+           |> Connection.send(inputForAgda)
            |> Event.on(onResponse(resolve', reject'))
            |> ignore
          )
@@ -784,9 +817,10 @@ let dispatch = (command, instance): Async.t(unit, error) => {
   instance
   |> handleLocalCommand(command)
   |> pass(_ => startCheckpoint(command, instance))
-  |> pass(_ => instance.view.updateIsPending(true))
+  |> wait(_ => instance.view.updateIsPending(true))
   |> thenOk(handleRemoteCommand(instance, handleResponse))
   |> pass(_ => endCheckpoint(instance))
-  |> pass(_ => instance.view.updateIsPending(false))
-  |> mapOk(_ => ());
+  |> wait(_ => instance.view.updateIsPending(false))
+  |> mapOk(_ => instance.onDispatch |> Event.emitOk())
+  |> passError(error => instance.onDispatch |> Event.emitError(error));
 };

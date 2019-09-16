@@ -1,5 +1,33 @@
 open Rebase;
 
+let useDidUpdateEffect = (f, inputs) => {
+  let didMountRef = React.useRef(false);
+  React.useEffect1(
+    () =>
+      if (React.Ref.current(didMountRef)) {
+        f();
+      } else {
+        React.Ref.setCurrent(didMountRef, true);
+        None;
+      },
+    inputs,
+  );
+};
+
+let useDidUpdateEffect2 = (f, (a, b)) => {
+  let didMountRef = React.useRef(false);
+  React.useEffect2(
+    () =>
+      if (React.Ref.current(didMountRef)) {
+        f();
+      } else {
+        React.Ref.setCurrent(didMountRef, true);
+        None;
+      },
+    (a, b),
+  );
+};
+
 let useState = init => {
   let (state, setState) = React.useState(_ => init);
   let setState' = value => setState(_ => value);
@@ -58,6 +86,16 @@ let useListenWhen = (listener, shouldListen) => {
 let useEventListener = (listener, emitter) => {
   React.useEffect1(
     () => emitter |> Event.onOk(listener) |> Option.some,
+    [||],
+  );
+};
+
+let useChannel = (callback, channel) => {
+  React.useEffect1(
+    () => {
+      channel |> Channel.recv(callback);
+      None;
+    },
     [||],
   );
 };

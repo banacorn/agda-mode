@@ -1,4 +1,7 @@
+// Binding to Atom's <atom-text-editor>
+
 open Rebase;
+open Fn;
 
 type error =
   | Cancelled;
@@ -12,16 +15,13 @@ let observeFocus = (setFocused: bool => unit, editor) => {
     MutationObserver.make((mutations, _) => {
       let focusedNow =
         mutations
-        |> Array.exists(m =>
-             m
-             |> MutationRecord.target
-             |> Element.ofNode
-             |> Option.map(elem =>
-                  elem
-                  |> Element.classList
-                  |> DomTokenList.contains("is-focused")
+        |> Array.exists(
+             MutationRecord.target
+             >> Element.ofNode
+             >> Option.map(
+                  Element.classList >> DomTokenList.contains("is-focused"),
                 )
-             |> Option.mapOr(Fn.id, false)
+             >> Option.mapOr(id, false),
            );
       /* modify the state */
       setFocused(focusedNow);
@@ -32,12 +32,16 @@ let observeFocus = (setFocused: bool => unit, editor) => {
     "subtree": false,
   };
   /* start observing */
-  let element = Atom.Environment.Views.getView(editor);
+  let element = Atom.Views.getView(editor);
   observer |> MutationObserver.observe(element, config);
 
   /* stop observing */
   Some(() => observer |> MutationObserver.disconnect);
 };
+
+// converting from a React ref to a <TextEditor>
+let ofTextEditor: ReasonReact.reactRef => Atom.TextEditor.t =
+  r => ReasonReact.refToJsObj(r)##getModel();
 
 [@react.component]
 let make =
@@ -59,34 +63,32 @@ let make =
   React.useEffect1(
     () =>
       React.Ref.current(editorElem)
-      |> Option.map(r => ReasonReact.refToJsObj(r)##getModel())
+      |> Option.map(ofTextEditor)
       |> Option.flatMap(editor => {
            // storing the Editor
            setEditorRef(Some(editor));
            /* WARNING: TextEditor.setGrammar is DEPRECATED!!! */
            /* pass the grammar down to enable input method */
            if (grammar === "agda") {
-             let agdaGrammar =
-               Atom.Environment.Grammar.grammarForScopeName("source.agda");
-             try (editor |> Atom.TextEditor.setGrammar(agdaGrammar)) {
-             | _ => () /* do nothing when we fail to load the grammar */
-             };
+             Atom.Grammars.grammarForScopeName("source.agda")
+             |> Option.forEach(grammar =>
+                  try (editor |> Atom.TextEditor.setGrammar(grammar)) {
+                  | _ => () /* do nothing when we fail to load the grammar */
+                  }
+                );
+             (); /* do nothing when we fail to load the grammar */
            };
            /* expose the editor */
            onEditorRef(editor);
            /* subscribe to Atom's core events */
            let disposables = Atom.CompositeDisposable.make();
-           Atom.Environment.Commands.add(
-             `HtmlElement(Atom.Environment.Views.getView(editor)),
-             "core:confirm",
-             _event =>
+
+           let element = Atom.Views.getView(editor);
+           Atom.Commands.add(`HtmlElement(element), "core:confirm", _event =>
              onConfirm(editor |> Atom.TextEditor.getText)
            )
            |> Atom.CompositeDisposable.add(disposables);
-           Atom.Environment.Commands.add(
-             `HtmlElement(Atom.Environment.Views.getView(editor)),
-             "core:cancel",
-             _event =>
+           Atom.Commands.add(`HtmlElement(element), "core:cancel", _event =>
              onCancel()
            )
            |> Atom.CompositeDisposable.add(disposables);
