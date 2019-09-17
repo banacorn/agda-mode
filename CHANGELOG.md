@@ -1,6 +1,7 @@
 ## 0.9.8
 * Testing with GitHub Actions CI 🤖️
-* Fix #112
+* Fix #112 and #95
+* S-expression parser overhaul (Possibly related to #106)
 
 ## 0.9.7
 * Fix #12 and #108
