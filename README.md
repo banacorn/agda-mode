@@ -105,6 +105,18 @@ Go to `Settings > Packages > agda-mode`, put the options after the path of Agda 
 
 ![image](https://i.imgur.com/SwKSWXZ.png)
 
+## Trouble shooting
+
+### Windows 10
+
+If you are having trouble using agda-mode on Windows 10 (symptoms: #97, #98, #110)
+Please consider follow [these instructions](https://github.com/banacorn/agda-mode/issues/97#issuecomment-491516453) and see if it works:
+ 
+1. Go to the system's `Language settings`
+2. Select `Administrative language settings`
+3. Click `Change system locale...`
+4. Check `Beta: Use Unicode UTF-8 for worldwide language support`
+
 ## Contribute
 
 See [HACKING](HACKING.md)
