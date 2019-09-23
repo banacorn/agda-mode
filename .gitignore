@@ -49,3 +49,7 @@ jspm_packages
 
 # Source map
 *.map
+
+# Though we generate both, we only care about the .js keymap/query
+asset/keymap.json
+asset/query.json

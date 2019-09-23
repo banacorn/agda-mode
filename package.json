@@ -4,6 +4,8 @@
   "version": "0.9.8",
   "description": "agda-mode on Atom",
   "scripts": {
+    "keymap-gen": "./keymap.el generate",
+    "keymap-print": "./keymap.el print",
     "start": "bsb -clean && bsb -make-world -w",
     "build": "bsb -make-world && npx webpack --mode=production",
     "test": "atom -t lib/js/test"

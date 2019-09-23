@@ -46,6 +46,20 @@ If the built artefacts are stale, to rebuild them, simple run `start` again:
 npm run start
 ```
 
+To re-build the keymaps from Agda's Emacs mode, run:
+
+```
+npm run keymap-gen
+```
+
+This runs [`./keymap.el`](./keymap.el), which can also be run manually and pointed to a custom Agda path.
+
+To print the keymap list, run:
+
+```
+npm run keymap-print
+```
+
 To build and bundle `./lib/js/bundled.js` (the entry file):
 
 ```
