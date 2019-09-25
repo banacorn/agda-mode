@@ -18,7 +18,8 @@ type action =
   | UpdateMarker(array(Atom.DisplayMarker.t))
   | MarkerEvent(string, string)
   | Insert(string)
-  | Rewrite(string);
+  | Rewrite(string)
+  | RewriteAndDeactivate(string);
 
 /* add class 'agda-mode-input-method-activated' */
 let addClass = editor => {
@@ -178,30 +179,28 @@ let monitor = (editor, send) => {
 let reducer = (editor, action, state) => {
   switch (action) {
   | Activate =>
-    if (state.activated) {
-      if (Buffer.isEmpty(state.buffer)) {
-        // already activated, this happens when the 2nd backslash '\' kicks in
-        SideEffects(
-          ({send}) => {
-            // the user probably just want to type '\', so we leave it as is
-            send(Insert("\\"));
-            send(Deactivate);
-            None;
-          },
-        );
-      } else {
-        // Deactivate and then Activate, see #102: https://github.com/banacorn/agda-mode/issues/102
-        // allow users to type combos like ≡⟨⟩ with `\==\<\>`
-        UpdateWithSideEffects(
-          {...state, activated: false, buffer: Buffer.initial},
-          ({send}) => {
-            send(Activate);
-            None;
-          },
-        );
-      };
-    } else {
-      Update({...state, activated: true});
+    switch (state.activated, Buffer.isEmpty(state.buffer)) {
+    | (true, true) =>
+      // already activated, this happens when the 2nd backslash '\' kicks in
+      // the user probably just want to type '\', so we leave it as is
+      UpdateWithSideEffects(
+        {...state, activated: false, buffer: Buffer.initial},
+        _ => {
+          insertTextBuffer(editor, "\\");
+          None;
+        },
+      )
+    | (true, false) =>
+      // Deactivate and then Activate, see #102: https://github.com/banacorn/agda-mode/issues/102
+      // allow users to type combos like ≡⟨⟩ with `\==\<\>`
+      UpdateWithSideEffects(
+        {...state, activated: false, buffer: Buffer.initial},
+        ({send}) => {
+          send(Activate);
+          None;
+        },
+      )
+    | (false, _) => Update({...state, activated: true})
     }
   | Deactivate =>
     state.activated
@@ -238,6 +237,14 @@ let reducer = (editor, action, state) => {
     )
   | Rewrite(string) =>
     SideEffects(
+      _ => {
+        rewriteTextBuffer(editor, state.markers, string);
+        None;
+      },
+    )
+  | RewriteAndDeactivate(string) =>
+    UpdateWithSideEffects(
+      {...state, activated: false, buffer: Buffer.initial},
       _ => {
         rewriteTextBuffer(editor, state.markers, string);
         None;
@@ -354,10 +361,7 @@ let make =
         | None => ()
         }
       }
-      chooseSymbol={symbol => {
-        send(Rewrite(symbol));
-        send(Deactivate);
-      }}
+      chooseSymbol={symbol => send(RewriteAndDeactivate(symbol))}
       candidateSymbols={translation.candidateSymbols}
     />
   </section>;
