@@ -355,7 +355,7 @@ let make =
         }
       }
       chooseSymbol={symbol => {
-        send(Insert(symbol));
+        send(Rewrite(symbol));
         send(Deactivate);
       }}
       candidateSymbols={translation.candidateSymbols}
