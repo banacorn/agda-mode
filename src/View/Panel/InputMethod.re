@@ -15,7 +15,6 @@ let initialState = {activated: false, markers: [||], buffer: Buffer.initial};
 type action =
   | Activate
   | Deactivate
-  | Reactivate // Deactivate and then Activate
   | UpdateMarker(array(Atom.DisplayMarker.t))
   | MarkerEvent(string, string)
   | Insert(string)
@@ -179,38 +178,34 @@ let monitor = (editor, send) => {
 let reducer = (editor, action, state) => {
   switch (action) {
   | Activate =>
-    state.activated
-      ? SideEffects(
+    if (state.activated) {
+      if (Buffer.isEmpty(state.buffer)) {
+        // already activated, this happens when the 2nd backslash '\' kicks in
+        SideEffects(
           ({send}) => {
-            // already activated, this happens when the 2nd backslash '\' kicks in
-            if (Buffer.isEmpty(state.buffer)) {
-              // the user probably just want to type '\', so we leave it as is
-              send(Insert("\\"));
-              send(Deactivate);
-            } else {
-              // Deactivate and then Activate, see #102: https://github.com/banacorn/agda-mode/issues/102
-              // allow users to type combos like ≡⟨⟩ with `\==\<\>`
-              send(
-                Reactivate,
-              );
-            };
+            // the user probably just want to type '\', so we leave it as is
+            send(Insert("\\"));
+            send(Deactivate);
             None;
           },
-        )
-      : Update({...state, activated: true})
-  | Deactivate =>
-    state.activated
-      ? Update({...state, activated: false, buffer: Buffer.initial})
-      : NoUpdate
-  | Reactivate =>
-    state.activated
-      ? UpdateWithSideEffects(
+        );
+      } else {
+        // Deactivate and then Activate, see #102: https://github.com/banacorn/agda-mode/issues/102
+        // allow users to type combos like ≡⟨⟩ with `\==\<\>`
+        UpdateWithSideEffects(
           {...state, activated: false, buffer: Buffer.initial},
           ({send}) => {
             send(Activate);
             None;
           },
-        )
+        );
+      };
+    } else {
+      Update({...state, activated: true});
+    }
+  | Deactivate =>
+    state.activated
+      ? Update({...state, activated: false, buffer: Buffer.initial})
       : NoUpdate
   | UpdateMarker(markers) => Update({...state, markers})
   | MarkerEvent(_oldBuffer, newBuffer) =>
