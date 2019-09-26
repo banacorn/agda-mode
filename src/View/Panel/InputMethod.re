@@ -16,7 +16,8 @@ type action =
   | Activate
   | Deactivate
   | UpdateMarker(array(Atom.DisplayMarker.t))
-  | MarkerEvent(string, string)
+  | UpdateBuffer(Buffer.t)
+  // | MarkerEvent(string, string)
   | Insert(string)
   | Rewrite(string)
   | RewriteAndDeactivate(string);
@@ -89,7 +90,7 @@ let clearAndMarkSelectedAreas = editor => {
      });
 };
 
-let markerOnDidChange = (editor, send, event) => {
+let markerOnDidChange = (editor, setReality, event) => {
   open Atom;
   let rangeOld =
     Atom.Range.make(
@@ -105,11 +106,11 @@ let markerOnDidChange = (editor, send, event) => {
     editor |> TextEditor.getBuffer |> TextBuffer.getTextInRange(rangeOld);
   let newBuffer =
     editor |> TextEditor.getBuffer |> TextBuffer.getTextInRange(rangeNew);
-  send(MarkerEvent(oldBuffer, newBuffer));
+  setReality(newBuffer);
 };
 
 /* monitor the text buffer to figures out what happend */
-let monitor = (editor, send) => {
+let monitor = (editor, setReality, send) => {
   open Atom;
   let disposables = CompositeDisposable.make();
 
@@ -124,7 +125,7 @@ let monitor = (editor, send) => {
   markers[0]
   |> Option.forEach(marker => {
        marker
-       |> DisplayMarker.onDidChange(markerOnDidChange(editor, send))
+       |> DisplayMarker.onDidChange(markerOnDidChange(editor, setReality))
        |> CompositeDisposable.add(disposables);
        // deactivate on newline
        Commands.add(
@@ -207,26 +208,27 @@ let reducer = (editor, action, state) => {
       ? Update({...state, activated: false, buffer: Buffer.initial})
       : NoUpdate
   | UpdateMarker(markers) => Update({...state, markers})
-  | MarkerEvent(_oldBuffer, newBuffer) =>
-    switch (Buffer.next(state.buffer, newBuffer)) {
-    | Noop(buffer) => Update({...state, buffer})
-    | Rewrite(buffer) =>
-      UpdateWithSideEffects(
-        {...state, buffer},
-        ({send}) => {
-          let surface = Buffer.toSurface(buffer);
-          send(Rewrite(surface));
-          None;
-        },
-      )
-    | Stuck =>
-      SideEffects(
-        ({send}) => {
-          send(Deactivate);
-          None;
-        },
-      )
-    }
+  | UpdateBuffer(buffer) => Update({...state, buffer})
+  // | MarkerEvent(_oldBuffer, newBuffer) =>
+  //   switch (Buffer.next(state.buffer, newBuffer)) {
+  //   | Noop(buffer) => Update({...state, buffer})
+  //   | Rewrite(buffer) =>
+  //     UpdateWithSideEffects(
+  //       {...state, buffer},
+  //       ({send}) => {
+  //         let surface = Buffer.toSurface(buffer);
+  //         send(Rewrite(surface));
+  //         None;
+  //       },
+  //     )
+  //   | Stuck =>
+  //     SideEffects(
+  //       ({send}) => {
+  //         send(Deactivate);
+  //         None;
+  //       },
+  //     )
+  //   }
 
   | Insert(char) =>
     SideEffects(
@@ -275,6 +277,24 @@ let make =
 
   let (state, send) = ReactUpdate.useReducer(initialState, reducer(editor));
 
+  let (reality, setReality) = Hook.useState("");
+
+  // do something when the "reality" changed
+  React.useEffect1(
+    () => {
+      switch (Buffer.next(state.buffer, reality)) {
+      | Noop(buffer) => send(UpdateBuffer(buffer))
+      | Rewrite(buffer) =>
+        send(UpdateBuffer(buffer));
+        let surface = Buffer.toSurface(buffer);
+        send(Rewrite(surface));
+      | Stuck => send(Deactivate)
+      };
+      None;
+    },
+    [|reality|],
+  );
+
   // dev mode debug
   let debugDispatch = React.useContext(Type.View.Debug.debugDispatch);
   React.useEffect1(
@@ -321,7 +341,10 @@ let make =
   );
 
   // listens to certain events only when the IM is activated
-  Hook.useListenWhen(() => monitor(editor, send), state.activated);
+  Hook.useListenWhen(
+    () => monitor(editor, setReality, send),
+    state.activated,
+  );
 
   let translation = Translator.translate(Buffer.toSequence(state.buffer));
   // the view
