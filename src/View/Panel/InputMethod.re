@@ -16,11 +16,7 @@ type action =
   | Activate
   | Deactivate
   | UpdateMarker(array(Atom.DisplayMarker.t))
-  | UpdateBuffer(Buffer.t)
-  // | MarkerEvent(string, string)
-  | Insert(string)
-  | Rewrite(string)
-  | RewriteAndDeactivate(string);
+  | UpdateBuffer(Buffer.t);
 
 /* add class 'agda-mode-input-method-activated' */
 let addClass = editor => {
@@ -102,7 +98,7 @@ let markerOnDidChange = (editor, setReality, event) => {
       event##newTailBufferPosition,
       event##newHeadBufferPosition,
     );
-  let oldBuffer =
+  let _oldBuffer =
     editor |> TextEditor.getBuffer |> TextBuffer.getTextInRange(rangeOld);
   let newBuffer =
     editor |> TextEditor.getBuffer |> TextBuffer.getTextInRange(rangeNew);
@@ -177,81 +173,18 @@ let monitor = (editor, setReality, send) => {
   );
 };
 
-let reducer = (editor, action, state) => {
+let reducer = (action, state) => {
   switch (action) {
   | Activate =>
-    switch (state.activated, Buffer.isEmpty(state.buffer)) {
-    | (true, true) =>
-      // already activated, this happens when the 2nd backslash '\' kicks in
-      // the user probably just want to type '\', so we leave it as is
-      UpdateWithSideEffects(
-        {...state, activated: false, buffer: Buffer.initial},
-        _ => {
-          insertTextBuffer(editor, "\\");
-          None;
-        },
-      )
-    | (true, false) =>
-      // Deactivate and then Activate, see #102: https://github.com/banacorn/agda-mode/issues/102
-      // allow users to type combos like ≡⟨⟩ with `\==\<\>`
-      UpdateWithSideEffects(
-        {...state, activated: false, buffer: Buffer.initial},
-        ({send}) => {
-          send(Activate);
-          None;
-        },
-      )
-    | (false, _) => Update({...state, activated: true})
-    }
+    state.activated
+      ? Update({...state, activated: false, buffer: Buffer.initial})
+      : Update({...state, activated: true})
   | Deactivate =>
     state.activated
       ? Update({...state, activated: false, buffer: Buffer.initial})
       : NoUpdate
   | UpdateMarker(markers) => Update({...state, markers})
   | UpdateBuffer(buffer) => Update({...state, buffer})
-  // | MarkerEvent(_oldBuffer, newBuffer) =>
-  //   switch (Buffer.next(state.buffer, newBuffer)) {
-  //   | Noop(buffer) => Update({...state, buffer})
-  //   | Rewrite(buffer) =>
-  //     UpdateWithSideEffects(
-  //       {...state, buffer},
-  //       ({send}) => {
-  //         let surface = Buffer.toSurface(buffer);
-  //         send(Rewrite(surface));
-  //         None;
-  //       },
-  //     )
-  //   | Stuck =>
-  //     SideEffects(
-  //       ({send}) => {
-  //         send(Deactivate);
-  //         None;
-  //       },
-  //     )
-  //   }
-
-  | Insert(char) =>
-    SideEffects(
-      _ => {
-        insertTextBuffer(editor, char);
-        None;
-      },
-    )
-  | Rewrite(string) =>
-    SideEffects(
-      _ => {
-        rewriteTextBuffer(editor, state.markers, string);
-        None;
-      },
-    )
-  | RewriteAndDeactivate(string) =>
-    UpdateWithSideEffects(
-      {...state, activated: false, buffer: Buffer.initial},
-      _ => {
-        rewriteTextBuffer(editor, state.markers, string);
-        None;
-      },
-    )
   };
 };
 
@@ -275,11 +208,10 @@ let make =
     ) => {
   let editor = Editors.Focus.get(editors);
 
-  let (state, send) = ReactUpdate.useReducer(initialState, reducer(editor));
-
-  let (reality, setReality) = Hook.useState("");
-
+  let (state, send) = ReactUpdate.useReducer(initialState, reducer);
+  let stateRef = React.useRef(state);
   // do something when the "reality" changed
+  let (reality, setReality) = Hook.useState("");
   React.useEffect1(
     () => {
       switch (Buffer.next(state.buffer, reality)) {
@@ -287,7 +219,7 @@ let make =
       | Rewrite(buffer) =>
         send(UpdateBuffer(buffer));
         let surface = Buffer.toSurface(buffer);
-        send(Rewrite(surface));
+        rewriteTextBuffer(editor, state.markers, surface);
       | Stuck => send(Deactivate)
       };
       None;
@@ -313,12 +245,34 @@ let make =
     [|state|],
   );
 
+  // update with the latest state
+  React.Ref.setCurrent(stateRef, state);
+  // listens to `activateInputMethod`
   React.useEffect1(
     () =>
       activateInputMethod
-      |> Event.onOk(shouldActivate =>
-           send(shouldActivate ? Activate : Deactivate)
-         )
+      |> Event.onOk(shouldActivate => {
+           let state = React.Ref.current(stateRef);
+           if (shouldActivate) {
+             if (state.activated) {
+               if (Buffer.isEmpty(state.buffer)) {
+                 // already activated, this happens when the 2nd backslash '\' kicks in
+                 // the user probably just want to type '\', so we leave it as is
+                 insertTextBuffer(editor, "\\");
+                 send(Deactivate);
+               } else {
+                 // Deactivate and then Activate, see #102: https://github.com/banacorn/agda-mode/issues/102
+                 // allow users to type combos like ≡⟨⟩ with `\==\<\>`
+                 send(Deactivate);
+                 send(Activate);
+               };
+             } else {
+               send(Activate);
+             };
+           } else {
+             send(Deactivate);
+           };
+         })
       |> Option.some,
     [||],
   );
@@ -335,7 +289,7 @@ let make =
   React.useEffect1(
     () =>
       interceptAndInsertKey
-      |> Event.onOk(char => send(Insert(char)))
+      |> Event.onOk(char => insertTextBuffer(editor, char))
       |> Option.some,
     [||],
   );
@@ -363,7 +317,10 @@ let make =
       </div>
       {translation.keySuggestions
        |> Array.map(key =>
-            <button className="btn" onClick={_ => send(Insert(key))} key>
+            <button
+              className="btn"
+              onClick={_ => insertTextBuffer(editor, key)}
+              key>
               {React.string(key)}
             </button>
           )
@@ -380,11 +337,14 @@ let make =
       isActive={isActive && state.activated}
       updateTranslation={replace =>
         switch (replace) {
-        | Some(symbol) => send(Rewrite(symbol))
+        | Some(symbol) => rewriteTextBuffer(editor, state.markers, symbol)
         | None => ()
         }
       }
-      chooseSymbol={symbol => send(RewriteAndDeactivate(symbol))}
+      chooseSymbol={symbol => {
+        rewriteTextBuffer(editor, state.markers, symbol);
+        send(Deactivate);
+      }}
       candidateSymbols={translation.candidateSymbols}
     />
   </section>;
