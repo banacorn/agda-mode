@@ -33,6 +33,9 @@ let toSurface = self =>
   | Some((symbol, _)) => symbol ++ self.tail
   };
 
+let toString = self =>
+  "\"" ++ toSurface(self) ++ "\"[" ++ toSequence(self) ++ "]";
+
 type action =
   | Noop(t) // should do nothing
   | Rewrite(t) // should rewrite the text buffer

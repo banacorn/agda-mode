@@ -278,7 +278,8 @@ module Package = {
     Atom.Packages.deactivatePackage("agda-mode", false);
   };
 
-  let cleanup = () => {
+  // after_each
+  let after_each = () => {
     let destroyAllTextEditors = () =>
       Atom.Workspace.getPanes()
       |> Array.flatMap(pane =>
@@ -290,7 +291,10 @@ module Package = {
       |> then_(_ => resolve());
     let clearAllFiles = () => {
       File.openAsset("Temp.agda")
-      |> then_(Atom.TextEditor.setText("") >> resolve);
+      |> then_(editor => {
+           Atom.TextEditor.setText("", editor);
+           Atom.TextEditor.save(editor);
+         });
     };
 
     destroyAllTextEditors() |> then_(clearAllFiles);
@@ -359,9 +363,29 @@ module Keyboard = {
   };
 
   let insert = (key, instance: Instance.t) => {
+    // listen
+    Js.log("[ IM ][ listen ]");
+    let onChange =
+      instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+    // trigger (insert & save)
+
+    Js.log2(
+      "[ IM ][ before insertion ]",
+      instance.editors.source |> TextEditor.getText,
+    );
+
     instance.editors.source |> TextEditor.insertText(key) |> ignore;
-                                                                    // resolve(instance);
+    instance.editors.source
+    |> TextEditor.save
+    |> then_(_ => {
+         Js.log2(
+           "[ IM ][ after insertion ]",
+           instance.editors.source |> TextEditor.getText,
+         );
+         onChange;
+       });
   };
+  // let insertMany =
 };
 
 module Assert = {

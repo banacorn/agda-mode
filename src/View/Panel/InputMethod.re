@@ -1,5 +1,4 @@
 let sort = Array.sort;
-open ReactUpdate;
 open Rebase;
 
 /********************************************************************************************/
@@ -98,11 +97,25 @@ let markerOnDidChange = (editor, setReality, event) => {
       event##newTailBufferPosition,
       event##newHeadBufferPosition,
     );
-  let _oldBuffer =
-    editor |> TextEditor.getBuffer |> TextBuffer.getTextInRange(rangeOld);
-  let newBuffer =
-    editor |> TextEditor.getBuffer |> TextBuffer.getTextInRange(rangeNew);
-  setReality(newBuffer);
+
+  let _oldBuffer = editor |> TextEditor.getTextInBufferRange(rangeOld);
+  let newBuffer = editor |> TextEditor.getTextInBufferRange(rangeNew);
+
+  if (_oldBuffer != newBuffer) {
+    Js.log(
+      "[ IM ][ monitor ] \""
+      ++ _oldBuffer
+      ++ "\" "
+      ++ string_of_int(Point.column(Range.end_(rangeOld)))
+      ++ " => \""
+      ++ newBuffer
+      ++ "\" "
+      ++ string_of_int(Point.column(Range.end_(rangeNew))),
+    );
+    setReality(newBuffer);
+  } else {
+    Js.log("[ IM ][ monitor ][ same same ]");
+  };
 };
 
 /* monitor the text buffer to figures out what happend */
@@ -199,7 +212,8 @@ type change =
   | Complete
   | Stuck;
 
-let hasCombo = (state, changeLog) => {
+// for determining whether the previous changes to the system should be regarded as one atomic operation or not
+let hasChanged = (state, changeLog) => {
   // there was a Rewrite + Deactivate combo
   let rewriteDeactivateCombo = !state.activated && changeLog == Complete;
 
@@ -207,9 +221,7 @@ let hasCombo = (state, changeLog) => {
   // also happens when agda-mode was activated by triggering the input-method
   let deactivateActivateCombo = !state.activated && changeLog == Noop;
 
-  // Js.log3(state.activated, Buffer.toSurface(state.buffer), changeLog);
-
-  rewriteDeactivateCombo || deactivateActivateCombo;
+  !rewriteDeactivateCombo && !deactivateActivateCombo;
 };
 
 [@react.component]
@@ -275,9 +287,12 @@ let make =
   let debugDispatch = React.useContext(Type.View.Debug.debugDispatch);
   React.useEffect2(
     () => {
-      if (!hasCombo(state, changeLog)) {
+      if (hasChanged(state, changeLog)) {
+        Js.log("[ IM ][ change ]");
         onChange |> Event.emitOk();
       };
+
+      Js.log3(state.activated, Buffer.toString(state.buffer), state.reality);
 
       // log when the state changes
       if (Atom.inDevMode()) {

@@ -12,7 +12,7 @@ open! Test__Util;
 describe("View", () => {
   describe("Activation/deactivation", () => {
     describe("when activating agda-mode", () => {
-      after_each(Package.cleanup);
+      after_each(Package.after_each);
 
       it("should mount `article.agda-mode-panel-container` at the bottom", () =>
         openAndLoad("Blank1.agda")
@@ -64,7 +64,7 @@ describe("View", () => {
     });
 
     describe("when closing the editor", () => {
-      after_each(Package.cleanup);
+      after_each(Package.after_each);
 
       it(
         "should unmount `section#agda-mode:xxx` from `article.agda-mode-panel-container` when docker at bottom",
@@ -97,7 +97,7 @@ describe("View", () => {
 
   describe("Docking", () => {
     describe("when toggle docking", () => {
-      after_each(Package.cleanup);
+      after_each(Package.after_each);
 
       it("should open a new tab", () =>
         openAndLoad("Blank1.agda")
@@ -113,7 +113,7 @@ describe("View", () => {
     });
 
     describe("when toggle docking again", () => {
-      after_each(Package.cleanup);
+      after_each(Package.after_each);
 
       it("should close the opened tab", () =>
         openAndLoad("Blank1.agda")
