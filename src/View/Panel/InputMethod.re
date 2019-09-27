@@ -228,6 +228,8 @@ let make =
       ~interceptAndInsertKey: Event.t(string, unit),
       ~activateInputMethod: Event.t(bool, unit),
       ~onActivationChange: Event.t(bool, unit),
+      // this event is triggered whenever the user did something
+      ~onChange: Event.t(unit, unit),
       ~isActive: bool,
     ) => {
   let editor = Editors.Focus.get(editors);
@@ -274,7 +276,7 @@ let make =
   React.useEffect2(
     () => {
       if (!hasCombo(state, changeLog)) {
-        Js.log("=============");
+        onChange |> Event.emitOk();
       };
 
       // log when the state changes
@@ -384,7 +386,9 @@ let make =
       isActive={isActive && state.activated}
       updateTranslation={replace =>
         switch (replace) {
-        | Some(symbol) => rewriteTextBuffer(editor, markers, symbol)
+        | Some(symbol) =>
+          onChange |> Event.emitOk();
+          rewriteTextBuffer(editor, markers, symbol);
         | None => ()
         }
       }
