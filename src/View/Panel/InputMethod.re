@@ -6,15 +6,17 @@ open Rebase;
 
 type state = {
   activated: bool,
-  buffer: Buffer.t,
+  buffer: Buffer.t, // what we have in mind
+  reality: string // the result as seen on the editor
 };
 
-let initialState = {activated: false, buffer: Buffer.initial};
+let initialState = {activated: false, buffer: Buffer.initial, reality: ""};
 
 type action =
   | Activate
   | Deactivate
-  | UpdateBuffer(Buffer.t);
+  | UpdateBuffer(Buffer.t)
+  | UpdateReality(string);
 
 /* add class 'agda-mode-input-method-activated' */
 let addClass = editor => {
@@ -171,18 +173,43 @@ let monitor = (editor, setMarkers, setReality, send) => {
   );
 };
 
-let reducer = (action, state) => {
+let reducer = (state, action) => {
   switch (action) {
   | Activate =>
     state.activated
-      ? Update({...state, activated: false, buffer: Buffer.initial})
-      : Update({...state, activated: true})
+      ? {activated: false, buffer: Buffer.initial, reality: ""}
+      : {...state, activated: true}
   | Deactivate =>
     state.activated
-      ? Update({...state, activated: false, buffer: Buffer.initial})
-      : NoUpdate
-  | UpdateBuffer(buffer) => Update({...state, buffer})
+      ? {activated: false, buffer: Buffer.initial, reality: ""} : state
+  | UpdateBuffer(buffer) =>
+    // return the original state if nothing's changed
+    if (buffer === state.buffer) {
+      state;
+    } else {
+      {...state, buffer};
+    }
+  | UpdateReality(reality) => {...state, reality}
   };
+};
+
+type change =
+  | Noop
+  | Rewrite
+  | Complete
+  | Stuck;
+
+let hasCombo = (state, changeLog) => {
+  // there was a Rewrite + Deactivate combo
+  let rewriteDeactivateCombo = !state.activated && changeLog == Complete;
+
+  // there was a Deactivate + Activate combo
+  // also happens when agda-mode was activated by triggering the input-method
+  let deactivateActivateCombo = !state.activated && changeLog == Noop;
+
+  // Js.log3(state.activated, Buffer.toSurface(state.buffer), changeLog);
+
+  rewriteDeactivateCombo || deactivateActivateCombo;
 };
 
 [@react.component]
@@ -207,29 +234,50 @@ let make =
   // display markers
   let (markers, setMarkers) = Hook.useState([||]);
 
-  let (state, send) = ReactUpdate.useReducer(initialState, reducer);
+  let (state, send) = React.useReducer(reducer, initialState);
   let stateRef = React.useRef(state);
+  // for
+  let (changeLog, setChangeLog) = Hook.useState(Noop);
+  let pushChange = action => {
+    // let x = changeLog;
+    setChangeLog(action);
+  };
+
   // do something when the "reality" changed
-  let (reality, setReality) = Hook.useState("");
+  // let (reality, setReality) = Hook.useState("");
+  let setReality = s => send(UpdateReality(s));
   React.useEffect1(
     () => {
-      switch (Buffer.next(state.buffer, reality)) {
-      | Noop(buffer) => send(UpdateBuffer(buffer))
+      switch (Buffer.next(state.buffer, state.reality)) {
+      | Noop(buffer) =>
+        pushChange(Noop);
+        send(UpdateBuffer(buffer));
       | Rewrite(buffer) =>
+        pushChange(Rewrite);
         send(UpdateBuffer(buffer));
         let surface = Buffer.toSurface(buffer);
         rewriteTextBuffer(editor, markers, surface);
-      | Stuck => send(Deactivate)
+      | Complete =>
+        pushChange(Complete);
+        send(Deactivate);
+      | Stuck =>
+        pushChange(Stuck);
+        send(Deactivate);
       };
       None;
     },
-    [|reality|],
+    [|state.reality|],
   );
 
   // dev mode debug
   let debugDispatch = React.useContext(Type.View.Debug.debugDispatch);
-  React.useEffect1(
+  React.useEffect2(
     () => {
+      if (!hasCombo(state, changeLog)) {
+        Js.log("=============");
+      };
+
+      // log when the state changes
       if (Atom.inDevMode()) {
         debugDispatch(
           UpdateInputMethod({
@@ -241,7 +289,7 @@ let make =
       };
       None;
     },
-    [|state|],
+    (state.activated, state.buffer),
   );
 
   // update with the latest state

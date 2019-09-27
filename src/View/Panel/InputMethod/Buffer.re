@@ -36,7 +36,8 @@ let toSurface = self =>
 type action =
   | Noop(t) // should do nothing
   | Rewrite(t) // should rewrite the text buffer
-  | Stuck; // should deactivate
+  | Complete // should deactivate
+  | Stuck; // should deactivate also
 
 // devise the next state
 let next = (self, reality) => {
@@ -47,7 +48,7 @@ let next = (self, reality) => {
     if (Translator.translate(sequence).further && reality != "\\") {
       Noop(self);
     } else {
-      Stuck;
+      Complete;
     };
   } else if (init(reality) == surface) {
     // insertion
