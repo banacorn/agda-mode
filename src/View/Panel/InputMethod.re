@@ -6,16 +6,14 @@ open Rebase;
 
 type state = {
   activated: bool,
-  markers: array(Atom.DisplayMarker.t),
   buffer: Buffer.t,
 };
 
-let initialState = {activated: false, markers: [||], buffer: Buffer.initial};
+let initialState = {activated: false, buffer: Buffer.initial};
 
 type action =
   | Activate
   | Deactivate
-  | UpdateMarker(array(Atom.DisplayMarker.t))
   | UpdateBuffer(Buffer.t);
 
 /* add class 'agda-mode-input-method-activated' */
@@ -106,7 +104,7 @@ let markerOnDidChange = (editor, setReality, event) => {
 };
 
 /* monitor the text buffer to figures out what happend */
-let monitor = (editor, setReality, send) => {
+let monitor = (editor, setMarkers, setReality, send) => {
   open Atom;
   let disposables = CompositeDisposable.make();
 
@@ -115,7 +113,7 @@ let monitor = (editor, setReality, send) => {
 
   // mark and store the markers
   let markers = clearAndMarkSelectedAreas(editor);
-  send(UpdateMarker(markers));
+  setMarkers(markers);
 
   // monitors the first marker
   markers[0]
@@ -168,7 +166,7 @@ let monitor = (editor, setReality, send) => {
       decorations |> Array.forEach(Decoration.destroy);
       markers |> Array.forEach(DisplayMarker.destroy);
       disposables |> CompositeDisposable.dispose |> ignore;
-      send(UpdateMarker([||]));
+      setMarkers([||]);
     },
   );
 };
@@ -183,7 +181,6 @@ let reducer = (action, state) => {
     state.activated
       ? Update({...state, activated: false, buffer: Buffer.initial})
       : NoUpdate
-  | UpdateMarker(markers) => Update({...state, markers})
   | UpdateBuffer(buffer) => Update({...state, buffer})
   };
 };
@@ -207,6 +204,8 @@ let make =
       ~isActive: bool,
     ) => {
   let editor = Editors.Focus.get(editors);
+  // display markers
+  let (markers, setMarkers) = Hook.useState([||]);
 
   let (state, send) = ReactUpdate.useReducer(initialState, reducer);
   let stateRef = React.useRef(state);
@@ -219,7 +218,7 @@ let make =
       | Rewrite(buffer) =>
         send(UpdateBuffer(buffer));
         let surface = Buffer.toSurface(buffer);
-        rewriteTextBuffer(editor, state.markers, surface);
+        rewriteTextBuffer(editor, markers, surface);
       | Stuck => send(Deactivate)
       };
       None;
@@ -235,7 +234,7 @@ let make =
         debugDispatch(
           UpdateInputMethod({
             activated: state.activated,
-            markers: state.markers,
+            markers,
             buffer: state.buffer,
           }),
         );
@@ -296,7 +295,7 @@ let make =
 
   // listens to certain events only when the IM is activated
   Hook.useListenWhen(
-    () => monitor(editor, setReality, send),
+    () => monitor(editor, setMarkers, setReality, send),
     state.activated,
   );
 
@@ -337,12 +336,12 @@ let make =
       isActive={isActive && state.activated}
       updateTranslation={replace =>
         switch (replace) {
-        | Some(symbol) => rewriteTextBuffer(editor, state.markers, symbol)
+        | Some(symbol) => rewriteTextBuffer(editor, markers, symbol)
         | None => ()
         }
       }
       chooseSymbol={symbol => {
-        rewriteTextBuffer(editor, state.markers, symbol);
+        rewriteTextBuffer(editor, markers, symbol);
         send(Deactivate);
       }}
       candidateSymbols={translation.candidateSymbols}
