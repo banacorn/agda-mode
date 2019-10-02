@@ -369,25 +369,43 @@ module Keyboard = {
       instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
     // trigger (insert & save)
 
+    //
+    let rec insertUntilSuccess = text => {
+      let before = TextEditor.getText(instance.editors.source);
+
+      TextEditor.insertText(key, instance.editors.source) |> ignore;
+
+      TextEditor.save(instance.editors.source)
+      |> then_(_ => {
+           let after = TextEditor.getText(instance.editors.source);
+           if (before !== after) {
+             // succeed
+             resolve();
+           } else {
+             Js.log3("!!! reinserting ", text, before);
+
+             // failed, try again
+             TextEditor.setText(before, instance.editors.source);
+             insertUntilSuccess(text);
+           };
+         });
+    };
+
     Js.log2(
       "[ IM ][ before insertion ]",
       instance.editors.source |> TextEditor.getText,
     );
 
     Js.log2("[ IM ][ inserting ]", key);
-    let range = instance.editors.source |> TextEditor.insertText(key);
-    instance.editors.source
-    |> TextEditor.save
+    insertUntilSuccess(key)
     |> then_(_ => {
-         Js.log3(
+         Js.log2(
            "[ IM ][ after insertion ]",
            instance.editors.source |> TextEditor.getText,
-           range,
          );
          onChange;
        });
   };
-  // let insertMany =
 };
 
 module Assert = {

@@ -147,6 +147,174 @@ describe("Input Method", () => {
               })
          )
     );
+    it({js|should result in "ƛ" after typing "lambdabar"|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance =>
+           Keyboard.insert("l", instance)
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("m", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("d", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("r", instance))
+           |> then_(_ => {
+                instance.editors.source
+                |> Atom.TextEditor.getText
+                |> Assert.equal({js|ƛ|js});
+                resolve();
+              })
+         )
+    );
+    it({js|should result in "ƛ" after typing "lambdabar"|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance =>
+           Keyboard.insert("l", instance)
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("m", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("d", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("r", instance))
+           |> then_(_ => {
+                instance.editors.source
+                |> Atom.TextEditor.getText
+                |> Assert.equal({js|ƛ|js});
+                resolve();
+              })
+         )
+    );
+    it({js|should result in "ƛ" after typing "lambdabar"|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance =>
+           Keyboard.insert("l", instance)
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("m", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("d", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("r", instance))
+           |> then_(_ => {
+                instance.editors.source
+                |> Atom.TextEditor.getText
+                |> Assert.equal({js|ƛ|js});
+                resolve();
+              })
+         )
+    );
+    it({js|should result in "ƛ" after typing "lambdabar"|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance =>
+           Keyboard.insert("l", instance)
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("m", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("d", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("r", instance))
+           |> then_(_ => {
+                instance.editors.source
+                |> Atom.TextEditor.getText
+                |> Assert.equal({js|ƛ|js});
+                resolve();
+              })
+         )
+    );
+    it({js|should result in "ƛ" after typing "lambdabar"|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance =>
+           Keyboard.insert("l", instance)
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("m", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("d", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("r", instance))
+           |> then_(_ => {
+                instance.editors.source
+                |> Atom.TextEditor.getText
+                |> Assert.equal({js|ƛ|js});
+                resolve();
+              })
+         )
+    );
+    it({js|should result in "ƛ" after typing "lambdabar"|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance =>
+           Keyboard.insert("l", instance)
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("m", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("d", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("r", instance))
+           |> then_(_ => {
+                instance.editors.source
+                |> Atom.TextEditor.getText
+                |> Assert.equal({js|ƛ|js});
+                resolve();
+              })
+         )
+    );
+    it({js|should result in "ƛ" after typing "lambdabar"|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance =>
+           Keyboard.insert("l", instance)
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("m", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("d", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("r", instance))
+           |> then_(_ => {
+                instance.editors.source
+                |> Atom.TextEditor.getText
+                |> Assert.equal({js|ƛ|js});
+                resolve();
+              })
+         )
+    );
+    it({js|should result in "ƛ" after typing "lambdabar"|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance =>
+           Keyboard.insert("l", instance)
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("m", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("d", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("r", instance))
+           |> then_(_ => {
+                instance.editors.source
+                |> Atom.TextEditor.getText
+                |> Assert.equal({js|ƛ|js});
+                resolve();
+              })
+         )
+    );
 
     // it(
     //   {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
