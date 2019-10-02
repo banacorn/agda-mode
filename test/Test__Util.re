@@ -374,6 +374,7 @@ module Keyboard = {
       instance.editors.source |> TextEditor.getText,
     );
 
+    Js.log2("[ IM ][ inserting ]", key);
     instance.editors.source |> TextEditor.insertText(key) |> ignore;
     instance.editors.source
     |> TextEditor.save

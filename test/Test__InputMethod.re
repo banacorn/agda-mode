@@ -148,51 +148,71 @@ describe("Input Method", () => {
          )
     );
 
-    it({js|should result in "λl" after typing "gll"|js}, () =>
-      openAndLoad("Temp.agda")
-      |> then_(Keyboard.dispatch("\\"))
-      |> then_(instance =>
-           Keyboard.insert("G", instance)
-           |> then_(_ => Keyboard.insert("l", instance))
-           |> then_(_ => Keyboard.insert("l", instance))
-           |> then_(_ => {
-                instance.editors.source
-                |> Atom.TextEditor.getText
-                |> BsMocha.Assert.equal({js|λl|js});
-                resolve();
-              })
-         )
-    );
+    describe_only("Deactivation", () => {
+      after_each(Package.after_each);
 
-    it({js|should result in "λ " after typing "gl "|js}, () =>
-      openAndLoad("Temp.agda")
-      |> then_(Keyboard.dispatch("\\"))
-      |> then_(instance =>
-           Keyboard.insert("G", instance)
-           |> then_(_ => Keyboard.insert("l", instance))
-           |> then_(_ => Keyboard.insert(" ", instance))
-           |> then_(_ => {
-                instance.editors.source
-                |> Atom.TextEditor.getText
-                |> BsMocha.Assert.equal({js|λ |js});
-                resolve();
-              })
-         )
-    );
-    it({js|should result in "λ" after typing "gl" + "ESC"|js}, () =>
-      openAndLoad("Temp.agda")
-      |> then_(Keyboard.dispatch("\\"))
-      |> then_(instance =>
-           Keyboard.insert("G", instance)
-           |> then_(_ => Keyboard.insert("l", instance))
-           |> then_(_ => Keyboard.dispatch("escape", instance))
-           |> then_(_ => {
-                instance.editors.source
-                |> Atom.TextEditor.getText
-                |> BsMocha.Assert.equal({js|λ|js});
-                resolve();
-              })
-         )
-    );
+      it({js|should deactivate when stuck ("gll")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> BsMocha.Assert.equal({js|λl|js});
+                  resolve();
+                })
+           )
+      );
+
+      it({js|should deactivate when stuck ("gl ")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.insert(" ", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> BsMocha.Assert.equal({js|λ |js});
+                  resolve();
+                })
+           )
+      );
+      it({js|should deactivate after typing "ESC" ("gl" + "ESC")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.dispatch("escape", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> BsMocha.Assert.equal({js|λ|js});
+                  resolve();
+                })
+           )
+      );
+      it({js|should deactivate after typing "ENTER" ("gl" + "ENTER")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.insert("\n", instance))
+             // |> then_(_ => Keyboard.dispatch("enter", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> BsMocha.Assert.equal({js|λ\n|js});
+                  resolve();
+                })
+           )
+      );
+    });
   });
 });
