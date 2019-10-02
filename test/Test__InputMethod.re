@@ -1,3 +1,4 @@
+open Rebase;
 // open BsChai.Expect;
 // open BsMocha;
 open! BsMocha.Mocha;
@@ -70,7 +71,8 @@ describe("Input Method", () => {
     );
   });
 
-  describe("Typing", () => {
+  describe_only("Typing", () => {
+    before_each(Package.before_each);
     after_each(Package.after_each);
 
     it("should trigger onInputMethodActivationChange", () =>
@@ -111,7 +113,7 @@ describe("Input Method", () => {
          })
     );
 
-    it({js|should result in "λ" after typing "gl"|js}, () =>
+    it({js|should result in "λ" after typing "Gl"|js}, () =>
       openAndLoad("Temp.agda")
       |> then_(Keyboard.dispatch("\\"))
       |> then_(instance =>
@@ -147,34 +149,32 @@ describe("Input Method", () => {
               })
          )
     );
-
-    it(
-      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
-      () =>
-      openAndLoad("Temp.agda")
-      |> then_(Keyboard.dispatch("\\"))
-      |> then_(instance =>
-           Keyboard.insert("l", instance)
-           |> then_(_ => Keyboard.insert("a", instance))
-           |> then_(_ => Keyboard.insert("m", instance))
-           |> then_(_ => Keyboard.insert("b", instance))
-           |> then_(_ => Keyboard.insert("d", instance))
-           |> then_(_ => Keyboard.insert("a", instance))
-           |> then_(_ => Keyboard.backspace(instance))
-           |> then_(_ => Keyboard.backspace(instance))
-           |> then_(_ => {
-                instance.editors.source
-                |> Atom.TextEditor.getText
-                |> Assert.equal({js|lamb|js});
-                resolve();
-              })
-         )
-    );
-
+    // it(
+    //   {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+    //   () =>
+    //   openAndLoad("Temp.agda")
+    //   |> then_(Keyboard.dispatch("\\"))
+    //   |> then_(instance =>
+    //        Keyboard.insert("l", instance)
+    //        |> then_(_ => Keyboard.insert("a", instance))
+    //        |> then_(_ => Keyboard.insert("m", instance))
+    //        |> then_(_ => Keyboard.insert("b", instance))
+    //        |> then_(_ => Keyboard.insert("d", instance))
+    //        |> then_(_ => Keyboard.insert("a", instance))
+    //        |> then_(_ => Keyboard.backspace(instance))
+    //        |> then_(_ => Keyboard.backspace(instance))
+    //        |> then_(_ => {
+    //             instance.editors.source
+    //             |> Atom.TextEditor.getText
+    //             |> Assert.equal({js|lamb|js});
+    //             resolve();
+    //           })
+    //      )
+    // );
     describe("Deactivation", () => {
       after_each(Package.after_each);
 
-      it({js|should deactivate when stuck ("gll")|js}, () =>
+      it({js|should deactivate when stuck ("Gll")|js}, () =>
         openAndLoad("Temp.agda")
         |> then_(Keyboard.dispatch("\\"))
         |> then_(instance =>
@@ -190,7 +190,7 @@ describe("Input Method", () => {
            )
       );
 
-      it({js|should deactivate when stuck ("gl ")|js}, () =>
+      it({js|should deactivate when stuck ("Gl ")|js}, () =>
         openAndLoad("Temp.agda")
         |> then_(Keyboard.dispatch("\\"))
         |> then_(instance =>
@@ -206,7 +206,7 @@ describe("Input Method", () => {
            )
       );
 
-      it({js|should deactivate after typing "ESC" ("gl" + "ESC")|js}, () =>
+      it({js|should deactivate after typing "ESC" ("Gl" + "ESC")|js}, () =>
         openAndLoad("Temp.agda")
         |> then_(Keyboard.dispatch("\\"))
         |> then_(instance =>
@@ -221,7 +221,7 @@ describe("Input Method", () => {
                 })
            )
       );
-      it({js|should deactivate after typing "ENTER" ("gl" + "ENTER")|js}, () =>
+      it({js|should deactivate after typing "ENTER" ("Gl" + "ENTER")|js}, () =>
         openAndLoad("Temp.agda")
         |> then_(Keyboard.dispatch("\\"))
         |> then_(instance =>
@@ -242,44 +242,42 @@ describe("Input Method", () => {
 
   describe("Issue #72", () => {
     after_each(Package.after_each);
-    it({js|should make "ʳ" the first candidate|js}, () =>
-      openAndLoad("Temp.agda")
-      |> then_(instance =>
-           Keyboard.insertUntilSuccess(instance.editors.source, "a")
-           |> then_(_ => resolve(instance))
-         )
-      |> then_(Keyboard.dispatch("\\"))
-      |> then_(instance =>
-           Keyboard.insert("^", instance)
-           |> then_(_ => Keyboard.insert("r", instance))
-           |> then_(_ => {
-                instance.editors.source
-                |> Atom.TextEditor.getText
-                |> Assert.equal({js|aʳ|js});
-                resolve();
-              })
-         )
-    );
-    it({js|should make "ˡ" the first candidate|js}, () =>
-      openAndLoad("Temp.agda")
-      |> then_(instance =>
-           Keyboard.insertUntilSuccess(instance.editors.source, "a")
-           |> then_(_ => resolve(instance))
-         )
-      // Atom.TextEditor.setText("a", instance.editors.source);
-      |> then_(Keyboard.dispatch("\\"))
-      |> then_(instance =>
-           Keyboard.insert("^", instance)
-           |> then_(_ => Keyboard.insert("l", instance))
-           |> then_(_ => {
-                Js.log(instance.editors.source |> Atom.TextEditor.getText);
-
-                instance.editors.source
-                |> Atom.TextEditor.getText
-                |> Assert.equal({js|aˡ|js});
-                resolve();
-              })
-         )
-    );
+    it({js|should make "ʳ" the first candidate|js}, () => {
+      Translator.translate("^r").candidateSymbols[0]
+      |> Assert.equal(Some({js|ʳ|js}));
+      resolve();
+      // openAndLoad("Temp.agda")
+      // |> then_(Keyboard.insertUntilSuccess("a"))
+      // |> then_(Keyboard.dispatch("\\"))
+      // |> then_(instance =>
+      //      Keyboard.insert("^", instance)
+      //      |> then_(_ => Keyboard.insert("r", instance))
+      //      |> then_(_ => {
+      //           instance.editors.source
+      //           |> Atom.TextEditor.getText
+      //           |> Assert.equal({js|aʳ|js});
+      //           resolve();
+      //         })
+      //    );
+    });
+    it({js|should make "ˡ" the first candidate|js}, () => {
+      Translator.translate("^l").candidateSymbols[0]
+      |> Assert.equal(Some({js|ˡ|js}));
+      resolve();
+      //
+      // openAndLoad("Temp.agda")
+      // |> then_(Keyboard.insertUntilSuccess("a"))
+      // |> then_(Keyboard.dispatch("\\"))
+      // |> then_(instance =>
+      //      Keyboard.insert("^", instance)
+      //      |> then_(_ => Keyboard.insert("l", instance))
+      //      |> then_(_ => {
+      //           instance.editors.source
+      //           |> Atom.TextEditor.getText
+      //           |> Assert.equal({js|aˡ|js});
+      //           resolve();
+      //         })
+      //    );
+    });
   });
 });
