@@ -20,7 +20,7 @@ describe("Input Method", () => {
            |> Atom.Views.getView
            |> HtmlElement.classList
            |> DomTokenList.contains("agda-mode-input-method-activated")
-           |> BsMocha.Assert.equal(false);
+           |> Assert.equal(false);
            resolve();
          })
     );
@@ -35,7 +35,7 @@ describe("Input Method", () => {
            |> Atom.Views.getView
            |> HtmlElement.classList
            |> DomTokenList.contains("agda-mode-input-method-activated")
-           |> BsMocha.Assert.ok;
+           |> Assert.equal(true);
            resolve();
          })
     );
@@ -50,7 +50,7 @@ describe("Input Method", () => {
                 element
                 |> HtmlElement.classList
                 |> DomTokenList.contains("hidden")
-                |> BsMocha.Assert.equal(true);
+                |> Assert.equal(true);
                 resolve(instance);
               })
          )
@@ -63,14 +63,14 @@ describe("Input Method", () => {
                 element
                 |> HtmlElement.classList
                 |> DomTokenList.contains("hidden")
-                |> BsMocha.Assert.equal(false);
+                |> Assert.equal(false);
                 resolve();
               })
          )
     );
   });
 
-  describe("Typing", () => {
+  describe_only("Typing", () => {
     after_each(Package.after_each);
 
     it("should trigger onInputMethodActivationChange", () =>
@@ -87,7 +87,7 @@ describe("Input Method", () => {
            |> then_(_ =>
                 onDispatch
                 |> then_(activated => {
-                     BsMocha.Assert.equal(true, activated);
+                     Assert.equal(true, activated);
                      resolve(instance);
                    })
               );
@@ -104,7 +104,7 @@ describe("Input Method", () => {
            |> then_(_ =>
                 onDispatch
                 |> then_(activated => {
-                     BsMocha.Assert.equal(false, activated);
+                     Assert.equal(false, activated);
                      resolve(instance);
                    })
               );
@@ -120,7 +120,7 @@ describe("Input Method", () => {
            |> then_(_ => {
                 instance.editors.source
                 |> Atom.TextEditor.getText
-                |> BsMocha.Assert.equal({js|λ|js});
+                |> Assert.equal({js|λ|js});
                 resolve();
               })
          )
@@ -142,11 +142,34 @@ describe("Input Method", () => {
            |> then_(_ => {
                 instance.editors.source
                 |> Atom.TextEditor.getText
-                |> BsMocha.Assert.equal({js|ƛ|js});
+                |> Assert.equal({js|ƛ|js});
                 resolve();
               })
          )
     );
+
+    // it(
+    //   {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+    //   () =>
+    //   openAndLoad("Temp.agda")
+    //   |> then_(Keyboard.dispatch("\\"))
+    //   |> then_(instance =>
+    //        Keyboard.insert("l", instance)
+    //        |> then_(_ => Keyboard.insert("a", instance))
+    //        |> then_(_ => Keyboard.insert("m", instance))
+    //        |> then_(_ => Keyboard.insert("b", instance))
+    //        |> then_(_ => Keyboard.insert("d", instance))
+    //        |> then_(_ => Keyboard.insert("a", instance))
+    //        |> then_(_ => Keyboard.dispatch("backspace", instance))
+    //        |> then_(_ => Keyboard.dispatch("backspace", instance))
+    //        |> then_(_ => {
+    //             instance.editors.source
+    //             |> Atom.TextEditor.getText
+    //             |> Assert.equal({js|lamb|js});
+    //             resolve();
+    //           })
+    //      )
+    // );
 
     describe("Deactivation", () => {
       after_each(Package.after_each);
@@ -161,7 +184,7 @@ describe("Input Method", () => {
              |> then_(_ => {
                   instance.editors.source
                   |> Atom.TextEditor.getText
-                  |> BsMocha.Assert.equal({js|λl|js});
+                  |> Assert.equal({js|λl|js});
                   resolve();
                 })
            )
@@ -177,7 +200,163 @@ describe("Input Method", () => {
              |> then_(_ => {
                   instance.editors.source
                   |> Atom.TextEditor.getText
-                  |> BsMocha.Assert.equal({js|λ |js});
+                  |> Assert.equal({js|λ |js});
+                  resolve();
+                })
+           )
+      );
+
+      it({js|should deactivate when stuck ("gll")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> Assert.equal({js|λl|js});
+                  resolve();
+                })
+           )
+      );
+
+      it({js|should deactivate when stuck ("gl ")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.insert(" ", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> Assert.equal({js|λ |js});
+                  resolve();
+                })
+           )
+      );
+      it({js|should deactivate when stuck ("gll")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> Assert.equal({js|λl|js});
+                  resolve();
+                })
+           )
+      );
+
+      it({js|should deactivate when stuck ("gl ")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.insert(" ", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> Assert.equal({js|λ |js});
+                  resolve();
+                })
+           )
+      );
+      it({js|should deactivate when stuck ("gll")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> Assert.equal({js|λl|js});
+                  resolve();
+                })
+           )
+      );
+
+      it({js|should deactivate when stuck ("gl ")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.insert(" ", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> Assert.equal({js|λ |js});
+                  resolve();
+                })
+           )
+      );
+      it({js|should deactivate when stuck ("gll")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> Assert.equal({js|λl|js});
+                  resolve();
+                })
+           )
+      );
+
+      it({js|should deactivate when stuck ("gl ")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.insert(" ", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> Assert.equal({js|λ |js});
+                  resolve();
+                })
+           )
+      );
+      it({js|should deactivate when stuck ("gll")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> Assert.equal({js|λl|js});
+                  resolve();
+                })
+           )
+      );
+
+      it({js|should deactivate when stuck ("gl ")|js}, () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(instance =>
+             Keyboard.insert("G", instance)
+             |> then_(_ => Keyboard.insert("l", instance))
+             |> then_(_ => Keyboard.insert(" ", instance))
+             |> then_(_ => {
+                  instance.editors.source
+                  |> Atom.TextEditor.getText
+                  |> Assert.equal({js|λ |js});
                   resolve();
                 })
            )
@@ -192,7 +371,7 @@ describe("Input Method", () => {
              |> then_(_ => {
                   instance.editors.source
                   |> Atom.TextEditor.getText
-                  |> BsMocha.Assert.equal({js|λ|js});
+                  |> Assert.equal({js|λ|js});
                   resolve();
                 })
            )
@@ -208,7 +387,7 @@ describe("Input Method", () => {
              |> then_(_ => {
                   instance.editors.source
                   |> Atom.TextEditor.getText
-                  |> BsMocha.Assert.equal({js|λ\n|js});
+                  |> Assert.equal({js|λ\n|js});
                   resolve();
                 })
            )

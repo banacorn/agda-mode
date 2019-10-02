@@ -100,20 +100,30 @@ let markerOnDidChange = (editor, setReality, event) => {
 
   let _oldBuffer = editor |> TextEditor.getTextInBufferRange(rangeOld);
   let newBuffer = editor |> TextEditor.getTextInBufferRange(rangeNew);
+  // if (_oldBuffer != newBuffer) {
+  //   Js.log(
+  //     "[ IM ][ monitor ] \""
+  //     ++ _oldBuffer
+  //     ++ "\" "
+  //     ++ string_of_int(Point.column(Range.end_(rangeOld)))
+  //     ++ " => \""
+  //     ++ newBuffer
+  //     ++ "\" "
+  //     ++ string_of_int(Point.column(Range.end_(rangeNew))),
+  //   );
+  // };
   if (_oldBuffer != newBuffer) {
-    // Js.log(
-    //   "[ IM ][ monitor ] \""
-    //   ++ _oldBuffer
-    //   ++ "\" "
-    //   ++ string_of_int(Point.column(Range.end_(rangeOld)))
-    //   ++ " => \""
-    //   ++ newBuffer
-    //   ++ "\" "
-    //   ++ string_of_int(Point.column(Range.end_(rangeNew))),
-    // );
-    setReality(
-      newBuffer,
+    Js.log(
+      "[ IM ][ monitor ] \""
+      ++ _oldBuffer
+      ++ "\" "
+      ++ string_of_int(Point.column(Range.end_(rangeOld)))
+      ++ " => \""
+      ++ newBuffer
+      ++ "\" "
+      ++ string_of_int(Point.column(Range.end_(rangeNew))),
     );
+    setReality(newBuffer);
   };
 };
 
@@ -308,17 +318,21 @@ let make =
     () => {
       switch (Buffer.next(state.buffer, state.reality)) {
       | Noop(buffer) =>
+        // Js.log("[ IM ][ reality ][ Noop ] " ++ Buffer.toString(buffer));
         setChangeLog(Noop);
         send(UpdateBuffer(buffer));
       | Rewrite(buffer) =>
+        // Js.log("[ IM ][ reality ][ Rewrite ] " ++ Buffer.toString(buffer));
         setChangeLog(Rewrite);
         send(UpdateBuffer(buffer));
         let surface = Buffer.toSurface(buffer);
         rewriteTextBuffer(editor, markers, surface);
       | Complete =>
+        // Js.log("[ IM ][ reality ][ Complete ]");
         setChangeLog(Complete);
         send(Deactivate);
       | Stuck =>
+        // Js.log("[ IM ][ reality ][ Stuck ]");
         setChangeLog(Stuck);
         send(Deactivate);
       };

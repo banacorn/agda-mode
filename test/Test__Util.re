@@ -364,27 +364,28 @@ module Keyboard = {
 
   let insert = (key, instance: Instance.t) => {
     // listen
-    // Js.log("[ IM ][ listen ]");
+    Js.log("[ IM ][ listen ]");
     let onChange =
       instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
     // trigger (insert & save)
-    //
-    // Js.log2(
-    //   "[ IM ][ before insertion ]",
-    //   instance.editors.source |> TextEditor.getText,
-    // );
-    //
-    // Js.log2("[ IM ][ inserting ]", key);
-    instance.editors.source |> TextEditor.insertText(key) |> ignore;
+
+    Js.log2(
+      "[ IM ][ before insertion ]",
+      instance.editors.source |> TextEditor.getText,
+    );
+
+    Js.log2("[ IM ][ inserting ]", key);
+    let range = instance.editors.source |> TextEditor.insertText(key);
     instance.editors.source
     |> TextEditor.save
-    |> then_(_ =>
-         // Js.log2(
-         //   "[ IM ][ after insertion ]",
-         //   instance.editors.source |> TextEditor.getText,
-         // );
-         onChange
-       );
+    |> then_(_ => {
+         Js.log3(
+           "[ IM ][ after insertion ]",
+           instance.editors.source |> TextEditor.getText,
+           range,
+         );
+         onChange;
+       });
   };
   // let insertMany =
 };
