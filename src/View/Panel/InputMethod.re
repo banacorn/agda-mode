@@ -112,19 +112,7 @@ let markerOnDidChange = (editor, setReality, event) => {
   //     ++ string_of_int(Point.column(Range.end_(rangeNew))),
   //   );
   // };
-  if (_oldBuffer != newBuffer) {
-    Js.log(
-      "[ IM ][ monitor ] \""
-      ++ _oldBuffer
-      ++ "\" "
-      ++ string_of_int(Point.column(Range.end_(rangeOld)))
-      ++ " => \""
-      ++ newBuffer
-      ++ "\" "
-      ++ string_of_int(Point.column(Range.end_(rangeNew))),
-    );
-    setReality(newBuffer);
-  };
+  setReality(newBuffer);
 };
 
 /* monitor the text buffer to figures out what happend */

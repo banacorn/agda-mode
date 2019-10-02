@@ -363,13 +363,8 @@ module Keyboard = {
   };
 
   let insert = (key, instance: Instance.t) => {
-    // listen
-    Js.log("[ IM ][ listen ]");
-    let onChange =
-      instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
-    // trigger (insert & save)
-
-    //
+    // `TextEditor.insertText` sometimes fails on CI
+    // insert again until it works
     let rec insertUntilSuccess = text => {
       let before = TextEditor.getText(instance.editors.source);
 
@@ -382,29 +377,17 @@ module Keyboard = {
              // succeed
              resolve();
            } else {
-             Js.log3("!!! reinserting ", text, before);
-
              // failed, try again
              TextEditor.setText(before, instance.editors.source);
              insertUntilSuccess(text);
            };
          });
     };
-
-    Js.log2(
-      "[ IM ][ before insertion ]",
-      instance.editors.source |> TextEditor.getText,
-    );
-
-    Js.log2("[ IM ][ inserting ]", key);
-    insertUntilSuccess(key)
-    |> then_(_ => {
-         Js.log2(
-           "[ IM ][ after insertion ]",
-           instance.editors.source |> TextEditor.getText,
-         );
-         onChange;
-       });
+    // listen
+    let onChange =
+      instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+    // trigger (insert & save)
+    insertUntilSuccess(key) |> then_(_ => onChange);
   };
 };
 
