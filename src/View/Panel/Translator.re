@@ -58,10 +58,25 @@ type translation = {
 
 /* converts characters to symbol, and tells if there's any further possible combinations */
 let translate = (input: string): translation => {
+  // move the last element to the first
+  let shiftRight = xs =>
+    switch (Js.Array.pop(xs)) {
+    | None => [||]
+    | Some(x) =>
+      Js.Array.unshift(x, xs) |> ignore;
+      xs;
+    };
+
   switch (isInKeymap(input)) {
   | Some(trie) =>
     let keySuggestions = Js.Array.sortInPlace(toKeySuggestions(trie));
-    let candidateSymbols = toCandidateSymbols(trie);
+    let candidateSymbols =
+      switch (input) {
+      // TODO: find a better solution for this workaround of issue #72
+      | "^l" => toCandidateSymbols(trie) |> shiftRight
+      | "^r" => toCandidateSymbols(trie) |> shiftRight
+      | _ => toCandidateSymbols(trie)
+      };
     {
       symbol: candidateSymbols[0],
       further: Array.length(keySuggestions) != 0,
