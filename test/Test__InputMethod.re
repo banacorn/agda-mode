@@ -70,7 +70,7 @@ describe("Input Method", () => {
     );
   });
 
-  describe_only("Typing", () => {
+  describe("Typing", () => {
     after_each(Package.after_each);
 
     it("should trigger onInputMethodActivationChange", () =>
@@ -148,28 +148,28 @@ describe("Input Method", () => {
          )
     );
 
-    // it(
-    //   {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
-    //   () =>
-    //   openAndLoad("Temp.agda")
-    //   |> then_(Keyboard.dispatch("\\"))
-    //   |> then_(instance =>
-    //        Keyboard.insert("l", instance)
-    //        |> then_(_ => Keyboard.insert("a", instance))
-    //        |> then_(_ => Keyboard.insert("m", instance))
-    //        |> then_(_ => Keyboard.insert("b", instance))
-    //        |> then_(_ => Keyboard.insert("d", instance))
-    //        |> then_(_ => Keyboard.insert("a", instance))
-    //        |> then_(_ => Keyboard.dispatch("backspace", instance))
-    //        |> then_(_ => Keyboard.dispatch("backspace", instance))
-    //        |> then_(_ => {
-    //             instance.editors.source
-    //             |> Atom.TextEditor.getText
-    //             |> Assert.equal({js|lamb|js});
-    //             resolve();
-    //           })
-    //      )
-    // );
+    it(
+      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+      () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance =>
+           Keyboard.insert("l", instance)
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.insert("m", instance))
+           |> then_(_ => Keyboard.insert("b", instance))
+           |> then_(_ => Keyboard.insert("d", instance))
+           |> then_(_ => Keyboard.insert("a", instance))
+           |> then_(_ => Keyboard.backspace(instance))
+           |> then_(_ => Keyboard.backspace(instance))
+           |> then_(_ => {
+                instance.editors.source
+                |> Atom.TextEditor.getText
+                |> Assert.equal({js|lamb|js});
+                resolve();
+              })
+         )
+    );
 
     describe("Deactivation", () => {
       after_each(Package.after_each);

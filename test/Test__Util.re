@@ -389,6 +389,33 @@ module Keyboard = {
     // trigger (insert & save)
     insertUntilSuccess(key) |> then_(_ => onChange);
   };
+
+  let backspace = (instance: Instance.t) => {
+    let rec backspaceUntilSuccess = () => {
+      let before = TextEditor.getText(instance.editors.source);
+
+      TextEditor.backspace(instance.editors.source);
+
+      TextEditor.save(instance.editors.source)
+      |> then_(_ => {
+           let after = TextEditor.getText(instance.editors.source);
+           if (before !== after) {
+             // succeed
+             resolve();
+           } else {
+             // failed, try again
+             TextEditor.setText(before, instance.editors.source);
+             backspaceUntilSuccess();
+           };
+         });
+    };
+
+    // listen
+    let onChange =
+      instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+    // trigger (backspace & save)
+    backspaceUntilSuccess() |> then_(_ => onChange);
+  };
 };
 
 module Assert = {
