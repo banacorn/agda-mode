@@ -239,4 +239,44 @@ describe("Input Method", () => {
       );
     });
   });
+
+  describe("Issue #72", () => {
+    after_each(Package.after_each);
+    it({js|should make "ʳ" the first candidate|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(instance => {
+           Atom.TextEditor.setText("a", instance.editors.source);
+           resolve(instance);
+         })
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance =>
+           Keyboard.insert("^", instance)
+           |> then_(_ => Keyboard.insert("r", instance))
+           |> then_(_ => {
+                instance.editors.source
+                |> Atom.TextEditor.getText
+                |> Assert.equal({js|aʳ|js});
+                resolve();
+              })
+         )
+    );
+    it({js|should make "ˡ" the first candidate|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(instance => {
+           Atom.TextEditor.setText("a", instance.editors.source);
+           resolve(instance);
+         })
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance =>
+           Keyboard.insert("^", instance)
+           |> then_(_ => Keyboard.insert("l", instance))
+           |> then_(_ => {
+                instance.editors.source
+                |> Atom.TextEditor.getText
+                |> Assert.equal({js|aˡ|js});
+                resolve();
+              })
+         )
+    );
+  });
 });
