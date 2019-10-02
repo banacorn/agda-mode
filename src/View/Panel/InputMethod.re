@@ -100,21 +100,20 @@ let markerOnDidChange = (editor, setReality, event) => {
 
   let _oldBuffer = editor |> TextEditor.getTextInBufferRange(rangeOld);
   let newBuffer = editor |> TextEditor.getTextInBufferRange(rangeNew);
-
   if (_oldBuffer != newBuffer) {
-    Js.log(
-      "[ IM ][ monitor ] \""
-      ++ _oldBuffer
-      ++ "\" "
-      ++ string_of_int(Point.column(Range.end_(rangeOld)))
-      ++ " => \""
-      ++ newBuffer
-      ++ "\" "
-      ++ string_of_int(Point.column(Range.end_(rangeNew))),
+    // Js.log(
+    //   "[ IM ][ monitor ] \""
+    //   ++ _oldBuffer
+    //   ++ "\" "
+    //   ++ string_of_int(Point.column(Range.end_(rangeOld)))
+    //   ++ " => \""
+    //   ++ newBuffer
+    //   ++ "\" "
+    //   ++ string_of_int(Point.column(Range.end_(rangeNew))),
+    // );
+    setReality(
+      newBuffer,
     );
-    setReality(newBuffer);
-  } else {
-    Js.log("[ IM ][ monitor ][ same same ]");
   };
 };
 
@@ -247,71 +246,15 @@ let make =
   let editor = Editors.Focus.get(editors);
   // display markers
   let (markers, setMarkers) = Hook.useState([||]);
-
+  // state
   let (state, send) = React.useReducer(reducer, initialState);
   let stateRef = React.useRef(state);
-  // for
+  // keep record of previous changes
   let (changeLog, setChangeLog) = Hook.useState(Noop);
-  let pushChange = action => {
-    // let x = changeLog;
-    setChangeLog(action);
-  };
-
-  // do something when the "reality" changed
-  // let (reality, setReality) = Hook.useState("");
-  let setReality = s => send(UpdateReality(s));
-  React.useEffect1(
-    () => {
-      switch (Buffer.next(state.buffer, state.reality)) {
-      | Noop(buffer) =>
-        pushChange(Noop);
-        send(UpdateBuffer(buffer));
-      | Rewrite(buffer) =>
-        pushChange(Rewrite);
-        send(UpdateBuffer(buffer));
-        let surface = Buffer.toSurface(buffer);
-        rewriteTextBuffer(editor, markers, surface);
-      | Complete =>
-        pushChange(Complete);
-        send(Deactivate);
-      | Stuck =>
-        pushChange(Stuck);
-        send(Deactivate);
-      };
-      None;
-    },
-    [|state.reality|],
-  );
-
-  // dev mode debug
-  let debugDispatch = React.useContext(Type.View.Debug.debugDispatch);
-  React.useEffect2(
-    () => {
-      if (hasChanged(state, changeLog)) {
-        Js.log("[ IM ][ change ]");
-        onChange |> Event.emitOk();
-      };
-
-      Js.log3(state.activated, Buffer.toString(state.buffer), state.reality);
-
-      // log when the state changes
-      if (Atom.inDevMode()) {
-        debugDispatch(
-          UpdateInputMethod({
-            activated: state.activated,
-            markers,
-            buffer: state.buffer,
-          }),
-        );
-      };
-      None;
-    },
-    (state.activated, state.buffer),
-  );
 
   // update with the latest state
   React.Ref.setCurrent(stateRef, state);
-  // listens to `activateInputMethod`
+  // input: listens to `activateInputMethod`
   React.useEffect1(
     () =>
       activateInputMethod
@@ -341,7 +284,16 @@ let make =
     [||],
   );
 
-  // triggers events on change
+  // input: programmatically inserting some keys
+  React.useEffect1(
+    () =>
+      interceptAndInsertKey
+      |> Event.onOk(char => insertTextBuffer(editor, char))
+      |> Option.some,
+    [||],
+  );
+
+  // output: on activation change
   Hook.useDidUpdateEffect(
     () => {
       onActivationChange |> Event.emitOk(state.activated);
@@ -349,13 +301,56 @@ let make =
     },
     [|state.activated|],
   );
-
+  // do something when the "reality" changed
+  // let (reality, setReality) = Hook.useState("");
+  let setReality = s => send(UpdateReality(s));
   React.useEffect1(
-    () =>
-      interceptAndInsertKey
-      |> Event.onOk(char => insertTextBuffer(editor, char))
-      |> Option.some,
-    [||],
+    () => {
+      switch (Buffer.next(state.buffer, state.reality)) {
+      | Noop(buffer) =>
+        setChangeLog(Noop);
+        send(UpdateBuffer(buffer));
+      | Rewrite(buffer) =>
+        setChangeLog(Rewrite);
+        send(UpdateBuffer(buffer));
+        let surface = Buffer.toSurface(buffer);
+        rewriteTextBuffer(editor, markers, surface);
+      | Complete =>
+        setChangeLog(Complete);
+        send(Deactivate);
+      | Stuck =>
+        setChangeLog(Stuck);
+        send(Deactivate);
+      };
+      None;
+    },
+    [|state.reality|],
+  );
+
+  // for debugging and tests
+  let debugDispatch = React.useContext(Type.View.Debug.debugDispatch);
+  React.useEffect2(
+    () => {
+      if (hasChanged(state, changeLog)) {
+        // Js.log("[ IM ][ change ]");
+        onChange |> Event.emitOk();
+      };
+
+      // Js.log3(state.activated, Buffer.toString(state.buffer), state.reality);
+
+      // log when the state changes
+      if (Atom.inDevMode()) {
+        debugDispatch(
+          UpdateInputMethod({
+            activated: state.activated,
+            markers,
+            buffer: state.buffer,
+          }),
+        );
+      };
+      None;
+    },
+    (state.activated, state.buffer),
   );
 
   // listens to certain events only when the IM is activated

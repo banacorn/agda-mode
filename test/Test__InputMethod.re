@@ -70,7 +70,7 @@ describe("Input Method", () => {
     );
   });
 
-  describe_only("Typing", () => {
+  describe("Typing", () => {
     after_each(Package.after_each);
 
     it("should trigger onInputMethodActivationChange", () =>
@@ -148,7 +148,7 @@ describe("Input Method", () => {
          )
     );
 
-    describe_only("Deactivation", () => {
+    describe("Deactivation", () => {
       after_each(Package.after_each);
 
       it({js|should deactivate when stuck ("gll")|js}, () =>
