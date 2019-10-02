@@ -59,13 +59,18 @@ type translation = {
 /* converts characters to symbol, and tells if there's any further possible combinations */
 let translate = (input: string): translation => {
   // move the last element to the first
-  let shiftRight = xs =>
-    switch (Js.Array.pop(xs)) {
+  let shiftRight = xs => {
+    let length = Array.length(xs);
+    let last = xs[length - 1];
+    switch (last) {
     | None => [||]
     | Some(x) =>
-      Js.Array.unshift(x, xs) |> ignore;
-      xs;
+      let result =
+        Array.concat(Array.slice(~from=0, ~to_=length - 1, xs), [|x|]);
+      Js.log(result);
+      result;
     };
+  };
 
   switch (isInKeymap(input)) {
   | Some(trie) =>

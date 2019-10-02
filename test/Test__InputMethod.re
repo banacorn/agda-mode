@@ -271,6 +271,8 @@ describe("Input Method", () => {
            Keyboard.insert("^", instance)
            |> then_(_ => Keyboard.insert("l", instance))
            |> then_(_ => {
+                Js.log(instance.editors.source |> Atom.TextEditor.getText);
+
                 instance.editors.source
                 |> Atom.TextEditor.getText
                 |> Assert.equal({js|aˡ|js});
