@@ -244,10 +244,10 @@ describe("Input Method", () => {
     after_each(Package.after_each);
     it({js|should make "ʳ" the first candidate|js}, () =>
       openAndLoad("Temp.agda")
-      |> then_(instance => {
-           Atom.TextEditor.setText("a", instance.editors.source);
-           resolve(instance);
-         })
+      |> then_(instance =>
+           Keyboard.insertUntilSuccess(instance.editors.source, "a")
+           |> then_(_ => resolve(instance))
+         )
       |> then_(Keyboard.dispatch("\\"))
       |> then_(instance =>
            Keyboard.insert("^", instance)
@@ -262,10 +262,11 @@ describe("Input Method", () => {
     );
     it({js|should make "ˡ" the first candidate|js}, () =>
       openAndLoad("Temp.agda")
-      |> then_(instance => {
-           Atom.TextEditor.setText("a", instance.editors.source);
-           resolve(instance);
-         })
+      |> then_(instance =>
+           Keyboard.insertUntilSuccess(instance.editors.source, "a")
+           |> then_(_ => resolve(instance))
+         )
+      // Atom.TextEditor.setText("a", instance.editors.source);
       |> then_(Keyboard.dispatch("\\"))
       |> then_(instance =>
            Keyboard.insert("^", instance)

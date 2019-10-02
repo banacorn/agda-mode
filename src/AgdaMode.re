@@ -196,7 +196,6 @@ let setup = () => {
 /* the entry point of the whole package, should only be called once (before deactivation) */
 let activate = _ => {
   // make `activate` idempotent
-
   if (! activated^) {
     activated := true;
     setup();
@@ -206,11 +205,11 @@ let activate = _ => {
 
 let deactivate = _ =>
   // make `deactivate` idempotent
-  if (activated^) {
-    activated := false;
-    Instances.destroyAll();
-    CompositeDisposable.dispose(subscriptions);
-  };
+if (activated^) {
+  activated := false;
+  Instances.destroyAll();
+  CompositeDisposable.dispose(subscriptions);
+};
 
 /* https://atom.io/docs/api/latest/Config */
 let config = {

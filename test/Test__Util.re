@@ -280,6 +280,13 @@ module Package = {
 
   // after_each
   let after_each = () => {
+    let clearAllFiles = () => {
+      File.openAsset("Temp.agda")
+      |> then_(editor => {
+           Atom.TextEditor.setText("", editor);
+           Atom.TextEditor.save(editor);
+         });
+    };
     let destroyAllTextEditors = () =>
       Atom.Workspace.getPanes()
       |> Array.flatMap(pane =>
@@ -289,15 +296,8 @@ module Package = {
          )
       |> all
       |> then_(_ => resolve());
-    let clearAllFiles = () => {
-      File.openAsset("Temp.agda")
-      |> then_(editor => {
-           Atom.TextEditor.setText("", editor);
-           Atom.TextEditor.save(editor);
-         });
-    };
 
-    destroyAllTextEditors() |> then_(clearAllFiles);
+    clearAllFiles() |> then_(destroyAllTextEditors);
   };
 };
 
@@ -362,32 +362,33 @@ module Keyboard = {
     onDispatch |> Async.toPromise |> then_(() => resolve(instance));
   };
 
+  // `TextEditor.insertText` sometimes fails on CI
+  // insert again until it works
+  let rec insertUntilSuccess = (editor, text) => {
+    let before = TextEditor.getText(editor);
+
+    TextEditor.insertText(text, editor) |> ignore;
+
+    TextEditor.save(editor)
+    |> then_(_ => {
+         let after = TextEditor.getText(editor);
+         if (before !== after) {
+           // succeed
+           resolve();
+         } else {
+           // failed, try again
+           TextEditor.setText(before, editor);
+           insertUntilSuccess(editor, text);
+         };
+       });
+  };
+
   let insert = (key, instance: Instance.t) => {
-    // `TextEditor.insertText` sometimes fails on CI
-    // insert again until it works
-    let rec insertUntilSuccess = text => {
-      let before = TextEditor.getText(instance.editors.source);
-
-      TextEditor.insertText(key, instance.editors.source) |> ignore;
-
-      TextEditor.save(instance.editors.source)
-      |> then_(_ => {
-           let after = TextEditor.getText(instance.editors.source);
-           if (before !== after) {
-             // succeed
-             resolve();
-           } else {
-             // failed, try again
-             TextEditor.setText(before, instance.editors.source);
-             insertUntilSuccess(text);
-           };
-         });
-    };
     // listen
     let onChange =
       instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
     // trigger (insert & save)
-    insertUntilSuccess(key) |> then_(_ => onChange);
+    insertUntilSuccess(instance.editors.source, key) |> then_(_ => onChange);
   };
 
   let backspace = (instance: Instance.t) => {
