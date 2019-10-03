@@ -100,19 +100,20 @@ let markerOnDidChange = (editor, setReality, event) => {
 
   let _oldBuffer = editor |> TextEditor.getTextInBufferRange(rangeOld);
   let newBuffer = editor |> TextEditor.getTextInBufferRange(rangeNew);
-  if (_oldBuffer != newBuffer) {
-    Js.log(
-      "[ IM ][ monitor ] \""
-      ++ _oldBuffer
-      ++ "\" "
-      ++ string_of_int(Point.column(Range.end_(rangeOld)))
-      ++ " => \""
-      ++ newBuffer
-      ++ "\" "
-      ++ string_of_int(Point.column(Range.end_(rangeNew))),
-    );
-    setReality(newBuffer);
-  };
+  // if (_oldBuffer != newBuffer) {
+  //   Js.log(
+  //     "[ IM ][ monitor ] \""
+  //     ++ _oldBuffer
+  //     ++ "\" "
+  //     ++ string_of_int(Point.column(Range.end_(rangeOld)))
+  //     ++ " => \""
+  //     ++ newBuffer
+  //     ++ "\" "
+  //     ++ string_of_int(Point.column(Range.end_(rangeNew))),
+  //   );
+  //   setReality(newBuffer);
+  // };
+  setReality(newBuffer);
 };
 
 /* monitor the text buffer to figures out what happend */
@@ -306,21 +307,21 @@ let make =
     () => {
       switch (Buffer.next(state.buffer, state.reality)) {
       | Noop(buffer) =>
-        Js.log("[ IM ][ reality ][ Noop ] " ++ Buffer.toString(buffer));
+        // Js.log("[ IM ][ reality ][ Noop ] " ++ Buffer.toString(buffer));
         setChangeLog(Noop);
         send(UpdateBuffer(buffer));
       | Rewrite(buffer) =>
-        Js.log("[ IM ][ reality ][ Rewrite ] " ++ Buffer.toString(buffer));
+        // Js.log("[ IM ][ reality ][ Rewrite ] " ++ Buffer.toString(buffer));
         setChangeLog(Rewrite);
         send(UpdateBuffer(buffer));
         let surface = Buffer.toSurface(buffer);
         rewriteTextBuffer(editor, markers, surface);
       | Complete =>
-        Js.log("[ IM ][ reality ][ Complete ]");
+        // Js.log("[ IM ][ reality ][ Complete ]");
         setChangeLog(Complete);
         send(Deactivate);
       | Stuck =>
-        Js.log("[ IM ][ reality ][ Stuck ]");
+        // Js.log("[ IM ][ reality ][ Stuck ]");
         setChangeLog(Stuck);
         send(Deactivate);
       };
@@ -334,11 +335,11 @@ let make =
   React.useEffect2(
     () => {
       if (hasChanged(state, changeLog)) {
-        Js.log("[ IM ][ change ]");
+        // Js.log("[ IM ][ change ]");
         onChange |> Event.emitOk();
       };
 
-      Js.log3(state.activated, Buffer.toString(state.buffer), state.reality);
+      // Js.log3(state.activated, Buffer.toString(state.buffer), state.reality);
 
       // log when the state changes
       if (Atom.inDevMode()) {

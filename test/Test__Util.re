@@ -278,31 +278,14 @@ module Package = {
     Packages.deactivatePackage("agda-mode", false);
   };
 
-  // before_each
-  let before_each = () => {
-    Js.log("======== before each =============");
-    File.openAsset("Temp.agda")
-    |> then_(editor => {
-         Js.log2(
-           "[ before each ] is empty:",
-           String.isEmpty(TextEditor.getText(editor)),
-         );
-
-         resolve();
-       });
-  };
-
   // after_each
   let after_each = () => {
-    Js.log("======== after each =============");
     let clearAllFiles = () => {
       File.openAsset("Temp.agda")
       |> then_(editor => {
            let rec cleanUp = () => {
              TextEditor.setText("", editor);
-
              if (!String.isEmpty(TextEditor.getText(editor))) {
-               Js.log("[ after each ] cleanup failed");
                cleanUp();
              } else {
                TextEditor.save(editor);
@@ -321,7 +304,7 @@ module Package = {
       |> all
       |> then_(_ => resolve());
 
-    clearAllFiles() |> then_(destroyAllTextEditors);
+    destroyAllTextEditors() |> then_(clearAllFiles);
   };
 };
 
@@ -399,10 +382,8 @@ module Keyboard = {
          let after = TextEditor.getText(editor);
          if (before !== after) {
            // succeed
-           Js.log4("[ inserted ]", text, before, after);
            resolve(instance);
          } else {
-           Js.log2("[ insertion failed ]", after);
            // failed, try again
            TextEditor.setText(before, editor);
            insertUntilSuccess(text, instance);
@@ -429,10 +410,8 @@ module Keyboard = {
            let after = TextEditor.getText(instance.editors.source);
            if (before !== after) {
              // succeed
-             Js.log3("[ backspaced ]", before, after);
              resolve();
            } else {
-             Js.log2("[ backspace failed]", after);
              // failed, try again
              TextEditor.setText(before, instance.editors.source);
              backspaceUntilSuccess();

@@ -65,10 +65,7 @@ let translate = (input: string): translation => {
     switch (last) {
     | None => [||]
     | Some(x) =>
-      let result =
-        Array.concat(Array.slice(~from=0, ~to_=length - 1, xs), [|x|]);
-      Js.log(result);
-      result;
+      Array.concat(Array.slice(~from=0, ~to_=length - 1, xs), [|x|])
     };
   };
 
