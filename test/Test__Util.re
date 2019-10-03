@@ -396,7 +396,9 @@ module Keyboard = {
     let onChange =
       instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
     // trigger (insert & save)
-    insertUntilSuccess(key, instance) |> then_(_ => onChange);
+    insertUntilSuccess(key, instance)
+    |> then_(_ => onChange)
+    |> then_(_ => resolve(instance));
   };
 
   let backspace = (instance: Instance.t) => {
@@ -423,7 +425,9 @@ module Keyboard = {
     let onChange =
       instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
     // trigger (backspace & save)
-    backspaceUntilSuccess() |> then_(_ => onChange);
+    backspaceUntilSuccess()
+    |> then_(_ => onChange)
+    |> then_(_ => resolve(instance));
   };
 };
 
