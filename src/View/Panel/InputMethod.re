@@ -100,19 +100,18 @@ let markerOnDidChange = (editor, setReality, event) => {
 
   let _oldBuffer = editor |> TextEditor.getTextInBufferRange(rangeOld);
   let newBuffer = editor |> TextEditor.getTextInBufferRange(rangeNew);
-  if (_oldBuffer != newBuffer) {
-    Js.log(
-      "[ IM ][ monitor ] \""
-      ++ _oldBuffer
-      ++ "\" "
-      ++ string_of_int(Point.column(Range.end_(rangeOld)))
-      ++ " => \""
-      ++ newBuffer
-      ++ "\" "
-      ++ string_of_int(Point.column(Range.end_(rangeNew))),
-      // setReality(newBuffer);
-    );
-  };
+  // if (_oldBuffer != newBuffer) {
+  //   Js.log(
+  //     "[ IM ][ monitor ] \""
+  //     ++ _oldBuffer
+  //     ++ "\" "
+  //     ++ string_of_int(Point.column(Range.end_(rangeOld)))
+  //     ++ " => \""
+  //     ++ newBuffer
+  //     ++ "\" "
+  //     ++ string_of_int(Point.column(Range.end_(rangeNew))),
+  //   );
+  // };
   setReality(newBuffer);
 };
 
@@ -307,28 +306,28 @@ let make =
     () => {
       switch (Buffer.next(state.buffer, state.reality)) {
       | Noop =>
-        Js.log("[ IM ][ reality ][ Noop ] ");
-        setChangeLog(Noop);
+        // Js.log("[ IM ][ reality ][ Noop ] ");
+        setChangeLog(Noop)
       | Insert(buffer) =>
-        Js.log("[ IM ][ reality ][ Insert ] " ++ Buffer.toString(buffer));
+        // Js.log("[ IM ][ reality ][ Insert ] " ++ Buffer.toString(buffer));
         setChangeLog(Noop);
         send(UpdateBuffer(buffer));
       | Backspace(buffer) =>
-        Js.log("[ IM ][ reality ][ Backspace ] " ++ Buffer.toString(buffer));
+        // Js.log("[ IM ][ reality ][ Backspace ] " ++ Buffer.toString(buffer));
         setChangeLog(Noop);
         send(UpdateBuffer(buffer));
       | Rewrite(buffer) =>
-        Js.log("[ IM ][ reality ][ Rewrite ] " ++ Buffer.toString(buffer));
+        // Js.log("[ IM ][ reality ][ Rewrite ] " ++ Buffer.toString(buffer));
         setChangeLog(Rewrite);
         send(UpdateBuffer(buffer));
         let surface = Buffer.toSurface(buffer);
         rewriteTextBuffer(editor, markers, surface);
       | Complete =>
-        Js.log("[ IM ][ reality ][ Complete ]");
+        // Js.log("[ IM ][ reality ][ Complete ]");
         setChangeLog(Complete);
         send(Deactivate);
-      | Stuck(n) =>
-        Js.log2("[ IM ][ reality ][ Stuck ]", n);
+      | Stuck(_n) =>
+        // Js.log2("[ IM ][ reality ][ Stuck ]", n);
         setChangeLog(Stuck);
         send(Deactivate);
       };
@@ -342,11 +341,11 @@ let make =
   React.useEffect2(
     () => {
       if (hasChanged(state, changeLog)) {
-        Js.log("[ IM ][ change ]");
+        // Js.log("[ IM ][ change ]");
         onChange |> Event.emitOk();
       };
 
-      Js.log3(state.activated, Buffer.toString(state.buffer), state.reality);
+      // Js.log3(state.activated, Buffer.toString(state.buffer), state.reality);
 
       // log when the state changes
       if (Atom.inDevMode()) {

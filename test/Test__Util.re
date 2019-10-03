@@ -374,7 +374,7 @@ module Keyboard = {
   let rec insertUntilSuccess = (text, instance: Instance.t) => {
     let editor = instance.editors.source;
     let before = TextEditor.getText(editor);
-    Js.log("[ IM ][ insert listen ] " ++ before);
+    // Js.log("[ IM ][ insert listen ] " ++ before);
 
     TextEditor.insertText(text, editor) |> ignore;
 
@@ -383,10 +383,12 @@ module Keyboard = {
          let after = TextEditor.getText(editor);
          if (before !== after) {
            // succeed
-           Js.log("[ IM ][ insert complete ] " ++ before ++ " => " ++ after);
-           resolve(instance);
+           // Js.log("[ IM ][ insert complete ] " ++ before ++ " => " ++ after);
+           resolve(
+             instance,
+           );
          } else {
-           Js.log("[ IM ][ insert failed ! ] ");
+           // Js.log("[ IM ][ insert failed ! ] ");
            // failed, try again
            TextEditor.setText(before, editor);
            insertUntilSuccess(text, instance);
@@ -407,7 +409,7 @@ module Keyboard = {
   let backspace = (instance: Instance.t) => {
     let rec backspaceUntilSuccess = () => {
       let before = TextEditor.getText(instance.editors.source);
-      Js.log("[ IM ][ backspace listen ] " ++ before);
+      // Js.log("[ IM ][ backspace listen ] " ++ before);
 
       TextEditor.backspace(instance.editors.source);
 
@@ -416,12 +418,12 @@ module Keyboard = {
            let after = TextEditor.getText(instance.editors.source);
            if (before !== after) {
              // succeed
-             Js.log(
-               "[ IM ][ backspace complete ] " ++ before ++ " => " ++ after,
-             );
+             // Js.log(
+             //   "[ IM ][ backspace complete ] " ++ before ++ " => " ++ after,
+             // );
              resolve();
            } else {
-             Js.log("[ IM ][ backspace failed ! ] ");
+             // Js.log("[ IM ][ backspace failed ! ] ");
              // failed, try again
              TextEditor.setText(before, instance.editors.source);
              backspaceUntilSuccess();

@@ -74,7 +74,7 @@ let next = (self, reality) => {
         Stuck(1);
       }
     };
-  } else if (reality == init(surface)) {
+  } else if (reality == init(surface) || reality == init(sequence)) {
     // backspace deletion
     if (String.isEmpty(reality)) {
       // if the symbol is gone
@@ -93,7 +93,6 @@ let next = (self, reality) => {
       Backspace({...self, tail: init(self.tail)});
     };
   } else {
-    Js.log3("[ stuck 3]", reality, toString(self));
     Stuck(3);
   };
 };
