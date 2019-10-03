@@ -71,7 +71,7 @@ describe("Input Method", () => {
     );
   });
 
-  describe("Typing", () => {
+  describe_only("Typing", () => {
     after_each(Package.after_each);
 
     it({js|should result in "λ" after typing "Gl"|js}, () =>
@@ -105,6 +105,227 @@ describe("Input Method", () => {
            instance.editors.source
            |> Atom.TextEditor.getText
            |> Assert.equal({js|ƛ|js});
+           resolve();
+         })
+    );
+    it(
+      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+      () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("m"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("d"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.backspace)
+      |> then_(Keyboard.backspace)
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|lamb|js});
+           resolve();
+         })
+    );
+
+    it(
+      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+      () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("m"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("d"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.backspace)
+      |> then_(Keyboard.backspace)
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|lamb|js});
+           resolve();
+         })
+    );
+    it(
+      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+      () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("m"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("d"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.backspace)
+      |> then_(Keyboard.backspace)
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|lamb|js});
+           resolve();
+         })
+    );
+    it(
+      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+      () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("m"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("d"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.backspace)
+      |> then_(Keyboard.backspace)
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|lamb|js});
+           resolve();
+         })
+    );
+    it(
+      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+      () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("m"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("d"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.backspace)
+      |> then_(Keyboard.backspace)
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|lamb|js});
+           resolve();
+         })
+    );
+    it(
+      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+      () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("m"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("d"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.backspace)
+      |> then_(Keyboard.backspace)
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|lamb|js});
+           resolve();
+         })
+    );
+    it(
+      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+      () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("m"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("d"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.backspace)
+      |> then_(Keyboard.backspace)
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|lamb|js});
+           resolve();
+         })
+    );
+    it(
+      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+      () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("m"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("d"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.backspace)
+      |> then_(Keyboard.backspace)
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|lamb|js});
+           resolve();
+         })
+    );
+    it(
+      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+      () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("m"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("d"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.backspace)
+      |> then_(Keyboard.backspace)
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|lamb|js});
+           resolve();
+         })
+    );
+    it(
+      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+      () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("m"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("d"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.backspace)
+      |> then_(Keyboard.backspace)
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|lamb|js});
+           resolve();
+         })
+    );
+    it(
+      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+      () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("m"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("d"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.backspace)
+      |> then_(Keyboard.backspace)
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|lamb|js});
            resolve();
          })
     );
@@ -268,6 +489,7 @@ describe("Input Method", () => {
          })
     );
   });
+
   describe("Issue #72", () => {
     after_each(Package.after_each);
     it({js|should make "ʳ" the first candidate|js}, () => {

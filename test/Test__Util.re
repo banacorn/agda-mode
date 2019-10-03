@@ -382,8 +382,10 @@ module Keyboard = {
          let after = TextEditor.getText(editor);
          if (before !== after) {
            // succeed
+           Js.log("[ IM ][ insert complete ] " ++ before ++ " => " ++ after);
            resolve(instance);
          } else {
+           Js.log("[ IM ][ insert failed ! ] ");
            // failed, try again
            TextEditor.setText(before, editor);
            insertUntilSuccess(text, instance);
@@ -393,6 +395,7 @@ module Keyboard = {
 
   let insert = (key, instance: Instance.t) => {
     // listen
+    Js.log("[ IM ][ insert listen ]");
     let onChange =
       instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
     // trigger (insert & save)
@@ -412,8 +415,12 @@ module Keyboard = {
            let after = TextEditor.getText(instance.editors.source);
            if (before !== after) {
              // succeed
+             Js.log(
+               "[ IM ][ backspace complete ] " ++ before ++ " => " ++ after,
+             );
              resolve();
            } else {
+             Js.log("[ IM ][ backspace failed ! ] ");
              // failed, try again
              TextEditor.setText(before, instance.editors.source);
              backspaceUntilSuccess();
@@ -421,6 +428,7 @@ module Keyboard = {
          });
     };
 
+    Js.log("[ IM ][ backspace listen ]");
     // listen
     let onChange =
       instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
