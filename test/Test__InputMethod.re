@@ -186,6 +186,33 @@ describe("Input Method", () => {
               });
          })
     );
+
+    describe_only("Issue #102", () => {
+      after_each(Package.after_each);
+
+      it(
+        {js|should be reactivated after typing "\\" even if the previous sequence can go further|js},
+        () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(Keyboard.insert("="))
+        |> then_(Keyboard.insert("="))
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(Keyboard.insert("="))
+        |> then_(Keyboard.insert("="))
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(Keyboard.insert("<"))
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(Keyboard.insert(">"))
+        |> then_(instance => {
+             instance.editors.source
+             |> Atom.TextEditor.getText
+             |> Assert.equal({js|≡≡⟨⟩|js});
+             resolve();
+           })
+      );
+    });
+
     it({js|should deactivate when stuck ("Gll")|js}, () =>
       openAndLoad("Temp.agda")
       |> then_(Keyboard.dispatch("\\"))
