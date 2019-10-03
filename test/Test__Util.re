@@ -374,6 +374,7 @@ module Keyboard = {
   let rec insertUntilSuccess = (text, instance: Instance.t) => {
     let editor = instance.editors.source;
     let before = TextEditor.getText(editor);
+    Js.log("[ IM ][ insert listen ] " ++ before);
 
     TextEditor.insertText(text, editor) |> ignore;
 
@@ -395,7 +396,6 @@ module Keyboard = {
 
   let insert = (key, instance: Instance.t) => {
     // listen
-    Js.log("[ IM ][ insert listen ]");
     let onChange =
       instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
     // trigger (insert & save)
@@ -407,6 +407,7 @@ module Keyboard = {
   let backspace = (instance: Instance.t) => {
     let rec backspaceUntilSuccess = () => {
       let before = TextEditor.getText(instance.editors.source);
+      Js.log("[ IM ][ backspace listen ] " ++ before);
 
       TextEditor.backspace(instance.editors.source);
 
@@ -428,7 +429,6 @@ module Keyboard = {
          });
     };
 
-    Js.log("[ IM ][ backspace listen ]");
     // listen
     let onChange =
       instance.view.onInputMethodChange |> Event.once |> Async.toPromise;

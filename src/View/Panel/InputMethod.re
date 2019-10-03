@@ -306,8 +306,15 @@ let make =
   React.useEffect1(
     () => {
       switch (Buffer.next(state.buffer, state.reality)) {
-      | Noop(buffer) =>
-        Js.log("[ IM ][ reality ][ Noop ] " ++ Buffer.toString(buffer));
+      | Noop =>
+        Js.log("[ IM ][ reality ][ Noop ] ");
+        setChangeLog(Noop);
+      | Insert(buffer) =>
+        Js.log("[ IM ][ reality ][ Insert ] " ++ Buffer.toString(buffer));
+        setChangeLog(Noop);
+        send(UpdateBuffer(buffer));
+      | Backspace(buffer) =>
+        Js.log("[ IM ][ reality ][ Backspace ] " ++ Buffer.toString(buffer));
         setChangeLog(Noop);
         send(UpdateBuffer(buffer));
       | Rewrite(buffer) =>
@@ -320,8 +327,8 @@ let make =
         Js.log("[ IM ][ reality ][ Complete ]");
         setChangeLog(Complete);
         send(Deactivate);
-      | Stuck =>
-        Js.log("[ IM ][ reality ][ Stuck ]");
+      | Stuck(n) =>
+        Js.log2("[ IM ][ reality ][ Stuck ]", n);
         setChangeLog(Stuck);
         send(Deactivate);
       };

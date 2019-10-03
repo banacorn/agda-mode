@@ -408,7 +408,7 @@ describe("Input Method", () => {
          })
     );
 
-    describe_only("Issue #102", () => {
+    describe("Issue #102", () => {
       after_each(Package.after_each);
 
       it(
