@@ -204,12 +204,12 @@ let activate = _ => {
 };
 
 let deactivate = _ =>
-  // make `deactivate` idempotent
-if (activated^) {
-  activated := false;
-  Instances.destroyAll();
-  CompositeDisposable.dispose(subscriptions);
-};
+  if (activated^) {
+    activated := false;
+    Instances.destroyAll();
+    CompositeDisposable.dispose(subscriptions);
+  };
+// make `deactivate` idempotent
 
 /* https://atom.io/docs/api/latest/Config */
 let config = {
@@ -268,6 +268,13 @@ let config = {
     "type": "boolean",
     "default": true,
     "order": 40,
+  },
+  "inputMethodExtension": {
+    "title": "Input Method Extension",
+    "description": "For adding or prioritizing key mappings",
+    "type": "string",
+    "default": "{}",
+    "order": 41,
   },
   "trimSpaces": {
     "title": "Trim spaces",
