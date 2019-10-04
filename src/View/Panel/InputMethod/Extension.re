@@ -41,7 +41,8 @@ let extendKeySuggestions = (key, origionalSuggestions) => {
 let extendCandidateSymbols = (key, originalCandidates) => {
   let extension = lookup(key);
 
-  originalCandidates
-  |> Array.filter(s => !Js.Array.includes(s, extension))  // remove the overlapping symbols
-  |> Array.concat(extension); // prefix the extension symbols
+  let removedOverlaps =
+    originalCandidates |> Array.filter(s => !Js.Array.includes(s, extension)); // remove the overlapping symbols
+  // prefix the extension symbols
+  Array.concat(removedOverlaps, extension);
 };
