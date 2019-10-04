@@ -4,7 +4,9 @@ open ReasonReact;
 let make = (~hidden) => {
   let className =
     Util.ClassName.(
-      ["agda-settings-placeholder"] |> addWhen("hidden", hidden) |> serialize
+      ["agda-settings-input-method"]
+      |> addWhen("hidden", hidden)
+      |> serialize
     );
   <section className>
     <h1> <span> {string("Coming soon")} </span> </h1>

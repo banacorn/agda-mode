@@ -39,7 +39,7 @@ let make =
                 {string("Log")}
               </span>
             </li>
-            <li onClick={_ => setURI(URI.UnicodeInput)}>
+            <li onClick={_ => setURI(URI.InputMethod)}>
               <span className="icon icon-keyboard">
                 {string("Unicode Input")}
               </span>
@@ -60,7 +60,7 @@ let make =
             hidden={uri != URI.Connection}
           />
           <Settings__Log connection hidden={uri != URI.Log} />
-          <Settings__Placeholder hidden={uri != URI.UnicodeInput} />
+          <Settings__InputMethod hidden={uri != URI.InputMethod} />
           <Settings__Debug debug hidden={uri != URI.Debug} />
         </div>
       </section>,
