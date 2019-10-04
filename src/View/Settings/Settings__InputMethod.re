@@ -4,9 +4,11 @@ open Rebase;
 [@react.component]
 let make = (~hidden) => {
   let (keySequence, setKeySequence) = Hook.useState("");
+  let (symbolLookup, setSymbolLookup) = Hook.useState([||]);
   let translation = Translator.translate(keySequence);
 
-  let editorRef = React.useRef(None);
+  let keyEditorRef = React.useRef(None);
+  let symbolEditorRef = React.useRef(None);
 
   React.useEffect1(
     _ => {
@@ -16,11 +18,18 @@ let make = (~hidden) => {
     [|keySequence|],
   );
 
-  let onChange = _ => {
-    switch (React.Ref.current(editorRef)) {
+  let onKeyEditorChange = _ => {
+    switch (React.Ref.current(keyEditorRef)) {
     | Some(editor) => setKeySequence(Atom.TextEditor.getText(editor))
     | None => ()
     };
+  };
+
+  let onSymbolEditorChange = _ => {
+    React.Ref.current(symbolEditorRef)
+    |> Option.map(Atom.TextEditor.getText)
+    |> Option.flatMap(Translator.lookup)
+    |> Option.forEach(setSymbolLookup);
   };
 
   let className =
@@ -37,6 +46,13 @@ let make = (~hidden) => {
        )
     |> Util.React.manyIn("span");
 
+  let symbolLookupResult =
+    symbolLookup
+    |> Array.map(sequence =>
+         <span className="inline-block highlight"> {string(sequence)} </span>
+       )
+    |> Util.React.manyIn("span");
+
   <section className>
     <h1>
       <span className="icon icon-keyboard" />
@@ -50,11 +66,8 @@ let make = (~hidden) => {
         hidden=false
         value=""
         placeholder="enter some key sequence here, e.g 'lambda'"
-        onEditorRef={ref => {
-          Js.log("set!!!");
-          React.Ref.setCurrent(editorRef, Some(ref));
-        }}
-        onChange
+        onEditorRef={ref => React.Ref.setCurrent(keyEditorRef, Some(ref))}
+        onChange=onKeyEditorChange
       />
     </p>
     // adding className="native-key-bindings" tabIndex=(-1) for text copy
@@ -64,6 +77,18 @@ let make = (~hidden) => {
     <hr />
     <h2> {string("Key sequences lookup")} </h2>
     <p> {string("Enter a symbol and get corresponding key sequences")} </p>
+    <p>
+      <MiniEditor
+        hidden=false
+        value=""
+        placeholder="enter some symbol here, e.g 'λ'"
+        onEditorRef={ref => React.Ref.setCurrent(symbolEditorRef, Some(ref))}
+        onChange=onSymbolEditorChange
+      />
+    </p>
+    <p id="key-sequences" className="native-key-bindings" tabIndex=(-1)>
+      symbolLookupResult
+    </p>
     <hr />
   </section>;
 };
