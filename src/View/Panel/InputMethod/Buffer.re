@@ -48,7 +48,6 @@ type action =
 let next = (self, reality) => {
   let surface = toSurface(self);
   let sequence = toSequence(self);
-
   if (reality == surface) {
     if (Translator.translate(sequence).further && reality != "\\") {
       Noop;

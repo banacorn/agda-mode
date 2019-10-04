@@ -1,39 +1,44 @@
 open Rebase;
+open Fn;
 
-[@bs.module "./../../../../../asset/keymap.js"]
-external rawKeymap: Js.t({.}) = "default";
+// key - symbols mapping
 
-[@bs.module "./../../../../../asset/query.js"]
+[@bs.module "./../../../../../../asset/query.js"]
 external rawTable: Js.Dict.t(array(string)) = "default";
+
+// trie
 
 type trie = {
   symbol: array(string),
   subTrie: Js.Dict.t(trie),
 };
+[@bs.module "./../../../../../../asset/keymap.js"]
+external rawKeymapObject: Js.t({.}) = "default";
 
-let rec toTrie = (obj: Js.t({.})): trie => {
+let rec fromObject = (obj: Js.t({.})): trie => {
   let symbol = [%raw {|
-    obj[">>"] || ""
+    obj[">>"] || []
   |}];
   let subTrie =
     obj
     |> Js.Obj.keys
     |> Array.filter(key => key != ">>")
-    |> Array.map(key => (key, toTrie([%raw {|
+    |> Array.map(key => (key, fromObject([%raw {|
       obj[key]
     |}])))
     |> Js.Dict.fromArray;
   {symbol, subTrie};
 };
 
-let keymap = toTrie(rawKeymap);
+let keymap = fromObject(rawKeymapObject);
 
 let toKeySuggestions = (trie: trie): array(string) =>
   Js.Dict.keys(trie.subTrie);
 
 let toCandidateSymbols = (trie: trie): array(string) => trie.symbol;
 
-/* see if the underlying is in the keymap */
+// see if the key sequence is in the keymap
+// returns (KeySuggestions, CandidateSymbols)
 let isInKeymap = (input: string): option(trie) => {
   let rec helper = (input: string, trie: trie): option(trie) =>
     switch (String.length(input)) {
@@ -49,6 +54,9 @@ let isInKeymap = (input: string): option(trie) => {
   helper(input, keymap);
 };
 
+// // see if the key sequence is in the extension */
+// let isInExtension = (input: string): option(trie) => {};
+
 type translation = {
   symbol: option(string),
   further: bool,
@@ -58,42 +66,22 @@ type translation = {
 
 /* converts characters to symbol, and tells if there's any further possible combinations */
 let translate = (input: string): translation => {
-  // move the last element to the first
-  let shiftRight = xs => {
-    let length = Array.length(xs);
-    let last = xs[length - 1];
-    switch (last) {
-    | None => [||]
-    | Some(x) =>
-      Array.concat(Array.slice(~from=0, ~to_=length - 1, xs), [|x|])
-    };
-  };
+  let trie = isInKeymap(input);
+  let keySuggestions =
+    trie
+    |> Option.mapOr(toKeySuggestions, [||])
+    |> Extension.extendKeySuggestions(input);
 
-  switch (isInKeymap(input)) {
-  | Some(trie) =>
-    let keySuggestions = Js.Array.sortInPlace(toKeySuggestions(trie));
-    let candidateSymbols =
-      switch (input) {
-      // TODO: find a better solution for this workaround of issue #72
-      | "^l" => toCandidateSymbols(trie) |> shiftRight
-      | "^r" => toCandidateSymbols(trie) |> shiftRight
-      | _ => toCandidateSymbols(trie)
-      };
-    {
-      symbol: candidateSymbols[0],
-      further: Array.length(keySuggestions) != 0,
-      keySuggestions,
-      candidateSymbols,
-    };
-  | None =>
-    /* key combination out of keymap
-       replace with closest the symbol possible */
-    {
-      symbol: None,
-      further: false,
-      keySuggestions: [||],
-      candidateSymbols: [||],
-    }
+  let candidateSymbols =
+    trie
+    |> Option.mapOr(toCandidateSymbols, [||])
+    |> Extension.extendCandidateSymbols(input);
+
+  {
+    symbol: candidateSymbols[0],
+    further: Array.length(keySuggestions) != 0,
+    keySuggestions,
+    candidateSymbols,
   };
 };
 let initialTranslation = translate("");

@@ -327,7 +327,7 @@ let make =
         setChangeLog(Complete);
         send(Deactivate);
       | Stuck(_n) =>
-        // Js.log2("[ IM ][ reality ][ Stuck ]", n);
+        // Js.log2("[ IM ][ reality ][ Stuck ]", _n);
         setChangeLog(Stuck);
         send(Deactivate);
       };
