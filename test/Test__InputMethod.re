@@ -269,7 +269,7 @@ describe("Input Method", () => {
     );
   });
 
-  describe_only("Extension (Issue #72)", () => {
+  describe("Extension (Issue #72)", () => {
     before(() => {
       Extension.setConfig(Extension.defaultKeymap());
       resolve();
