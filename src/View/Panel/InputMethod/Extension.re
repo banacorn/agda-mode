@@ -5,6 +5,13 @@ open Json.Decode;
 
 type keymap = Js.Dict.t(array(string));
 
+let defaultKeymap = () => {
+  let keymap = Js.Dict.empty();
+  Js.Dict.set(keymap, "^r", [|{js|ʳ|js}|]);
+  Js.Dict.set(keymap, "^l", [|{js|ˡ|js}|]);
+  keymap;
+};
+
 let readConfig = () => {
   switch (
     Js.undefinedToOption(Atom.Config.get("agda-mode.inputMethodExtension"))
@@ -12,6 +19,18 @@ let readConfig = () => {
   | None => "{}"
   | Some(s) => s
   };
+};
+
+let setConfig = keymap => {
+  open! Json.Encode;
+
+  let encoder: keymap => Js.Json.t = dict(array(string));
+
+  Atom.Config.set(
+    "agda-mode.inputMethodExtension",
+    Json.stringify(encoder(keymap)),
+  )
+  |> ignore;
 };
 
 let parse: string => option(keymap) =

@@ -269,8 +269,20 @@ describe("Input Method", () => {
     );
   });
 
-  describe("Issue #72", () => {
+  describe_only("Extension (Issue #72)", () => {
+    before(() => {
+      Extension.setConfig(Extension.defaultKeymap());
+      resolve();
+    });
     after_each(Package.after_each);
+    it({js|should respect the default keymap extension|js}, () => {
+      let reality = Extension.keymap();
+      let expectation = Js.Dict.empty();
+      Js.Dict.set(expectation, "^r", [|{js|ʳ|js}|]);
+      Js.Dict.set(expectation, "^l", [|{js|ˡ|js}|]);
+      Assert.equal(reality == expectation, true);
+      resolve();
+    });
     it({js|should make "ʳ" the first candidate|js}, () => {
       Translator.translate("^r").candidateSymbols[0]
       |> Assert.equal(Some({js|ʳ|js}));

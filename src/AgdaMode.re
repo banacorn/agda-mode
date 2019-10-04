@@ -273,7 +273,7 @@ let config = {
     "title": "Input Method Extension",
     "description": "For adding or prioritizing key mappings",
     "type": "string",
-    "default": {j|{"^r":["ʳ","⃗","⃑","⃕"],"^l":["ˡ","⃖","⃐","⃔"]}|j},
+    "default": {j|{"^r":["ʳ"],"^l":["ˡ"]}|j},
     "order": 41,
   },
   "trimSpaces": {
