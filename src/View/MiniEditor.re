@@ -51,6 +51,7 @@ let make =
       ~hidden,
       ~grammar="",
       ~onConfirm=_ => (),
+      ~onChange=_ => (),
       ~onCancel=_ => (),
       ~onFocus=_ => (),
       ~onBlur=_ => (),
@@ -91,6 +92,10 @@ let make =
            Atom.Commands.add(`HtmlElement(element), "core:cancel", _event =>
              onCancel()
            )
+           |> Atom.CompositeDisposable.add(disposables);
+
+           editor
+           |> Atom.TextEditor.onDidChange(onChange)
            |> Atom.CompositeDisposable.add(disposables);
 
            /* value */
