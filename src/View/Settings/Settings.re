@@ -1,10 +1,11 @@
 open ReasonReact;
+open Util.React;
 
 module URI = Settings__Breadcrumb;
 type uri = URI.uri;
 
 let at = (x, y, classNames) => {
-  Util.ClassName.(classNames |> addWhen("hidden", x != y) |> serialize);
+  classNames ++ showWhen(x == y);
 };
 
 [@react.component]
@@ -30,7 +31,7 @@ let make =
       <section className="agda-settings" tabIndex=(-1)>
         <Settings__Breadcrumb uri onNavigate=setURI />
         <div className="agda-settings-pages">
-          <ul className={at(URI.Root, uri, ["agda-settings-menu"])}>
+          <ul className={at(URI.Root, uri, "agda-settings-menu")}>
             <li onClick={_ => setURI(URI.Connection)}>
               <span className="icon icon-plug"> {string("Connection")} </span>
             </li>

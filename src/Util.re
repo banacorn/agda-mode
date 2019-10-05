@@ -21,14 +21,12 @@ module React = {
   let enclosedBy =
       (front: reactElement, back: reactElement, item: reactElement) =>
     <> front {string(" ")} item {string(" ")} back </>;
-};
 
-module ClassName = {
-  type t = list(string);
-  let add = (x: string, self): list(string) => [x, ...self];
-  let addWhen = (x: string, p: bool, self): list(string) =>
-    p ? add(x, self) : self;
-  let serialize = String.joinWith(" ");
+  let when_ = (p, className) => p ? className : "";
+  let showWhen =
+    fun
+    | true => ""
+    | false => " hidden";
 };
 
 module Result = {

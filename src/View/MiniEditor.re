@@ -2,6 +2,7 @@
 
 open Rebase;
 open Fn;
+open Util.React;
 
 type error =
   | Cancelled;
@@ -127,16 +128,11 @@ let make =
     [|focused|],
   );
 
-  let className =
-    Util.ClassName.(
-      ["mini-editor"] |> addWhen("hidden", hidden) |> serialize
-    );
-
   ReactDOMRe.createElementVariadic(
     "atom-text-editor",
     ~props=
       ReactDOMRe.objToDOMProps({
-        "class": className,
+        "class": "mini-editor" ++ showWhen(!hidden),
         "mini": "true",
         "ref": editorElem,
       }),

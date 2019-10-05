@@ -1,5 +1,6 @@
 open ReasonReact;
 open Rebase;
+open Util.React;
 
 [@react.component]
 let make =
@@ -66,12 +67,9 @@ let make =
 
   let connected = connection |> Option.isSome;
   let className =
-    Util.ClassName.(
-      ["agda-settings-connection"]
-      |> addWhen("hidden", hidden)
-      |> addWhen("inquiring", !connected)
-      |> serialize
-    );
+    "agda-settings-connection"
+    ++ showWhen(!hidden)
+    ++ when_(!connected, "inquiring");
   let status =
     connected
       ? <span

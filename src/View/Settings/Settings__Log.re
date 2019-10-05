@@ -1,4 +1,5 @@
 open ReasonReact;
+open Util.React;
 open Rebase;
 
 module Entry = {
@@ -52,17 +53,12 @@ let make = (~connection: option(Connection.t), ~hidden) => {
   connection
   |> Option.forEach(conn => conn.Connection.resetLogOnLoad = refreshOnLoad);
 
-  let className =
-    Util.ClassName.(
-      ["agda-settings-log"] |> addWhen("hidden", hidden) |> serialize
-    );
-
   let entries =
     connection
     |> Option.mapOr(conn => conn.Connection.metadata.entries, [||])
     |> Array.map(entry => <Entry entry />)
     |> Util.React.manyIn("ol");
-  <section className>
+  <section className={"agda-settings-log" ++ showWhen(!hidden)}>
     <h1>
       <span className="icon icon-comment-discussion" />
       <span> {string("Log")} </span>

@@ -1,5 +1,6 @@
 open ReasonReact;
 open Rebase;
+open Util.React;
 
 module SymbolLookup = {
   [@react.component]
@@ -21,7 +22,7 @@ module SymbolLookup = {
       |> Array.map(symbol =>
            <kbd className="inline-block highlight"> {string(symbol)} </kbd>
          )
-      |> Util.React.manyIn("div");
+      |> manyIn("div");
 
     <section>
       <h2> {string("Symbol lookup")} </h2>
@@ -61,7 +62,7 @@ module KeySequenceLookup = {
              {string(sequence)}
            </span>
          )
-      |> Util.React.manyIn("span");
+      |> manyIn("span");
 
     <section>
       <h2> {string("Key sequences lookup")} </h2>
@@ -98,9 +99,9 @@ module ExtendKeymap = {
                   {string(symbol)}
                 </kbd>
               )
-           |> Util.React.manyInFragment}
+           |> manyInFragment}
         </div>
-        <div className={"buttons " ++ (hovered ? "" : "hidden")}>
+        <div className={"buttons" ++ showWhen(hovered)}>
           <button className="btn icon icon-pencil inline-block-tight">
             {string("modify")}
           </button>
@@ -121,10 +122,7 @@ module ExtendKeymap = {
       |> Array.map(((sequence, symbols)) =>
            <ExtensionItem sequence symbols />
          )
-      |> Util.React.manyIn(
-           "ul",
-           ~props=ReactDOMRe.domProps(~id="extensions", ()),
-         );
+      |> manyIn("ul", ~props=ReactDOMRe.domProps(~id="extensions", ()));
 
     <section>
       <h2> {string("Keymap extensions")} </h2>
@@ -141,14 +139,7 @@ If the mapping already exists, it will be prioritized in case that the key seque
 
 [@react.component]
 let make = (~hidden) => {
-  let className =
-    Util.ClassName.(
-      ["agda-settings-input-method"]
-      |> addWhen("hidden", hidden)
-      |> serialize
-    );
-
-  <section className>
+  <section className={"agda-settings-input-method" ++ showWhen(!hidden)}>
     <h1>
       <span className="icon icon-keyboard" />
       <span> {string("Input Method")} </span>

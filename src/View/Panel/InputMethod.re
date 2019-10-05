@@ -1,5 +1,6 @@
 let sort = Array.sort;
 open Rebase;
+open Util.React;
 
 /********************************************************************************************/
 
@@ -370,17 +371,13 @@ let make =
 
   let translation = Translator.translate(Buffer.toSequence(state.buffer));
   // the view
-  open Util.ClassName;
-  let className =
-    ["input-method"] |> addWhen("hidden", !state.activated) |> serialize;
 
-  let bufferClassName =
-    ["inline-block", "buffer"]
-    |> addWhen("hidden", Buffer.isEmpty(state.buffer))
-    |> serialize;
-  <section className>
+  <section className={"input-method" ++ showWhen(state.activated)}>
     <div className="keyboard">
-      <div className=bufferClassName>
+      <div
+        className={
+          "inline-block buffer" ++ showWhen(!Buffer.isEmpty(state.buffer))
+        }>
         {React.string(Buffer.toSequence(state.buffer))}
       </div>
       {translation.keySuggestions

@@ -1,6 +1,5 @@
-
-
 open ReasonReact;
+open Util.React;
 
 open Rebase;
 
@@ -100,11 +99,10 @@ let make =
     row
     |> Array.mapi((key, i) => {
          let isSelected = rowStart + i === index;
-         let className =
-           Util.ClassName.(
-             ["btn"] |> addWhen("selected", isSelected) |> serialize
-           );
-         <button className onClick={_ => chooseSymbol(key)} key>
+         <button
+           className={"btn" ++ when_(isSelected, "selected")}
+           onClick={_ => chooseSymbol(key)}
+           key>
            {string(key)}
          </button>;
        })

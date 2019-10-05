@@ -1,16 +1,12 @@
 open ReasonReact;
 open Rebase;
-
+open Util.React;
 open Type.View.Debug;
 
 [@react.component]
 let make = (~debug: state, ~hidden) => {
   let {inputMethod} = debug;
-  let className =
-    Util.ClassName.(
-      ["agda-settings-debug"] |> addWhen("hidden", hidden) |> serialize
-    );
-  <section className>
+  <section className={"agda-settings-debug" ++ showWhen(!hidden)}>
     <h1>
       <span className="icon icon-terminal" />
       <span> {string("Debug")} </span>
