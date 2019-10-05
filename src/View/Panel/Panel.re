@@ -1,4 +1,5 @@
 open Type.View;
+open Util.React;
 
 [@react.component]
 let make =
@@ -23,6 +24,7 @@ let make =
       ~interceptAndInsertKey: Event.t(string, unit),
       ~activateInputMethod: Event.t(bool, unit),
       ~onInputMethodActivationChange: Event.t(bool, unit),
+      ~onInputMethodChange: Event.t(unit, unit),
       ~onSettingsViewToggle: bool => unit,
     ) => {
   let (maxHeight, setMaxHeight) = Hook.useState(170);
@@ -52,14 +54,13 @@ let make =
           ),
         )
       : None;
-  let className =
-    Util.ClassName.(
-      ["agda-mode-panel"] |> addWhen("hidden", hidden) |> serialize
-    );
   let id = "agda-mode:" ++ Editors.getID(editors);
 
   ReactDOMRe.createPortal(
-    <section ref={ReactDOMRe.Ref.domRef(panelRef)} className id>
+    <section
+      ref={ReactDOMRe.Ref.domRef(panelRef)}
+      className={"agda-mode-panel" ++ showWhen(!hidden)}
+      id>
       <section className="panel-heading agda-header-container">
         <SizingHandle
           onResizeStart=setMaxHeight
@@ -85,6 +86,7 @@ let make =
           activateInputMethod
           isActive
           onActivationChange=onInputMethodActivationChange
+          onChange=onInputMethodChange
         />
         <Dashboard
           header

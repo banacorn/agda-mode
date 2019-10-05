@@ -196,7 +196,6 @@ let setup = () => {
 /* the entry point of the whole package, should only be called once (before deactivation) */
 let activate = _ => {
   // make `activate` idempotent
-
   if (! activated^) {
     activated := true;
     setup();
@@ -205,12 +204,12 @@ let activate = _ => {
 };
 
 let deactivate = _ =>
-  // make `deactivate` idempotent
   if (activated^) {
     activated := false;
     Instances.destroyAll();
     CompositeDisposable.dispose(subscriptions);
   };
+// make `deactivate` idempotent
 
 /* https://atom.io/docs/api/latest/Config */
 let config = {
@@ -269,6 +268,13 @@ let config = {
     "type": "boolean",
     "default": true,
     "order": 40,
+  },
+  "inputMethodExtension": {
+    "title": "Input Method Extension",
+    "description": "For adding or prioritizing key mappings. Please edit this from \"Settings > Input Method > Keymap extensions\"",
+    "type": "string",
+    "default": {j|{"^r":["ʳ"],"^l":["ˡ"]}|j},
+    "order": 41,
   },
   "trimSpaces": {
     "title": "Trim spaces",

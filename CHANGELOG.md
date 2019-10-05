@@ -1,3 +1,9 @@
+## 0.9.9
+* Fix #79 (allow users to custom keymap)
+* Fix #72 (with default keymap extensions)
+* Input method overhaul
+* Fix #110
+
 ## 0.9.8
 * Testing with GitHub Actions CI 🤖️
 * Fix #112 and #95

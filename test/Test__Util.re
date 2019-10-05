@@ -179,8 +179,8 @@ module View = {
 
   // get all panel containers at bottom
   let getPanelContainersAtBottom = () => {
-    Atom.Workspace.getBottomPanels()
-    |> Array.map(Atom.Views.getView)
+    Workspace.getBottomPanels()
+    |> Array.map(Views.getView)
     |> Array.flatMap(childHtmlElements)
     |> Array.filter(elem =>
          elem |> HtmlElement.className == "agda-mode-panel-container"
@@ -189,8 +189,8 @@ module View = {
 
   // get all panel containers in all panes
   let getPanelContainersAtPanes = () => {
-    Atom.Workspace.getPaneItems()
-    |> Array.map(Atom.Views.getView)
+    Workspace.getPaneItems()
+    |> Array.map(Views.getView)
     |> Array.filter(elem =>
          elem |> HtmlElement.className == "agda-mode-panel-container"
        );
@@ -269,29 +269,40 @@ module Package = {
 
   let activate = () => {
     // don't wait for this
-    Atom.Packages.activatePackage("agda-mode") |> ignore;
+    Packages.activatePackage("agda-mode") |> ignore;
     // manually invoking AgdaMode.activate, because it doesn't get invoked somehow
     AgdaMode.activate();
   };
 
   let deactivate = () => {
-    Atom.Packages.deactivatePackage("agda-mode", false);
+    Packages.deactivatePackage("agda-mode", false);
   };
 
-  let cleanup = () => {
+  // after_each
+  let after_each = () => {
+    let clearAllFiles = () => {
+      File.openAsset("Temp.agda")
+      |> then_(editor => {
+           let rec cleanUp = () => {
+             TextEditor.setText("", editor);
+             if (!String.isEmpty(TextEditor.getText(editor))) {
+               cleanUp();
+             } else {
+               TextEditor.save(editor);
+             };
+           };
+           cleanUp();
+         });
+    };
     let destroyAllTextEditors = () =>
-      Atom.Workspace.getPanes()
+      Workspace.getPanes()
       |> Array.flatMap(pane =>
            pane
-           |> Atom.Pane.getItems
-           |> Array.map(item => Atom.Pane.destroyItem_(item, true, pane))
+           |> Pane.getItems
+           |> Array.map(item => Pane.destroyItem_(item, true, pane))
          )
       |> all
       |> then_(_ => resolve());
-    let clearAllFiles = () => {
-      File.openAsset("Temp.agda")
-      |> then_(Atom.TextEditor.setText("") >> resolve);
-    };
 
     destroyAllTextEditors() |> then_(clearAllFiles);
   };
@@ -325,8 +336,8 @@ let close = (instance: Instance.t): Js.Promise.t(unit) => {
   let onDestroy = instance.view.onDestroy |> Event.once |> Async.toPromise;
 
   instance.editors.source
-  |> Atom.TextEditor.asWorkspaceItem
-  |> Atom.Workspace.hideItem
+  |> TextEditor.asWorkspaceItem
+  |> Workspace.hideItem
   |> ignore;
 
   onDestroy;
@@ -342,7 +353,7 @@ module Keyboard = {
     let onDispatch = instance.onDispatch |> Event.once;
 
     // build and dispatch the keyboard event
-    Atom.Keymaps.buildKeydownEvent_(
+    Keymaps.buildKeydownEvent_(
       key,
       {
         "ctrl": false,
@@ -353,14 +364,80 @@ module Keyboard = {
         "target": element,
       },
     )
-    |> Atom.Keymaps.handleKeyboardEvent;
+    |> Keymaps.handleKeyboardEvent;
 
     onDispatch |> Async.toPromise |> then_(() => resolve(instance));
   };
 
+  // `TextEditor.insertText` sometimes fails on CI
+  // insert again until it works
+  let rec insertUntilSuccess = (text, instance: Instance.t) => {
+    let editor = instance.editors.source;
+    let before = TextEditor.getText(editor);
+    // Js.log("[ IM ][ insert listen ] " ++ before);
+
+    TextEditor.insertText(text, editor) |> ignore;
+
+    TextEditor.save(editor)
+    |> then_(_ => {
+         let after = TextEditor.getText(editor);
+         if (before !== after) {
+           // succeed
+           // Js.log("[ IM ][ insert complete ] " ++ before ++ " => " ++ after);
+           resolve(
+             instance,
+           );
+         } else {
+           // Js.log("[ IM ][ insert failed ! ] ");
+           // failed, try again
+           TextEditor.setText(before, editor);
+           insertUntilSuccess(text, instance);
+         };
+       });
+  };
+
   let insert = (key, instance: Instance.t) => {
-    instance.editors.source |> TextEditor.insertText(key) |> ignore;
-                                                                    // resolve(instance);
+    // listen
+    let onChange =
+      instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+    // trigger (insert & save)
+    insertUntilSuccess(key, instance)
+    |> then_(_ => onChange)
+    |> then_(_ => resolve(instance));
+  };
+
+  let backspace = (instance: Instance.t) => {
+    let rec backspaceUntilSuccess = () => {
+      let before = TextEditor.getText(instance.editors.source);
+      // Js.log("[ IM ][ backspace listen ] " ++ before);
+
+      TextEditor.backspace(instance.editors.source);
+
+      TextEditor.save(instance.editors.source)
+      |> then_(_ => {
+           let after = TextEditor.getText(instance.editors.source);
+           if (before !== after) {
+             // succeed
+             // Js.log(
+             //   "[ IM ][ backspace complete ] " ++ before ++ " => " ++ after,
+             // );
+             resolve();
+           } else {
+             // Js.log("[ IM ][ backspace failed ! ] ");
+             // failed, try again
+             TextEditor.setText(before, instance.editors.source);
+             backspaceUntilSuccess();
+           };
+         });
+    };
+
+    // listen
+    let onChange =
+      instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+    // trigger (backspace & save)
+    backspaceUntilSuccess()
+    |> then_(_ => onChange)
+    |> then_(_ => resolve(instance));
   };
 };
 

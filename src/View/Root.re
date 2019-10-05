@@ -357,6 +357,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     inquireConnection,
     onInquireConnection,
     onInputMethodActivationChange,
+    onInputMethodChange,
     navigateSettingsView,
   } = handles;
   let containerElement = getPanelContainerFromState(state);
@@ -398,6 +399,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
           editorPlaceholder=""
           activateInputMethod
           onInputMethodActivationChange
+          onInputMethodChange
           settingsView
           onSettingsViewToggle={status => send(ToggleSettingsTab(status))}
           interceptAndInsertKey

@@ -1,6 +1,4 @@
 open Rebase;
-// open Fn;
-
 // open BsChai.Expect;
 // open BsMocha;
 open! BsMocha.Mocha;
@@ -12,7 +10,7 @@ describe("Input Method", () => {
   open Instance__Type;
 
   describe("View", () => {
-    after_each(Package.cleanup);
+    after_each(Package.after_each);
     open Webapi.Dom;
     it(
       "should not add class '.agda-mode-input-method-activated' to the editor element before triggering",
@@ -23,7 +21,7 @@ describe("Input Method", () => {
            |> Atom.Views.getView
            |> HtmlElement.classList
            |> DomTokenList.contains("agda-mode-input-method-activated")
-           |> BsMocha.Assert.equal(false);
+           |> Assert.equal(false);
            resolve();
          })
     );
@@ -38,7 +36,7 @@ describe("Input Method", () => {
            |> Atom.Views.getView
            |> HtmlElement.classList
            |> DomTokenList.contains("agda-mode-input-method-activated")
-           |> BsMocha.Assert.ok;
+           |> Assert.equal(true);
            resolve();
          })
     );
@@ -53,7 +51,7 @@ describe("Input Method", () => {
                 element
                 |> HtmlElement.classList
                 |> DomTokenList.contains("hidden")
-                |> BsMocha.Assert.equal(true);
+                |> Assert.equal(true);
                 resolve(instance);
               })
          )
@@ -66,79 +64,261 @@ describe("Input Method", () => {
                 element
                 |> HtmlElement.classList
                 |> DomTokenList.contains("hidden")
-                |> BsMocha.Assert.equal(false);
+                |> Assert.equal(false);
                 resolve();
               })
          )
     );
   });
 
-  describe("View", () => {
-    after_each(Package.cleanup);
+  describe("Typing", () => {
+    after_each(Package.after_each);
 
-    it("should notify when triggered", () =>
-      openAndLoad("Temp.agda")
-      |> then_(instance => {
-           let onDispatch =
-             instance.view.onInputMethodActivationChange
-             |> Event.once
-             |> Async.toPromise;
-
-           // dispatch!
-           instance
-           |> Keyboard.dispatch("\\")
-           |> then_(_ =>
-                onDispatch
-                |> then_(activated => {
-                     BsMocha.Assert.equal(true, activated);
-                     resolve(instance);
-                   })
-              );
-         })
-      |> then_(instance => {
-           let onDispatch =
-             instance.view.onInputMethodActivationChange
-             |> Event.once
-             |> Async.toPromise;
-
-           // dispatch!
-           instance
-           |> Keyboard.dispatch("\\")
-           |> then_(_ =>
-                onDispatch
-                |> then_(activated => {
-                     BsMocha.Assert.equal(false, activated);
-                     resolve(instance);
-                   })
-              );
-         })
-    );
-
-    it("should notify when triggered", () =>
+    it({js|should result in "λ" after typing "Gl"|js}, () =>
       openAndLoad("Temp.agda")
       |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance =>
+           Keyboard.insert("G", instance)
+           |> then_(_ => Keyboard.insert("l", instance))
+           |> then_(_ => {
+                instance.editors.source
+                |> Atom.TextEditor.getText
+                |> Assert.equal({js|λ|js});
+                resolve();
+              })
+         )
+    );
+
+    it({js|should result in "ƛ" after typing "lambdabar"|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("m"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("d"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("r"))
       |> then_(instance => {
-           // listen
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|ƛ|js});
+           resolve();
+         })
+    );
+    it(
+      {js|should result in "lamb" after typing "lambda" and then backspace twice|js},
+      () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.insert("m"))
+      |> then_(Keyboard.insert("b"))
+      |> then_(Keyboard.insert("d"))
+      |> then_(Keyboard.insert("a"))
+      |> then_(Keyboard.backspace)
+      |> then_(Keyboard.backspace)
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|lamb|js});
+           resolve();
+         })
+    );
+  });
+
+  describe("Activation/Deactivation", () => {
+    after_each(Package.after_each);
+
+    it({js|should be activated after typing "\\"|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(instance => {
            let onDispatch =
              instance.view.onInputMethodActivationChange
              |> Event.once
              |> Async.toPromise;
 
-           // type!
-           Keyboard.insert("G", instance);
-           Keyboard.insert("l", instance);
-
+           // dispatch!
            instance
-           |> Keyboard.dispatch("escape")
+           |> Keyboard.dispatch("\\")
            |> then_(_ => onDispatch)
            |> then_(activated => {
-                BsMocha.Assert.equal(activated, false);
-                instance.editors.source
-                |> Atom.TextEditor.getText
-                |> BsMocha.Assert.equal({js|λ|js});
-                resolve();
+                Assert.equal(true, activated);
+                resolve(instance);
               });
          })
     );
+
+    it({js|should be deactivated after typing "\\" twice|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(instance => {
+           let onDispatch =
+             instance.view.onInputMethodActivationChange
+             |> Event.once
+             |> Async.toPromise;
+           // dispatch!
+           instance
+           |> Keyboard.dispatch("\\")
+           |> then_(_ => onDispatch)
+           |> then_(_ => resolve(instance));
+         })
+      |> then_(instance => {
+           let onDispatch =
+             instance.view.onInputMethodActivationChange
+             |> Event.once
+             |> Async.toPromise;
+
+           // dispatch!
+           instance
+           |> Keyboard.insert("\\")
+           |> then_(_ => onDispatch)
+           |> then_(activated => {
+                // should be deactivated
+                Assert.equal(false, activated);
+                // should result in "\"
+                instance.editors.source
+                |> Atom.TextEditor.getText
+                |> Assert.equal({js|\\|js});
+                resolve(instance);
+              });
+         })
+    );
+
+    describe("Issue #102", () => {
+      after_each(Package.after_each);
+
+      it(
+        {js|should be reactivated after typing "\\" even if the previous sequence can go further|js},
+        () =>
+        openAndLoad("Temp.agda")
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(Keyboard.insert("="))
+        |> then_(Keyboard.insert("="))
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(Keyboard.insert("="))
+        |> then_(Keyboard.insert("="))
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(Keyboard.insert("<"))
+        |> then_(Keyboard.dispatch("\\"))
+        |> then_(Keyboard.insert(">"))
+        |> then_(instance => {
+             instance.editors.source
+             |> Atom.TextEditor.getText
+             |> Assert.equal({js|≡≡⟨⟩|js});
+             resolve();
+           })
+      );
+    });
+
+    it({js|should deactivate when stuck ("Gll")|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("G"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|λl|js});
+           resolve();
+         })
+    );
+
+    it({js|should deactivate when stuck ("Gl ")|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("G"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert(" "))
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|λ |js});
+           resolve();
+         })
+    );
+
+    it({js|should deactivate after typing "ESC" ("Gl" + "ESC")|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("G"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.dispatch("escape"))
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|λ|js});
+           resolve();
+         })
+    );
+    it({js|should deactivate after typing "ENTER" ("Gl" + "ENTER")|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(Keyboard.insert("G"))
+      |> then_(Keyboard.insert("l"))
+      |> then_(Keyboard.insert("\n"))
+      |> then_(instance => {
+           instance.editors.source
+           |> Atom.TextEditor.getText
+           |> Assert.equal({js|λ\n|js});
+           resolve();
+         })
+    );
+  });
+
+  describe("Extension (Issue #72)", () => {
+    before(() => {
+      Extension.setConfig(Extension.defaultKeymap());
+      resolve();
+    });
+    after_each(Package.after_each);
+    it({js|should respect the default keymap extension|js}, () => {
+      let reality = Extension.readKeymap();
+      let expectation = Js.Dict.empty();
+      Js.Dict.set(expectation, "^r", [|{js|ʳ|js}|]);
+      Js.Dict.set(expectation, "^l", [|{js|ˡ|js}|]);
+      Assert.equal(reality == expectation, true);
+      resolve();
+    });
+    it({js|should make "ʳ" the first candidate|js}, () => {
+      Translator.translate("^r").candidateSymbols[0]
+      |> Assert.equal(Some({js|ʳ|js}));
+      resolve();
+      // openAndLoad("Temp.agda")
+      // |> then_(Keyboard.insertUntilSuccess("a"))
+      // |> then_(Keyboard.dispatch("\\"))
+      // |> then_(instance =>
+      //      Keyboard.insert("^", instance)
+      //      |> then_(_ => Keyboard.insert("r", instance))
+      //      |> then_(_ => {
+      //           instance.editors.source
+      //           |> Atom.TextEditor.getText
+      //           |> Assert.equal({js|aʳ|js});
+      //           resolve();
+      //         })
+      //    );
+    });
+    it({js|should make "ˡ" the first candidate|js}, () => {
+      Translator.translate("^l").candidateSymbols[0]
+      |> Assert.equal(Some({js|ˡ|js}));
+      resolve();
+      //
+      // openAndLoad("Temp.agda")
+      // |> then_(Keyboard.insertUntilSuccess("a"))
+      // |> then_(Keyboard.dispatch("\\"))
+      // |> then_(instance =>
+      //      Keyboard.insert("^", instance)
+      //      |> then_(_ => Keyboard.insert("l", instance))
+      //      |> then_(_ => {
+      //           instance.editors.source
+      //           |> Atom.TextEditor.getText
+      //           |> Assert.equal({js|aˡ|js});
+      //           resolve();
+      //         })
+      //    );
+    });
   });
 });

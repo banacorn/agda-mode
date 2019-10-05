@@ -4,7 +4,7 @@ type uri =
   | Root
   | Connection
   | Log
-  | UnicodeInput
+  | InputMethod
   | Debug;
 
 [@react.component]
@@ -32,11 +32,11 @@ let make = (~uri: uri, ~onNavigate: uri => unit) =>
              </span>
            </a>
          </li>
-       | UnicodeInput =>
+       | InputMethod =>
          <li>
            <a href="#">
              <span className="icon icon-keyboard">
-               {string("Unicode Input")}
+               {string("Input Method")}
              </span>
            </a>
          </li>

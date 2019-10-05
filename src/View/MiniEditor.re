@@ -2,6 +2,7 @@
 
 open Rebase;
 open Fn;
+open Util.React;
 
 type error =
   | Cancelled;
@@ -51,6 +52,7 @@ let make =
       ~hidden,
       ~grammar="",
       ~onConfirm=_ => (),
+      ~onChange=_ => (),
       ~onCancel=_ => (),
       ~onFocus=_ => (),
       ~onBlur=_ => (),
@@ -59,6 +61,27 @@ let make =
   let (focused, setFocused) = Hook.useState(false);
   let (editorRef, setEditorRef) = Hook.useState(None);
   let editorElem = React.useRef(None);
+
+  /* value */
+  React.useEffect1(
+    _ => {
+      React.Ref.current(editorElem)
+      |> Option.map(ofTextEditor)
+      |> Option.forEach(Atom.TextEditor.setText(value));
+      None;
+    },
+    [|value|],
+  );
+  /* placeholder */
+  React.useEffect1(
+    _ => {
+      React.Ref.current(editorElem)
+      |> Option.map(ofTextEditor)
+      |> Option.forEach(Atom.TextEditor.setPlaceholderText(placeholder));
+      None;
+    },
+    [|placeholder|],
+  );
 
   React.useEffect1(
     () =>
@@ -93,10 +116,9 @@ let make =
            )
            |> Atom.CompositeDisposable.add(disposables);
 
-           /* value */
-           editor |> Atom.TextEditor.setText(value);
-           /* placeholder */
-           editor |> Atom.TextEditor.setPlaceholderText(placeholder);
+           editor
+           |> Atom.TextEditor.onDidChange(onChange)
+           |> Atom.CompositeDisposable.add(disposables);
 
            Some(() => disposables |> Atom.CompositeDisposable.dispose);
          }),
@@ -122,16 +144,11 @@ let make =
     [|focused|],
   );
 
-  let className =
-    Util.ClassName.(
-      ["mini-editor"] |> addWhen("hidden", hidden) |> serialize
-    );
-
   ReactDOMRe.createElementVariadic(
     "atom-text-editor",
     ~props=
       ReactDOMRe.objToDOMProps({
-        "class": className,
+        "class": "mini-editor" ++ showWhen(!hidden),
         "mini": "true",
         "ref": editorElem,
       }),

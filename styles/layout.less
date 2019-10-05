@@ -209,8 +209,84 @@
             }
         }
 
-        .agda-settings-placeholder {
+        .agda-settings-input-method {
             padding: @component-padding (@component-padding * 2);
+
+            h2 .pull-right {
+              button {
+                font-size: 75%;
+              }
+            }
+
+            #candidate-symbols {
+              kbd {
+                font-size: 150%;
+                line-height: @component-line-height * 0.75;
+              }
+
+              line-height: @component-line-height * 1.5;
+            }
+
+            #key-sequences {
+              font-family: Menlo, inconsolata, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
+            }
+
+            #add-entry {
+              display: flex;
+              align-items: center;
+              line-height: @component-line-height;
+
+              atom-text-editor {
+                height: @component-line-height;
+              }
+
+              #add-entry-key-sequence {
+                width: 20%;
+                padding-right: @component-padding;
+              }
+
+              #add-entry-symbols {
+                flex-grow: 2;
+                padding-right: @component-padding;
+              }
+
+              #add-entry-button {
+              }
+            }
+
+            #extensions {
+
+              li {
+                display: flex;
+                line-height: @component-line-height;
+                border-top: @base-border-color 1px solid;
+                padding: @component-padding 0;
+
+                .sequence {
+                  width: 20%;
+                  overflow-x: scroll;
+                }
+
+                .symbols {
+                  flex-grow: 2;
+                  height: @component-line-height * 1.5;
+
+                  kbd {
+                    height: @component-line-height;
+                  }
+
+                  atom-text-editor {
+                    height: @component-line-height;
+                    margin: 0;
+                  }
+                }
+
+                .buttons {
+                  height: @component-line-height;
+                }
+              }
+
+            }
         }
 
         .agda-settings-log {
@@ -246,12 +322,6 @@
                     color: @text-color-highlight;
                 }
             }
-            // li {
-            //   // margin: @component-padding 0;
-            //   // padding: @component-padding;
-            //   //
-            //   // background: @base-background-color;
-            // }
         }
 
 

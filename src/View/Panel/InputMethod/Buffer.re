@@ -33,21 +33,26 @@ let toSurface = self =>
   | Some((symbol, _)) => symbol ++ self.tail
   };
 
+let toString = self =>
+  "\"" ++ toSurface(self) ++ "\"[" ++ toSequence(self) ++ "]";
+
 type action =
-  | Noop(t) // should do nothing
+  | Noop
+  | Insert(t) // update the buffer accordingly
+  | Backspace(t) // update the buffer accordingly
   | Rewrite(t) // should rewrite the text buffer
-  | Stuck; // should deactivate
+  | Complete // should deactivate
+  | Stuck(int); // should deactivate, too
 
 // devise the next state
 let next = (self, reality) => {
   let surface = toSurface(self);
   let sequence = toSequence(self);
-
   if (reality == surface) {
     if (Translator.translate(sequence).further && reality != "\\") {
-      Noop(self);
+      Noop;
     } else {
-      Stuck;
+      Complete;
     };
   } else if (init(reality) == surface) {
     // insertion
@@ -56,39 +61,37 @@ let next = (self, reality) => {
     let translation = Translator.translate(sequence');
     switch (translation.symbol) {
     | Some(symbol) =>
-      if (insertedChar == symbol) {
-        if (insertedChar == "\\") {
-          Stuck;
-        } else {
-          Noop({symbol: Some((symbol, sequence')), tail: ""});
-        };
+      if (insertedChar == symbol && insertedChar == "\\") {
+        Stuck(0);
       } else {
         Rewrite({symbol: Some((symbol, sequence')), tail: ""});
       }
     | None =>
       if (translation.further) {
-        Noop({...self, tail: self.tail ++ insertedChar});
+        Insert({...self, tail: self.tail ++ insertedChar});
       } else {
-        Stuck;
+        Stuck(1);
       }
     };
-  } else if (reality == init(surface)) {
+  } else if (reality == init(surface) || reality == init(sequence)) {
     // backspace deletion
     if (String.isEmpty(reality)) {
+      // if the symbol is gone
       if (Option.isSome(self.symbol)) {
         // A symbol has just been backspaced and gone
+        // replace it with the underlying sequence (backspaced)
         Rewrite({
           symbol: None,
           tail: init(sequence),
         });
       } else {
-        Stuck;
+        Stuck(2);
       };
     } else {
       // normal backspace
-      Noop({...self, tail: init(self.tail)});
+      Backspace({...self, tail: init(self.tail)});
     };
   } else {
-    Stuck;
+    Stuck(3);
   };
 };

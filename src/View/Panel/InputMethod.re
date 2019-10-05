@@ -1,25 +1,22 @@
 let sort = Array.sort;
-open ReactUpdate;
 open Rebase;
+open Util.React;
 
 /********************************************************************************************/
 
 type state = {
   activated: bool,
-  markers: array(Atom.DisplayMarker.t),
-  buffer: Buffer.t,
+  buffer: Buffer.t, // what we have in mind
+  reality: string // the result as seen on the editor
 };
 
-let initialState = {activated: false, markers: [||], buffer: Buffer.initial};
+let initialState = {activated: false, buffer: Buffer.initial, reality: ""};
 
 type action =
   | Activate
   | Deactivate
-  | Reactivate // Deactivate and then Activate
-  | UpdateMarker(array(Atom.DisplayMarker.t))
-  | MarkerEvent(string, string)
-  | Insert(string)
-  | Rewrite(string);
+  | UpdateBuffer(Buffer.t)
+  | UpdateReality(string);
 
 /* add class 'agda-mode-input-method-activated' */
 let addClass = editor => {
@@ -89,7 +86,7 @@ let clearAndMarkSelectedAreas = editor => {
      });
 };
 
-let markerOnDidChange = (editor, send, event) => {
+let markerOnDidChange = (editor, setReality, event) => {
   open Atom;
   let rangeOld =
     Atom.Range.make(
@@ -101,15 +98,26 @@ let markerOnDidChange = (editor, send, event) => {
       event##newTailBufferPosition,
       event##newHeadBufferPosition,
     );
-  let oldBuffer =
-    editor |> TextEditor.getBuffer |> TextBuffer.getTextInRange(rangeOld);
-  let newBuffer =
-    editor |> TextEditor.getBuffer |> TextBuffer.getTextInRange(rangeNew);
-  send(MarkerEvent(oldBuffer, newBuffer));
+
+  let _oldBuffer = editor |> TextEditor.getTextInBufferRange(rangeOld);
+  let newBuffer = editor |> TextEditor.getTextInBufferRange(rangeNew);
+  // if (_oldBuffer != newBuffer) {
+  //   Js.log(
+  //     "[ IM ][ monitor ] \""
+  //     ++ _oldBuffer
+  //     ++ "\" "
+  //     ++ string_of_int(Point.column(Range.end_(rangeOld)))
+  //     ++ " => \""
+  //     ++ newBuffer
+  //     ++ "\" "
+  //     ++ string_of_int(Point.column(Range.end_(rangeNew))),
+  //   );
+  // };
+  setReality(newBuffer);
 };
 
 /* monitor the text buffer to figures out what happend */
-let monitor = (editor, send) => {
+let monitor = (editor, setMarkers, setReality, send) => {
   open Atom;
   let disposables = CompositeDisposable.make();
 
@@ -118,13 +126,13 @@ let monitor = (editor, send) => {
 
   // mark and store the markers
   let markers = clearAndMarkSelectedAreas(editor);
-  send(UpdateMarker(markers));
+  setMarkers(markers);
 
   // monitors the first marker
   markers[0]
   |> Option.forEach(marker => {
        marker
-       |> DisplayMarker.onDidChange(markerOnDidChange(editor, send))
+       |> DisplayMarker.onDidChange(markerOnDidChange(editor, setReality))
        |> CompositeDisposable.add(disposables);
        // deactivate on newline
        Commands.add(
@@ -171,84 +179,47 @@ let monitor = (editor, send) => {
       decorations |> Array.forEach(Decoration.destroy);
       markers |> Array.forEach(DisplayMarker.destroy);
       disposables |> CompositeDisposable.dispose |> ignore;
-      send(UpdateMarker([||]));
+      setMarkers([||]);
     },
   );
 };
 
-let reducer = (editor, action, state) => {
+let reducer = (state, action) => {
   switch (action) {
   | Activate =>
     state.activated
-      ? SideEffects(
-          ({send}) => {
-            // already activated, this happens when the 2nd backslash '\' kicks in
-            if (Buffer.isEmpty(state.buffer)) {
-              // the user probably just want to type '\', so we leave it as is
-              send(Insert("\\"));
-              send(Deactivate);
-            } else {
-              // Deactivate and then Activate, see #102: https://github.com/banacorn/agda-mode/issues/102
-              // allow users to type combos like ≡⟨⟩ with `\==\<\>`
-              send(
-                Reactivate,
-              );
-            };
-            None;
-          },
-        )
-      : Update({...state, activated: true})
+      ? {activated: false, buffer: Buffer.initial, reality: ""}
+      : {...state, activated: true}
   | Deactivate =>
     state.activated
-      ? Update({...state, activated: false, buffer: Buffer.initial})
-      : NoUpdate
-  | Reactivate =>
-    state.activated
-      ? UpdateWithSideEffects(
-          {...state, activated: false, buffer: Buffer.initial},
-          ({send}) => {
-            send(Activate);
-            None;
-          },
-        )
-      : NoUpdate
-  | UpdateMarker(markers) => Update({...state, markers})
-  | MarkerEvent(_oldBuffer, newBuffer) =>
-    switch (Buffer.next(state.buffer, newBuffer)) {
-    | Noop(buffer) => Update({...state, buffer})
-    | Rewrite(buffer) =>
-      UpdateWithSideEffects(
-        {...state, buffer},
-        ({send}) => {
-          let surface = Buffer.toSurface(buffer);
-          send(Rewrite(surface));
-          None;
-        },
-      )
-    | Stuck =>
-      SideEffects(
-        ({send}) => {
-          send(Deactivate);
-          None;
-        },
-      )
+      ? {activated: false, buffer: Buffer.initial, reality: ""} : state
+  | UpdateBuffer(buffer) =>
+    // return the original state if nothing's changed
+    if (buffer === state.buffer) {
+      state;
+    } else {
+      {...state, buffer};
     }
-
-  | Insert(char) =>
-    SideEffects(
-      _ => {
-        insertTextBuffer(editor, char);
-        None;
-      },
-    )
-  | Rewrite(string) =>
-    SideEffects(
-      _ => {
-        rewriteTextBuffer(editor, state.markers, string);
-        None;
-      },
-    )
+  | UpdateReality(reality) => {...state, reality}
   };
+};
+
+type change =
+  | Noop
+  | Rewrite
+  | Complete
+  | Stuck;
+
+// for determining whether the previous changes to the system should be regarded as one atomic operation or not
+let hasChanged = (state, changeLog) => {
+  // there was a Rewrite + Deactivate combo
+  let rewriteDeactivateCombo = !state.activated && changeLog == Complete;
+
+  // there was a Deactivate + Activate combo
+  // also happens when agda-mode was activated by triggering the input-method
+  let deactivateActivateCombo = !state.activated && changeLog == Noop;
+
+  !rewriteDeactivateCombo && !deactivateActivateCombo;
 };
 
 [@react.component]
@@ -267,41 +238,61 @@ let make =
       ~interceptAndInsertKey: Event.t(string, unit),
       ~activateInputMethod: Event.t(bool, unit),
       ~onActivationChange: Event.t(bool, unit),
+      // this event is triggered whenever the user did something
+      ~onChange: Event.t(unit, unit),
       ~isActive: bool,
     ) => {
   let editor = Editors.Focus.get(editors);
+  // display markers
+  let (markers, setMarkers) = Hook.useState([||]);
+  // state
+  let (state, send) = React.useReducer(reducer, initialState);
+  let stateRef = React.useRef(state);
+  // keep record of previous changes
+  let (changeLog, setChangeLog) = Hook.useState(Noop);
 
-  let (state, send) = ReactUpdate.useReducer(initialState, reducer(editor));
-
-  // dev mode debug
-  let debugDispatch = React.useContext(Type.View.Debug.debugDispatch);
-  React.useEffect1(
-    () => {
-      if (Atom.inDevMode()) {
-        debugDispatch(
-          UpdateInputMethod({
-            activated: state.activated,
-            markers: state.markers,
-            buffer: state.buffer,
-          }),
-        );
-      };
-      None;
-    },
-    [|state|],
-  );
-
+  // update with the latest state
+  React.Ref.setCurrent(stateRef, state);
+  // input: listens to `activateInputMethod`
   React.useEffect1(
     () =>
       activateInputMethod
-      |> Event.onOk(shouldActivate =>
-           send(shouldActivate ? Activate : Deactivate)
-         )
+      |> Event.onOk(shouldActivate => {
+           let state = React.Ref.current(stateRef);
+           if (shouldActivate) {
+             if (state.activated) {
+               if (Buffer.isEmpty(state.buffer)) {
+                 // already activated, this happens when the 2nd backslash '\' kicks in
+                 // the user probably just want to type '\', so we leave it as is
+                 insertTextBuffer(editor, "\\");
+                 send(Deactivate);
+               } else {
+                 // Deactivate and then Activate, see #102: https://github.com/banacorn/agda-mode/issues/102
+                 // allow users to type combos like ≡⟨⟩ with `\==\<\>`
+                 send(Deactivate);
+                 send(Activate);
+               };
+             } else {
+               send(Activate);
+             };
+           } else {
+             send(Deactivate);
+           };
+         })
       |> Option.some,
     [||],
   );
 
-  // triggers events on change
+  // input: programmatically inserting some keys
+  React.useEffect1(
+    () =>
+      interceptAndInsertKey
+      |> Event.onOk(char => insertTextBuffer(editor, char))
+      |> Option.some,
+    [||],
+  );
+
+  // output: on activation change
   Hook.useDidUpdateEffect(
     () => {
       onActivationChange |> Event.emitOk(state.activated);
@@ -309,36 +300,92 @@ let make =
     },
     [|state.activated|],
   );
-
+  // do something when the "reality" changed
+  // let (reality, setReality) = Hook.useState("");
+  let setReality = s => send(UpdateReality(s));
   React.useEffect1(
-    () =>
-      interceptAndInsertKey
-      |> Event.onOk(char => send(Insert(char)))
-      |> Option.some,
-    [||],
+    () => {
+      switch (Buffer.next(state.buffer, state.reality)) {
+      | Noop =>
+        // Js.log("[ IM ][ reality ][ Noop ] ");
+        setChangeLog(Noop)
+      | Insert(buffer) =>
+        // Js.log("[ IM ][ reality ][ Insert ] " ++ Buffer.toString(buffer));
+        setChangeLog(Noop);
+        send(UpdateBuffer(buffer));
+      | Backspace(buffer) =>
+        // Js.log("[ IM ][ reality ][ Backspace ] " ++ Buffer.toString(buffer));
+        setChangeLog(Noop);
+        send(UpdateBuffer(buffer));
+      | Rewrite(buffer) =>
+        // Js.log("[ IM ][ reality ][ Rewrite ] " ++ Buffer.toString(buffer));
+        setChangeLog(Rewrite);
+        send(UpdateBuffer(buffer));
+        let surface = Buffer.toSurface(buffer);
+        rewriteTextBuffer(editor, markers, surface);
+      | Complete =>
+        // Js.log("[ IM ][ reality ][ Complete ]");
+        setChangeLog(Complete);
+        send(Deactivate);
+      | Stuck(_n) =>
+        // Js.log2("[ IM ][ reality ][ Stuck ]", _n);
+        setChangeLog(Stuck);
+        send(Deactivate);
+      };
+      None;
+    },
+    [|state.reality|],
+  );
+
+  // for debugging and tests
+  let debugDispatch = React.useContext(Type.View.Debug.debugDispatch);
+  React.useEffect2(
+    () => {
+      if (hasChanged(state, changeLog)) {
+        // Js.log("[ IM ][ change ]");
+        onChange |> Event.emitOk();
+      };
+
+      // Js.log3(state.activated, Buffer.toString(state.buffer), state.reality);
+
+      // log when the state changes
+      if (Atom.inDevMode()) {
+        debugDispatch(
+          UpdateInputMethod({
+            activated: state.activated,
+            markers,
+            buffer: state.buffer,
+          }),
+        );
+      };
+      None;
+    },
+    (state.activated, state.buffer),
   );
 
   // listens to certain events only when the IM is activated
-  Hook.useListenWhen(() => monitor(editor, send), state.activated);
+  Hook.useListenWhen(
+    () => monitor(editor, setMarkers, setReality, send),
+    state.activated,
+  );
 
   let translation = Translator.translate(Buffer.toSequence(state.buffer));
   // the view
-  open Util.ClassName;
-  let className =
-    ["input-method"] |> addWhen("hidden", !state.activated) |> serialize;
 
-  let bufferClassName =
-    ["inline-block", "buffer"]
-    |> addWhen("hidden", Buffer.isEmpty(state.buffer))
-    |> serialize;
-  <section className>
+  <section className={"input-method" ++ showWhen(state.activated)}>
     <div className="keyboard">
-      <div className=bufferClassName>
+      <div
+        className={
+          "inline-block buffer" ++ showWhen(!Buffer.isEmpty(state.buffer))
+        }>
         {React.string(Buffer.toSequence(state.buffer))}
       </div>
       {translation.keySuggestions
        |> Array.map(key =>
-            <button className="btn" onClick={_ => send(Insert(key))} key>
+            <button
+              className="btn"
+              onClick={_ => insertTextBuffer(editor, key)}
+              key>
               {React.string(key)}
             </button>
           )
@@ -355,12 +402,14 @@ let make =
       isActive={isActive && state.activated}
       updateTranslation={replace =>
         switch (replace) {
-        | Some(symbol) => send(Rewrite(symbol))
+        | Some(symbol) =>
+          onChange |> Event.emitOk();
+          rewriteTextBuffer(editor, markers, symbol);
         | None => ()
         }
       }
       chooseSymbol={symbol => {
-        send(Insert(symbol));
+        rewriteTextBuffer(editor, markers, symbol);
         send(Deactivate);
       }}
       candidateSymbols={translation.candidateSymbols}

@@ -1,6 +1,5 @@
-
-
 open ReasonReact;
+open Util.React;
 open Rebase;
 
 [@react.component]
@@ -63,8 +62,6 @@ let make =
   );
 
   let settingsOn = settingsView |> Option.isSome;
-  open Util.ClassName;
-  let classList = ["agda-header"] |> addWhen("hidden", hidden) |> serialize;
   let headerClassList =
     switch (header.style) {
     | PlainText => ""
@@ -74,22 +71,19 @@ let make =
     | Warning => "text-warning"
     };
   let spinnerClassList =
-    ["loading", "loading-spinner-tiny", "inline-block"]
-    |> addWhen("pending", isPending)
-    |> serialize;
-  let settingsViewClassList =
-    ["no-btn"] |> addWhen("activated", settingsOn) |> serialize;
+    "loading loading-spinner-tiny inline-block" ++ when_(isPending, "pending");
+  let settingsViewClassList = "no-btn" ++ when_(settingsOn, "activated");
   let toggleMountingPosition =
-    ["no-btn"]
-    |> addWhen(
-         "activated",
+    "no-btn"
+    ++ when_(
          switch (mountAt) {
          | Pane(_) => true
          | _ => false
          },
-       )
-    |> serialize;
-  <div className=classList>
+         "activated",
+       );
+
+  <div className={"agda-header" ++ showWhen(!hidden)}>
     <h1 className=headerClassList> {string(header.text)} </h1>
     <ul className="agda-dashboard">
       <li> <span id="spinner" className=spinnerClassList /> </li>

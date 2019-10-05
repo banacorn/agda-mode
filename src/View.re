@@ -29,6 +29,7 @@ type handles = {
   activateInputMethod: Event.t(bool, unit),
   interceptAndInsertKey: Event.t(string, unit),
   onInputMethodActivationChange: Event.t(bool, unit),
+  onInputMethodChange: Event.t(unit, unit),
   /* Mouse Events */
   onMouseEvent: Event.t(Mouse.event, unit),
 };
@@ -64,6 +65,7 @@ let makeHandles = () => {
   let interceptAndInsertKey = make();
   let activateInputMethod = make();
   let onInputMethodActivationChange = Event.make();
+  let onInputMethodChange = Event.make();
   let onMouseEvent = make();
 
   let destroy = Channel.make();
@@ -88,6 +90,7 @@ let makeHandles = () => {
     activateInputMethod,
     interceptAndInsertKey,
     onInputMethodActivationChange,
+    onInputMethodChange,
     onMouseEvent,
   };
 };
@@ -110,6 +113,7 @@ type t = {
   activateInputMethod: bool => unit,
   interceptAndInsertKey: string => unit,
   onInputMethodActivationChange: Event.t(bool, unit),
+  onInputMethodChange: Event.t(unit, unit),
   // <Settings> related
   navigateSettings: Settings__Breadcrumb.uri => unit,
   activateSettings: unit => unit,
@@ -153,6 +157,7 @@ let make = (handles: handles) => {
     handles.interceptAndInsertKey |> emitOk(symbol);
 
   let onInputMethodActivationChange = handles.onInputMethodActivationChange;
+  let onInputMethodChange = handles.onInputMethodChange;
 
   let navigateSettings = where =>
     handles.navigateSettingsView |> emitOk(where);
@@ -201,6 +206,7 @@ let make = (handles: handles) => {
     activateInputMethod,
     interceptAndInsertKey,
     onInputMethodActivationChange,
+    onInputMethodChange,
     navigateSettings,
     activateSettings,
     openSettings,

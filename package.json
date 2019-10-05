@@ -32,7 +32,7 @@
     "atom": ">=1.19.0 <2.0.0"
   },
   "devDependencies": {
-    "@glennsl/bs-json": "^3.0.0",
+    "@glennsl/bs-json": "^5.0.1",
     "@glennsl/rebase": "github:glennsl/rebase",
     "atom": "github:banacorn/bs-atom#v1.40.2",
     "atom-mocha": "^2.2.0",
