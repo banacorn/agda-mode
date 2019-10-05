@@ -69,6 +69,10 @@ let delete = key => {
   setConfig(keymap);
 };
 
+let resetToDefault = () => {
+  setConfig(defaultKeymap());
+};
+
 let extendKeySuggestions = (key, origionalSuggestions) => {
   let extension =
     readKeymap()

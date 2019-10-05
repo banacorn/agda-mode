@@ -218,6 +218,7 @@ module ExtendKeymap = {
     // force re-render onChange
     let (keymap, setKeymap) = Hook.useState(Extension.readKeymap());
     let forceUpdate = () => setKeymap(Extension.readKeymap());
+    let onChange = React.useCallback1(forceUpdate, [||]);
 
     /* placeholder */
     React.useEffect1(
@@ -231,7 +232,15 @@ module ExtendKeymap = {
       [||],
     );
 
-    let onChange = React.useCallback1(forceUpdate, [||]);
+    let resetToDefault =
+      React.useCallback1(
+        _ => {
+          Extension.resetToDefault();
+          forceUpdate();
+        },
+        [||],
+      );
+
     let items =
       keymap
       |> Js.Dict.entries
@@ -241,7 +250,16 @@ module ExtendKeymap = {
       |> manyIn("ul", ~props=ReactDOMRe.domProps(~id="extensions", ()));
 
     <section>
-      <h2> {string("Keymap extensions")} </h2>
+      <h2>
+        {string("Keymap extensions")}
+        <div className="pull-right">
+          <button
+            className="btn icon icon-history inline-block-tight"
+            onClick=resetToDefault>
+            {string("reset to default")}
+          </button>
+        </div>
+      </h2>
       <p>
         {string(
            "Add mappings to the keymap.

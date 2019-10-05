@@ -271,7 +271,7 @@ let config = {
   },
   "inputMethodExtension": {
     "title": "Input Method Extension",
-    "description": "For adding or prioritizing key mappings",
+    "description": "For adding or prioritizing key mappings. Please edit this from \"Settings > Input Method > Keymap extensions\"",
     "type": "string",
     "default": {j|{"^r":["ʳ"],"^l":["ˡ"]}|j},
     "order": 41,
