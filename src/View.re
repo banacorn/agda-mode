@@ -7,16 +7,9 @@ open Event;
 
 type handles = {
   // <Panel>
-  activatePanel: Channel.t(unit, Dom.element, unit),
-  deactivatePanel: Channel.t(unit, unit, unit),
-  toggleDocking: Channel.t(unit, unit, unit),
-  display: Channel.t((Header.t, Body.t), unit, unit),
-  inquire: Channel.t((Header.t, string, string), string, MiniEditor.error),
   onInquire: Event.t(string, MiniEditor.error),
   // events
   // onPanelActivationChange: Event.t(option(Dom.element), unit),
-  updateIsPending: Channel.t(bool, unit, unit),
-  updateShouldDisplay: Channel.t(bool, unit, unit),
   updateConnection:
     Event.t((option(Connection.t), option(Connection.Error.t)), unit),
   inquireConnection: Event.t(unit, unit),
@@ -34,16 +27,8 @@ type handles = {
 /* creates all refs and return them */
 let makeHandles = () => {
   // <Panel>
-  let activatePanel = Channel.make();
-  let deactivatePanel = Channel.make();
-  let toggleDocking = Channel.make();
 
-  let display = Channel.make();
-  let inquire = Channel.make();
   let onInquire = Event.make();
-
-  let updateIsPending = Channel.make();
-  let updateShouldDisplay = Channel.make();
 
   /* connection-related */
   let updateConnection = make();
@@ -63,15 +48,7 @@ let makeHandles = () => {
 
   let destroy = Channel.make();
   {
-    activatePanel,
-    deactivatePanel,
-    toggleDocking,
-    display,
-    inquire,
     onInquire,
-
-    updateIsPending,
-    updateShouldDisplay,
     // onPanelActivationChange,
     updateConnection,
     inquireConnection,
@@ -114,15 +91,15 @@ type t = {
   inquireConnection: unit => Async.t(string, MiniEditor.error),
 };
 let make = (handles: handles, channels: Channels.t) => {
-  let activate = () => handles.activatePanel |> Channel.send();
-  let deactivate = () => handles.deactivatePanel |> Channel.send();
-  let toggleDocking = () => handles.toggleDocking |> Channel.send();
+  let activate = () => channels.activatePanel |> Channel.send();
+  let deactivate = () => channels.deactivatePanel |> Channel.send();
+  let toggleDocking = () => channels.toggleDocking |> Channel.send();
 
   let display = (text, style, body) =>
-    handles.display |> Channel.send(({Type.View.Header.text, style}, body));
+    channels.display |> Channel.send(({Type.View.Header.text, style}, body));
 
   let inquire = (text, placeholder, value) =>
-    handles.inquire
+    channels.inquire
     |> Channel.send((
          {Type.View.Header.text, style: PlainText},
          placeholder,
@@ -130,9 +107,9 @@ let make = (handles: handles, channels: Channels.t) => {
        ));
 
   let updateIsPending = isPending =>
-    handles.updateIsPending |> Channel.send(isPending);
+    channels.updateIsPending |> Channel.send(isPending);
   let updateShouldDisplay = shouldDisplay =>
-    handles.updateShouldDisplay |> Channel.send(shouldDisplay);
+    channels.updateShouldDisplay |> Channel.send(shouldDisplay);
 
   // let onPanelActivationChange = () => handles.onPanelActivationChange |> once;
 

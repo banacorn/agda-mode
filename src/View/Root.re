@@ -243,7 +243,7 @@ let make =
         onPanelActivated |> Event.once;
       };
     },
-    handles.activatePanel,
+    channels.activatePanel,
   );
 
   Hook.useChannel(
@@ -256,7 +256,7 @@ let make =
         Async.resolve();
       };
     },
-    handles.deactivatePanel,
+    channels.deactivatePanel,
   );
 
   /* toggle docking */
@@ -265,7 +265,7 @@ let make =
       send(ToggleDocking);
       Async.resolve();
     },
-    handles.toggleDocking,
+    channels.toggleDocking,
   );
 
   /* display mode! */
@@ -276,7 +276,7 @@ let make =
       setBody(body);
       Async.resolve();
     },
-    handles.display,
+    channels.display,
   );
 
   Hook.useChannel(
@@ -294,16 +294,16 @@ let make =
            editors |> Editors.Focus.on(Source);
          });
     },
-    handles.inquire,
+    channels.inquire,
   );
 
   // toggle pending spinner
-  Hook.useChannel(setIsPending >> Async.resolve, handles.updateIsPending);
+  Hook.useChannel(setIsPending >> Async.resolve, channels.updateIsPending);
 
   // toggle state of shouldDisplay
   Hook.useChannel(
     setShouldDisplay >> Async.resolve,
-    handles.updateShouldDisplay,
+    channels.updateShouldDisplay,
   );
 
   // trigger `onPanelActivationChange` only when it's changed

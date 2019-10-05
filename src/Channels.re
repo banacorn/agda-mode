@@ -1,10 +1,18 @@
-// open Type.View;
+open Type.View;
 
 module Event = Event;
 // open Event;
 
 type t = {
-  /* Input Method */
+  // <Panel>
+  activatePanel: Channel.t(unit, Dom.element, unit),
+  deactivatePanel: Channel.t(unit, unit, unit),
+  toggleDocking: Channel.t(unit, unit, unit),
+  display: Channel.t((Header.t, Body.t), unit, unit),
+  inquire: Channel.t((Header.t, string, string), string, MiniEditor.error),
+  updateIsPending: Channel.t(bool, unit, unit),
+  updateShouldDisplay: Channel.t(bool, unit, unit),
+  // Input Method
   /*
    Issue #34: https://github.com/banacorn/agda-mode/issues/34
    Intercept some keys that Bracket Matcher autocompletes
@@ -20,11 +28,20 @@ type t = {
 
 /* creates all refs and return them */
 let make = () => {
-  /* <InputMethod> related */
-  let interceptAndInsertKey = Channel.make();
-  let activateInputMethod = Channel.make();
+  // <Panel>
+  activatePanel: Channel.make(),
+  deactivatePanel: Channel.make(),
+  toggleDocking: Channel.make(),
 
-  {activateInputMethod, interceptAndInsertKey};
+  display: Channel.make(),
+  inquire: Channel.make(),
+
+  updateIsPending: Channel.make(),
+  updateShouldDisplay: Channel.make(),
+
+  // <InputMethod>
+  activateInputMethod: Channel.make(),
+  interceptAndInsertKey: Channel.make(),
 };
 
 let context = React.createContext(make());
