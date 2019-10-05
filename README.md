@@ -90,14 +90,17 @@ Levels of normalization
 For example, `C-u C-c C-d` if you want to infer a type without normalizing it.
 See [Agda:Issue 850](https://code.google.com/p/agda/issues/detail?id=850) for more discussion.
 
-### Unicode input method (only invokable under `.agda` or `.lagda`)
+### Unicode input method
 
+To invoke the input method, press <kbd>\\</kbd> or <kbd>alt-/</kbd> in `.agda` or `.lagda` files.
 The key mapping of symbols are the same as in Emacs. For example: `\bN` for `ℕ`, `\all` for `∀`, `\r` or `\to` for `→`, etc.
 
 | Keymap                                     | Command                            |
 |-------------------------------------------:|:-----------------------------------|
 | <kbd>\\</kbd> or <kbd>alt-/</kbd>          | input symbol                       |
 | <kbd>C-u</kbd> <kbd>C-x</kbd> <kbd>C-=</kbd> | lookup the key mapping of a symbol |
+
+To customize the keymap, open the settings tab (at the bottom right) and go to `Input Method > Keymap extensions`
 
 ## How specify options to Agda
 
