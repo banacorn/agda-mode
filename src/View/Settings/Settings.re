@@ -42,7 +42,7 @@ let make =
             </li>
             <li onClick={_ => setURI(URI.InputMethod)}>
               <span className="icon icon-keyboard">
-                {string("Unicode Input")}
+                {string("Input Method")}
               </span>
             </li>
             {inDevMode
