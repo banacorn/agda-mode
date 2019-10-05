@@ -26,8 +26,6 @@ type handles = {
   navigateSettingsView: Event.t(Settings.uri, unit),
   destroy: Channel.t(unit, unit, unit),
   /* Input Method */
-  activateInputMethod: Channel.t(bool, unit, unit),
-  interceptAndInsertKey: Channel.t(string, unit, unit),
   onInputMethodChange: Event.t(InputMethod.state, unit),
   /* Mouse Events */
   onMouseEvent: Event.t(Mouse.event, unit),
@@ -58,8 +56,6 @@ let makeHandles = () => {
   let navigateSettingsView = make();
 
   /* <InputMethod> related */
-  let interceptAndInsertKey = Channel.make();
-  let activateInputMethod = Channel.make();
   let onInputMethodChange = Event.make();
 
   // Others
@@ -84,8 +80,6 @@ let makeHandles = () => {
     onSettingsView,
     navigateSettingsView,
     destroy,
-    activateInputMethod,
-    interceptAndInsertKey,
     onInputMethodChange,
     onMouseEvent,
   };
@@ -119,7 +113,7 @@ type t = {
   onInquireConnection: Event.t(string, MiniEditor.error),
   inquireConnection: unit => Async.t(string, MiniEditor.error),
 };
-let make = (handles: handles) => {
+let make = (handles: handles, channels: Channels.t) => {
   let activate = () => handles.activatePanel |> Channel.send();
   let deactivate = () => handles.deactivatePanel |> Channel.send();
   let toggleDocking = () => handles.toggleDocking |> Channel.send();
@@ -144,12 +138,11 @@ let make = (handles: handles) => {
 
   let onMouseEvent = handles.onMouseEvent;
 
-  let activateInputMethod = activate => {
-    handles.activateInputMethod |> Channel.send(activate);
-  };
+  let activateInputMethod = activate =>
+    channels.activateInputMethod |> Channel.send(activate);
 
   let interceptAndInsertKey = symbol =>
-    handles.interceptAndInsertKey |> Channel.send(symbol);
+    channels.interceptAndInsertKey |> Channel.send(symbol);
 
   let onInputMethodChange = handles.onInputMethodChange;
 

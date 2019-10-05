@@ -21,8 +21,6 @@ let make =
       ~onQueryEditorRef: Atom.TextEditor.t => unit,
       ~editorPlaceholder: string,
       ~editorValue: string,
-      ~interceptAndInsertKey: Channel.t(string, unit, unit),
-      ~activateInputMethod: Channel.t(bool, unit, unit),
       ~onInputMethodChange: Event.t(InputMethod.state, unit),
       ~onSettingsViewToggle: bool => unit,
     ) => {
@@ -82,13 +80,7 @@ let make =
           }
           mountAtBottom
         />
-        <InputMethod
-          editors
-          interceptAndInsertKey
-          activateInputMethod
-          isActive
-          onChange=onInputMethodChange
-        />
+        <InputMethod editors isActive onChange=onInputMethodChange />
         <Dashboard
           header
           hidden=inputMethodActivated

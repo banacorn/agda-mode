@@ -226,17 +226,6 @@ let hasChanged = (state, changeLog) => {
 let make =
     (
       ~editors: Editors.t,
-      /*
-       Issue #34: https://github.com/banacorn/agda-mode/issues/34
-       Intercept some keys that Bracket Matcher autocompletes
-        to name them all: "{", "[", "{", "\"", "'", and `
-       Because the Bracket Matcher package is too lacking, it does not responds
-        to the disabling of the package itself, making it impossible to disable
-        the package during the process of input.
-       Instead, we hardwire the keys we wanna intercept directly from the Keymaps.
-         */
-      ~interceptAndInsertKey: Channel.t(string, unit, unit),
-      ~activateInputMethod: Channel.t(bool, unit, unit),
       // this event is triggered whenever the user did something
       ~onChange: Event.t(state, unit),
       ~isActive: bool,
@@ -252,6 +241,8 @@ let make =
 
   // update with the latest state
   React.Ref.setCurrent(stateRef, state);
+
+  let channels = React.useContext(Channels.context);
 
   // input: listens to `activateInputMethod`
   Hook.useChannel(
@@ -278,7 +269,7 @@ let make =
       };
       Async.resolve();
     },
-    activateInputMethod,
+    channels.activateInputMethod,
   );
 
   // input: programmatically inserting some keys
@@ -287,7 +278,7 @@ let make =
       insertTextBuffer(editor, char);
       Async.resolve();
     },
-    interceptAndInsertKey,
+    channels.interceptAndInsertKey,
   );
 
   // do something when the "reality" changed

@@ -194,7 +194,8 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
 };
 
 [@react.component]
-let make = (~editors: Editors.t, ~handles: View.handles) => {
+let make =
+    (~editors: Editors.t, ~handles: View.handles, ~channels: Channels.t) => {
   let (state, send) =
     ReactUpdate.useReducer(initialState, reducer(editors, handles));
   let queryRef = React.useRef(None);
@@ -352,9 +353,7 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
   let {mountAt, isActive, settingsView} = state;
 
   let {
-    View.interceptAndInsertKey,
-    activateInputMethod,
-    inquireConnection,
+    View.inquireConnection,
     onInquireConnection,
     onInputMethodChange,
     navigateSettingsView,
@@ -374,45 +373,47 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     };
 
   <>
-    <Mouse.Provider
-      value={event => handles.onMouseEvent |> Event.emitOk(event)}>
-      <Debug.Provider value=debugDispatch>
-        <Panel
-          panelRef
-          editors
-          containerElement
-          header
-          body
-          mountAt
-          hidden
-          onMountAtChange={mountTo => send(MountTo(mountTo))}
-          mode
-          isPending
-          isActive
-          /* editors */
-          onQueryEditorRef={ref => React.Ref.setCurrent(queryRef, Some(ref))}
-          onInquireQuery={handles.onInquire}
-          editorValue=""
-          // {editors.query.value}
-          // {editors.query.placeholder}
-          editorPlaceholder=""
-          activateInputMethod
-          onInputMethodChange
-          settingsView
-          onSettingsViewToggle={status => send(ToggleSettingsTab(status))}
-          interceptAndInsertKey
-        />
-        <Settings
-          inquireConnection
-          onInquireConnection
-          connection
-          connectionError
-          debug
-          element=settingsElement
-          navigate=navigateSettingsView
-        />
-      </Debug.Provider>
-    </Mouse.Provider>
+    <Channels.Provider value=channels>
+      <Mouse.Provider
+        value={event => handles.onMouseEvent |> Event.emitOk(event)}>
+        <Debug.Provider value=debugDispatch>
+          <Panel
+            panelRef
+            editors
+            containerElement
+            header
+            body
+            mountAt
+            hidden
+            onMountAtChange={mountTo => send(MountTo(mountTo))}
+            mode
+            isPending
+            isActive
+            /* editors */
+            onQueryEditorRef={ref =>
+              React.Ref.setCurrent(queryRef, Some(ref))
+            }
+            onInquireQuery={handles.onInquire}
+            editorValue=""
+            // {editors.query.value}
+            // {editors.query.placeholder}
+            editorPlaceholder=""
+            onInputMethodChange
+            settingsView
+            onSettingsViewToggle={status => send(ToggleSettingsTab(status))}
+          />
+          <Settings
+            inquireConnection
+            onInquireConnection
+            connection
+            connectionError
+            debug
+            element=settingsElement
+            navigate=navigateSettingsView
+          />
+        </Debug.Provider>
+      </Mouse.Provider>
+    </Channels.Provider>
   </>;
 };
 
@@ -420,12 +421,13 @@ let initialize = editors => {
   open Webapi.Dom;
   let element = document |> Document.createElement("article");
   let handles = View.makeHandles();
-  let view = View.make(handles);
+  let channels = Channels.make();
+  let view = View.make(handles, channels);
 
   let component =
     React.createElementVariadic(
       make,
-      makeProps(~editors, ~handles, ()),
+      makeProps(~editors, ~handles, ~channels, ()),
       [||],
     );
 
