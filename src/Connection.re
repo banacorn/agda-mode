@@ -201,7 +201,7 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
         Js.Global.setTimeout(() => reject(Error.ProcessHanging), 20000);
 
       N.ChildProcess.exec(
-        path,
+        path ++ " -V",
         (error, stdout, stderr) => {
           /* clear timeout as the process has responded */
           Js.Global.clearTimeout(hangTimeout);
