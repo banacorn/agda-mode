@@ -138,8 +138,8 @@ module ExtendKeymap = {
                 Extension.delete(sequence);
               } else {
                 Extension.modify(sequence, symbols);
-                setModifying(false);
               };
+              setModifying(false);
               onChange();
             }}
             onEditorRef={ref => React.Ref.setCurrent(editorRef, Some(ref))}
@@ -166,8 +166,21 @@ module ExtendKeymap = {
 
   [@react.component]
   let make = () => {
-    // force re-render onChang
+    // force re-render onChange
     let (keymap, setKeymap) = Hook.useState(Extension.readKeymap());
+
+    /* placeholder */
+    React.useEffect1(
+      _ => {
+        let destructor =
+          Atom.Config.onDidChange("agda-mode.inputMethodExtension", _ =>
+            setKeymap(Extension.readKeymap())
+          );
+        Some(_ => Atom.Disposable.dispose(destructor));
+      },
+      [||],
+    );
+
     let onChange =
       React.useCallback1(() => setKeymap(Extension.readKeymap()), [||]);
     let items =
