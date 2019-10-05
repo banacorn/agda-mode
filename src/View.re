@@ -26,8 +26,8 @@ type handles = {
   navigateSettingsView: Event.t(Settings.uri, unit),
   destroy: Channel.t(unit, unit, unit),
   /* Input Method */
-  activateInputMethod: Event.t(bool, unit),
-  interceptAndInsertKey: Event.t(string, unit),
+  activateInputMethod: Channel.t(bool, unit, unit),
+  interceptAndInsertKey: Channel.t(string, unit, unit),
   onInputMethodChange: Event.t(InputMethod.state, unit),
   /* Mouse Events */
   onMouseEvent: Event.t(Mouse.event, unit),
@@ -47,9 +47,6 @@ let makeHandles = () => {
   let updateIsPending = Channel.make();
   let updateShouldDisplay = Channel.make();
 
-  // events
-  // let onPanelActivationChange = make();
-
   /* connection-related */
   let updateConnection = make();
   let inquireConnection = make();
@@ -61,10 +58,11 @@ let makeHandles = () => {
   let navigateSettingsView = make();
 
   /* <InputMethod> related */
-  let interceptAndInsertKey = make();
-  let activateInputMethod = make();
-  let onInputMethodActivationChange = Event.make();
+  let interceptAndInsertKey = Channel.make();
+  let activateInputMethod = Channel.make();
   let onInputMethodChange = Event.make();
+
+  // Others
   let onMouseEvent = make();
 
   let destroy = Channel.make();
@@ -108,8 +106,8 @@ type t = {
   // onPanelActivationChange: unit => Async.t(option(Dom.element), unit),
   onMouseEvent: Event.t(Mouse.event, unit),
   // <InputMethod> related
-  activateInputMethod: bool => unit,
-  interceptAndInsertKey: string => unit,
+  activateInputMethod: bool => Async.t(unit, unit),
+  interceptAndInsertKey: string => Async.t(unit, unit),
   onInputMethodChange: Event.t(InputMethod.state, unit),
   // <Settings> related
   navigateSettings: Settings__Breadcrumb.uri => unit,
@@ -147,11 +145,11 @@ let make = (handles: handles) => {
   let onMouseEvent = handles.onMouseEvent;
 
   let activateInputMethod = activate => {
-    handles.activateInputMethod |> emitOk(activate);
+    handles.activateInputMethod |> Channel.send(activate);
   };
 
   let interceptAndInsertKey = symbol =>
-    handles.interceptAndInsertKey |> emitOk(symbol);
+    handles.interceptAndInsertKey |> Channel.send(symbol);
 
   let onInputMethodChange = handles.onInputMethodChange;
 
@@ -182,10 +180,7 @@ let make = (handles: handles) => {
   let onDestroy = Event.make();
   let destroy = () =>
     deactivate()
-    |> Async.thenOk(_ => {
-         activateInputMethod(false);
-         Async.resolve();
-       })
+    |> Async.thenOk(_ => activateInputMethod(false))
     |> Async.thenOk(_ => handles.destroy |> Channel.send())
     |> Async.passOk(_ => onDestroy |> Event.emitOk());
 

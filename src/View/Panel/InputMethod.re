@@ -235,8 +235,8 @@ let make =
         the package during the process of input.
        Instead, we hardwire the keys we wanna intercept directly from the Keymaps.
          */
-      ~interceptAndInsertKey: Event.t(string, unit),
-      ~activateInputMethod: Event.t(bool, unit),
+      ~interceptAndInsertKey: Channel.t(string, unit, unit),
+      ~activateInputMethod: Channel.t(bool, unit, unit),
       // this event is triggered whenever the user did something
       ~onChange: Event.t(state, unit),
       ~isActive: bool,
@@ -252,43 +252,42 @@ let make =
 
   // update with the latest state
   React.Ref.setCurrent(stateRef, state);
+
   // input: listens to `activateInputMethod`
-  React.useEffect1(
-    () =>
-      activateInputMethod
-      |> Event.onOk(shouldActivate => {
-           let state = React.Ref.current(stateRef);
-           if (shouldActivate) {
-             if (state.activated) {
-               if (Buffer.isEmpty(state.buffer)) {
-                 // already activated, this happens when the 2nd backslash '\' kicks in
-                 // the user probably just want to type '\', so we leave it as is
-                 insertTextBuffer(editor, "\\");
-                 send(Deactivate);
-               } else {
-                 // Deactivate and then Activate, see #102: https://github.com/banacorn/agda-mode/issues/102
-                 // allow users to type combos like ≡⟨⟩ with `\==\<\>`
-                 send(Deactivate);
-                 send(Activate);
-               };
-             } else {
-               send(Activate);
-             };
-           } else {
-             send(Deactivate);
-           };
-         })
-      |> Option.some,
-    [||],
+  Hook.useChannel(
+    shouldActivate => {
+      let state = React.Ref.current(stateRef);
+      if (shouldActivate) {
+        if (state.activated) {
+          if (Buffer.isEmpty(state.buffer)) {
+            // already activated, this happens when the 2nd backslash '\' kicks in
+            // the user probably just want to type '\', so we leave it as is
+            insertTextBuffer(editor, "\\");
+            send(Deactivate);
+          } else {
+            // Deactivate and then Activate, see #102: https://github.com/banacorn/agda-mode/issues/102
+            // allow users to type combos like ≡⟨⟩ with `\==\<\>`
+            send(Deactivate);
+            send(Activate);
+          };
+        } else {
+          send(Activate);
+        };
+      } else {
+        send(Deactivate);
+      };
+      Async.resolve();
+    },
+    activateInputMethod,
   );
 
   // input: programmatically inserting some keys
-  React.useEffect1(
-    () =>
-      interceptAndInsertKey
-      |> Event.onOk(char => insertTextBuffer(editor, char))
-      |> Option.some,
-    [||],
+  Hook.useChannel(
+    char => {
+      insertTextBuffer(editor, char);
+      Async.resolve();
+    },
+    interceptAndInsertKey,
   );
 
   // do something when the "reality" changed
