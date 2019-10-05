@@ -213,21 +213,49 @@
             padding: @component-padding (@component-padding * 2);
 
             #candidate-symbols {
-              span {
-                height: @component-line-height;
-                line-height: @component-line-height;
+              kbd {
+                font-size: 150%;
+                line-height: @component-line-height * 0.75;
               }
 
               line-height: @component-line-height * 1.5;
             }
 
             #key-sequences {
-              span {
-                height: @component-line-height;
-                line-height: @component-line-height;
-              }
+              font-family: Menlo, inconsolata, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
+            }
 
-              line-height: @component-line-height * 1.5;
+            #extensions {
+              li {
+                display: flex;
+                line-height: @component-line-height;
+                border-top: @base-border-color 1px solid;
+                padding: @component-padding 0;
+
+                .sequence {
+                  width: 20%;
+                  overflow-x: scroll;
+                  // background: red;
+                }
+
+                .symbols {
+                  flex-grow: 2;
+                  // background: blue;
+                  kbd {
+                    height: @component-line-height;
+                  }
+
+                  // line-height: @component-line-height * 1.5;
+                  // height: @component-line-height * 0.5;
+                }
+
+                .buttons {
+                  height: @component-line-height;
+                  // width: @component-line-height;
+                  // background: yellow;
+
+                }
+              }
             }
         }
 

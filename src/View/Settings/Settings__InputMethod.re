@@ -19,9 +19,9 @@ module SymbolLookup = {
     let candidateSymbols =
       translation.candidateSymbols
       |> Array.map(symbol =>
-           <span className="inline-block highlight"> {string(symbol)} </span>
+           <kbd className="inline-block highlight"> {string(symbol)} </kbd>
          )
-      |> Util.React.manyIn("span");
+      |> Util.React.manyIn("div");
 
     <section>
       <h2> {string("Symbol lookup")} </h2>
@@ -34,9 +34,10 @@ module SymbolLookup = {
         onChange
       />
       // adding className="native-key-bindings" tabIndex=(-1) for text copy
-      <p id="candidate-symbols" className="native-key-bindings" tabIndex=(-1)>
+      <div
+        id="candidate-symbols" className="native-key-bindings" tabIndex=(-1)>
         candidateSymbols
-      </p>
+      </div>
     </section>;
   };
 };
@@ -72,7 +73,68 @@ module KeySequenceLookup = {
         onEditorRef={ref => React.Ref.setCurrent(editorRef, Some(ref))}
         onChange
       />
-      <p> results </p>
+      <p id="key-sequences" className="native-key-bindings" tabIndex=(-1)>
+        results
+      </p>
+    </section>;
+  };
+};
+
+module ExtendKeymap = {
+  module ExtensionItem = {
+    [@react.component]
+    let make = (~sequence: string, ~symbols: array(string)) => {
+      // show the buttons when hovered
+      let (hovered, setHovered) = Hook.useState(false);
+      let onMouseOver = _ => setHovered(true);
+      let onMouseLeave = _ => setHovered(false);
+
+      <li onMouseOver onMouseLeave>
+        <div className="sequence"> {string(sequence)} </div>
+        <div className="symbols">
+          {symbols
+           |> Array.map(symbol =>
+                <kbd className="inline-block highlight">
+                  {string(symbol)}
+                </kbd>
+              )
+           |> Util.React.manyInFragment}
+        </div>
+        <div className={"buttons " ++ (hovered ? "" : "hidden")}>
+          <button className="btn icon icon-pencil inline-block-tight">
+            {string("modify")}
+          </button>
+          <button
+            className="btn btn-error icon icon-trashcan inline-block-tight">
+            {string("delete")}
+          </button>
+        </div>
+      </li>;
+    };
+  };
+
+  [@react.component]
+  let make = () => {
+    let items =
+      Extension.keymap()
+      |> Js.Dict.entries
+      |> Array.map(((sequence, symbols)) =>
+           <ExtensionItem sequence symbols />
+         )
+      |> Util.React.manyIn(
+           "ul",
+           ~props=ReactDOMRe.domProps(~id="extensions", ()),
+         );
+
+    <section>
+      <h2> {string("Keymap extensions")} </h2>
+      <p>
+        {string(
+           "Add mappings to the keymap.
+If the mapping already exists, it will be prioritized in case that the key sequence corresponds to multiple symbols (e.g. 'r').",
+         )}
+      </p>
+      items
     </section>;
   };
 };
@@ -96,5 +158,6 @@ let make = (~hidden) => {
     <hr />
     <KeySequenceLookup />
     <hr />
+    <ExtendKeymap />
   </section>;
 };

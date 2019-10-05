@@ -3,8 +3,11 @@ open Rebase;
 module React = {
   open ReasonReact;
 
-  let manyIn = elem =>
-    ReactDOMRe.createDOMElementVariadic(elem, ~props=ReactDOMRe.domProps());
+  let manyIn = (elem, ~props=ReactDOMRe.domProps()) =>
+    ReactDOMRe.createDOMElementVariadic(elem, ~props);
+
+  let manyInFragment = ReactDOMRe.createElement(ReasonReact.fragment);
+
   let sepBy = (sep: reactElement, item: list(reactElement)) =>
     switch (item) {
     | [] => <> </>
