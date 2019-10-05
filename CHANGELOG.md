@@ -1,4 +1,5 @@
 ## 0.9.9
+* Merge PR#114 by @erydo 👏
 * Fix #79 (allow users to custom keymap)
 * Fix #72 (with default keymap extensions)
 * Input method overhaul
