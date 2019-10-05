@@ -134,9 +134,13 @@ module ExtendKeymap = {
                 value
                 |> Js.String.split("")
                 |> Array.filter(String.isEmpty >> (!));
-              Extension.modify(sequence, symbols);
+              if (Array.length(symbols) === 0) {
+                Extension.delete(sequence);
+              } else {
+                Extension.modify(sequence, symbols);
+                setModifying(false);
+              };
               onChange();
-              setModifying(false);
             }}
             onEditorRef={ref => React.Ref.setCurrent(editorRef, Some(ref))}
           />
@@ -148,6 +152,10 @@ module ExtendKeymap = {
             {string("modify")}
           </button>
           <button
+            onClick={_ => {
+              Extension.delete(sequence);
+              onChange();
+            }}
             className="btn btn-error icon icon-trashcan inline-block-tight">
             {string("delete")}
           </button>

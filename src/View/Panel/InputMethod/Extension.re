@@ -46,6 +46,17 @@ let modify = (key, symbols) => {
   setConfig(keymap);
 };
 
+let delete = key => {
+  let keymap = readKeymap();
+  let delete': string => unit = [%raw
+    id => {
+      "{delete keymap[id]}";
+    }
+  ];
+  delete'(key);
+  setConfig(keymap);
+};
+
 let extendKeySuggestions = (key, origionalSuggestions) => {
   let extension =
     readKeymap()
