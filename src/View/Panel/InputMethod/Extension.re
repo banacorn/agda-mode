@@ -40,6 +40,18 @@ let readKeymap = readConfig >> parse >> Option.getOr(Js.Dict.empty());
 
 let lookup = key => Js.Dict.get(readKeymap(), key) |> Option.getOr([||]);
 
+let add = (key, symbols) => {
+  let keymap = readKeymap();
+  switch (Js.Dict.get(keymap, key)) {
+  | None => Js.Dict.set(keymap, key, symbols)
+  | Some(existing) =>
+    // put the existing symbols in the back
+    Js.Dict.set(keymap, key, Array.concat(existing, symbols))
+  };
+
+  setConfig(keymap);
+};
+
 let modify = (key, symbols) => {
   let keymap = readKeymap();
   Js.Dict.set(keymap, key, symbols);

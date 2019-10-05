@@ -83,6 +83,55 @@ module KeySequenceLookup = {
 };
 
 module ExtendKeymap = {
+  module AddEntry = {
+    [@react.component]
+    let make = (~onChange: unit => unit) => {
+      let keyRef = React.useRef(None);
+      let symbolsRef = React.useRef(None);
+      let onClick = _ => {
+        switch (React.Ref.current(keyRef), React.Ref.current(symbolsRef)) {
+        | (Some(keyEditor), Some(symbolsEditor)) =>
+          let key = Atom.TextEditor.getText(keyEditor);
+          let symbols =
+            Atom.TextEditor.getText(symbolsEditor)
+            |> Js.String.split("")
+            |> Array.filter(String.isEmpty >> (!));
+          Extension.add(key, symbols);
+          Atom.TextEditor.setText("", keyEditor) |> ignore;
+          Atom.TextEditor.setText("", symbolsEditor) |> ignore;
+          onChange();
+        | _ => ()
+        };
+      };
+
+      <div id="add-entry">
+        <div id="add-entry-key-sequence">
+          <MiniEditor
+            hidden=false
+            value=""
+            placeholder="key sequence"
+            onEditorRef={ref => React.Ref.setCurrent(keyRef, Some(ref))}
+          />
+        </div>
+        <div id="add-entry-symbols">
+          <MiniEditor
+            hidden=false
+            value=""
+            placeholder="corresponding symbols"
+            onEditorRef={ref => React.Ref.setCurrent(symbolsRef, Some(ref))}
+          />
+        </div>
+        <div id="add-entry-button">
+          <button
+            className="btn btn-primary icon icon-plus inline-block-tight"
+            onClick>
+            {string("add entry")}
+          </button>
+        </div>
+      </div>;
+    };
+  };
+
   module ExtensionItem = {
     [@react.component]
     let make =
@@ -127,7 +176,7 @@ module ExtendKeymap = {
           <MiniEditor
             hidden={!modifying}
             value=symbolsString
-            placeholder={j|enter some symbol here, e.g 'λ'|j}
+            placeholder={j|enter symbols here, the whole entry would be deleted if left empty|j}
             onCancel={_ => setModifying(false)}
             onConfirm={value => {
               let symbols =
@@ -168,21 +217,21 @@ module ExtendKeymap = {
   let make = () => {
     // force re-render onChange
     let (keymap, setKeymap) = Hook.useState(Extension.readKeymap());
+    let forceUpdate = () => setKeymap(Extension.readKeymap());
 
     /* placeholder */
     React.useEffect1(
       _ => {
         let destructor =
           Atom.Config.onDidChange("agda-mode.inputMethodExtension", _ =>
-            setKeymap(Extension.readKeymap())
+            forceUpdate()
           );
         Some(_ => Atom.Disposable.dispose(destructor));
       },
       [||],
     );
 
-    let onChange =
-      React.useCallback1(() => setKeymap(Extension.readKeymap()), [||]);
+    let onChange = React.useCallback1(forceUpdate, [||]);
     let items =
       keymap
       |> Js.Dict.entries
@@ -199,6 +248,7 @@ module ExtendKeymap = {
 If the mapping already exists, it will be prioritized in case that the key sequence corresponds to multiple symbols (e.g. 'r').",
          )}
       </p>
+      <AddEntry onChange />
       items
     </section>;
   };

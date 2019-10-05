@@ -22,7 +22,7 @@ module React = {
       (front: reactElement, back: reactElement, item: reactElement) =>
     <> front {string(" ")} item {string(" ")} back </>;
 
-  let when_ = (p, className) => p ? className : "";
+  let when_ = (p, className) => p ? " " ++ className : "";
   let showWhen =
     fun
     | true => ""

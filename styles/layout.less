@@ -225,6 +225,29 @@
               font-family: Menlo, inconsolata, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
             }
 
+            #add-entry {
+              display: flex;
+              align-items: center;
+              line-height: @component-line-height;
+
+              atom-text-editor {
+                height: @component-line-height;
+              }
+
+              #add-entry-key-sequence {
+                width: 20%;
+                padding-right: @component-padding;
+              }
+
+              #add-entry-symbols {
+                flex-grow: 2;
+                padding-right: @component-padding;
+              }
+
+              #add-entry-button {
+              }
+            }
+
             #extensions {
               li {
                 display: flex;
@@ -235,7 +258,6 @@
                 .sequence {
                   width: 20%;
                   overflow-x: scroll;
-                  // background: red;
                 }
 
                 .symbols {
@@ -254,11 +276,9 @@
 
                 .buttons {
                   height: @component-line-height;
-                  // width: @component-line-height;
-                  // background: yellow;
-
                 }
               }
+
             }
         }
 
@@ -295,12 +315,6 @@
                     color: @text-color-highlight;
                 }
             }
-            // li {
-            //   // margin: @component-padding 0;
-            //   // padding: @component-padding;
-            //   //
-            //   // background: @base-background-color;
-            // }
         }
 
 
