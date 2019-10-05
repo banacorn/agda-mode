@@ -137,16 +137,14 @@ describe("Input Method", () => {
       openAndLoad("Temp.agda")
       |> then_(instance => {
            let onDispatch =
-             instance.view.onInputMethodActivationChange
-             |> Event.once
-             |> Async.toPromise;
+             instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
 
            // dispatch!
            instance
            |> Keyboard.dispatch("\\")
            |> then_(_ => onDispatch)
-           |> then_(activated => {
-                Assert.equal(true, activated);
+           |> then_(state => {
+                Assert.equal(true, state.InputMethod.activated);
                 resolve(instance);
               });
          })
@@ -156,9 +154,7 @@ describe("Input Method", () => {
       openAndLoad("Temp.agda")
       |> then_(instance => {
            let onDispatch =
-             instance.view.onInputMethodActivationChange
-             |> Event.once
-             |> Async.toPromise;
+             instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
            // dispatch!
            instance
            |> Keyboard.dispatch("\\")
@@ -167,17 +163,15 @@ describe("Input Method", () => {
          })
       |> then_(instance => {
            let onDispatch =
-             instance.view.onInputMethodActivationChange
-             |> Event.once
-             |> Async.toPromise;
+             instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
 
            // dispatch!
            instance
            |> Keyboard.insert("\\")
            |> then_(_ => onDispatch)
-           |> then_(activated => {
+           |> then_(state => {
                 // should be deactivated
-                Assert.equal(false, activated);
+                Assert.equal(false, state.InputMethod.activated);
                 // should result in "\"
                 instance.editors.source
                 |> Atom.TextEditor.getText

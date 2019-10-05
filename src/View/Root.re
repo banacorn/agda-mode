@@ -356,7 +356,6 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
     activateInputMethod,
     inquireConnection,
     onInquireConnection,
-    onInputMethodActivationChange,
     onInputMethodChange,
     navigateSettingsView,
   } = handles;
@@ -398,7 +397,6 @@ let make = (~editors: Editors.t, ~handles: View.handles) => {
           // {editors.query.placeholder}
           editorPlaceholder=""
           activateInputMethod
-          onInputMethodActivationChange
           onInputMethodChange
           settingsView
           onSettingsViewToggle={status => send(ToggleSettingsTab(status))}

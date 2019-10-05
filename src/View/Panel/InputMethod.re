@@ -237,9 +237,8 @@ let make =
          */
       ~interceptAndInsertKey: Event.t(string, unit),
       ~activateInputMethod: Event.t(bool, unit),
-      ~onActivationChange: Event.t(bool, unit),
       // this event is triggered whenever the user did something
-      ~onChange: Event.t(unit, unit),
+      ~onChange: Event.t(state, unit),
       ~isActive: bool,
     ) => {
   let editor = Editors.Focus.get(editors);
@@ -292,14 +291,6 @@ let make =
     [||],
   );
 
-  // output: on activation change
-  Hook.useDidUpdateEffect(
-    () => {
-      onActivationChange |> Event.emitOk(state.activated);
-      None;
-    },
-    [|state.activated|],
-  );
   // do something when the "reality" changed
   // let (reality, setReality) = Hook.useState("");
   let setReality = s => send(UpdateReality(s));
@@ -343,7 +334,7 @@ let make =
     () => {
       if (hasChanged(state, changeLog)) {
         // Js.log("[ IM ][ change ]");
-        onChange |> Event.emitOk();
+        onChange |> Event.emitOk(state);
       };
 
       // Js.log3(state.activated, Buffer.toString(state.buffer), state.reality);
@@ -403,7 +394,7 @@ let make =
       updateTranslation={replace =>
         switch (replace) {
         | Some(symbol) =>
-          onChange |> Event.emitOk();
+          onChange |> Event.emitOk(state);
           rewriteTextBuffer(editor, markers, symbol);
         | None => ()
         }

@@ -23,8 +23,7 @@ let make =
       ~editorValue: string,
       ~interceptAndInsertKey: Event.t(string, unit),
       ~activateInputMethod: Event.t(bool, unit),
-      ~onInputMethodActivationChange: Event.t(bool, unit),
-      ~onInputMethodChange: Event.t(unit, unit),
+      ~onInputMethodChange: Event.t(InputMethod.state, unit),
       ~onSettingsViewToggle: bool => unit,
     ) => {
   let (maxHeight, setMaxHeight) = Hook.useState(170);
@@ -34,7 +33,10 @@ let make =
   React.useEffect1(
     () => {
       let destructor =
-        onInputMethodActivationChange |> Event.onOk(setInputMethodActivation);
+        onInputMethodChange
+        |> Event.onOk(state =>
+             setInputMethodActivation(state.InputMethod.activated)
+           );
       Some(destructor);
     },
     [||],
@@ -85,7 +87,6 @@ let make =
           interceptAndInsertKey
           activateInputMethod
           isActive
-          onActivationChange=onInputMethodActivationChange
           onChange=onInputMethodChange
         />
         <Dashboard
