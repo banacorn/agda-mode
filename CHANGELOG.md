@@ -1,3 +1,8 @@
+## 0.9.8
+* Fix #79 (allow users to custom keymap)
+* Fix #72 (with default keymap extensions)
+* Input method overhaul
+
 ## 0.9.7
 * Fix #12 and #108
 
