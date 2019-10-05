@@ -62,6 +62,27 @@ let make =
   let (editorRef, setEditorRef) = Hook.useState(None);
   let editorElem = React.useRef(None);
 
+  /* value */
+  React.useEffect1(
+    _ => {
+      React.Ref.current(editorElem)
+      |> Option.map(ofTextEditor)
+      |> Option.forEach(Atom.TextEditor.setText(value));
+      None;
+    },
+    [|value|],
+  );
+  /* placeholder */
+  React.useEffect1(
+    _ => {
+      React.Ref.current(editorElem)
+      |> Option.map(ofTextEditor)
+      |> Option.forEach(Atom.TextEditor.setPlaceholderText(placeholder));
+      None;
+    },
+    [|placeholder|],
+  );
+
   React.useEffect1(
     () =>
       React.Ref.current(editorElem)
@@ -98,11 +119,6 @@ let make =
            editor
            |> Atom.TextEditor.onDidChange(onChange)
            |> Atom.CompositeDisposable.add(disposables);
-
-           /* value */
-           editor |> Atom.TextEditor.setText(value);
-           /* placeholder */
-           editor |> Atom.TextEditor.setPlaceholderText(placeholder);
 
            Some(() => disposables |> Atom.CompositeDisposable.dispose);
          }),

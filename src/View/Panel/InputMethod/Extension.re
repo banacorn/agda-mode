@@ -36,13 +36,19 @@ let setConfig = keymap => {
 let parse: string => option(keymap) =
   Json.parse >> Option.map(dict(array(string)));
 
-let keymap = readConfig >> parse >> Option.getOr(Js.Dict.empty());
+let readKeymap = readConfig >> parse >> Option.getOr(Js.Dict.empty());
 
-let lookup = key => Js.Dict.get(keymap(), key) |> Option.getOr([||]);
+let lookup = key => Js.Dict.get(readKeymap(), key) |> Option.getOr([||]);
+
+let modify = (key, symbols) => {
+  let keymap = readKeymap();
+  Js.Dict.set(keymap, key, symbols);
+  setConfig(keymap);
+};
 
 let extendKeySuggestions = (key, origionalSuggestions) => {
   let extension =
-    keymap()
+    readKeymap()
     |> Js.Dict.keys
     |> Array.filter(String.startsWith(key))
     |> Array.map(String.sub(~from=String.length(key), ~length=1))

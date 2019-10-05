@@ -276,7 +276,7 @@ describe("Input Method", () => {
     });
     after_each(Package.after_each);
     it({js|should respect the default keymap extension|js}, () => {
-      let reality = Extension.keymap();
+      let reality = Extension.readKeymap();
       let expectation = Js.Dict.empty();
       Js.Dict.set(expectation, "^r", [|{js|ʳ|js}|]);
       Js.Dict.set(expectation, "^l", [|{js|ˡ|js}|]);

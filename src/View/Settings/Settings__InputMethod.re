@@ -1,5 +1,6 @@
 open ReasonReact;
 open Rebase;
+open Fn;
 open Util.React;
 
 module SymbolLookup = {
@@ -84,25 +85,66 @@ module KeySequenceLookup = {
 module ExtendKeymap = {
   module ExtensionItem = {
     [@react.component]
-    let make = (~sequence: string, ~symbols: array(string)) => {
+    let make =
+        (~sequence: string, ~symbols: array(string), ~onChange: unit => unit) => {
+      let editorRef = React.useRef(None);
+
       // show the buttons when hovered
       let (hovered, setHovered) = Hook.useState(false);
       let onMouseOver = _ => setHovered(true);
       let onMouseLeave = _ => setHovered(false);
 
+      //
+      let (modifying, setModifying) = Hook.useState(false);
+      let symbolsString = symbols |> List.fromArray |> String.joinWith(" ");
+
+      // focus on the editor if it's being modified
+      React.useEffect1(
+        _ => {
+          if (modifying) {
+            switch (React.Ref.current(editorRef)) {
+            | Some(editor) =>
+              Atom.Views.getView(editor) |> Webapi.Dom.HtmlElement.focus
+            | None => ()
+            };
+          };
+          None;
+        },
+        [|modifying|],
+      );
       <li onMouseOver onMouseLeave>
         <div className="sequence"> {string(sequence)} </div>
         <div className="symbols">
-          {symbols
-           |> Array.map(symbol =>
-                <kbd className="inline-block highlight">
-                  {string(symbol)}
-                </kbd>
-              )
-           |> manyInFragment}
+          <div className={showWhen(!modifying)}>
+            {symbols
+             |> Array.map(symbol =>
+                  <kbd className="inline-block highlight">
+                    {string(symbol)}
+                  </kbd>
+                )
+             |> manyInFragment}
+          </div>
+          <MiniEditor
+            hidden={!modifying}
+            value=symbolsString
+            placeholder={j|enter some symbol here, e.g 'λ'|j}
+            onCancel={_ => setModifying(false)}
+            onConfirm={value => {
+              let symbols =
+                value
+                |> Js.String.split("")
+                |> Array.filter(String.isEmpty >> (!));
+              Extension.modify(sequence, symbols);
+              onChange();
+              setModifying(false);
+            }}
+            onEditorRef={ref => React.Ref.setCurrent(editorRef, Some(ref))}
+          />
         </div>
-        <div className={"buttons" ++ showWhen(hovered)}>
-          <button className="btn icon icon-pencil inline-block-tight">
+        <div className={"buttons" ++ showWhen(hovered && !modifying)}>
+          <button
+            className="btn icon icon-pencil inline-block-tight"
+            onClick={_ => setModifying(true)}>
             {string("modify")}
           </button>
           <button
@@ -116,11 +158,15 @@ module ExtendKeymap = {
 
   [@react.component]
   let make = () => {
+    // force re-render onChang
+    let (keymap, setKeymap) = Hook.useState(Extension.readKeymap());
+    let onChange =
+      React.useCallback1(() => setKeymap(Extension.readKeymap()), [||]);
     let items =
-      Extension.keymap()
+      keymap
       |> Js.Dict.entries
       |> Array.map(((sequence, symbols)) =>
-           <ExtensionItem sequence symbols />
+           <ExtensionItem sequence symbols onChange />
          )
       |> manyIn("ul", ~props=ReactDOMRe.domProps(~id="extensions", ()));
 
