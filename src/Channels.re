@@ -4,6 +4,8 @@ module Event = Event;
 // open Event;
 
 type t = {
+  // lifecycle
+  destroy: Channel.t(unit, unit, unit),
   // <Panel>
   activatePanel: Channel.t(unit, Dom.element, unit),
   deactivatePanel: Channel.t(unit, unit, unit),
@@ -28,6 +30,8 @@ type t = {
 
 /* creates all refs and return them */
 let make = () => {
+  // lifecycle
+  destroy: Channel.make(),
   // <Panel>
   activatePanel: Channel.make(),
   deactivatePanel: Channel.make(),

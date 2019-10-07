@@ -17,7 +17,6 @@ type handles = {
   activateSettingsView: Event.t(bool, unit),
   onSettingsView: Event.t(bool, unit),
   navigateSettingsView: Event.t(Settings.uri, unit),
-  destroy: Channel.t(unit, unit, unit),
   /* Input Method */
   onInputMethodChange: Event.t(InputMethod.state, unit),
   /* Mouse Events */
@@ -46,7 +45,6 @@ let makeHandles = () => {
   // Others
   let onMouseEvent = make();
 
-  let destroy = Channel.make();
   {
     onInquire,
     // onPanelActivationChange,
@@ -56,7 +54,6 @@ let makeHandles = () => {
     activateSettingsView,
     onSettingsView,
     navigateSettingsView,
-    destroy,
     onInputMethodChange,
     onMouseEvent,
   };
@@ -152,7 +149,7 @@ let make = (handles: handles, channels: Channels.t) => {
   let destroy = () =>
     deactivate()
     |> Async.thenOk(_ => activateInputMethod(false))
-    |> Async.thenOk(_ => handles.destroy |> Channel.send())
+    |> Async.thenOk(_ => channels.destroy |> Channel.send())
     |> Async.passOk(_ => onDestroy |> Event.emitOk());
 
   {
