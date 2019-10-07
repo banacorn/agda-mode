@@ -36,9 +36,17 @@ let triggerArg = (callback: option('a => unit), arg: 'a): unit =>
   };
 
 type t = {
-  element: Element.t,
-  kill: unit => unit,
-  activate: unit => unit,
+  itemResource: Resource.t(Workspace.item, unit),
+  subscriptions: CompositeDisposable.t,
+  closedDeliberately: ref(bool),
+  itemOpener: {
+    .
+    "element": Dom.element,
+    "getTitle": unit => string,
+  },
+  // element: Element.t,
+  // kill: unit => unit,
+  // activate: unit => unit,
 };
 
 external asWorkspaceItem: Atom.TextEditor.t => Atom.Workspace.item =
@@ -123,24 +131,25 @@ let make =
        resolve(Workspace.getActivePane());
      })
   |> ignore;
-  {
-    element: itemOpener##element,
-    kill: () =>
-      itemResource.acquire()
-      |> Async.finalOk((item: Workspace.item) => {
-           /* dispose subscriptions */
-           CompositeDisposable.dispose(subscriptions);
-           /* set the "closedDeliberately" to true to trigger "onKill" */
-           closedDeliberately := true;
-           Workspace.paneForItem(item)
-           |> Option.forEach(pane => Pane.destroyItem(item, pane) |> ignore);
-         }),
-
-    activate: () =>
-      itemResource.acquire()
-      |> Async.finalOk((item: Workspace.item) =>
-           Workspace.paneForItem(item)
-           |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore)
-         ),
-  };
+  {itemResource, subscriptions, closedDeliberately, itemOpener};
 };
+
+let kill = self =>
+  self.itemResource.acquire()
+  |> Async.finalOk((item: Workspace.item) => {
+       /* dispose subscriptions */
+       CompositeDisposable.dispose(self.subscriptions);
+       /* set the "closedDeliberately" to true to trigger "onKill" */
+       self.closedDeliberately := true;
+       Workspace.paneForItem(item)
+       |> Option.forEach(pane => Pane.destroyItem(item, pane) |> ignore);
+     }) /* }*/;
+
+let getElement = self => self.itemOpener##element;
+
+let activate = self =>
+  self.itemResource.acquire()
+  |> Async.finalOk((item: Workspace.item) =>
+       Workspace.paneForItem(item)
+       |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore)
+     );

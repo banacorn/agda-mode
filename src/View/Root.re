@@ -56,7 +56,7 @@ let getBottomPanelContainer = (): Webapi.Dom.Element.t => {
 let getPanelContainerFromMountingPoint =
   fun
   | Bottom(element) => element
-  | Pane(tab) => tab.element;
+  | Pane(tab) => tab |> Tab.getElement;
 
 [@react.component]
 let make =
@@ -67,6 +67,7 @@ let make =
 
   let (settingsActivated, setSettingsActivation) = Hook.useState(false);
   let (settingsView, setSettingsView) = Hook.useState(None);
+  let settingsElement = settingsView |> Option.map(Tab.getElement);
   let ((connection, connectionError), setConnectionAndError) =
     Hook.useState((None, None));
 
@@ -104,7 +105,7 @@ let make =
         handles.onSettingsView |> Event.emitOk(true);
         None;
       | (Some(tab), false) =>
-        tab.Tab.kill();
+        Tab.kill(tab);
         setSettingsView(None);
 
         /* <Settings> is closed */
@@ -161,7 +162,7 @@ let make =
     | (Bottom(_), AtBottom) => ()
     | (Bottom(_), AtPane) => setMountingPoint(Pane(createTab()))
     | (Pane(tab), AtBottom) =>
-      tab.kill();
+      Tab.kill(tab);
       setMountingPoint(Bottom(getBottomPanelContainer()));
     | (Pane(_), AtPane) => ()
     };
@@ -192,7 +193,7 @@ let make =
       if (activated) {
         switch (mountingPoint) {
         | Bottom(_) => ()
-        | Pane(tab) => tab.activate()
+        | Pane(tab) => Tab.activate(tab)
         };
       };
       None;
@@ -272,7 +273,7 @@ let make =
         | None => ()
         | Some(elem) => container |> Element.removeChild(elem) |> ignore
         };
-      | Pane(tab) => tab.kill()
+      | Pane(tab) => Tab.kill(tab)
       };
 
       Async.resolve();
@@ -288,11 +289,6 @@ let make =
   } = handles;
   let containerElement = getPanelContainerFromMountingPoint(mountingPoint);
 
-  let settingsElement: option(Webapi.Dom.Element.t) =
-    switch (settingsView) {
-    | None => None
-    | Some(tab) => Some(tab.element)
-    };
   let hidden =
     switch (mountingPoint) {
     // only show the view when it's loaded and active
