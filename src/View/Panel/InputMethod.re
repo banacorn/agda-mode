@@ -328,7 +328,7 @@ let make =
   React.useEffect2(
     () => {
       if (hasChanged(state, changeLog)) {
-        Js.log("[ IM ][ change ]");
+        // Js.log("[ IM ][ change ]");
         onChange |> Event.emitOk(state);
       };
 

@@ -338,7 +338,7 @@ let rec handleLocalCommand =
          instance.view.activate()
          |> mapError(_ => Cancelled)
          |> thenOk(_ => {
-              instance.view.updateShouldDisplay(true);
+              instance.view.activate();
               instance.view.display(
                 "Connecting ...",
                 Type.View.Header.PlainText,
@@ -354,7 +354,7 @@ let rec handleLocalCommand =
     instance |> Highlightings.destroyAll;
     instance.view.deactivate();
     instance.isLoaded = false;
-    instance.view.updateShouldDisplay(false);
+    instance.view.deactivate();
     resolve(None);
   | Restart =>
     Connections.disconnect(instance);
@@ -587,7 +587,7 @@ let rec handleLocalCommand =
   | InputSymbol(symbol) =>
     let enabled = Atom.Config.get("agda-mode.inputMethod");
     if (enabled) {
-      instance.view.updateShouldDisplay(true);
+      instance.view.activate();
       switch (symbol) {
       | Ordinary =>
         instance.view.activate()
@@ -630,7 +630,7 @@ let rec handleLocalCommand =
     let selected = instance.editors |> Editors.getSelectedSymbol;
     let getSymbol =
       if (String.isEmpty(String.trim(selected))) {
-        instance.view.updateShouldDisplay(true);
+        instance.view.activate();
         instance.view.activate();
         instance.view.inquire(
           "Lookup Unicode Symbol Input Sequence",

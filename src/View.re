@@ -70,7 +70,6 @@ type t = {
   display: (string, Type.View.Header.style, Body.t) => Async.t(unit, unit),
   inquire: (string, string, string) => Async.t(string, MiniEditor.error),
   updateIsPending: bool => Async.t(unit, unit),
-  updateShouldDisplay: bool => Async.t(unit, unit),
   destroy: unit => Async.t(unit, unit),
   onDestroy: Event.t(unit, unit),
   // <Panel> related
@@ -108,8 +107,6 @@ let make = (handles: handles, channels: Channels.t) => {
 
   let updateIsPending = isPending =>
     channels.updateIsPending |> Channel.send(isPending);
-  let updateShouldDisplay = shouldDisplay =>
-    channels.updateShouldDisplay |> Channel.send(shouldDisplay);
 
   // let onPanelActivationChange = () => handles.onPanelActivationChange |> once;
 
@@ -160,7 +157,6 @@ let make = (handles: handles, channels: Channels.t) => {
     display,
     inquire,
     updateIsPending,
-    updateShouldDisplay,
     destroy,
     onDestroy,
     onMouseEvent,

@@ -11,7 +11,7 @@ type t = {
   display: Channel.t((Header.t, Body.t), unit, unit),
   inquire: Channel.t((Header.t, string, string), string, MiniEditor.error),
   updateIsPending: Channel.t(bool, unit, unit),
-  updateShouldDisplay: Channel.t(bool, unit, unit),
+  // updateShouldDisplay: Channel.t(bool, unit, unit),
   // Input Method
   /*
    Issue #34: https://github.com/banacorn/agda-mode/issues/34
@@ -37,7 +37,7 @@ let make = () => {
   inquire: Channel.make(),
 
   updateIsPending: Channel.make(),
-  updateShouldDisplay: Channel.make(),
+  // updateShouldDisplay: Channel.make(),
 
   // <InputMethod>
   activateInputMethod: Channel.make(),

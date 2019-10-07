@@ -210,7 +210,6 @@ let make =
     Hook.useState({Header.text: "", style: PlainText});
   let (body, setBody) = Hook.useState(Body.Nothing);
   let (mode, setMode) = Hook.useState(Display);
-  let (shouldDisplay, setShouldDisplay) = Hook.useState(false);
 
   let panelRef = React.useRef(Js.Nullable.null);
 
@@ -297,12 +296,6 @@ let make =
     channels.inquire,
   );
 
-  // toggle state of shouldDisplay
-  Hook.useChannel(
-    setShouldDisplay >> Async.resolve,
-    channels.updateShouldDisplay,
-  );
-
   // trigger `onPanelActivationChange` only when it's changed
   Hook.useDidUpdateEffect2(
     () => {
@@ -358,7 +351,7 @@ let make =
   let hidden =
     switch (mountAt) {
     // only show the view when it's loaded and active
-    | Bottom(_) => !(isActive && shouldDisplay)
+    | Bottom(_) => !isActive
     | Pane(_) => false
     };
 
