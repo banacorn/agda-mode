@@ -13,7 +13,7 @@ let make =
       ~mountingPoint: mountingPoint,
       ~mode: mode,
       ~hidden: bool,
-      ~settingsView: option(Tab.t),
+      ~settingsActivated: bool,
       ~activated: bool,
       ~panelRef: ReactDOMRe.Ref.currentDomRef,
       /* Editors */
@@ -98,7 +98,7 @@ let make =
           hidden=inputMethodActivated
           isPending
           mountingPoint
-          settingsView
+          settingsActivated
           onMountingTargetChange
           onSettingsViewToggle
         />

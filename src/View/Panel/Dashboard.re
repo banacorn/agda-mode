@@ -9,7 +9,7 @@ let make =
       ~hidden: bool,
       ~isPending: bool,
       ~mountingPoint: Type.View.mountingPoint,
-      ~settingsView: option(Tab.t),
+      ~settingsActivated: bool,
       ~onMountingTargetChange: Type.View.mountingTarget => unit,
       ~onSettingsViewToggle: bool => unit,
     ) => {
@@ -61,7 +61,6 @@ let make =
     [||],
   );
 
-  let settingsOn = settingsView |> Option.isSome;
   let headerClassList =
     switch (header.style) {
     | PlainText => ""
@@ -72,7 +71,8 @@ let make =
     };
   let spinnerClassList =
     "loading loading-spinner-tiny inline-block" ++ when_(isPending, "pending");
-  let settingsViewClassList = "no-btn" ++ when_(settingsOn, "activated");
+  let settingsViewClassList =
+    "no-btn" ++ when_(settingsActivated, "activated");
   let toggleMountingPosition =
     "no-btn"
     ++ when_(
@@ -90,7 +90,7 @@ let make =
       <li>
         <button
           className=settingsViewClassList
-          onClick={_ => onSettingsViewToggle(!settingsOn)}
+          onClick={_ => onSettingsViewToggle(!settingsActivated)}
           ref={ReactDOMRe.Ref.domRef(settingsButtonRef)}>
           <span className="icon icon-settings" />
         </button>

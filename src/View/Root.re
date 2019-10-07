@@ -261,14 +261,13 @@ let make =
   Hook.useChannel(
     () => {
       open Webapi.Dom;
-      // removes `.agda-mode-panel` from the `.agda-mode-panel-container`
 
       // `stateRef` is permanant
       let mountingPoint = React.Ref.current(mountingPointRef);
       switch (mountingPoint) {
       | Bottom(container) =>
+        // removes `.agda-mode-panel` from the `.agda-mode-panel-container`
         let panel = React.Ref.current(panelRef) |> Js.Nullable.toOption;
-
         switch (panel) {
         | None => ()
         | Some(elem) => container |> Element.removeChild(elem) |> ignore
@@ -331,7 +330,7 @@ let make =
             // {editors.query.placeholder}
             editorPlaceholder=""
             onInputMethodChange
-            settingsView
+            settingsActivated
             onSettingsViewToggle=setSettingsActivation
           />
           <Settings
