@@ -98,12 +98,16 @@ let make = (handles: handles, channels: Channels.t) => {
     channels.display |> Channel.send(({Type.View.Header.text, style}, body));
 
   let inquire = (text, placeholder, value) =>
-    channels.inquire
-    |> Channel.send((
-         {Type.View.Header.text, style: PlainText},
-         placeholder,
-         value,
-       ));
+    activate()
+    |> Async.mapError(_ => MiniEditor.Cancelled)
+    |> Async.thenOk(_ =>
+         channels.inquire
+         |> Channel.send((
+              {Type.View.Header.text, style: PlainText},
+              placeholder,
+              value,
+            ))
+       );
 
   let updateIsPending = isPending =>
     channels.updateIsPending |> Channel.send(isPending);

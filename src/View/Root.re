@@ -228,8 +228,6 @@ let make =
   let (body, setBody) = Hook.useState(Body.Nothing);
   let (mode, setMode) = Hook.useState(Display);
 
-  let panelRef = React.useRef(Js.Nullable.null);
-
   /* display mode! */
   Hook.useChannel(
     ((header, body)) => {
@@ -243,7 +241,6 @@ let make =
 
   Hook.useChannel(
     ((header, _placeholder, _value)) => {
-      setActivation(true);
       setMode(Inquire);
       editors |> Editors.Focus.on(Query);
       setHeader(header);
@@ -260,6 +257,7 @@ let make =
   );
 
   // destroy everything
+  let panelRef = React.useRef(Js.Nullable.null);
   Hook.useChannel(
     () => {
       open Webapi.Dom;
