@@ -208,7 +208,8 @@ type change =
   | Noop
   | Rewrite
   | Complete
-  | Stuck;
+  | Stuck
+  | Abort;
 
 // for determining whether the previous changes to the system should be regarded as one atomic operation or not
 let hasChanged = (state, changeLog) => {
@@ -219,7 +220,10 @@ let hasChanged = (state, changeLog) => {
   // also happens when agda-mode was activated by triggering the input-method
   let deactivateActivateCombo = !state.activated && changeLog == Noop;
 
-  !rewriteDeactivateCombo && !deactivateActivateCombo;
+  // when the user hit "ESC"
+  let aborted = changeLog == Abort;
+
+  !rewriteDeactivateCombo && !deactivateActivateCombo || aborted;
 };
 
 [@react.component]
@@ -265,6 +269,7 @@ let make =
           send(Activate);
         };
       } else {
+        setChangeLog(Abort);
         send(Deactivate);
       };
       Async.resolve();
@@ -323,7 +328,7 @@ let make =
   React.useEffect2(
     () => {
       if (hasChanged(state, changeLog)) {
-        // Js.log("[ IM ][ change ]");
+        Js.log("[ IM ][ change ]");
         onChange |> Event.emitOk(state);
       };
 

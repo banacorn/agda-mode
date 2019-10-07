@@ -235,6 +235,20 @@ describe("Input Method", () => {
          })
     );
 
+    it({js|should deactivate after typing "ESC" immediately|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance => {
+           let onEscaped =
+             instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+           Keyboard.dispatch("escape", instance) |> then_(_ => onEscaped);
+         })
+      |> then_(state => {
+           Assert.equal(false, state.InputMethod.activated);
+           resolve();
+         })
+    );
+
     it({js|should deactivate after typing "ESC" ("Gl" + "ESC")|js}, () =>
       openAndLoad("Temp.agda")
       |> then_(Keyboard.dispatch("\\"))
