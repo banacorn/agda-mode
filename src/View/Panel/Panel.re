@@ -14,7 +14,7 @@ let make =
       ~mode: mode,
       ~hidden: bool,
       ~settingsView: option(Tab.t),
-      ~isActive: bool,
+      ~activated: bool,
       ~panelRef: ReactDOMRe.Ref.currentDomRef,
       /* Editors */
       ~onInquireQuery: Event.t(string, MiniEditor.error),
@@ -88,7 +88,11 @@ let make =
           }
           mountAtBottom
         />
-        <InputMethod editors isActive onChange=onInputMethodChange />
+        <InputMethod
+          editors
+          panelActivated=activated
+          onChange=onInputMethodChange
+        />
         <Dashboard
           header
           hidden=inputMethodActivated

@@ -232,7 +232,7 @@ let make =
       ~editors: Editors.t,
       // this event is triggered whenever the user did something
       ~onChange: Event.t(state, unit),
-      ~isActive: bool,
+      ~panelActivated: bool,
     ) => {
   let editor = Editors.Focus.get(editors);
   // display markers
@@ -385,7 +385,7 @@ let make =
           )}
     </div>
     <CandidateSymbols
-      isActive={isActive && state.activated}
+      activated={panelActivated && state.activated}
       updateTranslation={replace =>
         switch (replace) {
         | Some(symbol) =>

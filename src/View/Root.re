@@ -57,7 +57,7 @@ let getBottomPanelContainer = (): Webapi.Dom.Element.t => {
 
 type state = {
   mountAt,
-  isActive: bool,
+  activated: bool,
   settingsView: option(Tab.t),
 };
 
@@ -69,7 +69,7 @@ let getPanelContainerFromState = state =>
 
 let initialState = {
   mountAt: Bottom(getBottomPanelContainer()),
-  isActive: false,
+  activated: false,
   settingsView: None,
 };
 
@@ -114,17 +114,17 @@ let reducer = (editors: Editors.t, action, state) => {
   switch (action) {
   | Activate =>
     switch (state.mountAt) {
-    | Bottom(_) => Update({...state, isActive: true})
+    | Bottom(_) => Update({...state, activated: true})
     | Pane(tab) =>
       UpdateWithSideEffects(
-        {...state, isActive: true},
+        {...state, activated: true},
         _ => {
           tab.activate();
           None;
         },
       )
     }
-  | Deactivate => Update({...state, isActive: false})
+  | Deactivate => Update({...state, activated: false})
   | MountTo(mountTo) => SideEffects(mountPanel(editors, mountTo))
   | ToggleDocking =>
     switch (state.mountAt) {
@@ -150,18 +150,18 @@ let reducer = (editors: Editors.t, action, state) => {
 [@react.component]
 let make =
     (~editors: Editors.t, ~handles: View.handles, ~channels: Channels.t) => {
-  let (activated, setActivation) = Hook.useState(false);
-  let (view, setView) = Hook.useState(None);
+  let (settingsActivated, setSettingsActivation) = Hook.useState(false);
+  let (settingsView, setSettingsView) = Hook.useState(None);
   let ((connection, connectionError), setConnectionAndError) =
     Hook.useState((None, None));
 
   // input
-  Hook.useEventListener(setActivation, handles.activateSettingsView);
+  Hook.useEventListener(setSettingsActivation, handles.activateSettingsView);
   Hook.useEventListener(setConnectionAndError, handles.updateConnection);
 
   React.useEffect1(
     () =>
-      switch (view, activated) {
+      switch (settingsView, settingsActivated) {
       | (None, true) =>
         let tab =
           Tab.make(
@@ -175,13 +175,13 @@ let make =
                 handles.View.onSettingsView |> Event.emitOk(true),
             ~onClose=
               _ => {
-                setActivation(false);
+                setSettingsActivation(false);
                 /* <Settings> is closed */
                 handles.onSettingsView |> Event.emitOk(false);
               },
             (),
           );
-        setView(Some(tab));
+        setSettingsView(Some(tab));
         None;
       | (None, false) => None
       | (Some(_), true) =>
@@ -190,13 +190,13 @@ let make =
         None;
       | (Some(tab), false) =>
         tab.Tab.kill();
-        setView(None);
+        setSettingsView(None);
 
         /* <Settings> is closed */
         handles.onSettingsView |> Event.emitOk(false);
         None;
       },
-    [|activated|],
+    [|settingsActivated|],
   );
 
   let (state, send) =
@@ -236,7 +236,7 @@ let make =
     () => {
       send(Activate);
       let state = React.Ref.current(stateRef);
-      if (state.isActive) {
+      if (state.activated) {
         Async.resolve(getPanelContainerFromState(state));
       } else {
         onPanelActivated |> Event.once;
@@ -249,7 +249,7 @@ let make =
     () => {
       send(Deactivate);
       let state = React.Ref.current(stateRef);
-      if (state.isActive) {
+      if (state.activated) {
         onPanelDeactivated |> Event.once;
       } else {
         Async.resolve();
@@ -299,14 +299,14 @@ let make =
   // trigger `onPanelActivationChange` only when it's changed
   Hook.useDidUpdateEffect2(
     () => {
-      if (state.isActive) {
+      if (state.activated) {
         onPanelActivated |> Event.emitOk(getPanelContainerFromState(state));
       } else {
         onPanelDeactivated |> Event.emitOk();
       };
       None;
     },
-    (state.mountAt, state.isActive),
+    (state.mountAt, state.activated),
   );
 
   // destroy everything
@@ -333,7 +333,7 @@ let make =
     handles.destroy,
   );
 
-  let {mountAt, isActive, settingsView} = state;
+  let {mountAt, activated, settingsView} = state;
 
   let {
     View.inquireConnection,
@@ -351,7 +351,7 @@ let make =
   let hidden =
     switch (mountAt) {
     // only show the view when it's loaded and active
-    | Bottom(_) => !isActive
+    | Bottom(_) => !activated
     | Pane(_) => false
     };
 
@@ -370,7 +370,7 @@ let make =
             hidden
             onMountAtChange={mountTo => send(MountTo(mountTo))}
             mode
-            isActive
+            activated
             /* editors */
             onQueryEditorRef={ref =>
               React.Ref.setCurrent(queryRef, Some(ref))
@@ -382,7 +382,7 @@ let make =
             editorPlaceholder=""
             onInputMethodChange
             settingsView
-            onSettingsViewToggle=setActivation
+            onSettingsViewToggle=setSettingsActivation
           />
           <Settings
             inquireConnection

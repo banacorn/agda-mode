@@ -22,7 +22,7 @@ let reducer = (totalSize, index, action) =>
 [@react.component]
 let make =
     (
-      ~isActive: bool,
+      ~activated: bool,
       ~candidateSymbols: array(string),
       ~updateTranslation: option(string) => unit,
       ~chooseSymbol: string => unit,
@@ -40,7 +40,7 @@ let make =
           event |> Dom.Event.stopImmediatePropagation;
         },
       ),
-    isActive,
+    activated,
   );
 
   Hook.useAtomListenerWhen(
@@ -53,7 +53,7 @@ let make =
           event |> Dom.Event.stopImmediatePropagation;
         },
       ),
-    isActive,
+    activated,
   );
 
   Hook.useAtomListenerWhen(
@@ -66,7 +66,7 @@ let make =
           event |> Dom.Event.stopImmediatePropagation;
         },
       ),
-    isActive,
+    activated,
   );
 
   Hook.useAtomListenerWhen(
@@ -79,7 +79,7 @@ let make =
           event |> Dom.Event.stopImmediatePropagation;
         },
       ),
-    isActive,
+    activated,
   );
 
   React.useEffect1(
