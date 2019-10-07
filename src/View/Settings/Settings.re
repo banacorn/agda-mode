@@ -1,5 +1,6 @@
 open ReasonReact;
 open Util.React;
+open Rebase.Fn;
 
 module URI = Settings__Breadcrumb;
 type uri = URI.uri;
@@ -13,12 +14,18 @@ let make =
     (
       ~inquireConnection: Event.t(unit, unit),
       ~onInquireConnection: Event.t(string, MiniEditor.error),
-      ~connection: option(Connection.t),
-      ~connectionError: option(Connection.Error.t),
       ~navigate: Event.t(uri, unit),
       ~debug: Type.View.Debug.state,
       ~element: option(Webapi.Dom.Element.t),
     ) => {
+  let channels = React.useContext(Channels.context);
+  let ((connection, connectionError), setConnectionAndError) =
+    Hook.useState((None, None));
+  Hook.useChannel(
+    setConnectionAndError >> Async.resolve,
+    channels.updateConnection,
+  );
+
   let (uri, setURI) = Hook.useState(URI.Root);
 
   React.useEffect1(() => Some(navigate |> Event.onOk(setURI)), [||]);

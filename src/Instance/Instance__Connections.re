@@ -98,7 +98,7 @@ let disconnect = instance => {
     Connection.disconnect(Connection.Error.DisconnectedByUser, connection);
     instance.connection = None;
     instance.view.updateConnection(None, None);
-  | None => ()
+  | None => Async.resolve()
   };
 };
 

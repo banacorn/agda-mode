@@ -14,12 +14,9 @@ let make =
   let (settingsActivated, setSettingsActivation) = Hook.useState(false);
   let (settingsView, setSettingsView) = Hook.useState(None);
   let settingsElement = settingsView |> Option.map(Tab.getElement);
-  let ((connection, connectionError), setConnectionAndError) =
-    Hook.useState((None, None));
 
   // input
   Hook.useEventListener(setSettingsActivation, handles.activateSettingsView);
-  Hook.useEventListener(setConnectionAndError, handles.updateConnection);
 
   React.useEffect1(
     () =>
@@ -85,8 +82,6 @@ let make =
           <Settings
             inquireConnection
             onInquireConnection
-            connection
-            connectionError
             debug
             element=settingsElement
             navigate=navigateSettingsView

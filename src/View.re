@@ -10,8 +10,6 @@ type handles = {
   onInquire: Event.t(string, MiniEditor.error),
   // events
   // onPanelActivationChange: Event.t(option(Dom.element), unit),
-  updateConnection:
-    Event.t((option(Connection.t), option(Connection.Error.t)), unit),
   inquireConnection: Event.t(unit, unit),
   onInquireConnection: Event.t(string, MiniEditor.error),
   activateSettingsView: Event.t(bool, unit),
@@ -30,7 +28,6 @@ let makeHandles = () => {
   let onInquire = Event.make();
 
   /* connection-related */
-  let updateConnection = make();
   let inquireConnection = make();
   let onInquireConnection = make();
 
@@ -48,7 +45,6 @@ let makeHandles = () => {
   {
     onInquire,
     // onPanelActivationChange,
-    updateConnection,
     inquireConnection,
     onInquireConnection,
     activateSettingsView,
@@ -82,7 +78,8 @@ type t = {
   openSettings: unit => Async.t(bool, unit),
   // <Settings/Connection> related
   updateConnection:
-    (option(Connection.t), option(Connection.Error.t)) => unit,
+    (option(Connection.t), option(Connection.Error.t)) =>
+    Async.t(unit, unit),
   onInquireConnection: Event.t(string, MiniEditor.error),
   inquireConnection: unit => Async.t(string, MiniEditor.error),
 };
@@ -133,9 +130,8 @@ let make = (handles: handles, channels: Channels.t) => {
     promise;
   };
 
-  let updateConnection = (connection, error) => {
-    handles.updateConnection |> emitOk((connection, error));
-  };
+  let updateConnection = (connection, error) =>
+    channels.updateConnection |> Channel.send((connection, error));
 
   let onInquireConnection = handles.onInquireConnection;
   let inquireConnection = () => {

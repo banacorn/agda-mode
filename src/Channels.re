@@ -26,6 +26,13 @@ type t = {
      */
   activateInputMethod: Channel.t(bool, unit, unit),
   interceptAndInsertKey: Channel.t(string, unit, unit),
+  // <Settings>
+  updateConnection:
+    Channel.t(
+      (option(Connection.t), option(Connection.Error.t)),
+      unit,
+      unit,
+    ),
 };
 
 /* creates all refs and return them */
@@ -46,6 +53,9 @@ let make = () => {
   // <InputMethod>
   activateInputMethod: Channel.make(),
   interceptAndInsertKey: Channel.make(),
+
+  // <Settings>
+  updateConnection: Channel.make(),
 };
 
 let context = React.createContext(make());
