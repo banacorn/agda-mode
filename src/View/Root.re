@@ -1,8 +1,6 @@
 open Rebase;
 open Rebase.Fn;
 
-open ReactUpdate;
-
 open Type.View;
 
 module Event = Event;
@@ -55,79 +53,10 @@ let getBottomPanelContainer = (): Webapi.Dom.Element.t => {
   };
 };
 
-type state = {
-  mountAt,
-  settingsView: option(Tab.t),
-};
-
-let getPanelContainerFromState = state =>
-  switch (state.mountAt) {
+let getPanelContainerFromMountingPoint =
+  fun
   | Bottom(element) => element
-  | Pane(tab) => tab.element
-  };
-
-let initialState = {
-  mountAt: Bottom(getBottomPanelContainer()),
-  settingsView: None,
-};
-
-type action =
-  | UpdateMountAt(mountAt)
-  | MountTo(mountTo)
-  | ToggleDocking;
-
-let mountPanel = (editors: Editors.t, mountTo, self) => {
-  let createTab = () =>
-    Tab.make(
-      ~editor=editors.source,
-      ~getTitle=
-        () => "[Agda Mode] " ++ Atom.TextEditor.getTitle(editors.source),
-      ~path="panel",
-      ~onClose=_ => self.send(MountTo(ToBottom)),
-      ~onOpen=
-        (_, _, previousItem) =>
-          /* activate the previous pane (which opened this pane item) */
-          Atom.Workspace.paneForItem(previousItem)
-          |> Rebase.Option.forEach(pane => {
-               pane |> Atom.Pane.activate;
-               pane |> Atom.Pane.activateItem(previousItem);
-             }),
-      (),
-    );
-  switch (self.state.mountAt, mountTo) {
-  | (Bottom(_), ToBottom) => ()
-  | (Bottom(_), ToPane) => self.send(UpdateMountAt(Pane(createTab())))
-  | (Pane(tab), ToBottom) =>
-    tab.kill();
-    self.send(UpdateMountAt(Bottom(getBottomPanelContainer())));
-  | (Pane(_), ToPane) => ()
-  };
-  None;
-};
-
-let reducer = (editors: Editors.t, action, state) => {
-  switch (action) {
-  | MountTo(mountTo) => SideEffects(mountPanel(editors, mountTo))
-  | ToggleDocking =>
-    switch (state.mountAt) {
-    | Bottom(_) =>
-      SideEffects(
-        ({send}) => {
-          send(MountTo(ToPane));
-          None;
-        },
-      )
-    | Pane(_) =>
-      SideEffects(
-        ({send}) => {
-          send(MountTo(ToBottom));
-          None;
-        },
-      )
-    }
-  | UpdateMountAt(mountAt) => Update({...state, mountAt})
-  };
-};
+  | Pane(tab) => tab.element;
 
 [@react.component]
 let make =
@@ -184,25 +113,84 @@ let make =
       },
     [|settingsActivated|],
   );
+
   ////////////////////////////////////////////
-  // <Panel>
+  // mounting point
   ////////////////////////////////////////////
 
-  let (state, send) =
-    ReactUpdate.useReducer(initialState, reducer(editors));
-  // in case that we need to access the latest state from Hook.useChannel
+  let (mountingPoint, setMountingPoint) =
+    Hook.useState(Bottom(getBottomPanelContainer()));
+
+  // let (state, send) =
+  //   ReactUpdate.useReducer(initialState, reducer(editors));
+  // in case that we need to access the latest mounting point from Hook.useChannel
   // as the closure of the callback of Hook.useChannel is only captured at the first render
-  let stateRef = React.useRef(state);
-  React.Ref.setCurrent(stateRef, state);
+  let mountingPointRef = React.useRef(mountingPoint);
+  React.Ref.setCurrent(mountingPointRef, mountingPoint);
 
-  // <Panel> Activation
+  // reset the element of editors.query everytime <Panel> got remounted
+  // issue #104: https://github.com/banacorn/agda-mode/issues/104
+  let queryRef = React.useRef(None);
+  React.useEffect1(
+    () => {
+      editors.query = React.Ref.current(queryRef);
+      None;
+    },
+    [|mountingPoint|],
+  );
+
+  let rec mountPanel = (editors: Editors.t, mountingTarget) => {
+    let createTab = () =>
+      Tab.make(
+        ~editor=editors.source,
+        ~getTitle=
+          () => "[Agda Mode] " ++ Atom.TextEditor.getTitle(editors.source),
+        ~path="panel",
+        ~onClose=_ => mountAtBottom(),
+        ~onOpen=
+          (_, _, previousItem) =>
+            /* activate the previous pane (which opened this pane item) */
+            Atom.Workspace.paneForItem(previousItem)
+            |> Rebase.Option.forEach(pane => {
+                 pane |> Atom.Pane.activate;
+                 pane |> Atom.Pane.activateItem(previousItem);
+               }),
+        (),
+      );
+    switch (React.Ref.current(mountingPointRef), mountingTarget) {
+    | (Bottom(_), AtBottom) => ()
+    | (Bottom(_), AtPane) => setMountingPoint(Pane(createTab()))
+    | (Pane(tab), AtBottom) =>
+      tab.kill();
+      setMountingPoint(Bottom(getBottomPanelContainer()));
+    | (Pane(_), AtPane) => ()
+    };
+  }
+  and mountAtPane = () => mountPanel(editors, AtPane)
+  and mountAtBottom = () => mountPanel(editors, AtBottom);
+  /* toggle docking */
+  Hook.useChannel(
+    () => {
+      switch (React.Ref.current(mountingPointRef)) {
+      | Bottom(_) => mountAtPane()
+      | Pane(_) => mountAtBottom()
+      };
+      Async.resolve();
+    },
+    channels.toggleDocking,
+  );
+
+  ////////////////////////////////////////////
+  // <Panel> Activation/Deactivation
+  ////////////////////////////////////////////
+
   let (activated, setActivation) = Hook.useState(false);
 
-  // output: activated
+  // side-effects
   React.useEffect1(
     () => {
       if (activated) {
-        switch (state.mountAt) {
+        switch (mountingPoint) {
         | Bottom(_) => ()
         | Pane(tab) => tab.activate()
         };
@@ -212,13 +200,13 @@ let make =
     [|activated|],
   );
 
-  // input: activated
+  // input
   Hook.useChannel(
     () => {
       setActivation(true);
-      stateRef
+      mountingPointRef
       |> React.Ref.current
-      |> getPanelContainerFromState
+      |> getPanelContainerFromMountingPoint
       |> Async.resolve;
     },
     channels.activatePanel,
@@ -232,8 +220,6 @@ let make =
     channels.deactivatePanel,
   );
 
-  let queryRef = React.useRef(None);
-
   let (debug, debugDispatch) =
     React.useReducer(Debug.reducer, Debug.initialState);
 
@@ -243,25 +229,6 @@ let make =
   let (mode, setMode) = Hook.useState(Display);
 
   let panelRef = React.useRef(Js.Nullable.null);
-
-  // reset the element of editors.query  everytime <Panel> got remounted
-  // issue #104: https://github.com/banacorn/agda-mode/issues/104
-  React.useEffect1(
-    () => {
-      editors.query = React.Ref.current(queryRef);
-      None;
-    },
-    [|state.mountAt|],
-  );
-
-  /* toggle docking */
-  Hook.useChannel(
-    () => {
-      send(ToggleDocking);
-      Async.resolve();
-    },
-    channels.toggleDocking,
-  );
 
   /* display mode! */
   Hook.useChannel(
@@ -299,8 +266,8 @@ let make =
       // removes `.agda-mode-panel` from the `.agda-mode-panel-container`
 
       // `stateRef` is permanant
-      let state = React.Ref.current(stateRef);
-      switch (state.mountAt) {
+      let mountingPoint = React.Ref.current(mountingPointRef);
+      switch (mountingPoint) {
       | Bottom(container) =>
         let panel = React.Ref.current(panelRef) |> Js.Nullable.toOption;
 
@@ -316,15 +283,13 @@ let make =
     handles.destroy,
   );
 
-  let {mountAt, settingsView} = state;
-
   let {
     View.inquireConnection,
     onInquireConnection,
     onInputMethodChange,
     navigateSettingsView,
   } = handles;
-  let containerElement = getPanelContainerFromState(state);
+  let containerElement = getPanelContainerFromMountingPoint(mountingPoint);
 
   let settingsElement: option(Webapi.Dom.Element.t) =
     switch (settingsView) {
@@ -332,7 +297,7 @@ let make =
     | Some(tab) => Some(tab.element)
     };
   let hidden =
-    switch (mountAt) {
+    switch (mountingPoint) {
     // only show the view when it's loaded and active
     | Bottom(_) => !activated
     | Pane(_) => false
@@ -349,9 +314,13 @@ let make =
             containerElement
             header
             body
-            mountAt
+            mountingPoint
             hidden
-            onMountAtChange={mountTo => send(MountTo(mountTo))}
+            onMountingTargetChange={
+              fun
+              | AtBottom => mountAtBottom()
+              | AtPane => mountAtPane()
+            }
             mode
             activated
             /* editors */

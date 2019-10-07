@@ -65,11 +65,11 @@ module Header = {
   };
 };
 /* action  */
-type mountTo =
-  | ToBottom
-  | ToPane;
+type mountingTarget =
+  | AtBottom
+  | AtPane;
 /* state */
-type mountAt =
+type mountingPoint =
   | Bottom(Webapi.Dom.Element.t)
   | Pane(Tab.t);
 type mode =

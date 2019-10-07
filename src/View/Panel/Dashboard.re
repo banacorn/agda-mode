@@ -8,9 +8,9 @@ let make =
       ~header: Type.View.Header.t,
       ~hidden: bool,
       ~isPending: bool,
-      ~mountAt: Type.View.mountAt,
+      ~mountingPoint: Type.View.mountingPoint,
       ~settingsView: option(Tab.t),
-      ~onMountAtChange: Type.View.mountTo => unit,
+      ~onMountingTargetChange: Type.View.mountingTarget => unit,
       ~onSettingsViewToggle: bool => unit,
     ) => {
   let settingsButtonRef = React.useRef(Js.Nullable.null);
@@ -76,7 +76,7 @@ let make =
   let toggleMountingPosition =
     "no-btn"
     ++ when_(
-         switch (mountAt) {
+         switch (mountingPoint) {
          | Pane(_) => true
          | _ => false
          },
@@ -99,9 +99,9 @@ let make =
         <button
           className=toggleMountingPosition
           onClick={_ =>
-            switch (mountAt) {
-            | Pane(_) => onMountAtChange(Type.View.ToBottom)
-            | _ => onMountAtChange(Type.View.ToPane)
+            switch (mountingPoint) {
+            | Pane(_) => onMountingTargetChange(Type.View.AtBottom)
+            | _ => onMountingTargetChange(Type.View.AtPane)
             }
           }
           ref={ReactDOMRe.Ref.domRef(dockingButtonRef)}>

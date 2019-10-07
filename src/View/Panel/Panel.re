@@ -7,10 +7,10 @@ let make =
     (
       ~editors: Editors.t,
       ~containerElement: Webapi.Dom.Element.t,
-      ~onMountAtChange: mountTo => unit,
+      ~onMountingTargetChange: mountingTarget => unit,
       ~body: Body.t,
       ~header: Header.t,
-      ~mountAt: mountAt,
+      ~mountingPoint: mountingPoint,
       ~mode: mode,
       ~hidden: bool,
       ~settingsView: option(Tab.t),
@@ -49,7 +49,7 @@ let make =
   );
 
   let mountAtBottom =
-    switch (mountAt) {
+    switch (mountingPoint) {
     | Bottom(_) => true
     | _ => false
     };
@@ -97,9 +97,9 @@ let make =
           header
           hidden=inputMethodActivated
           isPending
-          mountAt
+          mountingPoint
           settingsView
-          onMountAtChange
+          onMountingTargetChange
           onSettingsViewToggle
         />
       </section>
