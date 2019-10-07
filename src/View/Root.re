@@ -208,7 +208,6 @@ let make =
   let (body, setBody) = Hook.useState(Body.Nothing);
   let (mode, setMode) = Hook.useState(Display);
   let (shouldDisplay, setShouldDisplay) = Hook.useState(false);
-  let (isPending, setIsPending) = Hook.useState(false);
   let ((connection, connectionError), setConnectionAndError) =
     Hook.useState((None, None));
 
@@ -297,9 +296,6 @@ let make =
     channels.inquire,
   );
 
-  // toggle pending spinner
-  Hook.useChannel(setIsPending >> Async.resolve, channels.updateIsPending);
-
   // toggle state of shouldDisplay
   Hook.useChannel(
     setShouldDisplay >> Async.resolve,
@@ -387,7 +383,6 @@ let make =
             hidden
             onMountAtChange={mountTo => send(MountTo(mountTo))}
             mode
-            isPending
             isActive
             /* editors */
             onQueryEditorRef={ref =>

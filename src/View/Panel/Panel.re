@@ -1,3 +1,4 @@
+open Rebase.Fn;
 open Type.View;
 open Util.React;
 
@@ -13,7 +14,6 @@ let make =
       ~mode: mode,
       ~hidden: bool,
       ~settingsView: option(Tab.t),
-      ~isPending: bool,
       ~isActive: bool,
       ~panelRef: ReactDOMRe.Ref.currentDomRef,
       /* Editors */
@@ -24,9 +24,17 @@ let make =
       ~onInputMethodChange: Event.t(InputMethod.state, unit),
       ~onSettingsViewToggle: bool => unit,
     ) => {
+  let channels = React.useContext(Channels.context);
+
   let (maxHeight, setMaxHeight) = Hook.useState(170);
   let (inputMethodActivated, setInputMethodActivation) =
     Hook.useState(false);
+
+  // the spinning wheel
+  let (isPending, setIsPending) = Hook.useState(false);
+
+  // toggle pending spinner
+  Hook.useChannel(setIsPending >> Async.resolve, channels.updateIsPending);
 
   React.useEffect1(
     () => {
