@@ -3,51 +3,54 @@ open Rebase.Fn;
 open Type.View;
 open Util.React;
 
-// get "article.agda-mode-panel-container", create one if not found
-external fromDomElement: Dom.element => Atom.Workspace.item = "%identity";
-external asElement:
-  Webapi.Dom.HtmlElement.t_htmlElement => Webapi.Dom.Element.t =
-  "%identity";
-let getBottomPanelContainer = (): Webapi.Dom.Element.t => {
-  open Webapi.Dom;
-  open DomTokenList;
+module PanelContainer = {
+  // get "article.agda-mode-panel-container", create one if not found
+  external fromDomElement: Dom.element => Atom.Workspace.item = "%identity";
+  external asElement:
+    Webapi.Dom.HtmlElement.t_htmlElement => Webapi.Dom.Element.t =
+    "%identity";
 
-  // create "article.agda-mode-panel-container"
-  // shared by all instances, should only be invoked once!
-  let createBottomPanelContainer = (): Element.t => {
-    let panelContainer = document |> Document.createElement("article");
-    panelContainer |> Element.classList |> add("agda-mode-panel-container");
-    Atom.Workspace.addBottomPanel({
-      "item": fromDomElement(panelContainer),
-      "priority": 0,
-      "visible": true,
-    })
-    |> ignore;
-    panelContainer;
+  let createForBottom = (): mountingPoint => {
+    open Webapi.Dom;
+    open DomTokenList;
+
+    // create "article.agda-mode-panel-container"
+    // shared by all instances, should only be invoked once!
+    let createBottomPanelContainer = (): Element.t => {
+      let panelContainer = document |> Document.createElement("article");
+      panelContainer |> Element.classList |> add("agda-mode-panel-container");
+      Atom.Workspace.addBottomPanel({
+        "item": fromDomElement(panelContainer),
+        "priority": 0,
+        "visible": true,
+      })
+      |> ignore;
+      panelContainer;
+    };
+
+    let containers =
+      Atom.Workspace.getBottomPanels()
+      |> Array.map(Atom.Views.getView)
+      |> Array.flatMap(
+           HtmlElement.childNodes
+           >> NodeList.toArray
+           >> Array.filterMap(HtmlElement.ofNode),
+         )
+      |> Array.filter(elem =>
+           elem |> HtmlElement.className == "agda-mode-panel-container"
+         );
+
+    switch (containers[0]) {
+    | None => Bottom(createBottomPanelContainer())
+    | Some(container) => Bottom(asElement(container))
+    };
   };
 
-  let containers =
-    Atom.Workspace.getBottomPanels()
-    |> Array.map(Atom.Views.getView)
-    |> Array.flatMap(
-         HtmlElement.childNodes
-         >> NodeList.toArray
-         >> Array.filterMap(HtmlElement.ofNode),
-       )
-    |> Array.filter(elem =>
-         elem |> HtmlElement.className == "agda-mode-panel-container"
-       );
-
-  switch (containers[0]) {
-  | None => createBottomPanelContainer()
-  | Some(container) => asElement(container)
-  };
+  let fromMountingPoint =
+    fun
+    | Bottom(element) => element
+    | Pane(tab) => tab |> Tab.getElement;
 };
-
-let getPanelContainerFromMountingPoint =
-  fun
-  | Bottom(element) => element
-  | Pane(tab) => tab |> Tab.getElement;
 
 [@react.component]
 let make =
@@ -137,7 +140,7 @@ let make =
   ////////////////////////////////////////////
 
   let (mountingPoint, setMountingPoint) =
-    Hook.useState(Bottom(getBottomPanelContainer()));
+    Hook.useState(PanelContainer.createForBottom());
 
   // in case that we need to access the latest mounting point from Hook.useChannel
   // as the closure of the callback of Hook.useChannel is only captured at the first render
@@ -181,7 +184,7 @@ let make =
     | (Bottom(_), AtPane) => setMountingPoint(Pane(createTab()))
     | (Pane(tab), AtBottom) =>
       Tab.kill(tab);
-      setMountingPoint(Bottom(getBottomPanelContainer()));
+      setMountingPoint(PanelContainer.createForBottom());
     | (Pane(_), AtPane) => ()
     };
   }
@@ -225,7 +228,7 @@ let make =
       setActivation(true);
       mountingPointRef
       |> React.Ref.current
-      |> getPanelContainerFromMountingPoint
+      |> PanelContainer.fromMountingPoint
       |> Async.resolve;
     },
     channels.activatePanel,
@@ -262,7 +265,7 @@ let make =
     },
     channels.destroy,
   );
-  let containerElement = getPanelContainerFromMountingPoint(mountingPoint);
+  let containerElement = PanelContainer.fromMountingPoint(mountingPoint);
 
   let hidden =
     switch (mountingPoint) {
