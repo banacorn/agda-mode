@@ -214,18 +214,25 @@ let deactivate = _ =>
 /* https://atom.io/docs/api/latest/Config */
 let config = {
   "agdaPath": {
-    "title": "Agda",
+    "title": "Agda path",
     "description": "Path to the executable of Agda, automatically inferred when possible. Overwrite to override.",
     "type": "string",
     "default": "",
     "order": 1,
+  },
+  "agdaName": {
+    "title": "Agda name",
+    "description": "Default to \"agda\", this is the name we use to search for the path",
+    "type": "string",
+    "default": "agda",
+    "order": 2,
   },
   "enableJSONProtocol": {
     "title": "Enable the JSON protocol (experimental)",
     "description": "Demand Agda to output in JSON format when possible",
     "type": "boolean",
     "default": false,
-    "order": 2,
+    "order": 3,
   },
   "libraryPath": {
     "title": "Libraries",
@@ -235,7 +242,7 @@ let config = {
     "items": {
       "type": "string",
     },
-    "order": 5,
+    "order": 10,
   },
   "backend": {
     "title": "Backend",
@@ -243,7 +250,7 @@ let config = {
     "type": "string",
     "default": "GHCNoMain",
     "enum": [|"GHC", "GHCNoMain"|],
-    "order": 10,
+    "order": 11,
   },
   "highlightingMethod": {
     "title": "Highlighting information passing",
@@ -263,14 +270,14 @@ let config = {
     "order": 30,
   },
   "inputMethod": {
-    "title": "Input Method",
+    "title": "Input method",
     "description": "Enable input method",
     "type": "boolean",
     "default": true,
     "order": 40,
   },
   "inputMethodExtension": {
-    "title": "Input Method Extension",
+    "title": "Input method extension",
     "description": "For adding or prioritizing key mappings. Please edit this from \"Settings > Input Method > Keymap extensions\"",
     "type": "string",
     "default": {j|{"^r":["ʳ"],"^l":["ˡ"]}|j},

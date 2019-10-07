@@ -3,9 +3,9 @@ open Fn;
 
 module Error = {
   type autoSearch =
-    | ProcessHanging
+    | ProcessHanging(string)
     | NotSupported(string)
-    | NotFound(string);
+    | NotFound(string, string);
 
   type validation =
     /* the path is empty */
@@ -32,15 +32,23 @@ module Error = {
 
   let toString =
     fun
-    | AutoSearchError(ProcessHanging) => (
-        "Process not responding",
+    | AutoSearchError(ProcessHanging("agda")) => (
+        {js|Process not responding|js},
+        {j|Please restart the process|j},
+      )
+    | AutoSearchError(ProcessHanging(name)) => (
+        "Process not responding when looking for \"" ++ name ++ "\"",
         {j|Please restart the process|j},
       )
     | AutoSearchError(NotSupported(os)) => (
         "Auto search failed",
         {j|currently auto path searching is not supported on $(os)|j},
       )
-    | AutoSearchError(NotFound(msg)) => ("Auto search failed", msg)
+    | AutoSearchError(NotFound("agda", msg)) => ("Auto search failed", msg)
+    | AutoSearchError(NotFound(name, msg)) => (
+        "Auto search failed when looking for \"" ++ name ++ "\"",
+        msg,
+      )
     | ValidationError(_path, PathMalformed(msg)) => ("Path malformed", msg)
     | ValidationError(_path, ProcessHanging) => (
         "Process hanging",
@@ -97,12 +105,12 @@ let disconnect = (error, self) => {
 };
 
 /* a more sophiscated "make" */
-let autoSearch = (path): Async.t(string, Error.t) =>
+let autoSearch = (name): Async.t(string, Error.t) =>
   Async.make((resolve, reject) => {
     /* reject if the process hasn't responded for more than 1 second */
     let hangTimeout =
       Js.Global.setTimeout(
-        () => reject(ProcessHanging: Error.autoSearch),
+        () => reject(ProcessHanging(name): Error.autoSearch),
         1000,
       );
     let commandName =
@@ -117,7 +125,7 @@ let autoSearch = (path): Async.t(string, Error.t) =>
     | Error(os) => reject(NotSupported(os))
     | Ok(commandName') =>
       N.ChildProcess.exec(
-        commandName' ++ " " ++ path,
+        commandName' ++ " " ++ name,
         (error, stdout, stderr) => {
           /* clear timeout as the process has responded */
           Js.Global.clearTimeout(hangTimeout);
@@ -126,19 +134,21 @@ let autoSearch = (path): Async.t(string, Error.t) =>
           switch (error |> Js.Nullable.toOption) {
           | None => ()
           | Some(err) =>
-            reject(NotFound(err |> Js.Exn.message |> Option.getOr("")))
+            reject(
+              NotFound(name, err |> Js.Exn.message |> Option.getOr("")),
+            )
           };
 
           /* stderr */
           let stderr' = stderr |> Node.Buffer.toString;
           if (stderr' |> String.isEmpty |> (!)) {
-            reject(NotFound(stderr'));
+            reject(NotFound(name, stderr'));
           };
 
           /* stdout */
           let stdout' = stdout |> Node.Buffer.toString;
           if (stdout' |> String.isEmpty) {
-            reject(NotFound(""));
+            reject(NotFound(name, ""));
           } else {
             resolve(Parser.filepath(stdout'));
           };

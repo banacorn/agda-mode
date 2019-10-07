@@ -22,9 +22,10 @@ let inquireAgdaPath =
 
 let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
   let storedPath = Config.get("agda-mode.agdaPath") |> Parser.filepath;
+  let searchingFor = Config.get("agda-mode.agdaName") |> String.trim;
   let searchedPath =
     if (String.isEmpty(storedPath) || storedPath == ".") {
-      Connection.autoSearch("agda");
+      Connection.autoSearch(searchingFor);
     } else {
       resolve(storedPath);
     };
