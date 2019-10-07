@@ -74,10 +74,6 @@ let initialState = {
 };
 
 type action =
-  /* Settings Tab related */
-  | ToggleSettingsTab(bool)
-  | UpdateSettingsView(option(Tab.t))
-  /*  */
   | UpdateMountAt(mountAt)
   | MountTo(mountTo)
   | ToggleDocking
@@ -114,46 +110,7 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
   None;
 };
 
-let mountSettings = (editors: Editors.t, handles, open_, self) => {
-  switch (self.state.settingsView) {
-  | None =>
-    if (open_) {
-      let tab =
-        Tab.make(
-          ~editor=editors.source,
-          ~getTitle=
-            () => "[Settings] " ++ Atom.TextEditor.getTitle(editors.source),
-          ~path="settings",
-          ~onOpen=
-            (_, _, _) =>
-              /* <Settings> is opened */
-              handles.View.onSettingsView |> Event.emitOk(true),
-          ~onClose=
-            _ => {
-              self.send(ToggleSettingsTab(false));
-              /* <Settings> is closed */
-              handles.onSettingsView |> Event.emitOk(false);
-            },
-          (),
-        );
-      self.send(UpdateSettingsView(Some(tab)));
-    };
-    None;
-  | Some(tab) =>
-    if (open_) {
-      /* <Settings> is opened */
-      handles.onSettingsView |> Event.emitOk(true);
-    } else {
-      tab.kill();
-      self.send(UpdateSettingsView(None));
-      /* <Settings> is closed */
-      handles.onSettingsView |> Event.emitOk(false);
-    };
-    None;
-  };
-};
-
-let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
+let reducer = (editors: Editors.t, action, state) => {
   switch (action) {
   | Activate =>
     switch (state.mountAt) {
@@ -186,9 +143,6 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
         },
       )
     }
-  | ToggleSettingsTab(open_) =>
-    SideEffects(mountSettings(editors, handles, open_))
-  | UpdateSettingsView(settingsView) => Update({...state, settingsView})
   | UpdateMountAt(mountAt) => Update({...state, mountAt})
   };
 };
@@ -196,8 +150,57 @@ let reducer = (editors: Editors.t, handles: View.handles, action, state) => {
 [@react.component]
 let make =
     (~editors: Editors.t, ~handles: View.handles, ~channels: Channels.t) => {
+  let (activated, setActivation) = Hook.useState(false);
+  let (view, setView) = Hook.useState(None);
+  let ((connection, connectionError), setConnectionAndError) =
+    Hook.useState((None, None));
+
+  // input
+  Hook.useEventListener(setActivation, handles.activateSettingsView);
+  Hook.useEventListener(setConnectionAndError, handles.updateConnection);
+
+  React.useEffect1(
+    () =>
+      switch (view, activated) {
+      | (None, true) =>
+        let tab =
+          Tab.make(
+            ~editor=editors.source,
+            ~getTitle=
+              () => "[Settings] " ++ Atom.TextEditor.getTitle(editors.source),
+            ~path="settings",
+            ~onOpen=
+              (_, _, _) =>
+                /* <Settings> is opened */
+                handles.View.onSettingsView |> Event.emitOk(true),
+            ~onClose=
+              _ => {
+                setActivation(false);
+                /* <Settings> is closed */
+                handles.onSettingsView |> Event.emitOk(false);
+              },
+            (),
+          );
+        setView(Some(tab));
+        None;
+      | (None, false) => None
+      | (Some(_), true) =>
+        /* <Settings> is opened */
+        handles.onSettingsView |> Event.emitOk(true);
+        None;
+      | (Some(tab), false) =>
+        tab.Tab.kill();
+        setView(None);
+
+        /* <Settings> is closed */
+        handles.onSettingsView |> Event.emitOk(false);
+        None;
+      },
+    [|activated|],
+  );
+
   let (state, send) =
-    ReactUpdate.useReducer(initialState, reducer(editors, handles));
+    ReactUpdate.useReducer(initialState, reducer(editors));
   let queryRef = React.useRef(None);
 
   let (debug, debugDispatch) =
@@ -208,8 +211,6 @@ let make =
   let (body, setBody) = Hook.useState(Body.Nothing);
   let (mode, setMode) = Hook.useState(Display);
   let (shouldDisplay, setShouldDisplay) = Hook.useState(false);
-  let ((connection, connectionError), setConnectionAndError) =
-    Hook.useState((None, None));
 
   let panelRef = React.useRef(Js.Nullable.null);
 
@@ -339,13 +340,6 @@ let make =
     handles.destroy,
   );
 
-  /* opening/closing <Settings> */
-  Hook.useEventListener(
-    activate => send(ToggleSettingsTab(activate)),
-    handles.activateSettingsView,
-  );
-  Hook.useEventListener(setConnectionAndError, handles.updateConnection);
-
   let {mountAt, isActive, settingsView} = state;
 
   let {
@@ -395,7 +389,7 @@ let make =
             editorPlaceholder=""
             onInputMethodChange
             settingsView
-            onSettingsViewToggle={status => send(ToggleSettingsTab(status))}
+            onSettingsViewToggle=setActivation
           />
           <Settings
             inquireConnection
