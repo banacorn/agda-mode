@@ -33,7 +33,7 @@ describe_skip("when loading files", () =>
                      ),
                    )
                 |> thenOk(_ => {
-                     BsMocha.Assert.ok(true);
+                     Assert.ok();
                      resolve();
                    })
                 |> mapError(error => {

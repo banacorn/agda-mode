@@ -1,6 +1,4 @@
 open Rebase;
-// open BsChai.Expect;
-// open BsMocha;
 open! BsMocha.Mocha;
 open! BsMocha.Promise;
 open Js.Promise;
@@ -21,7 +19,7 @@ describe("Input Method", () => {
            |> Atom.Views.getView
            |> HtmlElement.classList
            |> DomTokenList.contains("agda-mode-input-method-activated")
-           |> Assert.equal(false);
+           |> Assert.no;
            resolve();
          })
     );
@@ -36,7 +34,7 @@ describe("Input Method", () => {
            |> Atom.Views.getView
            |> HtmlElement.classList
            |> DomTokenList.contains("agda-mode-input-method-activated")
-           |> Assert.equal(true);
+           |> Assert.yes;
            resolve();
          })
     );
@@ -51,7 +49,7 @@ describe("Input Method", () => {
                 element
                 |> HtmlElement.classList
                 |> DomTokenList.contains("hidden")
-                |> Assert.equal(true);
+                |> Assert.yes;
                 resolve(instance);
               })
          )
@@ -64,7 +62,7 @@ describe("Input Method", () => {
                 element
                 |> HtmlElement.classList
                 |> DomTokenList.contains("hidden")
-                |> Assert.equal(false);
+                |> Assert.no;
                 resolve();
               })
          )

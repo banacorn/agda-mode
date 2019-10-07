@@ -14,7 +14,7 @@ let parseSExpression = (breakpoints, input) => {
     Parser.SExpression.makeIncr(
       fun
       | OnResult(Rebase.Error(err)) =>
-        BsMocha.Assert.fail(
+        Assert.fail(
           "Failed when parsing S-expression: " ++ Parser.Error.toString(err),
         )
       | OnResult(Rebase.Ok(a)) => Js.Array.push(a, output^) |> ignore

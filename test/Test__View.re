@@ -1,7 +1,5 @@
 open Rebase;
 open Fn;
-
-open BsChai.Expect;
 open! BsMocha.Mocha;
 open! BsMocha.Promise;
 open Js.Promise;
@@ -27,8 +25,10 @@ describe("View", () => {
                |> Array.filterMap(Element.ofNode);
 
              // we've activated a panel with the class name ".agda-mode-panel-container"
-             Expect.expect(children |> Array.map(Element.className))
-             |> Combos.End.to_include("agda-mode-panel-container");
+             children
+             |> Array.map(Element.className)
+             |> Js.Array.includes("agda-mode-panel-container")
+             |> Assert.yes;
              resolve();
            })
       );
@@ -56,7 +56,7 @@ describe("View", () => {
              |> Array.filterMap(Element.ofNode)
              |> Array.map(Element.id)
              |> Js.Array.includes(targetID)
-             |> Assert.equal(true);
+             |> Assert.yes;
 
              resolve();
            })
@@ -106,7 +106,7 @@ describe("View", () => {
              View.getPanelContainersAtPanes()
              |> Array.map(HtmlElement.className)
              |> Js.Array.includes("agda-mode-panel-container")
-             |> Assert.equal(true);
+             |> Assert.yes;
              resolve();
            })
       );
@@ -123,7 +123,7 @@ describe("View", () => {
              View.getPanelContainersAtPanes()
              |> Array.map(HtmlElement.className)
              |> Js.Array.includes("agda-mode-panel-container")
-             |> Assert.equal(false);
+             |> Assert.no;
              resolve();
            })
       );

@@ -1,7 +1,6 @@
 open Rebase;
 open Fn;
 
-open BsMocha;
 open! BsMocha.Mocha;
 open! BsMocha.Promise;
 open Js.Promise;
@@ -65,7 +64,7 @@ describe("Distribution", () => {
       onProd(() =>
         readPackageJSONMain()
         |> then_(path => {
-             Assert.equal(path, "./lib/js/bundled.js");
+             path |> Assert.equal("./lib/js/bundled.js");
              resolve(0);
            })
       )
@@ -77,7 +76,7 @@ describe("Distribution", () => {
       onDev(() =>
         readPackageJSONMain()
         |> then_(path => {
-             Assert.equal(path, "./lib/js/src/AgdaMode.bs");
+             path |> Assert.equal("./lib/js/src/AgdaMode.bs");
              resolve(0);
            })
       )

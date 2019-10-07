@@ -6,6 +6,17 @@ open Js.Promise;
 
 exception Exn(string);
 
+module Assert = {
+  let equal = (~message=?, expected, actual) =>
+    BsMocha.Assert.equal(~message?, actual, expected);
+  let yes = equal(true);
+  let no = equal(false);
+  let fail = BsMocha.Assert.fail;
+  let ok = BsMocha.Assert.ok;
+  // let not_equal = (~message=?, expected, actual) =>
+  //   Assert.not_equal(~message?, actual, expected);
+};
+
 module Golden = {
   // bindings for jsdiff
   type diff = {
@@ -439,11 +450,4 @@ module Keyboard = {
     |> then_(_ => onChange)
     |> then_(_ => resolve(instance));
   };
-};
-
-module Assert = {
-  let equal = (~message=?, expected, actual) =>
-    BsMocha.Assert.equal(~message?, actual, expected);
-  // let not_equal = (~message=?, expected, actual) =>
-  //   BsMocha.Assert.not_equal(~message?, actual, expected);
 };

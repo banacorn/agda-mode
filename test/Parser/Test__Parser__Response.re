@@ -15,7 +15,7 @@ let toResponses = exprs => {
     | Ok(_) => None;
   let extractOk = Option.fromResult;
   let failures = Array.filterMap(extractError, result);
-  failures |> Array.forEach(BsMocha.Assert.fail);
+  failures |> Array.forEach(Assert.fail);
   Array.filterMap(extractOk, result);
 };
 

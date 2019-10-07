@@ -1,10 +1,6 @@
-// open BsMocha;
 open! BsMocha.Mocha;
 open! BsMocha.Promise;
 open Js.Promise;
-// open BsChai.Expect.Expect; // exports `expect`
-// open BsChai.Expect.Combos;
-// open BsChai.Expect;
 
 open Test__Util;
 
@@ -53,13 +49,13 @@ after(Package.deactivate);
 
 describe("Instances", () => {
   it_skip("should have no instances before opening any files", () =>
-    BsMocha.Assert.equal(AgdaMode.Instances.size(), 0) |> resolve
+    AgdaMode.Instances.size() |> Assert.equal(0) |> resolve
   );
 
   it("should respect the number of opened .agda file", () =>
     File.openAsset("Temp.agda")
     |> then_(editor => {
-         BsMocha.Assert.equal(AgdaMode.Instances.size(), 1);
+         AgdaMode.Instances.size() |> Assert.equal(1);
          let pane = Atom.Workspace.getActivePane();
          Atom.Pane.destroyItem_(
            Atom.TextEditor.asWorkspaceItem(editor),
@@ -68,7 +64,7 @@ describe("Instances", () => {
          );
        })
     |> then_(destroyed => {
-         BsMocha.Assert.equal(AgdaMode.Instances.size(), destroyed ? 0 : 1);
+         Assert.equal(AgdaMode.Instances.size(), destroyed ? 0 : 1);
          resolve();
        })
   );
@@ -76,7 +72,7 @@ describe("Instances", () => {
   it("should respect the number of opened .lagda file", () =>
     File.openAsset("Blank2.lagda")
     |> then_(editor => {
-         BsMocha.Assert.equal(AgdaMode.Instances.size(), 1);
+         AgdaMode.Instances.size() |> Assert.equal(1);
          let pane = Atom.Workspace.getActivePane();
          Atom.Pane.destroyItem_(
            Atom.TextEditor.asWorkspaceItem(editor),
@@ -85,7 +81,7 @@ describe("Instances", () => {
          );
        })
     |> then_(destroyed => {
-         BsMocha.Assert.equal(AgdaMode.Instances.size(), destroyed ? 0 : 1);
+         AgdaMode.Instances.size() |> Assert.equal(destroyed ? 0 : 1);
          resolve();
        })
   );
@@ -97,7 +93,7 @@ describe("Instances", () => {
          |> Atom.Views.getView
          |> Webapi.Dom.HtmlElement.classList
          |> Webapi.Dom.DomTokenList.contains("agda")
-         |> BsMocha.Assert.ok;
+         |> Assert.yes;
          resolve();
        })
   );

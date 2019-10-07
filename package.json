@@ -36,7 +36,6 @@
     "@glennsl/rebase": "github:glennsl/rebase",
     "atom": "github:banacorn/bs-atom#v1.40.2",
     "atom-mocha": "^2.2.0",
-    "bs-chai": "^1.0.1",
     "bs-mocha": "^0.5.0",
     "bs-platform": "^5.0.4",
     "bs-webapi": "^0.15.3",
