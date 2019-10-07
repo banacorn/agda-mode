@@ -13,9 +13,21 @@ type t = Instance__Type.t;
 let handleCommandError = Handler.handleCommandError;
 let dispatch = Handler.dispatch;
 
-let activate = instance => instance.view.activate();
+let activate = instance =>
+  // only activate the view when it's loaded
+  if (instance.isLoaded) {
+    instance.view.activate() |> thenOk(_ => resolve());
+  } else {
+    resolve();
+  };
 
-let deactivate = instance => instance.view.deactivate();
+let deactivate = instance =>
+  // only deactivate the view when it's loaded
+  if (instance.isLoaded) {
+    instance.view.deactivate() |> thenOk(_ => resolve());
+  } else {
+    resolve();
+  };
 
 let destroy = instance => instance.view.destroy();
 

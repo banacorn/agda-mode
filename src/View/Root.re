@@ -57,7 +57,6 @@ let getBottomPanelContainer = (): Webapi.Dom.Element.t => {
 
 type state = {
   mountAt,
-  activated: bool,
   settingsView: option(Tab.t),
 };
 
@@ -69,17 +68,13 @@ let getPanelContainerFromState = state =>
 
 let initialState = {
   mountAt: Bottom(getBottomPanelContainer()),
-  activated: false,
   settingsView: None,
 };
 
 type action =
   | UpdateMountAt(mountAt)
   | MountTo(mountTo)
-  | ToggleDocking
-  | Activate
-  | Deactivate;
-/*  */
+  | ToggleDocking;
 
 let mountPanel = (editors: Editors.t, mountTo, self) => {
   let createTab = () =>
@@ -112,19 +107,6 @@ let mountPanel = (editors: Editors.t, mountTo, self) => {
 
 let reducer = (editors: Editors.t, action, state) => {
   switch (action) {
-  | Activate =>
-    switch (state.mountAt) {
-    | Bottom(_) => Update({...state, activated: true})
-    | Pane(tab) =>
-      UpdateWithSideEffects(
-        {...state, activated: true},
-        _ => {
-          tab.activate();
-          None;
-        },
-      )
-    }
-  | Deactivate => Update({...state, activated: false})
   | MountTo(mountTo) => SideEffects(mountPanel(editors, mountTo))
   | ToggleDocking =>
     switch (state.mountAt) {
@@ -150,6 +132,10 @@ let reducer = (editors: Editors.t, action, state) => {
 [@react.component]
 let make =
     (~editors: Editors.t, ~handles: View.handles, ~channels: Channels.t) => {
+  ////////////////////////////////////////////
+  // <Settings>
+  ////////////////////////////////////////////
+
   let (settingsActivated, setSettingsActivation) = Hook.useState(false);
   let (settingsView, setSettingsView) = Hook.useState(None);
   let ((connection, connectionError), setConnectionAndError) =
@@ -198,9 +184,54 @@ let make =
       },
     [|settingsActivated|],
   );
+  ////////////////////////////////////////////
+  // <Panel>
+  ////////////////////////////////////////////
 
   let (state, send) =
     ReactUpdate.useReducer(initialState, reducer(editors));
+  // in case that we need to access the latest state from Hook.useChannel
+  // as the closure of the callback of Hook.useChannel is only captured at the first render
+  let stateRef = React.useRef(state);
+  React.Ref.setCurrent(stateRef, state);
+
+  // <Panel> Activation
+  let (activated, setActivation) = Hook.useState(false);
+
+  // output: activated
+  React.useEffect1(
+    () => {
+      if (activated) {
+        switch (state.mountAt) {
+        | Bottom(_) => ()
+        | Pane(tab) => tab.activate()
+        };
+      };
+      None;
+    },
+    [|activated|],
+  );
+
+  // input: activated
+  Hook.useChannel(
+    () => {
+      setActivation(true);
+      stateRef
+      |> React.Ref.current
+      |> getPanelContainerFromState
+      |> Async.resolve;
+    },
+    channels.activatePanel,
+  );
+
+  Hook.useChannel(
+    () => {
+      setActivation(false);
+      Async.resolve();
+    },
+    channels.deactivatePanel,
+  );
+
   let queryRef = React.useRef(None);
 
   let (debug, debugDispatch) =
@@ -213,11 +244,6 @@ let make =
 
   let panelRef = React.useRef(Js.Nullable.null);
 
-  // in case that we need to access the latest state from Hook.useChannel
-  // as the closure of the callback of Hook.useChannel is only captured at the first render
-  let stateRef = React.useRef(state);
-  React.Ref.setCurrent(stateRef, state);
-
   // reset the element of editors.query  everytime <Panel> got remounted
   // issue #104: https://github.com/banacorn/agda-mode/issues/104
   React.useEffect1(
@@ -226,36 +252,6 @@ let make =
       None;
     },
     [|state.mountAt|],
-  );
-
-  /* activate/deactivate <Panel> */
-  let onPanelActivated = Event.make();
-  let onPanelDeactivated = Event.make();
-
-  Hook.useChannel(
-    () => {
-      send(Activate);
-      let state = React.Ref.current(stateRef);
-      if (state.activated) {
-        Async.resolve(getPanelContainerFromState(state));
-      } else {
-        onPanelActivated |> Event.once;
-      };
-    },
-    channels.activatePanel,
-  );
-
-  Hook.useChannel(
-    () => {
-      send(Deactivate);
-      let state = React.Ref.current(stateRef);
-      if (state.activated) {
-        onPanelDeactivated |> Event.once;
-      } else {
-        Async.resolve();
-      };
-    },
-    channels.deactivatePanel,
   );
 
   /* toggle docking */
@@ -280,7 +276,7 @@ let make =
 
   Hook.useChannel(
     ((header, _placeholder, _value)) => {
-      send(Activate);
+      setActivation(true);
       setMode(Inquire);
       editors |> Editors.Focus.on(Query);
       setHeader(header);
@@ -294,19 +290,6 @@ let make =
          });
     },
     channels.inquire,
-  );
-
-  // trigger `onPanelActivationChange` only when it's changed
-  Hook.useDidUpdateEffect2(
-    () => {
-      if (state.activated) {
-        onPanelActivated |> Event.emitOk(getPanelContainerFromState(state));
-      } else {
-        onPanelDeactivated |> Event.emitOk();
-      };
-      None;
-    },
-    (state.mountAt, state.activated),
   );
 
   // destroy everything
@@ -333,7 +316,7 @@ let make =
     handles.destroy,
   );
 
-  let {mountAt, activated, settingsView} = state;
+  let {mountAt, settingsView} = state;
 
   let {
     View.inquireConnection,
