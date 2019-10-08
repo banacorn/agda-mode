@@ -4,7 +4,7 @@ open! BsMocha.Promise;
 open Js.Promise;
 open! Test__Util;
 
-describe_only("Connection", () =>
+describe("Connection", () =>
   describe("Path", () => {
     after_each(Package.after_each);
     it(

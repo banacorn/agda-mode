@@ -293,7 +293,7 @@ module Package = {
   let after_each = () => {
     let resetConfig = () => {
       Atom.Config.set("agda-mode.agdaPath", "") |> ignore;
-      Atom.Config.set("agda-mode.agdaName", "") |> ignore;
+      Atom.Config.set("agda-mode.agdaName", "agda") |> ignore;
       resolve();
     };
     let clearAllFiles = () => {

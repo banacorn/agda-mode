@@ -29,7 +29,6 @@ let onProd = callback =>
   branch()
   |> then_(x =>
        switch (Js.nullToOption(x)) {
-       | None => callback()
        | Some("master") => callback()
        | _ => resolve(0)
        }
@@ -39,7 +38,6 @@ let onDev = callback =>
   branch()
   |> then_(x =>
        switch (Js.nullToOption(x)) {
-       | None => resolve(0)
        | Some("master") => resolve(0)
        | _ => callback()
        }
