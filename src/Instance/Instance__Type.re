@@ -23,5 +23,7 @@ type t = {
   mutable runningInfo: RunningInfo.t,
   handleResponse: (t, Response.t) => Async.t(unit, error),
   dispatch: (Command.Primitive.t, t) => Async.t(unit, error),
+  // Events
   onDispatch: Event.t(unit, error),
+  onConnectionError: Event.t(Connection.Error.t, unit),
 };

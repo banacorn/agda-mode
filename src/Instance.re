@@ -55,6 +55,7 @@ let make = (textEditor: Atom.TextEditor.t) => {
     handleResponse: Handler.handleResponseAndRecoverCursor,
     dispatch: Handler.dispatch,
     onDispatch: Event.make(),
+    onConnectionError: Event.make(),
   };
 
   /* listen to `onInquireConnection` */

@@ -12,7 +12,7 @@ module Assert = {
   let yes = equal(true);
   let no = equal(false);
   let fail = BsMocha.Assert.fail;
-  let ok = BsMocha.Assert.ok;
+  let ok = _ => BsMocha.Assert.ok(true);
   // let not_equal = (~message=?, expected, actual) =>
   //   Assert.not_equal(~message?, actual, expected);
 };
@@ -291,6 +291,11 @@ module Package = {
 
   // after_each
   let after_each = () => {
+    let resetConfig = () => {
+      Atom.Config.set("agda-mode.agdaPath", "") |> ignore;
+      Atom.Config.set("agda-mode.agdaName", "") |> ignore;
+      resolve();
+    };
     let clearAllFiles = () => {
       File.openAsset("Temp.agda")
       |> then_(editor => {
@@ -315,7 +320,7 @@ module Package = {
       |> all
       |> then_(_ => resolve());
 
-    destroyAllTextEditors() |> then_(clearAllFiles);
+    resetConfig() |> then_(destroyAllTextEditors) |> then_(clearAllFiles);
   };
 };
 

@@ -30,7 +30,11 @@ let getAgdaPath = (instance): Async.t(string, MiniEditor.error) => {
       resolve(storedPath);
     };
 
-  searchedPath |> thenError(err => instance |> inquireAgdaPath(Some(err)));
+  searchedPath
+  |> thenError(err => {
+       instance.onConnectionError |> Event.emitOk(err);
+       instance |> inquireAgdaPath(Some(err));
+     });
 };
 
 let persistConnection = (instance, connection: Connection.t) => {
