@@ -1,3 +1,6 @@
+## 0.9.10
+* Fix #79 (forgot to bundle this in the last release)
+
 ## 0.9.9
 * Merge PR#114 by @erydo 👏
 * Fix #79 (allow users to custom keymap)
