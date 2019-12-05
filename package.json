@@ -1,7 +1,7 @@
 {
   "name": "agda-mode",
   "main": "./lib/js/src/AgdaMode.bs",
-  "version": "0.9.9",
+  "version": "0.9.10",
   "description": "agda-mode on Atom",
   "scripts": {
     "keymap-gen": "./keymap.el generate",
