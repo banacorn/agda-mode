@@ -1,3 +1,6 @@
+## 0.9.11
+* Fix #116 (related to version number comparison)
+
 ## 0.9.10
 * Fix #79 (forgot to bundle this in the last release)
 

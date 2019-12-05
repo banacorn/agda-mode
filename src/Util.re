@@ -258,10 +258,12 @@ module Version = {
     | LT
     | EQ
     | GT;
+
   [@bs.module]
   external compareVersionsPrim: (string, string) => int = "compare-versions";
+  let trim = Js.String.replaceByRe([%re "/-.*/"], "");
   let compare = (a, b) =>
-    switch (compareVersionsPrim(a, b)) {
+    switch (compareVersionsPrim(trim(a), trim(b))) {
     | (-1) => LT
     | 0 => EQ
     | _ => GT
