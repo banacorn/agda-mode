@@ -1,59 +1,8 @@
 open Type.View;
 
-module Event = Event;
 open Event;
 
 /************************************************************************************************************/
-
-type handles = {
-  // <Panel>
-  onInquire: Event.t(string, MiniEditor.error),
-  // events
-  // onPanelActivationChange: Event.t(option(Dom.element), unit),
-  inquireConnection: Event.t(unit, unit),
-  onInquireConnection: Event.t(string, MiniEditor.error),
-  activateSettingsView: Event.t(bool, unit),
-  onSettingsView: Event.t(bool, unit),
-  navigateSettingsView: Event.t(Settings.uri, unit),
-  /* Input Method */
-  onInputMethodChange: Event.t(InputMethod.state, unit),
-  /* Mouse Events */
-  onMouseEvent: Event.t(Mouse.event, unit),
-};
-
-/* creates all refs and return them */
-let makeHandles = () => {
-  // <Panel>
-
-  let onInquire = Event.make();
-
-  /* connection-related */
-  let inquireConnection = make();
-  let onInquireConnection = make();
-
-  /* <Settings> related */
-  let activateSettingsView = make();
-  let onSettingsView = make();
-  let navigateSettingsView = make();
-
-  /* <InputMethod> related */
-  let onInputMethodChange = Event.make();
-
-  // Others
-  let onMouseEvent = make();
-
-  {
-    onInquire,
-    // onPanelActivationChange,
-    inquireConnection,
-    onInquireConnection,
-    activateSettingsView,
-    onSettingsView,
-    navigateSettingsView,
-    onInputMethodChange,
-    onMouseEvent,
-  };
-};
 
 type t = {
   // <Panel> related
@@ -83,7 +32,7 @@ type t = {
   onInquireConnection: Event.t(string, MiniEditor.error),
   inquireConnection: unit => Async.t(string, MiniEditor.error),
 };
-let make = (handles: handles, channels: Channels.t) => {
+let make = (events: Events.t, channels: Channels.t) => {
   let activate = () => channels.activatePanel |> Channel.send();
   let deactivate = () => channels.deactivatePanel |> Channel.send();
   let toggleDocking = () => channels.toggleDocking |> Channel.send();
@@ -106,9 +55,7 @@ let make = (handles: handles, channels: Channels.t) => {
   let updateIsPending = isPending =>
     channels.updateIsPending |> Channel.send(isPending);
 
-  // let onPanelActivationChange = () => handles.onPanelActivationChange |> once;
-
-  let onMouseEvent = handles.onMouseEvent;
+  let onMouseEvent = events.onMouseEvent;
 
   let activateInputMethod = activate =>
     channels.activateInputMethod |> Channel.send(activate);
@@ -116,16 +63,16 @@ let make = (handles: handles, channels: Channels.t) => {
   let interceptAndInsertKey = symbol =>
     channels.interceptAndInsertKey |> Channel.send(symbol);
 
-  let onInputMethodChange = handles.onInputMethodChange;
+  let onInputMethodChange = events.onInputMethodChange;
 
   let navigateSettings = where =>
-    handles.navigateSettingsView |> emitOk(where);
+    events.navigateSettingsView |> emitOk(where);
 
-  let activateSettings = () => handles.activateSettingsView |> emitOk(true);
+  let activateSettings = () => events.activateSettingsView |> emitOk(true);
 
   let openSettings = () => {
     /* listen to `onSettingsView` before triggering `activateSettingsView` */
-    let promise = handles.onSettingsView |> once;
+    let promise = events.onSettingsView |> once;
     activateSettings();
     promise;
   };
@@ -133,11 +80,11 @@ let make = (handles: handles, channels: Channels.t) => {
   let updateConnection = (connection, error) =>
     channels.updateConnection |> Channel.send((connection, error));
 
-  let onInquireConnection = handles.onInquireConnection;
+  let onInquireConnection = events.onInquireConnection;
   let inquireConnection = () => {
     /* listen to `onInquireConnection` before triggering `inquireConnection` */
     let promise = onInquireConnection |> once;
-    handles.inquireConnection |> emitOk();
+    events.inquireConnection |> emitOk();
     promise;
   };
 

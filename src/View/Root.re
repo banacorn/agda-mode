@@ -5,8 +5,7 @@ open Type.View;
 module Event = Event;
 
 [@react.component]
-let make =
-    (~editors: Editors.t, ~handles: View.handles, ~channels: Channels.t) => {
+let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
   ////////////////////////////////////////////
   // <Settings>
   ////////////////////////////////////////////
@@ -16,7 +15,7 @@ let make =
   let settingsElement = settingsView |> Option.map(Tab.getElement);
 
   // input
-  Hook.useEventListener(setSettingsActivation, handles.activateSettingsView);
+  Hook.useEventListener(setSettingsActivation, events.activateSettingsView);
 
   React.useEffect1(
     () =>
@@ -31,12 +30,12 @@ let make =
             ~onOpen=
               (_, _, _) =>
                 /* <Settings> is opened */
-                handles.View.onSettingsView |> Event.emitOk(true),
+                events.onSettingsView |> Event.emitOk(true),
             ~onClose=
               _ => {
                 setSettingsActivation(false);
                 /* <Settings> is closed */
-                handles.onSettingsView |> Event.emitOk(false);
+                events.onSettingsView |> Event.emitOk(false);
               },
             (),
           );
@@ -45,14 +44,14 @@ let make =
       | (None, false) => None
       | (Some(_), true) =>
         /* <Settings> is opened */
-        handles.onSettingsView |> Event.emitOk(true);
+        events.onSettingsView |> Event.emitOk(true);
         None;
       | (Some(tab), false) =>
         Tab.kill(tab);
         setSettingsView(None);
 
         /* <Settings> is closed */
-        handles.onSettingsView |> Event.emitOk(false);
+        events.onSettingsView |> Event.emitOk(false);
         None;
       },
     [|settingsActivated|],
@@ -62,22 +61,22 @@ let make =
     React.useReducer(Debug.reducer, Debug.initialState);
 
   let {
-    View.inquireConnection,
+    Events.inquireConnection,
     onInquireConnection,
     onInputMethodChange,
     navigateSettingsView,
-  } = handles;
+  } = events;
   <>
     <Channels.Provider value=channels>
       <Mouse.Provider
-        value={event => handles.onMouseEvent |> Event.emitOk(event)}>
+        value={event => events.onMouseEvent |> Event.emitOk(event)}>
         <Debug.Provider value=debugDispatch>
           <Panel
             editors
             settingsActivated
             onInputMethodChange
             onSettingsViewToggle=setSettingsActivation
-            onInquireQuery={handles.onInquire}
+            onInquireQuery={events.onInquire}
           />
           <Settings
             inquireConnection
@@ -95,14 +94,14 @@ let make =
 let initialize = editors => {
   open Webapi.Dom;
   let element = document |> Document.createElement("article");
-  let handles = View.makeHandles();
+  let events = Events.make();
   let channels = Channels.make();
-  let view = View.make(handles, channels);
+  let view = View.make(events, channels);
 
   let component =
     React.createElementVariadic(
       make,
-      makeProps(~editors, ~handles, ~channels, ()),
+      makeProps(~editors, ~events, ~channels, ()),
       [||],
     );
 
