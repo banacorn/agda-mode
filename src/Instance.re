@@ -58,12 +58,6 @@ let make = (textEditor: Atom.TextEditor.t) => {
     onConnectionError: Event.make(),
   };
 
-  /* listen to `onInquireConnection` */
-  let destructor0 =
-    instance.view.onInquireConnection
-    |> Event.onOk(path =>
-         Connections.connectWithAgdaPath(instance, path) |> ignore
-       );
   /* listen to `onMouseEvent` */
   let destructor1 =
     instance.view.onMouseEvent
@@ -75,12 +69,7 @@ let make = (textEditor: Atom.TextEditor.t) => {
          }
        );
 
-  instance.view.onDestroy
-  |> Event.once
-  |> Async.finalOk(_ => {
-       destructor0();
-       destructor1();
-     });
+  instance.view.onDestroy |> Event.once |> Async.finalOk(_ => destructor1());
 
   instance;
 };

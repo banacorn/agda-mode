@@ -80,7 +80,6 @@ let connectWithAgdaPath =
     |> ignore;
     connection;
   };
-
   path
   |> getMetadata(instance)
   |> thenOk(getConnection(instance))

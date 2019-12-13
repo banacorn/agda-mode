@@ -11,9 +11,9 @@ let at = (x, y, classNames) => {
 
 [@react.component]
 let make =
+    // ~inquireConnection: Event.t(unit, unit),
+    // ~onInquireConnection: Event.t(string, MiniEditor.error),
     (
-      ~inquireConnection: Event.t(unit, unit),
-      ~onInquireConnection: Event.t(string, MiniEditor.error),
       ~navigate: Event.t(uri, unit),
       ~debug: Type.View.Debug.state,
       ~element: option(Webapi.Dom.Element.t),
@@ -61,9 +61,9 @@ let make =
                : null}
           </ul>
           <Settings__Connection
-            inquireConnection
-            onInquireConnection
             connection
+            // inquireConnection
+            // onInquireConnection
             error=connectionError
             hidden={uri != URI.Connection}
           />

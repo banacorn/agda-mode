@@ -29,10 +29,15 @@ type t = {
   updateConnection:
     (option(Connection.t), option(Connection.Error.t)) =>
     Async.t(unit, unit),
-  onInquireConnection: Event.t(string, MiniEditor.error),
+  // onInquireConnection: Event.t(string, MiniEditor.error),
   inquireConnection: unit => Async.t(string, MiniEditor.error),
 };
 let make = (events: Events.t, channels: Channels.t) => {
+  let settingsOpened = ref(false);
+  events.onSettingsView
+  |> Event.onOk(opened => settingsOpened := opened)
+  |> ignore;
+
   let activate = () => channels.activatePanel |> Channel.send();
   let deactivate = () => channels.deactivatePanel |> Channel.send();
   let toggleDocking = () => channels.toggleDocking |> Channel.send();
@@ -70,23 +75,26 @@ let make = (events: Events.t, channels: Channels.t) => {
 
   let activateSettings = () => events.activateSettingsView |> emitOk(true);
 
-  let openSettings = () => {
-    /* listen to `onSettingsView` before triggering `activateSettingsView` */
-    let promise = events.onSettingsView |> once;
-    activateSettings();
-    promise;
-  };
+  let openSettings = () =>
+    if (settingsOpened^) {
+      Async.resolve(true);
+    } else {
+      let promise = events.onSettingsView |> once;
+      activateSettings();
+      promise;
+    };
 
   let updateConnection = (connection, error) =>
     channels.updateConnection |> Channel.send((connection, error));
 
-  let onInquireConnection = events.onInquireConnection;
-  let inquireConnection = () => {
-    /* listen to `onInquireConnection` before triggering `inquireConnection` */
-    let promise = onInquireConnection |> once;
-    events.inquireConnection |> emitOk();
-    promise;
-  };
+  let inquireConnection = () => channels.inquireConnection |> Channel.send();
+
+  // let inquireConnection = () => {
+  //   /* listen to `onInquireConnection` before triggering `inquireConnection` */
+  //   let promise = onInquireConnection |> once;
+  //   events.inquireConnection |> emitOk();
+  //   promise;
+  // };
 
   let onDestroy = Event.make();
   let destroy = () =>
@@ -111,7 +119,7 @@ let make = (events: Events.t, channels: Channels.t) => {
     activateSettings,
     openSettings,
     updateConnection,
-    onInquireConnection,
+    // onInquireConnection,
     inquireConnection,
     toggleDocking,
   };

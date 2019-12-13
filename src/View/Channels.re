@@ -33,6 +33,7 @@ type t = {
       unit,
       unit,
     ),
+  inquireConnection: Channel.t(unit, string, MiniEditor.error),
 };
 
 /* creates all refs and return them */
@@ -56,6 +57,7 @@ let make = () => {
 
   // <Settings>
   updateConnection: Channel.make(),
+  inquireConnection: Channel.make(),
 };
 
 let context = React.createContext(make());

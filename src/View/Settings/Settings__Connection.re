@@ -1,68 +1,44 @@
 open ReasonReact;
 open Rebase;
+open Async;
 open Util.React;
 
 [@react.component]
 let make =
     (
-      ~inquireConnection: Event.t(unit, unit),
-      ~onInquireConnection: Event.t(string, MiniEditor.error),
       ~connection: option(Connection.t),
       ~error: option(Connection.Error.t),
       ~hidden,
     ) => {
+  let channels = React.useContext(Channels.context);
   let (autoSearchError, setAutoSearchError) = Hook.useState(None);
-  let (_, setConnectPath) = Hook.useState("");
-  let (editorRef, setEditorRef) = Hook.useState(None);
+  let editorRef = Resource.make();
+  let onSetPath = Event.make();
 
   /* triggering autoSearch */
   let handleAutoSearch = _ => {
     Connection.autoSearch("agda")
-    |> Async.thenOk(path =>
-         (
-           switch (editorRef) {
-           | None => ()
-           | Some(editor) => editor |> Atom.TextEditor.setText(path)
-           }
-         )
-         |> Async.resolve
+    |> thenOk(path =>
+         editorRef.acquire()
+         |> thenOk(editor => {
+              editor |> Atom.TextEditor.setText(path);
+              resolve();
+            })
        )
-    |> Async.finalError(err => setAutoSearchError(Some(err)));
+    // report error when autoSearch failed
+    |> finalError(err => setAutoSearchError(Some(err)));
   };
 
-  /* triggering connect */
-  let handleConnect = path => {
-    setConnectPath(path);
-    setAutoSearchError(None);
-    onInquireConnection |> Event.emitOk(path);
+  let focusOnPathEditor = editor => {
+    editor |> Atom.Views.getView |> Webapi.Dom.HtmlElement.focus;
+    editor |> Atom.TextEditor.selectAll |> ignore;
+    onSetPath |> Event.once;
   };
 
-  /* pipe `editorModel` to `onInquireConnection` */
-  React.useEffect1(
-    () => {
-      open Event;
-      let destructor = Event.make() |> pipe(onInquireConnection);
-      Some(destructor);
-    },
-    [||],
-  );
-  /* listens to `inquireConnection` */
-  React.useEffect1(
-    () => {
-      open Event;
-      open Webapi.Dom;
-      let destructor =
-        inquireConnection
-        |> onOk(() =>
-             editorRef
-             |> Option.forEach(editor => {
-                  editor |> Atom.Views.getView |> HtmlElement.focus;
-                  editor |> Atom.TextEditor.selectAll |> ignore;
-                })
-           );
-      Some(destructor);
-    },
-    [|editorRef|],
+  // focus on the path editor on `inquireConnection`
+  Hook.useChannel(
+    () => editorRef.acquire() |> thenOk(focusOnPathEditor),
+    channels.inquireConnection,
   );
 
   let connected = connection |> Option.isSome;
@@ -116,8 +92,11 @@ let make =
           }
         }
         placeholder="path to Agda"
-        onEditorRef={ref => setEditorRef(Some(ref))}
-        onConfirm=handleConnect
+        onEditorRef={editorRef.supply}
+        onConfirm={path => {
+          setAutoSearchError(None);
+          onSetPath |> Event.emitOk(path);
+        }}
       />
     </p>
     <p>

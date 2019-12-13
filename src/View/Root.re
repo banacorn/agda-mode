@@ -60,12 +60,7 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
   let (debug, debugDispatch) =
     React.useReducer(Debug.reducer, Debug.initialState);
 
-  let {
-    Events.inquireConnection,
-    onInquireConnection,
-    onInputMethodChange,
-    navigateSettingsView,
-  } = events;
+  let {Events.onInputMethodChange, navigateSettingsView} = events;
   <>
     <Channels.Provider value=channels>
       <Mouse.Provider
@@ -79,8 +74,6 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
             onInquireQuery={events.onInquire}
           />
           <Settings
-            inquireConnection
-            onInquireConnection
             debug
             element=settingsElement
             navigate=navigateSettingsView
