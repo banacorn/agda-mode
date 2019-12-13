@@ -199,7 +199,7 @@ module View = {
   };
 
   // get all panel containers in all panes
-  let getPanelContainersAtPanes = () => {
+  let getPanelContainersAtPanes = (): array(HtmlElement.t) => {
     Workspace.getPaneItems()
     |> Array.map(Views.getView)
     |> Array.filter(elem =>
@@ -208,7 +208,7 @@ module View = {
   };
 
   // get all panel containers
-  let getPanelContainers = () =>
+  let getPanelContainers = (): array(HtmlElement.t) =>
     Js.Array.concat(
       getPanelContainersAtBottom(),
       getPanelContainersAtPanes(),

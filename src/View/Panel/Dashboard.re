@@ -89,6 +89,7 @@ let make =
       <li> <span id="spinner" className=spinnerClassList /> </li>
       <li>
         <button
+          id="agda-dashboard-settings"
           className=settingsViewClassList
           onClick={_ => onSettingsViewToggle(!settingsActivated)}
           ref={ReactDOMRe.Ref.domRef(settingsButtonRef)}>
