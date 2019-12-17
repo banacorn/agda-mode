@@ -1,0 +1,3 @@
+module Events = {
+  type t;
+};
