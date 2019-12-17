@@ -25,3 +25,12 @@ let supply = (x, self) => {
   self.resource := Some(x);
   self.emitter |> N.Events.emit("supply", x) |> ignore;
 };
+
+let destroy = self => {
+  self.resource := None;
+  self.emitter |> N.Events.removeAllListeners;
+};
+
+let update = (resource, self) => {
+  self.resource := Some(resource);
+};

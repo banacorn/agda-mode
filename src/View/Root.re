@@ -10,54 +10,53 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
   // <Settings>
   ////////////////////////////////////////////
 
-  // let (targetURI, setTargetURI) = Hook.useState(None);
-  let (currentURI, setCurrentURI) = Hook.useState(None);
-  let (settingsView, setSettingsView) = Hook.useState(None);
-  let settingsElement = settingsView |> Option.map(Tab.getElement);
+  let (settingsURI, setSettingsURI) = Hook.useState(None);
+  let settingsViewRef = React.useRef(None);
+  let settingsElement =
+    settingsViewRef |> React.Ref.current |> Option.map(Tab.getElement);
 
-  // input
-  // Hook.useChannel(setTargetURI, channels.navigateSettings);
+  let update =
+    fun
+    | None => {
+        React.Ref.setCurrent(settingsViewRef, None);
+        setSettingsURI(None);
+      }
+    | Some((uri, tab)) => {
+        React.Ref.setCurrent(settingsViewRef, Some(tab));
+        setSettingsURI(Some(uri));
+      };
 
   Hook.useChannel(
     fun
     | None =>
-      switch (settingsView) {
+      switch (settingsViewRef |> React.Ref.current) {
       // Close => Close
       | None => Async.resolve()
       // Open => Close
       | Some(tab) =>
         Tab.kill(tab);
-        setSettingsView(None);
+        update(None);
         Async.resolve();
       }
     | Some(address) =>
-      switch (settingsView) {
+      switch (settingsViewRef |> React.Ref.current) {
       // Close => Open
       | None =>
-        Js.log2("create", address);
-        let event = Event.make();
-        let promise = event |> Event.once;
+        let resource = Resource.make();
         let tab =
           Tab.make(
             ~editor=editors.source,
             ~getTitle=
               () => "[Settings] " ++ Atom.TextEditor.getTitle(editors.source),
             ~path="settings",
-            ~onOpen=
-              (_, _, _) => {
-                Js.log2("opened", address);
-                setCurrentURI(Some(address));
-                event |> Event.emitOk();
-              },
-            ~onClose=
-              _ => {
-                Js.log("closed");
-                setCurrentURI(None);
-              },
+            ~onOpen=(_, _, _) => resource |> Resource.supply(),
+            ~onClose=_ => update(None),
             (),
           );
-        setSettingsView(Some(tab));
-        promise;
+
+        update(Some((address, tab)));
+
+        resource |> Resource.acquire;
       // Open => Open
       | Some(_) => Async.resolve()
       },
@@ -68,24 +67,21 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
     React.useReducer(Debug.reducer, Debug.initialState);
 
   let settingsActivated =
-    switch (currentURI) {
+    switch (settingsURI) {
     | Some(_) => true
     | None => false
     };
 
   let uri =
-    switch (currentURI) {
+    switch (settingsURI) {
     | None => Settings.URI.Root
     | Some(uri) => uri
     };
 
-  let onSettingsViewToggle =
-    fun
-    | true =>
-      channels.navigateSettings
-      |> Channel.send(Some(Settings__Breadcrumb.Root))
-      |> ignore
-    | false => channels.navigateSettings |> Channel.send(None) |> ignore;
+  let onSettingsViewToggle = shouldOpen =>
+    channels.navigateSettings
+    |> Channel.send(shouldOpen ? Some(Settings__Breadcrumb.Root) : None)
+    |> ignore;
 
   let {Events.onInputMethodChange} = events;
   <>

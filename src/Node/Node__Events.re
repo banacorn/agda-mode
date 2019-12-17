@@ -9,3 +9,9 @@ include Node__Type.Events;
 
 // emitter.on(eventName, listener)
 [@bs.send.pipe: t] external on: (string, 'a => unit) => t = "on";
+
+// emitter.once(eventName, listener)
+[@bs.send.pipe: t] external once: (string, 'a => unit) => t = "once";
+
+// emitter.removeAllListeners()
+[@bs.send.pipe: t] external removeAllListeners: t = "removeAllListeners";
