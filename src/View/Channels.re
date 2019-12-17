@@ -50,7 +50,6 @@ let make = () => {
   inquire: Channel.make(),
 
   updateIsPending: Channel.make(),
-  // updateShouldDisplay: Channel.make(),
 
   // <InputMethod>
   activateInputMethod: Channel.make(),

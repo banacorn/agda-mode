@@ -10,7 +10,7 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
   // <Settings>
   ////////////////////////////////////////////
 
-  let (settingsURI, setSettingsURI) = Hook.useState(None);
+  let (settingsURI, setSettingsURI) = Hook.useState(Settings.URI.Root);
   let settingsViewRef = React.useRef(None);
   let settingsElement =
     settingsViewRef |> React.Ref.current |> Option.map(Tab.getElement);
@@ -19,11 +19,11 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
     fun
     | None => {
         React.Ref.setCurrent(settingsViewRef, None);
-        setSettingsURI(None);
+        setSettingsURI(Settings.URI.Root);
       }
     | Some((uri, tab)) => {
         React.Ref.setCurrent(settingsViewRef, Some(tab));
-        setSettingsURI(Some(uri));
+        setSettingsURI(uri);
       };
 
   Hook.useChannel(
@@ -53,9 +53,7 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
             ~onClose=_ => update(None),
             (),
           );
-
         update(Some((address, tab)));
-
         resource |> Resource.acquire;
       // Open => Open
       | Some(_) => Async.resolve()
@@ -67,15 +65,9 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
     React.useReducer(Debug.reducer, Debug.initialState);
 
   let settingsActivated =
-    switch (settingsURI) {
+    switch (settingsViewRef |> React.Ref.current) {
     | Some(_) => true
     | None => false
-    };
-
-  let uri =
-    switch (settingsURI) {
-    | None => Settings.URI.Root
-    | Some(uri) => uri
     };
 
   let onSettingsViewToggle = shouldOpen =>
@@ -96,7 +88,7 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
             onSettingsViewToggle
             onInquireQuery={events.onInquire}
           />
-          <Settings debug targetURI=uri element=settingsElement />
+          <Settings debug targetURI=settingsURI element=settingsElement />
         </Debug.Provider>
       </Mouse.Provider>
     </Channels.Provider>
