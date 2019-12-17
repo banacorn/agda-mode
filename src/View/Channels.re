@@ -27,6 +27,7 @@ type t = {
   activateInputMethod: Channel.t(bool, unit, unit),
   interceptAndInsertKey: Channel.t(string, unit, unit),
   // <Settings>
+  navigateSettings: Channel.t(option(Settings__Breadcrumb.uri), unit, unit),
   updateConnection:
     Channel.t(
       (option(Connection.t), option(Connection.Error.t)),
@@ -56,6 +57,7 @@ let make = () => {
   interceptAndInsertKey: Channel.make(),
 
   // <Settings>
+  navigateSettings: Channel.make(),
   updateConnection: Channel.make(),
   inquireConnection: Channel.make(),
 };

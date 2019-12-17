@@ -5,10 +5,10 @@ type t = {
   // <Panel>
   onInquire: Event.t(string, MiniEditor.error),
   // onInquireConnection: Event.t(string, MiniEditor.error),
-  onSettingsView: Event.t(bool, unit),
+  // onSettingsView: Event.t(bool, unit),
   // inquireConnection: Event.t(unit, unit),
-  activateSettingsView: Event.t(bool, unit),
-  navigateSettingsView: Event.t(Settings.uri, unit),
+  // activateSettingsView: Event.t(bool, unit),
+  // navigateSettingsView: Event.t(Settings.uri, unit),
   /* Input Method */
   onInputMethodChange: Event.t(InputMethod.state, unit),
   /* Mouse Events */
@@ -24,9 +24,9 @@ let make = () => {
   // let onInquireConnection = make();
 
   /* <Settings> related */
-  let activateSettingsView = make();
-  let onSettingsView = make();
-  let navigateSettingsView = make();
+  // let activateSettingsView = make();
+  // let onSettingsView = make();
+  // let navigateSettingsView = make();
 
   /* <InputMethod> related */
   let onInputMethodChange = Event.make();
@@ -36,9 +36,9 @@ let make = () => {
 
   {
     onInquire,
-    activateSettingsView,
-    onSettingsView,
-    navigateSettingsView,
+    // activateSettingsView,
+    // onSettingsView,
+    // navigateSettingsView,
     onInputMethodChange,
     onMouseEvent,
   };

@@ -9,10 +9,9 @@ let inquireAgdaPath =
     : Async.t(string, MiniEditor.error) => {
   open View;
   instance.view.activate();
-  instance.view.openSettings()
+  instance.view.navigateSettings(Settings.URI.Connection)
   |> mapError(() => MiniEditor.Cancelled)
   |> thenOk(_ => {
-       instance.view.navigateSettings(Settings.URI.Connection);
        instance.view.updateConnection(None, error);
        instance.view.inquireConnection();
      });

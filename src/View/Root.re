@@ -10,17 +10,33 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
   // <Settings>
   ////////////////////////////////////////////
 
-  let (settingsActivated, setSettingsActivation) = Hook.useState(false);
+  // let (targetURI, setTargetURI) = Hook.useState(None);
+  let (currentURI, setCurrentURI) = Hook.useState(None);
   let (settingsView, setSettingsView) = Hook.useState(None);
   let settingsElement = settingsView |> Option.map(Tab.getElement);
 
   // input
-  Hook.useEventListener(setSettingsActivation, events.activateSettingsView);
+  // Hook.useChannel(setTargetURI, channels.navigateSettings);
 
-  React.useEffect1(
-    () =>
-      switch (settingsView, settingsActivated) {
-      | (None, true) =>
+  Hook.useChannel(
+    fun
+    | None =>
+      switch (settingsView) {
+      // Close => Close
+      | None => Async.resolve()
+      // Open => Close
+      | Some(tab) =>
+        Tab.kill(tab);
+        setSettingsView(None);
+        Async.resolve();
+      }
+    | Some(address) =>
+      switch (settingsView) {
+      // Close => Open
+      | None =>
+        Js.log2("create", address);
+        let event = Event.make();
+        let promise = event |> Event.once;
         let tab =
           Tab.make(
             ~editor=editors.source,
@@ -28,39 +44,50 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
               () => "[Settings] " ++ Atom.TextEditor.getTitle(editors.source),
             ~path="settings",
             ~onOpen=
-              (_, _, _) =>
-                /* <Settings> is opened */
-                events.onSettingsView |> Event.emitOk(true),
+              (_, _, _) => {
+                Js.log2("opened", address);
+                setCurrentURI(Some(address));
+                event |> Event.emitOk();
+              },
             ~onClose=
               _ => {
-                setSettingsActivation(false);
-                /* <Settings> is closed */
-                events.onSettingsView |> Event.emitOk(false);
+                Js.log("closed");
+                setCurrentURI(None);
               },
             (),
           );
         setSettingsView(Some(tab));
-        None;
-      | (None, false) => None
-      | (Some(_), true) =>
-        /* <Settings> is opened */
-        events.onSettingsView |> Event.emitOk(true);
-        None;
-      | (Some(tab), false) =>
-        Tab.kill(tab);
-        setSettingsView(None);
-
-        /* <Settings> is closed */
-        events.onSettingsView |> Event.emitOk(false);
-        None;
+        promise;
+      // Open => Open
+      | Some(_) => Async.resolve()
       },
-    [|settingsActivated|],
+    channels.navigateSettings,
   );
 
   let (debug, debugDispatch) =
     React.useReducer(Debug.reducer, Debug.initialState);
 
-  let {Events.onInputMethodChange, navigateSettingsView} = events;
+  let settingsActivated =
+    switch (currentURI) {
+    | Some(_) => true
+    | None => false
+    };
+
+  let uri =
+    switch (currentURI) {
+    | None => Settings.URI.Root
+    | Some(uri) => uri
+    };
+
+  let onSettingsViewToggle =
+    fun
+    | true =>
+      channels.navigateSettings
+      |> Channel.send(Some(Settings__Breadcrumb.Root))
+      |> ignore
+    | false => channels.navigateSettings |> Channel.send(None) |> ignore;
+
+  let {Events.onInputMethodChange} = events;
   <>
     <Channels.Provider value=channels>
       <Mouse.Provider
@@ -70,14 +97,10 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
             editors
             settingsActivated
             onInputMethodChange
-            onSettingsViewToggle=setSettingsActivation
+            onSettingsViewToggle
             onInquireQuery={events.onInquire}
           />
-          <Settings
-            debug
-            element=settingsElement
-            navigate=navigateSettingsView
-          />
+          <Settings debug targetURI=uri element=settingsElement />
         </Debug.Provider>
       </Mouse.Provider>
     </Channels.Provider>

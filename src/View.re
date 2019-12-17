@@ -22,9 +22,9 @@ type t = {
   interceptAndInsertKey: string => Async.t(unit, unit),
   onInputMethodChange: Event.t(InputMethod.state, unit),
   // <Settings> related
-  navigateSettings: Settings__Breadcrumb.uri => unit,
-  activateSettings: unit => unit,
-  openSettings: unit => Async.t(bool, unit),
+  navigateSettings: Settings__Breadcrumb.uri => Async.t(unit, unit),
+  // activateSettings: unit => unit,
+  // openSettings: unit => Async.t(bool, unit),
   // <Settings/Connection> related
   updateConnection:
     (option(Connection.t), option(Connection.Error.t)) =>
@@ -33,10 +33,10 @@ type t = {
   inquireConnection: unit => Async.t(string, MiniEditor.error),
 };
 let make = (events: Events.t, channels: Channels.t) => {
-  let settingsOpened = ref(false);
-  events.onSettingsView
-  |> Event.onOk(opened => settingsOpened := opened)
-  |> ignore;
+  // let settingsOpened = ref(false);
+  // events.onSettingsView
+  // |> Event.onOk(opened => settingsOpened := opened)
+  // |> ignore;
 
   let activate = () => channels.activatePanel |> Channel.send();
   let deactivate = () => channels.deactivatePanel |> Channel.send();
@@ -71,18 +71,18 @@ let make = (events: Events.t, channels: Channels.t) => {
   let onInputMethodChange = events.onInputMethodChange;
 
   let navigateSettings = where =>
-    events.navigateSettingsView |> emitOk(where);
+    channels.navigateSettings |> Channel.send(Some(where));
 
-  let activateSettings = () => events.activateSettingsView |> emitOk(true);
+  // let activateSettings = () => events.activateSettingsView |> emitOk(true);
 
-  let openSettings = () =>
-    if (settingsOpened^) {
-      Async.resolve(true);
-    } else {
-      let promise = events.onSettingsView |> once;
-      activateSettings();
-      promise;
-    };
+  // let openSettings = () =>
+  //   if (settingsOpened^) {
+  //     Async.resolve(true);
+  //   } else {
+  //     let promise = events.onSettingsView |> once;
+  //     activateSettings();
+  //     promise;
+  //   };
 
   let updateConnection = (connection, error) =>
     channels.updateConnection |> Channel.send((connection, error));
@@ -116,8 +116,8 @@ let make = (events: Events.t, channels: Channels.t) => {
     interceptAndInsertKey,
     onInputMethodChange,
     navigateSettings,
-    activateSettings,
-    openSettings,
+    // activateSettings,
+    // openSettings,
     updateConnection,
     // onInquireConnection,
     inquireConnection,

@@ -14,7 +14,7 @@ let make =
     // ~inquireConnection: Event.t(unit, unit),
     // ~onInquireConnection: Event.t(string, MiniEditor.error),
     (
-      ~navigate: Event.t(uri, unit),
+      ~targetURI: uri,
       ~debug: Type.View.Debug.state,
       ~element: option(Webapi.Dom.Element.t),
     ) => {
@@ -26,9 +26,14 @@ let make =
     channels.updateConnection,
   );
 
-  let (uri, setURI) = Hook.useState(URI.Root);
-
-  React.useEffect1(() => Some(navigate |> Event.onOk(setURI)), [||]);
+  let (uri, setURI) = Hook.useState(targetURI);
+  React.useEffect1(
+    () => {
+      setURI(targetURI);
+      None;
+    },
+    [|targetURI|],
+  );
 
   let inDevMode = Atom.inDevMode();
   switch (element) {
