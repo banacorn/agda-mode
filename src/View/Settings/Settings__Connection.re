@@ -19,7 +19,8 @@ let make =
   let handleAutoSearch = _ => {
     Connection.autoSearch("agda")
     |> thenOk(path =>
-         editorRef.acquire()
+         editorRef
+         |> Resource.acquire
          |> thenOk(editor => {
               editor |> Atom.TextEditor.setText(path);
               resolve();
@@ -37,7 +38,7 @@ let make =
 
   // focus on the path editor on `inquireConnection`
   Hook.useChannel(
-    () => editorRef.acquire() |> thenOk(focusOnPathEditor),
+    () => editorRef |> Resource.acquire |> thenOk(focusOnPathEditor),
     channels.inquireConnection,
   );
 
@@ -92,7 +93,7 @@ let make =
           }
         }
         placeholder="path to Agda"
-        onEditorRef={editorRef.supply}
+        onEditorRef={x => editorRef |> Resource.supply(x)}
         onConfirm={path => {
           setAutoSearchError(None);
           onSetPath |> Event.emitOk(path);

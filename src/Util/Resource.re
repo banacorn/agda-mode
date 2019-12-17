@@ -1,31 +1,27 @@
-open Rebase;
+// open Rebase;
 
 type t('a, 'e) = {
-  acquire: unit => Async.t('a, 'e),
-  supply: 'a => unit,
+  emitter: N.Events.t,
+  // resource that is temporarily unavailable
+  resource: ref(option('a)),
 };
 
 let make = (): t('a, 'e) => {
-  let emitter = N.Events.make();
+  emitter: N.Events.make(),
+  resource: ref(None: option('a)),
+};
 
-  // resource that is temporarily unavailable
-  let resource = ref(None: option('a));
-  // queue of callbacks waiting to be resolved
-  // let queue = ref([]);
-  // return the resource if it's immediately available, else waits in the queue
-  let acquire = () =>
-    switch (resource^) {
-    | None =>
-      Async.make((resolve, _) =>
-        emitter |> N.Events.on("supply", resolve) |> ignore
-      )
-    // | None => Async.make((resolve, _) => queue := [resolve, ...queue^])
-    | Some(x) => Async.resolve(x)
-    };
-  // iterate through the list of waiting callbacks and resolve them
-  let supply = x => {
-    resource := Some(x);
-    emitter |> N.Events.emit("supply", x) |> ignore;
+// return the resource if it's immediately available, else waits in the queue
+let acquire = self =>
+  switch (self.resource^) {
+  | None =>
+    Async.make((resolve, _) =>
+      self.emitter |> N.Events.on("supply", resolve) |> ignore
+    )
+  | Some(x) => Async.resolve(x)
   };
-  {acquire, supply};
+
+let supply = (x, self) => {
+  self.resource := Some(x);
+  self.emitter |> N.Events.emit("supply", x) |> ignore;
 };

@@ -83,7 +83,7 @@ let make =
   Workspace.open_(itemURI, itemOptions)
   |> then_(newEditor => {
        let newItem = asWorkspaceItem(newEditor);
-       itemResource.supply(newItem);
+       itemResource |> Resource.supply(newItem);
        /* trigger the "onOpen" callback */
        switch (onOpen) {
        | Some(callback) =>
@@ -135,7 +135,8 @@ let make =
 };
 
 let kill = self =>
-  self.itemResource.acquire()
+  self.itemResource
+  |> Resource.acquire
   |> Async.finalOk((item: Workspace.item) => {
        /* dispose subscriptions */
        CompositeDisposable.dispose(self.subscriptions);
@@ -148,7 +149,8 @@ let kill = self =>
 let getElement = self => self.itemOpener##element;
 
 let activate = self =>
-  self.itemResource.acquire()
+  self.itemResource
+  |> Resource.acquire
   |> Async.finalOk((item: Workspace.item) =>
        Workspace.paneForItem(item)
        |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore)

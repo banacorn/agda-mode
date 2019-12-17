@@ -4,6 +4,6 @@ type t('input, 'output, 'error) =
 let make = Resource.make;
 
 let send = (input, channel) =>
-  channel.Resource.acquire() |> Async.thenOk(trigger => trigger(input));
+  channel |> Resource.acquire |> Async.thenOk(trigger => trigger(input));
 
-let recv = (callback, channel) => channel.Resource.supply(callback);
+let recv = (callback, channel) => channel |> Resource.supply(callback);
