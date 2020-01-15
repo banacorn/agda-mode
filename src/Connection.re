@@ -276,7 +276,7 @@ let connect = (metadata: Metadata.t): Async.t(t, Error.t) =>
         |> ignore;
         process
         |> ChildProcess.stdout
-        |> Stream.Readable.once(`data(_ => resolve(connection)))
+        |> Nd.Stream.Readable.once(`data(_ => resolve(connection)))
         |> ignore;
       })
     );
@@ -344,7 +344,7 @@ let wire = (self): t => {
     };
   self.process
   |> N.ChildProcess.stdout
-  |> N.Stream.Readable.on(`data(onData))
+  |> Nd.Stream.Readable.on(`data(onData))
   |> ignore;
 
   self;
@@ -357,7 +357,7 @@ let send = (request, self): Event.t(response, Error.connection) => {
   /* write */
   self.process
   |> N.ChildProcess.stdin
-  |> N.Stream.Writable.write(request ++ "\n" |> Node.Buffer.fromString)
+  |> Nd.Stream.Writable.write(request ++ "\n" |> Node.Buffer.fromString)
   |> ignore;
 
   reqEvent;

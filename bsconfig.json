@@ -25,10 +25,12 @@
     "reason-react",
     "@glennsl/bs-json",
     "@glennsl/rebase",
-    "atom",
     "bs-webapi",
     "bs-mocha",
-    "reason-react-update"
+    "reason-react-update",
+    "bs-atom2",
+    "bs-nd",
+    "reason-promise"
   ],
   "bsc-flags": ["-bs-g"]  ,
   "refmt": 3

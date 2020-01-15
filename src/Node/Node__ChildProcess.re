@@ -1,10 +1,11 @@
 /* Node Child Process API */
 
-module Stream = Node__Stream;
+module Stream = Nd.Stream;
 
 type t;
 
 [@bs.get] external stdout: t => Stream.Readable.t = "stdout";
+[@bs.get] external stderr: t => Stream.Readable.t = "stderr";
 [@bs.get] external stdin: t => Stream.Writable.t = "stdin";
 /* [@bs.send.pipe: t] external disconnect: unit = ""; */
 [@bs.send.pipe: t] external kill: string => unit = "kill";
