@@ -9,11 +9,10 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
   ////////////////////////////////////////////
   // <Settings>
   ////////////////////////////////////////////
-
   let (settingsURI, setSettingsURI) = Hook.useState(Settings.URI.Root);
   let settingsViewRef = React.useRef(None);
-  let settingsElement =
-    settingsViewRef |> React.Ref.current |> Option.map(Tab.getElement);
+
+  let (settingsElement, setSettingsElement) = Hook.useState(None);
 
   let update =
     fun
@@ -23,6 +22,13 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
       }
     | Some((uri, tab)) => {
         React.Ref.setCurrent(settingsViewRef, Some(tab));
+
+        // force-update settingsElement
+        settingsViewRef
+        |> React.Ref.current
+        |> Option.map(Tab.getElement)
+        |> setSettingsElement;
+
         setSettingsURI(uri);
       };
 
