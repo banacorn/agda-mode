@@ -1,4 +1,4 @@
-open Rebase;
+open! Rebase;
 open Fn;
 
 module Error = {
@@ -89,8 +89,8 @@ type response = Parser.Incr.Event.t(result(Response.t, Parser.Error.t));
 type t = {
   metadata: Metadata.t,
   process: N.ChildProcess.t,
-  mutable queue: array(Event.t(response, Error.connection)),
-  errorEmitter: Event.t(Response.t, unit),
+  mutable queue: array(Event.t(result(response, Error.connection))),
+  errorEmitter: Event.t(Response.t),
   mutable connected: bool,
   mutable resetLogOnLoad: bool,
 };
@@ -98,21 +98,23 @@ type t = {
 let disconnect = (error, self) => {
   self.metadata.entries = [||];
   self.process |> N.ChildProcess.kill("SIGTERM");
-  self.queue |> Array.forEach(ev => ev |> Event.emitError(error));
+  self.queue |> Array.forEach(ev => ev.Event.emit(Error(error)));
   self.queue = [||];
-  self.errorEmitter |> Event.removeAllListeners;
+  self.errorEmitter.destroy();
   self.connected = false;
 };
 
-/* a more sophiscated "make" */
-let autoSearch = (name): Async.t(string, Error.t) =>
-  Async.make((resolve, reject) => {
-    /* reject if the process hasn't responded for more than 1 second */
+let autoSearch = (name): Promise.t(result(string, Error.t)) =>
+  {
+    let (promise, resolve) = Promise.pending();
+
+    // reject if the process hasn't responded for more than 1 second
     let hangTimeout =
       Js.Global.setTimeout(
-        () => reject(ProcessHanging(name): Error.autoSearch),
+        () => resolve(Error(ProcessHanging(name): Error.autoSearch)),
         1000,
       );
+
     let commandName =
       switch (N.OS.type_()) {
       | "Linux"
@@ -122,7 +124,7 @@ let autoSearch = (name): Async.t(string, Error.t) =>
       };
 
     switch (commandName) {
-    | Error(os) => reject(NotSupported(os))
+    | Error(os) => resolve(Error(NotSupported(os)))
     | Ok(commandName') =>
       N.ChildProcess.exec(
         commandName' ++ " " ++ name,
@@ -134,33 +136,38 @@ let autoSearch = (name): Async.t(string, Error.t) =>
           switch (error |> Js.Nullable.toOption) {
           | None => ()
           | Some(err) =>
-            reject(
-              NotFound(name, err |> Js.Exn.message |> Option.getOr("")),
+            resolve(
+              Error(
+                NotFound(name, err |> Js.Exn.message |> Option.getOr("")),
+              ),
             )
           };
 
           /* stderr */
           let stderr' = stderr |> Node.Buffer.toString;
           if (stderr' |> String.isEmpty |> (!)) {
-            reject(NotFound(name, stderr'));
+            resolve(Error(NotFound(name, stderr')));
           };
 
           /* stdout */
           let stdout' = stdout |> Node.Buffer.toString;
           if (stdout' |> String.isEmpty) {
-            reject(NotFound(name, ""));
+            resolve(Error(NotFound(name, "")));
           } else {
-            resolve(Parser.filepath(stdout'));
+            resolve(Ok(stdout'));
           };
         },
       )
       |> ignore
     };
-  })
-  |> Async.mapError(e => Error.AutoSearchError(e));
 
-/* a more sophiscated "make" */
-let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
+    promise;
+  }
+  ->Promise.mapError(e => Error.AutoSearchError(e));
+
+// a more sophiscated "make"
+let validateAndMake =
+    (pathAndParams): Promise.t(result(Metadata.t, Error.t)) =>
   {
     let (path, args) = Parser.commandLine(pathAndParams);
     let parseError =
@@ -200,88 +207,91 @@ let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
       };
     };
 
-    Async.make((resolve, reject) => {
-      if (path |> String.isEmpty) {
-        reject(Error.PathMalformed("the path must not be empty"));
-      };
+    let (promise, resolve) = Promise.pending();
 
-      // reject if the process hasn't responded for more than 20 second
-      // (it may take longer for dockerized Agda to take off)
-      let hangTimeout =
-        Js.Global.setTimeout(() => reject(Error.ProcessHanging), 20000);
+    if (path |> String.isEmpty) {
+      resolve(Error(Error.PathMalformed("the path must not be empty")));
+    };
 
-      N.ChildProcess.exec(
-        path ++ " -V",
-        (error, stdout, stderr) => {
-          /* clear timeout as the process has responded */
-          Js.Global.clearTimeout(hangTimeout);
-          /* parses `error` and rejects it if there's any  */
-          switch (parseError(error)) {
-          | None => ()
-          | Some(err) => reject(err)
-          };
+    // reject if the process hasn't responded for more than 20 second
+    // (it may take longer for dockerized Agda to take off)
+    let hangTimeout =
+      Js.Global.setTimeout(
+        () => resolve(Error(Error.ProcessHanging)),
+        20000,
+      );
 
-          /* stderr */
-          let stderr' = stderr |> Node.Buffer.toString;
-          if (stderr' |> String.isEmpty |> (!)) {
-            reject(ProcessError(stderr'));
-          };
-          /* stdout */
-          switch (parseVersion(stdout)) {
-          | Error(err) => reject(err)
-          | Ok(self) => resolve(self)
-          };
-        },
-      )
-      |> ignore;
-    });
-  }
-  |> Async.mapError(e => Error.ValidationError(pathAndParams, e));
-
-let connect = (metadata: Metadata.t): Async.t(t, Error.t) =>
-  {
-    N.(
-      Async.make((resolve, reject) => {
-        let args = [|"--interaction"|] |> Array.concat(metadata.args);
-        let process =
-          ChildProcess.spawn(metadata.path, args, {"shell": true});
-
-        let connection = {
-          metadata,
-          process,
-          connected: true,
-          queue: [||],
-          errorEmitter: Event.make(),
-          resetLogOnLoad: true,
+    N.ChildProcess.exec(
+      path ++ " -V",
+      (error, stdout, stderr) => {
+        /* clear timeout as the process has responded */
+        Js.Global.clearTimeout(hangTimeout);
+        /* parses `error` and rejects it if there's any  */
+        switch (parseError(error)) {
+        | None => ()
+        | Some(err) => resolve(Error(err))
         };
-        /* Handles errors and anomalies */
-        process
-        |> ChildProcess.on(
-             `error(
-               exn => {
-                 connection |> disconnect(Error.ShellError(exn));
-                 reject(Error.ShellError(exn));
-               },
-             ),
-           )
-        |> ChildProcess.on(
-             `close(
-               (code, signal) => {
-                 connection
-                 |> disconnect(Error.ClosedByProcess(code, signal));
-                 reject(Error.ClosedByProcess(code, signal));
-               },
-             ),
-           )
-        |> ignore;
-        process
-        |> ChildProcess.stdout
-        |> Nd.Stream.Readable.once(`data(_ => resolve(connection)))
-        |> ignore;
-      })
-    );
+
+        /* stderr */
+        let stderr' = stderr |> Node.Buffer.toString;
+        if (stderr' |> String.isEmpty |> (!)) {
+          resolve(Error(ProcessError(stderr')));
+        };
+        /* stdout */
+        switch (parseVersion(stdout)) {
+        | Error(err) => resolve(Error(err))
+        | Ok(self) => resolve(Ok(self))
+        };
+      },
+    )
+    |> ignore;
+
+    promise;
   }
-  |> Async.mapError(e => Error.ConnectionError(e));
+  ->Promise.mapError(e => Error.ValidationError(pathAndParams, e));
+
+let connect = (metadata: Metadata.t): Promise.t(result(t, Error.t)) =>
+  {
+    let (promise, resolve) = Promise.pending();
+
+    let args = [|"--interaction"|] |> Array.concat(metadata.args);
+    let process = N.ChildProcess.spawn(metadata.path, args, {"shell": true});
+
+    let connection = {
+      metadata,
+      process,
+      connected: true,
+      queue: [||],
+      errorEmitter: Event.make(),
+      resetLogOnLoad: true,
+    };
+    /* Handles errors and anomalies */
+    process
+    |> N.ChildProcess.on(
+         `error(
+           exn => {
+             connection |> disconnect(Error.ShellError(exn));
+             resolve(Error(Error.ShellError(exn)));
+           },
+         ),
+       )
+    |> N.ChildProcess.on(
+         `close(
+           (code, signal) => {
+             connection |> disconnect(Error.ClosedByProcess(code, signal));
+             resolve(Error(Error.ClosedByProcess(code, signal)));
+           },
+         ),
+       )
+    |> ignore;
+    process
+    |> N.ChildProcess.stdout
+    |> Nd.Stream.Readable.once(`data(_ => resolve(Ok(connection))))
+    |> ignore;
+
+    promise;
+  }
+  ->Promise.mapError(e => Error.ConnectionError(e));
 
 let wire = (self): t => {
   /* resolves the requests in the queue */
@@ -289,15 +299,17 @@ let wire = (self): t => {
     switch (self.queue[0]) {
     | None =>
       switch (res) {
-      | OnResult(Ok(data)) => self.errorEmitter |> Event.emitOk(data)
+      | OnResult(Ok(data)) => self.errorEmitter.emit(data)
       | _ => ()
       }
     | Some(req) =>
-      req |> Event.emitOk(res);
+      req.emit(Ok(res));
       switch (res) {
       | OnResult(_) => ()
       | OnFinish =>
-        self.queue |> Js.Array.pop |> Option.forEach(Event.destroy)
+        self.queue
+        |> Js.Array.pop
+        |> Option.forEach(ev => ev.Event.destroy |> ignore)
       };
     };
   };
@@ -350,7 +362,7 @@ let wire = (self): t => {
   self;
 };
 
-let send = (request, self): Event.t(response, Error.connection) => {
+let send = (request, self): Event.t(result(response, Error.connection)) => {
   let reqEvent = Event.make();
   self.queue |> Js.Array.push(reqEvent) |> ignore;
 

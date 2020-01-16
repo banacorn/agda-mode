@@ -135,7 +135,7 @@ describe("Input Method", () => {
       openAndLoad("Temp.agda")
       |> then_(instance => {
            let onDispatch =
-             instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+             instance.view.onInputMethodChange.once()->Promise.Js.toBsPromise;
 
            // dispatch!
            instance
@@ -152,7 +152,7 @@ describe("Input Method", () => {
       openAndLoad("Temp.agda")
       |> then_(instance => {
            let onDispatch =
-             instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+             instance.view.onInputMethodChange.once()->Promise.Js.toBsPromise;
            // dispatch!
            instance
            |> Keyboard.dispatch("\\")
@@ -161,7 +161,7 @@ describe("Input Method", () => {
          })
       |> then_(instance => {
            let onDispatch =
-             instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+             instance.view.onInputMethodChange.once()->Promise.Js.toBsPromise;
 
            // dispatch!
            instance
@@ -238,7 +238,7 @@ describe("Input Method", () => {
       |> then_(Keyboard.dispatch("\\"))
       |> then_(instance => {
            let onEscaped =
-             instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+             instance.view.onInputMethodChange.once()->Promise.Js.toBsPromise;
            Keyboard.dispatch("escape", instance) |> then_(_ => onEscaped);
          })
       |> then_(state => {

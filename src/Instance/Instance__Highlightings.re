@@ -1,5 +1,4 @@
 open Rebase;
-open Async;
 
 open Instance__Type;
 
@@ -31,33 +30,37 @@ let add = (annotation: Highlighting.Annotation.t, instance) => {
   |> ignore;
 };
 
-let addFromFile = (filepath, instance): Async.t(unit, unit) => {
+let addFromFile = (filepath, instance): Promise.t(unit) => {
   let readFile = N.Fs.readFile |> N.Util.promisify;
   /* read and parse and add */
   readFile(. filepath)
-  |> fromPromise
-  |> thenOk(content => {
-       open! Parser__Type.SExpression;
-       content
-       |> Node.Buffer.toString
-       |> Parser.SExpression.parse
-       |> Array.filterMap(Option.fromResult)  // throwing away errors
-       |> Array.map(tokens =>
-            switch (tokens) {
-            | L(xs) => xs |> Highlighting.Annotation.parseIndirectHighlightings
-            | _ => [||]
-            }
-          )
-       |> Array.flatMap(x => x)
-       |> Array.filter(Highlighting.Annotation.shouldHighlight)
-       |> Array.forEach(annotation => instance |> add(annotation));
-       resolve();
-     })
-  /* print on error */
-  |> mapError(err => {
-       Js.log(err);
-       Js.log("cannot read the indirect highlighting file: " ++ filepath);
-     });
+  ->Promise.Js.fromBsPromise
+  ->Promise.Js.toResult
+  ->Promise.map(
+      fun
+      | Ok(content) => {
+          open! Parser__Type.SExpression;
+          content
+          |> Node.Buffer.toString
+          |> Parser.SExpression.parse
+          |> Array.filterMap(Option.fromResult)  // throwing away errors
+          |> Array.map(tokens =>
+               switch (tokens) {
+               | L(xs) =>
+                 xs |> Highlighting.Annotation.parseIndirectHighlightings
+               | _ => [||]
+               }
+             )
+          |> Array.flatMap(x => x)
+          |> Array.filter(Highlighting.Annotation.shouldHighlight)
+          |> Array.forEach(annotation => instance |> add(annotation));
+          ();
+        }
+      | Error(err) => {
+          Js.log(err);
+          Js.log("cannot read the indirect highlighting file: " ++ filepath);
+        },
+    );
 };
 
 let destroyAll = instance => {

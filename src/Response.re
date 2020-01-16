@@ -1,11 +1,10 @@
-open Rebase;
+open! Rebase;
 
 /* https://github.com/agda/agda/blob/master/src/full/Agda/Interaction/Response.hs */
 
 type filepath = string;
 type index = int;
 
-module Event = Event;
 module Token = Parser.SExpression;
 
 /* type fileType =

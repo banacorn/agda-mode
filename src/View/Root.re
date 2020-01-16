@@ -37,12 +37,12 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
     | None =>
       switch (settingsViewRef |> React.Ref.current) {
       // Close => Close
-      | None => Async.resolve()
+      | None => Promise.resolved()
       // Open => Close
       | Some(tab) =>
         Tab.kill(tab);
         update(None);
-        Async.resolve();
+        Promise.resolved();
       }
     | Some(address) =>
       switch (settingsViewRef |> React.Ref.current) {
@@ -55,14 +55,14 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
             ~getTitle=
               () => "[Settings] " ++ Atom.TextEditor.getTitle(editors.source),
             ~path="settings",
-            ~onOpen=(_, _, _) => resource |> Resource.supply(),
+            ~onOpen=(_, _, _) => resource.supply(),
             ~onClose=_ => update(None),
             (),
           );
         update(Some((address, tab)));
-        resource |> Resource.acquire;
+        resource.acquire();
       // Open => Open
-      | Some(_) => Async.resolve()
+      | Some(_) => Promise.resolved()
       },
     channels.navigateSettings,
   );
@@ -84,8 +84,7 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
   let {Events.onInputMethodChange} = events;
   <>
     <Channels.Provider value=channels>
-      <Mouse.Provider
-        value={event => events.onMouseEvent |> Event.emitOk(event)}>
+      <Mouse.Provider value={event => events.onMouseEvent.emit(event)}>
         <Debug.Provider value=debugDispatch>
           <Panel
             editors

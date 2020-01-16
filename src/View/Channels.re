@@ -5,14 +5,18 @@ module Event = Event;
 
 type t = {
   // lifecycle
-  destroy: Channel.t(unit, unit, unit),
+  destroy: Channel.t(unit, unit),
   // <Panel>
-  activatePanel: Channel.t(unit, Dom.element, unit),
-  deactivatePanel: Channel.t(unit, unit, unit),
-  toggleDocking: Channel.t(unit, unit, unit),
-  display: Channel.t((Header.t, Body.t), unit, unit),
-  inquire: Channel.t((Header.t, string, string), string, MiniEditor.error),
-  updateIsPending: Channel.t(bool, unit, unit),
+  activatePanel: Channel.t(unit, Dom.element),
+  deactivatePanel: Channel.t(unit, unit),
+  toggleDocking: Channel.t(unit, unit),
+  display: Channel.t((Header.t, Body.t), unit),
+  inquire:
+    Channel.t(
+      (Header.t, string, string),
+      Rebase.result(string, MiniEditor.error),
+    ),
+  updateIsPending: Channel.t(bool, unit),
   // updateShouldDisplay: Channel.t(bool, unit, unit),
   // Input Method
   /*
@@ -24,17 +28,14 @@ type t = {
     the package during the process of input.
    Instead, we hardwire the keys we wanna intercept directly from the Keymaps.
      */
-  activateInputMethod: Channel.t(bool, unit, unit),
-  interceptAndInsertKey: Channel.t(string, unit, unit),
+  activateInputMethod: Channel.t(bool, unit),
+  interceptAndInsertKey: Channel.t(string, unit),
   // <Settings>
-  navigateSettings: Channel.t(option(Settings__Breadcrumb.uri), unit, unit),
+  navigateSettings: Channel.t(option(Settings__Breadcrumb.uri), unit),
   updateConnection:
-    Channel.t(
-      (option(Connection.t), option(Connection.Error.t)),
-      unit,
-      unit,
-    ),
-  inquireConnection: Channel.t(unit, string, MiniEditor.error),
+    Channel.t((option(Connection.t), option(Connection.Error.t)), unit),
+  inquireConnection:
+    Channel.t(unit, Rebase.result(string, MiniEditor.error)),
 };
 
 /* creates all refs and return them */

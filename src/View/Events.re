@@ -3,11 +3,11 @@ open Event;
 
 type t = {
   // <Panel>
-  onInquire: Event.t(string, MiniEditor.error),
+  onInquire: Event.t(Rebase.result(string, MiniEditor.error)),
   /* Input Method */
-  onInputMethodChange: Event.t(InputMethod.state, unit),
+  onInputMethodChange: Event.t(InputMethod.state),
   /* Mouse Events */
-  onMouseEvent: Event.t(Mouse.event, unit),
+  onMouseEvent: Event.t(Mouse.event),
 };
 
 /* creates all refs and return them */

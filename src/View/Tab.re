@@ -36,7 +36,7 @@ let triggerArg = (callback: option('a => unit), arg: 'a): unit =>
   };
 
 type t = {
-  itemResource: Resource.t(Workspace.item, unit),
+  itemResource: Resource.t(Workspace.item),
   subscriptions: CompositeDisposable.t,
   closedDeliberately: ref(bool),
   itemOpener: {
@@ -63,7 +63,7 @@ let make =
       ~onDidChangeActive: option(bool => unit)=?,
       (),
     ) => {
-  let itemResource: Resource.t(Workspace.item, unit) = Resource.make();
+  let itemResource: Resource.t(Workspace.item) = Resource.make();
   let closedDeliberately = ref(false);
   let subscriptions = CompositeDisposable.make();
   let previousItem = Workspace.getActivePane() |> Pane.getActiveItem;
@@ -83,7 +83,7 @@ let make =
   Workspace.open_(itemURI, itemOptions)
   |> then_(newEditor => {
        let newItem = asWorkspaceItem(newEditor);
-       itemResource |> Resource.supply(newItem);
+       itemResource.supply(newItem);
        /* trigger the "onOpen" callback */
        switch (onOpen) {
        | Some(callback) =>
@@ -135,23 +135,21 @@ let make =
 };
 
 let kill = self =>
-  self.itemResource
-  |> Resource.acquire
-  |> Async.finalOk((item: Workspace.item) => {
-       /* dispose subscriptions */
-       CompositeDisposable.dispose(self.subscriptions);
-       /* set the "closedDeliberately" to true to trigger "onKill" */
-       self.closedDeliberately := true;
-       Workspace.paneForItem(item)
-       |> Option.forEach(pane => Pane.destroyItem(item, pane) |> ignore);
-     }) /* }*/;
+  self.itemResource.acquire()
+  ->Promise.get((item: Workspace.item) => {
+      /* dispose subscriptions */
+      CompositeDisposable.dispose(self.subscriptions);
+      /* set the "closedDeliberately" to true to trigger "onKill" */
+      self.closedDeliberately := true;
+      Workspace.paneForItem(item)
+      |> Option.forEach(pane => Pane.destroyItem(item, pane) |> ignore);
+    }) /* }*/;
 
 let getElement = self => self.itemOpener##element;
 
 let activate = self =>
-  self.itemResource
-  |> Resource.acquire
-  |> Async.finalOk((item: Workspace.item) =>
-       Workspace.paneForItem(item)
-       |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore)
-     );
+  self.itemResource.acquire()
+  ->Promise.get((item: Workspace.item) =>
+      Workspace.paneForItem(item)
+      |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore)
+    );

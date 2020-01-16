@@ -4,26 +4,28 @@ open Type.View;
 
 type t = {
   // <Panel> related
-  activate: unit => Async.t(Dom.element, unit),
-  deactivate: unit => Async.t(unit, unit),
-  toggleDocking: unit => Async.t(unit, unit),
-  display: (string, Type.View.Header.style, Body.t) => Async.t(unit, unit),
-  inquire: (string, string, string) => Async.t(string, MiniEditor.error),
-  updateIsPending: bool => Async.t(unit, unit),
-  destroy: unit => Async.t(unit, unit),
-  onDestroy: Event.t(unit, unit),
-  onMouseEvent: Event.t(Mouse.event, unit),
+  activate: unit => Promise.t(Dom.element),
+  deactivate: unit => Promise.t(unit),
+  toggleDocking: unit => Promise.t(unit),
+  display: (string, Type.View.Header.style, Body.t) => Promise.t(unit),
+  inquire:
+    (string, string, string) =>
+    Promise.t(Rebase.result(string, MiniEditor.error)),
+  updateIsPending: bool => Promise.t(unit),
+  destroy: unit => Promise.t(unit),
+  onDestroy: Event.t(unit),
+  onMouseEvent: Event.t(Mouse.event),
   // <InputMethod> related
-  activateInputMethod: bool => Async.t(unit, unit),
-  interceptAndInsertKey: string => Async.t(unit, unit),
-  onInputMethodChange: Event.t(InputMethod.state, unit),
+  activateInputMethod: bool => Promise.t(unit),
+  interceptAndInsertKey: string => Promise.t(unit),
+  onInputMethodChange: Event.t(InputMethod.state),
   // <Settings> related
-  navigateSettings: Settings__Breadcrumb.uri => Async.t(unit, unit),
+  navigateSettings: Settings__Breadcrumb.uri => Promise.t(unit),
   // <Settings/Connection> related
   updateConnection:
-    (option(Connection.t), option(Connection.Error.t)) =>
-    Async.t(unit, unit),
-  inquireConnection: unit => Async.t(string, MiniEditor.error),
+    (option(Connection.t), option(Connection.Error.t)) => Promise.t(unit),
+  inquireConnection:
+    unit => Promise.t(Rebase.result(string, MiniEditor.error)),
 };
 let make = (events: Events.t, channels: Channels.t) => {
   let activate = () => channels.activatePanel |> Channel.send();
@@ -35,15 +37,15 @@ let make = (events: Events.t, channels: Channels.t) => {
 
   let inquire = (text, placeholder, value) =>
     activate()
-    |> Async.mapError(_ => MiniEditor.Cancelled)
-    |> Async.thenOk(_ =>
-         channels.inquire
-         |> Channel.send((
-              {Type.View.Header.text, style: PlainText},
-              placeholder,
-              value,
-            ))
-       );
+    // ->Promise.mapError(_ => MiniEditor.Cancelled)
+    ->Promise.flatMap(_ =>
+        channels.inquire
+        |> Channel.send((
+             {Type.View.Header.text, style: PlainText},
+             placeholder,
+             value,
+           ))
+      );
 
   let updateIsPending = isPending =>
     channels.updateIsPending |> Channel.send(isPending);
@@ -69,9 +71,9 @@ let make = (events: Events.t, channels: Channels.t) => {
   let onDestroy = Event.make();
   let destroy = () =>
     deactivate()
-    |> Async.thenOk(_ => activateInputMethod(false))
-    |> Async.thenOk(_ => channels.destroy |> Channel.send())
-    |> Async.passOk(_ => onDestroy |> Event.emitOk());
+    ->Promise.flatMap(_ => activateInputMethod(false))
+    ->Promise.flatMap(_ => channels.destroy |> Channel.send())
+    ->Promise.tap(_ => onDestroy.emit());
 
   {
     activate,

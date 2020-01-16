@@ -1,4 +1,4 @@
-open Rebase;
+open! Rebase;
 open Rebase.Fn;
 open Type.View;
 open Util.React;
@@ -65,9 +65,9 @@ let make =
       // ~panelRef: ReactDOMRe.Ref.currentDomRef,
       /* Editors */
       // ~onQueryEditorRef: Atom.TextEditor.t => unit,
-      ~onInputMethodChange: Event.t(InputMethod.state, unit),
+      ~onInputMethodChange: Event.t(InputMethod.state),
       ~onSettingsViewToggle: bool => unit,
-      ~onInquireQuery: Event.t(string, MiniEditor.error),
+      ~onInquireQuery: Event.t(result(string, MiniEditor.error)),
     ) => {
   let channels = React.useContext(Channels.context);
 
@@ -88,7 +88,7 @@ let make =
       setMode(Display);
       setHeader(header);
       setBody(body);
-      Async.resolve();
+      Promise.resolved();
     },
     channels.display,
   );
@@ -102,12 +102,11 @@ let make =
       setEditorValue(value);
 
       // after inquiring
-      onInquireQuery
-      |> Event.once
-      |> Async.pass(_ => {
-           setMode(Display);
-           editors |> Editors.Focus.on(Source);
-         });
+      onInquireQuery.once()
+      ->Promise.tapOk(_ => {
+          setMode(Display);
+          editors |> Editors.Focus.on(Source);
+        });
     },
     channels.inquire,
   );
@@ -121,15 +120,14 @@ let make =
 
   // the spinning wheel
   let (isPending, setIsPending) = Hook.useState(false);
-  Hook.useChannel(setIsPending >> Async.resolve, channels.updateIsPending);
+  Hook.useChannel(setIsPending >> Promise.resolved, channels.updateIsPending);
 
   React.useEffect1(
     () => {
       let destructor =
-        onInputMethodChange
-        |> Event.onOk(state =>
-             setInputMethodActivation(state.InputMethod.activated)
-           );
+        onInputMethodChange.on(state =>
+          setInputMethodActivation(state.InputMethod.activated)
+        );
       Some(destructor);
     },
     [||],
@@ -197,7 +195,7 @@ let make =
       | Bottom(_) => mountAtPane()
       | Pane(_) => mountAtBottom()
       };
-      Async.resolve();
+      Promise.resolved();
     },
     channels.toggleDocking,
   );
@@ -229,7 +227,7 @@ let make =
       mountingPointRef
       |> React.Ref.current
       |> PanelContainer.fromMountingPoint
-      |> Async.resolve;
+      |> Promise.resolved;
     },
     channels.activatePanel,
   );
@@ -237,7 +235,7 @@ let make =
   Hook.useChannel(
     () => {
       setActivation(false);
-      Async.resolve();
+      Promise.resolved();
     },
     channels.deactivatePanel,
   );
@@ -261,7 +259,7 @@ let make =
       | Pane(tab) => Tab.kill(tab)
       };
 
-      Async.resolve();
+      Promise.resolved();
     },
     channels.destroy,
   );
@@ -343,9 +341,9 @@ let make =
           placeholder=editorPlaceholder
           grammar="agda"
           onEditorRef=onQueryEditorRef
-          onConfirm={result => onInquireQuery |> Event.emitOk(result)}
+          onConfirm={result => onInquireQuery.emit(Ok(result))}
           onCancel={() =>
-            onInquireQuery |> Event.emitError(MiniEditor.Cancelled) |> ignore
+            onInquireQuery.emit(Error(MiniEditor.Cancelled)) |> ignore
           }
         />
       </section>

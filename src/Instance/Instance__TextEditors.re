@@ -1,5 +1,4 @@
 open Rebase;
-open Async;
 
 open Instance__Type;
 
@@ -27,34 +26,33 @@ let pointingAt = (~cursor=?, instance): option(Goal.t) => {
   pointedGoals[0];
 };
 
-let getPointedGoal = (instance): Async.t(Goal.t, error) => {
+let getPointedGoal = (instance): Promise.t(result(Goal.t, error)) => {
   let pointed = pointingAt(instance);
   switch (pointed) {
-  | Some(goal) => resolve(goal)
-  | None => reject(OutOfGoal)
+  | Some(goal) => Promise.resolved(Ok(goal))
+  | None => Promise.resolved(Error(OutOfGoal))
   };
 };
 
-let getPointedGoalAt = (cursor, instance): Async.t(Goal.t, error) => {
+let getPointedGoalAt = (cursor, instance): Promise.t(result(Goal.t, error)) => {
   let pointed = pointingAt(~cursor, instance);
   switch (pointed) {
-  | Some(goal) => resolve(goal)
-  | None => reject(OutOfGoal)
+  | Some(goal) => Promise.resolved(Ok(goal))
+  | None => Promise.resolved(Error(OutOfGoal))
   };
 };
 
-let handleOutOfGoal = callback =>
-  thenError(error =>
-    switch (error) {
+let handleOutOfGoal = (promise, callback) =>
+  promise->Promise.flatMapError(
+    fun
     | OutOfGoal => callback()
-    | _ => reject(error)
-    }
+    | error => Promise.resolved(Error(error)),
   );
 
-let getGoalIndex = (goal: Goal.t): Async.t((Goal.t, int), error) => {
+let getGoalIndex = (goal: Goal.t): Promise.t(result((Goal.t, int), error)) => {
   switch (goal.index) {
-  | Some(index) => resolve((goal, index))
-  | None => reject(GoalNotIndexed)
+  | Some(index) => Promise.resolved(Ok((goal, index)))
+  | None => Promise.resolved(Error(GoalNotIndexed))
   };
 };
 
@@ -64,34 +62,31 @@ let updateCursorPosition = (callback, instance) => {
     instance.editors.source |> Atom.TextEditor.getCursorBufferPosition;
   let result = callback();
 
-  instance
-  |> getPointedGoalAt(cursor)
+  getPointedGoalAt(cursor, instance)
   /* reposition the cursor in the goal only if it's a fresh hole (coming from '?') */
-  |> thenOk(goal => {
-       let fresh = Goal.isEmpty(goal);
-       if (fresh) {
-         let delta = Atom.Point.make(0, 3);
-         let newPosition =
-           Atom.Point.translate(delta, goal.range |> Atom.Range.start);
-         Js.Global.setTimeout(
-           () =>
-             instance.editors.source
-             |> Atom.TextEditor.setCursorBufferPosition(newPosition),
-           0,
-         )
-         |> ignore;
-         resolve();
-       } else {
-         instance.editors.source
-         |> Atom.TextEditor.setCursorBufferPosition(cursor);
-         resolve();
-       };
-     })
-  |> handleOutOfGoal(_ => {
-       instance.editors.source
-       |> Atom.TextEditor.setCursorBufferPosition(cursor);
-       resolve();
-     })
+  ->Promise.mapOk(goal => {
+      let fresh = Goal.isEmpty(goal);
+      if (fresh) {
+        let delta = Atom.Point.make(0, 3);
+        let newPosition =
+          Atom.Point.translate(delta, goal.range |> Atom.Range.start);
+        Js.Global.setTimeout(
+          () =>
+            instance.editors.source
+            |> Atom.TextEditor.setCursorBufferPosition(newPosition),
+          0,
+        )
+        |> ignore;
+      } else {
+        instance.editors.source
+        |> Atom.TextEditor.setCursorBufferPosition(cursor);
+      };
+    })
+  ->handleOutOfGoal(_ => {
+      instance.editors.source
+      |> Atom.TextEditor.setCursorBufferPosition(cursor);
+      Promise.resolved(Ok());
+    })
   |> ignore;
 
   /* return the result of the callback */

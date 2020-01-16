@@ -333,7 +333,8 @@ let getInstance = editor => {
 exception DispatchFailure(string);
 let dispatch = (event, instance: Instance.t): Js.Promise.t(Instance.t) => {
   // resolves on command dispatch
-  let onDispatch = instance.Instance__Type.onDispatch |> Event.once;
+  let onDispatch =
+    instance.Instance__Type.onDispatch.once()->Promise.Js.toBsPromise;
   // dispatch command using Atom's API
   switch (Commands.dispatch(Views.getView(instance.editors.source), event)) {
   | None => reject(DispatchFailure(event))
@@ -349,7 +350,7 @@ let openAndLoad = (path): Js.Promise.t(Instance.t) => {
 };
 
 let close = (instance: Instance.t): Js.Promise.t(unit) => {
-  let onDestroy = instance.view.onDestroy |> Event.once |> Async.toPromise;
+  let onDestroy = instance.view.onDestroy.once()->Promise.Js.toBsPromise;
 
   instance.editors.source
   |> TextEditor.asWorkspaceItem
@@ -366,7 +367,8 @@ module Keyboard = {
     open Instance__Type;
     let element = instance.editors.source |> Views.getView;
     // resolves on command dispatch
-    let onDispatch = instance.onDispatch |> Event.once;
+    let onDispatch =
+      instance.Instance__Type.onDispatch.once()->Promise.Js.toBsPromise;
 
     // build and dispatch the keyboard event
     Keymaps.buildKeydownEvent_(
@@ -382,7 +384,7 @@ module Keyboard = {
     )
     |> Keymaps.handleKeyboardEvent;
 
-    onDispatch |> Async.toPromise |> then_(() => resolve(instance));
+    onDispatch |> then_(_ => resolve(instance));
   };
 
   // `TextEditor.insertText` sometimes fails on CI
@@ -415,7 +417,7 @@ module Keyboard = {
   let insert = (key, instance: Instance.t) => {
     // listen
     let onChange =
-      instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+      instance.view.onInputMethodChange.once()->Promise.Js.toBsPromise;
     // trigger (insert & save)
     insertUntilSuccess(key, instance)
     |> then_(_ => onChange)
@@ -449,7 +451,7 @@ module Keyboard = {
 
     // listen
     let onChange =
-      instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+      instance.view.onInputMethodChange.once()->Promise.Js.toBsPromise;
     // trigger (backspace & save)
     backspaceUntilSuccess()
     |> then_(_ => onChange)

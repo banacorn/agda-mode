@@ -1,9 +1,11 @@
-type t('input, 'output, 'error) =
-  Resource.t('input => Async.t('output, 'error), 'error);
+type t('input, 'output) = Resource.t('input => Promise.t('output));
 
 let make = Resource.make;
 
 let send = (input, channel) =>
-  channel |> Resource.acquire |> Async.thenOk(trigger => trigger(input));
+  channel.Resource.acquire()->Promise.flatMap(trigger => trigger(input));
 
-let recv = (callback, channel) => channel |> Resource.supply(callback);
+let sendTo = (channel, input) =>
+  channel.Resource.acquire()->Promise.flatMap(trigger => trigger(input));
+
+let recv = (callback, channel) => channel.Resource.supply(callback);

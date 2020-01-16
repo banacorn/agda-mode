@@ -22,7 +22,7 @@ let make =
   let ((connection, connectionError), setConnectionAndError) =
     Hook.useState((None, None));
   Hook.useChannel(
-    setConnectionAndError >> Async.resolve,
+    setConnectionAndError >> Promise.resolved,
     channels.updateConnection,
   );
 

@@ -1,4 +1,3 @@
-open Async;
 module Event = Event;
 
 open Instance__Type;
@@ -16,17 +15,17 @@ let dispatch = Handler.dispatch;
 let activate = instance =>
   // only activate the view when it's loaded
   if (instance.isLoaded) {
-    instance.view.activate() |> thenOk(_ => resolve());
+    instance.view.activate()->Promise.map(_ => ());
   } else {
-    resolve();
+    Promise.resolved();
   };
 
 let deactivate = instance =>
   // only deactivate the view when it's loaded
   if (instance.isLoaded) {
-    instance.view.deactivate() |> thenOk(_ => resolve());
+    instance.view.deactivate()->Promise.map(_ => ());
   } else {
-    resolve();
+    Promise.resolved();
   };
 
 let destroy = instance => instance.view.destroy();
@@ -60,16 +59,15 @@ let make = (textEditor: Atom.TextEditor.t) => {
 
   /* listen to `onMouseEvent` */
   let destructor1 =
-    instance.view.onMouseEvent
-    |> Event.onOk(ev =>
-         switch (ev) {
-         | Type.View.Mouse.JumpToTarget(target) =>
-           instance |> dispatch(Jump(target)) |> ignore
-         | _ => ()
-         }
-       );
+    instance.view.onMouseEvent.on(ev =>
+      switch (ev) {
+      | Type.View.Mouse.JumpToTarget(target) =>
+        instance |> dispatch(Jump(target)) |> ignore
+      | _ => ()
+      }
+    );
 
-  instance.view.onDestroy |> Event.once |> Async.finalOk(_ => destructor1());
+  instance.view.onDestroy.once()->Promise.get(_ => destructor1());
 
   instance;
 };

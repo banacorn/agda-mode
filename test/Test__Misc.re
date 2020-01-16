@@ -10,37 +10,34 @@ external promiseFiles: string => Js.Promise.t(array(string)) =
 
 describe_skip("when loading files", () =>
   describe("when parsing responses from Agda", () => {
-    open Async;
     let loadAndParse = path => {
       File.open_(path)
       |> Js.Promise.then_(editor => {
            let instance = Instance.make(editor);
            Connection.autoSearch("agda")
-           |> mapOk(x => x ++ " --no-libraries")
-           |> thenOk(Connection.validateAndMake)
-           |> thenOk(Connection.connect)
-           |> mapOk(Connection.wire)
-           |> mapOk(Instance.Connections.set(instance))
-           |> mapError(error => BsMocha.Assert.fail(error))
-           |> thenOk(_ =>
-                instance
-                |> Instance.Handler.handleLocalCommand(
-                     Command.Primitive.Load,
-                   )
-                |> thenOk(
-                     Instance.Handler.handleRemoteCommand(instance, (_, _) =>
-                       resolve()
-                     ),
-                   )
-                |> thenOk(_ => {
-                     Assert.ok();
-                     resolve();
-                   })
-                |> mapError(error => {
-                     BsMocha.Assert.fail(error);
-                     ();
-                   })
-              );
+           ->Promise.mapOk(x => x ++ " --no-libraries")
+           ->Promise.flatMapOk(Connection.validateAndMake)
+           ->Promise.flatMapOk(Connection.connect)
+           ->Promise.mapOk(Connection.wire)
+           ->Promise.mapOk(Instance.Connections.set(instance))
+           ->Promise.mapError(error => BsMocha.Assert.fail(error))
+           ->Promise.flatMapOk(_ =>
+               Instance.Handler.handleLocalCommand(
+                 Command.Primitive.Load,
+                 instance,
+               )
+               ->Promise.flatMapOk(
+                   Instance.Handler.handleRemoteCommand(instance, (_, _) =>
+                     Promise.resolved()
+                   ),
+                 )
+               ->Promise.mapOk(_ => Assert.ok())
+               ->Promise.mapError(error => {
+                   BsMocha.Assert.fail(error);
+                   ();
+                 })
+             )
+           ->Promise.Js.toBsPromise;
          });
     };
 

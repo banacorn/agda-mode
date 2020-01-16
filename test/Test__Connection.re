@@ -25,7 +25,8 @@ describe("Connection", () =>
       |> then_(getInstance)
       |> then_(instance => {
            let onConnectionError =
-             instance.Instance__Type.onConnectionError |> Event.once;
+             instance.Instance__Type.onConnectionError.once()
+             ->Promise.Js.toBsPromise;
 
            dispatch("agda-mode:load", instance)
            |> then_(_ => {
@@ -35,7 +36,6 @@ describe("Connection", () =>
            |> ignore;
 
            onConnectionError
-           |> Async.toPromise
            |> then_(error => {
                 open Connection.Error;
                 switch (error) {

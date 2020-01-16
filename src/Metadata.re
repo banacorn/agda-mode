@@ -146,7 +146,6 @@ $entries
 };
 
 let dump = self => {
-  open Async;
   let text = serialize(self);
   let itemOptions = {
     "initialLine": 0,
@@ -160,10 +159,14 @@ let dump = self => {
   };
   let itemURI = "agda-mode://log.md";
   Atom.Workspace.open_(itemURI, itemOptions)
-  |> fromPromise
-  |> thenOk(newItem => {
-       newItem |> Atom.TextEditor.insertText(text) |> ignore;
-       resolve();
-     })
+  ->Promise.Js.fromBsPromise
+  ->Promise.Js.toResult
+  ->Promise.map(
+      fun
+      | Error(_) => ()
+      | Ok(newItem) => {
+          newItem |> Atom.TextEditor.insertText(text) |> ignore;
+        },
+    )
   |> ignore;
 };

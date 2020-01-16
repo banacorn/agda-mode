@@ -1,6 +1,5 @@
 open ReasonReact;
-open Rebase;
-open Async;
+open! Rebase;
 open Util.React;
 
 [@react.component]
@@ -17,28 +16,24 @@ let make =
 
   /* triggering autoSearch */
   let handleAutoSearch = _ => {
-    Connection.autoSearch("agda")
-    |> thenOk(path =>
-         editorRef
-         |> Resource.acquire
-         |> thenOk(editor => {
-              editor |> Atom.TextEditor.setText(path);
-              resolve();
-            })
-       )
+    let promise = Connection.autoSearch("agda");
+    promise->Promise.getOk(path =>
+      editorRef.acquire()
+      ->Promise.getOk(editor => editor |> Atom.TextEditor.setText(path))
+    );
     // report error when autoSearch failed
-    |> finalError(err => setAutoSearchError(Some(err)));
+    promise->Promise.getError(err => setAutoSearchError(Some(err)));
   };
 
   let focusOnPathEditor = editor => {
     editor |> Atom.Views.getView |> Webapi.Dom.HtmlElement.focus;
     editor |> Atom.TextEditor.selectAll |> ignore;
-    onSetPath |> Event.once;
+    onSetPath.once();
   };
 
   // focus on the path editor on `inquireConnection`
   Hook.useChannel(
-    () => editorRef |> Resource.acquire |> thenOk(focusOnPathEditor),
+    () => editorRef.acquire()->Promise.flatMapOk(focusOnPathEditor),
     channels.inquireConnection,
   );
 
@@ -93,10 +88,10 @@ let make =
           }
         }
         placeholder="path to Agda"
-        onEditorRef={x => editorRef |> Resource.supply(x)}
+        onEditorRef={x => editorRef.supply(Ok(x))}
         onConfirm={path => {
           setAutoSearchError(None);
-          onSetPath |> Event.emitOk(path);
+          onSetPath.emit(Ok(path));
         }}
       />
     </p>

@@ -1,5 +1,4 @@
 open Rebase;
-open Async;
 
 open Instance__Type;
 
@@ -10,8 +9,8 @@ module TextEditors = Instance__TextEditors;
 
 open TextEditors;
 
-let handleCommandError = instance =>
-  thenError((error: error) => {
+let handleCommandError = (promise, instance) =>
+  promise->Promise.mapError((error: error) => {
     (
       switch (error) {
       | ParseError(errors) =>
@@ -64,7 +63,6 @@ let handleCommandError = instance =>
     )
     |> ignore;
     instance.editors |> Editors.Focus.on(Editors.Source);
-    resolve();
   });
 
 let handleDisplayInfo =
@@ -150,7 +148,8 @@ let handleDisplayInfo =
   );
 };
 
-let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
+let handleResponse =
+    (instance, response: Response.t): Promise.t(result(unit, error)) => {
   let textEditor = instance.editors.source;
   let filePath = instance |> Instance__TextEditors.getPath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
@@ -159,12 +158,10 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
     annotations
     |> Array.filter(Highlighting.Annotation.shouldHighlight)
     |> Array.forEach(annotation => instance |> Highlightings.add(annotation));
-    resolve();
+    Promise.resolved(Ok());
   | HighlightingInfoIndirect(filepath) =>
-    instance
-    |> Highlightings.addFromFile(filepath)
-    |> mapOk(() => N.Fs.unlink(filepath, _ => ()))
-    |> mapError(_ => Cancelled)
+    Highlightings.addFromFile(filepath, instance)
+    ->Promise.map(() => Ok(N.Fs.unlink(filepath, _ => ())))
   | Status(displayImplicit, checked) =>
     if (displayImplicit || checked) {
       instance.view.display(
@@ -181,7 +178,7 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
       )
       |> ignore;
     };
-    resolve();
+    Promise.resolved(Ok());
   | JumpToError(targetFilePath, index) =>
     if (targetFilePath == filePath) {
       let point =
@@ -192,15 +189,15 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
       )
       |> ignore;
     };
-    resolve();
+    Promise.resolved(Ok());
   | InteractionPoints(indices) =>
     instance |> Goals.instantiateAll(indices);
-    resolve();
+    Promise.resolved(Ok());
   | GiveAction(index, give) =>
     switch (Goals.find(index, instance)) {
     | None =>
       Js.log("error: cannot find goal #" ++ string_of_int(index));
-      resolve();
+      Promise.resolved(Ok());
     | Some(goal) =>
       switch (give) {
       | Paren =>
@@ -216,7 +213,7 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
       };
       Goal.removeBoundary(goal);
       Goal.destroy(goal);
-      resolve();
+      Promise.resolved(Ok());
     }
   | MakeCase(makeCaseType, lines) =>
     let pointed = pointingAt(instance);
@@ -227,16 +224,17 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
       | ExtendedLambda => Goal.writeLambda(lines, goal)
       };
       instance |> instance.dispatch(Command.Primitive.Load);
-    | None => reject(OutOfGoal)
+    | None => Promise.resolved(Error(OutOfGoal))
     };
   | DisplayInfo(info) =>
     let (text, style, body) = handleDisplayInfo(info);
     instance.view.display(text, style, body);
-    resolve();
+    Promise.resolved(Ok());
   | ClearHighlighting =>
     instance |> Highlightings.destroyAll;
-    resolve();
-  | NoStatus => resolve()
+    Promise.resolved(Ok());
+  | NoStatus => Promise.resolved(Ok())
+
   | RunningInfo(verbosity, message) =>
     if (verbosity >= 2) {
       instance.runningInfo
@@ -251,8 +249,10 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
       |> ignore;
     };
 
-    resolve();
-  | ClearRunningInfo => resolve()
+    Promise.resolved(Ok());
+
+  | ClearRunningInfo => Promise.resolved(Ok())
+
   | DoneAborting =>
     instance.view.display(
       "Status",
@@ -260,11 +260,12 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
       Emacs(PlainText("Done aborting")),
     )
     |> ignore;
-    resolve();
+    Promise.resolved(Ok());
+
   | SolveAll(solutions) =>
     let solve = ((index, solution)) => {
       switch (Goals.find(index, instance)) {
-      | None => resolve()
+      | None => Promise.resolved(Ok())
       | Some(goal) =>
         goal |> Goal.setContent(solution) |> ignore;
         Goals.setCursor(goal, instance);
@@ -273,80 +274,80 @@ let handleResponse = (instance, response: Response.t): Async.t(unit, error) => {
     };
 
     // solve them one by one
-    solutions
-    |> Array.reduce(
-         (promise, solution) =>
-           promise |> thenOk(() => solve(solution) |> thenOk(() => resolve())),
-         resolve(),
-       )
-    |> thenOk(() => {
-         let size = Array.length(solutions);
-         if (size == 0) {
-           instance.view.display(
-             "No solutions found",
-             Type.View.Header.PlainText,
-             Emacs(PlainText("")),
-           );
-         } else {
-           instance.view.display(
-             string_of_int(size) ++ " goals solved",
-             Type.View.Header.Success,
-             Emacs(PlainText("")),
-           );
-         };
-         resolve();
-       });
+
+    Array.reduce(
+      (promise, solution) =>
+        promise->Promise.flatMapOk(() => solve(solution)),
+      Promise.resolved(Ok()),
+      solutions,
+    )
+    ->Promise.mapOk(() => {
+        let size = Array.length(solutions);
+        if (size == 0) {
+          instance.view.display(
+            "No solutions found",
+            Type.View.Header.PlainText,
+            Emacs(PlainText("")),
+          );
+        } else {
+          instance.view.display(
+            string_of_int(size) ++ " goals solved",
+            Type.View.Header.Success,
+            Emacs(PlainText("")),
+          );
+        };
+        ();
+      });
   };
 };
 
 let handleResponseAndRecoverCursor = (instance, response) =>
-  instance
-  |> updateCursorPosition(() => handleResponse(instance, response))
-  |> mapOk(_ => ());
+  instance |> updateCursorPosition(() => handleResponse(instance, response));
+// |> mapOk(_ => ());
 
 /* Primitive Command => Remote Command */
 let rec handleLocalCommand =
         (command: Command.Primitive.t, instance)
-        : Async.t(option(Command.Remote.t), error) => {
+        : Promise.t(result(option(Command.Remote.t), error)) => {
   let buff = (command, instance) => {
     Connections.get(instance)
-    |> mapOk((connection: Connection.t) => {
-         instance.view.display(
-           "Loading ...",
-           Type.View.Header.PlainText,
-           Emacs(PlainText("")),
-         );
+    ->Promise.mapOk((connection: Connection.t) => {
+        instance.view.display(
+          "Loading ...",
+          Type.View.Header.PlainText,
+          Emacs(PlainText("")),
+        );
 
-         Some(
-           {
-             version: connection.metadata.version,
-             filepath: instance |> Instance__TextEditors.getPath,
-             command,
-           }: Command.Remote.t,
-         );
-       })
-    |> mapError(_ => Cancelled);
+        Some(
+          {
+            version: connection.metadata.version,
+            filepath: instance |> Instance__TextEditors.getPath,
+            command,
+          }: Command.Remote.t,
+        );
+      })
+    ->Promise.mapError(_ => Cancelled);
   };
   switch (command) {
   | Load =>
     instance.editors.source
-    |> Atom.TextEditor.save  // force save before load
-    |> fromPromise
-    |> mapError(_ => Cancelled)
-    |> thenOk(() => {
-         instance.isLoaded = true;
-         instance.view.activate()
-         |> mapError(_ => Cancelled)
-         |> thenOk(_ => {
-              instance.view.activate();
-              instance.view.display(
-                "Connecting ...",
-                Type.View.Header.PlainText,
-                Emacs(PlainText("")),
-              );
-              instance |> buff(Load);
-            });
-       })
+    ->Atom.TextEditor.save // force save before load
+    ->Promise.Js.fromBsPromise
+    ->Promise.Js.toResult
+    ->Promise.mapError(_ => Cancelled)
+    ->Promise.flatMapOk(() => {
+        instance.isLoaded = true;
+        instance.view.activate()
+        ->Promise.flatMap(_ => {
+            instance.view.activate();
+            instance.view.display(
+              "Connecting ...",
+              Type.View.Header.PlainText,
+              Emacs(PlainText("")),
+            );
+            instance |> buff(Load);
+          });
+      })
   | Abort => instance |> buff(Abort)
   | Quit =>
     Connections.disconnect(instance);
@@ -355,7 +356,7 @@ let rec handleLocalCommand =
     instance.view.deactivate();
     instance.isLoaded = false;
     instance.view.deactivate();
-    resolve(None);
+    Promise.resolved(Ok(None));
   | Restart =>
     Connections.disconnect(instance);
     instance |> buff(Load);
@@ -373,7 +374,7 @@ let rec handleLocalCommand =
          instance.editors.source
          |> Atom.TextEditor.setCursorBufferPosition(position)
        );
-    resolve(None);
+    Promise.resolved(Ok(None));
   | PreviousGoal =>
     let previousGoal = instance |> Goals.getPreviousGoalPosition;
     /* jump */
@@ -382,42 +383,42 @@ let rec handleLocalCommand =
          instance.editors.source
          |> Atom.TextEditor.setCursorBufferPosition(position)
        );
-    resolve(None);
+    Promise.resolved(Ok(None));
 
   | ToggleDocking =>
     instance.view.toggleDocking();
-    resolve(None);
+    Promise.resolved(Ok(None));
   | Give =>
     instance
-    |> getPointedGoal
-    |> thenOk(getGoalIndex)
-    |> thenOk(((goal, index)) =>
-         if (Goal.isEmpty(goal)) {
-           instance.view.inquire("Give", "expression to give:", "")
-           |> mapError(_ => Cancelled)
-           |> thenOk(result => {
-                goal |> Goal.setContent(result) |> ignore;
-                instance |> buff(Give(goal, index));
-              });
-         } else {
-           instance |> buff(Give(goal, index));
-         }
-       )
+    ->getPointedGoal
+    ->Promise.flatMapOk(getGoalIndex)
+    ->Promise.flatMapOk(((goal, index)) =>
+        if (Goal.isEmpty(goal)) {
+          instance.view.inquire("Give", "expression to give:", "")
+          ->Promise.mapError(_ => Cancelled)
+          ->Promise.flatMapOk(result => {
+              goal |> Goal.setContent(result) |> ignore;
+              instance |> buff(Give(goal, index));
+            });
+        } else {
+          instance |> buff(Give(goal, index));
+        }
+      )
 
   | WhyInScope =>
     let selectedText =
       instance.editors.source |> Atom.TextEditor.getSelectedText;
     if (String.isEmpty(selectedText)) {
       instance.view.inquire("Scope info", "name:", "")
-      |> mapError(_ => Cancelled)
-      |> thenOk(expr =>
-           instance
-           |> getPointedGoal
-           |> thenOk(getGoalIndex)
-           |> thenOk(((_, index)) =>
-                instance |> buff(WhyInScope(expr, index))
-              )
-         );
+      ->Promise.mapError(_ => Cancelled)
+      ->Promise.flatMapOk(expr =>
+          instance
+          ->getPointedGoal
+          ->Promise.flatMapOk(getGoalIndex)
+          ->Promise.flatMapOk(((_, index)) =>
+              instance |> buff(WhyInScope(expr, index))
+            )
+        );
     } else {
       /* global */
       instance |> buff(WhyInScopeGlobal(selectedText));
@@ -431,45 +432,47 @@ let rec handleLocalCommand =
       "expression to infer:",
       "",
     )
-    |> mapError(_ => Cancelled)
-    |> thenOk(expr => instance |> buff(SearchAbout(normalization, expr)))
+    ->Promise.mapError(_ => Cancelled)
+    ->Promise.flatMapOk(expr =>
+        instance |> buff(SearchAbout(normalization, expr))
+      )
 
   | InferType(normalization) =>
     instance
-    |> getPointedGoal
-    |> thenOk(getGoalIndex)
+    ->getPointedGoal
+    ->Promise.flatMapOk(getGoalIndex)
     /* goal-specific */
-    |> thenOk(((goal, index)) =>
-         if (Goal.isEmpty(goal)) {
-           instance.view.inquire(
-             "Infer type ["
-             ++ Command.Normalization.toString(normalization)
-             ++ "]",
-             "expression to infer:",
-             "",
-           )
-           |> mapError(_ => Cancelled)
-           |> thenOk(expr =>
-                instance |> buff(InferType(normalization, expr, index))
-              );
-         } else {
-           instance |> buff(Give(goal, index));
-         }
-       )
+    ->Promise.flatMapOk(((goal, index)) =>
+        if (Goal.isEmpty(goal)) {
+          instance.view.inquire(
+            "Infer type ["
+            ++ Command.Normalization.toString(normalization)
+            ++ "]",
+            "expression to infer:",
+            "",
+          )
+          ->Promise.mapError(_ => Cancelled)
+          ->Promise.flatMapOk(expr =>
+              instance |> buff(InferType(normalization, expr, index))
+            );
+        } else {
+          instance |> buff(Give(goal, index));
+        }
+      )
     /* global  */
-    |> handleOutOfGoal(_ =>
-         instance.view.inquire(
-           "Infer type ["
-           ++ Command.Normalization.toString(normalization)
-           ++ "]",
-           "expression to infer:",
-           "",
-         )
-         |> mapError(_ => Cancelled)
-         |> thenOk(expr =>
-              instance |> buff(InferTypeGlobal(normalization, expr))
-            )
-       )
+    ->handleOutOfGoal(_ =>
+        instance.view.inquire(
+          "Infer type ["
+          ++ Command.Normalization.toString(normalization)
+          ++ "]",
+          "expression to infer:",
+          "",
+        )
+        ->Promise.mapError(_ => Cancelled)
+        ->Promise.flatMapOk(expr =>
+            instance |> buff(InferTypeGlobal(normalization, expr))
+          )
+      )
 
   | ModuleContents(normalization) =>
     instance.view.inquire(
@@ -479,110 +482,113 @@ let rec handleLocalCommand =
       "module name:",
       "",
     )
-    |> mapError(_ => Cancelled)
-    |> thenOk(expr =>
-         instance
-         |> getPointedGoal
-         |> thenOk(getGoalIndex)
-         |> thenOk(((_, index)) =>
-              instance |> buff(ModuleContents(normalization, expr, index))
-            )
-         |> handleOutOfGoal(_ =>
-              instance |> buff(ModuleContentsGlobal(normalization, expr))
-            )
-       )
+    ->Promise.mapError(_ => Cancelled)
+    ->Promise.flatMapOk(expr =>
+        instance
+        ->getPointedGoal
+        ->Promise.flatMapOk(getGoalIndex)
+        ->Promise.flatMapOk(((_, index)) =>
+            instance |> buff(ModuleContents(normalization, expr, index))
+          )
+        ->handleOutOfGoal(_ =>
+            instance |> buff(ModuleContentsGlobal(normalization, expr))
+          )
+      )
 
   | ComputeNormalForm(computeMode) =>
     instance
-    |> getPointedGoal
-    |> thenOk(getGoalIndex)
-    |> thenOk(((goal, index)) =>
-         if (Goal.isEmpty(goal)) {
-           instance.view.inquire(
-             "Compute normal form",
-             "expression to normalize:",
-             "",
-           )
-           |> mapError(_ => Cancelled)
-           |> thenOk(expr =>
-                instance |> buff(ComputeNormalForm(computeMode, expr, index))
-              );
-         } else {
-           let expr = Goal.getContent(goal);
-           instance |> buff(ComputeNormalForm(computeMode, expr, index));
-         }
-       )
-    |> handleOutOfGoal(_ =>
-         instance.view.inquire(
-           "Compute normal form",
-           "expression to normalize:",
-           "",
-         )
-         |> mapError(_ => Cancelled)
-         |> thenOk(expr =>
-              instance |> buff(ComputeNormalFormGlobal(computeMode, expr))
-            )
-       )
+    ->getPointedGoal
+    ->Promise.flatMapOk(getGoalIndex)
+    ->Promise.flatMapOk(((goal, index)) =>
+        if (Goal.isEmpty(goal)) {
+          instance.view.inquire(
+            "Compute normal form",
+            "expression to normalize:",
+            "",
+          )
+          ->Promise.mapError(_ => Cancelled)
+          ->Promise.flatMapOk(expr =>
+              instance |> buff(ComputeNormalForm(computeMode, expr, index))
+            );
+        } else {
+          let expr = Goal.getContent(goal);
+          instance |> buff(ComputeNormalForm(computeMode, expr, index));
+        }
+      )
+    ->handleOutOfGoal(_ =>
+        instance.view.inquire(
+          "Compute normal form",
+          "expression to normalize:",
+          "",
+        )
+        ->Promise.mapError(_ => Cancelled)
+        ->Promise.flatMapOk(expr =>
+            instance |> buff(ComputeNormalFormGlobal(computeMode, expr))
+          )
+      )
 
   | Refine =>
     instance
-    |> getPointedGoal
-    |> thenOk(getGoalIndex)
-    |> thenOk(((goal, index)) => instance |> buff(Refine(goal, index)))
+    ->getPointedGoal
+    ->Promise.flatMapOk(getGoalIndex)
+    ->Promise.flatMapOk(((goal, index)) =>
+        instance |> buff(Refine(goal, index))
+      )
 
   | Auto =>
     instance
-    |> getPointedGoal
-    |> thenOk(getGoalIndex)
-    |> thenOk(((goal, index)) => instance |> buff(Auto(goal, index)))
+    ->getPointedGoal
+    ->Promise.flatMapOk(getGoalIndex)
+    ->Promise.flatMapOk(((goal, index)) =>
+        instance |> buff(Auto(goal, index))
+      )
 
   | Case =>
     instance
-    |> getPointedGoal
-    |> thenOk(getGoalIndex)
-    |> thenOk(((goal, index)) =>
-         if (Goal.isEmpty(goal)) {
-           instance.view.inquire("Case", "expression to case:", "")
-           |> mapError(_ => Cancelled)
-           |> thenOk(result => {
-                goal |> Goal.setContent(result) |> ignore;
-                instance |> buff(Case(goal, index));
-              });
-         } else {
-           instance |> buff(Case(goal, index));
-         }
-       )
+    ->getPointedGoal
+    ->Promise.flatMapOk(getGoalIndex)
+    ->Promise.flatMapOk(((goal, index)) =>
+        if (Goal.isEmpty(goal)) {
+          instance.view.inquire("Case", "expression to case:", "")
+          ->Promise.mapError(_ => Cancelled)
+          ->Promise.flatMapOk(result => {
+              goal |> Goal.setContent(result) |> ignore;
+              instance |> buff(Case(goal, index));
+            });
+        } else {
+          instance |> buff(Case(goal, index));
+        }
+      )
 
   | GoalType(normalization) =>
     instance
-    |> getPointedGoal
-    |> thenOk(getGoalIndex)
-    |> thenOk(((_, index)) =>
-         instance |> buff(GoalType(normalization, index))
-       )
+    ->getPointedGoal
+    ->Promise.flatMapOk(getGoalIndex)
+    ->Promise.flatMapOk(((_, index)) =>
+        instance |> buff(GoalType(normalization, index))
+      )
   | Context(normalization) =>
     instance
-    |> getPointedGoal
-    |> thenOk(getGoalIndex)
-    |> thenOk(((_, index)) =>
-         instance |> buff(Context(normalization, index))
-       )
+    ->getPointedGoal
+    ->Promise.flatMapOk(getGoalIndex)
+    ->Promise.flatMapOk(((_, index)) =>
+        instance |> buff(Context(normalization, index))
+      )
   | GoalTypeAndContext(normalization) =>
     instance
-    |> getPointedGoal
-    |> thenOk(getGoalIndex)
-    |> thenOk(((_, index)) =>
-         instance |> buff(GoalTypeAndContext(normalization, index))
-       )
+    ->getPointedGoal
+    ->Promise.flatMapOk(getGoalIndex)
+    ->Promise.flatMapOk(((_, index)) =>
+        instance |> buff(GoalTypeAndContext(normalization, index))
+      )
 
   | GoalTypeAndInferredType(normalization) =>
     instance
-    |> getPointedGoal
-    |> thenOk(getGoalIndex)
-    |> thenOk(((goal, index)) =>
-         instance
-         |> buff(GoalTypeAndInferredType(normalization, goal, index))
-       )
+    ->getPointedGoal
+    ->Promise.flatMapOk(getGoalIndex)
+    ->Promise.flatMapOk(((goal, index)) =>
+        instance |> buff(GoalTypeAndInferredType(normalization, goal, index))
+      )
 
   | InputSymbol(symbol) =>
     let enabled = Atom.Config.get("agda-mode.inputMethod");
@@ -591,39 +597,38 @@ let rec handleLocalCommand =
       switch (symbol) {
       | Ordinary =>
         instance.view.activate()
-        |> mapError(_ => Cancelled)
-        |> thenOk(_ => {
-             instance.view.activateInputMethod(true);
-             resolve(None);
-           })
+        ->Promise.flatMap(_ => {
+            instance.view.activateInputMethod(true);
+            Promise.resolved(Ok(None));
+          })
       | CurlyBracket =>
         instance.view.interceptAndInsertKey("{");
-        resolve(None);
+        Promise.resolved(Ok(None));
       | Bracket =>
         instance.view.interceptAndInsertKey("[");
-        resolve(None);
+        Promise.resolved(Ok(None));
       | Parenthesis =>
         instance.view.interceptAndInsertKey("(");
-        resolve(None);
+        Promise.resolved(Ok(None));
       | DoubleQuote =>
         instance.view.interceptAndInsertKey("\"");
-        resolve(None);
+        Promise.resolved(Ok(None));
       | SingleQuote =>
         instance.view.interceptAndInsertKey("'");
-        resolve(None);
+        Promise.resolved(Ok(None));
       | BackQuote =>
         instance.view.interceptAndInsertKey("`");
-        resolve(None);
+        Promise.resolved(Ok(None));
       | Abort =>
         instance.view.activateInputMethod(false);
-        resolve(None);
+        Promise.resolved(Ok(None));
       };
     } else {
       instance.editors
       |> Editors.Focus.get
       |> Atom.TextEditor.insertText("\\")
       |> ignore;
-      resolve(None);
+      Promise.resolved(Ok(None));
     };
 
   | QuerySymbol =>
@@ -631,35 +636,33 @@ let rec handleLocalCommand =
     let getSymbol =
       if (String.isEmpty(String.trim(selected))) {
         instance.view.activate();
-        instance.view.activate();
         instance.view.inquire(
           "Lookup Unicode Symbol Input Sequence",
           "symbol to lookup:",
           "",
         );
       } else {
-        resolve(selected);
+        Promise.resolved(Ok(selected));
       };
 
-    getSymbol
-    |> finalOk(symbol =>
-         symbol
-         |> Translator.lookup
-         |> Option.forEach(sequences =>
-              instance.view.display(
-                "Input sequence for " ++ symbol,
-                Type.View.Header.PlainText,
-                Emacs(
-                  PlainText(
-                    sequences |> List.fromArray |> String.joinWith("\n"),
-                  ),
-                ),
-              )
-              |> ignore
-            )
-       )
+    getSymbol->Promise.getOk(symbol =>
+      symbol
+      |> Translator.lookup
+      |> Option.forEach(sequences =>
+           instance.view.display(
+             "Input sequence for " ++ symbol,
+             Type.View.Header.PlainText,
+             Emacs(
+               PlainText(
+                 sequences |> List.fromArray |> String.joinWith("\n"),
+               ),
+             ),
+           )
+           |> ignore
+         )
+    )
     |> ignore;
-    resolve(None);
+    Promise.resolved(Ok(None));
 
   | Jump(Type.Location.Range.HoleLink(index)) =>
     let positions = instance |> Goals.getPositions;
@@ -670,7 +673,7 @@ let rec handleLocalCommand =
          instance.editors.source
          |> Atom.TextEditor.setCursorBufferPosition(position)
        );
-    resolve(None);
+    Promise.resolved(Ok(None));
   | Jump(Type.Location.Range.RangeLink(range)) =>
     open Type.Location.Range;
     let filePath = instance |> Instance__TextEditors.getPath;
@@ -696,7 +699,7 @@ let rec handleLocalCommand =
           )
           |> ignore;
         };
-        resolve(None);
+        Promise.resolved(Ok(None));
       | Some(uri) =>
         let (line, column) =
           switch (range) {
@@ -719,11 +722,16 @@ let rec handleLocalCommand =
         };
 
         Atom.Workspace.open_(uri, option)
-        |> fromPromise
-        |> then_(_ => resolve(None), _ => reject(Cancelled));
+        ->Promise.Js.fromBsPromise
+        ->Promise.Js.toResult
+        ->Promise.map(
+            fun
+            | Error(_) => Error(Cancelled)
+            | Ok(_) => Ok(None),
+          );
       };
     } else {
-      resolve(None);
+      Promise.resolved(Ok(None));
     };
   | GotoDefinition =>
     if (instance.isLoaded) {
@@ -734,20 +742,19 @@ let rec handleLocalCommand =
            );
 
       instance
-      |> getPointedGoal
-      |> thenOk(getGoalIndex)
-      |> thenOk(((_, index)) =>
-           instance |> buff(GotoDefinition(name, index))
-         )
-      |> handleOutOfGoal(_ => instance |> buff(GotoDefinitionGlobal(name)));
+      ->getPointedGoal
+      ->Promise.flatMapOk(getGoalIndex)
+      ->Promise.flatMapOk(((_, index)) =>
+          instance |> buff(GotoDefinition(name, index))
+        )
+      ->handleOutOfGoal(_ => instance |> buff(GotoDefinitionGlobal(name)));
     } else {
       /* dispatch again if not already loaded  */
-      instance
-      |> instance.dispatch(Command.Primitive.Load)
-      |> handleCommandError(instance)
-      |> thenOk(_ =>
-           instance |> handleLocalCommand(Command.Primitive.GotoDefinition)
-         );
+      instance.dispatch(Command.Primitive.Load, instance)
+      ->handleCommandError(instance)
+      ->Promise.flatMap(_ =>
+          instance |> handleLocalCommand(Command.Primitive.GotoDefinition)
+        );
     }
   };
 };
@@ -756,22 +763,20 @@ let rec handleLocalCommand =
 let handleRemoteCommand =
     /* This still builds even when type is changed from 'a to unit.
        What is the point of an array of units? */
-    (instance, handler, remote): Async.t(array(unit), error) =>
+    (instance, handler, remote): Promise.t(result(unit, error)) =>
   switch (remote) {
-  | None => resolve([||])
+  | None => Promise.resolved(Ok())
   | Some(cmd) =>
     // log setup
     Connections.get(instance)
-    |> mapOk(connection => {
-         // remove all old log entries if `cmd` is `Load`
-         if (Command.Remote.isLoad(cmd)
-             && connection.Connection.resetLogOnLoad) {
-           Connection.resetLog(connection);
-         };
-         // create log entry for each `cmd`
-         Metadata.createLogEntry(cmd.command, connection.metadata);
-       })
-    |> ignore;
+    ->Promise.getOk(connection => {
+        // remove all old log entries if `cmd` is `Load`
+        if (Command.Remote.isLoad(cmd) && connection.Connection.resetLogOnLoad) {
+          Connection.resetLog(connection);
+        };
+        // create log entry for each `cmd`
+        Metadata.createLogEntry(cmd.command, connection.metadata);
+      });
 
     let handleResults = ref([||]);
     let parseErrors: ref(array(Parser.Error.t)) = ref([||]);
@@ -791,36 +796,38 @@ let handleRemoteCommand =
         if (Array.length(parseErrors^) > 0) {
           reject'(ParseError(parseErrors^)) |> ignore;
         } else {
-          handleResults^
-          |> all
-          |> thenOk(results => resolve'(results) |> resolve)
-          |> ignore;
+          (handleResults^)
+          ->List.fromArray
+          ->Promise.all
+          ->Promise.get(results => resolve'(results));
         }
       | Error(error) =>
         reject'(ConnectionError(Connection.Error.ConnectionError(error)))
         |> ignore
     );
+    let (promise, resolve) = Promise.pending();
 
-    Async.make((resolve', reject') =>
-      Connections.get(instance)
-      |> mapOk(connection =>
-           connection
-           |> Connection.send(inputForAgda)
-           |> Event.on(onResponse(resolve', reject'))
-           |> ignore
-         )
-      |> ignore
-    );
+    Connections.get(instance)
+    ->Promise.getOk(connection =>
+        Connection.send(inputForAgda, connection).on(
+          onResponse(x => resolve(Ok(x)), x => resolve(Error(x))),
+        )
+        |> ignore
+      );
+    promise->Promise.mapOk(_ => ());
   };
 
-let dispatch = (command, instance): Async.t(unit, error) => {
-  instance
-  |> handleLocalCommand(command)
-  |> pass(_ => startCheckpoint(command, instance))
-  |> wait(_ => instance.view.updateIsPending(true))
-  |> thenOk(handleRemoteCommand(instance, handleResponse))
-  |> pass(_ => endCheckpoint(instance))
-  |> wait(_ => instance.view.updateIsPending(false))
-  |> mapOk(_ => instance.onDispatch |> Event.emitOk())
-  |> passError(error => instance.onDispatch |> Event.emitError(error));
+let dispatch = (command, instance): Promise.t(result(unit, error)) => {
+  handleLocalCommand(command, instance)
+  ->Promise.tap(_ => startCheckpoint(command, instance))
+  ->Promise.flatMap(x =>
+      instance.view.updateIsPending(true)->Promise.map(() => x)
+    )
+  ->Promise.flatMapOk(handleRemoteCommand(instance, handleResponse))
+  ->Promise.tap(_ => endCheckpoint(instance))
+  ->Promise.flatMap(x =>
+      instance.view.updateIsPending(false)->Promise.map(() => x)
+    )
+  ->Promise.mapOk(_ => instance.onDispatch.emit(Ok()))
+  ->Promise.tapError(error => instance.onDispatch.emit(Error(error)));
 };

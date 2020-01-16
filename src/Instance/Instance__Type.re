@@ -21,9 +21,10 @@ type t = {
   mutable goals: array(Goal.t),
   mutable connection: option(Connection.t),
   mutable runningInfo: RunningInfo.t,
-  handleResponse: (t, Response.t) => Async.t(unit, error),
-  dispatch: (Command.Primitive.t, t) => Async.t(unit, error),
+  handleResponse: (t, Response.t) => Promise.t(Rebase.result(unit, error)),
+  dispatch:
+    (Command.Primitive.t, t) => Promise.t(Rebase.result(unit, error)),
   // Events
-  onDispatch: Event.t(unit, error),
-  onConnectionError: Event.t(Connection.Error.t, unit),
+  onDispatch: Event.t(Rebase.result(unit, error)),
+  onConnectionError: Event.t(Connection.Error.t),
 };

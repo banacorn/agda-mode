@@ -1,6 +1,5 @@
-open Rebase;
+open! Rebase;
 open Atom;
-open Async;
 
 type t = {
   mutable editor: option(TextEditor.t),
@@ -37,30 +36,37 @@ let add = (info, self) =>
   switch (self.editor) {
   | Some(editor) =>
     editor |> TextEditor.insertText(info) |> ignore;
-    resolve();
+    Promise.resolved();
   | None =>
     if (self.isOpeningEditor) {
       self.buffer = [info, ...self.buffer];
-      resolve();
+      Promise.resolved();
     } else {
       self.isOpeningEditor = true;
       let itemURI = "agda-mode://running-info";
-      Workspace.open_(itemURI, itemOptions)
-      |> fromPromise
-      |> thenOk(newItem => {
-           self.isOpeningEditor = false;
-           // register the newly opened editor
-           self.editor = Some(newItem);
-           // insert logs in buffer to the editor and clean the buffer
-           newItem
-           |> TextEditor.insertText(String.join(self.buffer))
-           |> ignore;
-           self.buffer = [];
-           // destroy everything on close
-           newItem
-           |> TextEditor.onDidDestroy(() => self |> destroy)
-           |> CompositeDisposable.add(self.subscriptions);
-           resolve();
-         });
+
+      let promise =
+        Workspace.open_(itemURI, itemOptions)
+        ->Promise.Js.fromBsPromise
+        ->Promise.Js.toResult;
+
+      promise->Promise.map(
+        fun
+        | Error(_) => ()
+        | Ok(newItem) => {
+            self.isOpeningEditor = false;
+            // register the newly opened editor
+            self.editor = Some(newItem);
+            // insert logs in buffer to the editor and clean the buffer
+            newItem
+            |> TextEditor.insertText(String.join(self.buffer))
+            |> ignore;
+            self.buffer = [];
+            // destroy everything on close
+            newItem
+            |> TextEditor.onDidDestroy(() => self |> destroy)
+            |> CompositeDisposable.add(self.subscriptions);
+          },
+      );
     }
   };

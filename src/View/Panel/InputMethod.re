@@ -231,7 +231,7 @@ let make =
     (
       ~editors: Editors.t,
       // this event is triggered whenever the user did something
-      ~onChange: Event.t(state, unit),
+      ~onChange: Event.t(state),
       ~panelActivated: bool,
     ) => {
   let editor = Editors.Focus.get(editors);
@@ -272,7 +272,7 @@ let make =
         setChangeLog(Abort);
         send(Deactivate);
       };
-      Async.resolve();
+      Promise.resolved();
     },
     channels.activateInputMethod,
   );
@@ -281,7 +281,7 @@ let make =
   Hook.useChannel(
     char => {
       insertTextBuffer(editor, char);
-      Async.resolve();
+      Promise.resolved();
     },
     channels.interceptAndInsertKey,
   );
@@ -329,7 +329,7 @@ let make =
     () => {
       if (hasChanged(state, changeLog)) {
         // Js.log("[ IM ][ change ]");
-        onChange |> Event.emitOk(state);
+        onChange.emit(state);
       };
 
       // Js.log3(state.activated, Buffer.toString(state.buffer), state.reality);
@@ -389,7 +389,7 @@ let make =
       updateTranslation={replace =>
         switch (replace) {
         | Some(symbol) =>
-          onChange |> Event.emitOk(state);
+          onChange.emit(state);
           rewriteTextBuffer(editor, markers, symbol);
         | None => ()
         }
