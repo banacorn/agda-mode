@@ -88,7 +88,7 @@ type response = Parser.Incr.Event.t(result(Response.t, Parser.Error.t));
 
 type t = {
   metadata: Metadata.t,
-  process: N.ChildProcess.t,
+  process: Nd.ChildProcess.t,
   mutable queue: array(Event.t(result(response, Error.connection))),
   errorEmitter: Event.t(Response.t),
   mutable connected: bool,
@@ -97,7 +97,7 @@ type t = {
 
 let disconnect = (error, self) => {
   self.metadata.entries = [||];
-  self.process |> N.ChildProcess.kill("SIGTERM");
+  self.process |> Nd.ChildProcess.kill_("SIGTERM") |> ignore;
   self.queue |> Array.forEach(ev => ev.Event.emit(Error(error)));
   self.queue = [||];
   self.errorEmitter.destroy();
@@ -126,7 +126,7 @@ let autoSearch = (name): Promise.t(result(string, Error.t)) =>
     switch (commandName) {
     | Error(os) => resolve(Error(NotSupported(os)))
     | Ok(commandName') =>
-      N.ChildProcess.exec(
+      Nd.ChildProcess.exec(
         commandName' ++ " " ++ name,
         (error, stdout, stderr) => {
           /* clear timeout as the process has responded */
@@ -221,7 +221,7 @@ let validateAndMake =
         20000,
       );
 
-    N.ChildProcess.exec(
+    Nd.ChildProcess.exec(
       path ++ " -V",
       (error, stdout, stderr) => {
         /* clear timeout as the process has responded */
@@ -255,7 +255,15 @@ let connect = (metadata: Metadata.t): Promise.t(result(t, Error.t)) =>
     let (promise, resolve) = Promise.pending();
 
     let args = [|"--interaction"|] |> Array.concat(metadata.args);
-    let process = N.ChildProcess.spawn(metadata.path, args, {"shell": true});
+    let process =
+      Nd.ChildProcess.spawn_(
+        metadata.path,
+        args,
+        Nd.ChildProcess.spawnOption(
+          ~shell=Nd.ChildProcess.Shell.bool(true),
+          (),
+        ),
+      );
 
     let connection = {
       metadata,
@@ -267,7 +275,7 @@ let connect = (metadata: Metadata.t): Promise.t(result(t, Error.t)) =>
     };
     /* Handles errors and anomalies */
     process
-    |> N.ChildProcess.on(
+    |> Nd.ChildProcess.on(
          `error(
            exn => {
              connection |> disconnect(Error.ShellError(exn));
@@ -275,7 +283,7 @@ let connect = (metadata: Metadata.t): Promise.t(result(t, Error.t)) =>
            },
          ),
        )
-    |> N.ChildProcess.on(
+    |> Nd.ChildProcess.on(
          `close(
            (code, signal) => {
              connection |> disconnect(Error.ClosedByProcess(code, signal));
@@ -285,7 +293,7 @@ let connect = (metadata: Metadata.t): Promise.t(result(t, Error.t)) =>
        )
     |> ignore;
     process
-    |> N.ChildProcess.stdout
+    |> Nd.ChildProcess.stdout
     |> Nd.Stream.Readable.once(`data(_ => resolve(Ok(connection))))
     |> ignore;
 
@@ -355,7 +363,7 @@ let wire = (self): t => {
       rawText |> Parser.split |> Array.forEach(Parser.Incr.feed(callback));
     };
   self.process
-  |> N.ChildProcess.stdout
+  |> Nd.ChildProcess.stdout
   |> Nd.Stream.Readable.on(`data(onData))
   |> ignore;
 
@@ -368,7 +376,7 @@ let send = (request, self): Event.t(result(response, Error.connection)) => {
 
   /* write */
   self.process
-  |> N.ChildProcess.stdin
+  |> Nd.ChildProcess.stdin
   |> Nd.Stream.Writable.write(request ++ "\n" |> Node.Buffer.fromString)
   |> ignore;
 
