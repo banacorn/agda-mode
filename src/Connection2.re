@@ -1,4 +1,5 @@
 open! Rebase;
+open Rebase.Fn;
 
 // module for auto path searching
 module SearchPath = {
@@ -217,9 +218,14 @@ signal: $signal
         );
   };
 
-  let connect = (path, args): Event.t(result(string, Error.t)) => {
-    let emitter = Event.make();
+  type t = {
+    send: string => Promise.t(result(string, Error.t)),
+    emitter: Event.t(result(string, Error.t)),
+    disconnect: unit => Promise.t(unit),
+  };
 
+  let make = (path, args): t => {
+    let emitter = Event.make();
     // spawn the child process
     let process =
       Nd.ChildProcess.spawn_(
@@ -276,6 +282,41 @@ signal: $signal
        )
     |> ignore;
 
-    emitter;
+    let send = (request): Promise.t(result(string, Error.t)) => {
+      let promise = emitter.once();
+
+      let payload = Node.Buffer.fromString(request ++ "\n");
+      // write
+      process
+      |> Nd.ChildProcess.stdin
+      |> Nd.Stream.Writable.write(payload)
+      |> ignore;
+
+      promise;
+    };
+
+    let disconnect = () => {
+      // set the status to "Disconnecting"
+      let pending = Resource.make();
+
+      // listen to the `exit` event
+      emitter.on(
+        fun
+        | Error(ExitedByProcess(_, _)) => {
+            emitter.destroy();
+            pending.supply();
+          }
+        | _ => (),
+      )
+      |> ignore;
+
+      // trigger `exit`
+      process |> (Nd.ChildProcess.kill_("SIGTERM") >> ignore);
+
+      // resolve on `exit`
+      pending.acquire();
+    };
+
+    {send, disconnect, emitter};
   };
 };

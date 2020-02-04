@@ -45,7 +45,7 @@
     "webpack": "^4.39.1",
     "webpack-cli": "^3.1.2",
     "reason-promise": "^1.0.1",
-    "bs-nd": "^0.1.4",
+    "bs-nd": "^0.1.5",
     "bs-atom2": "^1.40.1"
   },
   "dependencies": {
