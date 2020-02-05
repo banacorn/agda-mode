@@ -122,11 +122,12 @@ module Validation = {
       | WrongProcess(msg) => ("Wrong process", msg);
   };
 
-  type path = string;
   type output = string;
-  type validator = (path, output) => result(unit, string);
+  type validator('a) = output => result('a, string);
 
-  let run = (path, validator: validator): Promise.t(result(unit, Error.t)) => {
+  let run =
+      (pathAndParams, validator: validator('a))
+      : Promise.t(result('a, Error.t)) => {
     // parsing the parse error
     let parseError = (error: Js.Nullable.t(Js.Exn.t)): option(Error.t) => {
       switch (Js.Nullable.toOption(error)) {
@@ -145,7 +146,7 @@ module Validation = {
 
     let (promise, resolve) = Promise.pending();
 
-    // let (path, args) = Parser.commandLine(pathAndParams);
+    let (path, args) = Parser.commandLine(pathAndParams);
 
     // the path must not be empty
     if (String.isEmpty(path)) {
@@ -157,7 +158,7 @@ module Validation = {
       Js.Global.setTimeout(() => resolve(Error(ProcessHanging)), 20000);
 
     Nd.ChildProcess.exec(
-      path ++ " -V",
+      pathAndParams,
       (error, stdout, stderr) => {
         // clear timeout as the process has responded
         Js.Global.clearTimeout(hangTimeout);
@@ -174,9 +175,9 @@ module Validation = {
         };
 
         // feed the stdout to the validator
-        switch (validator(path, Node.Buffer.toString(stdout))) {
+        switch (validator(Node.Buffer.toString(stdout))) {
         | Error(err) => resolve(Error(WrongProcess(err)))
-        | Ok () => resolve(Ok())
+        | Ok(result) => resolve(Ok(result))
         };
       },
     )
