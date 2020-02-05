@@ -37,9 +37,9 @@ describe("Connection", () =>
 
            onConnectionError
            |> then_(error => {
-                open Connection.Error;
+                open Connection2.Error;
                 switch (error) {
-                | AutoSearchError(NotFound("non-agda", _)) => Assert.ok()
+                | PathSearchError(NotFound("non-agda", _)) => Assert.ok()
                 | _ => Assert.fail("wrong connection error")
                 };
                 resolve();

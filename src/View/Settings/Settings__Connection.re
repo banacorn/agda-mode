@@ -6,7 +6,7 @@ open Util.React;
 let make =
     (
       ~connection: option(Connection.t),
-      ~error: option(Connection.Error.t),
+      ~error: option(Connection2.Error.t),
       ~hidden,
     ) => {
   let channels = React.useContext(Channels.context);

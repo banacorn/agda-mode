@@ -31,7 +31,7 @@ let handleCommandError = (promise, instance) =>
            })
 
       | ConnectionError(error) =>
-        let (header, body) = Connection.Error.toString(error);
+        let (header, body) = Connection2.Error.toString(error);
         instance.view.display(
           "Connection-related Error: " ++ header,
           Type.View.Header.Error,
@@ -802,7 +802,7 @@ let handleRemoteCommand =
           ->Promise.get(results => resolve'(results));
         }
       | Error(error) =>
-        reject'(ConnectionError(Connection.Error.ConnectionError(error)))
+        reject'(ConnectionError(Connection2.Error.ConnectionError(error)))
         |> ignore
     );
     let (promise, resolve) = Promise.pending();

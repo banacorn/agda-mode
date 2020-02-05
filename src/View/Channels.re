@@ -33,7 +33,7 @@ type t = {
   // <Settings>
   navigateSettings: Channel.t(option(Settings__Breadcrumb.uri), unit),
   updateConnection:
-    Channel.t((option(Connection.t), option(Connection.Error.t)), unit),
+    Channel.t((option(Connection.t), option(Connection2.Error.t)), unit),
   inquireConnection:
     Channel.t(unit, Rebase.result(string, MiniEditor.error)),
 };

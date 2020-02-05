@@ -1,6 +1,6 @@
 type error =
   | ParseError(array(Parser.Error.t))
-  | ConnectionError(Connection.Error.t)
+  | ConnectionError(Connection2.Error.t)
   /* Cancelled: never makes its way to Agda */
   | Cancelled
   /* Other reasons, also never make their way to Agda */
@@ -26,5 +26,5 @@ type t = {
     (Command.Primitive.t, t) => Promise.t(Rebase.result(unit, error)),
   // Events
   onDispatch: Event.t(Rebase.result(unit, error)),
-  onConnectionError: Event.t(Connection.Error.t),
+  onConnectionError: Event.t(Connection2.Error.t),
 };

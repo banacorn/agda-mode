@@ -4,7 +4,7 @@ open Instance__Type;
 open Atom;
 
 let inquireAgdaPath =
-    (error: option(Connection.Error.t), instance)
+    (error: option(Connection2.Error.t), instance)
     : Promise.t(result(string, MiniEditor.error)) => {
   open View;
   instance.view.activate();
@@ -95,7 +95,10 @@ let connect = (instance): Promise.t(result(Connection.t, MiniEditor.error)) => {
 let disconnect = instance => {
   switch (instance.connection) {
   | Some(connection) =>
-    Connection.disconnect(Connection.Error.DisconnectedByUser, connection);
+    Connection.disconnect(
+      Connection2.Process.Error.DisconnectedByUser,
+      connection,
+    );
     instance.connection = None;
     instance.view.updateConnection(None, None);
   | None => Promise.resolved()

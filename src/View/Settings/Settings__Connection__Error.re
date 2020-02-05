@@ -3,8 +3,8 @@ open ReasonReact;
 open Connection;
 
 [@react.component]
-let make = (~error: Error.t) => {
-  let (header, body) = Error.toString(error);
+let make = (~error: Connection2.Error.t) => {
+  let (header, body) = Connection2.Error.toString(error);
   <>
     <hr />
     <h2> {string("Error: " ++ header)} </h2>

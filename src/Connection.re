@@ -1,95 +1,98 @@
 open! Rebase;
 open Fn;
 
-module Error = {
-  type autoSearch =
-    | ProcessHanging(string)
-    | NotSupported(string)
-    | NotFound(string, string);
+// module Error = {
+//   type autoSearch =
+//     | ProcessHanging(string)
+//     | NotSupported(string)
+//     | NotFound(string, string);
 
-  type validation =
-    /* the path is empty */
-    | PathMalformed(string)
-    /* the process is not responding */
-    | ProcessHanging
-    /* from the shell */
-    | NotFound(Js.Exn.t)
-    | ShellError(Js.Exn.t)
-    /* from its stderr */
-    | ProcessError(string)
-    /* the process is not Agda */
-    | IsNotAgda(string);
+//   type validation =
+//     /* the path is empty */
+//     | PathMalformed(string)
+//     /* the process is not responding */
+//     | ProcessHanging
+//     /* from the shell */
+//     | NotFound(Js.Exn.t)
+//     | ShellError(Js.Exn.t)
+//     /* from its stderr */
+//     | ProcessError(string)
+//     /* the process is not Agda */
+//     | IsNotAgda(string);
 
-  type connection =
-    | ShellError(Js.Exn.t)
-    | ClosedByProcess(int, string)
-    | DisconnectedByUser;
+//   type connection =
+//     | ShellError(Js.Exn.t)
+//     | ClosedByProcess(int, string)
+//     | DisconnectedByUser;
 
-  type t =
-    | AutoSearchError(autoSearch)
-    | ValidationError(string, validation)
-    | ConnectionError(connection);
+//   type t =
+//     | AutoSearchError(autoSearch)
+//     | ValidationError(string, validation)
+//     | ConnectionError(connection);
 
-  let toString =
-    fun
-    | AutoSearchError(ProcessHanging("agda")) => (
-        {js|Process not responding|js},
-        {j|Please restart the process|j},
-      )
-    | AutoSearchError(ProcessHanging(name)) => (
-        "Process not responding when looking for \"" ++ name ++ "\"",
-        {j|Please restart the process|j},
-      )
-    | AutoSearchError(NotSupported(os)) => (
-        "Auto search failed",
-        {j|currently auto path searching is not supported on $(os)|j},
-      )
-    | AutoSearchError(NotFound("agda", msg)) => ("Auto search failed", msg)
-    | AutoSearchError(NotFound(name, msg)) => (
-        "Auto search failed when looking for \"" ++ name ++ "\"",
-        msg,
-      )
-    | ValidationError(_path, PathMalformed(msg)) => ("Path malformed", msg)
-    | ValidationError(_path, ProcessHanging) => (
-        "Process hanging",
-        "The program has not been responding for more than 1 sec",
-      )
-    | ValidationError(_path, NotFound(error)) => (
-        "Agda not found",
-        Util.JsError.toString(error),
-      )
-    | ValidationError(_path, ShellError(error)) => (
-        "Error from the shell",
-        Util.JsError.toString(error),
-      )
-    | ValidationError(_path, ProcessError(msg)) => (
-        "Error from the stderr",
-        msg,
-      )
-    | ValidationError(_path, IsNotAgda(msg)) => ("This is not agda", msg)
-    | ConnectionError(ShellError(error)) => (
-        "Socket error",
-        Util.JsError.toString(error),
-      )
-    | ConnectionError(ClosedByProcess(code, signal)) => (
-        "Socket closed by Agda",
-        {j|code: $code
-signal: $signal
-It's probably because Agda's not happy about the arguments you fed her
-|j},
-      )
-    | ConnectionError(DisconnectedByUser) => (
-        "Disconnected",
-        "Connection disconnected by ourselves",
-      );
-};
+//   let toString =
+//     fun
+//     | AutoSearchError(ProcessHanging("agda")) => (
+//         {js|Process not responding|js},
+//         {j|Please restart the process|j},
+//       )
+//     | AutoSearchError(ProcessHanging(name)) => (
+//         "Process not responding when looking for \"" ++ name ++ "\"",
+//         {j|Please restart the process|j},
+//       )
+//     | AutoSearchError(NotSupported(os)) => (
+//         "Auto search failed",
+//         {j|currently auto path searching is not supported on $(os)|j},
+//       )
+//     | AutoSearchError(NotFound("agda", msg)) => ("Auto search failed", msg)
+//     | AutoSearchError(NotFound(name, msg)) => (
+//         "Auto search failed when looking for \"" ++ name ++ "\"",
+//         msg,
+//       )
+//     | ValidationError(_path, PathMalformed(msg)) => ("Path malformed", msg)
+//     | ValidationError(_path, ProcessHanging) => (
+//         "Process hanging",
+//         "The program has not been responding for more than 1 sec",
+//       )
+//     | ValidationError(_path, NotFound(error)) => (
+//         "Agda not found",
+//         Util.JsError.toString(error),
+//       )
+//     | ValidationError(_path, ShellError(error)) => (
+//         "Error from the shell",
+//         Util.JsError.toString(error),
+//       )
+//     | ValidationError(_path, ProcessError(msg)) => (
+//         "Error from the stderr",
+//         msg,
+//       )
+//     | ValidationError(_path, IsNotAgda(msg)) => ("This is not agda", msg)
+//     | ConnectionError(ShellError(error)) => (
+//         "Socket error",
+//         Util.JsError.toString(error),
+//       )
+//     | ConnectionError(ClosedByProcess(code, signal)) => (
+//         "Socket closed by Agda",
+//         {j|code: $code
+// signal: $signal
+// It's probably because Agda's not happy about the arguments you fed her
+// |j},
+//       )
+//     | ConnectionError(DisconnectedByUser) => (
+//         "Disconnected",
+//         "Connection disconnected by ourselves",
+//       );
+// };
+
+// module Error = Connection2.Error;
 
 type response = Parser.Incr.Event.t(result(Response.t, Parser.Error.t));
 
 type t = {
   metadata: Metadata.t,
   process: Nd.ChildProcess.t,
-  mutable queue: array(Event.t(result(response, Error.connection))),
+  mutable queue:
+    array(Event.t(result(response, Connection2.Process.Error.t))),
   errorEmitter: Event.t(Response.t),
   mutable connected: bool,
   mutable resetLogOnLoad: bool,
@@ -104,14 +107,17 @@ let disconnect = (error, self) => {
   self.connected = false;
 };
 
-let autoSearch = (name): Promise.t(result(string, Error.t)) =>
+let autoSearch = (name): Promise.t(result(string, Connection2.Error.t)) =>
   {
     let (promise, resolve) = Promise.pending();
 
     // reject if the process hasn't responded for more than 1 second
     let hangTimeout =
       Js.Global.setTimeout(
-        () => resolve(Error(ProcessHanging(name): Error.autoSearch)),
+        () =>
+          resolve(
+            Error(ProcessHanging(name): Connection2.PathSearch.Error.t),
+          ),
         1000,
       );
 
@@ -163,15 +169,16 @@ let autoSearch = (name): Promise.t(result(string, Error.t)) =>
 
     promise;
   }
-  ->Promise.mapError(e => Error.AutoSearchError(e));
+  ->Promise.mapError(e => Connection2.Error.PathSearchError(e));
 
 // a more sophiscated "make"
 let validateAndMake =
-    (pathAndParams): Promise.t(result(Metadata.t, Error.t)) =>
+    (pathAndParams): Promise.t(result(Metadata.t, Connection2.Error.t)) =>
   {
     let (path, args) = Parser.commandLine(pathAndParams);
     let parseError =
-        (error: Js.Nullable.t(Js.Exn.t)): option(Error.validation) => {
+        (error: Js.Nullable.t(Js.Exn.t))
+        : option(Connection2.Validation.Error.t) => {
       switch (error |> Js.Nullable.toOption) {
       | None => None
       | Some(err) =>
@@ -186,13 +193,14 @@ let validateAndMake =
       };
     };
     let parseVersion =
-        (stdout: Node.Buffer.t): result(Metadata.t, Error.validation) => {
+        (stdout: Node.Buffer.t)
+        : result(Metadata.t, Connection2.Validation.Error.t) => {
       let message = stdout |> Node.Buffer.toString;
       switch (Js.String.match([%re "/Agda version (.*)/"], message)) {
-      | None => Error(IsNotAgda(message))
+      | None => Error(WrongProcess(message))
       | Some(match) =>
         switch (match[1]) {
-        | None => Error(IsNotAgda(message))
+        | None => Error(WrongProcess(message))
         | Some(version) =>
           Ok({
             path,
@@ -210,16 +218,19 @@ let validateAndMake =
     let (promise, resolve) = Promise.pending();
 
     if (path |> String.isEmpty) {
-      resolve(Error(Error.PathMalformed("the path must not be empty")));
+      resolve(
+        Error(
+          Connection2.Validation.Error.PathMalformed(
+            "the path must not be empty",
+          ),
+        ),
+      );
     };
 
     // reject if the process hasn't responded for more than 20 second
     // (it may take longer for dockerized Agda to take off)
     let hangTimeout =
-      Js.Global.setTimeout(
-        () => resolve(Error(Error.ProcessHanging)),
-        20000,
-      );
+      Js.Global.setTimeout(() => resolve(Error(ProcessHanging)), 20000);
 
     Nd.ChildProcess.exec(
       path ++ " -V",
@@ -248,9 +259,10 @@ let validateAndMake =
 
     promise;
   }
-  ->Promise.mapError(e => Error.ValidationError(pathAndParams, e));
+  ->Promise.mapError(e => Connection2.Error.ValidationError(e));
 
-let connect = (metadata: Metadata.t): Promise.t(result(t, Error.t)) =>
+let connect =
+    (metadata: Metadata.t): Promise.t(result(t, Connection2.Error.t)) =>
   {
     let (promise, resolve) = Promise.pending();
 
@@ -278,16 +290,17 @@ let connect = (metadata: Metadata.t): Promise.t(result(t, Error.t)) =>
     |> Nd.ChildProcess.on(
          `error(
            exn => {
-             connection |> disconnect(Error.ShellError(exn));
-             resolve(Error(Error.ShellError(exn)));
+             connection
+             |> disconnect(Connection2.Process.Error.ShellError(exn));
+             resolve(Error(Connection2.Process.Error.ShellError(exn)));
            },
          ),
        )
     |> Nd.ChildProcess.on(
          `close(
            (code, signal) => {
-             connection |> disconnect(Error.ClosedByProcess(code, signal));
-             resolve(Error(Error.ClosedByProcess(code, signal)));
+             connection |> disconnect(ClosedByProcess(code, signal));
+             resolve(Error(ClosedByProcess(code, signal)));
            },
          ),
        )
@@ -299,7 +312,7 @@ let connect = (metadata: Metadata.t): Promise.t(result(t, Error.t)) =>
 
     promise;
   }
-  ->Promise.mapError(e => Error.ConnectionError(e));
+  ->Promise.mapError(e => Connection2.Error.ConnectionError(e));
 
 let wire = (self): t => {
   /* resolves the requests in the queue */
@@ -370,7 +383,8 @@ let wire = (self): t => {
   self;
 };
 
-let send = (request, self): Event.t(result(response, Error.connection)) => {
+let send =
+    (request, self): Event.t(result(response, Connection2.Process.Error.t)) => {
   let reqEvent = Event.make();
   self.queue |> Js.Array.push(reqEvent) |> ignore;
 
