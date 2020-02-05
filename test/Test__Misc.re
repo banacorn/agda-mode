@@ -17,7 +17,7 @@ describe_skip("when loading files", () =>
            Connection.autoSearch("agda")
            ->Promise.mapOk(x => x ++ " --no-libraries")
            ->Promise.flatMapOk(Connection.validateAndMake)
-           ->Promise.flatMapOk(Connection.connect)
+           ->Promise.mapOk(Connection.connect)
            ->Promise.mapOk(Connection.wire)
            ->Promise.mapOk(Instance.Connections.set(instance))
            ->Promise.mapError(error => BsMocha.Assert.fail(error))

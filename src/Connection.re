@@ -5,7 +5,7 @@ type response = Parser.Incr.Event.t(result(Response.t, Parser.Error.t));
 
 type t = {
   metadata: Metadata.t,
-  process: Nd.ChildProcess.t,
+  process: Connection2.Process.t,
   mutable queue:
     array(Event.t(result(response, Connection2.Process.Error.t))),
   errorEmitter: Event.t(Response.t),
@@ -15,7 +15,7 @@ type t = {
 
 let disconnect = (error, self) => {
   self.metadata.entries = [||];
-  self.process |> Nd.ChildProcess.kill_("SIGTERM") |> ignore;
+  self.process.disconnect() |> ignore;
   self.queue |> Array.forEach(ev => ev.Event.emit(Error(error)));
   self.queue = [||];
   self.errorEmitter.destroy();
@@ -53,58 +53,19 @@ let validateAndMake =
   ->Promise.mapError(e => Connection2.Error.ValidationError(e));
 };
 
-let connect =
-    (metadata: Metadata.t): Promise.t(result(t, Connection2.Error.t)) =>
+let connect = (metadata: Metadata.t): t => {
+  let args = [|"--interaction"|] |> Array.concat(metadata.args);
+  let process = Connection2.Process.make(metadata.path, args);
+
   {
-    let (promise, resolve) = Promise.pending();
-
-    let args = [|"--interaction"|] |> Array.concat(metadata.args);
-    let process =
-      Nd.ChildProcess.spawn_(
-        metadata.path,
-        args,
-        Nd.ChildProcess.spawnOption(
-          ~shell=Nd.ChildProcess.Shell.bool(true),
-          (),
-        ),
-      );
-
-    let connection = {
-      metadata,
-      process,
-      connected: true,
-      queue: [||],
-      errorEmitter: Event.make(),
-      resetLogOnLoad: true,
-    };
-    /* Handles errors and anomalies */
-    process
-    |> Nd.ChildProcess.on(
-         `error(
-           exn => {
-             connection
-             |> disconnect(Connection2.Process.Error.ShellError(exn));
-             resolve(Error(Connection2.Process.Error.ShellError(exn)));
-           },
-         ),
-       )
-    |> Nd.ChildProcess.on(
-         `close(
-           (code, signal) => {
-             connection |> disconnect(ClosedByProcess(code, signal));
-             resolve(Error(ClosedByProcess(code, signal)));
-           },
-         ),
-       )
-    |> ignore;
-    process
-    |> Nd.ChildProcess.stdout
-    |> Nd.Stream.Readable.once(`data(_ => resolve(Ok(connection))))
-    |> ignore;
-
-    promise;
-  }
-  ->Promise.mapError(e => Connection2.Error.ConnectionError(e));
+    metadata,
+    process,
+    connected: true,
+    queue: [||],
+    errorEmitter: Event.make(),
+    resetLogOnLoad: true,
+  };
+};
 
 let wire = (self): t => {
   /* resolves the requests in the queue */
@@ -156,21 +117,28 @@ let wire = (self): t => {
       logSExpression >> toResponse >> logResponse >> response,
     );
 
-  /* listens to the "data" event on the stdout */
-  /* The chunk may contain various fractions of the Agda output */
-  let onData: Node.buffer => unit =
-    chunk => {
-      /* serialize the binary chunk into string */
-      let rawText = chunk |> Node.Buffer.toString;
-      /* store the raw text in the log */
-      Metadata.logRawText(rawText, self.metadata);
-      // run the parser
-      rawText |> Parser.split |> Array.forEach(Parser.Incr.feed(callback));
-    };
-  self.process
-  |> Nd.ChildProcess.stdout
-  |> Nd.Stream.Readable.on(`data(onData))
-  |> ignore;
+  // listens to the "data" event on the stdout
+  // The chunk may contain various fractions of the Agda output
+  let onData: result(string, Connection2.Process.Error.t) => unit =
+    fun
+    | Ok(rawText) => {
+        // store the raw text in the log
+        Metadata.logRawText(rawText, self.metadata);
+        // run the parser
+        rawText |> Parser.split |> Array.forEach(Parser.Incr.feed(callback));
+      }
+    | Error(e) => {
+        // emit error to all of the request in the queue
+        self.queue
+        |> Array.forEach(req => {
+             req.Event.emit(Error(e));
+             req.destroy();
+           });
+        // clean the queue
+        self.queue = [||];
+      };
+
+  self.process.emitter.on(onData) |> ignore;
 
   self;
 };
@@ -178,13 +146,10 @@ let wire = (self): t => {
 let send =
     (request, self): Event.t(result(response, Connection2.Process.Error.t)) => {
   let reqEvent = Event.make();
+
   self.queue |> Js.Array.push(reqEvent) |> ignore;
 
-  /* write */
-  self.process
-  |> Nd.ChildProcess.stdin
-  |> Nd.Stream.Writable.write(request ++ "\n" |> Node.Buffer.fromString)
-  |> ignore;
+  self.process.send(request) |> ignore;
 
   reqEvent;
 };

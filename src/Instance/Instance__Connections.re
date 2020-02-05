@@ -57,16 +57,6 @@ let connectWithAgdaPath =
       );
   };
 
-  let rec getConnection =
-          (instance, metadata)
-          : Promise.t(result(Connection.t, MiniEditor.error)) => {
-    Connection.connect(metadata)
-    ->Promise.flatMapError(err =>
-        inquireAgdaPath(Some(err), instance)
-        ->Promise.flatMapOk(getMetadata(instance))
-        ->Promise.flatMapOk(getConnection(instance))
-      );
-  };
   // handle unbound errors
   let handleUnboundErrors = (instance, connection): Connection.t => {
     connection.Connection.errorEmitter.on(res =>
@@ -77,7 +67,7 @@ let connectWithAgdaPath =
   };
   instance
   ->getMetadata(path)
-  ->Promise.flatMapOk(getConnection(instance))
+  ->Promise.mapOk(Connection.connect)
   ->Promise.mapOk(persistConnection(instance))
   ->Promise.mapOk(handleUnboundErrors(instance))
   ->Promise.mapOk(Connection.wire);
