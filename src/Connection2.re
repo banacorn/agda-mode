@@ -2,7 +2,7 @@ open! Rebase;
 open Rebase.Fn;
 
 // module for auto path searching
-module SearchPath = {
+module PathSearch = {
   module Error = {
     type t =
       | ProcessHanging(string) // command name
@@ -90,7 +90,7 @@ module SearchPath = {
 };
 
 // module for validating a given path
-module Validate = {
+module Validation = {
   module Error = {
     type t =
       | PathMalformed(string)
@@ -126,7 +126,7 @@ module Validate = {
   type output = string;
   type validator = (path, output) => result(unit, string);
 
-  let run = (path, validator: validator): Promise.t(result('a, Error.t)) => {
+  let run = (path, validator: validator): Promise.t(result(unit, Error.t)) => {
     // parsing the parse error
     let parseError = (error: Js.Nullable.t(Js.Exn.t)): option(Error.t) => {
       switch (Js.Nullable.toOption(error)) {
@@ -176,7 +176,7 @@ module Validate = {
         // feed the stdout to the validator
         switch (validator(path, Node.Buffer.toString(stdout))) {
         | Error(err) => resolve(Error(WrongProcess(err)))
-        | Ok(self) => resolve(Ok(self))
+        | Ok () => resolve(Ok())
         };
       },
     )
@@ -195,7 +195,8 @@ module Process = {
       | ClosedByProcess(exitCode, signal) // on `close`
       | DisconnectedByUser // on `disconnect
       | ShellError(Js.Exn.t) // on `error`
-      | ExitedByProcess(exitCode, signal); // on 'exit`
+      | ExitedByProcess(exitCode, signal) // on 'exit`
+      | NotEstablishedYet;
 
     let toString =
       fun
@@ -215,14 +216,25 @@ signal: $signal
           {j|exited with code: $code
   signal: $signal
   |j},
+        )
+
+      | NotEstablishedYet => (
+          "Connection not established yet",
+          "Please establish the connection first",
         );
   };
 
   type t = {
-    send: string => Promise.t(result(string, Error.t)),
+    send: string => result(unit, Error.t),
     emitter: Event.t(result(string, Error.t)),
     disconnect: unit => Promise.t(unit),
+    isConnected: unit => bool,
   };
+
+  type status =
+    | Connected(Nd.ChildProcess.t)
+    | Disconnecting(Resource.t(unit))
+    | Disconnected;
 
   let make = (path, args): t => {
     let emitter = Event.make();
@@ -282,41 +294,70 @@ signal: $signal
        )
     |> ignore;
 
-    let send = (request): Promise.t(result(string, Error.t)) => {
-      let promise = emitter.once();
+    let process = ref(Connected(process));
 
-      let payload = Node.Buffer.fromString(request ++ "\n");
-      // write
-      process
-      |> Nd.ChildProcess.stdin
-      |> Nd.Stream.Writable.write(payload)
-      |> ignore;
+    let send = (request): result(unit, Error.t) => {
+      switch (process^) {
+      | Connected(process) =>
+        let payload = Node.Buffer.fromString(request ++ "\n");
+        // write
+        process
+        |> Nd.ChildProcess.stdin
+        |> Nd.Stream.Writable.write(payload)
+        |> ignore;
 
-      promise;
+        Ok();
+      | _ => Error(Error.NotEstablishedYet)
+      };
     };
 
-    let disconnect = () => {
-      // set the status to "Disconnecting"
-      let pending = Resource.make();
+    let disconnect = () =>
+      switch (process^) {
+      | Connected(process') =>
+        // set the status to "Disconnecting"
+        let pending = Resource.make();
+        process := Disconnecting(pending);
 
-      // listen to the `exit` event
-      emitter.on(
-        fun
-        | Error(ExitedByProcess(_, _)) => {
-            emitter.destroy();
-            pending.supply();
-          }
-        | _ => (),
-      )
-      |> ignore;
+        // listen to the `exit` event
+        emitter.on(
+          fun
+          | Error(ExitedByProcess(_, _)) => {
+              emitter.destroy();
+              process := Disconnected;
+              pending.supply();
+            }
+          | _ => (),
+        )
+        |> ignore;
 
-      // trigger `exit`
-      process |> (Nd.ChildProcess.kill_("SIGTERM") >> ignore);
+        // trigger `exit`
+        process' |> (Nd.ChildProcess.kill_("SIGTERM") >> ignore);
 
-      // resolve on `exit`
-      pending.acquire();
-    };
+        // resolve on `exit`
+        pending.acquire();
+      | Disconnecting(pending) => pending.acquire()
+      | Disconnected => Promise.resolved()
+      };
 
-    {send, disconnect, emitter};
+    let isConnected = () =>
+      switch (process^) {
+      | Connected(_) => true
+      | _ => false
+      };
+
+    {send, disconnect, emitter, isConnected};
   };
+};
+
+module Error = {
+  type t =
+    | PathSearchError(PathSearch.Error.t)
+    | ValidationError(Validation.Error.t)
+    | ConnectionError(Process.Error.t);
+
+  let toString =
+    fun
+    | PathSearchError(e) => PathSearch.Error.toString(e)
+    | ValidationError(e) => Validation.Error.toString(e)
+    | ConnectionError(e) => Process.Error.toString(e);
 };
