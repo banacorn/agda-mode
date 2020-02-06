@@ -1,3 +1,5 @@
+// module for communicating with a process
+
 open! Rebase;
 open Rebase.Fn;
 
@@ -187,178 +189,159 @@ module Validation = {
   };
 };
 
-// module for communicating with the command of some given path
-module Process = {
-  module Error = {
-    type exitCode = int;
-    type signal = string;
-    type t =
-      | ClosedByProcess(exitCode, signal) // on `close`
-      | DisconnectedByUser // on `disconnect
-      | ShellError(Js.Exn.t) // on `error`
-      | ExitedByProcess(exitCode, signal) // on 'exit`
-      | NotEstablishedYet;
-
-    let toString =
-      fun
-      | ClosedByProcess(code, signal) => (
-          "Socket closed by GCL",
-          {j|exited with code: $code
-signal: $signal
-|j},
-        )
-      | DisconnectedByUser => (
-          "Disconnected",
-          "Connection disconnected by ourselves",
-        )
-      | ShellError(error) => ("Socket error", Util.JsError.toString(error))
-      | ExitedByProcess(code, signal) => (
-          "GCL has crashed",
-          {j|exited with code: $code
-  signal: $signal
-  |j},
-        )
-
-      | NotEstablishedYet => (
-          "Connection not established yet",
-          "Please establish the connection first",
-        );
-  };
-
-  type t = {
-    send: string => result(unit, Error.t),
-    emitter: Event.t(result(string, Error.t)),
-    disconnect: unit => Promise.t(unit),
-    isConnected: unit => bool,
-  };
-
-  type status =
-    | Connected(Nd.ChildProcess.t)
-    | Disconnecting(Resource.t(unit))
-    | Disconnected;
-
-  let make = (path, args): t => {
-    let emitter = Event.make();
-    // spawn the child process
-    let process =
-      Nd.ChildProcess.spawn_(
-        path,
-        args,
-        Nd.ChildProcess.spawnOption(
-          ~shell=Nd.ChildProcess.Shell.bool(true),
-          (),
-        ),
-      );
-
-    // on `data` from `stdout`
-    process
-    |> Nd.ChildProcess.stdout
-    |> Nd.Stream.Readable.on(
-         `data(
-           chunk => emitter.emit(Ok(Node.Buffer.toString(chunk))) |> ignore,
-         ),
-       )
-    |> ignore;
-
-    // on `close` from `stdin`
-    process
-    |> Nd.ChildProcess.stdin
-    |> Nd.Stream.Writable.on(
-         `close(
-           () =>
-             emitter.emit(Error(Error.ClosedByProcess(0, ""))) |> ignore,
-         ),
-       )
-    |> ignore;
-
-    // on errors and anomalies
-    process
-    |> Nd.ChildProcess.on(
-         `close(
-           (code, signal) =>
-             emitter.emit(Error(ClosedByProcess(code, signal))) |> ignore,
-         ),
-       )
-    |> Nd.ChildProcess.on(
-         `disconnect(
-           () => emitter.emit(Error(DisconnectedByUser)) |> ignore,
-         ),
-       )
-    |> Nd.ChildProcess.on(
-         `error(exn => emitter.emit(Error(ShellError(exn))) |> ignore),
-       )
-    |> Nd.ChildProcess.on(
-         `exit(
-           (code, signal) =>
-             emitter.emit(Error(ExitedByProcess(code, signal))) |> ignore,
-         ),
-       )
-    |> ignore;
-
-    let process = ref(Connected(process));
-
-    let send = (request): result(unit, Error.t) => {
-      switch (process^) {
-      | Connected(process) =>
-        let payload = Node.Buffer.fromString(request ++ "\n");
-        // write
-        process
-        |> Nd.ChildProcess.stdin
-        |> Nd.Stream.Writable.write(payload)
-        |> ignore;
-
-        Ok();
-      | _ => Error(Error.NotEstablishedYet)
-      };
-    };
-
-    let disconnect = () =>
-      switch (process^) {
-      | Connected(process') =>
-        // set the status to "Disconnecting"
-        let pending = Resource.make();
-        process := Disconnecting(pending);
-
-        // listen to the `exit` event
-        emitter.on(
-          fun
-          | Error(ExitedByProcess(_, _)) => {
-              emitter.destroy();
-              process := Disconnected;
-              pending.supply();
-            }
-          | _ => (),
-        )
-        |> ignore;
-
-        // trigger `exit`
-        process' |> (Nd.ChildProcess.kill_("SIGTERM") >> ignore);
-
-        // resolve on `exit`
-        pending.acquire();
-      | Disconnecting(pending) => pending.acquire()
-      | Disconnected => Promise.resolved()
-      };
-
-    let isConnected = () =>
-      switch (process^) {
-      | Connected(_) => true
-      | _ => false
-      };
-
-    {send, disconnect, emitter, isConnected};
-  };
-};
-
 module Error = {
+  type exitCode = int;
+  type signal = string;
   type t =
-    | PathSearchError(PathSearch.Error.t)
-    | ValidationError(Validation.Error.t)
-    | ConnectionError(Process.Error.t);
+    | ClosedByProcess(exitCode, signal) // on `close`
+    | DisconnectedByUser // on `disconnect
+    | ShellError(Js.Exn.t) // on `error`
+    | ExitedByProcess(exitCode, signal) // on 'exit`
+    | NotEstablishedYet;
 
   let toString =
     fun
-    | PathSearchError(e) => PathSearch.Error.toString(e)
-    | ValidationError(e) => Validation.Error.toString(e)
-    | ConnectionError(e) => Process.Error.toString(e);
+    | ClosedByProcess(code, signal) => (
+        "Socket closed by GCL",
+        {j|exited with code: $code
+signal: $signal
+|j},
+      )
+    | DisconnectedByUser => (
+        "Disconnected",
+        "Connection disconnected by ourselves",
+      )
+    | ShellError(error) => ("Socket error", Util.JsError.toString(error))
+    | ExitedByProcess(code, signal) => (
+        "GCL has crashed",
+        {j|exited with code: $code
+  signal: $signal
+  |j},
+      )
+
+    | NotEstablishedYet => (
+        "Connection not established yet",
+        "Please establish the connection first",
+      );
+};
+
+type t = {
+  send: string => result(unit, Error.t),
+  emitter: Event.t(result(string, Error.t)),
+  disconnect: unit => Promise.t(unit),
+  isConnected: unit => bool,
+};
+
+type status =
+  | Connected(Nd.ChildProcess.t)
+  | Disconnecting(Resource.t(unit))
+  | Disconnected;
+
+let make = (path, args): t => {
+  let emitter = Event.make();
+  // spawn the child process
+  let process =
+    Nd.ChildProcess.spawn_(
+      path,
+      args,
+      Nd.ChildProcess.spawnOption(
+        ~shell=Nd.ChildProcess.Shell.bool(true),
+        (),
+      ),
+    );
+
+  // on `data` from `stdout`
+  process
+  |> Nd.ChildProcess.stdout
+  |> Nd.Stream.Readable.on(
+       `data(
+         chunk => emitter.emit(Ok(Node.Buffer.toString(chunk))) |> ignore,
+       ),
+     )
+  |> ignore;
+
+  // on `close` from `stdin`
+  process
+  |> Nd.ChildProcess.stdin
+  |> Nd.Stream.Writable.on(
+       `close(
+         () => emitter.emit(Error(Error.ClosedByProcess(0, ""))) |> ignore,
+       ),
+     )
+  |> ignore;
+
+  // on errors and anomalies
+  process
+  |> Nd.ChildProcess.on(
+       `close(
+         (code, signal) =>
+           emitter.emit(Error(ClosedByProcess(code, signal))) |> ignore,
+       ),
+     )
+  |> Nd.ChildProcess.on(
+       `disconnect(() => emitter.emit(Error(DisconnectedByUser)) |> ignore),
+     )
+  |> Nd.ChildProcess.on(
+       `error(exn => emitter.emit(Error(ShellError(exn))) |> ignore),
+     )
+  |> Nd.ChildProcess.on(
+       `exit(
+         (code, signal) =>
+           emitter.emit(Error(ExitedByProcess(code, signal))) |> ignore,
+       ),
+     )
+  |> ignore;
+
+  let process = ref(Connected(process));
+
+  let send = (request): result(unit, Error.t) => {
+    switch (process^) {
+    | Connected(process) =>
+      let payload = Node.Buffer.fromString(request ++ "\n");
+      // write
+      process
+      |> Nd.ChildProcess.stdin
+      |> Nd.Stream.Writable.write(payload)
+      |> ignore;
+
+      Ok();
+    | _ => Error(Error.NotEstablishedYet)
+    };
+  };
+
+  let disconnect = () =>
+    switch (process^) {
+    | Connected(process') =>
+      // set the status to "Disconnecting"
+      let pending = Resource.make();
+      process := Disconnecting(pending);
+
+      // listen to the `exit` event
+      emitter.on(
+        fun
+        | Error(ExitedByProcess(_, _)) => {
+            emitter.destroy();
+            process := Disconnected;
+            pending.supply();
+          }
+        | _ => (),
+      )
+      |> ignore;
+
+      // trigger `exit`
+      process' |> (Nd.ChildProcess.kill_("SIGTERM") >> ignore);
+
+      // resolve on `exit`
+      pending.acquire();
+    | Disconnecting(pending) => pending.acquire()
+    | Disconnected => Promise.resolved()
+    };
+
+  let isConnected = () =>
+    switch (process^) {
+    | Connected(_) => true
+    | _ => false
+    };
+
+  {send, disconnect, emitter, isConnected};
 };

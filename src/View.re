@@ -23,7 +23,7 @@ type t = {
   navigateSettings: Settings__Breadcrumb.uri => Promise.t(unit),
   // <Settings/Connection> related
   updateConnection:
-    (option(Connection.t), option(Connection2.Error.t)) => Promise.t(unit),
+    (option(Connection.t), option(Connection.Error.t)) => Promise.t(unit),
   inquireConnection:
     unit => Promise.t(Rebase.result(string, MiniEditor.error)),
 };

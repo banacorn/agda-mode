@@ -1,13 +1,25 @@
 open! Rebase;
 open Fn;
 
+module Error = {
+  type t =
+    | PathSearch(Process.PathSearch.Error.t)
+    | Validation(Process.Validation.Error.t)
+    | Process(Process.Error.t);
+
+  let toString =
+    fun
+    | PathSearch(e) => Process.PathSearch.Error.toString(e)
+    | Validation(e) => Process.Validation.Error.toString(e)
+    | Process(e) => Process.Error.toString(e);
+};
+
 type response = Parser.Incr.Event.t(result(Response.t, Parser.Error.t));
 
 type t = {
   metadata: Metadata.t,
-  process: Connection2.Process.t,
-  mutable queue:
-    list(Event.t(result(response, Connection2.Process.Error.t))),
+  process: Process.t,
+  mutable queue: list(Event.t(result(response, Process.Error.t))),
   mutable resetLogOnLoad: bool,
   mutable encountedFirstPrompt: bool,
 };
@@ -21,12 +33,11 @@ let disconnect = (error, self) => {
 };
 
 let autoSearch = name =>
-  Connection2.PathSearch.run(name)
-  ->Promise.mapError(e => Connection2.Error.PathSearchError(e));
+  Process.PathSearch.run(name)->Promise.mapError(e => Error.PathSearch(e));
 
 // a more sophiscated "make"
 let validateAndMake =
-    (pathAndParams): Promise.t(result(Metadata.t, Connection2.Error.t)) => {
+    (pathAndParams): Promise.t(result(Metadata.t, Error.t)) => {
   let validator = (output): result((string, Metadata.Protocol.t), string) => {
     switch (Js.String.match([%re "/Agda version (.*)/"], output)) {
     | None => Error("Cannot read Agda version")
@@ -44,16 +55,16 @@ let validateAndMake =
   };
 
   let (path, args) = Parser.commandLine(pathAndParams);
-  Connection2.Validation.run(path ++ " -V", validator)
+  Process.Validation.run(path ++ " -V", validator)
   ->Promise.mapOk(((version, protocol)) =>
       {Metadata.path, args, version, protocol, entries: [||]}
     )
-  ->Promise.mapError(e => Connection2.Error.ValidationError(e));
+  ->Promise.mapError(e => Error.Validation(e));
 };
 
 let connect = (metadata: Metadata.t): t => {
   let args = [|"--interaction"|] |> Array.concat(metadata.args);
-  let process = Connection2.Process.make(metadata.path, args);
+  let process = Process.make(metadata.path, args);
 
   {
     metadata,
@@ -123,7 +134,7 @@ let wire = (self): t => {
 
   // listens to the "data" event on the stdout
   // The chunk may contain various fractions of the Agda output
-  let onData: result(string, Connection2.Process.Error.t) => unit =
+  let onData: result(string, Process.Error.t) => unit =
     fun
     | Ok(rawText) => {
         // store the raw text in the log
@@ -147,8 +158,7 @@ let wire = (self): t => {
   self;
 };
 
-let send =
-    (request, self): Event.t(result(response, Connection2.Process.Error.t)) => {
+let send = (request, self): Event.t(result(response, Process.Error.t)) => {
   let reqEvent = Event.make();
 
   self.queue = [reqEvent, ...self.queue];
