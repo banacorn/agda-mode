@@ -8,7 +8,6 @@ type t = {
   process: Connection2.Process.t,
   mutable queue:
     list(Event.t(result(response, Connection2.Process.Error.t))),
-  mutable connected: bool,
   mutable resetLogOnLoad: bool,
   mutable encountedFirstPrompt: bool,
 };
@@ -18,7 +17,6 @@ let disconnect = (error, self) => {
   self.process.disconnect() |> ignore;
   self.queue |> List.forEach(ev => ev.Event.emit(Error(error)));
   self.queue = [];
-  self.connected = false;
   self.encountedFirstPrompt = false;
 };
 
@@ -60,7 +58,6 @@ let connect = (metadata: Metadata.t): t => {
   {
     metadata,
     process,
-    connected: true,
     queue: [],
     resetLogOnLoad: true,
     encountedFirstPrompt: false,
