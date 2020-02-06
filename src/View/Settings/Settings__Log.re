@@ -4,7 +4,7 @@ open Rebase;
 
 module Entry = {
   [@react.component]
-  let make = (~entry: Metadata.Log.Entry.t) => {
+  let make = (~entry: Log.Entry.t) => {
     let (hidden, setHidden) = Hook.useState(true);
     let className = hidden ? "hidden" : "";
     let rawTexts =
@@ -55,7 +55,7 @@ let make = (~connection: option(Connection.t), ~hidden) => {
 
   let entries =
     connection
-    |> Option.mapOr(conn => conn.Connection.metadata.entries, [||])
+    |> Option.mapOr(conn => conn.Connection.log, [||])
     |> Array.map(entry => <Entry entry />)
     |> Util.React.manyIn("ol");
   <section className={"agda-settings-log" ++ showWhen(!hidden)}>

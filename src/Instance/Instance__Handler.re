@@ -18,9 +18,7 @@ let handleCommandError = (promise, instance) =>
         |> Option.forEach(conn => {
              // log the errors
              errors
-             |> Array.forEach(e =>
-                  Metadata.logError(e, conn.Connection.metadata)
-                );
+             |> Array.forEach(e => Log.logError(e, conn.Connection.log));
              // and display with the log
              instance.view.display(
                "Parse Error",
@@ -775,7 +773,7 @@ let handleRemoteCommand =
           Connection.resetLog(connection);
         };
         // create log entry for each `cmd`
-        Metadata.createLogEntry(cmd.command, connection.metadata);
+        Log.createEntry(cmd.command, connection.log);
       });
 
     let handleResults = ref([||]);

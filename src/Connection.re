@@ -22,14 +22,28 @@ type t = {
   mutable queue: list(Event.t(result(response, Process.Error.t))),
   mutable resetLogOnLoad: bool,
   mutable encountedFirstPrompt: bool,
+  mutable log: Log.t,
 };
 
+// module Log = {
+//   let createLogEntry = (cmd, self) => Log.createEntry(cmd, self.log);
+
+//   let updateLatestEntry = (f: Log.Entry.t => unit, self) =>
+//     Log.updateLatestEntry(f, self.log);
+
+//   let logRawText = (text, self) => Log.logRawText(text, self.log);
+//   let logSExpression = (text, self) => Log.logSExpression(text, self.log);
+//   let logResponse = (text, self) => Log.logResponse(text, self.log);
+//   let logError = (text, self) => Log.logError(text, self.log);
+
+// };
+
 let disconnect = (error, self) => {
-  self.metadata.entries = [||];
   self.process.disconnect() |> ignore;
   self.queue |> List.forEach(ev => ev.Event.emit(Error(error)));
   self.queue = [];
   self.encountedFirstPrompt = false;
+  self.log = [||];
 };
 
 let autoSearch = name =>
@@ -57,7 +71,7 @@ let validateAndMake =
   let (path, args) = Parser.commandLine(pathAndParams);
   Process.Validation.run(path ++ " -V", validator)
   ->Promise.mapOk(((version, protocol)) =>
-      {Metadata.path, args, version, protocol, entries: [||]}
+      {Metadata.path, args, version, protocol}
     )
   ->Promise.mapError(e => Error.Validation(e));
 };
@@ -72,6 +86,7 @@ let connect = (metadata: Metadata.t): t => {
     queue: [],
     resetLogOnLoad: true,
     encountedFirstPrompt: false,
+    log: [||],
   };
 };
 
@@ -98,7 +113,7 @@ let wire = (self): t => {
 
   let logSExpression =
     Parser.Incr.Event.tap(
-      Result.forEach(expr => Metadata.logSExpression(expr, self.metadata)),
+      Result.forEach(expr => Log.logSExpression(expr, self.log)),
     );
 
   // We use the prompt "Agda2>" as the delimiter of the end of a response
@@ -124,7 +139,7 @@ let wire = (self): t => {
 
   let logResponse =
     Parser.Incr.Event.tap(
-      Result.forEach(expr => Metadata.logResponse(expr, self.metadata)),
+      Result.forEach(expr => Log.logResponse(expr, self.log)),
     );
 
   let pipeline =
@@ -138,7 +153,7 @@ let wire = (self): t => {
     fun
     | Ok(rawText) => {
         // store the raw text in the log
-        Metadata.logRawText(rawText, self.metadata);
+        Log.logRawText(rawText, self.log);
         // split the raw text into pieces and feed it to the parser
         rawText |> Parser.split |> Array.forEach(Parser.Incr.feed(pipeline));
       }
@@ -168,6 +183,12 @@ let send = (request, self): Event.t(result(response, Process.Error.t)) => {
   reqEvent;
 };
 
+let serialize = self => {
+  let metadata = self.metadata |> Metadata.serialize;
+  let log = self.log |> Log.serialize;
+  metadata ++ "\n" ++ log ++ "\n";
+};
+
 let resetLog = self => {
-  self.metadata.entries = [||];
+  self.log = [||];
 };
