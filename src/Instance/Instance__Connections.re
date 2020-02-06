@@ -58,18 +58,18 @@ let connectWithAgdaPath =
   };
 
   // handle unbound errors
-  let handleUnboundErrors = (instance, connection): Connection.t => {
-    connection.Connection.errorEmitter.on(res =>
-      instance.handleResponse(instance, res) |> ignore
-    )
-    |> ignore;
-    connection;
-  };
+  // let handleUnboundErrors = (instance, connection): Connection.t => {
+  //   connection.Connection.errorEmitter.on(res =>
+  //     instance.handleResponse(instance, res) |> ignore
+  //   )
+  //   |> ignore;
+  //   connection;
+  // };
   instance
   ->getMetadata(path)
   ->Promise.mapOk(Connection.connect)
   ->Promise.mapOk(persistConnection(instance))
-  ->Promise.mapOk(handleUnboundErrors(instance))
+  // ->Promise.mapOk(handleUnboundErrors(instance))
   ->Promise.mapOk(Connection.wire);
 };
 

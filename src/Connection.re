@@ -7,8 +7,7 @@ type t = {
   metadata: Metadata.t,
   process: Connection2.Process.t,
   mutable queue:
-    array(Event.t(result(response, Connection2.Process.Error.t))),
-  errorEmitter: Event.t(Response.t),
+    list(Event.t(result(response, Connection2.Process.Error.t))),
   mutable connected: bool,
   mutable resetLogOnLoad: bool,
   mutable encountedFirstPrompt: bool,
@@ -17,9 +16,8 @@ type t = {
 let disconnect = (error, self) => {
   self.metadata.entries = [||];
   self.process.disconnect() |> ignore;
-  self.queue |> Array.forEach(ev => ev.Event.emit(Error(error)));
-  self.queue = [||];
-  self.errorEmitter.destroy();
+  self.queue |> List.forEach(ev => ev.Event.emit(Error(error)));
+  self.queue = [];
   self.connected = false;
   self.encountedFirstPrompt = false;
 };
@@ -63,8 +61,7 @@ let connect = (metadata: Metadata.t): t => {
     metadata,
     process,
     connected: true,
-    queue: [||],
-    errorEmitter: Event.make(),
+    queue: [],
     resetLogOnLoad: true,
     encountedFirstPrompt: false,
   };
@@ -73,23 +70,17 @@ let connect = (metadata: Metadata.t): t => {
 let wire = (self): t => {
   // resolves the requests in the queue
   let handleResponse = (res: response) => {
-    switch (self.queue[0]) {
-    | None =>
-      switch (res) {
-      | Yield(Ok(data)) =>
-        Js.log2("[ unbound response ] ", data);
-        self.errorEmitter.emit(data);
-      | _ => ()
-      }
-    | Some(req) =>
+    switch (self.queue) {
+    | [] => ()
+    | [req, ...rest] =>
       req.emit(Ok(res));
+      // pop the queue on Stop
       switch (res) {
       | Yield(_) => ()
       | Stop =>
         if (self.encountedFirstPrompt) {
-          self.queue
-          |> Js.Array.pop
-          |> Option.forEach(ev => ev.Event.destroy |> ignore);
+          self.queue = rest;
+          req.Event.destroy() |> ignore;
         } else {
           self.encountedFirstPrompt = true;
         }
@@ -146,12 +137,12 @@ let wire = (self): t => {
     | Error(e) => {
         // emit error to all of the request in the queue
         self.queue
-        |> Array.forEach(req => {
+        |> List.forEach(req => {
              req.Event.emit(Error(e));
              req.destroy();
            });
         // clean the queue
-        self.queue = [||];
+        self.queue = [];
       };
 
   self.process.emitter.on(onData) |> ignore;
@@ -163,7 +154,7 @@ let send =
     (request, self): Event.t(result(response, Connection2.Process.Error.t)) => {
   let reqEvent = Event.make();
 
-  self.queue |> Js.Array.push(reqEvent) |> ignore;
+  self.queue = [reqEvent, ...self.queue];
 
   self.process.send(request) |> ignore;
 
