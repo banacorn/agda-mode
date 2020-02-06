@@ -1,5 +1,5 @@
-open Rebase;
-open Fn;
+open! Rebase;
+open Rebase.Fn;
 
 // indicates at which stage the parse error happened
 module Error = {

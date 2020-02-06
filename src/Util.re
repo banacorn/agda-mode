@@ -1,4 +1,4 @@
-open Rebase;
+open! Rebase;
 
 module React = {
   open ReasonReact;

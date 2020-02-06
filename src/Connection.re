@@ -15,8 +15,6 @@ module Error = {
 };
 
 module Metadata = {
-  open Rebase;
-
   /* supported protocol */
   module Protocol = {
     type t =
@@ -62,19 +60,6 @@ type t = {
   mutable encountedFirstPrompt: bool,
   mutable log: Log.t,
 };
-
-// module Log = {
-//   let createLogEntry = (cmd, self) => Log.createEntry(cmd, self.log);
-
-//   let updateLatestEntry = (f: Log.Entry.t => unit, self) =>
-//     Log.updateLatestEntry(f, self.log);
-
-//   let logRawText = (text, self) => Log.logRawText(text, self.log);
-//   let logSExpression = (text, self) => Log.logSExpression(text, self.log);
-//   let logResponse = (text, self) => Log.logResponse(text, self.log);
-//   let logError = (text, self) => Log.logError(text, self.log);
-
-// };
 
 let disconnect = (error, self) => {
   self.process.disconnect() |> ignore;

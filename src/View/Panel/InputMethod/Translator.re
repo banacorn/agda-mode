@@ -1,5 +1,4 @@
 open Rebase;
-open Fn;
 
 // key - symbols mapping
 

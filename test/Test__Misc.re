@@ -19,7 +19,7 @@ describe_skip("when loading files", () =>
            ->Promise.flatMapOk(Connection.validateAndMake)
            ->Promise.mapOk(Connection.connect)
            ->Promise.mapOk(Connection.wire)
-           ->Promise.mapOk(Instance.Connections.set(instance))
+           ->Promise.mapOk(Instance.Connections.persistConnection(instance))
            ->Promise.mapError(error => BsMocha.Assert.fail(error))
            ->Promise.flatMapOk(_ =>
                Instance.Handler.handleLocalCommand(

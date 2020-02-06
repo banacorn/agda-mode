@@ -1,4 +1,4 @@
-open Rebase;
+open! Rebase;
 
 open Instance__Type;
 

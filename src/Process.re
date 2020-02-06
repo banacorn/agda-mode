@@ -148,7 +148,7 @@ module Validation = {
 
     let (promise, resolve) = Promise.pending();
 
-    let (path, args) = Parser.commandLine(pathAndParams);
+    let (path, _args) = Parser.commandLine(pathAndParams);
 
     // the path must not be empty
     if (String.isEmpty(path)) {

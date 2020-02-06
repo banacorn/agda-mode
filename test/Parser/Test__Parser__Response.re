@@ -1,4 +1,4 @@
-open Rebase;
+open! Rebase;
 open BsMocha.Mocha;
 open Fn;
 open Js.Promise;

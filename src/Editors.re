@@ -53,11 +53,14 @@ let getSelectedTextNode = editors => {
     editors |> Focus.get |> Atom.TextEditor.getSelectedText;
   };
   let getLargerSyntaxNode = () => {
-    editors |> Focus.get |> Atom.TextEditor.selectLargerSyntaxNode;
+    editors |> Focus.get |> Atom.TextEditor.selectLargerSyntaxNode |> ignore;
     editors |> Focus.get |> Atom.TextEditor.getSelectedText;
   };
   let getPointedWord = () => {
-    editors |> Focus.get |> Atom.TextEditor.selectWordsContainingCursors;
+    editors
+    |> Focus.get
+    |> Atom.TextEditor.selectWordsContainingCursors
+    |> ignore;
     editors |> Focus.get |> Atom.TextEditor.getSelectedText;
   };
 

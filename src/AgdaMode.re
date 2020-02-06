@@ -27,7 +27,7 @@ module Instances = {
     let id = textEditorID(textEditor);
     switch (Js.Dict.get(instances, id)) {
     | Some(instance) =>
-      Instance.destroy(instance);
+      Instance.destroy(instance) |> ignore;
       delete_(id) |> ignore;
     | None => ()
     };
@@ -37,7 +37,7 @@ module Instances = {
     instances
     |> Js.Dict.entries
     |> Array.forEach(((id, instance)) => {
-         Instance.destroy(instance);
+         Instance.destroy(instance) |> ignore;
          delete_(id) |> ignore;
        });
   };

@@ -6,13 +6,16 @@ open Atom;
 let inquireAgdaPath =
     (error: option(Connection.Error.t), instance)
     : Promise.t(result(string, MiniEditor.error)) => {
-  open View;
-  instance.view.activate();
-  instance.view.navigateSettings(Settings.URI.Connection)
-  ->Promise.flatMap(_ => {
-      instance.view.updateConnection(None, error);
-      instance.view.inquireConnection();
-    });
+  View.(
+    instance.view.activate()
+    ->Promise.flatMap(_ =>
+        instance.view.navigateSettings(Settings.URI.Connection)
+        ->Promise.flatMap(_ =>
+            instance.view.updateConnection(None, error)
+            ->Promise.flatMap(() => instance.view.inquireConnection())
+          )
+      )
+  );
 };
 
 let getAgdaPath = (instance): Promise.t(result(string, MiniEditor.error)) => {
@@ -31,7 +34,9 @@ let getAgdaPath = (instance): Promise.t(result(string, MiniEditor.error)) => {
   });
 };
 
-let persistConnection = (instance, connection: Connection.t) => {
+let persistConnection =
+    (instance, connection: Connection.t)
+    : Promise.t(result(Connection.t, MiniEditor.error)) => {
   instance.connection = Some(connection);
   /* store the path in the config */
   let path =
@@ -39,10 +44,9 @@ let persistConnection = (instance, connection: Connection.t) => {
     |> List.fromArray
     |> String.joinWith(" ");
   Config.set("agda-mode.agdaPath", path) |> ignore;
-  /* update the view */
-  instance.view.updateConnection(Some(connection), None);
-  /* pass it on */
-  connection;
+  // update the view, and then pass the connection out
+  instance.view.updateConnection(Some(connection), None)
+  ->Promise.map(() => Ok(connection));
 };
 let connectWithAgdaPath =
     (instance, path): Promise.t(result(Connection.t, MiniEditor.error)) => {
@@ -68,7 +72,7 @@ let connectWithAgdaPath =
   instance
   ->getMetadata(path)
   ->Promise.mapOk(Connection.connect)
-  ->Promise.mapOk(persistConnection(instance))
+  ->Promise.flatMapOk(persistConnection(instance))
   // ->Promise.mapOk(handleUnboundErrors(instance))
   ->Promise.mapOk(Connection.wire);
 };
@@ -93,5 +97,3 @@ let disconnect = instance => {
 };
 
 let get = connect;
-
-let set = persistConnection;

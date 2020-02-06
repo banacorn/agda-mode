@@ -1,7 +1,5 @@
 open ReasonReact;
 
-open Connection;
-
 [@react.component]
 let make = (~error: Connection.Error.t) => {
   let (header, body) = Connection.Error.toString(error);

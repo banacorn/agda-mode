@@ -1,4 +1,4 @@
-open Rebase;
+open! Rebase;
 
 open Instance__Type;
 
@@ -226,8 +226,7 @@ let handleResponse =
     };
   | DisplayInfo(info) =>
     let (text, style, body) = handleDisplayInfo(info);
-    instance.view.display(text, style, body);
-    Promise.resolved(Ok());
+    instance.view.display(text, style, body)->Promise.map(() => Ok());
   | ClearHighlighting =>
     instance |> Highlightings.destroyAll;
     Promise.resolved(Ok());
@@ -279,22 +278,23 @@ let handleResponse =
       Promise.resolved(Ok()),
       solutions,
     )
-    ->Promise.mapOk(() => {
+    ->Promise.flatMapOk(() => {
         let size = Array.length(solutions);
         if (size == 0) {
           instance.view.display(
             "No solutions found",
             Type.View.Header.PlainText,
             Emacs(PlainText("")),
-          );
+          )
+          ->Promise.map(() => Ok());
         } else {
           instance.view.display(
             string_of_int(size) ++ " goals solved",
             Type.View.Header.Success,
             Emacs(PlainText("")),
-          );
+          )
+          ->Promise.map(() => Ok());
         };
-        ();
       });
   };
 };
@@ -309,21 +309,24 @@ let rec handleLocalCommand =
         : Promise.t(result(option(Command.Remote.t), error)) => {
   let buff = (command, instance) => {
     Connections.get(instance)
-    ->Promise.mapOk((connection: Connection.t) => {
+    ->Promise.flatMapOk((connection: Connection.t) =>
         instance.view.display(
           "Loading ...",
           Type.View.Header.PlainText,
           Emacs(PlainText("")),
-        );
-
-        Some(
-          {
-            version: connection.metadata.version,
-            filepath: instance |> Instance__TextEditors.getPath,
-            command,
-          }: Command.Remote.t,
-        );
-      })
+        )
+        ->Promise.map(() =>
+            Ok(
+              Some(
+                {
+                  version: connection.metadata.version,
+                  filepath: instance |> Instance__TextEditors.getPath,
+                  command,
+                }: Command.Remote.t,
+              ),
+            )
+          )
+      )
     ->Promise.mapError(_ => Cancelled);
   };
   switch (command) {
@@ -335,29 +338,34 @@ let rec handleLocalCommand =
     ->Promise.mapError(_ => Cancelled)
     ->Promise.flatMapOk(() => {
         instance.isLoaded = true;
+        // activate the view twice?
         instance.view.activate()
-        ->Promise.flatMap(_ => {
-            instance.view.activate();
+        ->Promise.flatMap(_ => instance.view.activate())
+        ->Promise.flatMap(_ =>
             instance.view.display(
               "Connecting ...",
               Type.View.Header.PlainText,
               Emacs(PlainText("")),
-            );
-            instance |> buff(Load);
-          });
+            )
+          )
+        ->Promise.flatMap(_ => instance |> buff(Load));
       })
   | Abort => instance |> buff(Abort)
   | Quit =>
-    Connections.disconnect(instance);
-    instance |> Goals.destroyAll;
-    instance |> Highlightings.destroyAll;
-    instance.view.deactivate();
-    instance.isLoaded = false;
-    instance.view.deactivate();
-    Promise.resolved(Ok(None));
+    Connections.disconnect(instance)
+    ->Promise.flatMap(_ => {
+        instance |> Goals.destroyAll;
+        instance |> Highlightings.destroyAll;
+        instance.view.deactivate();
+      })
+    ->Promise.flatMap(_ => {
+        instance.isLoaded = false;
+        instance.view.deactivate();
+      })
+    ->Promise.map(_ => Ok(None))
   | Restart =>
-    Connections.disconnect(instance);
-    instance |> buff(Load);
+    Connections.disconnect(instance)
+    ->Promise.flatMap(_ => instance |> buff(Load))
   | Compile => instance |> buff(Compile)
   | ToggleDisplayOfImplicitArguments =>
     instance |> buff(ToggleDisplayOfImplicitArguments)
@@ -383,9 +391,7 @@ let rec handleLocalCommand =
        );
     Promise.resolved(Ok(None));
 
-  | ToggleDocking =>
-    instance.view.toggleDocking();
-    Promise.resolved(Ok(None));
+  | ToggleDocking => instance.view.toggleDocking()->Promise.map(_ => Ok(None))
   | Give =>
     instance
     ->getPointedGoal
@@ -591,36 +597,22 @@ let rec handleLocalCommand =
   | InputSymbol(symbol) =>
     let enabled = Atom.Config.get("agda-mode.inputMethod");
     if (enabled) {
-      instance.view.activate();
-      switch (symbol) {
-      | Ordinary =>
-        instance.view.activate()
-        ->Promise.flatMap(_ => {
-            instance.view.activateInputMethod(true);
-            Promise.resolved(Ok(None));
-          })
-      | CurlyBracket =>
-        instance.view.interceptAndInsertKey("{");
-        Promise.resolved(Ok(None));
-      | Bracket =>
-        instance.view.interceptAndInsertKey("[");
-        Promise.resolved(Ok(None));
-      | Parenthesis =>
-        instance.view.interceptAndInsertKey("(");
-        Promise.resolved(Ok(None));
-      | DoubleQuote =>
-        instance.view.interceptAndInsertKey("\"");
-        Promise.resolved(Ok(None));
-      | SingleQuote =>
-        instance.view.interceptAndInsertKey("'");
-        Promise.resolved(Ok(None));
-      | BackQuote =>
-        instance.view.interceptAndInsertKey("`");
-        Promise.resolved(Ok(None));
-      | Abort =>
-        instance.view.activateInputMethod(false);
-        Promise.resolved(Ok(None));
-      };
+      instance.view.activate()
+      ->Promise.flatMap(_ =>
+          switch (symbol) {
+          | Ordinary =>
+            instance.view.activate()
+            ->Promise.flatMap(_ => instance.view.activateInputMethod(true))
+          | CurlyBracket => instance.view.interceptAndInsertKey("{")
+          | Bracket => instance.view.interceptAndInsertKey("[")
+          | Parenthesis => instance.view.interceptAndInsertKey("(")
+          | DoubleQuote => instance.view.interceptAndInsertKey("\"")
+          | SingleQuote => instance.view.interceptAndInsertKey("'")
+          | BackQuote => instance.view.interceptAndInsertKey("`")
+          | Abort => instance.view.activateInputMethod(false)
+          }
+        )
+      ->Promise.map(_ => Ok(None));
     } else {
       instance.editors
       |> Editors.Focus.get
@@ -633,12 +625,14 @@ let rec handleLocalCommand =
     let selected = instance.editors |> Editors.getSelectedSymbol;
     let getSymbol =
       if (String.isEmpty(String.trim(selected))) {
-        instance.view.activate();
-        instance.view.inquire(
-          "Lookup Unicode Symbol Input Sequence",
-          "symbol to lookup:",
-          "",
-        );
+        instance.view.activate()
+        ->Promise.flatMap(_ =>
+            instance.view.inquire(
+              "Lookup Unicode Symbol Input Sequence",
+              "symbol to lookup:",
+              "",
+            )
+          );
       } else {
         Promise.resolved(Ok(selected));
       };
