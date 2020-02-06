@@ -753,14 +753,14 @@ let rec handleLocalCommand =
 
 /* Remote Command => Responses */
 let handleRemoteCommand =
-    /* This still builds even when type is changed from 'a to unit.
-       What is the point of an array of units? */
     (instance, handler, remote): Promise.t(result(unit, error)) =>
   switch (remote) {
   | None => Promise.resolved(Ok())
   | Some(cmd) =>
-    // log setup
+    let (promise, resolve) = Promise.pending();
+
     Connections.get(instance)
+    ->Promise.tapError(_error => resolve(Error(Cancelled)))
     ->Promise.getOk(connection => {
         // remove all old log entries if `cmd` is `Load`
         if (Command.Remote.isLoad(cmd) && connection.Connection.resetLogOnLoad) {
@@ -768,44 +768,48 @@ let handleRemoteCommand =
         };
         // create log entry for each `cmd`
         Log.createEntry(cmd.command, connection.log);
+
+        // prepare input for Agda
+        let inputForAgda = Command.Remote.toAgdaReadableString(cmd);
+
+        // store responses from Agda
+        let resultsOfResponseHandling = ref([]);
+        let parseErrors = ref([]);
+        open Parser.Incr.Event;
+        let onResponse = (
+          fun
+          | Ok(Yield(Ok(response))) => {
+              // feed the response to the handler
+              // the handler should return a promise which resolves on complete
+              let result =
+                instance
+                |> updateCursorPosition(() => handler(instance, response));
+              resultsOfResponseHandling :=
+                [result, ...resultsOfResponseHandling^];
+            }
+          | Ok(Yield(Error(error))) =>
+            parseErrors := [error, ...parseErrors^]
+          | Ok(Stop) =>
+            if (List.isEmpty(parseErrors^)) {
+              // no parse errors, wait until all of the response have been handled
+              (resultsOfResponseHandling^)
+              ->Promise.all
+              ->Promise.get(_results => resolve(Ok()));
+            } else {
+              resolve(Error(ParseError(Array.fromList(parseErrors^))));
+            }
+          | Error(error) =>
+            resolve(
+              Error(ConnectionError(Connection.Error.Process(error))),
+            )
+        );
+
+        let _destructor =
+          Connection.send(inputForAgda, connection).on(onResponse);
+        ();
       });
 
-    let handleResults = ref([||]);
-    let parseErrors: ref(array(Parser.Error.t)) = ref([||]);
-    let inputForAgda = Command.Remote.toAgdaReadableString(cmd);
-    open Parser.Incr.Event;
-    let onResponse = (resolve', reject') => (
-      fun
-      | Ok(Yield(Ok(response))) => {
-          let result =
-            instance
-            |> updateCursorPosition(() => handler(instance, response));
-          handleResults := Array.concat([|result|], handleResults^);
-        }
-      | Ok(Yield(Error(error))) =>
-        parseErrors := Array.concat([|error|], parseErrors^)
-      | Ok(Stop) =>
-        if (Array.length(parseErrors^) > 0) {
-          reject'(ParseError(parseErrors^)) |> ignore;
-        } else {
-          (handleResults^)
-          ->List.fromArray
-          ->Promise.all
-          ->Promise.get(results => resolve'(results));
-        }
-      | Error(error) =>
-        reject'(ConnectionError(Connection.Error.Process(error))) |> ignore
-    );
-    let (promise, resolve) = Promise.pending();
-
-    Connections.get(instance)
-    ->Promise.getOk(connection =>
-        Connection.send(inputForAgda, connection).on(
-          onResponse(x => resolve(Ok(x)), x => resolve(Error(x))),
-        )
-        |> ignore
-      );
-    promise->Promise.mapOk(_ => ());
+    promise;
   };
 
 let dispatch = (command, instance): Promise.t(result(unit, error)) => {

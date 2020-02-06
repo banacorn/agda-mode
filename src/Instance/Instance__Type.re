@@ -1,9 +1,9 @@
 type error =
   | ParseError(array(Parser.Error.t))
   | ConnectionError(Connection.Error.t)
-  /* Cancelled: never makes its way to Agda */
+  // Cancelled: never makes its way to Agda
   | Cancelled
-  /* Other reasons, also never make their way to Agda */
+  // Other reasons, also never make their way to Agda
   | GoalNotIndexed
   | OutOfGoal;
 
