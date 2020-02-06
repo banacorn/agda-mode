@@ -9,7 +9,7 @@ type t =
   | WhyInScope(string)
   | SearchAbout(string)
   | Error(string)
-  | ParseError(Metadata.t)
+  | ParseError(Connection.t)
   | PlainText(string);
 
 [@react.component]
@@ -22,7 +22,7 @@ let make = (~data: t) => {
   | WhyInScope(body) => <Emacs__WhyInScope body />
   | SearchAbout(body) => <Emacs__SearchAbout body />
   | Error(body) => <Emacs__Error body />
-  | ParseError(metadata) => <Emacs__ParseError metadata />
+  | ParseError(connection) => <Emacs__ParseError connection />
   | PlainText(body) => String.isEmpty(body) ? null : <p> {string(body)} </p>
   };
 };

@@ -71,7 +71,7 @@ let make =
          <p>
            {string(
               "Supported protocol: "
-              ++ Metadata.Protocol.toString(conn.metadata.protocol),
+              ++ Connection.Metadata.Protocol.toString(conn.metadata.protocol),
             )}
          </p>
        </>

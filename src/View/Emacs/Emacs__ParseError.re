@@ -1,7 +1,7 @@
 open ReasonReact;
 
 [@react.component]
-let make = (~metadata: Metadata.t) => {
+let make = (~connection: Connection.t) => {
   <section>
     <p>
       {string(
@@ -18,7 +18,7 @@ let make = (~metadata: Metadata.t) => {
     </p>
     <p>
       <button
-        onClick={_ => Metadata.dump(metadata)}
+        onClick={_ => Connection.dump(connection)}
         className="btn btn-primary icon icon-clippy">
         {string("Dump log")}
       </button>

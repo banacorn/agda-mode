@@ -49,7 +49,7 @@ let connectWithAgdaPath =
   /* validate the given path */
   let rec getMetadata =
           (instance, pathAndParams)
-          : Promise.t(result(Metadata.t, MiniEditor.error)) => {
+          : Promise.t(result(Connection.Metadata.t, MiniEditor.error)) => {
     Connection.validateAndMake(pathAndParams)
     ->Promise.flatMapError(err =>
         inquireAgdaPath(Some(err), instance)

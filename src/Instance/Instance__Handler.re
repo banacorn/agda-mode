@@ -23,7 +23,7 @@ let handleCommandError = (promise, instance) =>
              instance.view.display(
                "Parse Error",
                Type.View.Header.Error,
-               Emacs(ParseError(conn.Connection.metadata)),
+               Emacs(ParseError(conn)),
              )
              |> ignore;
            })

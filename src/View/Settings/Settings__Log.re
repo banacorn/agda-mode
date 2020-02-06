@@ -84,8 +84,7 @@ let make = (~connection: option(Connection.t), ~hidden) => {
       <button
         onClick={_ => {
           setShowInstruction(true);
-          connection
-          |> Option.forEach(conn => Metadata.dump(conn.Connection.metadata));
+          connection |> Option.forEach(Connection.dump);
         }}
         className="btn btn-primary icon icon-clippy">
         {string("Dump log")}
