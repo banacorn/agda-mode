@@ -125,10 +125,9 @@ let make =
   React.useEffect1(
     () => {
       let destructor =
-        onInputMethodChange.on(state => {
-          Js.log2("[ PANEL ]", state);
-          setInputMethodActivation(state.InputMethod.activated);
-        });
+        onInputMethodChange.on(state =>
+          setInputMethodActivation(state.InputMethod.activated)
+        );
       Some(destructor);
     },
     [||],
