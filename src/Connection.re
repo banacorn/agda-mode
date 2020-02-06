@@ -11,6 +11,7 @@ type t = {
   errorEmitter: Event.t(Response.t),
   mutable connected: bool,
   mutable resetLogOnLoad: bool,
+  mutable encountedFirstPrompt: bool,
 };
 
 let disconnect = (error, self) => {
@@ -20,6 +21,7 @@ let disconnect = (error, self) => {
   self.queue = [||];
   self.errorEmitter.destroy();
   self.connected = false;
+  self.encountedFirstPrompt = false;
 };
 
 let autoSearch = name =>
@@ -64,57 +66,71 @@ let connect = (metadata: Metadata.t): t => {
     queue: [||],
     errorEmitter: Event.make(),
     resetLogOnLoad: true,
+    encountedFirstPrompt: false,
   };
 };
 
 let wire = (self): t => {
-  /* resolves the requests in the queue */
-  let response = (res: response) => {
+  // resolves the requests in the queue
+  let handleResponse = (res: response) => {
     switch (self.queue[0]) {
     | None =>
       switch (res) {
-      | OnResult(Ok(data)) => self.errorEmitter.emit(data)
+      | Yield(Ok(data)) =>
+        Js.log2("[ unbound response ] ", data);
+        self.errorEmitter.emit(data);
       | _ => ()
       }
     | Some(req) =>
       req.emit(Ok(res));
       switch (res) {
-      | OnResult(_) => ()
-      | OnFinish =>
-        self.queue
-        |> Js.Array.pop
-        |> Option.forEach(ev => ev.Event.destroy |> ignore)
+      | Yield(_) => ()
+      | Stop =>
+        if (self.encountedFirstPrompt) {
+          self.queue
+          |> Js.Array.pop
+          |> Option.forEach(ev => ev.Event.destroy |> ignore);
+        } else {
+          self.encountedFirstPrompt = true;
+        }
       };
     };
   };
+
   let logSExpression =
-    Parser.Incr.Event.map(
-      Result.map(expr => {
-        Metadata.logSExpression(expr, self.metadata);
-        expr;
-      }),
+    Parser.Incr.Event.tap(
+      Result.forEach(expr => Metadata.logSExpression(expr, self.metadata)),
     );
 
-  // let toResponse = Parser.Incr.Event.map(x => x);
+  // We use the prompt "Agda2>" as the delimiter of the end of a response
+  // However, the prompt "Agda2>" also appears at the very start of the conversation
+  // So this would be what it looks like:
+  //    >>> request
+  //      stop          <------- wierd stop
+  //      yield
+  //      yield
+  //      stop
+  //    >> request
+  //      yield
+  //      yield
+  //      stop
+  //
   let toResponse =
     Parser.Incr.Event.flatMap(
       fun
-      | Error(parseError) => Parser.Incr.Event.OnResult(Error(parseError))
-      | Ok(Parser__Type.SExpression.A("Agda2>")) => Parser.Incr.Event.OnFinish
-      | Ok(tokens) => Parser.Incr.Event.OnResult(Response.parse(tokens)),
+      | Error(parseError) => Parser.Incr.Event.Yield(Error(parseError))
+      | Ok(Parser__Type.SExpression.A("Agda2>")) => Parser.Incr.Event.Stop
+      | Ok(tokens) => Parser.Incr.Event.Yield(Response.parse(tokens)),
     );
 
   let logResponse =
-    Parser.Incr.Event.map(
-      Result.map(expr => {
-        Metadata.logResponse(expr, self.metadata);
-        expr;
-      }),
+    Parser.Incr.Event.tap(
+      Result.forEach(expr => Metadata.logResponse(expr, self.metadata)),
     );
 
-  let callback =
+  let pipeline =
     Parser.SExpression.makeIncr(
-      logSExpression >> toResponse >> logResponse >> response,
+      logSExpression >> toResponse >> logResponse >> handleResponse,
     );
 
   // listens to the "data" event on the stdout
@@ -124,8 +140,8 @@ let wire = (self): t => {
     | Ok(rawText) => {
         // store the raw text in the log
         Metadata.logRawText(rawText, self.metadata);
-        // run the parser
-        rawText |> Parser.split |> Array.forEach(Parser.Incr.feed(callback));
+        // split the raw text into pieces and feed it to the parser
+        rawText |> Parser.split |> Array.forEach(Parser.Incr.feed(pipeline));
       }
     | Error(e) => {
         // emit error to all of the request in the queue

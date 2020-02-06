@@ -13,12 +13,12 @@ let parseSExpression = (breakpoints, input) => {
   let parser =
     Parser.SExpression.makeIncr(
       fun
-      | OnResult(Rebase.Error(err)) =>
+      | Yield(Rebase.Error(err)) =>
         Assert.fail(
           "Failed when parsing S-expression: " ++ Parser.Error.toString(err),
         )
-      | OnResult(Rebase.Ok(a)) => Js.Array.push(a, output^) |> ignore
-      | OnFinish => (),
+      | Yield(Rebase.Ok(a)) => Js.Array.push(a, output^) |> ignore
+      | Stop => (),
     );
 
   input

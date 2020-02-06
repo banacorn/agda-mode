@@ -112,17 +112,23 @@ let split =
 module Incr = {
   module Event = {
     type t('a) =
-      | OnResult('a)
-      | OnFinish;
-    let onResult = x => OnResult(x);
+      | Yield('a)
+      | Stop;
     let map = f =>
       fun
-      | OnResult(x) => OnResult(f(x))
-      | OnFinish => OnFinish;
+      | Yield(x) => Yield(f(x))
+      | Stop => Stop;
+    let tap = f =>
+      fun
+      | Yield(x) => {
+          f(x);
+          Yield(x);
+        }
+      | Stop => Stop;
     let flatMap = f =>
       fun
-      | OnResult(x) => f(x)
-      | OnFinish => OnFinish;
+      | Yield(x) => f(x)
+      | Stop => Stop;
   };
 
   type continuation('a, 'e) =
@@ -135,6 +141,7 @@ module Incr = {
     continuation: ref(option(string => continuation('a, 'e))),
     callback: Event.t(result('a, 'e)) => unit,
   };
+
   let make = (initialContinuation, callback) => {
     initialContinuation,
     continuation: ref(None),
@@ -149,16 +156,16 @@ module Incr = {
 
     // continue parsing with the given continuation
     switch (continue(input)) {
-    | Error(err) => self.callback(OnResult(Error(err)))
+    | Error(err) => self.callback(Yield(Error(err)))
     | Continue(continue) => self.continuation := Some(continue)
     | Done(result) =>
-      self.callback(OnResult(Ok(result)));
+      self.callback(Yield(Ok(result)));
       self.continuation := None;
     };
   };
 
-  let finish = (self: t('a, 'e)): unit => {
-    self.callback(OnFinish);
+  let stop = (self: t('a, 'e)): unit => {
+    self.callback(Stop);
   };
 };
 /* Parsing S-Expressions */
