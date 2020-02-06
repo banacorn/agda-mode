@@ -213,8 +213,8 @@ type change =
 
 // for determining whether the previous changes to the system should be regarded as one atomic operation or not
 let hasChanged = (state, changeLog) => {
-  // there was a Rewrite + Deactivate combo
-  let rewriteDeactivateCombo = !state.activated && changeLog == Complete;
+  // // there was a Rewrite + Deactivate combo
+  // let rewriteDeactivateCombo = !state.activated && changeLog == Complete;
 
   // there was a Deactivate + Activate combo
   // also happens when agda-mode was activated by triggering the input-method
@@ -223,7 +223,8 @@ let hasChanged = (state, changeLog) => {
   // when the user hit "ESC"
   let aborted = changeLog == Abort;
 
-  !rewriteDeactivateCombo && !deactivateActivateCombo || aborted;
+  // !rewriteDeactivateCombo && !deactivateActivateCombo || aborted;
+  !deactivateActivateCombo || aborted;
 };
 
 [@react.component]
