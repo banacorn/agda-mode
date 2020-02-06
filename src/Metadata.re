@@ -1,4 +1,5 @@
 open Rebase;
+open Rebase.Fn;
 
 /* supported protocol */
 module Protocol = {
@@ -77,6 +78,48 @@ $error
   };
 
   let empty = [||];
+
+  let createEntry = (cmd, log) => {
+    let entry: Entry.t = {
+      request: cmd,
+      response: {
+        rawText: [||],
+        sexpression: [||],
+        response: [||],
+        error: [||],
+      },
+    };
+    Js.Array.push(entry, log) |> ignore;
+  };
+
+  let updateLatestEntry = (f: Entry.t => unit, log) => {
+    let n = Array.length(log);
+    let lastEntry = log[n - 1];
+    lastEntry |> Option.forEach(f);
+  };
+
+  let logRawText = text =>
+    updateLatestEntry(entry =>
+      Js.Array.push(text, entry.response.rawText) |> ignore
+    );
+
+  let logSExpression = text =>
+    updateLatestEntry(entry =>
+      Js.Array.push(text, entry.response.sexpression) |> ignore
+    );
+
+  let logResponse = text =>
+    updateLatestEntry(entry =>
+      Js.Array.push(text, entry.response.response) |> ignore
+    );
+
+  let logError = text =>
+    updateLatestEntry(log =>
+      Js.Array.push(text, log.response.error) |> ignore
+    );
+
+  let serialize =
+    Array.mapi(Entry.serialize) >> List.fromArray >> String.joinWith("\n");
 };
 
 type t = {
@@ -87,41 +130,16 @@ type t = {
   mutable entries: array(Log.Entry.t),
 };
 
-let createLogEntry = (cmd, metadata) => {
-  let entry: Log.Entry.t = {
-    request: cmd,
-    response: {
-      rawText: [||],
-      sexpression: [||],
-      response: [||],
-      error: [||],
-    },
-  };
-  Js.Array.push(entry, metadata.entries) |> ignore;
-};
+let createLogEntry = (cmd, metadata) =>
+  Log.createEntry(cmd, metadata.entries);
 
-let updateLatestEntry = (f: Log.Entry.t => unit, self) => {
-  let n = Array.length(self.entries);
-  self.entries[n - 1] |> Option.forEach(f);
-};
+let updateLatestEntry = (f: Log.Entry.t => unit, self) =>
+  Log.updateLatestEntry(f, self.entries);
 
-let logRawText = text =>
-  updateLatestEntry(entry =>
-    Js.Array.push(text, entry.response.rawText) |> ignore
-  );
-
-let logSExpression = text =>
-  updateLatestEntry(entry =>
-    Js.Array.push(text, entry.response.sexpression) |> ignore
-  );
-
-let logResponse = text =>
-  updateLatestEntry(entry =>
-    Js.Array.push(text, entry.response.response) |> ignore
-  );
-
-let logError = text =>
-  updateLatestEntry(log => Js.Array.push(text, log.response.error) |> ignore);
+let logRawText = (text, self) => Log.logRawText(text, self.entries);
+let logSExpression = (text, self) => Log.logSExpression(text, self.entries);
+let logResponse = (text, self) => Log.logResponse(text, self.entries);
+let logError = (text, self) => Log.logError(text, self.entries);
 
 let serialize = self => {
   let path = "* path: " ++ self.path;
@@ -129,11 +147,7 @@ let serialize = self => {
   let version = "* version: " ++ self.version;
   let protocol = "* protocol: " ++ Protocol.toString(self.protocol);
   let os = "* platform: " ++ N.OS.type_();
-  let entries =
-    self.entries
-    |> Array.mapi(Log.Entry.serialize)
-    |> List.fromArray
-    |> String.joinWith("\n");
+  let entries = self.entries |> Log.serialize;
 
   {j|## Parse Log
 $path
