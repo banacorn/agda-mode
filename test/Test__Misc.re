@@ -22,12 +22,12 @@ describe_skip("when loading files", () =>
            ->Promise.mapOk(Instance.Connections.persistConnection(instance))
            ->Promise.mapError(error => BsMocha.Assert.fail(error))
            ->Promise.flatMapOk(_ =>
-               Instance.Handler.handleLocalCommand(
+               Instance.Handler.handleCommand(
                  Command.Load,
                  instance,
                )
                ->Promise.flatMapOk(
-                   Instance.Handler.handleRemoteCommand(instance, (_, _) =>
+                   Instance.Handler.handleRequest(instance, (_, _) =>
                      Promise.resolved()
                    ),
                  )

@@ -301,10 +301,9 @@ let handleResponse =
 
 let handleResponseAndRecoverCursor = (instance, response) =>
   instance |> updateCursorPosition(() => handleResponse(instance, response));
-// |> mapOk(_ => ());
 
-/* Primitive Command => Remote Command */
-let rec handleLocalCommand =
+/* Command => Request */
+let rec handleCommand =
         (command: Command.t, instance)
         : Promise.t(result(option(Request.packed), error)) => {
   let buff = (request, instance) => {
@@ -745,14 +744,14 @@ let rec handleLocalCommand =
       instance.dispatch(Command.Load, instance)
       ->handleCommandError(instance)
       ->Promise.flatMap(_ =>
-          instance |> handleLocalCommand(Command.GotoDefinition)
+          instance |> handleCommand(Command.GotoDefinition)
         );
     }
   };
 };
 
-/* Remote Command => Responses */
-let handleRemoteCommand =
+/* Request => Responses */
+let handleRequest =
     (instance, handler, remote): Promise.t(result(unit, error)) =>
   switch (remote) {
   | None => Promise.resolved(Ok())
@@ -813,12 +812,12 @@ let handleRemoteCommand =
   };
 
 let dispatch = (command, instance): Promise.t(result(unit, error)) => {
-  handleLocalCommand(command, instance)
+  handleCommand(command, instance)
   ->Promise.tap(_ => startCheckpoint(command, instance))
   ->Promise.flatMap(x =>
       instance.view.updateIsPending(true)->Promise.map(() => x)
     )
-  ->Promise.flatMapOk(handleRemoteCommand(instance, handleResponse))
+  ->Promise.flatMapOk(handleRequest(instance, handleResponse))
   ->Promise.tap(_ => endCheckpoint(instance))
   ->Promise.flatMap(x =>
       instance.view.updateIsPending(false)->Promise.map(() => x)
