@@ -29,7 +29,7 @@ module Entry = {
 
     <li className="agda-settings-log-entry">
       <h2 onClick={_ => setHidden(!hidden)}>
-        {string(Command.Remote.toString(entry.request))}
+        {string(Request.toString(entry.request))}
       </h2>
       <section className>
         <h3> {string("raw text")} </h3>

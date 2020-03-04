@@ -22,8 +22,7 @@ type t = {
   mutable connection: option(Connection.t),
   mutable runningInfo: RunningInfo.t,
   handleResponse: (t, Response.t) => Promise.t(Rebase.result(unit, error)),
-  dispatch:
-    (Command.Primitive.t, t) => Promise.t(Rebase.result(unit, error)),
+  dispatch: (Command.t, t) => Promise.t(Rebase.result(unit, error)),
   // Events
   onDispatch: Event.t(Rebase.result(unit, error)),
   onConnectionError: Event.t(Connection.Error.t),

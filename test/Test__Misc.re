@@ -23,7 +23,7 @@ describe_skip("when loading files", () =>
            ->Promise.mapError(error => BsMocha.Assert.fail(error))
            ->Promise.flatMapOk(_ =>
                Instance.Handler.handleLocalCommand(
-                 Command.Primitive.Load,
+                 Command.Load,
                  instance,
                )
                ->Promise.flatMapOk(

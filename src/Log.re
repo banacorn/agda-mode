@@ -2,7 +2,7 @@ open Rebase;
 open Rebase.Fn;
 
 module Entry = {
-  type request = Command.Remote.command;
+  type request = Request.t;
   type response = {
     mutable rawText: array(string),
     mutable sexpression: array(Parser.SExpression.t),
@@ -40,7 +40,7 @@ $x
       |> fold(title)
       |> indent;
 
-    let request = Command.Remote.toString(self.request);
+    let request = Request.toString(self.request);
 
     let rawText = self.response.rawText |> quote("raw text");
     let sexpression =

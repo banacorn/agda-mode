@@ -122,7 +122,7 @@ let onTriggerCommand = () => {
          |> eventTargetEditor
          |> Option.flatMap(Instances.get)
          |> Option.forEach(instance =>
-              Instance.dispatch(Command.Primitive.parse(command), instance)
+              Instance.dispatch(Command.parse(command), instance)
               ->Instance.handleCommandError(instance)
               |> ignore
             )

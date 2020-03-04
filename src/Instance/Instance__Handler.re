@@ -221,7 +221,7 @@ let handleResponse =
       | Function => Goal.writeLines(lines, goal)
       | ExtendedLambda => Goal.writeLambda(lines, goal)
       };
-      instance |> instance.dispatch(Command.Primitive.Load);
+      instance |> instance.dispatch(Command.Load);
     | None => Promise.resolved(Error(OutOfGoal))
     };
   | DisplayInfo(info) =>
@@ -305,9 +305,9 @@ let handleResponseAndRecoverCursor = (instance, response) =>
 
 /* Primitive Command => Remote Command */
 let rec handleLocalCommand =
-        (command: Command.Primitive.t, instance)
-        : Promise.t(result(option(Command.Remote.t), error)) => {
-  let buff = (command, instance) => {
+        (command: Command.t, instance)
+        : Promise.t(result(option(Request.packed), error)) => {
+  let buff = (request, instance) => {
     Connections.get(instance)
     ->Promise.flatMapOk((connection: Connection.t) =>
         instance.view.display(
@@ -321,8 +321,8 @@ let rec handleLocalCommand =
                 {
                   version: connection.metadata.version,
                   filepath: instance |> Instance__TextEditors.getPath,
-                  command,
-                }: Command.Remote.t,
+                  request,
+                }: Request.packed,
               ),
             )
           )
@@ -742,10 +742,10 @@ let rec handleLocalCommand =
       ->handleOutOfGoal(_ => instance |> buff(GotoDefinitionGlobal(name)));
     } else {
       /* dispatch again if not already loaded  */
-      instance.dispatch(Command.Primitive.Load, instance)
+      instance.dispatch(Command.Load, instance)
       ->handleCommandError(instance)
       ->Promise.flatMap(_ =>
-          instance |> handleLocalCommand(Command.Primitive.GotoDefinition)
+          instance |> handleLocalCommand(Command.GotoDefinition)
         );
     }
   };
@@ -756,21 +756,21 @@ let handleRemoteCommand =
     (instance, handler, remote): Promise.t(result(unit, error)) =>
   switch (remote) {
   | None => Promise.resolved(Ok())
-  | Some(cmd) =>
+  | Some(req) =>
     let (promise, resolve) = Promise.pending();
 
     Connections.get(instance)
     ->Promise.tapError(_error => resolve(Error(Cancelled)))
     ->Promise.getOk(connection => {
         // remove all old log entries if `cmd` is `Load`
-        if (Command.Remote.isLoad(cmd) && connection.Connection.resetLogOnLoad) {
+        if (Request.isLoad(req) && connection.Connection.resetLogOnLoad) {
           Connection.resetLog(connection);
         };
         // create log entry for each `cmd`
-        Log.createEntry(cmd.command, connection.log);
+        Log.createEntry(req.request, connection.log);
 
         // prepare input for Agda
-        let inputForAgda = Command.Remote.toAgdaReadableString(cmd);
+        let inputForAgda = Request.toAgdaReadableString(req);
 
         // store responses from Agda
         let resultsOfResponseHandling = ref([]);

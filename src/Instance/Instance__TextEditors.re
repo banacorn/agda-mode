@@ -108,7 +108,7 @@ let startCheckpoint = (command, instance) => {
   // see if reloading is needed on undo
   if (Array.length(instance.history.checkpoints) === 1) {
     instance.history.needsReloading =
-      Command.Primitive.(
+      Command.(
         switch (command) {
         | SolveConstraints
         | Give
