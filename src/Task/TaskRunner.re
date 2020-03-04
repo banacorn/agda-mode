@@ -78,3 +78,14 @@ let rec run =
       };
   runEach(tasks);
 };
+
+let dispatchCommand = (command, instance) =>
+  Task__Command.handle(Command.parse(command))
+  |> run(instance, error =>
+       Instance__Handler.handleCommandError(
+         Promise.resolved(Error(error)),
+         instance,
+       )
+       ->Promise.map(_ => ())
+     )
+  |> ignore;

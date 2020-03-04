@@ -146,8 +146,8 @@ let handleDisplayInfo =
   );
 };
 
-let handleResponse =
-    (instance, response: Response.t): Promise.t(result(unit, error)) => {
+let rec handleResponse =
+        (instance, response: Response.t): Promise.t(result(unit, error)) => {
   let textEditor = instance.editors.source;
   let filePath = instance |> Instance__TextEditors.getPath;
   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
@@ -221,7 +221,7 @@ let handleResponse =
       | Function => Goal.writeLines(lines, goal)
       | ExtendedLambda => Goal.writeLambda(lines, goal)
       };
-      instance |> instance.dispatch(Command.Load);
+      instance |> dispatch(Command.Load);
     | None => Promise.resolved(Error(OutOfGoal))
     };
   | DisplayInfo(info) =>
@@ -266,7 +266,7 @@ let handleResponse =
       | Some(goal) =>
         goal |> Goal.setContent(solution) |> ignore;
         Goals.setCursor(goal, instance);
-        instance.dispatch(Give, instance);
+        dispatch(Give, instance);
       };
     };
 
@@ -297,15 +297,15 @@ let handleResponse =
         };
       });
   };
-};
+}
 
-let handleResponseAndRecoverCursor = (instance, response) =>
-  instance |> updateCursorPosition(() => handleResponse(instance, response));
+and handleResponseAndRecoverCursor = (instance, response) =>
+  instance |> updateCursorPosition(() => handleResponse(instance, response))
 
 /* Command => Request */
-let rec handleCommand =
-        (command: Command.t, instance)
-        : Promise.t(result(option(Request.packed), error)) => {
+and handleCommand =
+    (command: Command.t, instance)
+    : Promise.t(result(option(Request.packed), error)) => {
   let buff = (request, instance) => {
     Connections.get(instance)
     ->Promise.flatMapOk((connection: Connection.t) =>
@@ -741,17 +741,17 @@ let rec handleCommand =
       ->handleOutOfGoal(_ => instance |> buff(GotoDefinitionGlobal(name)));
     } else {
       /* dispatch again if not already loaded  */
-      instance.dispatch(Command.Load, instance)
+      dispatch(Command.Load, instance)
       ->handleCommandError(instance)
       ->Promise.flatMap(_ =>
           instance |> handleCommand(Command.GotoDefinition)
         );
     }
   };
-};
+}
 
 /* Request => Responses */
-let handleRequest =
+and handleRequest =
     (instance, handler, remote): Promise.t(result(unit, error)) =>
   switch (remote) {
   | None => Promise.resolved(Ok())
@@ -809,9 +809,9 @@ let handleRequest =
       });
 
     promise;
-  };
+  }
 
-let dispatch = (command, instance): Promise.t(result(unit, error)) => {
+and dispatch = (command, instance): Promise.t(result(unit, error)) => {
   handleCommand(command, instance)
   ->Promise.tap(_ => startCheckpoint(command, instance))
   ->Promise.flatMap(x =>

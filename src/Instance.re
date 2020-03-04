@@ -10,7 +10,7 @@ module Handler = Instance__Handler;
 type t = Instance__Type.t;
 
 let handleCommandError = Handler.handleCommandError;
-let dispatch = Handler.dispatch;
+// let dispatch = Handler.dispatch;
 
 let activate = instance =>
   // only activate the view when it's loaded
@@ -52,7 +52,7 @@ let make = (textEditor: Atom.TextEditor.t) => {
     runningInfo: RunningInfo.make(),
     connection: None,
     handleResponse: Handler.handleResponseAndRecoverCursor,
-    dispatch: Handler.dispatch,
+    // dispatch: Handler.dispatch,
     onDispatch: Event.make(),
     onConnectionError: Event.make(),
   };
@@ -62,7 +62,7 @@ let make = (textEditor: Atom.TextEditor.t) => {
     instance.view.onMouseEvent.on(ev =>
       switch (ev) {
       | Type.View.Mouse.JumpToTarget(target) =>
-        instance |> dispatch(Jump(target)) |> ignore
+        instance |> Handler.dispatch(Jump(target)) |> ignore
       | _ => ()
       }
     );
@@ -77,7 +77,7 @@ let dispatchUndo = (instance: t) => {
   instance.editors.source |> Atom.TextEditor.undo;
   // reload
   if (instance.history.needsReloading) {
-    instance |> dispatch(Load) |> ignore;
+    instance |> Handler.dispatch(Load) |> ignore;
     instance.history.needsReloading = false;
   };
 };
