@@ -122,11 +122,20 @@ let onTriggerCommand = () => {
          |> eventTargetEditor
          |> Option.flatMap(Instances.get)
          |> Option.forEach(instance =>
-              Instance.dispatch(Command.parse(command), instance)
-              ->Instance.handleCommandError(instance)
+              Task__Command.handle(Command.parse(command))
+              |> TaskRunner.run(instance, error =>
+                   Instance__Handler.handleCommandError(
+                     Promise.resolved(Error(error)),
+                     instance,
+                   )
+                   ->Promise.map(_ => ())
+                 )
               |> ignore
             )
        )
+       // Instance.dispatch(Command.parse(command), instance)
+       // ->Instance.handleCommandError(instance)
+       // |> ignore
        |> CompositeDisposable.add(subscriptions)
      );
 };

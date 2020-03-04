@@ -183,7 +183,10 @@ let handle = (command: Command.t): list(Task.t) => {
                     [SendRequest(InferType(normalization, expr, index))]
                   );
               } else {
-                Promise.resolved(Ok([SendRequest(Give(goal, index))]));
+                let expr = Goal.getContent(goal);
+                Promise.resolved(
+                  Ok([SendRequest(InferType(normalization, expr, index))]),
+                );
               }
             )
           // global
