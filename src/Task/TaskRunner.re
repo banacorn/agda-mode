@@ -32,36 +32,40 @@ let rec run =
           tasks: list(t),
         )
         : Promise.t(unit) => {
+  let runTasks = x =>
+    Promise.flatMap(
+      x,
+      fun
+      | Ok(tasks) => run(instance, errorHandler, tasks)
+      | Error(error) => errorHandler(error),
+    );
   let runTask = task =>
     switch (task) {
-    | WithInstance(callback) =>
-      callback(instance)
-      ->Promise.flatMap(
-          fun
-          | Ok(tasks) => run(instance, errorHandler, tasks)
-          | Error(error) => errorHandler(error),
-        )
+    | WithInstance(callback) => callback(instance)->runTasks
+    | Disconnect => Instance__Connections.disconnect(instance)
+    | Activate => instance.view.activate()->Promise.map(_ => ())
+    | Deactivate => instance.view.deactivate()
     | Display(header, style, body) =>
       instance.view.display(header, style, body)
     | Inquire(header, placeholder, value, callback) =>
       instance.view.inquire(header, placeholder, value)
       ->Promise.mapError(_ => Instance__Type.Cancelled)
       ->Promise.mapOk(callback)
-      ->Promise.flatMap(
-          fun
-          | Ok(tasks) => run(instance, errorHandler, tasks)
-          | Error(error) => errorHandler(error),
-        )
-    | GetPointedGoal(callback) =>
+      ->runTasks
+    | Editor(Save) =>
+      instance.editors.source
+      ->Atom.TextEditor.save
+      ->Promise.Js.fromBsPromise
+      ->Promise.Js.toResult
+      ->Promise.mapError(_ => Instance__Type.Cancelled)
+      ->Promise.mapOk(_ => [])
+      ->runTasks
+    | Goals(GetPointed(callback)) =>
       Instance__TextEditors.getPointedGoal(instance)
       ->Promise.flatMapOk(Instance__TextEditors.getGoalIndex)
       ->Promise.mapOk(callback)
-      ->Promise.flatMap(
-          fun
-          | Ok(tasks) => run(instance, errorHandler, tasks)
-          | Error(error) => errorHandler(error),
-        )
-    | GetPointedGoalOr(callback, handler) =>
+      ->runTasks
+    | Goals(GetPointedOr(callback, handler)) =>
       Instance__TextEditors.getPointedGoal(instance)
       ->Promise.flatMapOk(Instance__TextEditors.getGoalIndex)
       ->Promise.mapOk(callback)

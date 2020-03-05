@@ -1,12 +1,26 @@
 type header = string;
 type placeholder = string;
 
-type t =
+type editor =
+  | Save;
+
+type goal =
+  | GetPointed(callback((Goal.t, int)))
+  | GetPointedOr(callback((Goal.t, int)), callback(unit))
+
+and t =
   | WithInstance(callbackP(Instance.t))
+  | Disconnect
+  // View
+  | Activate
+  | Deactivate
   | Display(header, Type.View.Header.style, Body.t)
   | Inquire(header, placeholder, string, callback(string))
-  | GetPointedGoal(callback((Goal.t, int)))
-  | GetPointedGoalOr(callback((Goal.t, int)), callback(unit))
+  // Editor
+  | Editor(editor)
+  // Goals
+  | Goals(goal)
+  // Request
   | DispatchCommand(Command.t)
   | SendRequest(Request.t)
 and callback('a) = 'a => list(t)
