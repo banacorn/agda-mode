@@ -41,6 +41,36 @@ let rec run =
           | Ok(tasks) => run(instance, errorHandler, tasks)
           | Error(error) => errorHandler(error),
         )
+    | Display(header, style, body) =>
+      instance.view.display(header, style, body)
+    | Inquire(header, placeholder, value, callback) =>
+      instance.view.inquire(header, placeholder, value)
+      ->Promise.mapError(_ => Instance__Type.Cancelled)
+      ->Promise.mapOk(callback)
+      ->Promise.flatMap(
+          fun
+          | Ok(tasks) => run(instance, errorHandler, tasks)
+          | Error(error) => errorHandler(error),
+        )
+    | GetPointedGoal(callback) =>
+      Instance__TextEditors.getPointedGoal(instance)
+      ->Promise.flatMapOk(Instance__TextEditors.getGoalIndex)
+      ->Promise.mapOk(callback)
+      ->Promise.flatMap(
+          fun
+          | Ok(tasks) => run(instance, errorHandler, tasks)
+          | Error(error) => errorHandler(error),
+        )
+    | GetPointedGoalOr(callback, handler) =>
+      Instance__TextEditors.getPointedGoal(instance)
+      ->Promise.flatMapOk(Instance__TextEditors.getGoalIndex)
+      ->Promise.mapOk(callback)
+      ->Promise.flatMap(
+          fun
+          | Ok(tasks) => run(instance, errorHandler, tasks)
+          | Error(OutOfGoal) => handler() |> run(instance, errorHandler)
+          | Error(error) => errorHandler(error),
+        )
     | DispatchCommand(command) =>
       Instance__TextEditors.startCheckpoint(command, instance);
       let program =
@@ -49,7 +79,6 @@ let rec run =
         Instance__TextEditors.endCheckpoint(instance)
       );
     | SendRequest(request) =>
-      Js.log2("[ request ]", Request.toString(request));
       packRequest(request, instance)
       ->Promise.flatMap(x =>
           instance.view.updateIsPending(true)->Promise.map(() => x)
@@ -67,7 +96,7 @@ let rec run =
       ->Promise.mapOk(_ => instance.onDispatch.emit(Ok()))
       ->Promise.tapError(error => instance.onDispatch.emit(Error(error)))
       ->Instance__Handler.handleCommandError(instance)
-      ->Promise.map(_ => ());
+      ->Promise.map(_ => ())
     };
 
   let rec runEach =

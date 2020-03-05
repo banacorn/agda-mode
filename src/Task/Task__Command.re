@@ -65,33 +65,30 @@ let handle = (command: Command.t): list(Task.t) => {
   | ToggleDisplayOfImplicitArguments => [
       SendRequest(ToggleDisplayOfImplicitArguments),
     ]
-
   | SolveConstraints => [SendRequest(SolveConstraints)]
   | ShowConstraints => [SendRequest(ShowConstraints)]
   | ShowGoals => [SendRequest(ShowGoals)]
   | NextGoal => [
       WithInstance(
         instance => {
-          let nextGoal = Goals.getNextGoalPosition(instance);
-          nextGoal
+          Goals.getNextGoalPosition(instance)
           |> Option.forEach(position =>
                instance.editors.source
                |> Atom.TextEditor.setCursorBufferPosition(position)
              );
-          Promise.resolved(Ok([]));
+          return([]);
         },
       ),
     ]
   | PreviousGoal => [
       WithInstance(
         instance => {
-          let previousGoal = Goals.getPreviousGoalPosition(instance);
-          previousGoal
+          Goals.getPreviousGoalPosition(instance)
           |> Option.forEach(position =>
                instance.editors.source
                |> Atom.TextEditor.setCursorBufferPosition(position)
              );
-          Promise.resolved(Ok([]));
+          return([]);
         },
       ),
     ]
@@ -102,23 +99,23 @@ let handle = (command: Command.t): list(Task.t) => {
       ),
     ]
   | Give => [
-      WithInstance(
-        instance =>
-          instance
-          ->getPointedGoal
-          ->Promise.flatMapOk(getGoalIndex)
-          ->Promise.flatMapOk(((goal, index)) =>
-              if (Goal.isEmpty(goal)) {
-                instance.view.inquire("Give", "expression to give:", "")
-                ->Promise.mapError(_ => Cancelled)
-                ->Promise.mapOk(result => {
-                    Goal.setContent(result, goal) |> ignore;
-                    [SendRequest(Give(goal, index))];
-                  });
-              } else {
-                Promise.resolved(Ok([SendRequest(Give(goal, index))]));
-              }
-            ),
+      GetPointedGoal(
+        ((goal, index)) =>
+          if (Goal.isEmpty(goal)) {
+            [
+              Inquire(
+                "Give",
+                "expression to give:",
+                "",
+                expr => {
+                  Goal.setContent(expr, goal) |> ignore;
+                  [SendRequest(Give(goal, index))];
+                },
+              ),
+            ];
+          } else {
+            [SendRequest(Give(goal, index))];
+          },
       ),
     ]
   | WhyInScope => [
@@ -138,236 +135,159 @@ let handle = (command: Command.t): list(Task.t) => {
                   )
               );
           } else {
-            Promise.resolved(
-              Ok([SendRequest(WhyInScopeGlobal(selectedText))]),
-            );
+            return([SendRequest(WhyInScopeGlobal(selectedText))]);
           };
         },
       ),
     ]
 
   | SearchAbout(normalization) => [
-      WithInstance(
-        instance =>
-          instance.view.inquire(
-            "Searching through definitions ["
-            ++ Command.Normalization.toString(normalization)
-            ++ "]",
-            "expression to infer:",
-            "",
-          )
-          ->Promise.mapError(_ => Cancelled)
-          ->Promise.mapOk(expr =>
-              [SendRequest(SearchAbout(normalization, expr))]
-            ),
+      Inquire(
+        "Searching through definitions ["
+        ++ Command.Normalization.toString(normalization)
+        ++ "]",
+        "expression to search:",
+        "",
+        expr => [SendRequest(SearchAbout(normalization, expr))],
       ),
     ]
   | InferType(normalization) => [
-      WithInstance(
-        instance =>
-          instance
-          ->getPointedGoal
-          ->Promise.flatMapOk(getGoalIndex)
-          // goal-specific
-          ->Promise.flatMapOk(((goal, index)) =>
-              if (Goal.isEmpty(goal)) {
-                instance.view.inquire(
-                  "Infer type ["
-                  ++ Command.Normalization.toString(normalization)
-                  ++ "]",
-                  "expression to infer:",
-                  "",
-                )
-                ->Promise.mapError(_ => Cancelled)
-                ->Promise.mapOk(expr =>
-                    [SendRequest(InferType(normalization, expr, index))]
-                  );
-              } else {
-                let expr = Goal.getContent(goal);
-                Promise.resolved(
-                  Ok([SendRequest(InferType(normalization, expr, index))]),
-                );
-              }
-            )
-          // global
-          ->handleOutOfGoal(_ =>
-              instance.view.inquire(
+      GetPointedGoalOr(
+        ((goal, index)) =>
+          if (Goal.isEmpty(goal)) {
+            [
+              // goal-specific
+              Inquire(
                 "Infer type ["
                 ++ Command.Normalization.toString(normalization)
                 ++ "]",
                 "expression to infer:",
                 "",
-              )
-              ->Promise.mapError(_ => Cancelled)
-              ->Promise.mapOk(expr =>
-                  [SendRequest(InferTypeGlobal(normalization, expr))]
-                )
+                expr => [SendRequest(SearchAbout(normalization, expr))],
+              ),
+            ];
+          } else {
+            // global
+            let expr = Goal.getContent(goal);
+            [SendRequest(InferType(normalization, expr, index))];
+          },
+        () =>
+          [
+            Inquire(
+              "Infer type ["
+              ++ Command.Normalization.toString(normalization)
+              ++ "]",
+              "expression to infer:",
+              "",
+              expr => [SendRequest(InferTypeGlobal(normalization, expr))],
             ),
+          ],
       ),
     ]
 
   | ModuleContents(normalization) => [
-      WithInstance(
-        instance =>
-          instance.view.inquire(
-            "Module contents ["
-            ++ Command.Normalization.toString(normalization)
-            ++ "]",
-            "module name:",
-            "",
-          )
-          ->Promise.mapError(_ => Cancelled)
-          ->Promise.flatMapOk(expr =>
-              instance
-              ->getPointedGoal
-              ->Promise.flatMapOk(getGoalIndex)
-              ->Promise.mapOk(((_, index)) =>
-                  [SendRequest(ModuleContents(normalization, expr, index))]
-                )
-              ->handleOutOfGoal(_ =>
-                  Promise.resolved(
-                    Ok([
-                      SendRequest(ModuleContentsGlobal(normalization, expr)),
-                    ]),
-                  )
-                )
+      Inquire(
+        "Module contents ["
+        ++ Command.Normalization.toString(normalization)
+        ++ "]",
+        "module name:",
+        "",
+        expr =>
+          [
+            GetPointedGoalOr(
+              ((_, index)) =>
+                [SendRequest(ModuleContents(normalization, expr, index))],
+              _ => [SendRequest(ModuleContentsGlobal(normalization, expr))],
             ),
+          ],
       ),
     ]
   | ComputeNormalForm(computeMode) => [
-      WithInstance(
-        instance =>
-          instance
-          ->getPointedGoal
-          ->Promise.flatMapOk(getGoalIndex)
-          ->Promise.flatMapOk(((goal, index)) =>
-              if (Goal.isEmpty(goal)) {
-                instance.view.inquire(
-                  "Compute normal form",
-                  "expression to normalize:",
-                  "",
-                )
-                ->Promise.mapError(_ => Cancelled)
-                ->Promise.mapOk(expr =>
-                    [
-                      SendRequest(
-                        ComputeNormalForm(computeMode, expr, index),
-                      ),
-                    ]
-                  );
-              } else {
-                let expr = Goal.getContent(goal);
-                Promise.resolved(
-                  Ok([
-                    SendRequest(ComputeNormalForm(computeMode, expr, index)),
-                  ]),
-                );
-              }
-            )
-          ->handleOutOfGoal(_ =>
-              instance.view.inquire(
+      GetPointedGoalOr(
+        ((goal, index)) =>
+          if (Goal.isEmpty(goal)) {
+            [
+              Inquire(
                 "Compute normal form",
                 "expression to normalize:",
                 "",
-              )
-              ->Promise.mapError(_ => Cancelled)
-              ->Promise.mapOk(expr =>
-                  [SendRequest(ComputeNormalFormGlobal(computeMode, expr))]
-                )
+                expr =>
+                  [
+                    SendRequest(ComputeNormalForm(computeMode, expr, index)),
+                  ],
+              ),
+            ];
+          } else {
+            let expr = Goal.getContent(goal);
+            [SendRequest(ComputeNormalForm(computeMode, expr, index))];
+          },
+        _ =>
+          [
+            Inquire(
+              "Compute normal form",
+              "expression to normalize:",
+              "",
+              expr =>
+                [SendRequest(ComputeNormalFormGlobal(computeMode, expr))],
             ),
+          ],
       ),
     ]
   | Refine => [
-      WithInstance(
-        instance =>
-          instance
-          ->getPointedGoal
-          ->Promise.flatMapOk(getGoalIndex)
-          ->Promise.mapOk(((goal, index)) =>
-              [SendRequest(Refine(goal, index))]
-            ),
+      GetPointedGoal(
+        ((goal, index)) => [SendRequest(Refine(goal, index))],
       ),
     ]
 
   | Auto => [
-      WithInstance(
-        instance =>
-          instance
-          ->getPointedGoal
-          ->Promise.flatMapOk(getGoalIndex)
-          ->Promise.mapOk(((goal, index)) =>
-              [SendRequest(Auto(goal, index))]
-            ),
+      GetPointedGoal(
+        ((goal, index)) => [SendRequest(Auto(goal, index))],
       ),
     ]
   | Case => [
-      WithInstance(
-        instance =>
-          instance
-          ->getPointedGoal
-          ->Promise.flatMapOk(getGoalIndex)
-          ->Promise.flatMapOk(((goal, index)) =>
-              if (Goal.isEmpty(goal)) {
-                instance.view.inquire("Case", "expression to case:", "")
-                ->Promise.mapError(_ => Cancelled)
-                ->Promise.mapOk(result => {
-                    Goal.setContent(result, goal) |> ignore;
-                    [SendRequest(Case(goal, index))];
-                  });
-              } else {
-                Promise.resolved(Ok([SendRequest(Case(goal, index))]));
-              }
-            ),
+      GetPointedGoal(
+        ((goal, index)) =>
+          if (Goal.isEmpty(goal)) {
+            [
+              Inquire(
+                "Case",
+                "expression to case:",
+                "",
+                expr => {
+                  Goal.setContent(expr, goal) |> ignore;
+                  [SendRequest(Case(goal, index))];
+                },
+              ),
+            ];
+          } else {
+            [SendRequest(Case(goal, index))];
+          },
       ),
     ]
 
   | GoalType(normalization) => [
-      WithInstance(
-        instance =>
-          instance
-          ->getPointedGoal
-          ->Promise.flatMapOk(getGoalIndex)
-          ->Promise.mapOk(((_, index)) =>
-              [SendRequest(GoalType(normalization, index))]
-            ),
+      GetPointedGoal(
+        ((_, index)) => [SendRequest(GoalType(normalization, index))],
       ),
     ]
   | Context(normalization) => [
-      WithInstance(
-        instance =>
-          instance
-          ->getPointedGoal
-          ->Promise.flatMapOk(getGoalIndex)
-          ->Promise.mapOk(((_, index)) =>
-              [SendRequest(Context(normalization, index))]
-            ),
+      GetPointedGoal(
+        ((_, index)) => [SendRequest(Context(normalization, index))],
       ),
     ]
   | GoalTypeAndContext(normalization) => [
-      WithInstance(
-        instance =>
-          instance
-          ->getPointedGoal
-          ->Promise.flatMapOk(getGoalIndex)
-          ->Promise.mapOk(((_, index)) =>
-              [SendRequest(GoalTypeAndContext(normalization, index))]
-            ),
+      GetPointedGoal(
+        ((_, index)) =>
+          [SendRequest(GoalTypeAndContext(normalization, index))],
       ),
     ]
 
   | GoalTypeAndInferredType(normalization) => [
-      WithInstance(
-        instance =>
-          instance
-          ->getPointedGoal
-          ->Promise.flatMapOk(getGoalIndex)
-          ->Promise.mapOk(((goal, index)) =>
-              [
-                SendRequest(
-                  GoalTypeAndInferredType(normalization, goal, index),
-                ),
-              ]
-            ),
+      GetPointedGoal(
+        ((goal, index)) =>
+          [
+            SendRequest(GoalTypeAndInferredType(normalization, goal, index)),
+          ],
       ),
     ]
   | InputSymbol(symbol) => [
