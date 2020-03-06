@@ -11,7 +11,7 @@ type goal =
   | JumpToThePrevious
 
 and t =
-  | WithInstance(callbackP(Instance.t))
+  | WithInstance(callbackP(Instance__Type.t))
   | Disconnect
   // View
   | Activate

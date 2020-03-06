@@ -51,22 +51,22 @@ let make = (textEditor: Atom.TextEditor.t) => {
     highlightings: [||],
     runningInfo: RunningInfo.make(),
     connection: None,
-    handleResponse: Handler.handleResponseAndRecoverCursor,
+    // handleResponse: Handler.handleResponseAndRecoverCursor,
     // dispatch: Handler.dispatch,
     onDispatch: Event.make(),
     onConnectionError: Event.make(),
   };
 
-  /* listen to `onMouseEvent` */
+  // subscribe to `onMouseEvent`
   let destructor1 =
     instance.view.onMouseEvent.on(ev =>
       switch (ev) {
       | Type.View.Mouse.JumpToTarget(target) =>
-        instance |> Handler.dispatch(Jump(target)) |> ignore
+        TaskRunner.dispatchCommand(Jump(target), instance) |> ignore
       | _ => ()
       }
     );
-
+  // unsubscribe to `onMouseEvent`
   instance.view.onDestroy.once()->Promise.get(_ => destructor1());
 
   instance;
@@ -77,7 +77,7 @@ let dispatchUndo = (instance: t) => {
   instance.editors.source |> Atom.TextEditor.undo;
   // reload
   if (instance.history.needsReloading) {
-    instance |> Handler.dispatch(Load) |> ignore;
+    TaskRunner.dispatchCommand(Load, instance) |> ignore;
     instance.history.needsReloading = false;
   };
 };

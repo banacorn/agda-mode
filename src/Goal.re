@@ -95,6 +95,7 @@ let writeLines = (contents: array(string), self) => {
     /* insert case split content */
     let position = firstRowRange |> Range.start;
     textBuffer |> TextBuffer.insert(position, indentedContents) |> ignore;
+    Js.log("!!!!!!!!!!!!!!!!!!!!!!!!!!");
   };
 };
 

@@ -121,7 +121,10 @@ let onTriggerCommand = () => {
          event
          |> eventTargetEditor
          |> Option.flatMap(Instances.get)
-         |> Option.forEach(instance => TaskRunner.dispatchCommand(command, instance))
+         |> Option.forEach(instance =>
+              TaskRunner.dispatchCommand(Command.parse(command), instance)
+              |> ignore
+            )
        )
        // Instance.dispatch(Command.parse(command), instance)
        // ->Instance.handleCommandError(instance)

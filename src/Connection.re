@@ -114,26 +114,6 @@ let connect = (metadata: Metadata.t): t => {
 };
 
 let wire = (self): t => {
-  // resolves the requests in the queue
-  let handleResponse = (res: response) => {
-    switch (self.queue) {
-    | [] => ()
-    | [req, ...rest] =>
-      req.emit(Ok(res));
-      // pop the queue on Stop
-      switch (res) {
-      | Yield(_) => ()
-      | Stop =>
-        if (self.encountedFirstPrompt) {
-          self.queue = rest;
-          req.Event.destroy() |> ignore;
-        } else {
-          self.encountedFirstPrompt = true;
-        }
-      };
-    };
-  };
-
   let logSExpression =
     Parser.Incr.Event.tap(
       Result.forEach(expr => Log.logSExpression(expr, self.log)),
@@ -165,6 +145,27 @@ let wire = (self): t => {
       Result.forEach(expr => Log.logResponse(expr, self.log)),
     );
 
+  // resolves the requests in the queue
+  let handleResponse = (res: response) => {
+    switch (self.queue) {
+    | [] => ()
+    | [req, ...rest] =>
+      switch (res) {
+      | Yield(x) => req.emit(Ok(Yield(x)))
+      | Stop =>
+        if (self.encountedFirstPrompt) {
+          // pop the queue on Stop
+          req.emit(Ok(Stop));
+          self.queue = rest;
+          req.Event.destroy() |> ignore;
+        } else {
+          // do nothing when encountering the first Stop
+          self.encountedFirstPrompt =
+            true;
+        }
+      }
+    };
+  };
   let pipeline =
     Parser.SExpression.makeIncr(
       logSExpression >> toResponse >> logResponse >> handleResponse,

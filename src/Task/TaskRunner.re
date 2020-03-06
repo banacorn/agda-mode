@@ -24,22 +24,152 @@ let packRequest = (request, instance) => {
   ->Promise.mapError(_ => Instance__Type.Cancelled);
 };
 
+// Request => Responses
+let sendRequest =
+    (instance, request: Request.t)
+    : Promise.t(result(list(Task.t), Instance__Type.error)) => {
+  let (promise, resolve) = Promise.pending();
+
+  Instance__Connections.get(instance)
+  ->Promise.tapError(_error => resolve(Error(Instance__Type.Cancelled)))
+  ->Promise.getOk(connection => {
+      open Request;
+      let packedRequest = {
+        version: connection.metadata.version,
+        filepath: instance |> Instance__TextEditors.getPath,
+        request,
+      };
+
+      // remove all old log entries if `cmd` is `Load`
+      if (Request.isLoad(packedRequest)
+          && connection.Connection.resetLogOnLoad) {
+        Connection.resetLog(connection);
+      };
+      // create log entry for each `cmd`
+      Log.createEntry(packedRequest.request, connection.log);
+
+      // prepare input for Agda
+      let inputForAgda = Request.toAgdaReadableString(packedRequest);
+
+      // store responses from Agda
+      let responseTasks = ref([]);
+      let parseErrors = ref([]);
+      open Parser.Incr.Event;
+      let onResponse =
+        fun
+        | Ok(Yield(Ok(response))) => {
+            let tasks = Task__Response.handle(response);
+            responseTasks := List.concat(tasks, responseTasks^);
+          }
+        | Ok(Yield(Error(error))) =>
+          parseErrors := [error, ...parseErrors^]
+        | Ok(Stop) =>
+          if (List.isEmpty(parseErrors^)) {
+            resolve(Ok(responseTasks^));
+          } else {
+            resolve(Error(ParseError(Array.fromList(parseErrors^))));
+          }
+        | Error(error) =>
+          resolve(Error(ConnectionError(Connection.Error.Process(error))));
+
+      let _destructor =
+        Connection.send(inputForAgda, connection).on(onResponse);
+      ();
+    });
+  promise;
+};
+
+// Request => Responses
+let rec sendRequest2 =
+        (instance, errorHandler, request)
+        : Promise.t(result(unit, Instance__Type.error)) => {
+  let (promise, resolve) = Promise.pending();
+  Js.log2(" <<< ", request);
+  Instance__Connections.get(instance)
+  ->Promise.tapError(_error => resolve(Error(Instance__Type.Cancelled)))
+  ->Promise.getOk(connection => {
+      open Request;
+      let packedRequest = {
+        version: connection.metadata.version,
+        filepath: instance |> Instance__TextEditors.getPath,
+        request,
+      };
+      // remove all old log entries if `cmd` is `Load`
+      if (Request.isLoad(packedRequest)
+          && connection.Connection.resetLogOnLoad) {
+        Connection.resetLog(connection);
+      };
+      // create log entry for each `cmd`
+      Log.createEntry(request, connection.log);
+
+      // prepare input for Agda
+      let inputForAgda = Request.toAgdaReadableString(packedRequest);
+
+      // store responses from Agda
+      let resultsOfResponseHandling = ref([]);
+      let parseErrors = ref([]);
+      open Parser.Incr.Event;
+      let onResponse =
+        fun
+        | Ok(Yield(Ok(response))) => {
+            Js.log2(" >>> ", Response.toString(response));
+            // feed the response to the handler
+            // the handler should return a promise which resolves on complete
+            let result =
+              instance
+              |> Instance__TextEditors.updateCursorPosition(() =>
+                   Task__Response.handle(response)
+                   |> (
+                     x => {
+                       Js.log(Array.fromList(x));
+                       x;
+                     }
+                   )
+                   |> run(instance, errorHandler)
+                 );
+            resultsOfResponseHandling :=
+              [result, ...resultsOfResponseHandling^];
+          }
+        | Ok(Yield(Error(error))) =>
+          parseErrors := [error, ...parseErrors^]
+        | Ok(Stop) =>
+          if (List.isEmpty(parseErrors^)) {
+            // no parse errors, wait until all of the response have been handled
+            (resultsOfResponseHandling^)
+            ->Promise.all
+            ->Promise.get(_results => resolve(Ok()));
+          } else {
+            resolve(Error(ParseError(Array.fromList(parseErrors^))));
+          }
+        | Error(error) =>
+          resolve(Error(ConnectionError(Connection.Error.Process(error))));
+
+      let _destructor =
+        Connection.send(inputForAgda, connection).on(onResponse);
+      ();
+    });
+
+  promise;
+}
 // run the Tasks
-let rec run =
-        (
-          instance: Instance.t,
-          errorHandler: Instance__Type.error => Promise.t(unit),
-          tasks: list(t),
-        )
-        : Promise.t(unit) => {
-  let runTasks = x =>
+and run =
+    (
+      instance: Instance__Type.t,
+      errorHandler: Instance__Type.error => Promise.t(unit),
+      tasks: list(t),
+    )
+    : Promise.t(unit) => {
+  let runTasks = x => {
     Promise.flatMap(
       x,
       fun
       | Ok(tasks) => run(instance, errorHandler, tasks)
       | Error(error) => errorHandler(error),
     );
-  let runTask = task =>
+  };
+  let runTask = task => {
+    Js.log2(" --- ", task);
+
     switch (task) {
     | WithInstance(callback) => callback(instance)->runTasks
     | Disconnect => Instance__Connections.disconnect(instance)
@@ -97,25 +227,22 @@ let rec run =
         Instance__TextEditors.endCheckpoint(instance)
       );
     | SendRequest(request) =>
-      packRequest(request, instance)
-      ->Promise.flatMap(x =>
-          instance.view.updateIsPending(true)->Promise.map(() => x)
-        )
-      ->Promise.flatMapOk(x =>
-          Instance__Handler.handleRequest(
-            instance,
-            Instance__Handler.handleResponse,
-            Some(x),
-          )
-        )
-      ->Promise.flatMap(x =>
-          instance.view.updateIsPending(false)->Promise.map(() => x)
-        )
-      ->Promise.mapOk(_ => instance.onDispatch.emit(Ok()))
-      ->Promise.tapError(error => instance.onDispatch.emit(Error(error)))
-      ->Instance__Handler.handleCommandError(instance)
+      instance.view.updateIsPending(true)
+      ->Promise.flatMap(() => sendRequest2(instance, errorHandler, request))
+      ->Promise.flatMap(_ => {
+          instance.onDispatch.emit(Ok());
+          instance.view.updateIsPending(false);
+        })
       ->Promise.map(_ => ())
+    //   ->Promise.flatMapOk(handleRequest(instance, handleResponse))
+    //   ->Promise.tap(_ => endCheckpoint(instance))
+    //   ->Promise.flatMap(x =>
+    //       instance.view.updateIsPending(false)->Promise.map(() => x)
+    //     )
+    //   ->Promise.mapOk(_ => instance.onDispatch.emit(Ok()))
+    //   ->Promise.tapError(error => instance.onDispatch.emit(Error(error)));
     };
+  };
 
   let rec runEach =
     fun
@@ -127,12 +254,11 @@ let rec run =
 };
 
 let dispatchCommand = (command, instance) =>
-  Task__Command.handle(Command.parse(command))
+  Task__Command.handle(command)
   |> run(instance, error =>
        Instance__Handler.handleCommandError(
          Promise.resolved(Error(error)),
          instance,
        )
        ->Promise.map(_ => ())
-     )
-  |> ignore;
+     );

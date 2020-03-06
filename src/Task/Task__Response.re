@@ -126,7 +126,7 @@ let handle = (response: Response.t): list(Task.t) =>
             | Function => Goal.writeLines(lines, goal)
             | ExtendedLambda => Goal.writeLambda(lines, goal)
             };
-            return([SendRequest(Load)]);
+            return([DispatchCommand(Load)]);
           | None => Promise.resolved(Error(OutOfGoal))
           };
         },

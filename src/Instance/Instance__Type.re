@@ -21,7 +21,7 @@ type t = {
   mutable goals: array(Goal.t),
   mutable connection: option(Connection.t),
   mutable runningInfo: RunningInfo.t,
-  handleResponse: (t, Response.t) => Promise.t(Rebase.result(unit, error)),
+  // handleResponse: (t, Response.t) => Promise.t(Rebase.result(unit, error)),
   // dispatch: (Command.t, t) => Promise.t(Rebase.result(unit, error)),
   // Events
   onDispatch: Event.t(Rebase.result(unit, error)),

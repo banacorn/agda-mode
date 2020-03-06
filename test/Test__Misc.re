@@ -21,19 +21,19 @@ describe_skip("when loading files", () =>
            ->Promise.mapOk(Connection.wire)
            ->Promise.mapOk(Instance.Connections.persistConnection(instance))
            ->Promise.mapError(error => BsMocha.Assert.fail(error))
-           ->Promise.flatMapOk(_ =>
-               Instance.Handler.handleCommand(Command.Load, instance)
-               ->Promise.flatMapOk(
-                   Instance.Handler.handleRequest(instance, (_, _) =>
-                     Promise.resolved(Rebase.Ok())
-                   ),
-                 )
-               ->Promise.mapOk(_ => Assert.ok())
-               ->Promise.mapError(error => {
-                   BsMocha.Assert.fail(error);
-                   ();
-                 })
+           ->Promise.flatMap(_ =>
+               TaskRunner.dispatchCommand(Command.Load, instance)
              )
+           // ->Promise.flatMapOk(
+           //     Instance.Handler.handleRequest(instance, (_, _) =>
+           //       Promise.resolved(Rebase.Ok())
+           //     ),
+           //   )
+           // ->Promise.mapOk(_ => Assert.ok())
+           // ->Promise.mapError(error => {
+           //     BsMocha.Assert.fail(error);
+           //     ();
+           //   })
            ->Promise.Js.toBsPromise;
          });
     };
