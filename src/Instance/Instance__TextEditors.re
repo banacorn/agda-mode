@@ -56,41 +56,103 @@ let getGoalIndex = (goal: Goal.t): Promise.t(result((Goal.t, int), error)) => {
   };
 };
 
-/* shift cursor if in certain goal */
-let updateCursorPosition = (callback, instance) => {
-  let cursor =
-    instance.editors.source |> Atom.TextEditor.getCursorBufferPosition;
+// execute the callback
+//  if it's pointing at some empty hole
+//    then move the cursor inside the empty hole
+//    else restore the cursor to its original position
+let restoreCursorPosition = (callback, instance) => {
+  let originalPosition =
+    Atom.TextEditor.getCursorBufferPosition(instance.editors.source);
+  Js.log2(" ~~~~~ SAVE ", originalPosition);
   let result = callback();
 
-  getPointedGoalAt(cursor, instance)
-  /* reposition the cursor in the goal only if it's a fresh hole (coming from '?') */
-  ->Promise.mapOk(goal => {
-      let fresh = Goal.isEmpty(goal);
-      if (fresh) {
+  getPointedGoalAt(originalPosition, instance)
+  ->Promise.mapOk(goal =>
+      if (Goal.isEmpty(goal)) {
         let delta = Atom.Point.make(0, 3);
         let newPosition =
-          Atom.Point.translate(delta, goal.range |> Atom.Range.start);
+          Atom.Point.translate(delta, Atom.Range.start(goal.range));
+
+        Js.log3(" MOVE (EMPTY) ", newPosition, goal.index);
         Js.Global.setTimeout(
           () =>
-            instance.editors.source
-            |> Atom.TextEditor.setCursorBufferPosition(newPosition),
+            Atom.TextEditor.setCursorBufferPosition(
+              newPosition,
+              instance.editors.source,
+            ),
           0,
         )
         |> ignore;
       } else {
-        instance.editors.source
-        |> Atom.TextEditor.setCursorBufferPosition(cursor);
-      };
-    })
+        Js.log3(" RESTORE (FILLED) ", originalPosition, goal.range);
+
+        Atom.TextEditor.setCursorBufferPosition(
+          originalPosition,
+          instance.editors.source,
+        );
+      }
+    )
   ->handleOutOfGoal(_ => {
-      instance.editors.source
-      |> Atom.TextEditor.setCursorBufferPosition(cursor);
+      Js.log2(" RESTORE (OUTSIDE) ", originalPosition);
+
+      Atom.TextEditor.setCursorBufferPosition(
+        originalPosition,
+        instance.editors.source,
+      );
       Promise.resolved(Ok());
     })
   |> ignore;
 
-  /* return the result of the callback */
+  // return the result of the callback
   result;
+};
+// execute the callback
+//  if it's pointing at some empty hole
+//    then move the cursor inside the empty hole
+//    else restore the cursor to its original position
+let restoreCursorPosition2 = (callback, instance) => {
+  let originalPosition =
+    Atom.TextEditor.getCursorBufferPosition(instance.editors.source);
+  Js.log2(" ~~~~~ SAVE ", originalPosition);
+
+  callback()->Promise.get(() => ());
+
+  getPointedGoalAt(originalPosition, instance)
+  ->Promise.mapOk(goal =>
+      if (Goal.isEmpty(goal)) {
+        let delta = Atom.Point.make(0, 3);
+        let newPosition =
+          Atom.Point.translate(delta, Atom.Range.start(goal.range));
+
+        Js.log3(" MOVE (EMPTY) ", newPosition, goal.index);
+        Js.Global.setTimeout(
+          () =>
+            Atom.TextEditor.setCursorBufferPosition(
+              newPosition,
+              instance.editors.source,
+            ),
+          0,
+        )
+        |> ignore;
+      } else {
+        Js.log3(" RESTORE (FILLED) ", originalPosition, goal.range);
+
+        Atom.TextEditor.setCursorBufferPosition(
+          originalPosition,
+          instance.editors.source,
+        );
+      }
+    )
+  ->handleOutOfGoal(_ => {
+      Js.log2(" RESTORE (OUTSIDE) ", originalPosition);
+
+      Atom.TextEditor.setCursorBufferPosition(
+        originalPosition,
+        instance.editors.source,
+      );
+      Promise.resolved(Ok());
+    })
+  |> ignore;
 };
 
 //

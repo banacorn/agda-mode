@@ -439,7 +439,7 @@ let handle = (command: Command.t): list(Task.t) => {
           if (instance.isLoaded) {
             let name =
               instance
-              |> updateCursorPosition(() =>
+              |> restoreCursorPosition(() =>
                    Editors.getSelectedTextNode(instance.editors)
                  );
 

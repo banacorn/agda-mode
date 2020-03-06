@@ -1,6 +1,7 @@
 open Task;
 
 open! Rebase;
+open Rebase.Fn;
 
 // Request.t => Request.packed
 let packRequest = (request, instance) => {
@@ -28,6 +29,7 @@ let packRequest = (request, instance) => {
 let sendRequest =
     (instance, request: Request.t)
     : Promise.t(result(list(Task.t), Instance__Type.error)) => {
+  Js.log2(" <<< ", request);
   let (promise, resolve) = Promise.pending();
 
   Instance__Connections.get(instance)
@@ -58,7 +60,12 @@ let sendRequest =
       let onResponse =
         fun
         | Ok(Yield(Ok(response))) => {
+            Js.log2(" >>> ", Response.toString(response));
             let tasks = Task__Response.handle(response);
+            switch (response) {
+            | MakeCase(_) => Js.log(Array.fromList(tasks))
+            | _ => ()
+            };
             responseTasks := List.concat(tasks, responseTasks^);
           }
         | Ok(Yield(Error(error))) =>
@@ -117,16 +124,10 @@ let rec sendRequest2 =
             // the handler should return a promise which resolves on complete
             let result =
               instance
-              |> Instance__TextEditors.updateCursorPosition(() =>
-                   Task__Response.handle(response)
-                   |> (
-                     x => {
-                       Js.log(Array.fromList(x));
-                       x;
-                     }
-                   )
-                   |> run(instance, errorHandler)
-                 );
+              |> Instance__TextEditors.restoreCursorPosition(() => {
+                   let tasks = Task__Response.handle(response);
+                   run(instance, errorHandler, tasks);
+                 });
             resultsOfResponseHandling :=
               [result, ...resultsOfResponseHandling^];
           }
@@ -226,14 +227,30 @@ and run =
       program->Promise.tap(() =>
         Instance__TextEditors.endCheckpoint(instance)
       );
-    | SendRequest(request) =>
-      instance.view.updateIsPending(true)
-      ->Promise.flatMap(() => sendRequest2(instance, errorHandler, request))
-      ->Promise.flatMap(_ => {
-          instance.onDispatch.emit(Ok());
-          instance.view.updateIsPending(false);
-        })
-      ->Promise.map(_ => ())
+    | SendRequest(request) => sendRequest(instance, request)->runTasks
+    // Instance__TextEditors.restoreCursorPosition(
+    //   () => sendRequest(instance, request)->runTasks,
+    //   instance,
+    // )
+    // Promise.resolved();
+    // sendRequest2(instance, errorHandler, request)
+    // ->Promise.flatMap(
+    //     fun
+    //     | Ok () => Promise.resolved()
+    //     | Error(error) => errorHandler(error),
+    //   )
+    // instance.view.updateIsPending(true)
+    // ->Promise.flatMap(() => sendRequest(instance, request)->runTasks)
+    // ->Promise.flatMap(() => sendRequest(instance, request))
+    // ->Promise.tapOk(_ => {
+    //     instance.onDispatch.emit(Ok());
+    //     instance.view.updateIsPending(false) |> ignore;
+    //   })
+    // ->Promise.flatMap(tasks => {
+    //     instance.onDispatch.emit(Ok());
+    //     instance.view.updateIsPending(false);
+    //   })
+    // ->Promise.map(_ => ())
     //   ->Promise.flatMapOk(handleRequest(instance, handleResponse))
     //   ->Promise.tap(_ => endCheckpoint(instance))
     //   ->Promise.flatMap(x =>
@@ -250,7 +267,26 @@ and run =
     | [x, ...xs] => {
         runTask(x)->Promise.flatMap(() => runEach(xs));
       };
-  runEach(tasks);
+
+  // If there are any Task of DispatchCommand
+  // pick them out and put them back of the line
+  let postponeDispatchCommand = tasks => {
+    let isDispatchCommand =
+      fun
+      | DispatchCommand(_) => true
+      | _ => false;
+    let dispatches = List.filter(isDispatchCommand, tasks);
+    let otherTasks = List.filter(isDispatchCommand >> (!), tasks);
+    if (!List.isEmpty(dispatches)) {
+      Js.log2(
+        Array.fromList(tasks),
+        Array.fromList(List.concat(otherTasks, dispatches)),
+      );
+    };
+    List.concat(otherTasks, dispatches);
+  };
+
+  tasks |> postponeDispatchCommand |> runEach;
 };
 
 let dispatchCommand = (command, instance) =>

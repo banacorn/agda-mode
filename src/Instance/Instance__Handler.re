@@ -300,7 +300,7 @@ let handleCommandError = (promise, instance) =>
 // }
 //
 // and handleResponseAndRecoverCursor = (instance, response) =>
-//   instance |> updateCursorPosition(() => handleResponse(instance, response))
+//   instance |> restoreCursorPosition(() => handleResponse(instance, response))
 //
 // /* Command => Request */
 // and handleCommand =
@@ -728,7 +728,7 @@ let handleCommandError = (promise, instance) =>
 //     if (instance.isLoaded) {
 //       let name =
 //         instance
-//         |> updateCursorPosition(() =>
+//         |> restoreCursorPosition(() =>
 //              Editors.getSelectedTextNode(instance.editors)
 //            );
 //
@@ -782,7 +782,7 @@ let handleCommandError = (promise, instance) =>
 //               // the handler should return a promise which resolves on complete
 //               let result =
 //                 instance
-//                 |> updateCursorPosition(() => handler(instance, response));
+//                 |> restoreCursorPosition(() => handler(instance, response));
 //               resultsOfResponseHandling :=
 //                 [result, ...resultsOfResponseHandling^];
 //             }

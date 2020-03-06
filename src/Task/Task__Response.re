@@ -86,6 +86,7 @@ let handle = (response: Response.t): list(Task.t) =>
       WithInstance(
         instance => {
           instance |> Goals.instantiateAll(indices);
+          Js.log2("instantiateAll", indices);
           return([]);
         },
       ),
