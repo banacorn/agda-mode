@@ -7,6 +7,8 @@ type editor =
 type goal =
   | GetPointed(callback((Goal.t, int)))
   | GetPointedOr(callback((Goal.t, int)), callback(unit))
+  | JumpToTheNext
+  | JumpToThePrevious
 
 and t =
   | WithInstance(callbackP(Instance.t))

@@ -9,7 +9,7 @@ module Handler = Instance__Handler;
 
 type t = Instance__Type.t;
 
-let handleCommandError = Handler.handleCommandError;
+// let handleCommandError = Handler.handleCommandError;
 // let dispatch = Handler.dispatch;
 
 let activate = instance =>

@@ -9,7 +9,7 @@ module Connections = Instance__Connections;
 module TextEditors = Instance__TextEditors;
 open TextEditors;
 
-// Command => Request
+// Command => Tasks
 let handle = (command: Command.t): list(Task.t) => {
   switch (command) {
   | Load => [
@@ -49,31 +49,8 @@ let handle = (command: Command.t): list(Task.t) => {
   | SolveConstraints => [SendRequest(SolveConstraints)]
   | ShowConstraints => [SendRequest(ShowConstraints)]
   | ShowGoals => [SendRequest(ShowGoals)]
-  | NextGoal => [
-      WithInstance(
-        instance => {
-          Goals.getNextGoalPosition(instance)
-          |> Option.forEach(position =>
-               instance.editors.source
-               |> Atom.TextEditor.setCursorBufferPosition(position)
-             );
-          return([]);
-        },
-      ),
-    ]
-  | PreviousGoal => [
-      WithInstance(
-        instance => {
-          Goals.getPreviousGoalPosition(instance)
-          |> Option.forEach(position =>
-               instance.editors.source
-               |> Atom.TextEditor.setCursorBufferPosition(position)
-             );
-          return([]);
-        },
-      ),
-    ]
-
+  | NextGoal => [Goals(JumpToTheNext)]
+  | PreviousGoal => [Goals(JumpToThePrevious)]
   | ToggleDocking => [
       WithInstance(
         instance => instance.view.toggleDocking()->Promise.map(_ => Ok([])),
@@ -303,40 +280,41 @@ let handle = (command: Command.t): list(Task.t) => {
         ),
       ),
     ]
-  | InputSymbol(symbol) => [
-      WithInstance(
-        instance => {
-          let enabled = Atom.Config.get("agda-mode.inputMethod");
-          if (enabled) {
-            instance.view.activate()
-            ->Promise.flatMap(_ =>
-                switch (symbol) {
-                | Ordinary =>
-                  instance.view.activate()
-                  ->Promise.flatMap(_ =>
-                      instance.view.activateInputMethod(true)
-                    )
-                | CurlyBracket => instance.view.interceptAndInsertKey("{")
-                | Bracket => instance.view.interceptAndInsertKey("[")
-                | Parenthesis => instance.view.interceptAndInsertKey("(")
-                | DoubleQuote => instance.view.interceptAndInsertKey("\"")
-                | SingleQuote => instance.view.interceptAndInsertKey("'")
-                | BackQuote => instance.view.interceptAndInsertKey("`")
-                | Abort => instance.view.activateInputMethod(false)
-                }
-              )
-            ->Promise.map(_ => Ok([]));
-          } else {
+  | InputSymbol(symbol) =>
+    let enabled = Atom.Config.get("agda-mode.inputMethod");
+    if (enabled) {
+      [
+        Activate,
+        WithInstance(
+          instance =>
+            (
+              switch (symbol) {
+              | Ordinary => instance.view.activateInputMethod(true)
+              | CurlyBracket => instance.view.interceptAndInsertKey("{")
+              | Bracket => instance.view.interceptAndInsertKey("[")
+              | Parenthesis => instance.view.interceptAndInsertKey("(")
+              | DoubleQuote => instance.view.interceptAndInsertKey("\"")
+              | SingleQuote => instance.view.interceptAndInsertKey("'")
+              | BackQuote => instance.view.interceptAndInsertKey("`")
+              | Abort => instance.view.activateInputMethod(false)
+              }
+            )
+            ->Promise.map(() => Ok([])),
+        ),
+      ];
+    } else {
+      [
+        WithInstance(
+          instance => {
             instance.editors
             |> Editors.Focus.get
             |> Atom.TextEditor.insertText("\\")
             |> ignore;
             Promise.resolved(Ok([]));
-          };
-        },
-      ),
-    ]
-
+          },
+        ),
+      ];
+    };
   | QuerySymbol => [
       WithInstance(
         instance => {

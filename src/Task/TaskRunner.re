@@ -75,6 +75,20 @@ let rec run =
           | Error(OutOfGoal) => handler() |> run(instance, errorHandler)
           | Error(error) => errorHandler(error),
         )
+    | Goals(JumpToTheNext) =>
+      Instance__Goals.getNextGoalPosition(instance)
+      |> Option.forEach(position =>
+           instance.editors.source
+           |> Atom.TextEditor.setCursorBufferPosition(position)
+         )
+      |> Promise.resolved
+    | Goals(JumpToThePrevious) =>
+      Instance__Goals.getPreviousGoalPosition(instance)
+      |> Option.forEach(position =>
+           instance.editors.source
+           |> Atom.TextEditor.setCursorBufferPosition(position)
+         )
+      |> Promise.resolved
     | DispatchCommand(command) =>
       Instance__TextEditors.startCheckpoint(command, instance);
       let program =
