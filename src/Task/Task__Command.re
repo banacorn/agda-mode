@@ -437,22 +437,24 @@ let handle = (command: Command.t): list(Task.t) => {
       WithInstance(
         instance =>
           if (instance.isLoaded) {
-            let name =
-              instance
-              |> restoreCursorPosition(() =>
-                   Editors.getSelectedTextNode(instance.editors)
-                 );
-
-            instance
-            ->getPointedGoal
-            ->Promise.flatMapOk(getGoalIndex)
-            ->Promise.mapOk(((_, index)) =>
-                [SendRequest(GotoDefinition(name, index))]
-              )
-            ->handleOutOfGoal(_ =>
-                Promise.resolved(
-                  Ok([SendRequest(GotoDefinitionGlobal(name))]),
-                )
+            restoreCursorPosition(
+              () =>
+                Editors.getSelectedTextNode(instance.editors)
+                ->Promise.resolved,
+              instance,
+            )
+            ->Promise.flatMap(name =>
+                instance
+                ->getPointedGoal
+                ->Promise.flatMapOk(getGoalIndex)
+                ->Promise.mapOk(((_, index)) =>
+                    [SendRequest(GotoDefinition(name, index))]
+                  )
+                ->handleOutOfGoal(_ =>
+                    Promise.resolved(
+                      Ok([SendRequest(GotoDefinitionGlobal(name))]),
+                    )
+                  )
               );
           } else {
             // dispatch again if not already loaded

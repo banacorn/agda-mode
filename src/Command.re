@@ -136,6 +136,38 @@ let parse =
   | "go-to-definition" => GotoDefinition
   | _ => Load;
 
+let toString =
+  fun
+  | Load => "Load"
+  | Quit => "Quit"
+  | Restart => "Restart"
+  | Abort => "Abort"
+  | Compile => "Compile"
+  | ToggleDisplayOfImplicitArguments => "ToggleDisplayOfImplicitArguments"
+  | SolveConstraints => "SolveConstraints"
+  | ShowConstraints => "ShowConstraints"
+  | ShowGoals => "ShowGoals"
+  | NextGoal => "NextGoal"
+  | PreviousGoal => "PreviousGoal"
+  | ToggleDocking => "ToggleDocking"
+  | WhyInScope => "WhyInScope"
+  | SearchAbout(_) => "InputSymbol"
+  | InferType(_) => "InputSymbol"
+  | ModuleContents(_) => "InputSymbol"
+  | ComputeNormalForm(_) => "InputSymbol"
+  | Give => "Give"
+  | Refine => "Refine"
+  | Auto => "Auto"
+  | Case => "Case"
+  | GoalType(_) => "GoalType"
+  | Context(_) => "Context"
+  | GoalTypeAndContext(_) => "GoalTypeAndContext"
+  | GoalTypeAndInferredType(_) => "GoalTypeAndInferredType"
+  | InputSymbol(_) => "InputSymbol"
+  | QuerySymbol => "QuerySymbol"
+  | Jump(_) => "Jump"
+  | GotoDefinition => "GotoDefinition";
+
 let names = [|
   "load",
   "quit",

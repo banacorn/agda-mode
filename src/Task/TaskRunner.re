@@ -1,7 +1,6 @@
 open Task;
 
 open! Rebase;
-open Rebase.Fn;
 
 // Request.t => Request.packed
 let packRequest = (request, instance) => {
@@ -86,103 +85,65 @@ let sendRequest =
   promise;
 };
 
-// Request => Responses
-let rec sendRequest2 =
-        (instance, errorHandler, request)
-        : Promise.t(result(unit, Instance__Type.error)) => {
-  let (promise, resolve) = Promise.pending();
-  Js.log2(" <<< ", request);
-  Instance__Connections.get(instance)
-  ->Promise.tapError(_error => resolve(Error(Instance__Type.Cancelled)))
-  ->Promise.getOk(connection => {
-      open Request;
-      let packedRequest = {
-        version: connection.metadata.version,
-        filepath: instance |> Instance__TextEditors.getPath,
-        request,
-      };
-      // remove all old log entries if `cmd` is `Load`
-      if (Request.isLoad(packedRequest)
-          && connection.Connection.resetLogOnLoad) {
-        Connection.resetLog(connection);
-      };
-      // create log entry for each `cmd`
-      Log.createEntry(request, connection.log);
+// execute Tasks, but keep DispatchCommand Tasks untouched and return them for later execution
+let rec execute =
+        (
+          tasks: array(t),
+          instance: Instance__Type.t,
+          errorHandler: Instance__Type.error => Promise.t(unit),
+        )
+        : Promise.t(array(Command.t)) => {
+  let filterDispatchCommand = tasks => {
+    let otherTasks = [||];
+    let commands = [||];
 
-      // prepare input for Agda
-      let inputForAgda = Request.toAgdaReadableString(packedRequest);
+    let rec go =
+      fun
+      | [] => ()
+      | [DispatchCommand(cmd), ...rest] => {
+          Js.Array.push(cmd, commands) |> ignore;
+          go(rest);
+        }
+      | [task, ...rest] => {
+          Js.Array.push(task, otherTasks) |> ignore;
+          go(rest);
+        };
+    go(tasks);
 
-      // store responses from Agda
-      let resultsOfResponseHandling = ref([]);
-      let parseErrors = ref([]);
-      open Parser.Incr.Event;
-      let onResponse =
-        fun
-        | Ok(Yield(Ok(response))) => {
-            Js.log2(" >>> ", Response.toString(response));
-            // feed the response to the handler
-            // the handler should return a promise which resolves on complete
-            let result =
-              instance
-              |> Instance__TextEditors.restoreCursorPosition(() => {
-                   let tasks = Task__Response.handle(response);
-                   run(instance, errorHandler, tasks);
-                 });
-            resultsOfResponseHandling :=
-              [result, ...resultsOfResponseHandling^];
-          }
-        | Ok(Yield(Error(error))) =>
-          parseErrors := [error, ...parseErrors^]
-        | Ok(Stop) =>
-          if (List.isEmpty(parseErrors^)) {
-            // no parse errors, wait until all of the response have been handled
-            (resultsOfResponseHandling^)
-            ->Promise.all
-            ->Promise.get(_results => resolve(Ok()));
-          } else {
-            resolve(Error(ParseError(Array.fromList(parseErrors^))));
-          }
-        | Error(error) =>
-          resolve(Error(ConnectionError(Connection.Error.Process(error))));
+    (otherTasks, commands);
+  };
 
-      let _destructor =
-        Connection.send(inputForAgda, connection).on(onResponse);
-      ();
-    });
-
-  promise;
-}
-// run the Tasks
-and run =
-    (
-      instance: Instance__Type.t,
-      errorHandler: Instance__Type.error => Promise.t(unit),
-      tasks: list(t),
-    )
-    : Promise.t(unit) => {
-  let runTasks = x => {
+  let executeTasks = x => {
     Promise.flatMap(
       x,
       fun
-      | Ok(tasks) => run(instance, errorHandler, tasks)
-      | Error(error) => errorHandler(error),
+      | Ok(tasks) => {
+          // filter commands out
+          let (otherTasks, commands) = filterDispatchCommand(tasks);
+          // execute other tasks
+          execute(otherTasks, instance, errorHandler)
+          // concat the new commands generated from other tasks
+          ->Promise.map(newCommands => Array.concat(newCommands, commands));
+        }
+      | Error(error) => errorHandler(error)->Promise.map(() => [||]),
     );
   };
-  let runTask = task => {
+  let executeTask = task => {
     Js.log2(" --- ", task);
 
     switch (task) {
-    | WithInstance(callback) => callback(instance)->runTasks
-    | Disconnect => Instance__Connections.disconnect(instance)
-    | Activate => instance.view.activate()->Promise.map(_ => ())
-    | Deactivate => instance.view.deactivate()
+    | WithInstance(callback) => callback(instance)->executeTasks
+    | Disconnect =>
+      Instance__Connections.disconnect(instance)->Promise.map(() => [||])
+    | Activate => instance.view.activate()->Promise.map(_ => [||])
+    | Deactivate => instance.view.deactivate()->Promise.map(() => [||])
     | Display(header, style, body) =>
-      instance.view.display(header, style, body)
+      instance.view.display(header, style, body)->Promise.map(() => [||])
     | Inquire(header, placeholder, value, callback) =>
       instance.view.inquire(header, placeholder, value)
       ->Promise.mapError(_ => Instance__Type.Cancelled)
       ->Promise.mapOk(callback)
-      ->runTasks
+      ->executeTasks
     | Editor(Save) =>
       instance.editors.source
       ->Atom.TextEditor.save
@@ -190,44 +151,49 @@ and run =
       ->Promise.Js.toResult
       ->Promise.mapError(_ => Instance__Type.Cancelled)
       ->Promise.mapOk(_ => [])
-      ->runTasks
+      ->executeTasks
     | Goals(GetPointed(callback)) =>
       Instance__TextEditors.getPointedGoal(instance)
       ->Promise.flatMapOk(Instance__TextEditors.getGoalIndex)
       ->Promise.mapOk(callback)
-      ->runTasks
+      ->executeTasks
     | Goals(GetPointedOr(callback, handler)) =>
       Instance__TextEditors.getPointedGoal(instance)
       ->Promise.flatMapOk(Instance__TextEditors.getGoalIndex)
       ->Promise.mapOk(callback)
-      ->Promise.flatMap(
+      ->Promise.map(
           fun
-          | Ok(tasks) => run(instance, errorHandler, tasks)
-          | Error(OutOfGoal) => handler() |> run(instance, errorHandler)
-          | Error(error) => errorHandler(error),
+          | Error(OutOfGoal) => Ok(handler())
+          | others => others,
         )
+      ->executeTasks
     | Goals(JumpToTheNext) =>
       Instance__Goals.getNextGoalPosition(instance)
       |> Option.forEach(position =>
            instance.editors.source
            |> Atom.TextEditor.setCursorBufferPosition(position)
-         )
-      |> Promise.resolved
+         );
+      Promise.resolved([||]);
     | Goals(JumpToThePrevious) =>
       Instance__Goals.getPreviousGoalPosition(instance)
       |> Option.forEach(position =>
            instance.editors.source
            |> Atom.TextEditor.setCursorBufferPosition(position)
-         )
-      |> Promise.resolved
-    | DispatchCommand(command) =>
-      Instance__TextEditors.startCheckpoint(command, instance);
-      let program =
-        command |> Task__Command.handle |> run(instance, errorHandler);
-      program->Promise.tap(() =>
-        Instance__TextEditors.endCheckpoint(instance)
-      );
-    | SendRequest(request) => sendRequest(instance, request)->runTasks
+         );
+      Promise.resolved([||]);
+    | DispatchCommand(command) => Promise.resolved([|command|])
+    // Instance__TextEditors.startCheckpoint(command, instance);
+    // let program =
+    //   command |> Task__Command.handle |> run(instance, errorHandler);
+    // program->Promise.tap(() =>
+    //   Instance__TextEditors.endCheckpoint(instance)
+    // );
+    | SendRequest(request) =>
+      Instance__TextEditors.restoreCursorPosition(
+        () => sendRequest(instance, request)->executeTasks,
+        instance,
+      )
+    // sendRequest(instance, request)->executeTasks
     // Instance__TextEditors.restoreCursorPosition(
     //   () => sendRequest(instance, request)->runTasks,
     //   instance,
@@ -261,40 +227,35 @@ and run =
     };
   };
 
-  let rec runEach =
+  let rec runEachTask =
     fun
-    | [] => Promise.resolved()
-    | [x, ...xs] => {
-        runTask(x)->Promise.flatMap(() => runEach(xs));
+    | [] => Promise.resolved([||])
+    | [task, ...tasks] => {
+        executeTask(task)
+        ->Promise.flatMap(xs =>
+            runEachTask(tasks)->Promise.map(xss => Array.concat(xs, xss))
+          );
       };
-
-  // If there are any Task of DispatchCommand
-  // pick them out and put them back of the line
-  let postponeDispatchCommand = tasks => {
-    let isDispatchCommand =
-      fun
-      | DispatchCommand(_) => true
-      | _ => false;
-    let dispatches = List.filter(isDispatchCommand, tasks);
-    let otherTasks = List.filter(isDispatchCommand >> (!), tasks);
-    if (!List.isEmpty(dispatches)) {
-      Js.log2(
-        Array.fromList(tasks),
-        Array.fromList(List.concat(otherTasks, dispatches)),
-      );
-    };
-    List.concat(otherTasks, dispatches);
-  };
-
-  tasks |> postponeDispatchCommand |> runEach;
+  runEachTask(List.fromArray(tasks));
 };
 
-let dispatchCommand = (command, instance) =>
+let rec dispatchCommand = (command, instance) => {
+  let rec dispatchCommands =
+    fun
+    | [] => Promise.resolved()
+    | [x, ...xs] =>
+      dispatchCommand(x, instance)
+      ->Promise.flatMap(() => dispatchCommands(xs));
+
   Task__Command.handle(command)
-  |> run(instance, error =>
-       Instance__Handler.handleCommandError(
-         Promise.resolved(Error(error)),
-         instance,
-       )
-       ->Promise.map(_ => ())
-     );
+  ->Array.fromList
+  ->execute(instance, error =>
+      Instance__Handler.handleCommandError(
+        Promise.resolved(Error(error)),
+        instance,
+      )
+      ->Promise.map(_ => ())
+    )
+  ->Promise.map(List.fromArray)
+  ->Promise.flatMap(dispatchCommands);
+};
