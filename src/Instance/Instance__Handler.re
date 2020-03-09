@@ -7,298 +7,62 @@ module Highlightings = Instance__Highlightings;
 module Connections = Instance__Connections;
 module TextEditors = Instance__TextEditors;
 
-open TextEditors;
-
-let handleCommandError = (promise, instance) =>
-  promise->Promise.mapError((error: error) => {
-    (
-      switch (error) {
-      | ParseError(errors) =>
-        instance.connection
-        |> Option.forEach(conn => {
-             // log the errors
-             errors
-             |> Array.forEach(e => Log.logError(e, conn.Connection.log));
-             // and display with the log
-             instance.view.display(
-               "Parse Error",
-               Type.View.Header.Error,
-               Emacs(ParseError(conn)),
-             )
-             |> ignore;
-           })
-
-      | ConnectionError(error) =>
-        let (header, body) = Connection.Error.toString(error);
-        instance.view.display(
-          "Connection-related Error: " ++ header,
-          Type.View.Header.Error,
-          Emacs(PlainText(body)),
-        )
-        |> ignore;
-      | Cancelled =>
-        instance.view.display(
-          "Query Cancelled",
-          Type.View.Header.Error,
-          Emacs(PlainText("")),
-        )
-        |> ignore
-      | GoalNotIndexed =>
-        instance.view.display(
-          "Goal not indexed",
-          Type.View.Header.Error,
-          Emacs(PlainText("Please reload to re-index the goal")),
-        )
-        |> ignore
-      | OutOfGoal =>
-        instance.view.display(
-          "Out of goal",
-          Type.View.Header.Error,
-          Emacs(PlainText("Please place the cursor in a goal")),
-        )
-        |> ignore
-      }
-    )
-    |> ignore;
-    instance.editors |> Editors.Focus.on(Editors.Source);
-  });
-
-// let handleDisplayInfo =
-//     (info: Response.Info.t): (string, Type.View.Header.style, Body.t) => {
-//   /* open Response.Info; */
-//   Type.View.(
-//     switch (info) {
-//     | CompilationOk => ("Compilation Done!", Header.Success, Nothing)
-//     | Constraints(None) => ("No Constraints", Header.Success, Nothing)
-//     | Constraints(Some(payload)) => (
-//         "Constraints",
-//         Header.Info,
-//         Emacs(Constraints(payload)),
-//       )
-//     | AllGoalsWarnings(payload) => (
-//         payload.title,
-//         Header.Info,
-//         Emacs(AllGoalsWarnings(payload)),
-//       )
-//     | Time(payload) => (
-//         "Time",
-//         Header.PlainText,
-//         Emacs(PlainText(payload)),
-//       )
-//     | Error(payload) => ("Error", Header.Error, Emacs(Error(payload)))
-//     | Intro(payload) => (
-//         "Intro",
-//         Header.PlainText,
-//         Emacs(PlainText(payload)),
-//       )
-//     | Auto(payload) => (
-//         "Auto",
-//         Header.PlainText,
-//         Emacs(PlainText(payload)),
-//       )
-//     | ModuleContents(payload) => (
-//         "Module Contents",
-//         Header.Info,
-//         Emacs(PlainText(payload)),
-//       )
-//     | SearchAbout(payload) => (
-//         "Searching about ...",
-//         Header.PlainText,
-//         Emacs(SearchAbout(payload)),
-//       )
-//     | WhyInScope(payload) => (
-//         "Scope info",
-//         Header.Info,
-//         Emacs(WhyInScope(payload)),
-//       )
-//     | NormalForm(payload) => (
-//         "Normal form",
-//         Header.Info,
-//         Emacs(PlainText(payload)),
-//       )
-//     | GoalType(payload) => (
-//         "Goal type",
-//         Header.Info,
-//         Emacs(GoalTypeContext(payload)),
-//       )
-//     | CurrentGoal(payload) => (
-//         "Current goal",
-//         Header.Info,
-//         Emacs(PlainText(payload)),
-//       )
-//     | InferredType(payload) => (
-//         "Inferred type",
-//         Header.Info,
-//         Emacs(PlainText(payload)),
-//       )
-//     | Context(payload) => ("Context", Header.Info, Emacs(Context(payload)))
-//     | HelperFunction(payload) => (
-//         "Helper function",
-//         Header.Info,
-//         Emacs(PlainText(payload)),
-//       )
-//     | Version(payload) => (
-//         "Version",
-//         Header.Info,
-//         Emacs(PlainText(payload)),
-//       )
-//     }
-//   );
-// };
+// open TextEditors;
 //
-// let rec handleResponse =
-//         (instance, response: Response.t): Promise.t(result(unit, error)) => {
-//   let textEditor = instance.editors.source;
-//   let filePath = instance |> Instance__TextEditors.getPath;
-//   let textBuffer = textEditor |> Atom.TextEditor.getBuffer;
-//   switch (response) {
-//   | HighlightingInfoDirect(_remove, annotations) =>
-//     annotations
-//     |> Array.filter(Highlighting.Annotation.shouldHighlight)
-//     |> Array.forEach(annotation => instance |> Highlightings.add(annotation));
-//     Promise.resolved(Ok());
-//   | HighlightingInfoIndirect(filepath) =>
-//     Highlightings.addFromFile(filepath, instance)
-//     ->Promise.map(() => Ok(N.Fs.unlink(filepath, _ => ())))
-//   | Status(displayImplicit, checked) =>
-//     if (displayImplicit || checked) {
-//       instance.view.display(
-//         "Status",
-//         Type.View.Header.PlainText,
-//         Emacs(
-//           PlainText(
-//             "Typechecked: "
-//             ++ string_of_bool(checked)
-//             ++ "\nDisplay implicit arguments: "
-//             ++ string_of_bool(displayImplicit),
-//           ),
-//         ),
-//       )
-//       |> ignore;
-//     };
-//     Promise.resolved(Ok());
-//   | JumpToError(targetFilePath, index) =>
-//     if (targetFilePath == filePath) {
-//       let point =
-//         textBuffer |> Atom.TextBuffer.positionForCharacterIndex(index - 1);
-//       Js.Global.setTimeout(
-//         _ => Atom.TextEditor.setCursorBufferPosition(point, textEditor),
-//         0,
-//       )
-//       |> ignore;
-//     };
-//     Promise.resolved(Ok());
-//   | InteractionPoints(indices) =>
-//     instance |> Goals.instantiateAll(indices);
-//     Promise.resolved(Ok());
-//   | GiveAction(index, give) =>
-//     switch (Goals.find(index, instance)) {
-//     | None =>
-//       Js.log("error: cannot find goal #" ++ string_of_int(index));
-//       Promise.resolved(Ok());
-//     | Some(goal) =>
-//       switch (give) {
-//       | Paren =>
-//         let content = Goal.getContent(goal);
-//         Goal.setContent("(" ++ content ++ ")", goal) |> ignore;
-//       | NoParen => () /* do nothing */
-//       | String(content) =>
-//         Goal.setContent(
-//           content |> Js.String.replaceByRe([%re "/\\\\n/g"], "\n"),
-//           goal,
+// let handleCommandError = (promise, instance) =>
+//   promise->Promise.mapError((error: error) => {
+//     (
+//       switch (error) {
+//       | ParseError(errors) =>
+//         instance.connection
+//         |> Option.forEach(conn => {
+//              // log the errors
+//              errors
+//              |> Array.forEach(e => Log.logError(e, conn.Connection.log));
+//              // and display with the log
+//              instance.view.display(
+//                "Parse Error",
+//                Type.View.Header.Error,
+//                Emacs(ParseError(conn)),
+//              )
+//              |> ignore;
+//            })
+//
+//       | ConnectionError(error) =>
+//         let (header, body) = Connection.Error.toString(error);
+//         instance.view.display(
+//           "Connection-related Error: " ++ header,
+//           Type.View.Header.Error,
+//           Emacs(PlainText(body)),
+//         )
+//         |> ignore;
+//       | Cancelled =>
+//         instance.view.display(
+//           "Query Cancelled",
+//           Type.View.Header.Error,
+//           Emacs(PlainText("")),
 //         )
 //         |> ignore
-//       };
-//       Goal.removeBoundary(goal);
-//       Goal.destroy(goal);
-//       Promise.resolved(Ok());
-//     }
-//   | MakeCase(makeCaseType, lines) =>
-//     let pointed = pointingAt(instance);
-//     switch (pointed) {
-//     | Some(goal) =>
-//       switch (makeCaseType) {
-//       | Function => Goal.writeLines(lines, goal)
-//       | ExtendedLambda => Goal.writeLambda(lines, goal)
-//       };
-//       instance |> dispatch(Command.Load);
-//     | None => Promise.resolved(Error(OutOfGoal))
-//     };
-//   | DisplayInfo(info) =>
-//     let (text, style, body) = handleDisplayInfo(info);
-//     instance.view.display(text, style, body)->Promise.map(() => Ok());
-//   | ClearHighlighting =>
-//     instance |> Highlightings.destroyAll;
-//     Promise.resolved(Ok());
-//   | NoStatus => Promise.resolved(Ok())
-//
-//   | RunningInfo(verbosity, message) =>
-//     if (verbosity >= 2) {
-//       instance.runningInfo
-//       |> RunningInfo.add(Parser.agdaOutput(message))
-//       |> ignore;
-//     } else {
-//       instance.view.display(
-//         "Type-checking",
-//         Type.View.Header.PlainText,
-//         Emacs(PlainText(message)),
-//       )
-//       |> ignore;
-//     };
-//
-//     Promise.resolved(Ok());
-//
-//   | ClearRunningInfo => Promise.resolved(Ok())
-//
-//   | DoneAborting =>
-//     instance.view.display(
-//       "Status",
-//       Type.View.Header.Warning,
-//       Emacs(PlainText("Done aborting")),
+//       | GoalNotIndexed =>
+//         instance.view.display(
+//           "Goal not indexed",
+//           Type.View.Header.Error,
+//           Emacs(PlainText("Please reload to re-index the goal")),
+//         )
+//         |> ignore
+//       | OutOfGoal =>
+//         instance.view.display(
+//           "Out of goal",
+//           Type.View.Header.Error,
+//           Emacs(PlainText("Please place the cursor in a goal")),
+//         )
+//         |> ignore
+//       }
 //     )
 //     |> ignore;
-//     Promise.resolved(Ok());
-//
-//   | SolveAll(solutions) =>
-//     let solve = ((index, solution)) => {
-//       switch (Goals.find(index, instance)) {
-//       | None => Promise.resolved(Ok())
-//       | Some(goal) =>
-//         goal |> Goal.setContent(solution) |> ignore;
-//         Goals.setCursor(goal, instance);
-//         dispatch(Give, instance);
-//       };
-//     };
-//
-//     // solve them one by one
-//
-//     Array.reduce(
-//       (promise, solution) =>
-//         promise->Promise.flatMapOk(() => solve(solution)),
-//       Promise.resolved(Ok()),
-//       solutions,
-//     )
-//     ->Promise.flatMapOk(() => {
-//         let size = Array.length(solutions);
-//         if (size == 0) {
-//           instance.view.display(
-//             "No solutions found",
-//             Type.View.Header.PlainText,
-//             Emacs(PlainText("")),
-//           )
-//           ->Promise.map(() => Ok());
-//         } else {
-//           instance.view.display(
-//             string_of_int(size) ++ " goals solved",
-//             Type.View.Header.Success,
-//             Emacs(PlainText("")),
-//           )
-//           ->Promise.map(() => Ok());
-//         };
-//       });
-//   };
-// }
-//
+//     instance.editors |> Editors.Focus.on(Editors.Source);
+//   });
+
 // and handleResponseAndRecoverCursor = (instance, response) =>
 //   instance |> restoreCursorPosition(() => handleResponse(instance, response))
 //

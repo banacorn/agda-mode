@@ -81,8 +81,6 @@ let writeLines = (contents: array(string), self) => {
       |> String.joinWith("\n")
       |> String.concat("\n");
 
-    /* Js.log(indentedContents); */
-
     /* delete original rows */
     switch (rowNumbers[Array.length(rowNumbers) - 1]) {
     | None => ()
@@ -95,7 +93,6 @@ let writeLines = (contents: array(string), self) => {
     /* insert case split content */
     let position = firstRowRange |> Range.start;
     textBuffer |> TextBuffer.insert(position, indentedContents) |> ignore;
-    Js.log("!!!!!!!!!!!!!!!!!!!!!!!!!!");
   };
 };
 

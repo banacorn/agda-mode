@@ -12,6 +12,7 @@ type goal =
 
 and t =
   | WithInstance(callbackP(Instance__Type.t))
+  | WithConnection(callbackP(Connection.t))
   | Disconnect
   // View
   | Activate

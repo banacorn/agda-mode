@@ -1,34 +1,18 @@
 open Task;
 
 open! Rebase;
-
-// Request.t => Request.packed
-let packRequest = (request, instance) => {
-  Instance__Connections.get(instance)
-  ->Promise.flatMapOk((connection: Connection.t) =>
-      instance.view.display(
-        "Loading ...",
-        Type.View.Header.PlainText,
-        Emacs(PlainText("")),
-      )
-      ->Promise.map(() =>
-          Ok(
-            {
-              version: connection.metadata.version,
-              filepath: instance |> Instance__TextEditors.getPath,
-              request,
-            }: Request.packed,
-          )
-        )
-    )
-  ->Promise.mapError(_ => Instance__Type.Cancelled);
+let handleError = x => {
+  x->Promise.map(
+    fun
+    | Ok(tasks) => tasks
+    | Error(e) => Task__Error.handle(e),
+  );
 };
 
 // Request => Responses
 let sendRequest =
     (instance, request: Request.t)
     : Promise.t(result(list(Task.t), Instance__Type.error)) => {
-  Js.log2(" <<< ", request);
   let (promise, resolve) = Promise.pending();
 
   Instance__Connections.get(instance)
@@ -59,12 +43,7 @@ let sendRequest =
       let onResponse =
         fun
         | Ok(Yield(Ok(response))) => {
-            Js.log2(" >>> ", Response.toString(response));
             let tasks = Task__Response.handle(response);
-            switch (response) {
-            | MakeCase(_) => Js.log(Array.fromList(tasks))
-            | _ => ()
-            };
             responseTasks := List.concat(tasks, responseTasks^);
           }
         | Ok(Yield(Error(error))) =>
@@ -87,11 +66,7 @@ let sendRequest =
 
 // execute Tasks, but keep DispatchCommand Tasks untouched and return them for later execution
 let rec execute =
-        (
-          tasks: array(t),
-          instance: Instance__Type.t,
-          errorHandler: Instance__Type.error => Promise.t(unit),
-        )
+        (tasks: array(t), instance: Instance__Type.t)
         : Promise.t(array(Command.t)) => {
   let filterDispatchCommand = tasks => {
     let otherTasks = [||];
@@ -113,26 +88,25 @@ let rec execute =
     (otherTasks, commands);
   };
 
-  let executeTasks = x => {
-    Promise.flatMap(
-      x,
-      fun
-      | Ok(tasks) => {
-          // filter commands out
-          let (otherTasks, commands) = filterDispatchCommand(tasks);
-          // execute other tasks
-          execute(otherTasks, instance, errorHandler)
-          // concat the new commands generated from other tasks
-          ->Promise.map(newCommands => Array.concat(newCommands, commands));
-        }
-      | Error(error) => errorHandler(error)->Promise.map(() => [||]),
-    );
+  let executeTasks = tasks => {
+    // filter commands out
+    let (otherTasks, commands) = filterDispatchCommand(tasks);
+    // execute other tasks
+    execute(otherTasks, instance)
+    // concat the new commands generated from other tasks
+    ->Promise.map(newCommands => Array.concat(newCommands, commands));
   };
-  let executeTask = task => {
-    Js.log2(" --- ", task);
 
+  let executeTask = task => {
     switch (task) {
-    | WithInstance(callback) => callback(instance)->executeTasks
+    | WithInstance(callback) =>
+      callback(instance)->handleError->Promise.flatMap(executeTasks)
+    | WithConnection(callback) =>
+      Instance__Connections.get(instance)
+      ->Promise.mapError(_ => Instance__Type.Cancelled)
+      ->Promise.flatMapOk(callback)
+      ->handleError
+      ->Promise.flatMap(executeTasks)
     | Disconnect =>
       Instance__Connections.disconnect(instance)->Promise.map(() => [||])
     | Activate => instance.view.activate()->Promise.map(_ => [||])
@@ -143,7 +117,8 @@ let rec execute =
       instance.view.inquire(header, placeholder, value)
       ->Promise.mapError(_ => Instance__Type.Cancelled)
       ->Promise.mapOk(callback)
-      ->executeTasks
+      ->handleError
+      ->Promise.flatMap(executeTasks)
     | Editor(Save) =>
       instance.editors.source
       ->Atom.TextEditor.save
@@ -151,12 +126,14 @@ let rec execute =
       ->Promise.Js.toResult
       ->Promise.mapError(_ => Instance__Type.Cancelled)
       ->Promise.mapOk(_ => [])
-      ->executeTasks
+      ->handleError
+      ->Promise.flatMap(executeTasks)
     | Goals(GetPointed(callback)) =>
       Instance__TextEditors.getPointedGoal(instance)
       ->Promise.flatMapOk(Instance__TextEditors.getGoalIndex)
       ->Promise.mapOk(callback)
-      ->executeTasks
+      ->handleError
+      ->Promise.flatMap(executeTasks)
     | Goals(GetPointedOr(callback, handler)) =>
       Instance__TextEditors.getPointedGoal(instance)
       ->Promise.flatMapOk(Instance__TextEditors.getGoalIndex)
@@ -166,7 +143,8 @@ let rec execute =
           | Error(OutOfGoal) => Ok(handler())
           | others => others,
         )
-      ->executeTasks
+      ->handleError
+      ->Promise.flatMap(executeTasks)
     | Goals(JumpToTheNext) =>
       Instance__Goals.getNextGoalPosition(instance)
       |> Option.forEach(position =>
@@ -190,7 +168,10 @@ let rec execute =
     // );
     | SendRequest(request) =>
       Instance__TextEditors.restoreCursorPosition(
-        () => sendRequest(instance, request)->executeTasks,
+        () =>
+          sendRequest(instance, request)
+          ->handleError
+          ->Promise.flatMap(executeTasks),
         instance,
       )
     // sendRequest(instance, request)->executeTasks
@@ -249,13 +230,7 @@ let rec dispatchCommand = (command, instance) => {
 
   Task__Command.handle(command)
   ->Array.fromList
-  ->execute(instance, error =>
-      Instance__Handler.handleCommandError(
-        Promise.resolved(Error(error)),
-        instance,
-      )
-      ->Promise.map(_ => ())
-    )
+  ->execute(instance)
   ->Promise.map(List.fromArray)
   ->Promise.flatMap(dispatchCommands);
 };
