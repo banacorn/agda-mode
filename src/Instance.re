@@ -5,7 +5,6 @@ module Goals = Instance__Goals;
 module Highlightings = Instance__Highlightings;
 module Connections = Instance__Connections;
 module TextEditors = Instance__TextEditors;
-module Handler = Instance__Handler;
 
 type t = Instance__Type.t;
 

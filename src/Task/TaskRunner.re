@@ -160,12 +160,6 @@ let rec execute =
          );
       Promise.resolved([||]);
     | DispatchCommand(command) => Promise.resolved([|command|])
-    // Instance__TextEditors.startCheckpoint(command, instance);
-    // let program =
-    //   command |> Task__Command.handle |> run(instance, errorHandler);
-    // program->Promise.tap(() =>
-    //   Instance__TextEditors.endCheckpoint(instance)
-    // );
     | SendRequest(request) =>
       Instance__TextEditors.restoreCursorPosition(
         () =>
@@ -174,37 +168,6 @@ let rec execute =
           ->Promise.flatMap(executeTasks),
         instance,
       )
-    // sendRequest(instance, request)->executeTasks
-    // Instance__TextEditors.restoreCursorPosition(
-    //   () => sendRequest(instance, request)->runTasks,
-    //   instance,
-    // )
-    // Promise.resolved();
-    // sendRequest2(instance, errorHandler, request)
-    // ->Promise.flatMap(
-    //     fun
-    //     | Ok () => Promise.resolved()
-    //     | Error(error) => errorHandler(error),
-    //   )
-    // instance.view.updateIsPending(true)
-    // ->Promise.flatMap(() => sendRequest(instance, request)->runTasks)
-    // ->Promise.flatMap(() => sendRequest(instance, request))
-    // ->Promise.tapOk(_ => {
-    //     instance.onDispatch.emit(Ok());
-    //     instance.view.updateIsPending(false) |> ignore;
-    //   })
-    // ->Promise.flatMap(tasks => {
-    //     instance.onDispatch.emit(Ok());
-    //     instance.view.updateIsPending(false);
-    //   })
-    // ->Promise.map(_ => ())
-    //   ->Promise.flatMapOk(handleRequest(instance, handleResponse))
-    //   ->Promise.tap(_ => endCheckpoint(instance))
-    //   ->Promise.flatMap(x =>
-    //       instance.view.updateIsPending(false)->Promise.map(() => x)
-    //     )
-    //   ->Promise.mapOk(_ => instance.onDispatch.emit(Ok()))
-    //   ->Promise.tapError(error => instance.onDispatch.emit(Error(error)));
     };
   };
 
@@ -228,10 +191,31 @@ let rec dispatchCommand = (command, instance) => {
       dispatchCommand(x, instance)
       ->Promise.flatMap(() => dispatchCommands(xs));
 
-  Task__Command.handle(command)
-  ->Array.fromList
-  ->execute(instance)
+  let before = () => {
+    // mark the undo/redo checkpoint
+    Instance__TextEditors.startCheckpoint(command, instance);
+    // start the spinner
+    instance.view.updateIsPending(true);
+  };
+
+  let after = () => {
+    // mark the undo/redo checkpoint
+    Instance__TextEditors.endCheckpoint(instance);
+    // stop the spinner
+    instance.view.updateIsPending(false);
+  };
+
+  // convert the Command into a list of Tasks for later execution
+  let tasks = command |> Task__Command.handle |> Array.fromList;
+
+  before()
+  // execute the Tasks of the Command
+  ->Promise.flatMap(() => execute(tasks, instance))
+  // emit `onDispatch` to signal the completion of the Command
   ->Promise.tap(_ => instance.onDispatch.emit())
+  // dispatch other Commands derived from this Command
   ->Promise.map(List.fromArray)
-  ->Promise.flatMap(dispatchCommands);
+  ->Promise.flatMap(dispatchCommands)
+  // cleanup
+  ->Promise.flatMap(after);
 };
