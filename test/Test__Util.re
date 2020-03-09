@@ -339,7 +339,17 @@ let dispatch = (event, instance: Instance.t): Js.Promise.t(Instance.t) => {
   switch (Commands.dispatch(Views.getView(instance.editors.source), event)) {
   | None => reject(DispatchFailure(event))
   | Some(result) =>
-    result |> then_(() => onDispatch) |> then_(_ => resolve(instance))
+    result |> then_(() => onDispatch) |> then_(() => resolve(instance))
+  // |> then_(_ =>
+  //      Js.Promise.make((~resolve, ~reject as _) =>
+  //        Js.Global.setTimeout(() => resolve(. instance), 0) |> ignore
+  //      )
+  //    )
+  // |> then_(instance =>
+  //      Js.Promise.make((~resolve, ~reject as _) =>
+  //        Js.Global.setTimeout(() => resolve(. instance), 0) |> ignore
+  //      )
+  //    )
   };
 };
 
@@ -371,20 +381,26 @@ module Keyboard = {
       instance.Instance__Type.onDispatch.once()->Promise.Js.toBsPromise;
 
     // build and dispatch the keyboard event
-    Keymaps.buildKeydownEvent_(
-      key,
-      {
-        "ctrl": false,
-        "alt": false,
-        "shift": false,
-        "cmd": false,
-        "which": 0,
-        "target": element,
-      },
-    )
-    |> Keymaps.handleKeyboardEvent;
+    let keyboardEvent =
+      Keymaps.buildKeydownEvent_(
+        key,
+        {
+          "ctrl": false,
+          "alt": false,
+          "shift": false,
+          "cmd": false,
+          "which": 0,
+          "target": element,
+        },
+      );
+    Keymaps.handleKeyboardEvent(keyboardEvent);
 
-    onDispatch |> then_(_ => resolve(instance));
+    onDispatch
+    |> then_(() =>
+         Js.Promise.make((~resolve, ~reject as _) =>
+           Js.Global.setTimeout(() => resolve(. instance), 0) |> ignore
+         )
+       );
   };
 
   // `TextEditor.insertText` sometimes fails on CI

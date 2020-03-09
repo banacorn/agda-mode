@@ -24,6 +24,6 @@ type t = {
   // handleResponse: (t, Response.t) => Promise.t(Rebase.result(unit, error)),
   // dispatch: (Command.t, t) => Promise.t(Rebase.result(unit, error)),
   // Events
-  onDispatch: Event.t(Rebase.result(unit, error)),
+  onDispatch: Event.t(unit),
   onConnectionError: Event.t(Connection.Error.t),
 };

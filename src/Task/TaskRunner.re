@@ -231,6 +231,7 @@ let rec dispatchCommand = (command, instance) => {
   Task__Command.handle(command)
   ->Array.fromList
   ->execute(instance)
+  ->Promise.tap(_ => instance.onDispatch.emit())
   ->Promise.map(List.fromArray)
   ->Promise.flatMap(dispatchCommands);
 };
