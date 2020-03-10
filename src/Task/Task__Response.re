@@ -13,26 +13,11 @@ open TextEditors;
 let handle = (response: Response.t): list(Task.t) =>
   switch (response) {
   | HighlightingInfoDirect(_remove, annotations) => [
-      WithInstance(
-        instance => {
-          annotations
-          |> Array.filter(Highlighting.Annotation.shouldHighlight)
-          |> Array.forEach(annotation =>
-               instance |> Highlightings.add(annotation)
-             );
-          return([]);
-        },
-      ),
+      Highlightings(AddDirectly(annotations)),
     ]
   | HighlightingInfoIndirect(filepath) => [
-      WithInstance(
-        instance =>
-          Highlightings.addFromFile(filepath, instance)
-          ->Promise.map(() => Ok(N.Fs.unlink(filepath, _ => ())))
-          ->Promise.map(_ => Ok([])),
-      ),
+      Highlightings(AddIndirectly(filepath)),
     ]
-
   | Status(displayImplicit, checked) =>
     if (displayImplicit || checked) {
       [

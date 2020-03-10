@@ -156,6 +156,7 @@ let rec execute =
            |> Atom.TextEditor.setCursorBufferPosition(position)
          );
       Promise.resolved([||]);
+    | Highlightings(task) => Instance__Highlightings.execute(instance, task)
     | DispatchCommand(command) => Promise.resolved([|command|])
     | SendRequest(request) =>
       Instance__TextEditors.restoreCursorPosition(

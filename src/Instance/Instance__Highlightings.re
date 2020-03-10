@@ -30,6 +30,11 @@ let add = (annotation: Highlighting.Annotation.t, instance) => {
   |> ignore;
 };
 
+let addMany = (annotations, instance) =>
+  annotations
+  |> Array.filter(Highlighting.Annotation.shouldHighlight)
+  |> Array.forEach(annotation => instance |> add(annotation));
+
 let addFromFile = (filepath, instance): Promise.t(unit) => {
   let readFile = N.Fs.readFile |> N.Util.promisify;
   /* read and parse and add */
@@ -67,3 +72,21 @@ let destroyAll = instance => {
   instance.highlightings |> Array.forEach(DisplayMarker.destroy);
   instance.highlightings = [||];
 };
+
+type task =
+  | AddDirectly(array(Highlighting.Annotation.t))
+  | AddIndirectly(string);
+
+let execute = instance =>
+  fun
+  | AddDirectly(annotations) => {
+      addMany(annotations, instance);
+      Promise.resolved([||]);
+    }
+  | AddIndirectly(filepath) => {
+      // read the file
+      addFromFile(filepath, instance)
+      // delete the file
+      ->Promise.map(() => Ok(N.Fs.unlink(filepath, _ => ())))
+      ->Promise.map(_ => [||]);
+    };

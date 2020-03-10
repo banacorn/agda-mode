@@ -1,10 +1,10 @@
 type header = string;
 type placeholder = string;
 
-type editor =
+type editorTask =
   | Save;
 
-type goal =
+type goalTask =
   | GetPointed(callback(Goal.t))
   | GetPointedOr(callback(Goal.t), callback(unit))
   | JumpToTheNext
@@ -20,9 +20,11 @@ and t =
   | Display(header, Type.View.Header.style, Body.t)
   | Inquire(header, placeholder, string, callback(string))
   // Editor
-  | Editor(editor)
+  | Editor(editorTask)
   // Goals
-  | Goals(goal)
+  | Goals(goalTask)
+  // Highlightings
+  | Highlightings(Instance__Highlightings.task)
   // Request
   | DispatchCommand(Command.t)
   | SendRequest(Request.t)

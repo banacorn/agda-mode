@@ -12,17 +12,16 @@ type history = {
 };
 
 type t = {
-  mutable isLoaded: bool,
   editors: Editors.t,
   view: View.t,
+  // states
   history,
+  mutable isLoaded: bool,
   mutable highlightings: array(Highlighting.t),
   mutable goals: array(Goal.t),
   mutable connection: option(Connection.t),
   mutable runningInfo: RunningInfo.t,
-  // handleResponse: (t, Response.t) => Promise.t(Rebase.result(unit, error)),
-  // dispatch: (Command.t, t) => Promise.t(Rebase.result(unit, error)),
-  // Events
+  // event emitter for testing
   onDispatch: Event.t(unit),
   onConnectionError: Event.t(Connection.Error.t),
 };
