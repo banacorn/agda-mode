@@ -1,13 +1,6 @@
 open Task;
 
 open! Rebase;
-let handleError = x => {
-  x->Promise.map(
-    fun
-    | Ok(tasks) => tasks
-    | Error(e) => Task__Error.handle(e),
-  );
-};
 
 // Request => Responses
 let sendRequest =
@@ -68,45 +61,55 @@ let sendRequest =
 let rec execute =
         (tasks: array(t), instance: Instance__Type.t)
         : Promise.t(array(Command.t)) => {
-  let filterDispatchCommand = tasks => {
-    let otherTasks = [||];
-    let commands = [||];
+  let handleCallback = result => {
+    let handleError = x => {
+      x->Promise.map(
+        fun
+        | Ok(tasks) => tasks
+        | Error(e) => Task__Error.handle(e),
+      );
+    };
 
-    let rec go =
-      fun
-      | [] => ()
-      | [DispatchCommand(cmd), ...rest] => {
-          Js.Array.push(cmd, commands) |> ignore;
-          go(rest);
-        }
-      | [task, ...rest] => {
-          Js.Array.push(task, otherTasks) |> ignore;
-          go(rest);
-        };
-    go(tasks);
+    let filterDispatchCommand = tasks => {
+      let otherTasks = [||];
+      let commands = [||];
 
-    (otherTasks, commands);
-  };
+      let rec go =
+        fun
+        | [] => ()
+        | [DispatchCommand(cmd), ...rest] => {
+            Js.Array.push(cmd, commands) |> ignore;
+            go(rest);
+          }
+        | [task, ...rest] => {
+            Js.Array.push(task, otherTasks) |> ignore;
+            go(rest);
+          };
+      go(tasks);
 
-  let executeTasks = tasks => {
-    // filter commands out
-    let (otherTasks, commands) = filterDispatchCommand(tasks);
-    // execute other tasks
-    execute(otherTasks, instance)
-    // concat the new commands generated from other tasks
-    ->Promise.map(newCommands => Array.concat(newCommands, commands));
+      (otherTasks, commands);
+    };
+
+    let executeTasks = tasks => {
+      // filter commands out
+      let (otherTasks, commands) = filterDispatchCommand(tasks);
+      // execute other tasks
+      execute(otherTasks, instance)
+      // concat the new commands generated from other tasks
+      ->Promise.map(newCommands => Array.concat(newCommands, commands));
+    };
+
+    result->handleError->Promise.flatMap(executeTasks);
   };
 
   let executeTask = task => {
     switch (task) {
-    | WithInstance(callback) =>
-      callback(instance)->handleError->Promise.flatMap(executeTasks)
+    | WithInstance(callback) => callback(instance)->handleCallback
     | WithConnection(callback) =>
       Instance__Connections.get(instance)
       ->Promise.mapError(_ => Instance__Type.Cancelled)
       ->Promise.flatMapOk(callback)
-      ->handleError
-      ->Promise.flatMap(executeTasks)
+      ->handleCallback
     | Disconnect =>
       Instance__Connections.disconnect(instance)->Promise.map(() => [||])
     | Activate => instance.view.activate()->Promise.map(_ => [||])
@@ -117,8 +120,7 @@ let rec execute =
       instance.view.inquire(header, placeholder, value)
       ->Promise.mapError(_ => Instance__Type.Cancelled)
       ->Promise.mapOk(callback)
-      ->handleError
-      ->Promise.flatMap(executeTasks)
+      ->handleCallback
     | Editor(Save) =>
       instance.editors.source
       ->Atom.TextEditor.save
@@ -126,13 +128,11 @@ let rec execute =
       ->Promise.Js.toResult
       ->Promise.mapError(_ => Instance__Type.Cancelled)
       ->Promise.mapOk(_ => [])
-      ->handleError
-      ->Promise.flatMap(executeTasks)
+      ->handleCallback
     | Goals(GetPointed(callback)) =>
       Instance__TextEditors.getPointedGoal(instance)
       ->Promise.mapOk(callback)
-      ->handleError
-      ->Promise.flatMap(executeTasks)
+      ->handleCallback
     | Goals(GetPointedOr(callback, handler)) =>
       Instance__TextEditors.getPointedGoal(instance)
       ->Promise.mapOk(callback)
@@ -141,8 +141,7 @@ let rec execute =
           | Error(OutOfGoal) => Ok(handler())
           | others => others,
         )
-      ->handleError
-      ->Promise.flatMap(executeTasks)
+      ->handleCallback
     | Goals(JumpToTheNext) =>
       Instance__Goals.getNextGoalPosition(instance)
       |> Option.forEach(position =>
@@ -160,10 +159,7 @@ let rec execute =
     | DispatchCommand(command) => Promise.resolved([|command|])
     | SendRequest(request) =>
       Instance__TextEditors.restoreCursorPosition(
-        () =>
-          sendRequest(instance, request)
-          ->handleError
-          ->Promise.flatMap(executeTasks),
+        () => sendRequest(instance, request)->handleCallback,
         instance,
       )
     };
