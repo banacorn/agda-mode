@@ -11,24 +11,24 @@ type t =
   | SolveConstraints
   | ShowConstraints
   | ShowGoals
-  | WhyInScope(string, int)
+  | WhyInScope(string, Goal.t)
   | WhyInScopeGlobal(string)
   | SearchAbout(Normalization.t, string)
-  | InferType(Normalization.t, string, int)
+  | InferType(Normalization.t, string, Goal.t)
   | InferTypeGlobal(Normalization.t, string)
-  | ModuleContents(Normalization.t, string, int)
+  | ModuleContents(Normalization.t, string, Goal.t)
   | ModuleContentsGlobal(Normalization.t, string)
-  | ComputeNormalForm(ComputeMode.t, string, int)
+  | ComputeNormalForm(ComputeMode.t, string, Goal.t)
   | ComputeNormalFormGlobal(ComputeMode.t, string)
-  | Give(Goal.t, int)
-  | Refine(Goal.t, int)
-  | Auto(Goal.t, int)
-  | Case(Goal.t, int)
-  | GoalType(Normalization.t, int)
-  | Context(Normalization.t, int)
-  | GoalTypeAndContext(Normalization.t, int)
-  | GoalTypeAndInferredType(Normalization.t, Goal.t, int)
-  | GotoDefinition(string, int)
+  | Give(Goal.t)
+  | Refine(Goal.t)
+  | Auto(Goal.t)
+  | Case(Goal.t)
+  | GoalType(Normalization.t, Goal.t)
+  | Context(Normalization.t, Goal.t)
+  | GoalTypeAndContext(Normalization.t, Goal.t)
+  | GoalTypeAndInferredType(Normalization.t, Goal.t)
+  | GotoDefinition(string, Goal.t)
   | GotoDefinitionGlobal(string);
 
 type packed = {
@@ -98,7 +98,8 @@ let toAgdaReadableString = cmd => {
 
   | ShowGoals => commonPart(NonInteractive) ++ {j|( Cmd_metas )|j}
 
-  | WhyInScope(expr, index) =>
+  | WhyInScope(expr, goal) =>
+    let index = goal.index;
     let content = Parser.userInput(expr);
 
     commonPart(NonInteractive)
@@ -171,7 +172,8 @@ let toAgdaReadableString = cmd => {
   /* Related issue and commit of agda/agda */
   /* https://github.com/agda/agda/issues/2730 */
   /* https://github.com/agda/agda/commit/021e6d24f47bac462d8bc88e2ea685d6156197c4 */
-  | Give(goal, index) =>
+  | Give(goal) =>
+    let index = goal.index;
     let content = Goal.getContent(goal);
     let range = buildRange(goal);
     if (Util.Version.gte(version, "2.5.3")) {
@@ -182,13 +184,15 @@ let toAgdaReadableString = cmd => {
       ++ {j|( Cmd_give $(index) $(range) "$(content)" )|j};
     };
 
-  | Refine(goal, index) =>
+  | Refine(goal) =>
+    let index = goal.index;
     let content = Goal.getContent(goal);
     let range = buildRange(goal);
     commonPart(NonInteractive)
     ++ {j|( Cmd_refine_or_intro False $(index) $(range) "$(content)" )|j};
 
-  | Auto(goal, index) =>
+  | Auto(goal) =>
+    let index = goal.index;
     let content = Goal.getContent(goal);
     let range = buildRange(goal);
     if (Util.Version.gte(version, "2.6.0.1")) {
@@ -201,7 +205,8 @@ let toAgdaReadableString = cmd => {
       ++ {j|( Cmd_auto $(index) $(range) "$(content)" )|j};
     };
 
-  | Case(goal, index) =>
+  | Case(goal) =>
+    let index = goal.index;
     let content = Goal.getContent(goal);
     let range = buildRange(goal);
     commonPart(NonInteractive)
@@ -222,7 +227,8 @@ let toAgdaReadableString = cmd => {
     commonPart(NonInteractive)
     ++ {j|( Cmd_goal_type_context $(normalization') $(index) noRange "" )|j};
 
-  | GoalTypeAndInferredType(normalization, goal, index) =>
+  | GoalTypeAndInferredType(normalization, goal) =>
+    let index = goal.index;
     let content = Goal.getContent(goal);
     let normalization' = Normalization.toString(normalization);
     commonPart(NonInteractive)
@@ -254,8 +260,12 @@ let toString =
   | SolveConstraints => "SolveConstraints"
   | ShowConstraints => "ShowConstraints"
   | ShowGoals => "ShowGoals"
-  | WhyInScope(string, int) =>
-    "WhyInScope \"" ++ string ++ "\" (Goal " ++ string_of_int(int) ++ ")"
+  | WhyInScope(string, goal) =>
+    "WhyInScope \""
+    ++ string
+    ++ "\" (Goal "
+    ++ string_of_int(goal.index)
+    ++ ")"
   | WhyInScopeGlobal(string) => "WhyInScope \"" ++ string ++ "\" (Global)"
   | SearchAbout(norm, string) =>
     "SearchAbout \""
@@ -263,11 +273,11 @@ let toString =
     ++ "\" ("
     ++ Normalization.toString(norm)
     ++ ")"
-  | InferType(norm, string, int) =>
+  | InferType(norm, string, goal) =>
     "InferType \""
     ++ string
     ++ "\" (Goal "
-    ++ string_of_int(int)
+    ++ string_of_int(goal.index)
     ++ ", "
     ++ Normalization.toString(norm)
     ++ ")"
@@ -277,11 +287,11 @@ let toString =
     ++ "\" (Global, "
     ++ Normalization.toString(norm)
     ++ ")"
-  | ModuleContents(norm, string, int) =>
+  | ModuleContents(norm, string, goal) =>
     "ModuleContents \""
     ++ string
     ++ "\" (Goal "
-    ++ string_of_int(int)
+    ++ string_of_int(goal.index)
     ++ ", "
     ++ Normalization.toString(norm)
     ++ ")"
@@ -291,11 +301,11 @@ let toString =
     ++ "\" (Global, "
     ++ Normalization.toString(norm)
     ++ ")"
-  | ComputeNormalForm(computeMode, string, int) =>
+  | ComputeNormalForm(computeMode, string, goal) =>
     "ComputeNormalForm \""
     ++ string
     ++ "\" (Goal "
-    ++ string_of_int(int)
+    ++ string_of_int(goal.index)
     ++ ", "
     ++ ComputeMode.toString(computeMode)
     ++ ")"
@@ -305,35 +315,39 @@ let toString =
     ++ "\" (Global, "
     ++ ComputeMode.toString(computeMode)
     ++ ")"
-  | Give(_, int) => "Give (Goal " ++ string_of_int(int) ++ ")"
-  | Refine(_, int) => "Refine (Goal " ++ string_of_int(int) ++ ")"
-  | Auto(_, int) => "Auto (Goal " ++ string_of_int(int) ++ ")"
-  | Case(_, int) => "Case (Goal " ++ string_of_int(int) ++ ")"
-  | GoalType(norm, int) =>
+  | Give(goal) => "Give (Goal " ++ string_of_int(goal.index) ++ ")"
+  | Refine(goal) => "Refine (Goal " ++ string_of_int(goal.index) ++ ")"
+  | Auto(goal) => "Auto (Goal " ++ string_of_int(goal.index) ++ ")"
+  | Case(goal) => "Case (Goal " ++ string_of_int(goal.index) ++ ")"
+  | GoalType(norm, goal) =>
     "GoalType (Goal "
-    ++ string_of_int(int)
+    ++ string_of_int(goal.index)
     ++ ", "
     ++ Normalization.toString(norm)
     ++ ")"
-  | Context(norm, int) =>
+  | Context(norm, goal) =>
     "Context (Goal "
-    ++ string_of_int(int)
+    ++ string_of_int(goal.index)
     ++ ", "
     ++ Normalization.toString(norm)
     ++ ")"
-  | GoalTypeAndContext(norm, int) =>
+  | GoalTypeAndContext(norm, goal) =>
     "GoalTypeAndContext (Goal "
-    ++ string_of_int(int)
+    ++ string_of_int(goal.index)
     ++ ", "
     ++ Normalization.toString(norm)
     ++ ")"
-  | GoalTypeAndInferredType(norm, _, int) =>
+  | GoalTypeAndInferredType(norm, goal) =>
     "GoalTypeAndInferredType (Goal "
-    ++ string_of_int(int)
+    ++ string_of_int(goal.index)
     ++ ", "
     ++ Normalization.toString(norm)
     ++ ")"
-  | GotoDefinition(string, int) =>
-    "GotoDefinition \"" ++ string ++ "\" (Goal " ++ string_of_int(int) ++ ")"
+  | GotoDefinition(string, goal) =>
+    "GotoDefinition \""
+    ++ string
+    ++ "\" (Goal "
+    ++ string_of_int(goal.index)
+    ++ ")"
   | GotoDefinitionGlobal(string) =>
     "GotoDefinition \"" ++ string ++ "\" (Global)";

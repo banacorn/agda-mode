@@ -7,14 +7,7 @@ let destroyAll = instance => {
   instance.goals = [||];
 };
 let find = (index: int, instance) => {
-  let found =
-    instance.goals
-    |> Array.filter(goal =>
-         switch (goal.Goal.index) {
-         | None => false
-         | Some(i) => i == index
-         }
-       );
+  let found = instance.goals |> Array.filter(goal => goal.Goal.index == index);
   found[0];
 };
 
@@ -111,7 +104,7 @@ let instantiateAll = (indices, instance) => {
          /* make it a goal */
          Goal.make(
            instance.editors.source,
-           Some(result.index),
+           result.index,
            result.modifiedRange,
          );
        });

@@ -5,8 +5,8 @@ type editor =
   | Save;
 
 type goal =
-  | GetPointed(callback((Goal.t, int)))
-  | GetPointedOr(callback((Goal.t, int)), callback(unit))
+  | GetPointed(callback(Goal.t))
+  | GetPointedOr(callback(Goal.t), callback(unit))
   | JumpToTheNext
   | JumpToThePrevious
 

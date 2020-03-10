@@ -130,13 +130,11 @@ let rec execute =
       ->Promise.flatMap(executeTasks)
     | Goals(GetPointed(callback)) =>
       Instance__TextEditors.getPointedGoal(instance)
-      ->Promise.flatMapOk(Instance__TextEditors.getGoalIndex)
       ->Promise.mapOk(callback)
       ->handleError
       ->Promise.flatMap(executeTasks)
     | Goals(GetPointedOr(callback, handler)) =>
       Instance__TextEditors.getPointedGoal(instance)
-      ->Promise.flatMapOk(Instance__TextEditors.getGoalIndex)
       ->Promise.mapOk(callback)
       ->Promise.map(
           fun

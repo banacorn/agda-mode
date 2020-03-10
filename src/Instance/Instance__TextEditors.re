@@ -48,13 +48,13 @@ let handleOutOfGoal = (promise, callback) =>
     | OutOfGoal => callback()
     | error => Promise.resolved(Error(error)),
   );
-
-let getGoalIndex = (goal: Goal.t): Promise.t(result((Goal.t, int), error)) => {
-  switch (goal.index) {
-  | Some(index) => Promise.resolved(Ok((goal, index)))
-  | None => Promise.resolved(Error(GoalNotIndexed))
-  };
-};
+//
+// let getGoalIndex = (goal: Goal.t): Promise.t(result((Goal.t, int), error)) => {
+//   switch (goal.index) {
+//   | Some(index) => Promise.resolved(Ok((goal, index)))
+//   | None => Promise.resolved(Error(GoalNotIndexed))
+//   };
+// };
 
 // execute the callback
 //  if it's pointing at some empty hole

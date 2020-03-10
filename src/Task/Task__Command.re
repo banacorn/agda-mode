@@ -59,7 +59,7 @@ let handle = (command: Command.t): list(Task.t) => {
   | Give => [
       Goals(
         GetPointed(
-          ((goal, index)) =>
+          goal =>
             if (Goal.isEmpty(goal)) {
               [
                 Inquire(
@@ -68,12 +68,12 @@ let handle = (command: Command.t): list(Task.t) => {
                   "",
                   expr => {
                     Goal.setContent(expr, goal) |> ignore;
-                    [SendRequest(Give(goal, index))];
+                    [SendRequest(Give(goal))];
                   },
                 ),
               ];
             } else {
-              [SendRequest(Give(goal, index))];
+              [SendRequest(Give(goal))];
             },
         ),
       ),
@@ -93,8 +93,7 @@ let handle = (command: Command.t): list(Task.t) => {
                   [
                     Goals(
                       GetPointed(
-                        ((_, index)) =>
-                          [SendRequest(WhyInScope(expr, index))],
+                        goal => [SendRequest(WhyInScope(expr, goal))],
                       ),
                     ),
                   ],
@@ -120,7 +119,7 @@ let handle = (command: Command.t): list(Task.t) => {
   | InferType(normalization) => [
       Goals(
         GetPointedOr(
-          ((goal, index)) =>
+          goal =>
             if (Goal.isEmpty(goal)) {
               [
                 // goal-specific
@@ -131,13 +130,13 @@ let handle = (command: Command.t): list(Task.t) => {
                   "expression to infer:",
                   "",
                   expr =>
-                    [SendRequest(InferType(normalization, expr, index))],
+                    [SendRequest(InferType(normalization, expr, goal))],
                 ),
               ];
             } else {
               // global
               let expr = Goal.getContent(goal);
-              [SendRequest(InferType(normalization, expr, index))];
+              [SendRequest(InferType(normalization, expr, goal))];
             },
           () =>
             [
@@ -165,8 +164,8 @@ let handle = (command: Command.t): list(Task.t) => {
           [
             Goals(
               GetPointedOr(
-                ((_, index)) =>
-                  [SendRequest(ModuleContents(normalization, expr, index))],
+                goal =>
+                  [SendRequest(ModuleContents(normalization, expr, goal))],
                 _ =>
                   [SendRequest(ModuleContentsGlobal(normalization, expr))],
               ),
@@ -177,7 +176,7 @@ let handle = (command: Command.t): list(Task.t) => {
   | ComputeNormalForm(computeMode) => [
       Goals(
         GetPointedOr(
-          ((goal, index)) =>
+          goal =>
             if (Goal.isEmpty(goal)) {
               [
                 Inquire(
@@ -186,15 +185,13 @@ let handle = (command: Command.t): list(Task.t) => {
                   "",
                   expr =>
                     [
-                      SendRequest(
-                        ComputeNormalForm(computeMode, expr, index),
-                      ),
+                      SendRequest(ComputeNormalForm(computeMode, expr, goal)),
                     ],
                 ),
               ];
             } else {
               let expr = Goal.getContent(goal);
-              [SendRequest(ComputeNormalForm(computeMode, expr, index))];
+              [SendRequest(ComputeNormalForm(computeMode, expr, goal))];
             },
           _ =>
             [
@@ -209,23 +206,13 @@ let handle = (command: Command.t): list(Task.t) => {
         ),
       ),
     ]
-  | Refine => [
-      Goals(
-        GetPointed(
-          ((goal, index)) => [SendRequest(Refine(goal, index))],
-        ),
-      ),
-    ]
+  | Refine => [Goals(GetPointed(goal => [SendRequest(Refine(goal))]))]
 
-  | Auto => [
-      Goals(
-        GetPointed(((goal, index)) => [SendRequest(Auto(goal, index))]),
-      ),
-    ]
+  | Auto => [Goals(GetPointed(goal => [SendRequest(Auto(goal))]))]
   | Case => [
       Goals(
         GetPointed(
-          ((goal, index)) =>
+          goal =>
             if (Goal.isEmpty(goal)) {
               [
                 Inquire(
@@ -234,12 +221,12 @@ let handle = (command: Command.t): list(Task.t) => {
                   "",
                   expr => {
                     Goal.setContent(expr, goal) |> ignore;
-                    [SendRequest(Case(goal, index))];
+                    [SendRequest(Case(goal))];
                   },
                 ),
               ];
             } else {
-              [SendRequest(Case(goal, index))];
+              [SendRequest(Case(goal))];
             },
         ),
       ),
@@ -247,23 +234,18 @@ let handle = (command: Command.t): list(Task.t) => {
 
   | GoalType(normalization) => [
       Goals(
-        GetPointed(
-          ((_, index)) => [SendRequest(GoalType(normalization, index))],
-        ),
+        GetPointed(goal => [SendRequest(GoalType(normalization, goal))]),
       ),
     ]
   | Context(normalization) => [
       Goals(
-        GetPointed(
-          ((_, index)) => [SendRequest(Context(normalization, index))],
-        ),
+        GetPointed(goal => [SendRequest(Context(normalization, goal))]),
       ),
     ]
   | GoalTypeAndContext(normalization) => [
       Goals(
         GetPointed(
-          ((_, index)) =>
-            [SendRequest(GoalTypeAndContext(normalization, index))],
+          goal => [SendRequest(GoalTypeAndContext(normalization, goal))],
         ),
       ),
     ]
@@ -271,12 +253,8 @@ let handle = (command: Command.t): list(Task.t) => {
   | GoalTypeAndInferredType(normalization) => [
       Goals(
         GetPointed(
-          ((goal, index)) =>
-            [
-              SendRequest(
-                GoalTypeAndInferredType(normalization, goal, index),
-              ),
-            ],
+          goal =>
+            [SendRequest(GoalTypeAndInferredType(normalization, goal))],
         ),
       ),
     ]
@@ -446,9 +424,8 @@ let handle = (command: Command.t): list(Task.t) => {
             ->Promise.flatMap(name =>
                 instance
                 ->getPointedGoal
-                ->Promise.flatMapOk(getGoalIndex)
-                ->Promise.mapOk(((_, index)) =>
-                    [SendRequest(GotoDefinition(name, index))]
+                ->Promise.mapOk(goal =>
+                    [SendRequest(GotoDefinition(name, goal))]
                   )
                 ->handleOutOfGoal(_ =>
                     Promise.resolved(

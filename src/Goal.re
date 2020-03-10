@@ -4,7 +4,7 @@ open Rebase;
 [@bs.deriving accessors]
 type t = {
   textEditor: TextEditor.t,
-  index: option(int),
+  index: int,
   mutable range: Range.t,
   marker: DisplayMarker.t,
   mutable content: string,
@@ -163,7 +163,7 @@ let destroy = self => {
 };
 
 /* lots of side effects! */
-let make = (textEditor: TextEditor.t, index: option(int), range: (int, int)) => {
+let make = (textEditor: TextEditor.t, index: int, range: (int, int)) => {
   /* range */
   let (start, end_) = range;
   let textBuffer = textEditor |> TextEditor.getBuffer;
@@ -176,11 +176,10 @@ let make = (textEditor: TextEditor.t, index: option(int), range: (int, int)) => 
   let disposables = CompositeDisposable.make();
   let t = {textEditor, range, index, marker, content, disposables};
   /* overlay element */
-  let (indexWidth, indexText) =
-    switch (index) {
-    | None => (1, "*")
-    | Some(i) => (String.length(string_of_int(i)), string_of_int(i))
-    };
+  let (indexWidth, indexText) = (
+    String.length(string_of_int(index)),
+    string_of_int(index),
+  );
   module Document = Webapi.Dom.Document;
   module Element = Webapi.Dom.Element;
   module DomTokenList = Webapi.Dom.DomTokenList;
@@ -265,10 +264,7 @@ let setContent = (text, self) => {
     self.range |> Range.translate(Point.make(0, 2), Point.make(0, -2));
 
   let paddingSpaces =
-    switch (self.index) {
-    | None => " "
-    | Some(i) => Js.String.repeat(String.length(string_of_int(i)), " ")
-    };
+    Js.String.repeat(String.length(string_of_int(self.index)), " ");
 
   self.textEditor
   |> TextEditor.setTextInBufferRange(
@@ -278,11 +274,7 @@ let setContent = (text, self) => {
 };
 
 let selectContent = self => {
-  let indexWidth =
-    switch (self.index) {
-    | None => 1
-    | Some(i) => String.length(string_of_int(i))
-    };
+  let indexWidth = String.length(string_of_int(self.index));
   let range =
     self.range
     |> Range.translate(Point.make(0, 3), Point.make(0, - (3 + indexWidth)));

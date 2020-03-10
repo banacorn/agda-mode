@@ -57,19 +57,6 @@ let handle =
         },
       ),
     ]
-  | GoalNotIndexed => [
-      Display(
-        "Goal not indexed",
-        Type.View.Header.Error,
-        Emacs(PlainText("Please reload to re-index the goal")),
-      ),
-      WithInstance(
-        instance => {
-          Editors.Focus.on(Editors.Source, instance.editors);
-          return([]);
-        },
-      ),
-    ]
   | OutOfGoal => [
       Display(
         "Out of goal",
