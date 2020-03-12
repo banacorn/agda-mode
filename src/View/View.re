@@ -4,7 +4,7 @@ open Type.View;
 
 type t = {
   // <Panel> related
-  activate: unit => Promise.t(Dom.element),
+  activate: unit => Promise.t(unit),
   deactivate: unit => Promise.t(unit),
   toggleDocking: unit => Promise.t(unit),
   display: (string, Type.View.Header.style, Body.t) => Promise.t(unit),
@@ -37,7 +37,6 @@ let make = (events: Events.t, channels: Channels.t) => {
 
   let inquire = (text, placeholder, value) =>
     activate()
-    // ->Promise.mapError(_ => MiniEditor.Cancelled)
     ->Promise.flatMap(_ =>
         channels.inquire
         |> Channel.send((

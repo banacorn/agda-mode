@@ -4,6 +4,12 @@ type placeholder = string;
 type editorTask =
   | Save;
 
+module Highlightings = {
+  type t =
+    | AddDirectly(array(Highlighting.Annotation.t))
+    | AddIndirectly(string);
+};
+
 type goalTask =
   | GetPointed(callback(Goal.t))
   | GetPointedOr(callback(Goal.t), callback(unit))
@@ -24,7 +30,7 @@ and t =
   // Goals
   | Goals(goalTask)
   // Highlightings
-  | Highlightings(Instance__Highlightings.task)
+  | Highlightings(Highlightings.t)
   // Request
   | DispatchCommand(Command.t)
   | SendRequest(Request.t)

@@ -8,26 +8,21 @@ let sendRequest =
     : Promise.t(result(list(Task.t), Instance__Type.error)) => {
   let (promise, resolve) = Promise.pending();
 
-  Instance__Connections.get(instance)
-  ->Promise.tapError(_error => resolve(Error(Instance__Type.Cancelled)))
+  Instance__Connections.connect(instance)
+  ->Promise.tapError(e => resolve(Error(e)))
   ->Promise.getOk(connection => {
-      open Request;
-      let packedRequest = {
-        version: connection.metadata.version,
-        filepath: instance |> Instance__TextEditors.getPath,
-        request,
-      };
-
       // remove all old log entries if `cmd` is `Load`
-      if (Request.isLoad(packedRequest)
-          && connection.Connection.resetLogOnLoad) {
+      if (Request.isLoad(request) && connection.Connection.resetLogOnLoad) {
         Connection.resetLog(connection);
       };
       // create log entry for each `cmd`
-      Log.createEntry(packedRequest.request, connection.log);
+      Log.createEntry(request, connection.log);
 
       // prepare input for Agda
-      let inputForAgda = Request.toAgdaReadableString(packedRequest);
+      let version = connection.metadata.version;
+      let filepath = Instance__TextEditors.getPath(instance);
+      let inputForAgda =
+        Request.toAgdaReadableString(version, filepath, request);
 
       // store responses from Agda
       let responseTasks = ref([]);
@@ -106,13 +101,12 @@ let rec execute =
     switch (task) {
     | WithInstance(callback) => callback(instance)->handleCallback
     | WithConnection(callback) =>
-      Instance__Connections.get(instance)
-      ->Promise.mapError(_ => Instance__Type.Cancelled)
+      Instance__Connections.connect(instance)
       ->Promise.flatMapOk(callback)
       ->handleCallback
     | Disconnect =>
       Instance__Connections.disconnect(instance)->Promise.map(() => [||])
-    | Activate => instance.view.activate()->Promise.map(_ => [||])
+    | Activate => instance.view.activate()->Promise.map(() => [||])
     | Deactivate => instance.view.deactivate()->Promise.map(() => [||])
     | Display(header, style, body) =>
       instance.view.display(header, style, body)->Promise.map(() => [||])

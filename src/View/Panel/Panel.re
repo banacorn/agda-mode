@@ -227,7 +227,8 @@ let make =
       mountingPointRef
       |> React.Ref.current
       |> PanelContainer.fromMountingPoint
-      |> Promise.resolved;
+      |> ignore;
+      Promise.resolved();
     },
     channels.activatePanel,
   );

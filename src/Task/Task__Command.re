@@ -193,7 +193,7 @@ let handle = (command: Command.t): list(Task.t) => {
               let expr = Goal.getContent(goal);
               [SendRequest(ComputeNormalForm(computeMode, expr, goal))];
             },
-          _ =>
+          () =>
             [
               Inquire(
                 "Compute normal form",
@@ -296,11 +296,11 @@ let handle = (command: Command.t): list(Task.t) => {
   | QuerySymbol => [
       WithInstance(
         instance => {
-          let selected = instance.editors |> Editors.getSelectedSymbol;
+          let selected = Editors.getSelectedSymbol(instance.editors);
           let getSymbol =
             if (String.isEmpty(String.trim(selected))) {
               instance.view.activate()
-              ->Promise.flatMap(_ =>
+              ->Promise.flatMap(() =>
                   instance.view.inquire(
                     "Lookup Unicode Symbol Input Sequence",
                     "symbol to lookup:",
@@ -335,7 +335,7 @@ let handle = (command: Command.t): list(Task.t) => {
   | Jump(Type.Location.Range.HoleLink(index)) => [
       WithInstance(
         instance => {
-          let positions = instance |> Goals.getPositions;
+          let positions = Goals.getPositions(instance);
 
           instance.editors |> Editors.Focus.on(Source);
           positions[index]
@@ -351,7 +351,7 @@ let handle = (command: Command.t): list(Task.t) => {
       WithInstance(
         instance => {
           open Type.Location.Range;
-          let filePath = instance |> Instance__TextEditors.getPath;
+          let filePath = Instance__TextEditors.getPath(instance);
           let (shouldJump, otherFilePath) =
             switch (range) {
             | NoRange => (false, None)
@@ -399,11 +399,8 @@ let handle = (command: Command.t): list(Task.t) => {
               Atom.Workspace.open_(uri, option)
               ->Promise.Js.fromBsPromise
               ->Promise.Js.toResult
-              ->Promise.map(
-                  fun
-                  | Error(_) => Error(Cancelled)
-                  | Ok(_) => Ok([]),
-                );
+              ->Promise.mapError(_ => Cancelled)
+              ->Promise.mapOk(_ => []);
             };
           } else {
             Promise.resolved(Ok([]));
@@ -422,16 +419,14 @@ let handle = (command: Command.t): list(Task.t) => {
               instance,
             )
             ->Promise.flatMap(name =>
-                instance
-                ->getPointedGoal
-                ->Promise.mapOk(goal =>
-                    [SendRequest(GotoDefinition(name, goal))]
-                  )
-                ->handleOutOfGoal(_ =>
-                    Promise.resolved(
-                      Ok([SendRequest(GotoDefinitionGlobal(name))]),
-                    )
-                  )
+                return([
+                  Goals(
+                    GetPointedOr(
+                      goal => [SendRequest(GotoDefinition(name, goal))],
+                      () => [SendRequest(GotoDefinitionGlobal(name))],
+                    ),
+                  ),
+                ])
               );
           } else {
             // dispatch again if not already loaded

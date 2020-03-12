@@ -7,7 +7,7 @@ type t = {
   // lifecycle
   destroy: Channel.t(unit, unit),
   // <Panel>
-  activatePanel: Channel.t(unit, Dom.element),
+  activatePanel: Channel.t(unit, unit),
   deactivatePanel: Channel.t(unit, unit),
   toggleDocking: Channel.t(unit, unit),
   display: Channel.t((Header.t, Body.t), unit),

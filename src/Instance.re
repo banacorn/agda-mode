@@ -8,13 +8,10 @@ module TextEditors = Instance__TextEditors;
 
 type t = Instance__Type.t;
 
-// let handleCommandError = Handler.handleCommandError;
-// let dispatch = Handler.dispatch;
-
 let activate = instance =>
   // only activate the view when it's loaded
   if (instance.isLoaded) {
-    instance.view.activate()->Promise.map(_ => ());
+    instance.view.activate();
   } else {
     Promise.resolved();
   };
@@ -22,7 +19,7 @@ let activate = instance =>
 let deactivate = instance =>
   // only deactivate the view when it's loaded
   if (instance.isLoaded) {
-    instance.view.deactivate()->Promise.map(_ => ());
+    instance.view.deactivate();
   } else {
     Promise.resolved();
   };
@@ -50,8 +47,6 @@ let make = (textEditor: Atom.TextEditor.t) => {
     highlightings: [||],
     runningInfo: RunningInfo.make(),
     connection: None,
-    // handleResponse: Handler.handleResponseAndRecoverCursor,
-    // dispatch: Handler.dispatch,
     onDispatch: Event.make(),
     onConnectionError: Event.make(),
   };

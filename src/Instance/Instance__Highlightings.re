@@ -2,31 +2,32 @@ open! Rebase;
 
 open Instance__Type;
 
-open Atom;
+open Task.Highlightings;
+open! Atom;
 
 /* lots of side effects! */
 let add = (annotation: Highlighting.Annotation.t, instance) => {
-  let textEditor = instance.editors.source;
-  let textBuffer = textEditor |> TextEditor.getBuffer;
+  let textBuffer = TextEditor.getBuffer(instance.editors.source);
   let startPoint =
     textBuffer |> TextBuffer.positionForCharacterIndex(annotation.start - 1);
   let endPoint =
     textBuffer |> TextBuffer.positionForCharacterIndex(annotation.end_ - 1);
   let range = Range.make(startPoint, endPoint);
-  let marker = textEditor |> TextEditor.markBufferRange(range);
+  let marker = TextEditor.markBufferRange(range, instance.editors.source);
   /* update the state */
   instance.highlightings |> Js.Array.push(marker) |> ignore;
   /* decorate */
   let types = annotation.types |> Js.Array.joinWith(" ");
-  textEditor
-  |> TextEditor.decorateMarker(
-       marker,
-       TextEditor.decorateMarkerOptions(
-         ~type_="highlight",
-         ~class_="highlight-decoration " ++ types,
-         (),
-       ),
-     )
+
+  TextEditor.decorateMarker(
+    marker,
+    TextEditor.decorateMarkerOptions(
+      ~type_="highlight",
+      ~class_="highlight-decoration " ++ types,
+      (),
+    ),
+    instance.editors.source,
+  )
   |> ignore;
 };
 
@@ -72,10 +73,6 @@ let destroyAll = instance => {
   instance.highlightings |> Array.forEach(DisplayMarker.destroy);
   instance.highlightings = [||];
 };
-
-type task =
-  | AddDirectly(array(Highlighting.Annotation.t))
-  | AddIndirectly(string);
 
 let execute = instance =>
   fun

@@ -1,7 +1,6 @@
 open Atom;
 open Rebase;
 
-[@bs.deriving accessors]
 type t = {
   textEditor: TextEditor.t,
   index: int,
@@ -10,7 +9,7 @@ type t = {
   mutable content: string,
   mutable disposables: CompositeDisposable.t,
 };
-type goal = t;
+
 module FileType = {
   type t =
     | Agda
@@ -37,24 +36,16 @@ module FileType = {
 
 /* restore the content of the hole in the range */
 let restoreBoundary = (self, range) => {
-  /* asasdasd */
-  self.textEditor
-  |> TextEditor.setTextInBufferRange(range, self.content)
+  TextEditor.setTextInBufferRange(range, self.content, self.textEditor)
   |> ignore;
 };
-
-let string_of_index =
-  fun
-  | Some(i) => string_of_int(i)
-  | None => "*";
 
 let removeBoundary = self => {
   let range =
     self.range |> Range.translate(Point.make(0, 2), Point.make(0, -2));
   let content =
     self.textEditor |> TextEditor.getTextInBufferRange(range) |> String.trim;
-  self.textEditor
-  |> TextEditor.setTextInBufferRange(self.range, content)
+  TextEditor.setTextInBufferRange(self.range, content, self.textEditor)
   |> ignore;
 };
 
@@ -67,9 +58,9 @@ let writeLines = (contents: array(string), self) => {
   | None => ()
   | Some(firstRowNumber) =>
     let firstRowRange =
-      textBuffer |> TextBuffer.rangeForRow(firstRowNumber, false);
+      TextBuffer.rangeForRow(firstRowNumber, false, textBuffer);
     let firstRow =
-      self.textEditor |> TextEditor.getTextInBufferRange(firstRowRange);
+      TextEditor.getTextInBufferRange(firstRowRange, self.textEditor);
     /* indent and join with \n */
     let indentSpaces =
       Js.String.repeat(Util.String.indentedBy(firstRow), " ");
@@ -91,8 +82,8 @@ let writeLines = (contents: array(string), self) => {
     };
 
     /* insert case split content */
-    let position = firstRowRange |> Range.start;
-    textBuffer |> TextBuffer.insert(position, indentedContents) |> ignore;
+    let position = Range.start(firstRowRange);
+    TextBuffer.insert(position, indentedContents, textBuffer) |> ignore;
   };
 };
 
@@ -102,12 +93,12 @@ let writeLines = (contents: array(string), self) => {
 
 let writeLambda = (contents: array(string), self) => {
   /* range to scan */
-  let scanRow = self.range |> Range.start |> Point.row;
+  let scanRow = Point.row(Range.start(self.range));
   let scanRowText =
-    self.textEditor
-    |> TextEditor.getTextInBufferRange(
-         Range.make(Point.make(scanRow, 0), self.range |> Range.start),
-       );
+    TextEditor.getTextInBufferRange(
+      Range.make(Point.make(scanRow, 0), Range.start(self.range)),
+      self.textEditor,
+    );
   let indent = Util.String.indentedBy(scanRowText);
   /* start at the last ";", or the first non-black character if not found */
   let scanColStart =
@@ -116,7 +107,7 @@ let writeLambda = (contents: array(string), self) => {
     | None => indent
     };
 
-  let scanColEnd = self.range |> Range.start |> Point.column;
+  let scanColEnd = Point.column(Range.start(self.range));
   /* ugly iteration  */
   let bracketCount = ref(0);
   let i = ref(scanColEnd - 1);
@@ -139,20 +130,20 @@ let writeLambda = (contents: array(string), self) => {
   let rewriteRange = Range.make(rewriteRangeStart, rewriteRangeEnd);
   let isLambdaWhere = i^ + 1 == indent;
   if (isLambdaWhere) {
-    self.textEditor
-    |> TextEditor.setTextInBufferRange(
-         rewriteRange,
-         contents
-         |> List.fromArray
-         |> String.joinWith("\n" ++ Js.String.repeat(indent, " ")),
-       )
+    TextEditor.setTextInBufferRange(
+      rewriteRange,
+      contents
+      |> List.fromArray
+      |> String.joinWith("\n" ++ Js.String.repeat(indent, " ")),
+      self.textEditor,
+    )
     |> ignore;
   } else {
-    self.textEditor
-    |> TextEditor.setTextInBufferRange(
-         rewriteRange,
-         " " ++ (contents |> List.fromArray |> String.joinWith(" ; ")),
-       )
+    TextEditor.setTextInBufferRange(
+      rewriteRange,
+      " " ++ (contents |> List.fromArray |> String.joinWith(" ; ")),
+      self.textEditor,
+    )
     |> ignore;
   };
 };
@@ -166,13 +157,13 @@ let destroy = self => {
 let make = (textEditor: TextEditor.t, index: int, range: (int, int)) => {
   /* range */
   let (start, end_) = range;
-  let textBuffer = textEditor |> TextEditor.getBuffer;
-  let startPoint = textBuffer |> TextBuffer.positionForCharacterIndex(start);
-  let endPoint = textBuffer |> TextBuffer.positionForCharacterIndex(end_);
+  let textBuffer = TextEditor.getBuffer(textEditor);
+  let startPoint = TextBuffer.positionForCharacterIndex(start, textBuffer);
+  let endPoint = TextBuffer.positionForCharacterIndex(end_, textBuffer);
   /* properties */
   let range = Range.make(startPoint, endPoint);
-  let content = textBuffer |> TextBuffer.getTextInRange(range);
-  let marker = textEditor |> TextEditor.markBufferRange(range);
+  let content = TextBuffer.getTextInRange(range, textBuffer);
+  let marker = TextEditor.markBufferRange(range, textEditor);
   let disposables = CompositeDisposable.make();
   let t = {textEditor, range, index, marker, content, disposables};
   /* overlay element */
@@ -194,34 +185,32 @@ let make = (textEditor: TextEditor.t, index: int, range: (int, int)) => {
        "left: " ++ string_of_int(- indexWidth - 2) ++ "ex ; top: -1.5em",
      );
   /* decorations */
-  textEditor
-  |> TextEditor.decorateMarker(
-       marker,
-       TextEditor.decorateMarkerOptions(
-         ~type_="highlight",
-         ~class_="goal",
-         (),
-       ),
-     )
+
+  TextEditor.decorateMarker(
+    marker,
+    TextEditor.decorateMarkerOptions(~type_="highlight", ~class_="goal", ()),
+    textEditor,
+  )
   |> ignore;
-  textEditor
-  |> TextEditor.decorateMarker(
-       marker,
-       TextEditor.decorateMarkerOptions(
-         ~type_="overlay",
-         ~position="head",
-         ~item=Element.unsafeAsHtmlElement(element),
-         (),
-       ),
-     )
+
+  TextEditor.decorateMarker(
+    marker,
+    TextEditor.decorateMarkerOptions(
+      ~type_="overlay",
+      ~position="head",
+      ~item=Element.unsafeAsHtmlElement(element),
+      (),
+    ),
+    textEditor,
+  )
   |> ignore;
   /* monitoring events */
   marker
   |> DisplayMarker.onDidChange(_event => {
-       let newRange = marker |> DisplayMarker.getBufferRange;
+       let newRange = DisplayMarker.getBufferRange(marker);
 
        /* positions of the boundary ot the hole*/
-       let newContent = textBuffer |> TextBuffer.getTextInRange(newRange);
+       let newContent = TextBuffer.getTextInRange(newRange, textBuffer);
        let deltaLeft = Util.String.indexOf("{!", newContent);
        let deltaRight = Util.String.lastIndexOf("!}", newContent);
 
@@ -241,9 +230,12 @@ let make = (textEditor: TextEditor.t, index: int, range: (int, int)) => {
          t.range =
            newRange
            |> Range.translate(Point.make(0, left), Point.make(0, right'));
-         t.content = textBuffer |> TextBuffer.getTextInRange(t.range);
-         t.marker
-         |> DisplayMarker.setBufferRange_(t.range, {"reversed": false});
+         t.content = TextBuffer.getTextInRange(t.range, textBuffer);
+         DisplayMarker.setBufferRange_(
+           t.range,
+           {"reversed": false},
+           t.marker,
+         );
        };
      })
   |> CompositeDisposable.add(disposables);
@@ -266,11 +258,11 @@ let setContent = (text, self) => {
   let paddingSpaces =
     Js.String.repeat(String.length(string_of_int(self.index)), " ");
 
-  self.textEditor
-  |> TextEditor.setTextInBufferRange(
-       range,
-       " " ++ text ++ " " ++ paddingSpaces,
-     );
+  TextEditor.setTextInBufferRange(
+    range,
+    " " ++ text ++ " " ++ paddingSpaces,
+    self.textEditor,
+  );
 };
 
 let selectContent = self => {
@@ -279,11 +271,11 @@ let selectContent = self => {
     self.range
     |> Range.translate(Point.make(0, 3), Point.make(0, - (3 + indexWidth)));
 
-  self.textEditor
-  |> TextEditor.setSelectedBufferRange_(
-       range,
-       {"reversed": false, "preserveFolds": true},
-     );
+  TextEditor.setSelectedBufferRange_(
+    range,
+    {"reversed": false, "preserveFolds": true},
+    self.textEditor,
+  );
 };
 let isEmpty = self => {
   getContent(self)
@@ -292,13 +284,13 @@ let isEmpty = self => {
 };
 
 let buildHaskellRange = (old, filepath, self) => {
-  let start = self.range |> Range.start;
+  let start = Range.start(self.range);
   let startIndex =
     self.textEditor
     |> TextEditor.getBuffer
     |> TextBuffer.characterIndexForPosition(start);
 
-  let end_ = self.range |> Range.end_;
+  let end_ = Range.end_(self.range);
   let endIndex =
     self.textEditor
     |> TextEditor.getBuffer

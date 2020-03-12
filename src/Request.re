@@ -31,15 +31,8 @@ type t =
   | GotoDefinition(string, Goal.t)
   | GotoDefinitionGlobal(string);
 
-type packed = {
-  version: string,
-  filepath: string,
-  request: t,
-};
-
 /* serializes Buffed Command into strings that can be sent to Agda */
-let toAgdaReadableString = cmd => {
-  let {filepath, request, version} = cmd;
+let toAgdaReadableString = (version, filepath, request) => {
   let libraryPath: string = {
     let path = Atom.Config.get("agda-mode.libraryPath");
     path |> Js.Array.unshift(".") |> ignore;
@@ -245,11 +238,10 @@ let toAgdaReadableString = cmd => {
   };
 };
 
-let isLoad = self =>
-  switch (self.request) {
+let isLoad =
+  fun
   | Load => true
-  | _ => false
-  };
+  | _ => false;
 
 let toString =
   fun

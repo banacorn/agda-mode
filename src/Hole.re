@@ -14,12 +14,7 @@ type token = {
   range: (int, int),
   type_: tokenType,
 };
-/* type hole = {
-     index: int,
-     modifiedRange: (int, int),
-     originalRange: (int, int),
-     content: string,
-   }; */
+
 module Lexer = {
   type t = array(token);
   /* return */

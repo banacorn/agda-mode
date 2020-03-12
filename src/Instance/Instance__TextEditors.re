@@ -12,17 +12,16 @@ let getPath = instance => {
 let pointingAt = (~cursor=?, instance): option(Goal.t) => {
   let cursor_ =
     switch (cursor) {
-    | None =>
-      instance.editors.source |> Atom.TextEditor.getCursorBufferPosition
+    | None => Atom.TextEditor.getCursorBufferPosition(instance.editors.source)
     | Some(x) => x
     };
 
   let pointedGoals =
     instance.goals
     |> Array.filter(goal =>
-         goal.Goal.range |> Atom.Range.containsPoint(cursor_)
+         Atom.Range.containsPoint(cursor_, goal.Goal.range)
        );
-  /* return the first pointed goal */
+  // return the first pointed goal
   pointedGoals[0];
 };
 
@@ -34,28 +33,6 @@ let getPointedGoal = (instance): Promise.t(result(Goal.t, error)) => {
   };
 };
 
-let getPointedGoalAt = (cursor, instance): Promise.t(result(Goal.t, error)) => {
-  let pointed = pointingAt(~cursor, instance);
-  switch (pointed) {
-  | Some(goal) => Promise.resolved(Ok(goal))
-  | None => Promise.resolved(Error(OutOfGoal))
-  };
-};
-
-let handleOutOfGoal = (promise, callback) =>
-  promise->Promise.flatMapError(
-    fun
-    | OutOfGoal => callback()
-    | error => Promise.resolved(Error(error)),
-  );
-//
-// let getGoalIndex = (goal: Goal.t): Promise.t(result((Goal.t, int), error)) => {
-//   switch (goal.index) {
-//   | Some(index) => Promise.resolved(Ok((goal, index)))
-//   | None => Promise.resolved(Error(GoalNotIndexed))
-//   };
-// };
-
 // execute the callback
 //  if it's pointing at some empty hole
 //    then move the cursor inside the empty hole
@@ -65,38 +42,26 @@ let restoreCursorPosition = (callback, instance) => {
     Atom.TextEditor.getCursorBufferPosition(instance.editors.source);
 
   callback()
-  ->Promise.flatMap(result =>
-      getPointedGoalAt(originalPosition, instance)
-      ->Promise.mapOk(goal =>
-          if (Goal.isEmpty(goal)) {
-            let delta = Atom.Point.make(0, 3);
-            let newPosition =
-              Atom.Point.translate(delta, Atom.Range.start(goal.range));
-            Js.Global.setTimeout(
-              () =>
-                Atom.TextEditor.setCursorBufferPosition(
-                  newPosition,
-                  instance.editors.source,
-                ),
-              0,
-            )
-            |> ignore;
-          } else {
-            Atom.TextEditor.setCursorBufferPosition(
-              originalPosition,
-              instance.editors.source,
-            );
-          }
-        )
-      ->handleOutOfGoal(_ => {
+  ->Promise.map(result => {
+      let pointed = pointingAt(~cursor=originalPosition, instance);
+      switch (pointed) {
+      | Some(goal) =>
+        if (Goal.isEmpty(goal)) {
+          Instance__Goals.setCursor(goal, instance);
+        } else {
           Atom.TextEditor.setCursorBufferPosition(
             originalPosition,
             instance.editors.source,
           );
-          Promise.resolved(Ok());
-        })
-      ->Promise.map(_ => result)
-    );
+        }
+      | None =>
+        Atom.TextEditor.setCursorBufferPosition(
+          originalPosition,
+          instance.editors.source,
+        )
+      };
+      result;
+    });
 };
 
 //
