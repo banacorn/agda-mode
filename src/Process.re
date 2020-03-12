@@ -1,6 +1,6 @@
 // module for communicating with a process
 
-open! Rebase;
+// open! Rebase;
 open Rebase.Fn;
 
 // module for auto path searching
@@ -63,7 +63,7 @@ module PathSearch = {
               Error(
                 Error.NotFound(
                   name,
-                  err |> Js.Exn.message |> Option.getOr(""),
+                  err |> Js.Exn.message |> Rebase.Option.getOr(""),
                 ),
               ),
             )
@@ -71,13 +71,13 @@ module PathSearch = {
 
           // stderr
           let stderr = Node.Buffer.toString(stderr);
-          if (!String.isEmpty(stderr)) {
+          if (!Rebase.String.isEmpty(stderr)) {
             resolve(Error(NotFound(name, stderr)));
           };
 
           // stdout
           let stdout = Node.Buffer.toString(stdout);
-          if (String.isEmpty(stdout)) {
+          if (Rebase.String.isEmpty(stdout)) {
             resolve(Error(NotFound(name, "")));
           } else {
             resolve(Ok(stdout));
@@ -135,7 +135,7 @@ module Validation = {
       switch (Js.Nullable.toOption(error)) {
       | None => None
       | Some(err) =>
-        let message = err |> Js.Exn.message |> Option.getOr("");
+        let message = err |> Js.Exn.message |> Rebase.Option.getOr("");
         if (message |> Js.Re.test_([%re "/No such file or directory/"], _)) {
           Some(NotFound(err));
         } else if (message |> Js.Re.test_([%re "/command not found/"], _)) {
@@ -151,7 +151,7 @@ module Validation = {
     let (path, _args) = Parser.commandLine(pathAndParams);
 
     // the path must not be empty
-    if (String.isEmpty(path)) {
+    if (Rebase.String.isEmpty(path)) {
       resolve(Error(Error.PathMalformed("the path must not be empty")));
     };
 
@@ -172,7 +172,7 @@ module Validation = {
 
         // stderr
         let stderr = Node.Buffer.toString(stderr);
-        if (!String.isEmpty(stderr)) {
+        if (!Rebase.String.isEmpty(stderr)) {
           resolve(Error(ProcessError(stderr)));
         };
 

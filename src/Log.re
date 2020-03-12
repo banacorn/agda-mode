@@ -67,8 +67,6 @@ $error
 
 type t = array(Entry.t);
 
-let empty = [||];
-
 let createEntry = (cmd, log) => {
   let entry: Entry.t = {
     request: cmd,
