@@ -26,12 +26,14 @@
   ],
   "suffix": ".bs.js",
   "namespace": true,
+  "bs-dev-dependencies": [
+    "bs-mocha"
+  ],
   "bs-dependencies": [
     "reason-react",
     "@glennsl/bs-json",
     "@glennsl/rebase",
     "bs-webapi",
-    "bs-mocha",
     "reason-react-update",
     "bs-atom2",
     "bs-nd",

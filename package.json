@@ -32,24 +32,24 @@
     "atom": ">=1.19.0 <2.0.0"
   },
   "devDependencies": {
-    "@glennsl/bs-json": "^5.0.1",
-    "@glennsl/rebase": "github:glennsl/rebase",
     "atom-mocha": "^2.2.0",
     "bs-mocha": "^0.5.0",
-    "bs-platform": "^6.2.1",
-    "bs-webapi": "^0.15.3",
     "chai": "^4.2.0",
     "diff": "^4.0.1",
     "git-branch": "^2.0.1",
     "node-dir": "^0.1.17",
     "webpack": "^4.39.1",
-    "webpack-cli": "^3.1.2",
-    "reason-promise": "^1.0.1",
-    "bs-nd": "^0.1.5",
-    "bs-atom2": "^1.40.1"
+    "webpack-cli": "^3.1.2"
   },
   "dependencies": {
+    "@glennsl/bs-json": "^5.0.1",
+    "@glennsl/rebase": "github:glennsl/rebase",
+    "bs-platform": "^6.2.1",
+    "bs-webapi": "^0.15.3",
+    "bs-nd": "^0.1.5",
+    "bs-atom2": "^1.40.1",
     "compare-versions": "^3.5.1",
+    "reason-promise": "^1.0.1",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "reason-react": ">=0.7.0",
