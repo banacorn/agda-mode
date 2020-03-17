@@ -122,7 +122,8 @@ let toAgdaReadableString = (version, filepath, request) => {
     commonPart(None')
     ++ {j|( Cmd_infer_toplevel $(normalization') "$(content)" )|j};
 
-  | ModuleContents(normalization, expr, index) =>
+  | ModuleContents(normalization, expr, goal) =>
+    let index = goal.index;
     let normalization' = Normalization.toString(normalization);
     let content = Parser.userInput(expr);
 
@@ -136,7 +137,8 @@ let toAgdaReadableString = (version, filepath, request) => {
     commonPart(None')
     ++ {j|( Cmd_show_module_contents_toplevel $(normalization') "$(content)" )|j};
 
-  | ComputeNormalForm(computeMode, expr, index) =>
+  | ComputeNormalForm(computeMode, expr, goal) =>
+    let index = goal.index;
     let computeMode' = ComputeMode.toString(computeMode);
     let ignoreAbstract = ComputeMode.ignoreAbstract(computeMode);
     let content = Parser.userInput(expr);
@@ -205,17 +207,20 @@ let toAgdaReadableString = (version, filepath, request) => {
     commonPart(NonInteractive)
     ++ {j|( Cmd_make_case $(index) $(range) "$(content)" )|j};
 
-  | GoalType(normalization, index) =>
+  | GoalType(normalization, goal) =>
+    let index = goal.index;
     let normalization' = Normalization.toString(normalization);
     commonPart(NonInteractive)
     ++ {j|( Cmd_goal_type $(normalization') $(index) noRange "" )|j};
 
-  | Context(normalization, index) =>
+  | Context(normalization, goal) =>
+    let index = goal.index;
     let normalization' = Normalization.toString(normalization);
     commonPart(NonInteractive)
     ++ {j|( Cmd_context $(normalization') $(index) noRange "" )|j};
 
-  | GoalTypeAndContext(normalization, index) =>
+  | GoalTypeAndContext(normalization, goal) =>
+    let index = goal.index;
     let normalization' = Normalization.toString(normalization);
     commonPart(NonInteractive)
     ++ {j|( Cmd_goal_type_context $(normalization') $(index) noRange "" )|j};
@@ -227,7 +232,8 @@ let toAgdaReadableString = (version, filepath, request) => {
     commonPart(NonInteractive)
     ++ {j|( Cmd_goal_type_context_infer $(normalization') $(index) noRange "$(content)" )|j};
 
-  | GotoDefinition(name, index) =>
+  | GotoDefinition(name, goal) =>
+    let index = goal.index;
     let content = Parser.userInput(name);
     commonPart(NonInteractive)
     ++ {j|( Cmd_why_in_scope $(index) noRange "$(content)" )|j};
