@@ -1,5 +1,4 @@
-open! Rebase;
-open Fn;
+open Belt;
 
 module Error = {
   type t =
@@ -63,7 +62,7 @@ type t = {
 
 let disconnect = (error, self) => {
   self.process.disconnect() |> ignore;
-  self.queue |> List.forEach(ev => ev.Event.emit(Error(error)));
+  self.queue->List.forEach(ev => ev.Event.emit(Error(error)));
   self.queue = [];
   self.encountedFirstPrompt = false;
   self.log = [||];
@@ -116,7 +115,9 @@ let connect = (metadata: Metadata.t): t => {
 let wire = (self): t => {
   let logSExpression =
     Parser.Incr.Event.tap(
-      Result.forEach(expr => Log.logSExpression(expr, self.log)),
+      fun
+      | Error(_) => ()
+      | Ok(expr) => Log.logSExpression(expr, self.log),
     );
 
   // We use the prompt "Agda2>" as the delimiter of the end of a response
@@ -142,7 +143,9 @@ let wire = (self): t => {
 
   let logResponse =
     Parser.Incr.Event.tap(
-      Result.forEach(expr => Log.logResponse(expr, self.log)),
+      fun
+      | Error(_) => ()
+      | Ok(expr) => Log.logResponse(expr, self.log),
     );
 
   // resolves the requests in the queue
@@ -167,8 +170,8 @@ let wire = (self): t => {
     };
   };
   let pipeline =
-    Parser.SExpression.makeIncr(
-      logSExpression >> toResponse >> logResponse >> handleResponse,
+    Parser.SExpression.makeIncr(x =>
+      x->logSExpression->toResponse->logResponse->handleResponse
     );
 
   // listens to the "data" event on the stdout
@@ -179,15 +182,15 @@ let wire = (self): t => {
         // store the raw text in the log
         Log.logRawText(rawText, self.log);
         // split the raw text into pieces and feed it to the parser
-        rawText |> Parser.split |> Array.forEach(Parser.Incr.feed(pipeline));
+        rawText->Parser.split->Array.forEach(Parser.Incr.feed(pipeline));
       }
     | Error(e) => {
         // emit error to all of the request in the queue
         self.queue
-        |> List.forEach(req => {
-             req.Event.emit(Error(e));
-             req.destroy();
-           });
+        ->List.forEach(req => {
+            req.Event.emit(Error(e));
+            req.destroy();
+          });
         // clean the queue
         self.queue = [];
       };
