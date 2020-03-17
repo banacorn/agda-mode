@@ -21,14 +21,22 @@ module Instances = {
     };
   };
 
-  let delete_: string => unit = [%raw id => "{delete instances[id]}"];
+  // let unsafeDeleteKey : 'a t -> string -> unit [@bs] =
+  //   fun%raw dict key -> {|
+  //     delete dict[key];
+  //     return 0
+  //   |}
+
+  let deleteEntry: string => unit = [%raw
+    "function (id) {delete instances[id]}"
+  ];
   // destroy a certain Instance and remove it from `instances`
   let remove = textEditor => {
     let id = textEditorID(textEditor);
     switch (Js.Dict.get(instances, id)) {
     | Some(instance) =>
       Instance.destroy(instance) |> ignore;
-      delete_(id) |> ignore;
+      deleteEntry(id) |> ignore;
     | None => ()
     };
   };
@@ -38,7 +46,7 @@ module Instances = {
     |> Js.Dict.entries
     |> Array.forEach(((id, instance)) => {
          Instance.destroy(instance) |> ignore;
-         delete_(id) |> ignore;
+         deleteEntry(id) |> ignore;
        });
   };
   let contains = textEditor => {
