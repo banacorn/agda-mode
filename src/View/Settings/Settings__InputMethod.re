@@ -171,7 +171,7 @@ module ExtendKeymap = {
                     {string(symbol)}
                   </kbd>
                 )
-             |> manyInFragment}
+             |> manyIn(ReasonReact.fragment)}
           </div>
           <MiniEditor
             hidden={!modifying}
@@ -247,7 +247,7 @@ module ExtendKeymap = {
       |> Array.map(((sequence, symbols)) =>
            <ExtensionItem sequence symbols onChange />
          )
-      |> manyIn("ul", ~props=ReactDOMRe.domProps(~id="extensions", ()));
+      |> manyIn2("ul", ReactDOMRe.domProps(~id="extensions", ()));
 
     <section>
       <h2>

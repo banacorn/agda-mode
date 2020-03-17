@@ -61,9 +61,9 @@ let modify = (key, symbols) => {
 let delete = key => {
   let keymap = readKeymap();
   let delete': string => unit = [%raw
-    id => {
-      "{delete keymap[id]}";
-    }
+    "function (id) {
+      delete keymap[id]
+    }"
   ];
   delete'(key);
   setConfig(keymap);
