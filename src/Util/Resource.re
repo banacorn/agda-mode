@@ -1,4 +1,4 @@
-open Rebase;
+open Belt;
 
 type t('a) = {
   acquire: unit => Promise.t('a),
@@ -21,7 +21,7 @@ let make = (): t('a) => {
   // iterate through the list of waiting callbacks and resolve them
   let supply = x => {
     resource := Some(x);
-    queue^ |> List.forEach(resolve => resolve(x));
+    (queue^)->List.forEach(resolve => resolve(x));
   };
   {acquire, supply};
 };

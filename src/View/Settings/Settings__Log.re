@@ -8,24 +8,31 @@ module Entry = {
     let (hidden, setHidden) = Hook.useState(true);
     let className = hidden ? "hidden" : "";
     let rawTexts =
-      entry.response.rawText
-      |> Array.map(text => <li> {string(text)} </li>)
-      |> Util.React.manyIn("ol");
+      (entry.response.rawText |> Array.map(text => <li> {string(text)} </li>))
+      ->Util.React.manyIn("ol");
     let sexpressions =
-      entry.response.sexpression
-      |> Array.map(text =>
-           <li> {string(Parser.SExpression.toString(text))} </li>
-         )
-      |> Util.React.manyIn("ol");
+      (
+        entry.response.sexpression
+        |> Array.map(text =>
+             <li> {string(Parser.SExpression.toString(text))} </li>
+           )
+      )
+      ->Util.React.manyIn("ol");
     let responses =
-      entry.response.response
-      |> Array.map(text => <li> {string(Response.toString(text))} </li>)
-      |> Util.React.manyIn("ol");
+      (
+        entry.response.response
+        |> Array.map(text => <li> {string(Response.toString(text))} </li>)
+      )
+      ->Util.React.manyIn("ol");
     let hasError = Array.length(entry.response.error) > 0;
     let errors =
-      entry.response.error
-      |> Array.map(text => <li> {string(Parser.Error.toString(text))} </li>)
-      |> Util.React.manyIn("ol");
+      (
+        entry.response.error
+        |> Array.map(text =>
+             <li> {string(Parser.Error.toString(text))} </li>
+           )
+      )
+      ->Util.React.manyIn("ol");
 
     <li className="agda-settings-log-entry">
       <h2 onClick={_ => setHidden(!hidden)}>
@@ -54,10 +61,12 @@ let make = (~connection: option(Connection.t), ~hidden) => {
   |> Option.forEach(conn => conn.Connection.resetLogOnLoad = refreshOnLoad);
 
   let entries =
-    connection
-    |> Option.mapOr(conn => conn.Connection.log, [||])
-    |> Array.map(entry => <Entry entry />)
-    |> Util.React.manyIn("ol");
+    (
+      connection
+      |> Option.mapOr(conn => conn.Connection.log, [||])
+      |> Array.map(entry => <Entry entry />)
+    )
+    ->Util.React.manyIn("ol");
   <section className={"agda-settings-log" ++ showWhen(!hidden)}>
     <h1>
       <span className="icon icon-comment-discussion" />

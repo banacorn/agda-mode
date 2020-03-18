@@ -1,5 +1,3 @@
-
-
 open ReasonReact;
 
 open Rebase;
@@ -85,11 +83,9 @@ let make = (~body: string) => {
       {parsed.have
        |> Option.mapOr(expr => <Labeled label="Have " expr />, null)}
     </ul>
-    {parsed.interactionMetas
-     |> Array.map(value => <Output value />)
-     |> Util.React.manyIn("ul")}
-    {parsed.hiddenMetas
-     |> Array.map(value => <Output value />)
-     |> Util.React.manyIn("ul")}
+    {(parsed.interactionMetas |> Array.map(value => <Output value />))
+     ->Util.React.manyIn("ul")}
+    {(parsed.hiddenMetas |> Array.map(value => <Output value />))
+     ->Util.React.manyIn("ul")}
   </>;
 };

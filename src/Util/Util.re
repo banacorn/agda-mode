@@ -1,26 +1,27 @@
-open! Rebase;
+open Belt;
 
 module React = {
   open ReasonReact;
 
-  let manyIn = elem =>
-    ReactDOMRe.createDOMElementVariadic(elem, ~props=ReactDOMRe.domProps());
+  let manyIn = (elems, elem) =>
+    ReactDOMRe.createDOMElementVariadic(
+      elem,
+      ~props=ReactDOMRe.domProps(),
+      elems,
+    );
 
-  let manyIn2 = (elem, props) =>
-    ReactDOMRe.createDOMElementVariadic(elem, ~props);
+  let manyIn2 = (elems, elem, props) =>
+    ReactDOMRe.createDOMElementVariadic(elem, ~props, elems);
 
-  let a = ReactDOMRe.createElement;
-
-  let sepBy = (sep: reactElement, item: list(reactElement)) =>
+  let sepBy' = (item: list(reactElement), sep: reactElement) =>
     switch (item) {
     | [] => <> </>
     | [x] => x
     | [x, ...xs] =>
-      {
-        Array.fromList([x, ...List.map(i => <> sep i </>, xs)]);
-      }
-      |> manyIn("span")
+      [x, ...List.map(xs, i => <> sep i </>)]->List.toArray->manyIn("span")
     };
+  let sepBy = (sep: reactElement, xs) => xs->List.fromArray->sepBy'(sep);
+
   let enclosedBy =
       (front: reactElement, back: reactElement, item: reactElement) =>
     <> front {string(" ")} item {string(" ")} back </>;
@@ -35,51 +36,24 @@ module React = {
 module Result = {
   type t('a, 'e) = result('a, 'e);
   let every = (xs: array(t('a, 'e))): t(array('a), 'e) =>
-    Array.reduce(
-      (acc, x) =>
-        switch (acc, x) {
-        | (Ok(xs), Ok(v)) =>
-          xs |> Js.Array.push(v) |> ignore;
-          Ok(xs);
-        | (_, Error(e)) => Error(e)
-        | (Error(e), _) => Error(e)
-        },
-      Ok([||]),
-      xs,
+    Array.reduce(xs, Ok([||]), (acc, x) =>
+      switch (acc, x) {
+      | (Ok(xs), Ok(v)) =>
+        Js.Array.push(v, xs) |> ignore;
+        Ok(xs);
+      | (_, Error(e)) => Error(e)
+      | (Error(e), _) => Error(e)
+      }
     );
-  /* let some = (xs: array(t('a, 'e))): t(array('a), 'e) =>
-     Array.reduce(
-       (acc, x) =>
-         switch (acc, x) {
-         | (Ok(xs), Ok(v)) =>
-           xs |> Js.Array.push(v) |> ignore;
-           Ok(xs);
-         | (Ok(xs), Error(_)) => Ok(xs)
-         | (Error(_), Ok(v)) => Ok([|v|])
-         | (Error(e), Error(_)) => Error(e)
-         },
-       Ok([||]),
-       xs,
-     ); */
 };
+
 module Array_ = {
-  // let catMaybes = xs =>
-  //   Array.reduceRight(
-  //     (acc, x) =>
-  //       switch (x) {
-  //       | Some(v) => [v, ...acc]
-  //       | None => acc
-  //       },
-  //     [],
-  //     xs,
-  //   )
-  //   |> Array.fromList;
   let partite = (p: 'a => bool, xs: array('a)): array(array('a)) => {
     let indices: array(int) =
       xs
-      |> Array.mapi((x, i) => (x, i))  /* zip with index */
-      |> Array.filter(((x, _)) => p(x))  /* filter bad indices out */
-      |> Array.map(snd); /* leave only the indices */
+      ->Array.mapWithIndex((i, x) => (i, x)) /* zip with index */
+      ->Array.keep(((_, x)) => p(x)) /* filter bad indices out */
+      ->Array.map(fst); /* leave only the indices */
     /* prepend 0 as the first index */
     let indicesWF: array(int) =
       switch (indices[0]) {
@@ -87,33 +61,34 @@ module Array_ = {
       | None => Array.length(indices) === 0 ? [|0|] : indices
       };
     let intervals: array((int, int)) =
-      indicesWF
-      |> Array.mapi((index, n) =>
-           switch (indicesWF[n + 1]) {
-           | Some(next) => (index, next)
-           | None => (index, Array.length(xs))
-           }
-         );
-    intervals |> Array.map(((from, to_)) => xs |> Array.slice(~from, ~to_));
+      indicesWF->Array.mapWithIndex((n, index) =>
+        switch (indicesWF[n + 1]) {
+        | Some(next) => (index, next)
+        | None => (index, Array.length(xs))
+        }
+      );
+    intervals->Array.map(((start, end_)) =>
+      xs |> Js.Array.slice(~start, ~end_)
+    );
   };
   let mergeWithNext:
     (array('a) => bool, array(array('a))) => array(array('a)) =
-    p =>
-      Array.reduce(
+    (p, xs) =>
+      xs->Array.reduce(
+        [||],
         (acc, x) => {
           let last = acc[Array.length(acc) - 1];
           switch (last) {
           | None => [|x|]
           | Some(l) =>
             if (p(l)) {
-              acc[Array.length(acc) - 1] = Array.concat(x, l);
+              (acc[Array.length(acc) - 1] = Array.concat(x, l)) |> ignore;
               acc;
             } else {
               Array.concat([|x|], acc);
             }
           };
         },
-        [||],
       );
 };
 
@@ -124,22 +99,20 @@ module Dict = {
       : t(array('a)) => {
     let keys: array((key, int)) =
       xs
-      |> Array.mapi((x, i) => (x, i))  /* zip with index */
-      |> Array.filterMap(((x, i)) =>
-           tagEntry((x, i)) |> Option.map(key => (key, i))
-         );
+      ->Array.mapWithIndex((i, x) => (i, x)) /* zip with index */
+      ->Array.keepMap(((i, x)) =>
+          tagEntry((x, i))->Option.map(key => (key, i))
+        );
     let intervals: array((key, int, int)) =
-      keys
-      |> Array.mapi(((key, index), n) =>
-           switch (keys[n + 1]) {
-           | Some((_, next)) => (key, index, next)
-           | None => (key, index, Array.length(xs))
-           }
-         );
-    intervals
-    |> Array.map(((key, from, to_)) =>
-         (key, xs |> Array.slice(~from, ~to_))
-       )
+      keys->Array.mapWithIndex((n, (key, index)) =>
+        switch (keys[n + 1]) {
+        | Some((_, next)) => (key, index, next)
+        | None => (key, index, Array.length(xs))
+        }
+      );
+    intervals->Array.map(((key, start, end_)) =>
+      (key, xs->Js.Array.slice(~start, ~end_))
+    )
     |> fromArray;
   };
   /* split an entry */
@@ -149,7 +122,7 @@ module Dict = {
     | Some(value) =>
       /* insert new entries */
       entries(splitter(value))
-      |> Array.forEach(((k, v)) => set(dict, k, v));
+      ->Array.forEach(((k, v)) => set(dict, k, v));
       dict;
     | None => dict
     };
@@ -166,7 +139,7 @@ module List_ = {
   let sepBy = (sep: 'a, item: list('a)): list('a) =>
     switch (item) {
     | [] => []
-    | [x, ...xs] => [x, ...xs |> List.flatMap(i => [sep, i])]
+    | [x, ...xs] => [x, ...xs->List.map(i => [sep, i])->List.flatten]
     };
   let rec init = xs =>
     switch (xs) {

@@ -62,7 +62,7 @@ module Expr = {
   };
   [@react.component]
   let make = (~expr: t) => {
-    expr |> Array.map(term => <Term term />) |> Util.React.manyIn("span");
+    (expr |> Array.map(term => <Term term />))->Util.React.manyIn("span");
   };
 };
 
@@ -221,14 +221,16 @@ module PlainText = {
 
   [@react.component]
   let make = (~value: array(t)) => {
-    value
-    |> Array.map(token =>
-         switch (token) {
-         | Text(plainText) => string(plainText)
-         | Range(range) => <Range range />
-         }
-       )
-    |> Util.React.manyIn("span");
+    (
+      value
+      |> Array.map(token =>
+           switch (token) {
+           | Text(plainText) => string(plainText)
+           | Range(range) => <Range range />
+           }
+         )
+    )
+    ->Util.React.manyIn("span");
   };
 };
 

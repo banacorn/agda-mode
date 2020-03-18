@@ -1,5 +1,3 @@
-
-
 open Emacs__Component;
 open Rebase.Option;
 open Rebase;
@@ -22,7 +20,6 @@ let parse: string => array(WarningError.t) =
 
 [@react.component]
 let make = (~body: string) => {
-  parse(body)
-  |> Array.map(value => <WarningError value />)
-  |> Util.React.manyIn("ul");
+  (parse(body) |> Array.map(value => <WarningError value />))
+  ->Util.React.manyIn("ul");
 };

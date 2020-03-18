@@ -19,11 +19,13 @@ module SymbolLookup = {
     };
 
     let candidateSymbols =
-      translation.candidateSymbols
-      |> Array.map(symbol =>
-           <kbd className="inline-block highlight"> {string(symbol)} </kbd>
-         )
-      |> manyIn("div");
+      (
+        translation.candidateSymbols
+        |> Array.map(symbol =>
+             <kbd className="inline-block highlight"> {string(symbol)} </kbd>
+           )
+      )
+      ->manyIn("div");
 
     <section>
       <h2> {string("Symbol lookup")} </h2>
@@ -57,13 +59,15 @@ module KeySequenceLookup = {
       |> Option.forEach(setInput);
     };
     let results =
-      input
-      |> Array.map(sequence =>
-           <span className="inline-block highlight">
-             {string(sequence)}
-           </span>
-         )
-      |> manyIn("span");
+      (
+        input
+        |> Array.map(sequence =>
+             <span className="inline-block highlight">
+               {string(sequence)}
+             </span>
+           )
+      )
+      ->manyIn("span");
 
     <section>
       <h2> {string("Key sequences lookup")} </h2>
@@ -165,13 +169,15 @@ module ExtendKeymap = {
         <div className="sequence"> {string(sequence)} </div>
         <div className="symbols">
           <div className={showWhen(!modifying)}>
-            {symbols
-             |> Array.map(symbol =>
-                  <kbd className="inline-block highlight">
-                    {string(symbol)}
-                  </kbd>
-                )
-             |> manyIn(ReasonReact.fragment)}
+            {(
+               symbols
+               |> Array.map(symbol =>
+                    <kbd className="inline-block highlight">
+                      {string(symbol)}
+                    </kbd>
+                  )
+             )
+             ->manyIn(ReasonReact.fragment)}
           </div>
           <MiniEditor
             hidden={!modifying}
@@ -242,12 +248,14 @@ module ExtendKeymap = {
       );
 
     let items =
-      keymap
-      |> Js.Dict.entries
-      |> Array.map(((sequence, symbols)) =>
-           <ExtensionItem sequence symbols onChange />
-         )
-      |> manyIn2("ul", ReactDOMRe.domProps(~id="extensions", ()));
+      (
+        keymap
+        |> Js.Dict.entries
+        |> Array.map(((sequence, symbols)) =>
+             <ExtensionItem sequence symbols onChange />
+           )
+      )
+      ->manyIn2("ul", ReactDOMRe.domProps(~id="extensions", ()));
 
     <section>
       <h2>
