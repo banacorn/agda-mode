@@ -28,7 +28,11 @@ let make = (~body: string) => {
     : <>
         <p> {string("Definitions about " ++ target ++ ":")} </p>
         <ul>
-          {outputs |> Array.map(value => <Output value />) |> React.array}
+          {outputs
+           |> Array.mapi((value, i) =>
+                <Output key={string_of_int(i)} value />
+              )
+           |> React.array}
         </ul>
       </>;
 };

@@ -7,9 +7,9 @@ module React = {
     | [] => <> </>
     | [x] => x
     | [x, ...xs] =>
-      <span>
-        {[x, ...List.map(xs, i => <> sep i </>)]->List.toArray->React.array}
-      </span>
+      [x, ...List.map(xs, i => <> sep i </>)]
+      ->List.toArray
+      ->ReactDOMRe.createDOMElementVariadic("span", _)
     };
   let sepBy = (sep: reactElement, xs) => xs->List.fromArray->sepBy'(sep);
 

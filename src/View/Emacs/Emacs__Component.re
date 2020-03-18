@@ -1,10 +1,8 @@
-open Rebase.Option;
-// open Util.React;
 open ReasonReact;
 
-open Rebase;
+open Belt;
 
-open Component;
+open! Component;
 
 module Term = {
   type t =
@@ -40,29 +38,35 @@ module Term = {
 module Expr = {
   type t = array(Term.t);
   let toString = xs =>
-    xs |> Array.map(Term.toString) |> List.fromArray |> String.joinWith(" ");
+    xs->Array.map(Term.toString)->Js.String.concatMany(" ");
   let parse = raw => {
     raw
-    |> String.trim
+    ->Js.String.trim
     /*                            1         2                        */
-    |> Js.String.splitByRe([%re "/(\\?\\d+)|(\\_\\d+[^\\}\\)\\s]*)/"])
-    |> Array.mapi((token, i) =>
-         switch (i mod 3) {
-         | 1 =>
-           token
-           |> map(Js.String.sliceToEnd(~from=1))
-           |> flatMap(Parser.int)
-           |> map(x => Term.QuestionMark(x))
-         | 2 => token |> map(x => Term.Underscore(x))
-         | _ => token |> map(x => Term.Plain(x))
-         }
-       )
-    |> Array.filterMap(x => x)
-    |> some;
+    ->Js.String.splitByRe([%re "/(\\?\\d+)|(\\_\\d+[^\\}\\)\\s]*)/"], _)
+    ->Array.mapWithIndex((i, token) =>
+        switch (i mod 3) {
+        | 1 =>
+          token
+          ->Option.map(Js.String.sliceToEnd(~from=1))
+          ->Option.flatMap(Parser.int)
+          ->Option.map(x => Term.QuestionMark(x))
+        | 2 => token->Option.map(x => Term.Underscore(x))
+        | _ => token->Option.map(x => Term.Plain(x))
+        }
+      )
+    ->Array.keepMap(x => x)
+    ->(x => Some(x));
   };
   [@react.component]
   let make = (~expr: t) =>
-    <span> {expr |> Array.map(term => <Term term />) |> React.array} </span>;
+    <span>
+      {expr
+       ->Array.mapWithIndex((i, term) =>
+           <Term key={string_of_int(i)} term />
+         )
+       ->React.array}
+    </span>;
 };
 
 module OutputConstraint = {
@@ -83,57 +87,49 @@ module OutputConstraint = {
     [%re "/^([^\\:]*) \\: ((?:\\n|.)+)/"]
     |> Parser.captures(captured =>
          captured
-         |> Parser.at(2, Expr.parse)
-         |> flatMap(type_ =>
-              captured
-              |> Parser.at(1, Expr.parse)
-              |> flatMap(term => Some(OfType(term, type_)))
-            )
+         ->Parser.at(2, Expr.parse)
+         ->Option.flatMap(type_ =>
+             captured
+             ->Parser.at(1, Expr.parse)
+             ->Option.flatMap(term => Some(OfType(term, type_)))
+           )
        );
   let parseJustType =
     [%re "/^Type ((?:\\n|.)+)/"]
     |> Parser.captures(captured =>
          captured
-         |> Parser.at(1, Expr.parse)
-         |> map(type_ => JustType(type_))
+         ->Parser.at(1, Expr.parse)
+         ->Option.map(type_ => JustType(type_))
        );
   let parseJustSort =
     [%re "/^Sort ((?:\\n|.)+)/"]
     |> Parser.captures(captured =>
-         captured |> Parser.at(1, Expr.parse) |> map(sort => JustSort(sort))
+         captured
+         ->Parser.at(1, Expr.parse)
+         ->Option.map(sort => JustSort(sort))
        );
-  let parseOthers = raw => raw |> Expr.parse |> map(raw' => Others(raw'));
+  let parseOthers = raw => raw->Expr.parse->Option.map(raw' => Others(raw'));
 
   let parse =
     Parser.choice([|parseOfType, parseJustType, parseJustSort, parseOthers|]);
 
   [@react.component]
   let make = (~value: t, ~range: option(Type.Location.Range.t)) => {
+    let range =
+      Option.mapWithDefault(range, null, range => <Range range abbr=true />);
     switch (value) {
     | OfType(e, t) =>
       <li className="output">
         <Expr expr=e />
         {string(" : ")}
         <Expr expr=t />
-        {Option.mapOr(range => <Range range abbr=true />, null, range)}
+        range
       </li>
     | JustType(e) =>
-      <li className="output">
-        {string("Type ")}
-        <Expr expr=e />
-        {Option.mapOr(range => <Range range abbr=true />, null, range)}
-      </li>
+      <li className="output"> {string("Type ")} <Expr expr=e /> range </li>
     | JustSort(e) =>
-      <li className="output">
-        {string("Sort ")}
-        <Expr expr=e />
-        {Option.mapOr(range => <Range range abbr=true />, null, range)}
-      </li>
-    | Others(e) =>
-      <li className="output">
-        <Expr expr=e />
-        {Option.mapOr(range => <Range range abbr=true />, null, range)}
-      </li>
+      <li className="output"> {string("Sort ")} <Expr expr=e /> range </li>
+    | Others(e) => <li className="output"> <Expr expr=e /> range </li>
     };
   };
 };
@@ -161,17 +157,20 @@ module Output = {
       ++ Type.Location.Range.toString(range);
 
   let parseOutputWithoutRange = raw =>
-    raw |> OutputConstraint.parse |> map(x => Output(x, None));
+    raw->OutputConstraint.parse->Option.map(x => Output(x, None));
   let parseOutputWithRange =
     [%re "/((?:\\n|.)*\\S+)\\s*\\[ at ([^\\]]+) \\]/"]
     |> Parser.captures(captured =>
-         flatten(captured[1])
-         |> flatMap(OutputConstraint.parse)
-         |> map(oc => {
-              let r =
-                flatten(captured[2]) |> flatMap(Type.Location.Range.parse);
-              Output(oc, r);
-            })
+         captured[1]
+         ->Option.flatMap(x => x)
+         ->Option.flatMap(OutputConstraint.parse)
+         ->Option.map(oc => {
+             let r =
+               captured[2]
+               ->Option.flatMap(x => x)
+               ->Option.flatMap(Type.Location.Range.parse);
+             Output(oc, r);
+           })
        );
   let parse = raw => {
     let rangeRe = [%re
@@ -179,9 +178,9 @@ module Output = {
     ];
     let hasRange = Js.Re.test_(rangeRe, raw);
     if (hasRange) {
-      raw |> parseOutputWithRange;
+      parseOutputWithRange(raw);
     } else {
-      raw |> parseOutputWithoutRange;
+      parseOutputWithoutRange(raw);
     };
   };
 
@@ -203,32 +202,32 @@ module PlainText = {
     | Range(r) => Type.Location.Range.toString(r);
   let parse = raw =>
     raw
-    |> Js.String.splitByRe(
-         [%re "/(\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/"],
-       )
-    |> Array.filterMap(x => x)
-    |> Array.mapi((token, i) =>
-         switch (i mod 2) {
-         | 1 =>
-           token
-           |> Type.Location.Range.parse
-           |> mapOr(x => Range(x), Text(token))
-         | _ => Text(token)
-         }
-       )
-    |> some;
+    ->Js.String.splitByRe(
+        [%re "/(\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/"],
+        _,
+      )
+    ->Array.keepMap(x => x)
+    ->Array.mapWithIndex((i, token) =>
+        switch (i mod 2) {
+        | 1 =>
+          token
+          ->Type.Location.Range.parse
+          ->Option.mapWithDefault(Text(token), x => Range(x))
+        | _ => Text(token)
+        }
+      )
+    ->(x => Some(x));
 
   [@react.component]
   let make = (~value: array(t)) =>
     <span>
       {value
-       |> Array.map(token =>
-            switch (token) {
-            | Text(plainText) => string(plainText)
-            | Range(range) => <Range range />
-            }
-          )
-       |> React.array}
+       ->Array.mapWithIndex(i =>
+           fun
+           | Text(plainText) => string(plainText)
+           | Range(range) => <Range key={string_of_int(i)} range />
+         )
+       ->React.array}
     </span>;
 };
 
@@ -239,13 +238,15 @@ module WarningError = {
   let toString =
     fun
     | WarningMessage(xs) =>
-      xs |> Array.map(PlainText.toString) |> Util.Pretty.array
+      xs->Array.map(PlainText.toString)->Util.Pretty.array
     | ErrorMessage(xs) =>
-      xs |> Array.map(PlainText.toString) |> Util.Pretty.array;
+      xs->Array.map(PlainText.toString)->Util.Pretty.array;
   let parse = (isWarning, raw) =>
     raw
-    |> PlainText.parse
-    |> map(body => isWarning ? WarningMessage(body) : ErrorMessage(body));
+    ->PlainText.parse
+    ->Option.map(body =>
+        isWarning ? WarningMessage(body) : ErrorMessage(body)
+      );
 
   let parseWarning = parse(true);
 

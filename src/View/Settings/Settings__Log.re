@@ -9,22 +9,34 @@ module Entry = {
     let className = hidden ? "hidden" : "";
     let rawTexts =
       entry.response.rawText
-      |> Array.map(text => <li> {string(text)} </li>)
+      |> Array.mapi((text, i) =>
+           <li key={string_of_int(i)}> {string(text)} </li>
+         )
       |> React.array;
     let sexpressions =
       entry.response.sexpression
-      |> Array.map(text =>
-           <li> {string(Parser.SExpression.toString(text))} </li>
+      |> Array.mapi((text, i) =>
+           <li key={string_of_int(i)}>
+             {string(Parser.SExpression.toString(text))}
+           </li>
          )
       |> React.array;
     let responses =
       entry.response.response
-      |> Array.map(text => <li> {string(Response.toString(text))} </li>)
+      |> Array.mapi((text, i) =>
+           <li key={string_of_int(i)}>
+             {string(Response.toString(text))}
+           </li>
+         )
       |> React.array;
     let hasError = Array.length(entry.response.error) > 0;
     let errors =
       entry.response.error
-      |> Array.map(text => <li> {string(Parser.Error.toString(text))} </li>)
+      |> Array.mapi((text, i) =>
+           <li key={string_of_int(i)}>
+             {string(Parser.Error.toString(text))}
+           </li>
+         )
       |> React.array;
 
     <li className="agda-settings-log-entry">
@@ -58,7 +70,7 @@ let make = (~connection: option(Connection.t), ~hidden) => {
   let entries =
     connection
     |> Option.mapOr(conn => conn.Connection.log, [||])
-    |> Array.map(entry => <Entry entry />)
+    |> Array.mapi((entry, i) => <Entry entry key={string_of_int(i)} />)
     |> React.array;
 
   <section className={"agda-settings-log" ++ showWhen(!hidden)}>

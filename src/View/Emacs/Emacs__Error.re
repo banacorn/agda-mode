@@ -21,5 +21,9 @@ let parse: string => array(WarningError.t) =
 [@react.component]
 let make = (~body: string) =>
   <ul>
-    {parse(body) |> Array.map(value => <WarningError value />) |> React.array}
+    {parse(body)
+     |> Array.mapi((value, i) =>
+          <WarningError key={string_of_int(i)} value />
+        )
+     |> React.array}
   </ul>;

@@ -1,5 +1,4 @@
 open ReasonReact;
-open Rebase;
 
 type t =
   | AllGoalsWarnings(Emacs__AllGoalsWarnings.t)
@@ -23,6 +22,6 @@ let make = (~data: t) => {
   | SearchAbout(body) => <Emacs__SearchAbout body />
   | Error(body) => <Emacs__Error body />
   | ParseError(connection) => <Emacs__ParseError connection />
-  | PlainText(body) => String.isEmpty(body) ? null : <p> {string(body)} </p>
+  | PlainText(body) => body == "" ? null : <p> {string(body)} </p>
   };
 };

@@ -85,12 +85,12 @@ let make = (~body: string) => {
     </ul>
     {<ul>
        {parsed.interactionMetas
-        |> Array.map(value => <Output value />)
+        |> Array.mapi((value, i) => <Output key={string_of_int(i)} value />)
         |> React.array}
      </ul>}
     {<ul>
        {parsed.hiddenMetas
-        |> Array.map(value => <Output value />)
+        |> Array.mapi((value, i) => <Output key={string_of_int(i)} value />)
         |> React.array}
      </ul>}
   </>;

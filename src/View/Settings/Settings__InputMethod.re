@@ -20,8 +20,10 @@ module SymbolLookup = {
 
     let candidateSymbols =
       translation.candidateSymbols
-      |> Array.map(symbol =>
-           <kbd className="inline-block highlight"> {string(symbol)} </kbd>
+      |> Array.mapi((symbol, i) =>
+           <kbd className="inline-block highlight" key={string_of_int(i)}>
+             {string(symbol)}
+           </kbd>
          )
       |> React.array;
 
@@ -58,10 +60,10 @@ module KeySequenceLookup = {
     };
     let results =
       input
-      |> Array.map(sequence =>
-           <span className="inline-block highlight">
+      |> Array.mapi((sequence, i) =>
+           <kbd className="inline-block highlight" key={string_of_int(i)}>
              {string(sequence)}
-           </span>
+           </kbd>
          )
       |> React.array;
 
@@ -167,8 +169,10 @@ module ExtendKeymap = {
           <div className={showWhen(!modifying)}>
             <>
               {symbols
-               |> Array.map(symbol =>
-                    <kbd className="inline-block highlight">
+               |> Array.mapi((symbol, i) =>
+                    <kbd
+                      className="inline-block highlight"
+                      key={string_of_int(i)}>
                       {string(symbol)}
                     </kbd>
                   )
@@ -247,8 +251,13 @@ module ExtendKeymap = {
       <ul id="extensions">
         {keymap
          |> Js.Dict.entries
-         |> Array.map(((sequence, symbols)) =>
-              <ExtensionItem sequence symbols onChange />
+         |> Array.mapi(((sequence, symbols), i) =>
+              <ExtensionItem
+                sequence
+                symbols
+                onChange
+                key={string_of_int(i)}
+              />
             )
          |> React.array}
       </ul>;

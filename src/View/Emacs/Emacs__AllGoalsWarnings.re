@@ -118,16 +118,28 @@ let make = (~value: t) => {
   let {interactionMetas, hiddenMetas, warnings, errors} = value;
   <>
     <ul>
-      {interactionMetas |> Array.map(value => <Output value />) |> React.array}
+      {interactionMetas
+       |> Array.mapi((i, value) => <Output key={string_of_int(i)} value />)
+       |> React.array}
     </ul>
     <ul>
-      {hiddenMetas |> Array.map(value => <Output value />) |> React.array}
+      {hiddenMetas
+       |> Array.mapi((i, value) => <Output key={string_of_int(i)} value />)
+       |> React.array}
     </ul>
     <ul>
-      {warnings |> Array.map(value => <WarningError value />) |> React.array}
+      {warnings
+       |> Array.mapi((i, value) =>
+            <WarningError key={string_of_int(i)} value />
+          )
+       |> React.array}
     </ul>
     <ul>
-      {errors |> Array.map(value => <WarningError value />) |> React.array}
+      {errors
+       |> Array.mapi((i, value) =>
+            <WarningError key={string_of_int(i)} value />
+          )
+       |> React.array}
     </ul>
   </>;
 };

@@ -27,7 +27,7 @@ let captures = (handler, regex, raw) =>
   |> Option.flatMap(handler);
 
 let at =
-    (i: int, parser: string => option('a), captured: array(option(string)))
+    (captured: array(option(string)), i: int, parser: string => option('a))
     : option('a) =>
   if (i >= Array.length(captured)) {
     None;
