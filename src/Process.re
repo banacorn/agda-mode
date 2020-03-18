@@ -1,8 +1,5 @@
 // module for communicating with a process
-
-// open! Rebase;
-open Rebase.Fn;
-
+open Belt;
 // module for auto path searching
 module PathSearch = {
   module Error = {
@@ -56,28 +53,28 @@ module PathSearch = {
           Js.Global.clearTimeout(hangTimeout);
 
           // error
-          switch (Js.Nullable.toOption(error)) {
-          | None => ()
-          | Some(err) =>
-            resolve(
-              Error(
-                Error.NotFound(
-                  name,
-                  err |> Js.Exn.message |> Rebase.Option.getOr(""),
+          error
+          ->Js.Nullable.toOption
+          ->Option.forEach(err => {
+              resolve(
+                Error(
+                  Error.NotFound(
+                    name,
+                    Option.getWithDefault(Js.Exn.message(err), ""),
+                  ),
                 ),
-              ),
-            )
-          };
+              )
+            });
 
           // stderr
           let stderr = Node.Buffer.toString(stderr);
-          if (!Rebase.String.isEmpty(stderr)) {
+          if (stderr != "") {
             resolve(Error(NotFound(name, stderr)));
           };
 
           // stdout
-          let stdout = Node.Buffer.toString(stdout);
-          if (Rebase.String.isEmpty(stdout)) {
+          let stdout = Node.Buffer.toString(stdout)->String.trim;
+          if (stdout == "") {
             resolve(Error(NotFound(name, "")));
           } else {
             resolve(Ok(stdout));
@@ -132,18 +129,18 @@ module Validation = {
       : Promise.t(result('a, Error.t)) => {
     // parsing the parse error
     let parseError = (error: Js.Nullable.t(Js.Exn.t)): option(Error.t) => {
-      switch (Js.Nullable.toOption(error)) {
-      | None => None
-      | Some(err) =>
-        let message = err |> Js.Exn.message |> Rebase.Option.getOr("");
-        if (message |> Js.Re.test_([%re "/No such file or directory/"], _)) {
-          Some(NotFound(err));
-        } else if (message |> Js.Re.test_([%re "/command not found/"], _)) {
-          Some(NotFound(err));
-        } else {
-          Some(ShellError(err));
-        };
-      };
+      error
+      ->Js.Nullable.toOption
+      ->Option.map(err => {
+          let message = Option.getWithDefault(Js.Exn.message(err), "");
+          if (Js.Re.test_([%re "/No such file or directory/"], message)) {
+            Error.NotFound(err);
+          } else if (Js.Re.test_([%re "/command not found/"], message)) {
+            NotFound(err);
+          } else {
+            ShellError(err);
+          };
+        });
     };
 
     let (promise, resolve) = Promise.pending();
@@ -151,7 +148,7 @@ module Validation = {
     let (path, _args) = Parser.commandLine(pathAndParams);
 
     // the path must not be empty
-    if (Rebase.String.isEmpty(path)) {
+    if (path == "") {
       resolve(Error(Error.PathMalformed("the path must not be empty")));
     };
 
@@ -164,20 +161,19 @@ module Validation = {
       (error, stdout, stderr) => {
         // clear timeout as the process has responded
         Js.Global.clearTimeout(hangTimeout);
+
         // parses `error` and rejects it if there's any
-        switch (parseError(error)) {
-        | None => ()
-        | Some(err) => resolve(Error(err))
-        };
+        parseError(error)->Belt.Option.forEach(err => resolve(Error(err)));
 
         // stderr
         let stderr = Node.Buffer.toString(stderr);
-        if (!Rebase.String.isEmpty(stderr)) {
+        if (stderr != "") {
           resolve(Error(ProcessError(stderr)));
         };
 
         // feed the stdout to the validator
-        switch (validator(Node.Buffer.toString(stdout))) {
+        let stdout = Node.Buffer.toString(stdout);
+        switch (validator(stdout)) {
         | Error(err) => resolve(Error(WrongProcess(err)))
         | Ok(result) => resolve(Ok(result))
         };
@@ -329,7 +325,7 @@ let make = (path, args): t => {
       |> ignore;
 
       // trigger `exit`
-      process' |> (Nd.ChildProcess.kill_("SIGTERM") >> ignore);
+      Nd.ChildProcess.kill_("SIGTERM", process') |> ignore;
 
       // resolve on `exit`
       pending.acquire();
