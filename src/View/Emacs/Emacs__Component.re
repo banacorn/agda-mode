@@ -45,7 +45,7 @@ module Expr = {
     raw
     |> String.trim
     /*                            1         2                        */
-    |> Util.safeSplitByRe([%re "/(\\?\\d+)|(\\_\\d+[^\\}\\)\\s]*)/"])
+    |> Js.String.splitByRe([%re "/(\\?\\d+)|(\\_\\d+[^\\}\\)\\s]*)/"])
     |> Array.mapi((token, i) =>
          switch (i mod 3) {
          | 1 =>
@@ -203,7 +203,7 @@ module PlainText = {
     | Range(r) => Type.Location.Range.toString(r);
   let parse = raw =>
     raw
-    |> Util.safeSplitByRe(
+    |> Js.String.splitByRe(
          [%re "/(\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/"],
        )
     |> Array.filterMap(x => x)

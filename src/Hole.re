@@ -33,7 +33,7 @@ module Lexer = {
         let cursor = ref(token.range |> fst);
         let result =
           token.content
-          |> Util.safeSplitByRe(regex)
+          |> Js.String.splitByRe(regex)
           |> Array.filterMap(x => x)
           |> Array.map(content => {
                let type_ = Js.Re.test_(regex, content) ? target : source;

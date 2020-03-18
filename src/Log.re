@@ -17,7 +17,7 @@ module Entry = {
     // indent some paragraph by 4 spaces
     let indent = xs =>
       xs
-      |> Util.safeSplitByRe([%re "/\\n/"])
+      |> Js.String.splitByRe([%re "/\\n/"])
       |> Array.map(Option.mapOr(x => "    " ++ x, ""))
       |> List.fromArray
       |> String.joinWith("\n");

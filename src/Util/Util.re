@@ -2,25 +2,14 @@ open Belt;
 
 module React = {
   open ReasonReact;
-
-  // let manyIn = (elems, elem) =>
-  //   ReactDOMRe.createDOMElementVariadic(
-  //     elem,
-  //     ~props=ReactDOMRe.domProps(),
-  //     elems,
-  //   );
-
-  // let manyIn2 = (elems, elem, props) =>
-  //   ReactDOMRe.createDOMElementVariadic(elem, ~props, elems);
-
   let sepBy' = (item: list(reactElement), sep: reactElement) =>
     switch (item) {
     | [] => <> </>
     | [x] => x
     | [x, ...xs] =>
-        <span>
+      <span>
         {[x, ...List.map(xs, i => <> sep i </>)]->List.toArray->React.array}
-        </span>
+      </span>
     };
   let sepBy = (sep: reactElement, xs) => xs->List.fromArray->sepBy'(sep);
 
@@ -138,23 +127,6 @@ module Dict = {
 };
 
 module List_ = {
-  let sepBy = (sep: 'a, item: list('a)): list('a) =>
-    switch (item) {
-    | [] => []
-    | [x, ...xs] => [x, ...xs->List.map(i => [sep, i])->List.flatten]
-    };
-  let rec init = xs =>
-    switch (xs) {
-    | [] => failwith("init on empty list")
-    | [_] => []
-    | [x, ...xs] => [x, ...init(xs)]
-    };
-  let rec last = xs =>
-    switch (xs) {
-    | [] => failwith("last on empty list")
-    | [x] => x
-    | [_, ...xs] => last(xs)
-    };
   let rec span = (p, xs) =>
     switch (xs) {
     | [] => ([], [])
@@ -179,9 +151,6 @@ module List_ = {
 };
 
 module String = {
-  let toCharArray = (input: string): array(string) => {
-    input |> Js.String.split("");
-  };
   let indexOf = (needle, haystack) => {
     switch (Js.String.indexOf(needle, haystack)) {
     | (-1) => None
@@ -221,15 +190,6 @@ module JsError = {
     "_e.toString()";
   };
 };
-
-/* TODO: https://github.com/BuckleScript/bucklescript/pull/3123 */
-[@bs.send.pipe: Js.String.t]
-external safeSplitByRe: Js_re.t => array(option(Js.String.t)) = "split";
-
-// module Semver = {
-//   [@bs.module "semver"] external gte: (string, string) => bool = "";
-//   [@bs.module "semver"] external coerce: string => string = "";
-// };
 
 module Version = {
   type ordering =

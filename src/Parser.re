@@ -100,7 +100,7 @@ let commandLine = s => {
 };
 
 let split =
-  Util.safeSplitByRe([%re "/\\r\\n|\\n/"])
+  Js.String.splitByRe([%re "/\\r\\n|\\n/"])
   >> Array.map(
        fun
        | None => None
