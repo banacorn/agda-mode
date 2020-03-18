@@ -27,7 +27,8 @@ let make = (~body: string) => {
     ? <p> {string("There are no definitions about " ++ target)} </p>
     : <>
         <p> {string("Definitions about " ++ target ++ ":")} </p>
-        {(outputs |> Array.map(value => <Output value />))
-         ->Util.React.manyIn("ul")}
+        <ul>
+          {outputs |> Array.map(value => <Output value />) |> React.array}
+        </ul>
       </>;
 };

@@ -9,7 +9,7 @@ let parse: string => array(Output.t) =
   };
 
 [@react.component]
-let make = (~body: string) => {
-  (parse(body) |> Array.map(value => <Output value />))
-  ->Util.React.manyIn("ul");
-};
+let make = (~body: string) =>
+  <ul>
+    {parse(body) |> Array.map(value => <Output value />) |> React.array}
+  </ul>;

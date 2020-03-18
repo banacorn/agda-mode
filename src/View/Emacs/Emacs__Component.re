@@ -61,9 +61,8 @@ module Expr = {
     |> some;
   };
   [@react.component]
-  let make = (~expr: t) => {
-    (expr |> Array.map(term => <Term term />))->Util.React.manyIn("span");
-  };
+  let make = (~expr: t) =>
+    <span> {expr |> Array.map(term => <Term term />) |> React.array} </span>;
 };
 
 module OutputConstraint = {
@@ -220,18 +219,17 @@ module PlainText = {
     |> some;
 
   [@react.component]
-  let make = (~value: array(t)) => {
-    (
-      value
-      |> Array.map(token =>
-           switch (token) {
-           | Text(plainText) => string(plainText)
-           | Range(range) => <Range range />
-           }
-         )
-    )
-    ->Util.React.manyIn("span");
-  };
+  let make = (~value: array(t)) =>
+    <span>
+      {value
+       |> Array.map(token =>
+            switch (token) {
+            | Text(plainText) => string(plainText)
+            | Range(range) => <Range range />
+            }
+          )
+       |> React.array}
+    </span>;
 };
 
 module WarningError = {

@@ -19,7 +19,7 @@ let parse: string => array(WarningError.t) =
   };
 
 [@react.component]
-let make = (~body: string) => {
-  (parse(body) |> Array.map(value => <WarningError value />))
-  ->Util.React.manyIn("ul");
-};
+let make = (~body: string) =>
+  <ul>
+    {parse(body) |> Array.map(value => <WarningError value />) |> React.array}
+  </ul>;

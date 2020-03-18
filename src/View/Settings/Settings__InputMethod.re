@@ -19,13 +19,11 @@ module SymbolLookup = {
     };
 
     let candidateSymbols =
-      (
-        translation.candidateSymbols
-        |> Array.map(symbol =>
-             <kbd className="inline-block highlight"> {string(symbol)} </kbd>
-           )
-      )
-      ->manyIn("div");
+      translation.candidateSymbols
+      |> Array.map(symbol =>
+           <kbd className="inline-block highlight"> {string(symbol)} </kbd>
+         )
+      |> React.array;
 
     <section>
       <h2> {string("Symbol lookup")} </h2>
@@ -40,7 +38,7 @@ module SymbolLookup = {
       // adding className="native-key-bindings" tabIndex=(-1) for text copy
       <div
         id="candidate-symbols" className="native-key-bindings" tabIndex=(-1)>
-        candidateSymbols
+        <div> candidateSymbols </div>
       </div>
     </section>;
   };
@@ -59,15 +57,13 @@ module KeySequenceLookup = {
       |> Option.forEach(setInput);
     };
     let results =
-      (
-        input
-        |> Array.map(sequence =>
-             <span className="inline-block highlight">
-               {string(sequence)}
-             </span>
-           )
-      )
-      ->manyIn("span");
+      input
+      |> Array.map(sequence =>
+           <span className="inline-block highlight">
+             {string(sequence)}
+           </span>
+         )
+      |> React.array;
 
     <section>
       <h2> {string("Key sequences lookup")} </h2>
@@ -80,7 +76,7 @@ module KeySequenceLookup = {
         onChange
       />
       <p id="key-sequences" className="native-key-bindings" tabIndex=(-1)>
-        results
+        <span> results </span>
       </p>
     </section>;
   };
@@ -169,15 +165,15 @@ module ExtendKeymap = {
         <div className="sequence"> {string(sequence)} </div>
         <div className="symbols">
           <div className={showWhen(!modifying)}>
-            {(
-               symbols
+            <>
+              {symbols
                |> Array.map(symbol =>
                     <kbd className="inline-block highlight">
                       {string(symbol)}
                     </kbd>
                   )
-             )
-             ->manyIn(ReasonReact.fragment)}
+               |> React.array}
+            </>
           </div>
           <MiniEditor
             hidden={!modifying}
@@ -248,14 +244,14 @@ module ExtendKeymap = {
       );
 
     let items =
-      (
-        keymap
-        |> Js.Dict.entries
-        |> Array.map(((sequence, symbols)) =>
-             <ExtensionItem sequence symbols onChange />
-           )
-      )
-      ->manyIn2("ul", ReactDOMRe.domProps(~id="extensions", ()));
+      <ul id="extensions">
+        {keymap
+         |> Js.Dict.entries
+         |> Array.map(((sequence, symbols)) =>
+              <ExtensionItem sequence symbols onChange />
+            )
+         |> React.array}
+      </ul>;
 
     <section>
       <h2>

@@ -8,31 +8,24 @@ module Entry = {
     let (hidden, setHidden) = Hook.useState(true);
     let className = hidden ? "hidden" : "";
     let rawTexts =
-      (entry.response.rawText |> Array.map(text => <li> {string(text)} </li>))
-      ->Util.React.manyIn("ol");
+      entry.response.rawText
+      |> Array.map(text => <li> {string(text)} </li>)
+      |> React.array;
     let sexpressions =
-      (
-        entry.response.sexpression
-        |> Array.map(text =>
-             <li> {string(Parser.SExpression.toString(text))} </li>
-           )
-      )
-      ->Util.React.manyIn("ol");
+      entry.response.sexpression
+      |> Array.map(text =>
+           <li> {string(Parser.SExpression.toString(text))} </li>
+         )
+      |> React.array;
     let responses =
-      (
-        entry.response.response
-        |> Array.map(text => <li> {string(Response.toString(text))} </li>)
-      )
-      ->Util.React.manyIn("ol");
+      entry.response.response
+      |> Array.map(text => <li> {string(Response.toString(text))} </li>)
+      |> React.array;
     let hasError = Array.length(entry.response.error) > 0;
     let errors =
-      (
-        entry.response.error
-        |> Array.map(text =>
-             <li> {string(Parser.Error.toString(text))} </li>
-           )
-      )
-      ->Util.React.manyIn("ol");
+      entry.response.error
+      |> Array.map(text => <li> {string(Parser.Error.toString(text))} </li>)
+      |> React.array;
 
     <li className="agda-settings-log-entry">
       <h2 onClick={_ => setHidden(!hidden)}>
@@ -40,14 +33,16 @@ module Entry = {
       </h2>
       <section className>
         <h3> {string("raw text")} </h3>
-        rawTexts
+        <ol> rawTexts </ol>
         <hr />
         <h3> {string("s-expression")} </h3>
-        sexpressions
+        <ol> sexpressions </ol>
         <hr />
         <h3> {string("response")} </h3>
-        responses
-        {hasError ? <> <hr /> <h3> {string("error")} </h3> errors </> : null}
+        <ol> responses </ol>
+        {hasError
+           ? <> <hr /> <h3> {string("error")} </h3> <ol> errors </ol> </>
+           : null}
       </section>
     </li>;
   };
@@ -61,12 +56,11 @@ let make = (~connection: option(Connection.t), ~hidden) => {
   |> Option.forEach(conn => conn.Connection.resetLogOnLoad = refreshOnLoad);
 
   let entries =
-    (
-      connection
-      |> Option.mapOr(conn => conn.Connection.log, [||])
-      |> Array.map(entry => <Entry entry />)
-    )
-    ->Util.React.manyIn("ol");
+    connection
+    |> Option.mapOr(conn => conn.Connection.log, [||])
+    |> Array.map(entry => <Entry entry />)
+    |> React.array;
+
   <section className={"agda-settings-log" ++ showWhen(!hidden)}>
     <h1>
       <span className="icon icon-comment-discussion" />
@@ -110,6 +104,6 @@ let make = (~connection: option(Connection.t), ~hidden) => {
          </p>
        : null}
     <hr />
-    entries
+    <ol> entries </ol>
   </section>;
 };

@@ -3,22 +3,24 @@ open Belt;
 module React = {
   open ReasonReact;
 
-  let manyIn = (elems, elem) =>
-    ReactDOMRe.createDOMElementVariadic(
-      elem,
-      ~props=ReactDOMRe.domProps(),
-      elems,
-    );
+  // let manyIn = (elems, elem) =>
+  //   ReactDOMRe.createDOMElementVariadic(
+  //     elem,
+  //     ~props=ReactDOMRe.domProps(),
+  //     elems,
+  //   );
 
-  let manyIn2 = (elems, elem, props) =>
-    ReactDOMRe.createDOMElementVariadic(elem, ~props, elems);
+  // let manyIn2 = (elems, elem, props) =>
+  //   ReactDOMRe.createDOMElementVariadic(elem, ~props, elems);
 
   let sepBy' = (item: list(reactElement), sep: reactElement) =>
     switch (item) {
     | [] => <> </>
     | [x] => x
     | [x, ...xs] =>
-      [x, ...List.map(xs, i => <> sep i </>)]->List.toArray->manyIn("span")
+        <span>
+        {[x, ...List.map(xs, i => <> sep i </>)]->List.toArray->React.array}
+        </span>
     };
   let sepBy = (sep: reactElement, xs) => xs->List.fromArray->sepBy'(sep);
 

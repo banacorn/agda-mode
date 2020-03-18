@@ -83,9 +83,15 @@ let make = (~body: string) => {
       {parsed.have
        |> Option.mapOr(expr => <Labeled label="Have " expr />, null)}
     </ul>
-    {(parsed.interactionMetas |> Array.map(value => <Output value />))
-     ->Util.React.manyIn("ul")}
-    {(parsed.hiddenMetas |> Array.map(value => <Output value />))
-     ->Util.React.manyIn("ul")}
+    {<ul>
+       {parsed.interactionMetas
+        |> Array.map(value => <Output value />)
+        |> React.array}
+     </ul>}
+    {<ul>
+       {parsed.hiddenMetas
+        |> Array.map(value => <Output value />)
+        |> React.array}
+     </ul>}
   </>;
 };
