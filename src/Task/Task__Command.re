@@ -296,7 +296,7 @@ let handle = (command: Command.t): list(Task.t) => {
   | QuerySymbol => [
       WithInstance(
         instance => {
-          let selected = Editors.getSelectedSymbol(instance.editors);
+          let selected = Editors.Selection.getSymbol(instance.editors);
           let getSymbol =
             if (String.isEmpty(String.trim(selected))) {
               instance.view.activate()
@@ -414,7 +414,7 @@ let handle = (command: Command.t): list(Task.t) => {
           if (instance.isLoaded) {
             restoreCursorPosition(
               () =>
-                Editors.getSelectedTextNode(instance.editors)
+                Editors.Selection.getTextNode(instance.editors)
                 ->Promise.resolved,
               instance,
             )
