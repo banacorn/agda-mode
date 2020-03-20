@@ -1,5 +1,4 @@
-open Rebase;
-open Fn;
+open Belt;
 open Atom;
 
 open Js.Promise;
@@ -55,7 +54,7 @@ module Golden = {
       };
 
     let wordsWithSpace = (a, b) => {
-      wordsWithSpace_(a, b) |> Array.map(fromChangeObject);
+      wordsWithSpace_(a, b)->Array.map(fromChangeObject);
     };
 
     // given a list of Diff.t, return the first Added or Removed and the character count before it
@@ -63,18 +62,17 @@ module Golden = {
       // the count of charactors before the first change occured
       let count = ref(0);
       let change = ref(None);
-      diffs
-      |> Array.forEach(diff =>
-           if (Option.isNone(change^)) {
-             switch (diff) {
-             | Added(s) => change := Some(Added(s))
-             | Removed(s) => change := Some(Removed(s))
-             | NoChange(s) => count := count^ + String.length(s)
-             };
-           }
-         );
+      diffs->Array.forEach(diff =>
+        if (Option.isNone(change^)) {
+          switch (diff) {
+          | Added(s) => change := Some(Added(s))
+          | Removed(s) => change := Some(Removed(s))
+          | NoChange(s) => count := count^ + String.length(s)
+          };
+        }
+      );
 
-      change^ |> Option.map(change => (change, count^));
+      (change^)->Option.map(change => (change, count^));
     };
   };
   // get all filepaths of golden tests (asynchronously)
@@ -85,7 +83,7 @@ module Golden = {
       Node.Path.join2(dirname, Node.Path.basename_ext(path, ".in"));
     readdir(. dirname)
     |> then_(paths =>
-         paths |> Array.filter(isInFile) |> Array.map(toBasename) |> resolve
+         paths->Array.keep(isInFile)->Array.map(toBasename)->resolve
        );
   };
 
@@ -95,7 +93,7 @@ module Golden = {
     let isInFile = Js.String.endsWith(".in");
     let toBasename = path =>
       Node.Path.join2(dirname, Node.Path.basename_ext(path, ".in"));
-    readdir(dirname) |> Array.filter(isInFile) |> Array.map(toBasename);
+    readdir(dirname)->Array.keep(isInFile)->Array.map(toBasename);
   };
 
   exception FileMissing(string);
@@ -133,77 +131,79 @@ module Golden = {
   // Golden String -> Promise ()
   let compare = (Golden(_path, actual, expected)) => {
     Diff.wordsWithSpace(actual, expected)
-    |> Diff.firstChange
-    |> Option.forEach(((diff, count)) => {
-         open Diff;
-         let value = Diff.getValue(diff);
+    ->Diff.firstChange
+    ->Option.forEach(((diff, count)) => {
+        open Diff;
+        let value = Diff.getValue(diff);
 
-         let change =
-           String.length(value) > 100
-             ? String.sub(~from=0, ~length=100, value) ++ " ..." : value;
+        let change =
+          Js.String.length(value) > 100
+            ? Js.String.substrAtMost(~from=0, ~length=100, value) ++ " ..."
+            : value;
 
-         let expected' =
-           String.sub(
-             ~from=max(0, count - 50),
-             ~length=50 + String.length(value) + 50,
-             expected,
-           );
+        let expected' =
+          Js.String.substrAtMost(
+            ~from=max(0, count - 50),
+            ~length=50 + String.length(value) + 50,
+            expected,
+          );
 
-         let actual' =
-           String.sub(
-             ~from=max(0, count - 50),
-             ~length=50 + String.length(value) + 50,
-             actual,
-           );
+        let actual' =
+          Js.String.substrAtMost(
+            ~from=max(0, count - 50),
+            ~length=50 + String.length(value) + 50,
+            actual,
+          );
 
-         let message =
-           "\n\nexpected => "
-           ++ expected'
-           ++ "\n\nactual   => "
-           ++ actual'
-           ++ "\n\nchange => ";
+        let message =
+          "\n\nexpected => "
+          ++ expected'
+          ++ "\n\nactual   => "
+          ++ actual'
+          ++ "\n\nchange => ";
 
-         switch (diff) {
-         | Added(_) =>
-           BsMocha.Assert.fail(
-             message
-             ++ " added "
-             ++ change
-             ++ "\n at position "
-             ++ string_of_int(count),
-           )
-         | Removed(_) =>
-           BsMocha.Assert.fail(
-             message
-             ++ " removed "
-             ++ change
-             ++ "\n\n at position "
-             ++ string_of_int(count),
-           )
-         | NoChange(_) => ()
-         };
-       });
+        switch (diff) {
+        | Added(_) =>
+          BsMocha.Assert.fail(
+            message
+            ++ " added "
+            ++ change
+            ++ "\n at position "
+            ++ string_of_int(count),
+          )
+        | Removed(_) =>
+          BsMocha.Assert.fail(
+            message
+            ++ " removed "
+            ++ change
+            ++ "\n\n at position "
+            ++ string_of_int(count),
+          )
+        | NoChange(_) => ()
+        };
+      });
     Js.Promise.resolve();
   };
 };
 
 // join with newlines
-let serialize = List.fromArray >> String.joinWith("\n") >> (x => x ++ "\n");
 
-let serializeWith = f =>
-  Array.map(f) >> List.fromArray >> String.joinWith("\n") >> (x => x ++ "\n");
+let serialize = xs => xs->Array.map(x => x ++ "\n")->Js.String.concatMany("");
 
-let breakInput = (breakpoints: array(int), input: string) => {
-  let breakpoints' = Array.concat(breakpoints, [|0|]);
+let serializeWith = (f, xs) => xs->Array.map(f)->serialize;
+let breakInput = (input: string, breakpoints: array(int)) => {
+  let breakpoints' = Array.concat([|0|], breakpoints);
 
   breakpoints'
-  |> Array.mapi((x: int, i) =>
-       switch (breakpoints'[i + 1]) {
-       | Some(next) => (x, next - x)
-       | None => (x, String.length(input) - x)
-       }
-     )
-  |> Array.map(((from, length)) => String.sub(~from, ~length, input));
+  ->Array.mapWithIndex((i, x: int) =>
+      switch (breakpoints'[i + 1]) {
+      | Some(next) => (x, next - x)
+      | None => (x, Js.String.length(input) - x)
+      }
+    )
+  ->Array.map(((from, length)) =>
+      Js.String.substrAtMost(~from, ~length, input)
+    );
 };
 
 module View = {
@@ -212,37 +212,37 @@ module View = {
   external asElement: HtmlElement.t_htmlElement => Element.t = "%identity";
 
   let childHtmlElements: HtmlElement.t => array(HtmlElement.t) =
-    HtmlElement.childNodes
-    >> NodeList.toArray
-    >> Array.filterMap(HtmlElement.ofNode);
+    elem =>
+      elem
+      ->HtmlElement.childNodes
+      ->NodeList.toArray
+      ->Array.keepMap(HtmlElement.ofNode);
 
   // exception PanelContainerNotFound;
 
   // get all panel containers at bottom
   let getPanelContainersAtBottom = () => {
     Workspace.getBottomPanels()
-    |> Array.map(Views.getView)
-    |> Array.flatMap(childHtmlElements)
-    |> Array.filter(elem =>
-         elem |> HtmlElement.className == "agda-mode-panel-container"
-       );
+    ->Array.map(Views.getView)
+    ->Array.map(childHtmlElements)
+    ->Array.concatMany
+    ->Array.keep(elem =>
+        HtmlElement.className(elem) == "agda-mode-panel-container"
+      );
   };
 
   // get all panel containers in all panes
   let getPanelContainersAtPanes = (): array(HtmlElement.t) => {
     Workspace.getPaneItems()
-    |> Array.map(Views.getView)
-    |> Array.filter(elem =>
-         elem |> HtmlElement.className == "agda-mode-panel-container"
-       );
+    ->Array.map(Views.getView)
+    ->Array.keep(elem =>
+        HtmlElement.className(elem) == "agda-mode-panel-container"
+      );
   };
 
   // get all panel containers
   let getPanelContainers = (): array(HtmlElement.t) =>
-    Js.Array.concat(
-      getPanelContainersAtBottom(),
-      getPanelContainersAtPanes(),
-    );
+    Array.concat(getPanelContainersAtBottom(), getPanelContainersAtPanes());
 
   // get the <Panel> of a given Instance
   exception PanelNotFound;
@@ -252,7 +252,8 @@ module View = {
 
     let panels =
       getPanelContainers()
-      |> Array.flatMap(childHtmlElements >> Array.filter(isTarget));
+      ->Array.map(x => x->childHtmlElements->Array.keep(isTarget))
+      ->Array.concatMany;
 
     switch (panels[0]) {
     | None => reject(PanelNotFound)
@@ -264,13 +265,13 @@ module View = {
   let querySelector =
       (selector: string, elem: HtmlElement.t): Js.Promise.t(HtmlElement.t) => {
     elem
-    |> asElement
-    |> Element.querySelector(selector)
-    |> Option.flatMap(Element.asHtmlElement)
-    |> Option.mapOr(
-         resolve,
-         reject(ElementNotFound("cannot find `" ++ selector ++ "`")),
-       );
+    ->asElement
+    ->Element.querySelector(selector, _)
+    ->Option.flatMap(Element.asHtmlElement)
+    ->Option.mapWithDefault(
+        reject(ElementNotFound("cannot find `" ++ selector ++ "`")),
+        resolve,
+      );
   };
 };
 
@@ -285,7 +286,7 @@ module Path = {
 module File = {
   let open_ = (uri: string): Js.Promise.t(TextEditor.t) =>
     Workspace.openWithURI(uri);
-  let openAsset = Path.asset >> open_;
+  let openAsset = x => x->Path.asset->open_;
 
   let close = (uri: string): Js.Promise.t(bool) => {
     let pane = Workspace.paneForURI(uri);
@@ -303,10 +304,10 @@ module File = {
 
 module Package = {
   let activeNames = () =>
-    Packages.getActivePackages() |> Array.map(Package.name);
+    Packages.getActivePackages()->Array.map(Package.name);
 
   let loadedNames = () =>
-    Packages.getLoadedPackages() |> Array.map(Package.name);
+    Packages.getLoadedPackages()->Array.map(Package.name);
 
   let activate = () => {
     // don't wait for this
@@ -331,7 +332,7 @@ module Package = {
       |> then_(editor => {
            let rec cleanUp = () => {
              TextEditor.setText("", editor);
-             if (!String.isEmpty(TextEditor.getText(editor))) {
+             if (TextEditor.getText(editor) != "") {
                cleanUp();
              } else {
                TextEditor.save(editor);
@@ -342,13 +343,14 @@ module Package = {
     };
     let destroyAllTextEditors = () =>
       Workspace.getPanes()
-      |> Array.flatMap(pane =>
-           pane
-           |> Pane.getItems
-           |> Array.map(item => Pane.destroyItem_(item, true, pane))
-         )
-      |> all
-      |> then_(_ => resolve());
+      ->Array.map(pane =>
+          pane
+          ->Pane.getItems
+          ->Array.map(item => Pane.destroyItem_(item, true, pane))
+        )
+      ->Array.concatMany
+      ->all
+      ->then_(_ => resolve(), _);
 
     resetConfig() |> then_(destroyAllTextEditors) |> then_(clearAllFiles);
   };
@@ -356,8 +358,8 @@ module Package = {
 
 let getInstance = editor => {
   AgdaMode.Instances.get(editor)
-  |> Option.map((instance: Instance.t) => resolve(instance))
-  |> Option.getOr(reject(Exn("instance doesn't exist")));
+  ->Option.map((instance: Instance.t) => resolve(instance))
+  ->Option.getWithDefault(reject(Exn("instance doesn't exist")));
 };
 
 exception DispatchFailure(string);
