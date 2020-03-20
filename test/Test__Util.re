@@ -19,20 +19,64 @@ module Assert = {
 
 module Golden = {
   // bindings for jsdiff
-  type diff = {
-    .
-    "value": string,
-    "added": bool,
-    "removed": bool,
+  module Diff = {
+    type t =
+      | Added(string)
+      | Removed(string)
+      | NoChange(string);
+
+    let getValue =
+      fun
+      | Added(string) => string
+      | Removed(string) => string
+      | NoChange(string) => string;
+
+    type changeObject = {
+      .
+      "value": string,
+      "added": bool,
+      "removed": bool,
+    };
+
+    // [@bs.module "diff"]
+    // external lines: (string, string) => array(t) = "diffLines";
+
+    [@bs.module "diff"]
+    external wordsWithSpace_: (string, string) => array(changeObject) =
+      "diffWordsWithSpace";
+
+    let fromChangeObject = obj =>
+      if (obj##added) {
+        Added(obj##value);
+      } else if (obj##removed) {
+        Removed(obj##value);
+      } else {
+        NoChange(obj##value);
+      };
+
+    let wordsWithSpace = (a, b) => {
+      wordsWithSpace_(a, b) |> Array.map(fromChangeObject);
+    };
+
+    // given a list of Diff.t, return the first Added or Removed and the character count before it
+    let firstChange = diffs => {
+      // the count of charactors before the first change occured
+      let count = ref(0);
+      let change = ref(None);
+      diffs
+      |> Array.forEach(diff =>
+           if (Option.isNone(change^)) {
+             switch (diff) {
+             | Added(s) => change := Some(Added(s))
+             | Removed(s) => change := Some(Removed(s))
+             | NoChange(s) => count := count^ + String.length(s)
+             };
+           }
+         );
+
+      change^ |> Option.map(change => (change, count^));
+    };
   };
-
-  [@bs.module "diff"]
-  external diffLines: (string, string) => array(diff) = "diffLines";
-
-  [@bs.module "diff"]
-  external diffWordsWithSpace: (string, string) => array(diff) =
-    "diffWordsWithSpace";
-
   // get all filepaths of golden tests (asynchronously)
   let getGoldenFilepaths = dirname => {
     let readdir = N.Fs.readdir |> N.Util.promisify;
@@ -88,41 +132,27 @@ module Golden = {
 
   // Golden String -> Promise ()
   let compare = (Golden(_path, actual, expected)) => {
-    // for keeping the count of charactors before the first error occured
-    let erred = ref(false);
-    let count = ref(0);
-    diffWordsWithSpace(expected, actual)
-    |> Array.filter(diff =>
-         if (diff##added || diff##removed) {
-           // erred!
-           if (! erred^) {
-             erred := true;
-           };
-           true;
-         } else {
-           if (! erred^) {
-             count := count^ + String.length(diff##value);
-           };
-           false;
-         }
-       )
-    |> Array.forEach(diff => {
+    Diff.wordsWithSpace(actual, expected)
+    |> Diff.firstChange
+    |> Option.forEach(((diff, count)) => {
+         open Diff;
+         let value = Diff.getValue(diff);
+
          let change =
-           String.length(diff##value) > 100
-             ? String.sub(~from=0, ~length=100, diff##value) ++ " ..."
-             : diff##value;
+           String.length(value) > 100
+             ? String.sub(~from=0, ~length=100, value) ++ " ..." : value;
 
          let expected' =
            String.sub(
-             ~from=max(0, count^ - 50),
-             ~length=50 + String.length(diff##value) + 50,
+             ~from=max(0, count - 50),
+             ~length=50 + String.length(value) + 50,
              expected,
            );
 
          let actual' =
            String.sub(
-             ~from=max(0, count^ - 50),
-             ~length=50 + String.length(diff##value) + 50,
+             ~from=max(0, count - 50),
+             ~length=50 + String.length(value) + 50,
              actual,
            );
 
@@ -132,25 +162,25 @@ module Golden = {
            ++ "\n\nactual   => "
            ++ actual'
            ++ "\n\nchange => ";
-         // let after = "[after]: " ++ lastNormalPiece^ ++ "";
 
-         if (diff##added) {
+         switch (diff) {
+         | Added(_) =>
            BsMocha.Assert.fail(
              message
              ++ " added "
              ++ change
              ++ "\n at position "
-             ++ string_of_int(count^),
-           );
-         };
-         if (diff##removed) {
+             ++ string_of_int(count),
+           )
+         | Removed(_) =>
            BsMocha.Assert.fail(
              message
              ++ " removed "
              ++ change
              ++ "\n\n at position "
-             ++ string_of_int(count^),
-           );
+             ++ string_of_int(count),
+           )
+         | NoChange(_) => ()
          };
        });
     Js.Promise.resolve();
