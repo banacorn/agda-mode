@@ -10,8 +10,8 @@ describe("when parsing source files", () =>
         Golden.readFile(filepath)
         |> then_(raw =>
              raw
-             ->Golden.map(Hole.parse(_, [|0, 1|], Goal.FileType.Agda))
-             ->Golden.map(serializeWith(Hole.toString))
+             ->Golden.map(Hole.parse(_, [|0, 1, 2|], Goal.FileType.Agda))
+             ->Golden.map(serializeWith(Hole.Diff.toString))
              ->Golden.compare
            )
       )

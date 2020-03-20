@@ -1,75 +1,85 @@
-open Rebase;
+open Belt;
 
-type tokenType =
-  | AgdaRaw
-  | Literate
-  | Comment
-  | GoalBracket
-  /* QM: Question marks  */
-  | GoalQMRaw
-  | GoalQM;
+module Token = {
+  type kind =
+    | AgdaRaw
+    | Literate
+    | Comment
+    | GoalBracket
+    /* QM: Question marks  */
+    | GoalQMRaw
+    | GoalQM;
+  type t = {
+    content: string,
+    range: (int, int),
+    kind,
+  };
 
-type token = {
-  content: string,
-  range: (int, int),
-  type_: tokenType,
+  let isHole = token =>
+    switch (token.kind) {
+    | GoalBracket
+    | GoalQM => true
+    | _ => false
+    };
 };
 
 module Lexer = {
-  type t = array(token);
-  /* return */
+  type t = array(Token.t);
+  // return
   let make = (raw: string): t => {
-    [|{content: raw, range: (0, String.length(raw)), type_: AgdaRaw}|];
+    [|{content: raw, range: (0, String.length(raw)), kind: AgdaRaw}|];
   };
-  /* >== */
+  // bind >==
   /* break tokens down into smaller pieces
 
      regex     : regex to perform split on a token
      sourceType: the type of token to look for and perform splitting
      targetType: the type of token given to the splitted tokens when identified */
-  let lex = (regex: Js.Re.t, source: tokenType, target: tokenType, self): t => {
-    let f = token =>
-      if (token.type_ === source) {
-        let cursor = ref(token.range |> fst);
+  let lex = (regex: Js.Re.t, source: Token.kind, target: Token.kind, self): t => {
+    let f = (token: Token.t) =>
+      if (token.kind === source) {
+        let cursor = ref(fst(token.range));
         let result =
           token.content
-          |> Js.String.splitByRe(regex)
-          |> Array.filterMap(x => x)
-          |> Array.map(content => {
-               let type_ = Js.Re.test_(regex, content) ? target : source;
-               let cursorOld = cursor^;
-               cursor := cursor^ + String.length(content);
-               {content, range: (cursorOld, cursor^), type_};
-             });
+          ->Js.String.splitByRe(regex, _)
+          ->Array.keepMap(x => x)
+          ->Array.map(content => {
+              let kind = Js.Re.test_(regex, content) ? target : source;
+              let cursorOld = cursor^;
+              cursor := cursor^ + String.length(content);
+              Token.{content, range: (cursorOld, cursor^), kind};
+            });
         result;
       } else {
         [|token|];
       };
-    self |> Array.flatMap(f);
+    self->Array.map(f)->Array.concatMany;
   };
 
-  let map = (f: token => token, self): t => {
+  // transforms a list of tokens while preserving the ranges
+  let map = (f: Token.t => Token.t, self): t => {
     let delta = ref(0);
-    self
-    |> Array.map(token => {
-         let {content, type_} = f(token);
-         let (start, end_) = token.range;
-         let lengthDiff =
-           String.length(content) - String.length(token.content);
-         let result = {
-           content,
-           range: (start + delta^, end_ + delta^ + lengthDiff),
-           type_,
-         };
-         delta := delta^ + lengthDiff;
-         result;
-       });
+    self->Array.map(token => {
+      let Token.{content, kind} = f(token);
+      let (start, end_) = token.range;
+      let lengthDiff = String.length(content) - String.length(token.content);
+      let result =
+        Token.{
+          content,
+          range: (start + delta^, end_ + delta^ + lengthDiff),
+          kind,
+        };
+      delta := delta^ + lengthDiff;
+      result;
+    });
   };
 
-  let mapOnly = (type_: tokenType, f: token => token, self): t => {
-    self |> map(token => token.type_ === type_ ? f(token) : token);
+  // only apply map(f) on a specific tokenType
+  let mapOnly = (kind: Token.kind, f: Token.t => Token.t, self): t => {
+    self |> map(token => token.kind === kind ? f(token) : token);
   };
 };
+
 module Regex = {
   let texBegin = [%re "/\\\\begin\\{code\\}.*/"];
   let texEnd = [%re "/\\\\end\\{code\\}.*/"];
@@ -83,98 +93,96 @@ module Regex = {
   let goalBracketContent = [%re "/\\{\\!((?:(?!\\!\\})(?:.|\\s))*)\\!\\}/"];
 };
 
-type result = {
-  index: int,
-  modifiedRange: (int, int),
-  originalRange: (int, int),
-  content: string,
-};
-
-let toString = ({index, modifiedRange, originalRange, content}) => {
-  "Hole ["
-  ++ string_of_int(index)
-  ++ "] ("
-  ++ string_of_int(fst(originalRange))
-  ++ ", "
-  ++ string_of_int(snd(originalRange))
-  ++ ") => ("
-  ++ string_of_int(fst(modifiedRange))
-  ++ ", "
-  ++ string_of_int(snd(modifiedRange))
-  ++ ") \""
-  ++ content
-  ++ "\"";
-};
-
-let isHole = token =>
-  switch (token.type_) {
-  | GoalBracket
-  | GoalQM => true
-  | _ => false
+module Diff = {
+  type t = {
+    index: int,
+    modifiedRange: (int, int),
+    originalRange: (int, int),
+    content: string,
   };
+
+  let toString = ({index, modifiedRange, originalRange, content}) => {
+    "Hole ["
+    ++ string_of_int(index)
+    ++ "] ("
+    ++ string_of_int(fst(originalRange))
+    ++ ", "
+    ++ string_of_int(snd(originalRange))
+    ++ ") => ("
+    ++ string_of_int(fst(modifiedRange))
+    ++ ", "
+    ++ string_of_int(snd(modifiedRange))
+    ++ ") \""
+    ++ content
+    ++ "\"";
+  };
+};
+
 let toLines = raw => {
   let cursor = ref(0);
   Js.String.match(
     [%re "/(.*(?:\\r\\n|[\\n\\v\\f\\r\\x85\\u2028\\u2029])?)/g"],
     raw,
   )
-  |> Option.mapOr(
-       lines =>
-         lines
-         |> Array.filter(x => !String.isEmpty(x))
-         |> Array.map(line => {
-              let cursorOld = cursor^;
-              cursor := cursor^ + String.length(line);
-              {
-                content:
-                  raw |> Js.String.substring(~from=cursorOld, ~to_=cursor^),
-                range: (cursorOld, cursor^),
-                type_: Literate,
-              };
-            }),
-       [||],
-     );
+  ->Option.mapWithDefault([||], lines =>
+      lines
+      ->Array.keep(x => x != "")
+      ->Array.map(line => {
+          let cursorOld = cursor^;
+          cursor := cursor^ + String.length(line);
+          Token.{
+            content: Js.String.substring(~from=cursorOld, ~to_=cursor^, raw),
+            range: (cursorOld, cursor^),
+            kind: Literate,
+          };
+        })
+    );
 };
+
 let filterOutTex = raw => {
+  open Token;
   let insideAgda = ref(false);
   raw
-  |> toLines
-  |> Array.map(token => {
-       let {content, range} = token;
-       /* flip `insideAgda` to `false` after "end{code}" */
-       if (Js.Re.test_(Regex.texEnd, content)) {
-         insideAgda := false;
-       };
-       let type_ = insideAgda^ ? AgdaRaw : Literate;
-       /* flip `insideAgda` to `true` after "begin{code}" */
-       if (Js.Re.test_(Regex.texBegin, content)) {
-         insideAgda := true;
-       };
-       {content, type_, range};
-     });
+  ->toLines
+  ->Array.map(token => {
+      let {content, range} = token;
+      /* flip `insideAgda` to `false` after "end{code}" */
+      if (Js.Re.test_(Regex.texEnd, content)) {
+        insideAgda := false;
+      };
+      let kind = insideAgda^ ? AgdaRaw : Literate;
+      /* flip `insideAgda` to `true` after "begin{code}" */
+      if (Js.Re.test_(Regex.texBegin, content)) {
+        insideAgda := true;
+      };
+      {content, kind, range};
+    });
 };
 
 let filterOutMarkdown = raw => {
+  open Token;
   let insideAgda = ref(false);
   raw
-  |> toLines
-  |> Array.map(token => {
-       let {content, range} = token;
-       /* leaving Agda code */
-       if (insideAgda^ && Js.Re.test_(Regex.markdown, content)) {
-         insideAgda := false;
-       };
-       let type_ = insideAgda^ ? AgdaRaw : Literate;
-       /* entering Agda code */
-       if (! insideAgda^ && Js.Re.test_(Regex.markdown, content)) {
-         insideAgda := true;
-       };
-       {content, type_, range};
-     });
+  ->toLines
+  ->Array.map(token => {
+      let {content, range} = token;
+      /* leaving Agda code */
+      if (insideAgda^ && Js.Re.test_(Regex.markdown, content)) {
+        insideAgda := false;
+      };
+      let kind = insideAgda^ ? AgdaRaw : Literate;
+      /* entering Agda code */
+      if (! insideAgda^ && Js.Re.test_(Regex.markdown, content)) {
+        insideAgda := true;
+      };
+      {content, kind, range};
+    });
 };
+
 let parse =
     (raw: string, indices: array(int), fileType: Goal.FileType.t)
-    : array(result) => {
+    : array(Diff.t) => {
+  open Token;
   /* counter for indices */
   let i = ref(0);
   let preprocessed =
@@ -195,9 +203,9 @@ let parse =
 
     content: "{!   !}",
     range: token.range,
-    type_: GoalBracket,
+    kind: GoalBracket,
   };
-  let adjustGoalBracket = (token: token) => {
+  let adjustGoalBracket = (token: Token.t) => {
     /* {!!} => {!   !} */
 
     /* in case that the goal index wasn't given, make it '*' */
@@ -220,55 +228,56 @@ let parse =
     /* calculate how much space we have */
     let content: string =
       Js.Re.exec_(Regex.goalBracketContent, token.content)
-      |> Option.flatMap(result =>
-           Js.Re.captures(result)[1]
-           |> Option.map(Js.Nullable.toOption)
-           |> Option.flatten
-         )
-      |> Option.getOr("");
+      ->Option.flatMap(result =>
+          Js.Re.captures(result)[1]
+          ->Option.map(Js.Nullable.toOption)
+          ->Option.flatMap(x => x)
+        )
+      ->Option.getWithDefault("");
     let actualSpaces =
       content
-      |> Js.String.match([%re "/\\s*$/"])
-      |> Option.flatMap(matches => matches[0] |> Option.map(String.length))
-      |> Option.getOr(0);
+      ->Js.String.match([%re "/\\s*$/"], _)
+      ->Option.flatMap(matches => matches[0]->Option.map(Js.String.length))
+      ->Option.getWithDefault(0);
 
     /* make room for the index, if there's not enough space */
     let newContent =
       if (actualSpaces < requiredSpaces) {
         let padding = Js.String.repeat(requiredSpaces - actualSpaces, "");
-        token.content
-        |> Js.String.replaceByRe(
-             [%re "/\\{!.*!\\}/"],
-             "{!" ++ content ++ padding ++ "!}",
-           );
+
+        Js.String.replaceByRe(
+          [%re "/\\{!.*!\\}/"],
+          "{!" ++ content ++ padding ++ "!}",
+          token.content,
+        );
       } else {
         token.content;
       };
 
     /* update the index */
     i := i^ + 1;
-    {content: newContent, type_: GoalBracket, range: (1, 2)};
+    {content: newContent, kind: GoalBracket, range: (1, 2)};
   };
   let modified =
     original
     |> Lexer.mapOnly(GoalQM, questionMark2GoalBracket)
     |> Lexer.mapOnly(GoalBracket, adjustGoalBracket);
-  let originalHoles = original |> Array.filter(isHole);
-  let modifiedHoles = modified |> Array.filter(isHole);
+  let originalHoles = original->Array.keep(isHole);
+  let modifiedHoles = modified->Array.keep(isHole);
 
   originalHoles
-  |> Array.mapi((token: token, idx) =>
-       switch (modifiedHoles[idx], indices[idx]) {
-       | (Some(modifiedHole), Some(index)) =>
-         let (start, _) = modifiedHole.range;
-         Some({
-           index,
-           originalRange: (start, start + String.length(token.content)),
-           modifiedRange: modifiedHole.range,
-           content: modifiedHole.content,
-         });
-       | _ => None
-       }
-     )
-  |> Array.filterMap(x => x);
+  ->Array.mapWithIndex((idx, token: Token.t) =>
+      switch (modifiedHoles[idx], indices[idx]) {
+      | (Some(modifiedHole), Some(index)) =>
+        let (start, _) = modifiedHole.range;
+        Some({
+          Diff.index,
+          originalRange: (start, start + String.length(token.content)),
+          modifiedRange: modifiedHole.range,
+          content: modifiedHole.content,
+        });
+      | _ => None
+      }
+    )
+  ->Array.keepMap(x => x);
 };

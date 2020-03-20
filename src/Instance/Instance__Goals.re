@@ -90,7 +90,7 @@ let instantiateAll = (indices, instance) => {
   let result = Hole.parse(source, indices, fileType);
   instance.goals =
     result
-    |> Array.map((result: Hole.result) => {
+    |> Array.map((result: Hole.Diff.t) => {
          let start =
            TextBuffer.positionForCharacterIndex(
              fst(result.originalRange),

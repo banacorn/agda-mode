@@ -2,6 +2,10 @@ data ℕ : Set where
   Z : ℕ
   S : ℕ → ℕ
 
+-- the following ? should be expanded in into {!   !}
+-- the comment above should not be affected
+a = ?
+
 _+_ : ℕ → ℕ → ℕ
 Z + y = {!   !}
 S x + y = {!   !}
