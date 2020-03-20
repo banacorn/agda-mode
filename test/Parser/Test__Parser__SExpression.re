@@ -38,9 +38,9 @@ describe("when parsing S-expressions wholly", () =>
         Golden.readFile(filepath)
         |> then_(raw =>
              raw
-             |> Golden.map(parseSExpression([||]))
-             |> Golden.map(serializeWith(Parser.SExpression.toString))
-             |> Golden.compare
+             ->Golden.map(parseSExpression([||]))
+             ->Golden.map(serializeWith(Parser.SExpression.toString))
+             ->Golden.compare
            )
       )
     )
@@ -53,11 +53,11 @@ describe("when parsing S-expressions incrementally", () =>
         Golden.readFile(filepath)
         |> then_(raw =>
              raw
-             |> Golden.map(
-                  parseSExpression([|3, 23, 171, 217, 1234, 2342, 3453|]),
-                )
-             |> Golden.map(serializeWith(Parser.SExpression.toString))
-             |> Golden.compare
+             ->Golden.map(
+                 parseSExpression([|3, 23, 171, 217, 1234, 2342, 3453|]),
+               )
+             ->Golden.map(serializeWith(Parser.SExpression.toString))
+             ->Golden.compare
            )
       )
     )

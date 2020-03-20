@@ -29,13 +29,10 @@ describe("when parsing responses", () =>
         Golden.readFile(filepath)
         |> then_(raw =>
              raw
-             |> Golden.map(x =>
-                  x
-                  |> parseSExpression([||])
-                  |> toResponses
-                  |> serializeWith(Response.toString)
-                )
-             |> Golden.compare
+             ->Golden.map(parseSExpression([||]))
+             ->Golden.map(toResponses)
+             ->Golden.map(serializeWith(Response.toString))
+             ->Golden.compare
            )
       )
     )

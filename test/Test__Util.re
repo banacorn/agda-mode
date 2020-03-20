@@ -104,7 +104,7 @@ module Golden = {
     | Golden(filepath, 'expected, actual);
 
   // (A -> B) -> Golden A -> Golden B
-  let map = (f, Golden(filepath, expected, actual)) => {
+  let map = (Golden(filepath, expected, actual), f) => {
     Golden(filepath, f(expected), actual);
   };
 
@@ -130,6 +130,8 @@ module Golden = {
 
   // Golden String -> Promise ()
   let compare = (Golden(_path, actual, expected)) => {
+    let actual = Js.String.trim(actual);
+    let expected = Js.String.trim(expected);
     Diff.wordsWithSpace(actual, expected)
     ->Diff.firstChange
     ->Option.forEach(((diff, count)) => {
@@ -166,17 +168,17 @@ module Golden = {
         | Added(_) =>
           BsMocha.Assert.fail(
             message
-            ++ " added "
+            ++ " added \""
             ++ change
-            ++ "\n at position "
+            ++ "\"\n at position "
             ++ string_of_int(count),
           )
         | Removed(_) =>
           BsMocha.Assert.fail(
             message
-            ++ " removed "
+            ++ " removed \""
             ++ change
-            ++ "\n\n at position "
+            ++ "\"\n\n at position "
             ++ string_of_int(count),
           )
         | NoChange(_) => ()

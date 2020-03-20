@@ -89,6 +89,23 @@ type result = {
   originalRange: (int, int),
   content: string,
 };
+
+let toString = ({index, modifiedRange, originalRange, content}) => {
+  "Hole ["
+  ++ string_of_int(index)
+  ++ "] ("
+  ++ string_of_int(fst(originalRange))
+  ++ ", "
+  ++ string_of_int(snd(originalRange))
+  ++ ") => ("
+  ++ string_of_int(fst(modifiedRange))
+  ++ ", "
+  ++ string_of_int(snd(modifiedRange))
+  ++ ") \""
+  ++ content
+  ++ "\"";
+};
+
 let isHole = token =>
   switch (token.type_) {
   | GoalBracket
