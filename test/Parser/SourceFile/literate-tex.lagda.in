@@ -1,6 +1,6 @@
 Ignored by Agda.
 
-\begin{code}[ignored by Agda]
+\begin{code}[ignored by Agda] ? {! !}
 module Whatever where
 -- Agda code goes here
 

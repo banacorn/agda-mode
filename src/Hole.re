@@ -118,7 +118,7 @@ module Diff = {
   };
 };
 
-let toLines = raw => {
+let toLiterateTokens = (raw: string): Lexer.t => {
   let cursor = ref(0);
   Js.String.match(
     [%re "/(.*(?:\\r\\n|[\\n\\v\\f\\r\\x85\\u2028\\u2029])?)/g"],
@@ -139,42 +139,44 @@ let toLines = raw => {
     );
 };
 
-let filterOutTex = raw => {
-  open Token;
-  let insideAgda = ref(false);
+// find and mark some tokens as Literate
+let markLiterate = (begin_, end_, raw) => {
+  let previous = ref(false);
+  let current = ref(false);
   raw
-  ->toLines
+  ->toLiterateTokens
   ->Array.map(token => {
+      open Token;
       let {content, range} = token;
-      /* flip `insideAgda` to `false` after "end{code}" */
-      if (Js.Re.test_(Regex.texEnd, content)) {
-        insideAgda := false;
-      };
-      let kind = insideAgda^ ? AgdaRaw : Literate;
-      /* flip `insideAgda` to `true` after "begin{code}" */
-      if (Js.Re.test_(Regex.texBegin, content)) {
-        insideAgda := true;
-      };
-      {content, kind, range};
-    });
-};
 
-let filterOutMarkdown = raw => {
-  open Token;
-  let insideAgda = ref(false);
-  raw
-  ->toLines
-  ->Array.map(token => {
-      let {content, range} = token;
-      /* leaving Agda code */
-      if (insideAgda^ && Js.Re.test_(Regex.markdown, content)) {
-        insideAgda := false;
+      // update the previous line
+      previous := current^;
+
+      if (Js.Re.test_(begin_, content) && !current^) {
+        // entering Agda code
+        current := true;
+      } else if (Js.Re.test_(end_, content) && current^) {
+        // leaving Agda code
+        current := false;
       };
-      let kind = insideAgda^ ? AgdaRaw : Literate;
-      /* entering Agda code */
-      if (! insideAgda^ && Js.Re.test_(Regex.markdown, content)) {
-        insideAgda := true;
-      };
+
+      let insideAgda = previous^ && current^;
+
+      let kind = insideAgda ? AgdaRaw : Literate;
+
+      // // leaving Agda code
+      // // flip `insideAgda` to `false` after the content matches the `end_` rule
+      // if (Js.Re.test_(end_, content) && insideAgda^) {
+      //   insideAgda := false;
+      // };
+      // let kind = insideAgda^ ? AgdaRaw : Literate;
+      // // entering Agda code
+      // // flip `insideAgda` to `true` after the content matches the `begin_` rule
+      // // the flag will only be effective on the next token
+      // if (Js.Re.test_(begin_, content) && !insideAgda^) {
+      //   insideAgda := true;
+      // };
+      Js.log3((Js.Re.test_(begin_, content), Js.Re.test_(end_, content)), kind, content);
       {content, kind, range};
     });
 };
@@ -187,8 +189,8 @@ let parse =
   let i = ref(0);
   let preprocessed =
     switch (fileType) {
-    | LiterateTeX => filterOutTex(raw)
-    | LiterateMarkdown => filterOutMarkdown(raw)
+    | LiterateTeX => markLiterate(Regex.texBegin, Regex.texEnd, raw)
+    | LiterateMarkdown => markLiterate(Regex.markdown, Regex.markdown, raw)
     | _ => Lexer.make(raw)
     };
   /* just lexing, doesn't mess around with raw text, preserves positions */
