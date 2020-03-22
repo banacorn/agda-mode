@@ -15,7 +15,8 @@ module FileType = {
     | Agda
     | LiterateTeX
     | LiterateReStructuredText
-    | LiterateMarkdown;
+    | LiterateMarkdown
+    | LiterateOrg;
   let parse = filepath =>
     if (Js.Re.test_([%re "/\\.lagda.rst$/i"], Parser.filepath(filepath))) {
       LiterateReStructuredText;
@@ -29,6 +30,11 @@ module FileType = {
                  Parser.filepath(filepath),
                )) {
       LiterateTeX;
+    } else if (Js.Re.test_(
+                 [%re "/\\.lagda.org$/i"],
+                 Parser.filepath(filepath),
+               )) {
+      LiterateOrg;
     } else {
       Agda;
     };

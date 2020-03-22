@@ -122,56 +122,59 @@ module Diff = {
   };
 };
 
-let toLiterateTokens = (raw: string): Lexer.t => {
-  let cursor = ref(0);
-  Js.String.match(
-    [%re "/(.*(?:\\r\\n|[\\n\\v\\f\\r\\x85\\u2028\\u2029])?)/g"],
-    raw,
-  )
-  // [\s\.\;\{\}\(\)\@]
-  ->Option.mapWithDefault([||], lines =>
-      lines
-      ->Array.keep(x => x != "")
-      ->Array.map(line => {
-          let cursorOld = cursor^;
-          cursor := cursor^ + String.length(line);
-          Token.{
-            content: Js.String.substring(~from=cursorOld, ~to_=cursor^, raw),
-            range: (cursorOld, cursor^),
-            kind: Literate,
-          };
-        })
-    );
-};
 
-// find and mark some tokens as Literate
+// find and mark some tokens as AgdaRaw/Literate
 let markLiterate = (begin_, end_, raw) => {
+  // split a single string into tokens (Literate)
+  let toLiterateTokens = (raw: string): Lexer.t => {
+    let cursor = ref(0);
+    Js.String.match(
+      [%re "/(.*(?:\\r\\n|[\\n\\v\\f\\r\\x85\\u2028\\u2029])?)/g"],
+      raw,
+    )
+    // [\s\.\;\{\}\(\)\@]
+    ->Option.mapWithDefault([||], lines =>
+        lines
+        ->Array.keep(x => x != "")
+        ->Array.map(line => {
+            let cursorOld = cursor^;
+            cursor := cursor^ + String.length(line);
+            Token.{
+              content: Js.String.substring(~from=cursorOld, ~to_=cursor^, raw),
+              range: (cursorOld, cursor^),
+              kind: Literate,
+            };
+          })
+      );
+  };
+
+
   let previous = ref(false);
   let current = ref(false);
   raw
   ->toLiterateTokens
   ->Array.map(token => {
-      open Token;
-      let {content, range} = token;
+    open Token;
+    let {content, range} = token;
 
-      // update the previous line
-      previous := current^;
+    // update the previous line
+    previous := current^;
 
-      if (Js.Re.test_(begin_, content) && !current^) {
-        // entering Agda code
-        current := true;
-      } else if (Js.Re.test_(end_, content) && current^) {
-        // leaving Agda code
-        current := false;
-      };
+    if (Js.Re.test_(begin_, content) && !current^) {
+      // entering Agda code
+      current := true;
+    } else if (Js.Re.test_(end_, content) && current^) {
+      // leaving Agda code
+      current := false;
+    };
 
-      // to prevent the beginning line (e.g. "\begin{code}") get treated as "insideAgda"
-      let insideAgda = previous^ && current^;
+    // to prevent the beginning line (e.g. "\begin{code}") get treated as "insideAgda"
+    let insideAgda = previous^ && current^;
 
-      let kind = insideAgda ? AgdaRaw : Literate;
+    let kind = insideAgda ? AgdaRaw : Literate;
 
-      {content, kind, range};
-    });
+    {content, kind, range};
+  });
 };
 
 let parse =
@@ -180,6 +183,7 @@ let parse =
   open Token;
   // counter for indices
   let i = ref(0);
+  // processed literate Agda
   let preprocessed =
     switch (fileType) {
     | LiterateTeX => markLiterate(Regex.texBegin, Regex.texEnd, raw)
@@ -190,7 +194,6 @@ let parse =
   let original =
     preprocessed
     |> Lexer.lex(Regex.comment, AgdaRaw, Comment)
-    // |> Lexer.lex(Regex.specialSymbol, AgdaRaw, SpecialSymbol)
     |> Lexer.lex(Regex.goalBracket, AgdaRaw, GoalBracket)
     |> Lexer.lex(Regex.goalQuestionMarkRaw, AgdaRaw, GoalQMRaw)
     |> Lexer.lex(Regex.goalQuestionMark, GoalQMRaw, GoalQM);
