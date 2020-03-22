@@ -84,8 +84,11 @@ module Regex = {
   let texBegin = [%re "/\\\\begin\\{code\\}.*/"];
   let texEnd = [%re "/\\\\end\\{code\\}.*/"];
   let markdown = [%re "/\\`\\`\\`(agda)?/"];
-  let rstBegin = [%re "/^\:\:/"];
+  let rstBegin = [%re "/^\\:\\:/"];
   let rstEnd = [%re "/^[^\\s]/"];
+  let orgBegin = [%re "/\\#\\+begin\\_src agda2/i"];
+  let orgEnd = [%re "/\\#\\+end\\_src/i"];
+  
   let comment = [%re
     "/(--[^\\r\\n]*[\\r\\n])|(\\{-(?:[^-]|[\\r\\n]|(?:-+(?:[^-\\}]|[\\r\\n])))*-+\\})/"
   ];
@@ -158,6 +161,7 @@ module Literate = {
   let markMarkdown = markWithRules(Regex.markdown, Regex.markdown)
   let markTex = markWithRules(Regex.texBegin, Regex.texEnd)
   let markRST = markWithRules(Regex.rstBegin, Regex.rstEnd)
+  let markOrg = markWithRules(Regex.orgBegin, Regex.orgEnd)
 
 };
 
@@ -198,7 +202,8 @@ let parse =
     | LiterateTeX => Literate.markTex( raw)
     | LiterateMarkdown => Literate.markMarkdown(raw)
     | LiterateRST => Literate.markRST(raw)
-    | _ => Lexer.make(raw)
+    | LiterateOrg => Literate.markOrg(raw)
+    | Agda => Lexer.make(raw)
     };
   /* just lexing, doesn't mess around with raw text, preserves positions */
   let original =
