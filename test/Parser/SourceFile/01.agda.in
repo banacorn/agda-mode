@@ -3,9 +3,9 @@ data ℕ : Set where
   S : ℕ → ℕ
 
 -- the following ? should be expanded in into {!   !}
--- the comment above should not be affected
+-- the comment above should not be affected 
 a = ?
 
 _+_ : ℕ → ℕ → ℕ
-Z + y = {!   !}
-S x + y = {!   !}
+Z + y = {! 1 !}
+S x + y = {! 2 !}

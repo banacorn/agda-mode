@@ -87,8 +87,12 @@ module Regex = {
   let comment = [%re
     "/(--[^\\r\\n]*[\\r\\n])|(\\{-(?:[^-]|[\\r\\n]|(?:-+(?:[^-\\}]|[\\r\\n])))*-+\\})/"
   ];
+
+  // // https://agda.readthedocs.io/en/v2.6.1/language/lexical-structure.html#keywords-and-special-symbols
+  // let specialSymbol = [%re "/[\.\;\{\}\(\)\@\"]/"];
+
   let goalBracket = [%re "/(\\{\\!(?:(?!\\!\\})(?:.|\\s))*\\!\\})/"];
-  let goalQuestionMarkRaw = [%re "/([\\s\\(\\{\\_\\;\\.\\\"@]\\?)/"];
+  let goalQuestionMarkRaw = [%re "/(?:[\\s\\(\\{\\_\\;\\.\\\"@]|^)(\\?)(?:[\\s\\(\\{\\_\\;\\.\\\"@]|$)/gm"];
   let goalQuestionMark = [%re "/(\\?)/"];
   let goalBracketContent = [%re "/\\{\\!((?:(?!\\!\\})(?:.|\\s))*)\\!\\}/"];
 };
@@ -124,6 +128,7 @@ let toLiterateTokens = (raw: string): Lexer.t => {
     [%re "/(.*(?:\\r\\n|[\\n\\v\\f\\r\\x85\\u2028\\u2029])?)/g"],
     raw,
   )
+  // [\s\.\;\{\}\(\)\@]
   ->Option.mapWithDefault([||], lines =>
       lines
       ->Array.keep(x => x != "")
@@ -160,23 +165,11 @@ let markLiterate = (begin_, end_, raw) => {
         current := false;
       };
 
+      // to prevent the beginning line (e.g. "\begin{code}") get treated as "insideAgda"
       let insideAgda = previous^ && current^;
 
       let kind = insideAgda ? AgdaRaw : Literate;
 
-      // // leaving Agda code
-      // // flip `insideAgda` to `false` after the content matches the `end_` rule
-      // if (Js.Re.test_(end_, content) && insideAgda^) {
-      //   insideAgda := false;
-      // };
-      // let kind = insideAgda^ ? AgdaRaw : Literate;
-      // // entering Agda code
-      // // flip `insideAgda` to `true` after the content matches the `begin_` rule
-      // // the flag will only be effective on the next token
-      // if (Js.Re.test_(begin_, content) && !insideAgda^) {
-      //   insideAgda := true;
-      // };
-      Js.log3((Js.Re.test_(begin_, content), Js.Re.test_(end_, content)), kind, content);
       {content, kind, range};
     });
 };
@@ -185,7 +178,7 @@ let parse =
     (raw: string, indices: array(int), fileType: Goal.FileType.t)
     : array(Diff.t) => {
   open Token;
-  /* counter for indices */
+  // counter for indices
   let i = ref(0);
   let preprocessed =
     switch (fileType) {
@@ -197,6 +190,7 @@ let parse =
   let original =
     preprocessed
     |> Lexer.lex(Regex.comment, AgdaRaw, Comment)
+    // |> Lexer.lex(Regex.specialSymbol, AgdaRaw, SpecialSymbol)
     |> Lexer.lex(Regex.goalBracket, AgdaRaw, GoalBracket)
     |> Lexer.lex(Regex.goalQuestionMarkRaw, AgdaRaw, GoalQMRaw)
     |> Lexer.lex(Regex.goalQuestionMark, GoalQMRaw, GoalQM);
