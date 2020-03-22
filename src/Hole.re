@@ -84,6 +84,8 @@ module Regex = {
   let texBegin = [%re "/\\\\begin\\{code\\}.*/"];
   let texEnd = [%re "/\\\\end\\{code\\}.*/"];
   let markdown = [%re "/\\`\\`\\`(agda)?/"];
+  let rstBegin = [%re "/^\:\:/"];
+  let rstEnd = [%re "/^[^\\s]/"];
   let comment = [%re
     "/(--[^\\r\\n]*[\\r\\n])|(\\{-(?:[^-]|[\\r\\n]|(?:-+(?:[^-\\}]|[\\r\\n])))*-+\\})/"
   ];
@@ -98,32 +100,33 @@ module Regex = {
 };
 
 module Literate = {
+
+  // split a single string into tokens (Literate)
+  let toLiterateTokens = (raw: string): Lexer.t => {
+    let cursor = ref(0);
+    Js.String.match(
+      [%re "/(.*(?:\\r\\n|[\\n\\v\\f\\r\\x85\\u2028\\u2029])?)/g"],
+      raw,
+    )
+    // [\s\.\;\{\}\(\)\@]
+    ->Option.mapWithDefault([||], lines =>
+        lines
+        ->Array.keep(x => x != "")
+        ->Array.map(line => {
+            let cursorOld = cursor^;
+            cursor := cursor^ + String.length(line);
+            Token.{
+              content: Js.String.substring(~from=cursorOld, ~to_=cursor^, raw),
+              range: (cursorOld, cursor^),
+              kind: Literate,
+            };
+          })
+      );
+  };
+
+
   // find and mark some tokens as AgdaRaw/Literate
   let markWithRules = (begin_, end_, raw) => {
-    // split a single string into tokens (Literate)
-    let toLiterateTokens = (raw: string): Lexer.t => {
-      let cursor = ref(0);
-      Js.String.match(
-        [%re "/(.*(?:\\r\\n|[\\n\\v\\f\\r\\x85\\u2028\\u2029])?)/g"],
-        raw,
-      )
-      // [\s\.\;\{\}\(\)\@]
-      ->Option.mapWithDefault([||], lines =>
-          lines
-          ->Array.keep(x => x != "")
-          ->Array.map(line => {
-              let cursorOld = cursor^;
-              cursor := cursor^ + String.length(line);
-              Token.{
-                content: Js.String.substring(~from=cursorOld, ~to_=cursor^, raw),
-                range: (cursorOld, cursor^),
-                kind: Literate,
-              };
-            })
-        );
-    };
-
-
     let previous = ref(false);
     let current = ref(false);
     raw
@@ -154,6 +157,8 @@ module Literate = {
 
   let markMarkdown = markWithRules(Regex.markdown, Regex.markdown)
   let markTex = markWithRules(Regex.texBegin, Regex.texEnd)
+  let markRST = markWithRules(Regex.rstBegin, Regex.rstEnd)
+
 };
 
 module Diff = {
@@ -192,6 +197,7 @@ let parse =
     switch (fileType) {
     | LiterateTeX => Literate.markTex( raw)
     | LiterateMarkdown => Literate.markMarkdown(raw)
+    | LiterateRST => Literate.markRST(raw)
     | _ => Lexer.make(raw)
     };
   /* just lexing, doesn't mess around with raw text, preserves positions */
