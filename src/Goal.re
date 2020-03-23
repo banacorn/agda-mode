@@ -1,5 +1,5 @@
-open Atom;
-open Rebase;
+open Belt;
+open! Atom;
 
 type t = {
   textEditor: TextEditor.t,
@@ -28,8 +28,8 @@ let removeBoundary = self => {
 /* replace and insert one or more lines of content at the goal
    usage: splitting case */
 let writeLines = (contents: array(string), self) => {
-  let textBuffer = self.textEditor |> TextEditor.getBuffer;
-  let rowNumbers = self.range |> Range.getRows;
+  let textBuffer = TextEditor.getBuffer(self.textEditor);
+  let rowNumbers = Range.getRows(self.range);
   switch (rowNumbers[0]) {
   | None => ()
   | Some(firstRowNumber) =>
@@ -43,10 +43,8 @@ let writeLines = (contents: array(string), self) => {
 
     let indentedContents =
       contents
-      |> Array.map(line => indentSpaces ++ line)
-      |> List.fromArray
-      |> String.joinWith("\n")
-      |> String.concat("\n");
+      ->Array.map(line => indentSpaces ++ line ++ "\n")
+      ->Js.String.concatMany("");
 
     /* delete original rows */
     switch (rowNumbers[Array.length(rowNumbers) - 1]) {
@@ -108,16 +106,14 @@ let writeLambda = (contents: array(string), self) => {
   if (isLambdaWhere) {
     TextEditor.setTextInBufferRange(
       rewriteRange,
-      contents
-      |> List.fromArray
-      |> String.joinWith("\n" ++ Js.String.repeat(indent, " ")),
+      contents->Js.String.concatMany("\n" ++ Js.String.repeat(indent, " ")),
       self.textEditor,
     )
     |> ignore;
   } else {
     TextEditor.setTextInBufferRange(
       rewriteRange,
-      " " ++ (contents |> List.fromArray |> String.joinWith(" ; ")),
+      " " ++ contents->Js.String.concatMany(" ; "),
       self.textEditor,
     )
     |> ignore;
@@ -254,9 +250,7 @@ let selectContent = self => {
   );
 };
 let isEmpty = self => {
-  getContent(self)
-  |> Js.String.replaceByRe([%re "/(\\s|\\\\n)*/"], "")
-  |> String.isEmpty;
+  Js.String.replaceByRe([%re "/(\\s|\\\\n)*/"], "", getContent(self)) == "";
 };
 
 let buildHaskellRange = (old, filepath, self) => {

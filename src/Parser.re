@@ -1,5 +1,4 @@
-open! Rebase;
-open Rebase.Fn;
+open Belt;
 
 // indicates at which stage the parse error happened
 module Error = {
@@ -21,10 +20,10 @@ module Error = {
 
 let captures = (handler, regex, raw) =>
   Js.Re.exec_(regex, raw)
-  |> Option.map(result =>
-       result |> Js.Re.captures |> Array.map(Js.Nullable.toOption)
-     )
-  |> Option.flatMap(handler);
+  ->Option.map(result =>
+      result->Js.Re.captures->Array.map(Js.Nullable.toOption)
+    )
+  ->Option.flatMap(handler);
 
 let at =
     (captured: array(option(string)), i: int, parser: string => option('a))
@@ -32,11 +31,11 @@ let at =
   if (i >= Array.length(captured)) {
     None;
   } else {
-    Option.flatten(captured[i]) |> Option.flatMap(parser);
+    captured[i]->Option.flatMap(x => x)->Option.flatMap(parser);
   };
 
 let choice = (res: array(string => option('a)), raw) =>
-  Array.reduce(
+  Js.Array.reduce(
     (result, parse) =>
       switch (result) {
       /* Done, pass it on */
@@ -69,23 +68,21 @@ let filepath = s => {
   // remove the Windows Bidi control character
   let removedBidi =
     if (Js.String.charCodeAt(0, s) === 8234.0) {
-      s |> Js.String.sliceToEnd(~from=1);
+      Js.String.sliceToEnd(~from=1, s);
     } else {
       s;
     };
 
   // normalize the path with Node.Path.normalize
-  let normalized = removedBidi |> Node.Path.normalize;
+  let normalized = Node.Path.normalize(removedBidi);
 
   // replace Windows' stupid backslash with slash
-  let replaced = normalized |> Js.String.replaceByRe([%re "/\\\\/g"], "/");
+  let replaced = Js.String.replaceByRe([%re "/\\\\/g"], "/", normalized);
 
   replaced;
 };
 
-let agdaOutput = s => {
-  s |> Js.String.replaceByRe([%re "/\\\\n/g"], "\n");
-};
+let agdaOutput = Js.String.replaceByRe([%re "/\\\\n/g"], "\n");
 
 let commandLine = s => {
   let parts =
@@ -95,19 +92,20 @@ let commandLine = s => {
     |> List.fromArray;
   switch (parts) {
   | [] => ("", [||])
-  | [path, ...args] => (filepath(path), Array.fromList(args))
+  | [path, ...args] => (filepath(path), List.toArray(args))
   };
 };
 
-let split =
-  Js.String.splitByRe([%re "/\\r\\n|\\n/"])
-  >> Array.map(
-       fun
-       | None => None
-       | Some("") => None
-       | Some(chunk) => Some(chunk),
-     )
-  >> Array.filterMap(id);
+let split = s =>
+  s
+  ->Js.String.splitByRe([%re "/\\r\\n|\\n/"], _)
+  ->Array.map(
+      fun
+      | None => None
+      | Some("") => None
+      | Some(chunk) => Some(chunk),
+    )
+  ->Array.keepMap(x => x);
 
 module Incr = {
   module Event = {
@@ -152,7 +150,7 @@ module Incr = {
   let feed = (self: t('a, 'e), input: string): unit => {
     // get the existing continuation or initialize a new one
     let continue =
-      self.continuation^ |> Option.getOr(self.initialContinuation);
+      (self.continuation^)->Option.getWithDefault(self.initialContinuation);
 
     // continue parsing with the given continuation
     switch (continue(input)) {
@@ -182,7 +180,7 @@ module SExpression = {
   };
 
   let preprocess = (string: string): result(string, string) =>
-    if (string |> Js.String.substring(~from=0, ~to_=13) === "cannot read: ") {
+    if (Js.String.substring(~from=0, ~to_=13, string) === "cannot read: ") {
       Error(Js.String.sliceToEnd(~from=12, string));
     } else {
       Ok(string);
@@ -191,7 +189,7 @@ module SExpression = {
   let rec flatten: t => array(string) =
     fun
     | A(s) => [|s|]
-    | L(xs) => xs |> Array.flatMap(flatten);
+    | L(xs) => xs->Array.map(flatten)->Array.concatMany;
 
   let parseWithContinuation = (string: string): Incr.continuation(t, Error.t) => {
     let rec parseSExpression =
@@ -289,21 +287,22 @@ module SExpression = {
     let resultAccum: ref(array(result(t, Error.t))) = ref([||]);
     let continuation = ref(None);
     input
-    |> split
-    |> Array.forEach(line => {
-         // get the parsing continuation or initialize a new one
-         let continue = continuation^ |> Option.getOr(parseWithContinuation);
+    ->split
+    ->Array.forEach(line => {
+        // get the parsing continuation or initialize a new one
+        let continue =
+          (continuation^)->Option.getWithDefault(parseWithContinuation);
 
-         // continue parsing with the given continuation
-         switch (continue(line)) {
-         | Error(err) =>
-           resultAccum^ |> Js.Array.push(Rebase.Error(err)) |> ignore
-         | Continue(continue) => continuation := Some(continue)
-         | Done(result) =>
-           resultAccum^ |> Js.Array.push(Rebase.Ok(result)) |> ignore;
-           continuation := None;
-         };
-       });
+        // continue parsing with the given continuation
+        switch (continue(line)) {
+        | Error(err) =>
+          Js.Array.push(Rebase.Error(err), resultAccum^) |> ignore
+        | Continue(continue) => continuation := Some(continue)
+        | Done(result) =>
+          Js.Array.push(Rebase.Ok(result), resultAccum^) |> ignore;
+          continuation := None;
+        };
+      });
     resultAccum^;
   };
 

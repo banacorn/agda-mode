@@ -1,5 +1,4 @@
-open Rebase;
-
+open Belt;
 open Command;
 
 /* Requests to Agda */
@@ -32,17 +31,16 @@ type t =
   | GotoDefinitionGlobal(string);
 
 /* serializes Buffed Command into strings that can be sent to Agda */
-let toAgdaReadableString = (version, filepath, request) => {
+let toAgdaReadableString = (version, filepath: string, request) => {
   let libraryPath: string = {
     let path = Atom.Config.get("agda-mode.libraryPath");
-    path |> Js.Array.unshift(".") |> ignore;
+    Js.Array.unshift(".", path) |> ignore;
     path
-    |> Array.map(x => "\"" ++ Parser.filepath(x) ++ "\"")
-    |> List.fromArray
-    |> String.joinWith(", ");
+    ->Array.map(x => "\"" ++ Parser.filepath(x) ++ "\"")
+    ->Js.String.concatMany(", ");
   };
   /* highlighting method */
-  let highlightingMethod =
+  let highlightingMethod: string =
     switch (Atom.Config.get("agda-mode.highlightingMethod")) {
     | "Direct" => "Direct"
     | _ => "Indirect"
@@ -54,9 +52,9 @@ let toAgdaReadableString = (version, filepath, request) => {
 
   let buildRange = goal =>
     if (Util.Version.gte(version, "2.5.1")) {
-      goal |> Goal.buildHaskellRange(false, filepath);
+      Goal.buildHaskellRange(false, filepath, goal);
     } else {
-      goal |> Goal.buildHaskellRange(true, filepath);
+      Goal.buildHaskellRange(true, filepath, goal);
     };
 
   /* serialization */
@@ -108,7 +106,8 @@ let toAgdaReadableString = (version, filepath, request) => {
     commonPart(None')
     ++ {j|( Cmd_search_about_toplevel $(normalization')  "$(content)" )|j};
 
-  | InferType(normalization, expr, index) =>
+  | InferType(normalization, expr, goal) =>
+    let index = goal.index;
     let normalization' = Normalization.toString(normalization);
     let content = Parser.userInput(expr);
 
