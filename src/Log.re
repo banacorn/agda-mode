@@ -1,6 +1,4 @@
-open Rebase;
-open Rebase.Fn;
-
+open Belt;
 module Entry = {
   type request = Request.t;
   type response = {
@@ -13,15 +11,23 @@ module Entry = {
     request,
     response,
   };
-  let serialize = (self, i) => {
+  let make = cmd => {
+    request: cmd,
+    response: {
+      rawText: [||],
+      sexpression: [||],
+      response: [||],
+      error: [||],
+    },
+  };
+  let serialize = (i, self) => {
     // indent some paragraph by 4 spaces
     let indent = xs =>
       xs
-      |> Js.String.splitByRe([%re "/\\n/"])
-      |> Array.map(Option.mapOr(x => "    " ++ x, ""))
-      |> List.fromArray
-      |> String.joinWith("\n");
-    let fold = (title, text) => {j|<details><summary> $title </summary>
+      ->Js.String.splitByRe([%re "/\\n/"], _)
+      ->Array.map(Option.mapWithDefault(_, "", x => "    " ++ x))
+      ->Js.String.concatMany("\n");
+    let fold = (text, title) => {j|<details><summary> $title </summary>
 <p>
 
 $text
@@ -29,32 +35,29 @@ $text
 </p>
 </details>
 |j};
-    let quote = (title, xs) =>
+    let quote = (xs, title) =>
       xs
-      |> Array.map(x => {j|```
+      ->Array.map(x => {j|```
 $x
 ```
 |j})
-      |> List.fromArray
-      |> String.joinWith("\n")
-      |> fold(title)
-      |> indent;
+      ->Js.String.concatMany("\n")
+      ->fold(title)
+      ->indent;
 
     let request = Request.toString(self.request);
 
-    let rawText = self.response.rawText |> quote("raw text");
+    let rawText = self.response.rawText->quote("raw text");
     let sexpression =
       self.response.sexpression
-      |> Array.map(Parser.SExpression.toString)
-      |> quote("s-expression");
+      ->Array.map(Parser.SExpression.toString)
+      ->quote("s-expression");
     let response =
       self.response.response
-      |> Array.map(Response.toString)
-      |> quote("response");
+      ->Array.map(Response.toString)
+      ->quote("response");
     let error =
-      self.response.error
-      |> Array.map(Parser.Error.toString)
-      |> quote("error");
+      self.response.error->Array.map(Parser.Error.toString)->quote("error");
 
     {j|$i. **$request**
 $rawText
@@ -68,22 +71,14 @@ $error
 type t = array(Entry.t);
 
 let createEntry = (cmd, log) => {
-  let entry: Entry.t = {
-    request: cmd,
-    response: {
-      rawText: [||],
-      sexpression: [||],
-      response: [||],
-      error: [||],
-    },
-  };
+  let entry = Entry.make(cmd);
   Js.Array.push(entry, log) |> ignore;
 };
 
 let updateLatestEntry = (f: Entry.t => unit, log) => {
   let n = Array.length(log);
   let lastEntry = log[n - 1];
-  lastEntry |> Option.forEach(f);
+  lastEntry->Option.forEach(f);
 };
 
 let logRawText = text =>
@@ -104,5 +99,5 @@ let logResponse = text =>
 let logError = text =>
   updateLatestEntry(log => Js.Array.push(text, log.response.error) |> ignore);
 
-let serialize =
-  Array.mapi(Entry.serialize) >> List.fromArray >> String.joinWith("\n");
+let serialize = x =>
+  x->Array.mapWithIndex(Entry.serialize)->Js.String.concatMany("\n");

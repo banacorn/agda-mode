@@ -1,4 +1,4 @@
-open Rebase;
+open Belt;
 
 type removeTokenBasedHighlighting =
   | Remove
@@ -42,52 +42,52 @@ module Annotation = {
           L([|A(filepath), _, A(index')|]),
         |] =>
         Parser.int(start')
-        |> Option.flatMap(start =>
-             Parser.int(end_')
-             |> Option.flatMap(end_ =>
-                  Parser.int(index')
-                  |> Option.flatMap(index =>
-                       Some({
-                         start,
-                         end_,
-                         types: flatten(types),
-                         source: Some((filepath, index)),
-                       })
-                     )
-                )
-           )
+        ->Option.flatMap(start =>
+            Parser.int(end_')
+            ->Option.flatMap(end_ =>
+                Parser.int(index')
+                ->Option.map(index =>
+                    {
+                      start,
+                      end_,
+                      types: flatten(types),
+                      source: Some((filepath, index)),
+                    }
+                  )
+              )
+          )
 
       | [|A(start'), A(end_'), types|] =>
         Parser.int(start')
-        |> Option.flatMap(start =>
-             Parser.int(end_')
-             |> Option.flatMap(end_ =>
-                  Some({start, end_, types: flatten(types), source: None})
-                )
-           )
+        ->Option.flatMap(start =>
+            Parser.int(end_')
+            ->Option.map(end_ =>
+                {start, end_, types: flatten(types), source: None}
+              )
+          )
       | [|A(start'), A(end_'), types, _|] =>
         Parser.int(start')
-        |> Option.flatMap(start =>
-             Parser.int(end_')
-             |> Option.flatMap(end_ =>
-                  Some({start, end_, types: flatten(types), source: None})
-                )
-           )
+        ->Option.flatMap(start =>
+            Parser.int(end_')
+            ->Option.map(end_ =>
+                {start, end_, types: flatten(types), source: None}
+              )
+          )
       | _ => None
       };
   let parseDirectHighlightings: array(Token.t) => array(t) =
     tokens => {
       tokens
-      |> Js.Array.sliceFrom(2)
-      |> Array.map(parse)
-      |> Array.filterMap(x => x);
+      ->Js.Array.sliceFrom(2, _)
+      ->Array.map(parse)
+      ->Array.keepMap(x => x);
     };
   let parseIndirectHighlightings: array(Token.t) => array(t) =
     tokens =>
       tokens
-      |> Js.Array.sliceFrom(1)
-      |> Array.map(parse)
-      |> Array.filterMap(x => x);
+      ->Js.Array.sliceFrom(1, _)
+      ->Array.map(parse)
+      ->Array.keepMap(x => x);
   /* the type of annotations that we want to highlight */
   let shouldHighlight: t => bool =
     annotation => {
