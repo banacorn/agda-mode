@@ -65,25 +65,24 @@ module Lexer = {
      regex     : regex to perform split on a token
      sourceType: the type of token to look for and perform splitting
      targetType: the type of token given to the splitted tokens when identified */
-  let lex = (regex: Js.Re.t, source: Token.kind, target: Token.kind, self): t => {
+  let lex =
+      (regex: Js.Re.t, source: Token.kind, target: Token.kind, tokens): t => {
     let f = (token: Token.t) =>
       if (token.kind === source) {
         let cursor = ref(fst(token.range));
-        let result =
-          token.content
-          ->Js.String.splitByRe(regex, _)
-          ->Array.keepMap(x => x)
-          ->Array.map(content => {
-              let kind = Js.Re.test_(regex, content) ? target : source;
-              let cursorOld = cursor^;
-              cursor := cursor^ + String.length(content);
-              Token.{content, range: (cursorOld, cursor^), kind};
-            });
-        result;
+        token.content
+        ->Js.String.splitByRe(regex, _)
+        ->Array.keepMap(x => x)
+        ->Array.map(content => {
+            let kind = Js.Re.test_(regex, content) ? target : source;
+            let cursorOld = cursor^;
+            cursor := cursor^ + String.length(content);
+            Token.{content, range: (cursorOld, cursor^), kind};
+          });
       } else {
         [|token|];
       };
-    self->Array.map(f)->Array.concatMany;
+    tokens->Array.map(f)->Array.concatMany;
   };
 
   // transforms a list of tokens while preserving the ranges
@@ -128,7 +127,7 @@ module Regex = {
 
   let goalBracket = [%re "/(\\{\\!(?:(?!\\!\\})(?:.|\\s))*\\!\\})/"];
   let goalQuestionMarkRaw = [%re
-    "/(?:[\\s\\(\\{\\_\\;\\.\\\"@]|^)(\\?)(?:[\\s\\(\\{\\_\\;\\.\\\"@]|$)/gm"
+    "/([\\s\\(\\{\\_\\;\\.\\\"@]|^)(\\?)([\\s\\(\\{\\_\\;\\.\\\"@]|$)/gm"
   ];
   let goalQuestionMark = [%re "/(\\?)/"];
   let goalBracketContent = [%re "/\\{\\!((?:(?!\\!\\})(?:.|\\s))*)\\!\\}/"];
@@ -239,7 +238,6 @@ let parse =
   let original =
     preprocessed
     |> Lexer.lex(Regex.comment, AgdaRaw, Comment)
-    // |> Lexer.lex(Regex.specialSymbol, AgdaRaw, SpecialSymbol)
     |> Lexer.lex(Regex.goalBracket, AgdaRaw, GoalBracket)
     |> Lexer.lex(Regex.goalQuestionMarkRaw, AgdaRaw, GoalQMRaw)
     |> Lexer.lex(Regex.goalQuestionMark, GoalQMRaw, GoalQM);
@@ -303,6 +301,7 @@ let parse =
     i := i^ + 1;
     {content: newContent, kind: GoalBracket, range: (1, 2)};
   };
+
   let modified =
     original
     |> Lexer.mapOnly(GoalQM, questionMark2GoalBracket)
