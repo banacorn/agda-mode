@@ -1,5 +1,35 @@
 open Belt;
 
+module FileType = {
+  type t =
+    | Agda
+    | LiterateTeX
+    | LiterateRST
+    | LiterateMarkdown
+    | LiterateOrg;
+  let parse = filepath =>
+    if (Js.Re.test_([%re "/\\.lagda.rst$/i"], Parser.filepath(filepath))) {
+      LiterateRST;
+    } else if (Js.Re.test_(
+                 [%re "/\\.lagda.md$/i"],
+                 Parser.filepath(filepath),
+               )) {
+      LiterateMarkdown;
+    } else if (Js.Re.test_(
+                 [%re "/\\.lagda.tex$|\\.lagda$/i"],
+                 Parser.filepath(filepath),
+               )) {
+      LiterateTeX;
+    } else if (Js.Re.test_(
+                 [%re "/\\.lagda.org$/i"],
+                 Parser.filepath(filepath),
+               )) {
+      LiterateOrg;
+    } else {
+      Agda;
+    };
+};
+
 module Token = {
   type kind =
     | AgdaRaw
@@ -88,7 +118,7 @@ module Regex = {
   let rstEnd = [%re "/^[^\\s]/"];
   let orgBegin = [%re "/\\#\\+begin\\_src agda2/i"];
   let orgEnd = [%re "/\\#\\+end\\_src/i"];
-  
+
   let comment = [%re
     "/(--[^\\r\\n]*[\\r\\n])|(\\{-(?:[^-]|[\\r\\n]|(?:-+(?:[^-\\}]|[\\r\\n])))*-+\\})/"
   ];
@@ -97,15 +127,16 @@ module Regex = {
   // let specialSymbol = [%re "/[\.\;\{\}\(\)\@\"]/"];
 
   let goalBracket = [%re "/(\\{\\!(?:(?!\\!\\})(?:.|\\s))*\\!\\})/"];
-  let goalQuestionMarkRaw = [%re "/(?:[\\s\\(\\{\\_\\;\\.\\\"@]|^)(\\?)(?:[\\s\\(\\{\\_\\;\\.\\\"@]|$)/gm"];
+  let goalQuestionMarkRaw = [%re
+    "/(?:[\\s\\(\\{\\_\\;\\.\\\"@]|^)(\\?)(?:[\\s\\(\\{\\_\\;\\.\\\"@]|$)/gm"
+  ];
   let goalQuestionMark = [%re "/(\\?)/"];
   let goalBracketContent = [%re "/\\{\\!((?:(?!\\!\\})(?:.|\\s))*)\\!\\}/"];
 };
 
 module Literate = {
-
   // split a single string into tokens (Literate)
-  let toLiterateTokens = (raw: string): Lexer.t => {
+  let toTokens = (raw: string): Lexer.t => {
     let cursor = ref(0);
     Js.String.match(
       [%re "/(.*(?:\\r\\n|[\\n\\v\\f\\r\\x85\\u2028\\u2029])?)/g"],
@@ -119,7 +150,8 @@ module Literate = {
             let cursorOld = cursor^;
             cursor := cursor^ + String.length(line);
             Token.{
-              content: Js.String.substring(~from=cursorOld, ~to_=cursor^, raw),
+              content:
+                Js.String.substring(~from=cursorOld, ~to_=cursor^, raw),
               range: (cursorOld, cursor^),
               kind: Literate,
             };
@@ -127,42 +159,40 @@ module Literate = {
       );
   };
 
-
   // find and mark some tokens as AgdaRaw/Literate
   let markWithRules = (begin_, end_, raw) => {
     let previous = ref(false);
     let current = ref(false);
     raw
-    ->toLiterateTokens
+    ->toTokens
     ->Array.map(token => {
-      open Token;
-      let {content, range} = token;
+        open Token;
+        let {content, range} = token;
 
-      // update the previous line
-      previous := current^;
+        // update the previous line
+        previous := current^;
 
-      if (Js.Re.test_(begin_, content) && !current^) {
-        // entering Agda code
-        current := true;
-      } else if (Js.Re.test_(end_, content) && current^) {
-        // leaving Agda code
-        current := false;
-      };
+        if (Js.Re.test_(begin_, content) && ! current^) {
+          // entering Agda code
+          current := true;
+        } else if (Js.Re.test_(end_, content) && current^) {
+          // leaving Agda code
+          current := false;
+        };
 
-      // to prevent the beginning line (e.g. "\begin{code}") get treated as "insideAgda"
-      let insideAgda = previous^ && current^;
+        // to prevent the beginning line (e.g. "\begin{code}") get treated as "insideAgda"
+        let insideAgda = previous^ && current^;
 
-      let kind = insideAgda ? AgdaRaw : Literate;
+        let kind = insideAgda ? AgdaRaw : Literate;
 
-      {content, kind, range};
-    });
+        {content, kind, range};
+      });
   };
 
-  let markMarkdown = markWithRules(Regex.markdown, Regex.markdown)
-  let markTex = markWithRules(Regex.texBegin, Regex.texEnd)
-  let markRST = markWithRules(Regex.rstBegin, Regex.rstEnd)
-  let markOrg = markWithRules(Regex.orgBegin, Regex.orgEnd)
-
+  let markMarkdown = markWithRules(Regex.markdown, Regex.markdown);
+  let markTex = markWithRules(Regex.texBegin, Regex.texEnd);
+  let markRST = markWithRules(Regex.rstBegin, Regex.rstEnd);
+  let markOrg = markWithRules(Regex.orgBegin, Regex.orgEnd);
 };
 
 module Diff = {
@@ -191,15 +221,15 @@ module Diff = {
 };
 
 let parse =
-    (raw: string, indices: array(int), fileType: Goal.FileType.t)
-    : array(Diff.t) => {
+    (indices: array(int), filepath: string, raw: string): array(Diff.t) => {
   open Token;
   // counter for indices
   let i = ref(0);
   // processed literate Agda
+  let fileType = FileType.parse(filepath);
   let preprocessed =
     switch (fileType) {
-    | LiterateTeX => Literate.markTex( raw)
+    | LiterateTeX => Literate.markTex(raw)
     | LiterateMarkdown => Literate.markMarkdown(raw)
     | LiterateRST => Literate.markRST(raw)
     | LiterateOrg => Literate.markOrg(raw)

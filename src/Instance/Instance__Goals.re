@@ -86,11 +86,9 @@ let instantiateAll = (indices, instance) => {
   let textBuffer = TextEditor.getBuffer(textEditor);
 
   let source = TextEditor.getText(textEditor);
-  let fileType = Goal.FileType.parse(filePath);
-  let result = Hole.parse(source, indices, fileType);
   instance.goals =
-    result
-    |> Array.map((result: Hole.Diff.t) => {
+    SourceFile.parse(indices, filePath, source)
+    |> Array.map((result: SourceFile.Diff.t) => {
          let start =
            TextBuffer.positionForCharacterIndex(
              fst(result.originalRange),

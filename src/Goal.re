@@ -10,36 +10,6 @@ type t = {
   mutable disposables: CompositeDisposable.t,
 };
 
-module FileType = {
-  type t =
-    | Agda
-    | LiterateTeX
-    | LiterateRST
-    | LiterateMarkdown
-    | LiterateOrg;
-  let parse = filepath =>
-    if (Js.Re.test_([%re "/\\.lagda.rst$/i"], Parser.filepath(filepath))) {
-      LiterateRST;
-    } else if (Js.Re.test_(
-                 [%re "/\\.lagda.md$/i"],
-                 Parser.filepath(filepath),
-               )) {
-      LiterateMarkdown;
-    } else if (Js.Re.test_(
-                 [%re "/\\.lagda.tex$|\\.lagda$/i"],
-                 Parser.filepath(filepath),
-               )) {
-      LiterateTeX;
-    } else if (Js.Re.test_(
-                 [%re "/\\.lagda.org$/i"],
-                 Parser.filepath(filepath),
-               )) {
-      LiterateOrg;
-    } else {
-      Agda;
-    };
-};
-
 /* restore the content of the hole in the range */
 let restoreBoundary = (self, range) => {
   TextEditor.setTextInBufferRange(range, self.content, self.textEditor)
