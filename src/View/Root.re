@@ -14,21 +14,25 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
 
   let (settingsElement, setSettingsElement) = Hook.useState(None);
 
-  let update =
+  let updateSettings =
     fun
     | None => {
+        // update settingsViewRef
         React.Ref.setCurrent(settingsViewRef, None);
+        // update settingsElement
+        setSettingsElement(None);
+        // update settingsURI
         setSettingsURI(Settings.URI.Root);
       }
     | Some((uri, tab)) => {
+        // update settingsViewRef
         React.Ref.setCurrent(settingsViewRef, Some(tab));
-
-        // force-update settingsElement
+        // update settingsElement
         settingsViewRef
         |> React.Ref.current
         |> Option.map(Tab.getElement)
         |> setSettingsElement;
-
+        // update settingsURI
         setSettingsURI(uri);
       };
 
@@ -41,7 +45,7 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
       // Open => Close
       | Some(tab) =>
         Tab.kill(tab);
-        update(None);
+        updateSettings(None);
         Promise.resolved();
       }
     | Some(address) =>
@@ -56,10 +60,10 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
               () => "[Settings] " ++ Atom.TextEditor.getTitle(editors.source),
             ~path="settings",
             ~onOpen=(_, _, _) => resource.supply(),
-            ~onClose=_ => update(None),
+            ~onClose=_ => updateSettings(None),
             (),
           );
-        update(Some((address, tab)));
+        updateSettings(Some((address, tab)));
         resource.acquire();
       // Open => Open
       | Some(_) => Promise.resolved()
