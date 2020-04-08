@@ -59,7 +59,7 @@ describe("View", () => {
            })
       );
 
-      it("should close the tab when docked at pane", () =>
+      it_skip("should close the tab when docked at pane", () =>
         openAndLoad("Temp.agda")
         |> then_(dispatch("agda-mode:toggle-docking"))
         |> then_(close)
