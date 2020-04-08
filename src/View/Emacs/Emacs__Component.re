@@ -203,7 +203,9 @@ module PlainText = {
   let parse = raw =>
     raw
     ->Js.String.splitByRe(
-        [%re "/(\\S+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/"],
+        [%re
+          "/([^\\(\\)\\s]+\\:(?:\\d+\\,\\d+\\-\\d+\\,\\d+|\\d+\\,\\d+\\-\\d+))/"
+        ],
         _,
       )
     ->Array.keepMap(x => x)
