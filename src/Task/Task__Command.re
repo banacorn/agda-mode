@@ -22,7 +22,7 @@ let handle = (command: Command.t): list(Task.t) => {
         },
       ),
       Display(
-        "Connecting ...",
+        "Loading ...",
         Type.View.Header.PlainText,
         Emacs(PlainText("")),
       ),
