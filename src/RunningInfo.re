@@ -1,17 +1,15 @@
-open Rebase;
 open Atom;
-open Async;
 
 type t = {
   mutable editor: option(TextEditor.t),
   mutable isOpeningEditor: bool,
-  mutable buffer: list(string),
+  mutable buffer: array(string),
   mutable subscriptions: CompositeDisposable.t,
 };
 let make = () => {
   editor: None,
   isOpeningEditor: false,
-  buffer: [],
+  buffer: [||],
   subscriptions: CompositeDisposable.make(),
 };
 
@@ -29,7 +27,7 @@ let itemOptions = {
 let destroy = self => {
   self.editor = None;
   self.isOpeningEditor = false;
-  self.buffer = [];
+  self.buffer = [||];
   self.subscriptions |> CompositeDisposable.dispose;
 };
 
@@ -37,30 +35,35 @@ let add = (info, self) =>
   switch (self.editor) {
   | Some(editor) =>
     editor |> TextEditor.insertText(info) |> ignore;
-    resolve();
+    Promise.resolved();
   | None =>
     if (self.isOpeningEditor) {
-      self.buffer = [info, ...self.buffer];
-      resolve();
+      Js.Array.unshift(info, self.buffer) |> ignore;
+      Promise.resolved();
     } else {
       self.isOpeningEditor = true;
       let itemURI = "agda-mode://running-info";
+
       Workspace.open_(itemURI, itemOptions)
-      |> fromPromise
-      |> thenOk(newItem => {
-           self.isOpeningEditor = false;
-           // register the newly opened editor
-           self.editor = Some(newItem);
-           // insert logs in buffer to the editor and clean the buffer
-           newItem
-           |> TextEditor.insertText(String.join(self.buffer))
-           |> ignore;
-           self.buffer = [];
-           // destroy everything on close
-           newItem
-           |> TextEditor.onDidDestroy(() => self |> destroy)
-           |> CompositeDisposable.add(self.subscriptions);
-           resolve();
-         });
+      ->Promise.Js.fromBsPromise
+      ->Promise.Js.toResult
+      ->Promise.mapOk(newItem => {
+          self.isOpeningEditor = false;
+          // register the newly opened editor
+          self.editor = Some(newItem);
+          // insert logs in buffer to the editor and clean the buffer
+          TextEditor.insertText(
+            Js.String.concatMany(self.buffer, ""),
+            newItem,
+          )
+          |> ignore;
+          // empty the buffer
+          self.buffer = [||];
+          // destroy everything on close
+
+          TextEditor.onDidDestroy(() => self |> destroy, newItem)
+          |> CompositeDisposable.add(self.subscriptions);
+        })
+      ->Promise.map(_ => ());
     }
   };

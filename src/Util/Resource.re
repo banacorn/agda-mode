@@ -1,10 +1,10 @@
-open Rebase;
+open Belt;
 
-type t('a, 'e) = {
-  acquire: unit => Async.t('a, 'e),
+type t('a) = {
+  acquire: unit => Promise.t('a),
   supply: 'a => unit,
 };
-let make = (): t('a, 'e) => {
+let make = (): t('a) => {
   // resource that is temporarily unavailable
   let resource = ref(None: option('a));
   // queue of callbacks waiting to be resolved
@@ -12,13 +12,16 @@ let make = (): t('a, 'e) => {
   // return the resource if it's immediately available, else waits in the queue
   let acquire = () =>
     switch (resource^) {
-    | None => Async.make((resolve, _) => queue := [resolve, ...queue^])
-    | Some(x) => Async.resolve(x)
+    | None =>
+      let (promise, resolve) = Promise.pending();
+      queue := [resolve, ...queue^];
+      promise;
+    | Some(x) => Promise.resolved(x)
     };
   // iterate through the list of waiting callbacks and resolve them
   let supply = x => {
     resource := Some(x);
-    queue^ |> List.forEach(resolve => resolve(x));
+    (queue^)->List.forEach(resolve => resolve(x));
   };
   {acquire, supply};
 };

@@ -1,7 +1,5 @@
 open Rebase;
 open Fn;
-
-open BsChai.Expect;
 open! BsMocha.Mocha;
 open! BsMocha.Promise;
 open Js.Promise;
@@ -27,8 +25,10 @@ describe("View", () => {
                |> Array.filterMap(Element.ofNode);
 
              // we've activated a panel with the class name ".agda-mode-panel-container"
-             Expect.expect(children |> Array.map(Element.className))
-             |> Combos.End.to_include("agda-mode-panel-container");
+             children
+             |> Array.map(Element.className)
+             |> Js.Array.includes("agda-mode-panel-container")
+             |> Assert.yes;
              resolve();
            })
       );
@@ -37,29 +37,8 @@ describe("View", () => {
         "should mount `section#agda-mode:xxx` inside `article.agda-mode-panel-container`",
         () =>
         openAndLoad("Blank1.agda")
-        |> then_(instance => {
-             let panels =
-               Atom.Workspace.getBottomPanels()
-               |> Array.flatMap(
-                    Atom.Views.getView
-                    >> HtmlElement.childNodes
-                    >> NodeList.toArray,
-                  )
-               |> Array.filterMap(Element.ofNode)
-               |> Array.filter(elem =>
-                    elem |> Element.className == "agda-mode-panel-container"
-                  );
-             let targetID = "agda-mode:" ++ Instance.getID(instance);
-
-             panels
-             |> Array.flatMap(Element.childNodes >> NodeList.toArray)
-             |> Array.filterMap(Element.ofNode)
-             |> Array.map(Element.id)
-             |> Js.Array.includes(targetID)
-             |> Assert.equal(true);
-
-             resolve();
-           })
+        |> then_(View.getPanel)
+        |> then_(Assert.ok >> resolve)
       );
     });
 
@@ -106,7 +85,7 @@ describe("View", () => {
              View.getPanelContainersAtPanes()
              |> Array.map(HtmlElement.className)
              |> Js.Array.includes("agda-mode-panel-container")
-             |> Assert.equal(true);
+             |> Assert.yes;
              resolve();
            })
       );
@@ -123,7 +102,7 @@ describe("View", () => {
              View.getPanelContainersAtPanes()
              |> Array.map(HtmlElement.className)
              |> Js.Array.includes("agda-mode-panel-container")
-             |> Assert.equal(false);
+             |> Assert.no;
              resolve();
            })
       );
@@ -142,4 +121,21 @@ describe("View", () => {
       );
     });
   });
+  // describe("Settings", () =>
+  //   describe("when toggle activate the settings", () => {
+  //     after_each(Package.after_each);
+  //
+  //     it("should open a new tab", () =>
+  //       openAndLoad("Blank1.agda")
+  //       |> then_(dispatch("agda-mode:toggle-docking"))
+  //       |> then_(_ => {
+  //            View.getPanelContainersAtPanes()
+  //            |> Array.map(HtmlElement.className)
+  //            |> Js.Array.includes("agda-mode-panel-container")
+  //            |> Assert.yes;
+  //            resolve();
+  //          })
+  //     );
+  //   })
+  // );
 });

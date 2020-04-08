@@ -9,8 +9,9 @@ let parse: string => array(Output.t) =
   };
 
 [@react.component]
-let make = (~body: string) => {
-  parse(body)
-  |> Array.map(value => <Output value />)
-  |> Util.React.manyIn("ul");
-};
+let make = (~body: string) =>
+  <ul>
+    {parse(body)
+     |> Array.mapi((value, i) => <Output key={string_of_int(i)} value />)
+     |> React.array}
+  </ul>;

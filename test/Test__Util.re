@@ -1,27 +1,80 @@
-open Rebase;
-open Fn;
+open Belt;
 open Atom;
 
 open Js.Promise;
 
 exception Exn(string);
 
+module Assert = {
+  let equal = (~message=?, expected, actual) =>
+    BsMocha.Assert.equal(~message?, actual, expected);
+  let yes = equal(true);
+  let no = equal(false);
+  let fail = BsMocha.Assert.fail;
+  let ok = _ => BsMocha.Assert.ok(true);
+  // let not_equal = (~message=?, expected, actual) =>
+  //   Assert.not_equal(~message?, actual, expected);
+};
+
 module Golden = {
   // bindings for jsdiff
-  type diff = {
-    .
-    "value": string,
-    "added": bool,
-    "removed": bool,
+  module Diff = {
+    type t =
+      | Added(string)
+      | Removed(string)
+      | NoChange(string);
+
+    let getValue =
+      fun
+      | Added(string) => string
+      | Removed(string) => string
+      | NoChange(string) => string;
+
+    type changeObject = {
+      .
+      "value": string,
+      "added": bool,
+      "removed": bool,
+    };
+
+    // [@bs.module "diff"]
+    // external lines: (string, string) => array(t) = "diffLines";
+
+    [@bs.module "diff"]
+    external wordsWithSpace_: (string, string) => array(changeObject) =
+      "diffWordsWithSpace";
+
+    let fromChangeObject = obj =>
+      if (obj##added) {
+        Added(obj##value);
+      } else if (obj##removed) {
+        Removed(obj##value);
+      } else {
+        NoChange(obj##value);
+      };
+
+    let wordsWithSpace = (a, b) => {
+      wordsWithSpace_(a, b)->Array.map(fromChangeObject);
+    };
+
+    // given a list of Diff.t, return the first Added or Removed and the character count before it
+    let firstChange = diffs => {
+      // the count of charactors before the first change occured
+      let count = ref(0);
+      let change = ref(None);
+      diffs->Array.forEach(diff =>
+        if (Option.isNone(change^)) {
+          switch (diff) {
+          | Added(s) => change := Some(Added(s))
+          | Removed(s) => change := Some(Removed(s))
+          | NoChange(s) => count := count^ + String.length(s)
+          };
+        }
+      );
+
+      (change^)->Option.map(change => (change, count^));
+    };
   };
-
-  [@bs.module "diff"]
-  external diffLines: (string, string) => array(diff) = "diffLines";
-
-  [@bs.module "diff"]
-  external diffWordsWithSpace: (string, string) => array(diff) =
-    "diffWordsWithSpace";
-
   // get all filepaths of golden tests (asynchronously)
   let getGoldenFilepaths = dirname => {
     let readdir = N.Fs.readdir |> N.Util.promisify;
@@ -30,7 +83,7 @@ module Golden = {
       Node.Path.join2(dirname, Node.Path.basename_ext(path, ".in"));
     readdir(. dirname)
     |> then_(paths =>
-         paths |> Array.filter(isInFile) |> Array.map(toBasename) |> resolve
+         paths->Array.keep(isInFile)->Array.map(toBasename)->resolve
        );
   };
 
@@ -40,7 +93,7 @@ module Golden = {
     let isInFile = Js.String.endsWith(".in");
     let toBasename = path =>
       Node.Path.join2(dirname, Node.Path.basename_ext(path, ".in"));
-    readdir(dirname) |> Array.filter(isInFile) |> Array.map(toBasename);
+    readdir(dirname)->Array.keep(isInFile)->Array.map(toBasename);
   };
 
   exception FileMissing(string);
@@ -51,7 +104,7 @@ module Golden = {
     | Golden(filepath, 'expected, actual);
 
   // (A -> B) -> Golden A -> Golden B
-  let map = (f, Golden(filepath, expected, actual)) => {
+  let map = (Golden(filepath, expected, actual), f) => {
     Golden(filepath, f(expected), actual);
   };
 
@@ -77,92 +130,82 @@ module Golden = {
 
   // Golden String -> Promise ()
   let compare = (Golden(_path, actual, expected)) => {
-    // for keeping the count of charactors before the first error occured
-    let erred = ref(false);
-    let count = ref(0);
-    diffWordsWithSpace(expected, actual)
-    |> Array.filter(diff =>
-         if (diff##added || diff##removed) {
-           // erred!
-           if (! erred^) {
-             erred := true;
-           };
-           true;
-         } else {
-           if (! erred^) {
-             count := count^ + String.length(diff##value);
-           };
-           false;
-         }
-       )
-    |> Array.forEach(diff => {
-         let change =
-           String.length(diff##value) > 100
-             ? String.sub(~from=0, ~length=100, diff##value) ++ " ..."
-             : diff##value;
+    let actual = Js.String.trim(actual);
+    let expected = Js.String.trim(expected);
+    Diff.wordsWithSpace(actual, expected)
+    ->Diff.firstChange
+    ->Option.forEach(((diff, count)) => {
+        open Diff;
+        let value = Diff.getValue(diff);
 
-         let expected' =
-           String.sub(
-             ~from=max(0, count^ - 50),
-             ~length=50 + String.length(diff##value) + 50,
-             expected,
-           );
+        let change =
+          Js.String.length(value) > 100
+            ? Js.String.substrAtMost(~from=0, ~length=100, value) ++ " ..."
+            : value;
 
-         let actual' =
-           String.sub(
-             ~from=max(0, count^ - 50),
-             ~length=50 + String.length(diff##value) + 50,
-             actual,
-           );
+        let expected' =
+          Js.String.substrAtMost(
+            ~from=max(0, count - 50),
+            ~length=50 + String.length(value) + 50,
+            expected,
+          );
 
-         let message =
-           "\n\nexpected => "
-           ++ expected'
-           ++ "\n\nactual   => "
-           ++ actual'
-           ++ "\n\nchange => ";
-         // let after = "[after]: " ++ lastNormalPiece^ ++ "";
+        let actual' =
+          Js.String.substrAtMost(
+            ~from=max(0, count - 50),
+            ~length=50 + String.length(value) + 50,
+            actual,
+          );
 
-         if (diff##added) {
-           BsMocha.Assert.fail(
-             message
-             ++ " added "
-             ++ change
-             ++ "\n at position "
-             ++ string_of_int(count^),
-           );
-         };
-         if (diff##removed) {
-           BsMocha.Assert.fail(
-             message
-             ++ " removed "
-             ++ change
-             ++ "\n\n at position "
-             ++ string_of_int(count^),
-           );
-         };
-       });
+        let message =
+          "\n\nexpected => "
+          ++ expected'
+          ++ "\n\nactual   => "
+          ++ actual'
+          ++ "\n\nchange => ";
+
+        switch (diff) {
+        | Added(_) =>
+          BsMocha.Assert.fail(
+            message
+            ++ " added \""
+            ++ change
+            ++ "\"\n at position "
+            ++ string_of_int(count),
+          )
+        | Removed(_) =>
+          BsMocha.Assert.fail(
+            message
+            ++ " removed \""
+            ++ change
+            ++ "\"\n\n at position "
+            ++ string_of_int(count),
+          )
+        | NoChange(_) => ()
+        };
+      });
     Js.Promise.resolve();
   };
 };
 
 // join with newlines
-let serialize = List.fromArray >> String.joinWith("\n") >> (x => x ++ "\n");
 
-let serializeWith = f =>
-  Array.map(f) >> List.fromArray >> String.joinWith("\n") >> (x => x ++ "\n");
+let serialize = xs => xs->Array.map(x => x ++ "\n")->Js.String.concatMany("");
 
-let breakInput = (breakpoints: array(int), input: string) => {
-  let breakpoints' = Array.concat(breakpoints, [|0|]);
+let serializeWith = (f, xs) => xs->Array.map(f)->serialize;
+let breakInput = (input: string, breakpoints: array(int)) => {
+  let breakpoints' = Array.concat([|0|], breakpoints);
 
   breakpoints'
-  |> Array.mapi((x: int, i) =>
-       switch (breakpoints'[i + 1]) {
-       | Some(next) => (x, next - x)
-       | None => (x, String.length(input) - x)
-       }
-     )
-  |> Array.map(((from, length)) => String.sub(~from, ~length, input));
+  ->Array.mapWithIndex((i, x: int) =>
+      switch (breakpoints'[i + 1]) {
+      | Some(next) => (x, next - x)
+      | None => (x, Js.String.length(input) - x)
+      }
+    )
+  ->Array.map(((from, length)) =>
+      Js.String.substrAtMost(~from, ~length, input)
+    );
 };
 
 module View = {
@@ -171,37 +214,37 @@ module View = {
   external asElement: HtmlElement.t_htmlElement => Element.t = "%identity";
 
   let childHtmlElements: HtmlElement.t => array(HtmlElement.t) =
-    HtmlElement.childNodes
-    >> NodeList.toArray
-    >> Array.filterMap(HtmlElement.ofNode);
+    elem =>
+      elem
+      ->HtmlElement.childNodes
+      ->NodeList.toArray
+      ->Array.keepMap(HtmlElement.ofNode);
 
   // exception PanelContainerNotFound;
 
   // get all panel containers at bottom
   let getPanelContainersAtBottom = () => {
     Workspace.getBottomPanels()
-    |> Array.map(Views.getView)
-    |> Array.flatMap(childHtmlElements)
-    |> Array.filter(elem =>
-         elem |> HtmlElement.className == "agda-mode-panel-container"
-       );
+    ->Array.map(Views.getView)
+    ->Array.map(childHtmlElements)
+    ->Array.concatMany
+    ->Array.keep(elem =>
+        HtmlElement.className(elem) == "agda-mode-panel-container"
+      );
   };
 
   // get all panel containers in all panes
-  let getPanelContainersAtPanes = () => {
+  let getPanelContainersAtPanes = (): array(HtmlElement.t) => {
     Workspace.getPaneItems()
-    |> Array.map(Views.getView)
-    |> Array.filter(elem =>
-         elem |> HtmlElement.className == "agda-mode-panel-container"
-       );
+    ->Array.map(Views.getView)
+    ->Array.keep(elem =>
+        HtmlElement.className(elem) == "agda-mode-panel-container"
+      );
   };
 
   // get all panel containers
-  let getPanelContainers = () =>
-    Js.Array.concat(
-      getPanelContainersAtBottom(),
-      getPanelContainersAtPanes(),
-    );
+  let getPanelContainers = (): array(HtmlElement.t) =>
+    Array.concat(getPanelContainersAtBottom(), getPanelContainersAtPanes());
 
   // get the <Panel> of a given Instance
   exception PanelNotFound;
@@ -211,7 +254,8 @@ module View = {
 
     let panels =
       getPanelContainers()
-      |> Array.flatMap(childHtmlElements >> Array.filter(isTarget));
+      ->Array.map(x => x->childHtmlElements->Array.keep(isTarget))
+      ->Array.concatMany;
 
     switch (panels[0]) {
     | None => reject(PanelNotFound)
@@ -223,13 +267,13 @@ module View = {
   let querySelector =
       (selector: string, elem: HtmlElement.t): Js.Promise.t(HtmlElement.t) => {
     elem
-    |> asElement
-    |> Element.querySelector(selector)
-    |> Option.flatMap(Element.asHtmlElement)
-    |> Option.mapOr(
-         resolve,
-         reject(ElementNotFound("cannot find `" ++ selector ++ "`")),
-       );
+    ->asElement
+    ->Element.querySelector(selector, _)
+    ->Option.flatMap(Element.asHtmlElement)
+    ->Option.mapWithDefault(
+        reject(ElementNotFound("cannot find `" ++ selector ++ "`")),
+        resolve,
+      );
   };
 };
 
@@ -244,7 +288,7 @@ module Path = {
 module File = {
   let open_ = (uri: string): Js.Promise.t(TextEditor.t) =>
     Workspace.openWithURI(uri);
-  let openAsset = Path.asset >> open_;
+  let openAsset = x => x->Path.asset->open_;
 
   let close = (uri: string): Js.Promise.t(bool) => {
     let pane = Workspace.paneForURI(uri);
@@ -262,10 +306,10 @@ module File = {
 
 module Package = {
   let activeNames = () =>
-    Packages.getActivePackages() |> Array.map(Package.name);
+    Packages.getActivePackages()->Array.map(Package.name);
 
   let loadedNames = () =>
-    Packages.getLoadedPackages() |> Array.map(Package.name);
+    Packages.getLoadedPackages()->Array.map(Package.name);
 
   let activate = () => {
     // don't wait for this
@@ -280,12 +324,17 @@ module Package = {
 
   // after_each
   let after_each = () => {
+    let resetConfig = () => {
+      Atom.Config.set("agda-mode.agdaPath", "") |> ignore;
+      Atom.Config.set("agda-mode.agdaName", "agda") |> ignore;
+      resolve();
+    };
     let clearAllFiles = () => {
       File.openAsset("Temp.agda")
       |> then_(editor => {
            let rec cleanUp = () => {
              TextEditor.setText("", editor);
-             if (!String.isEmpty(TextEditor.getText(editor))) {
+             if (TextEditor.getText(editor) != "") {
                cleanUp();
              } else {
                TextEditor.save(editor);
@@ -296,33 +345,45 @@ module Package = {
     };
     let destroyAllTextEditors = () =>
       Workspace.getPanes()
-      |> Array.flatMap(pane =>
-           pane
-           |> Pane.getItems
-           |> Array.map(item => Pane.destroyItem_(item, true, pane))
-         )
-      |> all
-      |> then_(_ => resolve());
+      ->Array.map(pane =>
+          pane
+          ->Pane.getItems
+          ->Array.map(item => Pane.destroyItem_(item, true, pane))
+        )
+      ->Array.concatMany
+      ->all
+      ->then_(_ => resolve(), _);
 
-    destroyAllTextEditors() |> then_(clearAllFiles);
+    resetConfig() |> then_(destroyAllTextEditors) |> then_(clearAllFiles);
   };
 };
 
 let getInstance = editor => {
   AgdaMode.Instances.get(editor)
-  |> Option.map((instance: Instance.t) => resolve(instance))
-  |> Option.getOr(reject(Exn("instance doesn't exist")));
+  ->Option.map((instance: Instance.t) => resolve(instance))
+  ->Option.getWithDefault(reject(Exn("instance doesn't exist")));
 };
 
 exception DispatchFailure(string);
 let dispatch = (event, instance: Instance.t): Js.Promise.t(Instance.t) => {
   // resolves on command dispatch
-  let onDispatch = instance.Instance__Type.onDispatch |> Event.once;
+  let onDispatch =
+    instance.Instance__Type.onDispatch.once()->Promise.Js.toBsPromise;
   // dispatch command using Atom's API
   switch (Commands.dispatch(Views.getView(instance.editors.source), event)) {
   | None => reject(DispatchFailure(event))
   | Some(result) =>
-    result |> then_(() => onDispatch) |> then_(_ => resolve(instance))
+    result |> then_(() => onDispatch) |> then_(() => resolve(instance))
+  // |> then_(_ =>
+  //      Js.Promise.make((~resolve, ~reject as _) =>
+  //        Js.Global.setTimeout(() => resolve(. instance), 0) |> ignore
+  //      )
+  //    )
+  // |> then_(instance =>
+  //      Js.Promise.make((~resolve, ~reject as _) =>
+  //        Js.Global.setTimeout(() => resolve(. instance), 0) |> ignore
+  //      )
+  //    )
   };
 };
 
@@ -333,7 +394,7 @@ let openAndLoad = (path): Js.Promise.t(Instance.t) => {
 };
 
 let close = (instance: Instance.t): Js.Promise.t(unit) => {
-  let onDestroy = instance.view.onDestroy |> Event.once |> Async.toPromise;
+  let onDestroy = instance.view.onDestroy.once()->Promise.Js.toBsPromise;
 
   instance.editors.source
   |> TextEditor.asWorkspaceItem
@@ -350,23 +411,30 @@ module Keyboard = {
     open Instance__Type;
     let element = instance.editors.source |> Views.getView;
     // resolves on command dispatch
-    let onDispatch = instance.onDispatch |> Event.once;
+    let onDispatch =
+      instance.Instance__Type.onDispatch.once()->Promise.Js.toBsPromise;
 
     // build and dispatch the keyboard event
-    Keymaps.buildKeydownEvent_(
-      key,
-      {
-        "ctrl": false,
-        "alt": false,
-        "shift": false,
-        "cmd": false,
-        "which": 0,
-        "target": element,
-      },
-    )
-    |> Keymaps.handleKeyboardEvent;
+    let keyboardEvent =
+      Keymaps.buildKeydownEvent_(
+        key,
+        {
+          "ctrl": false,
+          "alt": false,
+          "shift": false,
+          "cmd": false,
+          "which": 0,
+          "target": element,
+        },
+      );
+    Keymaps.handleKeyboardEvent(keyboardEvent);
 
-    onDispatch |> Async.toPromise |> then_(() => resolve(instance));
+    onDispatch
+    |> then_(() =>
+         Js.Promise.make((~resolve, ~reject as _) =>
+           Js.Global.setTimeout(() => resolve(. instance), 0) |> ignore
+         )
+       );
   };
 
   // `TextEditor.insertText` sometimes fails on CI
@@ -399,7 +467,7 @@ module Keyboard = {
   let insert = (key, instance: Instance.t) => {
     // listen
     let onChange =
-      instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+      instance.view.onInputMethodChange.once()->Promise.Js.toBsPromise;
     // trigger (insert & save)
     insertUntilSuccess(key, instance)
     |> then_(_ => onChange)
@@ -433,17 +501,10 @@ module Keyboard = {
 
     // listen
     let onChange =
-      instance.view.onInputMethodChange |> Event.once |> Async.toPromise;
+      instance.view.onInputMethodChange.once()->Promise.Js.toBsPromise;
     // trigger (backspace & save)
     backspaceUntilSuccess()
     |> then_(_ => onChange)
     |> then_(_ => resolve(instance));
   };
-};
-
-module Assert = {
-  let equal = (~message=?, expected, actual) =>
-    BsMocha.Assert.equal(~message?, actual, expected);
-  // let not_equal = (~message=?, expected, actual) =>
-  //   BsMocha.Assert.not_equal(~message?, actual, expected);
 };

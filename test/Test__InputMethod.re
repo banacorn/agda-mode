@@ -1,6 +1,4 @@
 open Rebase;
-// open BsChai.Expect;
-// open BsMocha;
 open! BsMocha.Mocha;
 open! BsMocha.Promise;
 open Js.Promise;
@@ -21,7 +19,7 @@ describe("Input Method", () => {
            |> Atom.Views.getView
            |> HtmlElement.classList
            |> DomTokenList.contains("agda-mode-input-method-activated")
-           |> Assert.equal(false);
+           |> Assert.no;
            resolve();
          })
     );
@@ -36,7 +34,7 @@ describe("Input Method", () => {
            |> Atom.Views.getView
            |> HtmlElement.classList
            |> DomTokenList.contains("agda-mode-input-method-activated")
-           |> Assert.equal(true);
+           |> Assert.yes;
            resolve();
          })
     );
@@ -51,7 +49,7 @@ describe("Input Method", () => {
                 element
                 |> HtmlElement.classList
                 |> DomTokenList.contains("hidden")
-                |> Assert.equal(true);
+                |> Assert.yes;
                 resolve(instance);
               })
          )
@@ -64,7 +62,7 @@ describe("Input Method", () => {
                 element
                 |> HtmlElement.classList
                 |> DomTokenList.contains("hidden")
-                |> Assert.equal(false);
+                |> Assert.no;
                 resolve();
               })
          )
@@ -137,16 +135,14 @@ describe("Input Method", () => {
       openAndLoad("Temp.agda")
       |> then_(instance => {
            let onDispatch =
-             instance.view.onInputMethodActivationChange
-             |> Event.once
-             |> Async.toPromise;
+             instance.view.onInputMethodChange.once()->Promise.Js.toBsPromise;
 
            // dispatch!
            instance
            |> Keyboard.dispatch("\\")
            |> then_(_ => onDispatch)
-           |> then_(activated => {
-                Assert.equal(true, activated);
+           |> then_(state => {
+                Assert.equal(true, state.InputMethod.activated);
                 resolve(instance);
               });
          })
@@ -156,9 +152,7 @@ describe("Input Method", () => {
       openAndLoad("Temp.agda")
       |> then_(instance => {
            let onDispatch =
-             instance.view.onInputMethodActivationChange
-             |> Event.once
-             |> Async.toPromise;
+             instance.view.onInputMethodChange.once()->Promise.Js.toBsPromise;
            // dispatch!
            instance
            |> Keyboard.dispatch("\\")
@@ -167,17 +161,15 @@ describe("Input Method", () => {
          })
       |> then_(instance => {
            let onDispatch =
-             instance.view.onInputMethodActivationChange
-             |> Event.once
-             |> Async.toPromise;
+             instance.view.onInputMethodChange.once()->Promise.Js.toBsPromise;
 
            // dispatch!
            instance
            |> Keyboard.insert("\\")
            |> then_(_ => onDispatch)
-           |> then_(activated => {
+           |> then_(state => {
                 // should be deactivated
-                Assert.equal(false, activated);
+                Assert.equal(false, state.InputMethod.activated);
                 // should result in "\"
                 instance.editors.source
                 |> Atom.TextEditor.getText
@@ -237,6 +229,20 @@ describe("Input Method", () => {
            instance.editors.source
            |> Atom.TextEditor.getText
            |> Assert.equal({js|λ |js});
+           resolve();
+         })
+    );
+
+    it({js|should deactivate after typing "ESC" immediately|js}, () =>
+      openAndLoad("Temp.agda")
+      |> then_(Keyboard.dispatch("\\"))
+      |> then_(instance => {
+           let onEscaped =
+             instance.view.onInputMethodChange.once()->Promise.Js.toBsPromise;
+           Keyboard.dispatch("escape", instance) |> then_(_ => onEscaped);
+         })
+      |> then_(state => {
+           Assert.equal(false, state.InputMethod.activated);
            resolve();
          })
     );

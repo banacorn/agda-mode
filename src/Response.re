@@ -1,18 +1,11 @@
-open Rebase;
+open Belt;
 
 /* https://github.com/agda/agda/blob/master/src/full/Agda/Interaction/Response.hs */
 
 type filepath = string;
 type index = int;
 
-module Event = Event;
 module Token = Parser.SExpression;
-
-/* type fileType =
-   | Agda
-   | LiterateTeX
-   | LiterateReStructuredText
-   | LiterateMarkdown; */
 
 type giveResult =
   | Paren
@@ -142,18 +135,14 @@ let toString =
   fun
   | HighlightingInfoDirect(Remove, annotations) =>
     "HighlightingInfoDirect Remove "
-    ++ (
-      annotations
-      |> Array.map(Highlighting.Annotation.toString)
-      |> Util.Pretty.array
-    )
+    ++ annotations
+       ->Array.map(Highlighting.Annotation.toString)
+       ->Util.Pretty.array
   | HighlightingInfoDirect(Keep, annotations) =>
     "HighlightingInfoDirect Keep "
-    ++ (
-      annotations
-      |> Array.map(Highlighting.Annotation.toString)
-      |> Util.Pretty.array
-    )
+    ++ annotations
+       ->Array.map(Highlighting.Annotation.toString)
+       ->Util.Pretty.array
   | HighlightingInfoIndirect(filepath) =>
     "HighlightingInfoIndirect " ++ filepath
   | NoStatus => "NoStatus"
@@ -166,7 +155,7 @@ let toString =
     "JumpToError " ++ filepath ++ " " ++ string_of_int(n)
   | InteractionPoints(points) =>
     "InteractionPoints "
-    ++ (points |> Array.map(string_of_int) |> Util.Pretty.array)
+    ++ points->Array.map(string_of_int)->Util.Pretty.array
   | GiveAction(index, Paren) =>
     "GiveAction " ++ string_of_int(index) ++ " Paren"
   | GiveAction(index, NoParen) =>
@@ -179,11 +168,9 @@ let toString =
     "MakeCase ExtendedLambda " ++ Util.Pretty.array(payload)
   | SolveAll(solutions) =>
     "SolveAll "
-    ++ (
-      solutions
-      |> Array.map(((i, s)) => string_of_int(i) ++ " " ++ s)
-      |> Util.Pretty.array
-    )
+    ++ solutions
+       ->Array.map(((i, s)) => string_of_int(i) ++ " " ++ s)
+       ->Util.Pretty.array
   | DisplayInfo(info) => "DisplayInfo " ++ Info.toString(info)
   | ClearRunningInfo => "ClearRunningInfo"
   | RunningInfo(int, string) =>
@@ -229,34 +216,30 @@ let parseWithPriority =
       switch (xs[1]) {
       | Some(L([|A(filepath), _, A(index')|])) =>
         Parser.int(index')
-        |> Option.flatMap(index => Some(JumpToError(filepath, index)))
-        |> Option.mapOr(x => Ok(x), err(3))
+        ->Option.flatMap(index => Some(JumpToError(filepath, index)))
+        ->Option.mapWithDefault(err(3), x => Ok(x))
       | _ => err(4)
       }
     | Some(A("agda2-goals-action")) =>
       switch (xs[1]) {
       | Some(xs) =>
-        Ok(
-          InteractionPoints(
-            xs |> Token.flatten |> Array.filterMap(Parser.int),
-          ),
-        )
+        Ok(InteractionPoints(xs->Token.flatten->Array.keepMap(Parser.int)))
       | _ => err(5)
       }
     | Some(A("agda2-give-action")) =>
       switch (xs[1]) {
       | Some(A(index')) =>
         Parser.int(index')
-        |> Option.flatMap(i =>
-             switch (xs[2]) {
-             | Some(A("paren")) => Some(GiveAction(i, Paren))
-             | Some(A("no-paren")) => Some(GiveAction(i, NoParen))
-             | Some(A(result)) => Some(GiveAction(i, String(result)))
-             | Some(L(_)) => None
-             | _ => None
-             }
-           )
-        |> Option.mapOr(x => Ok(x), err(6))
+        ->Option.flatMap(i =>
+            switch (xs[2]) {
+            | Some(A("paren")) => Some(GiveAction(i, Paren))
+            | Some(A("no-paren")) => Some(GiveAction(i, NoParen))
+            | Some(A(result)) => Some(GiveAction(i, String(result)))
+            | Some(L(_)) => None
+            | _ => None
+            }
+          )
+        ->Option.mapWithDefault(err(6), x => Ok(x))
       | _ => err(7)
       }
     | Some(A("agda2-make-case-action")) =>
@@ -279,22 +262,21 @@ let parseWithPriority =
 
         let i = ref(0);
         let solutions =
-          tokens
-          |> Array.filterMap(token => {
-               let solution =
-                 if (isEven(i^)) {
-                   Parser.int(token)
-                   |> Option.flatMap(index =>
-                        tokens[i^ + 1] |> Option.map(s => (index, s))
-                      );
-                 } else {
-                   None;
-                 };
-               /* loop index */
-               i := i^ + 1;
-               /* return the solution */
-               solution;
-             });
+          tokens->Array.keepMap(token => {
+            let solution =
+              if (isEven(i^)) {
+                Parser.int(token)
+                ->Option.flatMap(index =>
+                    tokens[i^ + 1]->Option.map(s => (index, s))
+                  );
+              } else {
+                None;
+              };
+            /* loop index */
+            i := i^ + 1;
+            /* return the solution */
+            solution;
+          });
         Ok(SolveAll(solutions));
       | _ => err(10)
       }

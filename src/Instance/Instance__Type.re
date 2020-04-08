@@ -1,10 +1,9 @@
 type error =
   | ParseError(array(Parser.Error.t))
   | ConnectionError(Connection.Error.t)
-  /* Cancelled: never makes its way to Agda */
+  // Cancelled: never makes its way to Agda
   | Cancelled
-  /* Other reasons, also never make their way to Agda */
-  | GoalNotIndexed
+  // Other reasons, also never make their way to Agda
   | OutOfGoal;
 
 type history = {
@@ -13,15 +12,16 @@ type history = {
 };
 
 type t = {
-  mutable isLoaded: bool,
   editors: Editors.t,
   view: View.t,
+  // states
   history,
+  mutable isLoaded: bool,
   mutable highlightings: array(Highlighting.t),
   mutable goals: array(Goal.t),
   mutable connection: option(Connection.t),
   mutable runningInfo: RunningInfo.t,
-  handleResponse: (t, Response.t) => Async.t(unit, error),
-  dispatch: (Command.Primitive.t, t) => Async.t(unit, error),
-  onDispatch: Event.t(unit, error),
+  // event emitter for testing
+  onDispatch: Event.t(unit),
+  onConnectionError: Event.t(Connection.Error.t),
 };

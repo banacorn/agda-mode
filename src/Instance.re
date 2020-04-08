@@ -1,4 +1,3 @@
-open Async;
 module Event = Event;
 
 open Instance__Type;
@@ -6,16 +5,24 @@ module Goals = Instance__Goals;
 module Highlightings = Instance__Highlightings;
 module Connections = Instance__Connections;
 module TextEditors = Instance__TextEditors;
-module Handler = Instance__Handler;
 
 type t = Instance__Type.t;
 
-let handleCommandError = Handler.handleCommandError;
-let dispatch = Handler.dispatch;
+let activate = instance =>
+  // only activate the view when it's loaded
+  if (instance.isLoaded) {
+    instance.view.activate();
+  } else {
+    Promise.resolved();
+  };
 
-let activate = instance => instance.view.activate();
-
-let deactivate = instance => instance.view.deactivate();
+let deactivate = instance =>
+  // only deactivate the view when it's loaded
+  if (instance.isLoaded) {
+    instance.view.deactivate();
+  } else {
+    Promise.resolved();
+  };
 
 let destroy = instance => instance.view.destroy();
 
@@ -40,34 +47,21 @@ let make = (textEditor: Atom.TextEditor.t) => {
     highlightings: [||],
     runningInfo: RunningInfo.make(),
     connection: None,
-    handleResponse: Handler.handleResponseAndRecoverCursor,
-    dispatch: Handler.dispatch,
     onDispatch: Event.make(),
+    onConnectionError: Event.make(),
   };
 
-  /* listen to `onInquireConnection` */
-  let destructor0 =
-    instance.view.onInquireConnection
-    |> Event.onOk(path =>
-         Connections.connectWithAgdaPath(instance, path) |> ignore
-       );
-  /* listen to `onMouseEvent` */
+  // subscribe to `onMouseEvent`
   let destructor1 =
-    instance.view.onMouseEvent
-    |> Event.onOk(ev =>
-         switch (ev) {
-         | Type.View.Mouse.JumpToTarget(target) =>
-           instance |> dispatch(Jump(target)) |> ignore
-         | _ => ()
-         }
-       );
-
-  instance.view.onDestroy
-  |> Event.once
-  |> Async.finalOk(_ => {
-       destructor0();
-       destructor1();
-     });
+    instance.view.onMouseEvent.on(ev =>
+      switch (ev) {
+      | Type.View.Mouse.JumpToTarget(target) =>
+        TaskRunner.dispatchCommand(Jump(target), instance) |> ignore
+      | _ => ()
+      }
+    );
+  // unsubscribe to `onMouseEvent`
+  instance.view.onDestroy.once()->Promise.get(_ => destructor1());
 
   instance;
 };
@@ -77,7 +71,7 @@ let dispatchUndo = (instance: t) => {
   instance.editors.source |> Atom.TextEditor.undo;
   // reload
   if (instance.history.needsReloading) {
-    instance |> dispatch(Load) |> ignore;
+    TaskRunner.dispatchCommand(Load, instance) |> ignore;
     instance.history.needsReloading = false;
   };
 };

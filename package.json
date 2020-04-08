@@ -1,6 +1,6 @@
 {
   "name": "agda-mode",
-  "main": "./lib/js/bundled.js",
+  "main": "./lib/js/src/AgdaMode.bs",
   "version": "0.9.10",
   "description": "agda-mode on Atom",
   "scripts": {
@@ -32,14 +32,8 @@
     "atom": ">=1.19.0 <2.0.0"
   },
   "devDependencies": {
-    "@glennsl/bs-json": "^5.0.1",
-    "@glennsl/rebase": "github:glennsl/rebase",
-    "atom": "github:banacorn/bs-atom#v1.40.2",
     "atom-mocha": "^2.2.0",
-    "bs-chai": "^1.0.1",
     "bs-mocha": "^0.5.0",
-    "bs-platform": "^5.0.4",
-    "bs-webapi": "^0.15.3",
     "chai": "^4.2.0",
     "diff": "^4.0.1",
     "git-branch": "^2.0.1",
@@ -48,7 +42,14 @@
     "webpack-cli": "^3.1.2"
   },
   "dependencies": {
+    "@glennsl/bs-json": "^5.0.1",
+    "@glennsl/rebase": "github:glennsl/rebase",
+    "bs-platform": "^7.2",
+    "bs-webapi": "^0.15.3",
+    "bs-nd": "^0.1.5",
+    "bs-atom2": "^1.40.1",
     "compare-versions": "^3.5.1",
+    "reason-promise": "^1.0.1",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "reason-react": ">=0.7.0",

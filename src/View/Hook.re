@@ -83,13 +83,6 @@ let useListenWhen = (listener, shouldListen) => {
   );
 };
 
-let useEventListener = (listener, emitter) => {
-  React.useEffect1(
-    () => emitter |> Event.onOk(listener) |> Option.some,
-    [||],
-  );
-};
-
 let useChannel = (callback, channel) => {
   React.useEffect1(
     () => {

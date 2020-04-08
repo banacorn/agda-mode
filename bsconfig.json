@@ -7,30 +7,40 @@
   "reason": {
     "react-jsx": 3
   },
-  "sources": [{
-    "dir" : "src",
-    "subdirs" : true
-  }, {
-    "dir" : "test",
-    "subdirs" : true,
-    "type" : "dev"
-  }],
-  "package-specs": [{
-    "module": "commonjs",
-    "in-source": false
-  }],
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": true
+    },
+    {
+      "dir": "test",
+      "subdirs": true,
+      "type": "dev"
+    }
+  ],
+  "package-specs": [
+    {
+      "module": "commonjs",
+      "in-source": false
+    }
+  ],
   "suffix": ".bs.js",
   "namespace": true,
+  "bs-dev-dependencies": [
+    "bs-mocha"
+  ],
   "bs-dependencies": [
     "reason-react",
     "@glennsl/bs-json",
     "@glennsl/rebase",
-    "atom",
     "bs-webapi",
-    "bs-mocha",
-    "bs-chai",
-    "reason-react-update"
+    "reason-react-update",
+    "bs-atom2",
+    "bs-nd",
+    "reason-promise"
   ],
-  "bsc-flags": ["-bs-g"]  ,
+  "bsc-flags": [
+    "-bs-g"
+  ],
   "refmt": 3
 }

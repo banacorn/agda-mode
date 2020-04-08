@@ -1,8 +1,8 @@
-open Rebase;
 open BsMocha.Mocha;
-open Fn;
 open Js.Promise;
 open Test__Util;
+
+open Belt;
 
 // [Int] -> String -> [SExpression]
 let parseSExpression = (breakpoints, input) => {
@@ -13,49 +13,52 @@ let parseSExpression = (breakpoints, input) => {
   let parser =
     Parser.SExpression.makeIncr(
       fun
-      | OnResult(Rebase.Error(err)) =>
-        BsMocha.Assert.fail(
+      | Yield(Rebase.Error(err)) =>
+        Assert.fail(
           "Failed when parsing S-expression: " ++ Parser.Error.toString(err),
         )
-      | OnResult(Rebase.Ok(a)) => Js.Array.push(a, output^) |> ignore
-      | OnFinish => (),
+      | Yield(Rebase.Ok(a)) => Js.Array.push(a, output^) |> ignore
+      | Stop => (),
     );
 
   input
-  |> String.trim
-  |> breakInput(breakpoints)
-  |> Array.flatMap(Parser.split)
-  |> Array.forEach(Parser.Incr.feed(parser));
+  ->Js.String.trim
+  ->breakInput(breakpoints)
+  ->Array.map(Parser.split)
+  ->Array.concatMany
+  ->Array.forEach(Parser.Incr.feed(parser));
 
   output^;
 };
 
 describe("when parsing S-expressions wholly", () =>
   Golden.getGoldenFilepathsSync("test/Parser/SExpression")
-  |> Array.forEach(filepath =>
-       BsMocha.Promise.it("should golden test " ++ filepath, () =>
-         Golden.readFile(filepath)
-         |> then_(
-              Golden.map(parseSExpression([||]))
-              >> Golden.map(serializeWith(Parser.SExpression.toString))
-              >> Golden.compare,
-            )
-       )
-     )
+  ->Array.forEach(filepath =>
+      BsMocha.Promise.it("should golden test " ++ filepath, () =>
+        Golden.readFile(filepath)
+        |> then_(raw =>
+             raw
+             ->Golden.map(parseSExpression([||]))
+             ->Golden.map(serializeWith(Parser.SExpression.toString))
+             ->Golden.compare
+           )
+      )
+    )
 );
 
 describe("when parsing S-expressions incrementally", () =>
   Golden.getGoldenFilepathsSync("test/Parser/SExpression")
-  |> Array.forEach(filepath =>
-       BsMocha.Promise.it("should golden test " ++ filepath, () =>
-         Golden.readFile(filepath)
-         |> then_(
-              Golden.map(
-                parseSExpression([|3, 23, 171, 217, 1234, 2342, 3453|]),
-              )
-              >> Golden.map(serializeWith(Parser.SExpression.toString))
-              >> Golden.compare,
-            )
-       )
-     )
+  ->Array.forEach(filepath =>
+      BsMocha.Promise.it("should golden test " ++ filepath, () =>
+        Golden.readFile(filepath)
+        |> then_(raw =>
+             raw
+             ->Golden.map(
+                 parseSExpression([|3, 23, 171, 217, 1234, 2342, 3453|]),
+               )
+             ->Golden.map(serializeWith(Parser.SExpression.toString))
+             ->Golden.compare
+           )
+      )
+    )
 );

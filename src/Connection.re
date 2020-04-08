@@ -1,358 +1,244 @@
-open Rebase;
-open Fn;
+open Belt;
 
 module Error = {
-  type autoSearch =
-    | ProcessHanging
-    | NotSupported(string)
-    | NotFound(string);
-
-  type validation =
-    /* the path is empty */
-    | PathMalformed(string)
-    /* the process is not responding */
-    | ProcessHanging
-    /* from the shell */
-    | NotFound(Js.Exn.t)
-    | ShellError(Js.Exn.t)
-    /* from its stderr */
-    | ProcessError(string)
-    /* the process is not Agda */
-    | IsNotAgda(string);
-
-  type connection =
-    | ShellError(Js.Exn.t)
-    | ClosedByProcess(int, string)
-    | DisconnectedByUser;
-
   type t =
-    | AutoSearchError(autoSearch)
-    | ValidationError(string, validation)
-    | ConnectionError(connection);
+    | PathSearch(Process.PathSearch.Error.t)
+    | Validation(Process.Validation.Error.t)
+    | Process(Process.Error.t);
 
   let toString =
     fun
-    | AutoSearchError(ProcessHanging) => (
-        "Process not responding",
-        {j|Please restart the process|j},
-      )
-    | AutoSearchError(NotSupported(os)) => (
-        "Auto search failed",
-        {j|currently auto path searching is not supported on $(os)|j},
-      )
-    | AutoSearchError(NotFound(msg)) => ("Auto search failed", msg)
-    | ValidationError(_path, PathMalformed(msg)) => ("Path malformed", msg)
-    | ValidationError(_path, ProcessHanging) => (
-        "Process hanging",
-        "The program has not been responding for more than 1 sec",
-      )
-    | ValidationError(_path, NotFound(error)) => (
-        "Agda not found",
-        Util.JsError.toString(error),
-      )
-    | ValidationError(_path, ShellError(error)) => (
-        "Error from the shell",
-        Util.JsError.toString(error),
-      )
-    | ValidationError(_path, ProcessError(msg)) => (
-        "Error from the stderr",
-        msg,
-      )
-    | ValidationError(_path, IsNotAgda(msg)) => ("This is not agda", msg)
-    | ConnectionError(ShellError(error)) => (
-        "Socket error",
-        Util.JsError.toString(error),
-      )
-    | ConnectionError(ClosedByProcess(code, signal)) => (
-        "Socket closed by Agda",
-        {j|code: $code
-signal: $signal
-It's probably because Agda's not happy about the arguments you fed her
-|j},
-      )
-    | ConnectionError(DisconnectedByUser) => (
-        "Disconnected",
-        "Connection disconnected by ourselves",
-      );
+    | PathSearch(e) => Process.PathSearch.Error.toString(e)
+    | Validation(e) => Process.Validation.Error.toString(e)
+    | Process(e) => Process.Error.toString(e);
+};
+
+module Metadata = {
+  /* supported protocol */
+  module Protocol = {
+    type t =
+      | EmacsOnly
+      | EmacsAndJSON;
+    let toString =
+      fun
+      | EmacsOnly => "Emacs"
+      | EmacsAndJSON => "Emacs / JSON";
+  };
+
+  type t = {
+    path: string,
+    args: array(string),
+    version: string,
+    protocol: Protocol.t,
+  };
+
+  let serialize = self => {
+    let path = "* path: " ++ self.path;
+    let args = "* args: " ++ Util.Pretty.array(self.args);
+    let version = "* version: " ++ self.version;
+    let protocol = "* protocol: " ++ Protocol.toString(self.protocol);
+    let os = "* platform: " ++ N.OS.type_();
+
+    {j|## Parse Log
+$path
+$args
+$version
+$protocol
+$os
+  |j};
+  };
 };
 
 type response = Parser.Incr.Event.t(result(Response.t, Parser.Error.t));
 
 type t = {
   metadata: Metadata.t,
-  process: N.ChildProcess.t,
-  mutable queue: array(Event.t(response, Error.connection)),
-  errorEmitter: Event.t(Response.t, unit),
-  mutable connected: bool,
+  process: Process.t,
+  mutable queue: list(Event.t(result(response, Process.Error.t))),
   mutable resetLogOnLoad: bool,
+  mutable encountedFirstPrompt: bool,
+  mutable log: Log.t,
 };
 
 let disconnect = (error, self) => {
-  self.metadata.entries = [||];
-  self.process |> N.ChildProcess.kill("SIGTERM");
-  self.queue |> Array.forEach(ev => ev |> Event.emitError(error));
-  self.queue = [||];
-  self.errorEmitter |> Event.removeAllListeners;
-  self.connected = false;
+  self.process.disconnect() |> ignore;
+  self.queue->List.forEach(ev => ev.Event.emit(Error(error)));
+  self.queue = [];
+  self.encountedFirstPrompt = false;
+  self.log = [||];
 };
 
-/* a more sophiscated "make" */
-let autoSearch = (path): Async.t(string, Error.t) =>
-  Async.make((resolve, reject) => {
-    /* reject if the process hasn't responded for more than 1 second */
-    let hangTimeout =
-      Js.Global.setTimeout(
-        () => reject(ProcessHanging: Error.autoSearch),
-        1000,
-      );
-    let commandName =
-      switch (N.OS.type_()) {
-      | "Linux"
-      | "Darwin" => Ok("which")
-      | "Windows_NT" => Ok("where.exe")
-      | os => Error(os)
-      };
+let autoSearch = name =>
+  Process.PathSearch.run(name)->Promise.mapError(e => Error.PathSearch(e));
 
-    switch (commandName) {
-    | Error(os) => reject(NotSupported(os))
-    | Ok(commandName') =>
-      N.ChildProcess.exec(
-        commandName' ++ " " ++ path,
-        (error, stdout, stderr) => {
-          /* clear timeout as the process has responded */
-          Js.Global.clearTimeout(hangTimeout);
-
-          /* error */
-          switch (error |> Js.Nullable.toOption) {
-          | None => ()
-          | Some(err) =>
-            reject(NotFound(err |> Js.Exn.message |> Option.getOr("")))
-          };
-
-          /* stderr */
-          let stderr' = stderr |> Node.Buffer.toString;
-          if (stderr' |> String.isEmpty |> (!)) {
-            reject(NotFound(stderr'));
-          };
-
-          /* stdout */
-          let stdout' = stdout |> Node.Buffer.toString;
-          if (stdout' |> String.isEmpty) {
-            reject(NotFound(""));
-          } else {
-            resolve(Parser.filepath(stdout'));
-          };
-        },
-      )
-      |> ignore
-    };
-  })
-  |> Async.mapError(e => Error.AutoSearchError(e));
-
-/* a more sophiscated "make" */
-let validateAndMake = (pathAndParams): Async.t(Metadata.t, Error.t) =>
-  {
-    let (path, args) = Parser.commandLine(pathAndParams);
-    let parseError =
-        (error: Js.Nullable.t(Js.Exn.t)): option(Error.validation) => {
-      switch (error |> Js.Nullable.toOption) {
-      | None => None
-      | Some(err) =>
-        let message = err |> Js.Exn.message |> Option.getOr("");
-        if (message |> Js.Re.test_([%re "/No such file or directory/"], _)) {
-          Some(NotFound(err));
-        } else if (message |> Js.Re.test_([%re "/command not found/"], _)) {
-          Some(NotFound(err));
-        } else {
-          Some(ShellError(err));
-        };
-      };
-    };
-    let parseVersion =
-        (stdout: Node.Buffer.t): result(Metadata.t, Error.validation) => {
-      let message = stdout |> Node.Buffer.toString;
-      switch (Js.String.match([%re "/Agda version (.*)/"], message)) {
-      | None => Error(IsNotAgda(message))
-      | Some(match) =>
-        switch (match[1]) {
-        | None => Error(IsNotAgda(message))
-        | Some(version) =>
-          Ok({
-            path,
-            args,
-            version,
-            protocol:
-              Js.Re.test_([%re "/--interaction-json/"], message)
-                ? EmacsAndJSON : EmacsOnly,
-            entries: [||],
-          })
-        }
-      };
-    };
-
-    Async.make((resolve, reject) => {
-      if (path |> String.isEmpty) {
-        reject(Error.PathMalformed("the path must not be empty"));
-      };
-
-      // reject if the process hasn't responded for more than 20 second
-      // (it may take longer for dockerized Agda to take off)
-      let hangTimeout =
-        Js.Global.setTimeout(() => reject(Error.ProcessHanging), 20000);
-
-      N.ChildProcess.exec(
-        path ++ " -V",
-        (error, stdout, stderr) => {
-          /* clear timeout as the process has responded */
-          Js.Global.clearTimeout(hangTimeout);
-          /* parses `error` and rejects it if there's any  */
-          switch (parseError(error)) {
-          | None => ()
-          | Some(err) => reject(err)
-          };
-
-          /* stderr */
-          let stderr' = stderr |> Node.Buffer.toString;
-          if (stderr' |> String.isEmpty |> (!)) {
-            reject(ProcessError(stderr'));
-          };
-          /* stdout */
-          switch (parseVersion(stdout)) {
-          | Error(err) => reject(err)
-          | Ok(self) => resolve(self)
-          };
-        },
-      )
-      |> ignore;
-    });
-  }
-  |> Async.mapError(e => Error.ValidationError(pathAndParams, e));
-
-let connect = (metadata: Metadata.t): Async.t(t, Error.t) =>
-  {
-    N.(
-      Async.make((resolve, reject) => {
-        let args = [|"--interaction"|] |> Array.concat(metadata.args);
-        let process =
-          ChildProcess.spawn(metadata.path, args, {"shell": true});
-
-        let connection = {
-          metadata,
-          process,
-          connected: true,
-          queue: [||],
-          errorEmitter: Event.make(),
-          resetLogOnLoad: true,
-        };
-        /* Handles errors and anomalies */
-        process
-        |> ChildProcess.on(
-             `error(
-               exn => {
-                 connection |> disconnect(Error.ShellError(exn));
-                 reject(Error.ShellError(exn));
-               },
-             ),
-           )
-        |> ChildProcess.on(
-             `close(
-               (code, signal) => {
-                 connection
-                 |> disconnect(Error.ClosedByProcess(code, signal));
-                 reject(Error.ClosedByProcess(code, signal));
-               },
-             ),
-           )
-        |> ignore;
-        process
-        |> ChildProcess.stdout
-        |> Stream.Readable.once(`data(_ => resolve(connection)))
-        |> ignore;
-      })
-    );
-  }
-  |> Async.mapError(e => Error.ConnectionError(e));
-
-let wire = (self): t => {
-  /* resolves the requests in the queue */
-  let response = (res: response) => {
-    switch (self.queue[0]) {
-    | None =>
-      switch (res) {
-      | OnResult(Ok(data)) => self.errorEmitter |> Event.emitOk(data)
-      | _ => ()
+// a more sophiscated "make"
+let validateAndMake = (path, args): Promise.t(result(Metadata.t, Error.t)) => {
+  let validator = (output): result((string, Metadata.Protocol.t), string) => {
+    switch (Js.String.match([%re "/Agda version (.*)/"], output)) {
+    | None => Error("Cannot read Agda version")
+    | Some(match) =>
+      switch (match[1]) {
+      | None => Error("Cannot read Agda version")
+      | Some(version) =>
+        Ok((
+          version,
+          Js.Re.test_([%re "/--interaction-json/"], output)
+            ? Metadata.Protocol.EmacsAndJSON : Metadata.Protocol.EmacsOnly,
+        ))
       }
-    | Some(req) =>
-      req |> Event.emitOk(res);
-      switch (res) {
-      | OnResult(_) => ()
-      | OnFinish =>
-        self.queue |> Js.Array.pop |> Option.forEach(Event.destroy)
-      };
     };
   };
+
+  Process.Validation.run(path ++ " -V", validator)
+  ->Promise.mapOk(((version, protocol)) =>
+      {Metadata.path, args, version, protocol}
+    )
+  ->Promise.mapError(e => Error.Validation(e));
+};
+
+let connect = (metadata: Metadata.t): t => {
+  let args = [|"--interaction"|] |> Array.concat(metadata.args);
+  let process = Process.make(metadata.path, args);
+
+  {
+    metadata,
+    process,
+    queue: [],
+    resetLogOnLoad: true,
+    encountedFirstPrompt: false,
+    log: [||],
+  };
+};
+
+let wire = (self): t => {
   let logSExpression =
-    Parser.Incr.Event.map(
-      Result.map(expr => {
-        Metadata.logSExpression(expr, self.metadata);
-        expr;
-      }),
+    Parser.Incr.Event.tap(
+      fun
+      | Error(_) => ()
+      | Ok(expr) => Log.logSExpression(expr, self.log),
     );
 
-  // let toResponse = Parser.Incr.Event.map(x => x);
+  // We use the prompt "Agda2>" as the delimiter of the end of a response
+  // However, the prompt "Agda2>" also appears at the very start of the conversation
+  // So this would be what it looks like:
+  //    >>> request
+  //      stop          <------- wierd stop
+  //      yield
+  //      yield
+  //      stop
+  //    >> request
+  //      yield
+  //      yield
+  //      stop
+  //
   let toResponse =
     Parser.Incr.Event.flatMap(
       fun
-      | Error(parseError) => Parser.Incr.Event.OnResult(Error(parseError))
-      | Ok(Parser__Type.SExpression.A("Agda2>")) => Parser.Incr.Event.OnFinish
-      | Ok(tokens) => Parser.Incr.Event.OnResult(Response.parse(tokens)),
+      | Error(parseError) => Parser.Incr.Event.Yield(Error(parseError))
+      | Ok(Parser__Type.SExpression.A("Agda2>")) => Parser.Incr.Event.Stop
+      | Ok(tokens) => Parser.Incr.Event.Yield(Response.parse(tokens)),
     );
 
   let logResponse =
-    Parser.Incr.Event.map(
-      Result.map(expr => {
-        Metadata.logResponse(expr, self.metadata);
-        expr;
-      }),
+    Parser.Incr.Event.tap(
+      fun
+      | Error(_) => ()
+      | Ok(expr) => Log.logResponse(expr, self.log),
     );
 
-  let callback =
-    Parser.SExpression.makeIncr(
-      logSExpression >> toResponse >> logResponse >> response,
-    );
-
-  /* listens to the "data" event on the stdout */
-  /* The chunk may contain various fractions of the Agda output */
-  let onData: Node.buffer => unit =
-    chunk => {
-      /* serialize the binary chunk into string */
-      let rawText = chunk |> Node.Buffer.toString;
-      /* store the raw text in the log */
-      Metadata.logRawText(rawText, self.metadata);
-      // run the parser
-      rawText |> Parser.split |> Array.forEach(Parser.Incr.feed(callback));
+  // resolves the requests in the queue
+  let handleResponse = (res: response) => {
+    switch (self.queue) {
+    | [] => ()
+    | [req, ...rest] =>
+      switch (res) {
+      | Yield(x) => req.emit(Ok(Yield(x)))
+      | Stop =>
+        if (self.encountedFirstPrompt) {
+          // pop the queue on Stop
+          req.emit(Ok(Stop));
+          self.queue = rest;
+          req.Event.destroy() |> ignore;
+        } else {
+          // do nothing when encountering the first Stop
+          self.encountedFirstPrompt =
+            true;
+        }
+      }
     };
-  self.process
-  |> N.ChildProcess.stdout
-  |> N.Stream.Readable.on(`data(onData))
-  |> ignore;
+  };
+  let pipeline =
+    Parser.SExpression.makeIncr(x =>
+      x->logSExpression->toResponse->logResponse->handleResponse
+    );
+
+  // listens to the "data" event on the stdout
+  // The chunk may contain various fractions of the Agda output
+  let onData: result(string, Process.Error.t) => unit =
+    fun
+    | Ok(rawText) => {
+        // store the raw text in the log
+        Log.logRawText(rawText, self.log);
+        // split the raw text into pieces and feed it to the parser
+        rawText->Parser.split->Array.forEach(Parser.Incr.feed(pipeline));
+      }
+    | Error(e) => {
+        // emit error to all of the request in the queue
+        self.queue
+        ->List.forEach(req => {
+            req.Event.emit(Error(e));
+            req.destroy();
+          });
+        // clean the queue
+        self.queue = [];
+      };
+
+  self.process.emitter.on(onData) |> ignore;
 
   self;
 };
 
-let send = (request, self): Event.t(response, Error.connection) => {
+let send = (request, self): Event.t(result(response, Process.Error.t)) => {
   let reqEvent = Event.make();
-  self.queue |> Js.Array.push(reqEvent) |> ignore;
 
-  /* write */
-  self.process
-  |> N.ChildProcess.stdin
-  |> N.Stream.Writable.write(request ++ "\n" |> Node.Buffer.fromString)
-  |> ignore;
+  self.queue = [reqEvent, ...self.queue];
+
+  self.process.send(request) |> ignore;
 
   reqEvent;
 };
 
 let resetLog = self => {
-  self.metadata.entries = [||];
+  self.log = [||];
+};
+
+let dump = self => {
+  let serialize = self => {
+    let metadata = self.metadata |> Metadata.serialize;
+    let log = self.log |> Log.serialize;
+    metadata ++ "\n" ++ log ++ "\n";
+  };
+  let text = serialize(self);
+  let itemOptions = {
+    "initialLine": 0,
+    "initialColumn": 0,
+    "split": "left",
+    "activatePane": true,
+    "activateItem": true,
+    "pending": false,
+    "searchAllPanes": true,
+    "location": (None: option(string)),
+  };
+  let itemURI = "agda-mode://log.md";
+  Atom.Workspace.open_(itemURI, itemOptions)
+  ->Promise.Js.fromBsPromise
+  ->Promise.Js.toResult
+  ->Promise.map(
+      fun
+      | Error(_) => ()
+      | Ok(newItem) => {
+          newItem |> Atom.TextEditor.insertText(text) |> ignore;
+        },
+    )
+  |> ignore;
 };

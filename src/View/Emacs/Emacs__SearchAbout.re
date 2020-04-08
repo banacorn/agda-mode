@@ -1,5 +1,3 @@
-
-
 open ReasonReact;
 
 open Rebase;
@@ -29,8 +27,12 @@ let make = (~body: string) => {
     ? <p> {string("There are no definitions about " ++ target)} </p>
     : <>
         <p> {string("Definitions about " ++ target ++ ":")} </p>
-        {outputs
-         |> Array.map(value => <Output value />)
-         |> Util.React.manyIn("ul")}
+        <ul>
+          {outputs
+           |> Array.mapi((value, i) =>
+                <Output key={string_of_int(i)} value />
+              )
+           |> React.array}
+        </ul>
       </>;
 };

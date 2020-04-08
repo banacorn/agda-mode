@@ -1,45 +1,48 @@
-open Rebase;
-open Fn;
+open Belt;
 
 let activated: ref(bool) = ref(false);
 let instances: Js.Dict.t(Instance.t) = Js.Dict.empty();
 
 module Instances = {
-  let textEditorID = Atom.TextEditor.id >> string_of_int;
+  let textEditorID = editor => string_of_int(Atom.TextEditor.id(editor));
 
   let get = textEditor => {
     Js.Dict.get(instances, textEditorID(textEditor));
   };
-  let getThen = (f, textEditor) => textEditor |> get |> Option.forEach(f);
 
   let add = textEditor => {
     switch (get(textEditor)) {
     | Some(_instance) => ()
     | None =>
-      Instance.make(textEditor)
-      |> Js.Dict.set(instances, textEditorID(textEditor))
+      Js.Dict.set(
+        instances,
+        textEditorID(textEditor),
+        Instance.make(textEditor),
+      )
     };
   };
 
-  let delete_: string => unit = [%raw id => "{delete instances[id]}"];
+  let deleteEntry: string => unit = [%raw
+    "function (id) {delete instances[id]}"
+  ];
   // destroy a certain Instance and remove it from `instances`
   let remove = textEditor => {
     let id = textEditorID(textEditor);
     switch (Js.Dict.get(instances, id)) {
     | Some(instance) =>
-      Instance.destroy(instance);
-      delete_(id) |> ignore;
+      Instance.destroy(instance) |> ignore;
+      deleteEntry(id) |> ignore;
     | None => ()
     };
   };
   // destroy all Instance in `instances` and empty it
   let destroyAll = () => {
     instances
-    |> Js.Dict.entries
-    |> Array.forEach(((id, instance)) => {
-         Instance.destroy(instance);
-         delete_(id) |> ignore;
-       });
+    ->Js.Dict.entries
+    ->Array.forEach(((id, instance)) => {
+        Instance.destroy(instance) |> ignore;
+        deleteEntry(id) |> ignore;
+      });
   };
   let contains = textEditor => {
     switch (get(textEditor)) {
@@ -57,9 +60,9 @@ module Instances = {
 let isAgdaFile = (textEditor): bool => {
   let filepath =
     textEditor
-    |> Atom.TextEditor.getPath
-    |> Option.getOr("untitled")
-    |> Parser.filepath;
+    ->Atom.TextEditor.getPath
+    ->Option.getWithDefault("untitled")
+    ->Parser.filepath;
   /* filenames are case insensitive on Windows */
   let onWindows = N.OS.type_() == "Windows_NT";
   if (onWindows) {
@@ -78,13 +81,16 @@ let onEditorActivationChange = () => {
   let previous = ref(Workspace.getActiveTextEditor());
   Workspace.onDidChangeActiveTextEditor(next => {
     /* decativate the previously activated editor */
-    previous^
-    |> Option.forEach(Instances.getThen(Instance.deactivate >> ignore));
+    (previous^)
+    ->Option.flatMap(Instances.get)
+    ->Option.forEach(instance => Instance.deactivate(instance) |> ignore);
     /* activate the next editor */
     switch (next) {
     | None => ()
     | Some(nextEditor) =>
-      nextEditor |> Instances.getThen(Instance.activate >> ignore);
+      nextEditor
+      ->Instances.get
+      ->Option.forEach(instance => Instance.activate(instance) |> ignore);
       previous := Some(nextEditor);
     };
   })
@@ -96,40 +102,41 @@ let eventTargetEditor = (event: Webapi.Dom.Event.t): option(TextEditor.t) => {
   // the HtmlElement of the event target
   let targetSubElement =
     event
-    |> Webapi.Dom.Event.target
-    |> Webapi.Dom.EventTarget.unsafeAsElement
-    |> Webapi.Dom.Element.unsafeAsHtmlElement;
+    ->Webapi.Dom.Event.target
+    ->Webapi.Dom.EventTarget.unsafeAsElement
+    ->Webapi.Dom.Element.unsafeAsHtmlElement;
 
   // the <TextEditor>s that contain the event target
   let targetedEditors =
     Workspace.getTextEditors()
-    |> Array.filter(
-         Views.getView
-         >> Webapi.Dom.HtmlElement.asNode
-         >> Webapi.Dom.Node.contains(targetSubElement),
-       );
+    ->Array.keep(editor =>
+        editor
+        ->Views.getView
+        ->Webapi.Dom.HtmlElement.asNode
+        ->Webapi.Dom.Node.contains(targetSubElement, _)
+      );
 
   targetedEditors[0];
 };
 
 /* register keymap bindings and emit commands */
 let onTriggerCommand = () => {
-  Command.names
-  |> Array.forEach(command =>
-       Commands.add(
-         `CSSSelector("atom-text-editor"), "agda-mode:" ++ command, event =>
-         event
-         |> eventTargetEditor
-         |> Option.flatMap(Instances.get)
-         |> Option.forEach(instance =>
-              instance
-              |> Instance.dispatch(Command.Primitive.parse(command))
-              |> Instance.handleCommandError(instance)
-              |> ignore
-            )
-       )
-       |> CompositeDisposable.add(subscriptions)
-     );
+  Command.names->Array.forEach(command =>
+    Commands.add(
+      `CSSSelector("atom-text-editor"), "agda-mode:" ++ command, event =>
+      event
+      ->eventTargetEditor
+      ->Option.flatMap(Instances.get)
+      ->Option.forEach(instance =>
+          TaskRunner.dispatchCommand(Command.parse(command), instance)
+          |> ignore
+        )
+    )
+    // Instance.dispatch(Command.parse(command), instance)
+    // ->Instance.handleCommandError(instance)
+    // |> ignore
+    |> CompositeDisposable.add(subscriptions)
+  );
 };
 
 /* hijack UNDO */
@@ -138,11 +145,11 @@ let onUndo = () => {
     `CSSSelector("atom-text-editor"),
     "core:undo",
     event => {
-      event |> Webapi.Dom.Event.stopImmediatePropagation;
+      Webapi.Dom.Event.stopImmediatePropagation(event);
       let activated = Workspace.getActiveTextEditor();
       activated
-      |> Option.flatMap(Instances.get)
-      |> Option.forEach(Instance.dispatchUndo);
+      ->Option.flatMap(Instances.get)
+      ->Option.forEach(Instance.dispatchUndo);
     },
   )
   |> CompositeDisposable.add(subscriptions);
@@ -214,18 +221,32 @@ let deactivate = _ =>
 /* https://atom.io/docs/api/latest/Config */
 let config = {
   "agdaPath": {
-    "title": "Agda",
+    "title": "Agda path",
     "description": "Path to the executable of Agda, automatically inferred when possible. Overwrite to override.",
     "type": "string",
     "default": "",
+    "order": 0,
+  },
+  "agdaArgs": {
+    "title": "Agda command-line arguments",
+    "description": "For example: to use \"agda --cubical --safe\", put \"--cubical --safe\" in this field",
+    "type": "string",
+    "default": "",
     "order": 1,
+  },
+  "agdaName": {
+    "title": "Agda name",
+    "description": "Default to \"agda\", this is the name we use to search for the path",
+    "type": "string",
+    "default": "agda",
+    "order": 2,
   },
   "enableJSONProtocol": {
     "title": "Enable the JSON protocol (experimental)",
     "description": "Demand Agda to output in JSON format when possible",
     "type": "boolean",
     "default": false,
-    "order": 2,
+    "order": 3,
   },
   "libraryPath": {
     "title": "Libraries",
@@ -235,7 +256,7 @@ let config = {
     "items": {
       "type": "string",
     },
-    "order": 5,
+    "order": 10,
   },
   "backend": {
     "title": "Backend",
@@ -243,7 +264,7 @@ let config = {
     "type": "string",
     "default": "GHCNoMain",
     "enum": [|"GHC", "GHCNoMain"|],
-    "order": 10,
+    "order": 11,
   },
   "highlightingMethod": {
     "title": "Highlighting information passing",
@@ -263,14 +284,14 @@ let config = {
     "order": 30,
   },
   "inputMethod": {
-    "title": "Input Method",
+    "title": "Input method",
     "description": "Enable input method",
     "type": "boolean",
     "default": true,
     "order": 40,
   },
   "inputMethodExtension": {
-    "title": "Input Method Extension",
+    "title": "Input method extension",
     "description": "For adding or prioritizing key mappings. Please edit this from \"Settings > Input Method > Keymap extensions\"",
     "type": "string",
     "default": {j|{"^r":["ʳ"],"^l":["ˡ"]}|j},

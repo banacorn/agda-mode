@@ -36,9 +36,17 @@ let triggerArg = (callback: option('a => unit), arg: 'a): unit =>
   };
 
 type t = {
-  element: Element.t,
-  kill: unit => unit,
-  activate: unit => unit,
+  itemResource: Resource.t(Workspace.item),
+  subscriptions: CompositeDisposable.t,
+  closedDeliberately: ref(bool),
+  itemOpener: {
+    .
+    "element": Dom.element,
+    "getTitle": unit => string,
+  },
+  // element: Element.t,
+  // kill: unit => unit,
+  // activate: unit => unit,
 };
 
 external asWorkspaceItem: Atom.TextEditor.t => Atom.Workspace.item =
@@ -55,7 +63,7 @@ let make =
       ~onDidChangeActive: option(bool => unit)=?,
       (),
     ) => {
-  let itemResource: Resource.t(Workspace.item, unit) = Resource.make();
+  let itemResource: Resource.t(Workspace.item) = Resource.make();
   let closedDeliberately = ref(false);
   let subscriptions = CompositeDisposable.make();
   let previousItem = Workspace.getActivePane() |> Pane.getActiveItem;
@@ -123,24 +131,25 @@ let make =
        resolve(Workspace.getActivePane());
      })
   |> ignore;
-  {
-    element: itemOpener##element,
-    kill: () =>
-      itemResource.acquire()
-      |> Async.finalOk((item: Workspace.item) => {
-           /* dispose subscriptions */
-           CompositeDisposable.dispose(subscriptions);
-           /* set the "closedDeliberately" to true to trigger "onKill" */
-           closedDeliberately := true;
-           Workspace.paneForItem(item)
-           |> Option.forEach(pane => Pane.destroyItem(item, pane) |> ignore);
-         }),
-
-    activate: () =>
-      itemResource.acquire()
-      |> Async.finalOk((item: Workspace.item) =>
-           Workspace.paneForItem(item)
-           |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore)
-         ),
-  };
+  {itemResource, subscriptions, closedDeliberately, itemOpener};
 };
+
+let kill = self =>
+  self.itemResource.acquire()
+  ->Promise.get((item: Workspace.item) => {
+      /* dispose subscriptions */
+      CompositeDisposable.dispose(self.subscriptions);
+      /* set the "closedDeliberately" to true to trigger "onKill" */
+      self.closedDeliberately := true;
+      Workspace.paneForItem(item)
+      |> Option.forEach(pane => Pane.destroyItem(item, pane) |> ignore);
+    }) /* }*/;
+
+let getElement = self => self.itemOpener##element;
+
+let activate = self =>
+  self.itemResource.acquire()
+  ->Promise.get((item: Workspace.item) =>
+      Workspace.paneForItem(item)
+      |> Option.forEach(pane => Pane.activateItem(item, pane) |> ignore)
+    );

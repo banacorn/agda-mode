@@ -1,5 +1,6 @@
 open ReasonReact;
 open Util.React;
+open Rebase.Fn;
 
 module URI = Settings__Breadcrumb;
 type uri = URI.uri;
@@ -10,18 +11,29 @@ let at = (x, y, classNames) => {
 
 [@react.component]
 let make =
+    // ~inquireConnection: Event.t(unit, unit),
+    // ~onInquireConnection: Event.t(string, MiniEditor.error),
     (
-      ~inquireConnection: Event.t(unit, unit),
-      ~onInquireConnection: Event.t(string, MiniEditor.error),
-      ~connection: option(Connection.t),
-      ~connectionError: option(Connection.Error.t),
-      ~navigate: Event.t(uri, unit),
+      ~targetURI: uri,
       ~debug: Type.View.Debug.state,
       ~element: option(Webapi.Dom.Element.t),
     ) => {
-  let (uri, setURI) = Hook.useState(URI.Root);
+  let channels = React.useContext(Channels.context);
+  let ((connection, connectionError), setConnectionAndError) =
+    Hook.useState((None, None));
+  Hook.useChannel(
+    setConnectionAndError >> Promise.resolved,
+    channels.updateConnection,
+  );
 
-  React.useEffect1(() => Some(navigate |> Event.onOk(setURI)), [||]);
+  let (uri, setURI) = Hook.useState(targetURI);
+  React.useEffect1(
+    () => {
+      setURI(targetURI);
+      None;
+    },
+    [|targetURI|],
+  );
 
   let inDevMode = Atom.inDevMode();
   switch (element) {
@@ -42,7 +54,7 @@ let make =
             </li>
             <li onClick={_ => setURI(URI.InputMethod)}>
               <span className="icon icon-keyboard">
-                {string("Unicode Input")}
+                {string("Input Method")}
               </span>
             </li>
             {inDevMode
@@ -54,9 +66,9 @@ let make =
                : null}
           </ul>
           <Settings__Connection
-            inquireConnection
-            onInquireConnection
             connection
+            // inquireConnection
+            // onInquireConnection
             error=connectionError
             hidden={uri != URI.Connection}
           />

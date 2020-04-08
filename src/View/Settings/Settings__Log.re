@@ -4,43 +4,57 @@ open Rebase;
 
 module Entry = {
   [@react.component]
-  let make = (~entry: Metadata.Log.Entry.t) => {
+  let make = (~entry: Log.Entry.t) => {
     let (hidden, setHidden) = Hook.useState(true);
     let className = hidden ? "hidden" : "";
     let rawTexts =
       entry.response.rawText
-      |> Array.map(text => <li> {string(text)} </li>)
-      |> Util.React.manyIn("ol");
+      |> Array.mapi((text, i) =>
+           <li key={string_of_int(i)}> {string(text)} </li>
+         )
+      |> React.array;
     let sexpressions =
       entry.response.sexpression
-      |> Array.map(text =>
-           <li> {string(Parser.SExpression.toString(text))} </li>
+      |> Array.mapi((text, i) =>
+           <li key={string_of_int(i)}>
+             {string(Parser.SExpression.toString(text))}
+           </li>
          )
-      |> Util.React.manyIn("ol");
+      |> React.array;
     let responses =
       entry.response.response
-      |> Array.map(text => <li> {string(Response.toString(text))} </li>)
-      |> Util.React.manyIn("ol");
+      |> Array.mapi((text, i) =>
+           <li key={string_of_int(i)}>
+             {string(Response.toString(text))}
+           </li>
+         )
+      |> React.array;
     let hasError = Array.length(entry.response.error) > 0;
     let errors =
       entry.response.error
-      |> Array.map(text => <li> {string(Parser.Error.toString(text))} </li>)
-      |> Util.React.manyIn("ol");
+      |> Array.mapi((text, i) =>
+           <li key={string_of_int(i)}>
+             {string(Parser.Error.toString(text))}
+           </li>
+         )
+      |> React.array;
 
     <li className="agda-settings-log-entry">
       <h2 onClick={_ => setHidden(!hidden)}>
-        {string(Command.Remote.toString(entry.request))}
+        {string(Request.toString(entry.request))}
       </h2>
       <section className>
         <h3> {string("raw text")} </h3>
-        rawTexts
+        <ol> rawTexts </ol>
         <hr />
         <h3> {string("s-expression")} </h3>
-        sexpressions
+        <ol> sexpressions </ol>
         <hr />
         <h3> {string("response")} </h3>
-        responses
-        {hasError ? <> <hr /> <h3> {string("error")} </h3> errors </> : null}
+        <ol> responses </ol>
+        {hasError
+           ? <> <hr /> <h3> {string("error")} </h3> <ol> errors </ol> </>
+           : null}
       </section>
     </li>;
   };
@@ -55,9 +69,10 @@ let make = (~connection: option(Connection.t), ~hidden) => {
 
   let entries =
     connection
-    |> Option.mapOr(conn => conn.Connection.metadata.entries, [||])
-    |> Array.map(entry => <Entry entry />)
-    |> Util.React.manyIn("ol");
+    |> Option.mapOr(conn => conn.Connection.log, [||])
+    |> Array.mapi((entry, i) => <Entry entry key={string_of_int(i)} />)
+    |> React.array;
+
   <section className={"agda-settings-log" ++ showWhen(!hidden)}>
     <h1>
       <span className="icon icon-comment-discussion" />
@@ -84,8 +99,7 @@ let make = (~connection: option(Connection.t), ~hidden) => {
       <button
         onClick={_ => {
           setShowInstruction(true);
-          connection
-          |> Option.forEach(conn => Metadata.dump(conn.Connection.metadata));
+          connection |> Option.forEach(Connection.dump);
         }}
         className="btn btn-primary icon icon-clippy">
         {string("Dump log")}
@@ -102,6 +116,6 @@ let make = (~connection: option(Connection.t), ~hidden) => {
          </p>
        : null}
     <hr />
-    entries
+    <ol> entries </ol>
   </section>;
 };

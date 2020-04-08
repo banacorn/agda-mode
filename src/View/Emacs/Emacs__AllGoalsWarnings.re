@@ -117,17 +117,29 @@ let parse = (title, body): t => {
 let make = (~value: t) => {
   let {interactionMetas, hiddenMetas, warnings, errors} = value;
   <>
-    {interactionMetas
-     |> Array.map(value => <Output value />)
-     |> Util.React.manyIn("ul")}
-    {hiddenMetas
-     |> Array.map(value => <Output value />)
-     |> Util.React.manyIn("ul")}
-    {warnings
-     |> Array.map(value => <WarningError value />)
-     |> Util.React.manyIn("ul")}
-    {errors
-     |> Array.map(value => <WarningError value />)
-     |> Util.React.manyIn("ul")}
+    <ul>
+      {interactionMetas
+       |> Array.mapi((i, value) => <Output key={string_of_int(i)} value />)
+       |> React.array}
+    </ul>
+    <ul>
+      {hiddenMetas
+       |> Array.mapi((i, value) => <Output key={string_of_int(i)} value />)
+       |> React.array}
+    </ul>
+    <ul>
+      {warnings
+       |> Array.mapi((i, value) =>
+            <WarningError key={string_of_int(i)} value />
+          )
+       |> React.array}
+    </ul>
+    <ul>
+      {errors
+       |> Array.mapi((i, value) =>
+            <WarningError key={string_of_int(i)} value />
+          )
+       |> React.array}
+    </ul>
   </>;
 };

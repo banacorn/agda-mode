@@ -1,7 +1,6 @@
 open Rebase;
 open Fn;
 
-open BsMocha;
 open! BsMocha.Mocha;
 open! BsMocha.Promise;
 open Js.Promise;
@@ -30,7 +29,6 @@ let onProd = callback =>
   branch()
   |> then_(x =>
        switch (Js.nullToOption(x)) {
-       | None => callback()
        | Some("master") => callback()
        | _ => resolve(0)
        }
@@ -40,7 +38,6 @@ let onDev = callback =>
   branch()
   |> then_(x =>
        switch (Js.nullToOption(x)) {
-       | None => resolve(0)
        | Some("master") => resolve(0)
        | _ => callback()
        }
@@ -65,7 +62,7 @@ describe("Distribution", () => {
       onProd(() =>
         readPackageJSONMain()
         |> then_(path => {
-             Assert.equal(path, "./lib/js/bundled.js");
+             path |> Assert.equal("./lib/js/bundled.js");
              resolve(0);
            })
       )
@@ -77,7 +74,7 @@ describe("Distribution", () => {
       onDev(() =>
         readPackageJSONMain()
         |> then_(path => {
-             Assert.equal(path, "./lib/js/src/AgdaMode.bs");
+             path |> Assert.equal("./lib/js/src/AgdaMode.bs");
              resolve(0);
            })
       )

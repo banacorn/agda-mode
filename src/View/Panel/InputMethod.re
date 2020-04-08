@@ -208,39 +208,32 @@ type change =
   | Noop
   | Rewrite
   | Complete
-  | Stuck;
+  | Stuck
+  | Abort;
 
 // for determining whether the previous changes to the system should be regarded as one atomic operation or not
 let hasChanged = (state, changeLog) => {
-  // there was a Rewrite + Deactivate combo
-  let rewriteDeactivateCombo = !state.activated && changeLog == Complete;
+  // // there was a Rewrite + Deactivate combo
+  // let rewriteDeactivateCombo = !state.activated && changeLog == Complete;
 
   // there was a Deactivate + Activate combo
   // also happens when agda-mode was activated by triggering the input-method
   let deactivateActivateCombo = !state.activated && changeLog == Noop;
 
-  !rewriteDeactivateCombo && !deactivateActivateCombo;
+  // when the user hit "ESC"
+  let aborted = changeLog == Abort;
+
+  // !rewriteDeactivateCombo && !deactivateActivateCombo || aborted;
+  !deactivateActivateCombo || aborted;
 };
 
 [@react.component]
 let make =
     (
       ~editors: Editors.t,
-      /*
-       Issue #34: https://github.com/banacorn/agda-mode/issues/34
-       Intercept some keys that Bracket Matcher autocompletes
-        to name them all: "{", "[", "{", "\"", "'", and `
-       Because the Bracket Matcher package is too lacking, it does not responds
-        to the disabling of the package itself, making it impossible to disable
-        the package during the process of input.
-       Instead, we hardwire the keys we wanna intercept directly from the Keymaps.
-         */
-      ~interceptAndInsertKey: Event.t(string, unit),
-      ~activateInputMethod: Event.t(bool, unit),
-      ~onActivationChange: Event.t(bool, unit),
       // this event is triggered whenever the user did something
-      ~onChange: Event.t(unit, unit),
-      ~isActive: bool,
+      ~onChange: Event.t(state),
+      ~panelActivated: bool,
     ) => {
   let editor = Editors.Focus.get(editors);
   // display markers
@@ -253,53 +246,47 @@ let make =
 
   // update with the latest state
   React.Ref.setCurrent(stateRef, state);
+
+  let channels = React.useContext(Channels.context);
+
   // input: listens to `activateInputMethod`
-  React.useEffect1(
-    () =>
-      activateInputMethod
-      |> Event.onOk(shouldActivate => {
-           let state = React.Ref.current(stateRef);
-           if (shouldActivate) {
-             if (state.activated) {
-               if (Buffer.isEmpty(state.buffer)) {
-                 // already activated, this happens when the 2nd backslash '\' kicks in
-                 // the user probably just want to type '\', so we leave it as is
-                 insertTextBuffer(editor, "\\");
-                 send(Deactivate);
-               } else {
-                 // Deactivate and then Activate, see #102: https://github.com/banacorn/agda-mode/issues/102
-                 // allow users to type combos like ≡⟨⟩ with `\==\<\>`
-                 send(Deactivate);
-                 send(Activate);
-               };
-             } else {
-               send(Activate);
-             };
-           } else {
-             send(Deactivate);
-           };
-         })
-      |> Option.some,
-    [||],
+  Hook.useChannel(
+    shouldActivate => {
+      let state = React.Ref.current(stateRef);
+      if (shouldActivate) {
+        if (state.activated) {
+          if (Buffer.isEmpty(state.buffer)) {
+            // already activated, this happens when the 2nd backslash '\' kicks in
+            // the user probably just want to type '\', so we leave it as is
+            insertTextBuffer(editor, "\\");
+            send(Deactivate);
+          } else {
+            // Deactivate and then Activate, see #102: https://github.com/banacorn/agda-mode/issues/102
+            // allow users to type combos like ≡⟨⟩ with `\==\<\>`
+            send(Deactivate);
+            send(Activate);
+          };
+        } else {
+          send(Activate);
+        };
+      } else {
+        setChangeLog(Abort);
+        send(Deactivate);
+      };
+      Promise.resolved();
+    },
+    channels.activateInputMethod,
   );
 
   // input: programmatically inserting some keys
-  React.useEffect1(
-    () =>
-      interceptAndInsertKey
-      |> Event.onOk(char => insertTextBuffer(editor, char))
-      |> Option.some,
-    [||],
+  Hook.useChannel(
+    char => {
+      insertTextBuffer(editor, char);
+      Promise.resolved();
+    },
+    channels.interceptAndInsertKey,
   );
 
-  // output: on activation change
-  Hook.useDidUpdateEffect(
-    () => {
-      onActivationChange |> Event.emitOk(state.activated);
-      None;
-    },
-    [|state.activated|],
-  );
   // do something when the "reality" changed
   // let (reality, setReality) = Hook.useState("");
   let setReality = s => send(UpdateReality(s));
@@ -343,7 +330,7 @@ let make =
     () => {
       if (hasChanged(state, changeLog)) {
         // Js.log("[ IM ][ change ]");
-        onChange |> Event.emitOk();
+        onChange.emit(state);
       };
 
       // Js.log3(state.activated, Buffer.toString(state.buffer), state.reality);
@@ -399,11 +386,11 @@ let make =
           )}
     </div>
     <CandidateSymbols
-      isActive={isActive && state.activated}
+      activated={panelActivated && state.activated}
       updateTranslation={replace =>
         switch (replace) {
         | Some(symbol) =>
-          onChange |> Event.emitOk();
+          onChange.emit(state);
           rewriteTextBuffer(editor, markers, symbol);
         | None => ()
         }

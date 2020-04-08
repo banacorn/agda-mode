@@ -8,9 +8,9 @@ let make =
       ~header: Type.View.Header.t,
       ~hidden: bool,
       ~isPending: bool,
-      ~mountAt: Type.View.mountAt,
-      ~settingsView: option(Tab.t),
-      ~onMountAtChange: Type.View.mountTo => unit,
+      ~mountingPoint: Type.View.mountingPoint,
+      ~settingsActivated: bool,
+      ~onMountingTargetChange: Type.View.mountingTarget => unit,
       ~onSettingsViewToggle: bool => unit,
     ) => {
   let settingsButtonRef = React.useRef(Js.Nullable.null);
@@ -61,7 +61,6 @@ let make =
     [||],
   );
 
-  let settingsOn = settingsView |> Option.isSome;
   let headerClassList =
     switch (header.style) {
     | PlainText => ""
@@ -72,11 +71,12 @@ let make =
     };
   let spinnerClassList =
     "loading loading-spinner-tiny inline-block" ++ when_(isPending, "pending");
-  let settingsViewClassList = "no-btn" ++ when_(settingsOn, "activated");
+  let settingsViewClassList =
+    "no-btn" ++ when_(settingsActivated, "activated");
   let toggleMountingPosition =
     "no-btn"
     ++ when_(
-         switch (mountAt) {
+         switch (mountingPoint) {
          | Pane(_) => true
          | _ => false
          },
@@ -89,8 +89,9 @@ let make =
       <li> <span id="spinner" className=spinnerClassList /> </li>
       <li>
         <button
+          id="agda-dashboard-settings"
           className=settingsViewClassList
-          onClick={_ => onSettingsViewToggle(!settingsOn)}
+          onClick={_ => onSettingsViewToggle(!settingsActivated)}
           ref={ReactDOMRe.Ref.domRef(settingsButtonRef)}>
           <span className="icon icon-settings" />
         </button>
@@ -99,9 +100,9 @@ let make =
         <button
           className=toggleMountingPosition
           onClick={_ =>
-            switch (mountAt) {
-            | Pane(_) => onMountAtChange(Type.View.ToBottom)
-            | _ => onMountAtChange(Type.View.ToPane)
+            switch (mountingPoint) {
+            | Pane(_) => onMountingTargetChange(Type.View.AtBottom)
+            | _ => onMountingTargetChange(Type.View.AtPane)
             }
           }
           ref={ReactDOMRe.Ref.domRef(dockingButtonRef)}>
