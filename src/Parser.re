@@ -84,17 +84,8 @@ let filepath = s => {
 
 let agdaOutput = Js.String.replaceByRe([%re "/\\\\n/g"], "\n");
 
-let commandLine = s => {
-  let parts =
-    s
-    |> Js.String.replaceByRe([%re "/\\s+/g"], " ")
-    |> Js.String.split(" ")
-    |> List.fromArray;
-  switch (parts) {
-  | [] => ("", [||])
-  | [path, ...args] => (filepath(path), List.toArray(args))
-  };
-};
+let commandLineArgs = s =>
+  s |> Js.String.replaceByRe([%re "/\\s+/g"], " ") |> Js.String.split(" ");
 
 let split = s =>
   s

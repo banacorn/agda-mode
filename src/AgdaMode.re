@@ -225,6 +225,13 @@ let config = {
     "description": "Path to the executable of Agda, automatically inferred when possible. Overwrite to override.",
     "type": "string",
     "default": "",
+    "order": 0,
+  },
+  "agdaArgs": {
+    "title": "Agda command-line arguments",
+    "description": "For example: to use \"agda --cubical --safe\", put \"--cubical --safe\" in this field",
+    "type": "string",
+    "default": "",
     "order": 1,
   },
   "agdaName": {

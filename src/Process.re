@@ -125,8 +125,7 @@ module Validation = {
   type validator('a) = output => result('a, string);
 
   let run =
-      (pathAndParams, validator: validator('a))
-      : Promise.t(result('a, Error.t)) => {
+      (path, validator: validator('a)): Promise.t(result('a, Error.t)) => {
     // parsing the parse error
     let parseError = (error: Js.Nullable.t(Js.Exn.t)): option(Error.t) => {
       error
@@ -145,8 +144,6 @@ module Validation = {
 
     let (promise, resolve) = Promise.pending();
 
-    let (path, _args) = Parser.commandLine(pathAndParams);
-
     // the path must not be empty
     if (path == "") {
       resolve(Error(Error.PathMalformed("the path must not be empty")));
@@ -157,7 +154,7 @@ module Validation = {
       Js.Global.setTimeout(() => resolve(Error(ProcessHanging)), 20000);
 
     Nd.ChildProcess.exec(
-      pathAndParams,
+      path,
       (error, stdout, stderr) => {
         // clear timeout as the process has responded
         Js.Global.clearTimeout(hangTimeout);

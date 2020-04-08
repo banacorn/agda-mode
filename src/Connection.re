@@ -72,8 +72,7 @@ let autoSearch = name =>
   Process.PathSearch.run(name)->Promise.mapError(e => Error.PathSearch(e));
 
 // a more sophiscated "make"
-let validateAndMake =
-    (pathAndParams): Promise.t(result(Metadata.t, Error.t)) => {
+let validateAndMake = (path, args): Promise.t(result(Metadata.t, Error.t)) => {
   let validator = (output): result((string, Metadata.Protocol.t), string) => {
     switch (Js.String.match([%re "/Agda version (.*)/"], output)) {
     | None => Error("Cannot read Agda version")
@@ -90,7 +89,6 @@ let validateAndMake =
     };
   };
 
-  let (path, args) = Parser.commandLine(pathAndParams);
   Process.Validation.run(path ++ " -V", validator)
   ->Promise.mapOk(((version, protocol)) =>
       {Metadata.path, args, version, protocol}

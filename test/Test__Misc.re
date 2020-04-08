@@ -15,8 +15,9 @@ describe_skip("when loading files", () =>
       |> Js.Promise.then_(editor => {
            let instance = Instance.make(editor);
            Connection.autoSearch("agda")
-           ->Promise.mapOk(x => x ++ " --no-libraries")
-           ->Promise.flatMapOk(Connection.validateAndMake)
+           ->Promise.flatMapOk(path =>
+               Connection.validateAndMake(path, [|" --no-libraries"|])
+             )
            ->Promise.mapOk(Connection.connect)
            ->Promise.mapOk(Connection.wire)
            ->Promise.mapOk(Instance.Connections.persistConnection(instance))

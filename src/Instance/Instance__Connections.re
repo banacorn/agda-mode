@@ -19,8 +19,10 @@ let inquireAgdaPath =
 };
 
 // get Agda path from config or from the user
-let getAgdaPath = (instance): Promise.t(result(string, error)) => {
+let getAgdaPathAndArgs =
+    (instance): Promise.t(result((string, array(string)), error)) => {
   let storedPath = Config.get("agda-mode.agdaPath") |> Parser.filepath;
+  let storedArgs = Config.get("agda-mode.agdaArgs") |> Parser.commandLineArgs;
   if (String.isEmpty(storedPath) || storedPath == ".") {
     let searchingFor = Config.get("agda-mode.agdaName") |> String.trim;
     Connection.autoSearch(searchingFor)
@@ -28,9 +30,10 @@ let getAgdaPath = (instance): Promise.t(result(string, error)) => {
         // log connection error for testing
         instance.onConnectionError.emit(err);
         inquireAgdaPath(Some(err), instance);
-      });
+      })
+    ->Promise.mapOk(path => (path, [||]));
   } else {
-    Promise.resolved(Ok(storedPath));
+    Promise.resolved(Ok((storedPath, storedArgs)));
   };
 };
 
@@ -49,19 +52,19 @@ let persistConnection =
   ->Promise.map(() => Ok(connection));
 };
 
-let connectWithAgdaPath =
-    (instance, path): Promise.t(result(Connection.t, error)) => {
+let connectWithAgdaPathAndArgs =
+    (instance, path, args): Promise.t(result(Connection.t, error)) => {
   // validate the given path
-  let rec getMetadata = (instance, pathAndParams) => {
-    Connection.validateAndMake(pathAndParams)
+  let rec getMetadata = (instance, path, args) => {
+    Connection.validateAndMake(path, args)
     ->Promise.flatMapError(err =>
         inquireAgdaPath(Some(err), instance)
-        ->Promise.flatMapOk(getMetadata(instance))
+        ->Promise.flatMapOk(p => getMetadata(instance, p, args))
       );
   };
 
   instance
-  ->getMetadata(path)
+  ->getMetadata(path, args)
   ->Promise.mapOk(Connection.connect)
   ->Promise.flatMapOk(persistConnection(instance))
   ->Promise.mapOk(Connection.wire);
@@ -72,7 +75,11 @@ let connect = (instance): Promise.t(result(Connection.t, error)) => {
   switch (instance.connection) {
   | Some(connection) => Promise.resolved(Ok(connection))
   | None =>
-    instance->getAgdaPath->Promise.flatMapOk(connectWithAgdaPath(instance))
+    instance
+    ->getAgdaPathAndArgs
+    ->Promise.flatMapOk(((path, args)) =>
+        connectWithAgdaPathAndArgs(instance, path, args)
+      )
   };
 };
 
