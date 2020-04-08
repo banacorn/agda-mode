@@ -102,12 +102,6 @@ The key mapping of symbols are the same as in Emacs. For example: `\bN` for `ℕ
 
 To customize the keymap, open the settings tab (at the bottom right) and go to `Input Method > Keymap extensions`
 
-## How specify options to Agda
-
-Go to `Settings > Packages > agda-mode`, put the options after the path of Agda in the `Settings` (exactly like what you would do in CLI). For example:
-
-![image](https://i.imgur.com/SwKSWXZ.png)
-
 ## Trouble shooting
 
 ### Windows 10
