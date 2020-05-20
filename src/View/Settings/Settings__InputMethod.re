@@ -12,7 +12,7 @@ module SymbolLookup = {
     let editorRef = React.useRef(None);
 
     let onChange = _ => {
-      switch (React.Ref.current(editorRef)) {
+      switch (editorRef.current) {
       | Some(editor) => setInput(Atom.TextEditor.getText(editor))
       | None => ()
       };
@@ -34,7 +34,7 @@ module SymbolLookup = {
         hidden=false
         value=""
         placeholder="enter some key sequence here, e.g 'lambda'"
-        onEditorRef={ref => React.Ref.setCurrent(editorRef, Some(ref))}
+        onEditorRef={ref => editorRef.current = Some(ref)}
         onChange
       />
       // adding className="native-key-bindings" tabIndex=(-1) for text copy
@@ -53,7 +53,7 @@ module KeySequenceLookup = {
     let editorRef = React.useRef(None);
 
     let onChange = _ => {
-      React.Ref.current(editorRef)
+      editorRef.current
       |> Option.map(Atom.TextEditor.getText)
       |> Option.flatMap(Translator.lookup)
       |> Option.forEach(setInput);
@@ -74,7 +74,7 @@ module KeySequenceLookup = {
         hidden=false
         value=""
         placeholder={j|enter some symbol here, e.g 'λ'|j}
-        onEditorRef={ref => React.Ref.setCurrent(editorRef, Some(ref))}
+        onEditorRef={ref => editorRef.current = Some(ref)}
         onChange
       />
       <p id="key-sequences" className="native-key-bindings" tabIndex=(-1)>
@@ -91,7 +91,7 @@ module ExtendKeymap = {
       let keyRef = React.useRef(None);
       let symbolsRef = React.useRef(None);
       let onClick = _ => {
-        switch (React.Ref.current(keyRef), React.Ref.current(symbolsRef)) {
+        switch (keyRef.current, symbolsRef.current) {
         | (Some(keyEditor), Some(symbolsEditor)) =>
           let key = Atom.TextEditor.getText(keyEditor);
           let symbols =
@@ -112,7 +112,7 @@ module ExtendKeymap = {
             hidden=false
             value=""
             placeholder="key sequence"
-            onEditorRef={ref => React.Ref.setCurrent(keyRef, Some(ref))}
+            onEditorRef={ref => keyRef.current = Some(ref)}
           />
         </div>
         <div id="add-entry-symbols">
@@ -120,7 +120,7 @@ module ExtendKeymap = {
             hidden=false
             value=""
             placeholder="corresponding symbols"
-            onEditorRef={ref => React.Ref.setCurrent(symbolsRef, Some(ref))}
+            onEditorRef={ref => symbolsRef.current = Some(ref)}
           />
         </div>
         <div id="add-entry-button">
@@ -153,7 +153,7 @@ module ExtendKeymap = {
       React.useEffect1(
         _ => {
           if (modifying) {
-            switch (React.Ref.current(editorRef)) {
+            switch (editorRef.current) {
             | Some(editor) =>
               Atom.Views.getView(editor) |> Webapi.Dom.HtmlElement.focus
             | None => ()
@@ -197,7 +197,7 @@ module ExtendKeymap = {
               setModifying(false);
               onChange();
             }}
-            onEditorRef={ref => React.Ref.setCurrent(editorRef, Some(ref))}
+            onEditorRef={ref => editorRef.current = Some(ref)}
           />
         </div>
         <div className={"buttons" ++ showWhen(hovered && !modifying)}>

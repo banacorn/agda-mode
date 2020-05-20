@@ -245,14 +245,14 @@ let make =
   let (changeLog, setChangeLog) = Hook.useState(Noop);
 
   // update with the latest state
-  React.Ref.setCurrent(stateRef, state);
+  stateRef.current = state;
 
   let channels = React.useContext(Channels.context);
 
   // input: listens to `activateInputMethod`
   Hook.useChannel(
     shouldActivate => {
-      let state = React.Ref.current(stateRef);
+      let state = stateRef.current;
       if (shouldActivate) {
         if (state.activated) {
           if (Buffer.isEmpty(state.buffer)) {

@@ -143,21 +143,20 @@ let make =
   // in case that we need to access the latest mounting point from Hook.useChannel
   // as the closure of the callback of Hook.useChannel is only captured at the first render
   let mountingPointRef = React.useRef(mountingPoint);
-  React.Ref.setCurrent(mountingPointRef, mountingPoint);
+  mountingPointRef.current = mountingPoint;
 
   // reset the element of editors.query everytime <Panel> got remounted
   // issue #104: https://github.com/banacorn/agda-mode/issues/104
   let queryEditorRef = React.useRef(None);
   React.useEffect1(
     () => {
-      editors.query = React.Ref.current(queryEditorRef);
+      editors.query = queryEditorRef.current;
       None;
     },
     [|mountingPoint|],
   );
 
-  let onQueryEditorRef = ref =>
-    React.Ref.setCurrent(queryEditorRef, Some(ref));
+  let onQueryEditorRef = ref => queryEditorRef.current = Some(ref);
 
   let rec mountPanel = (editors: Editors.t, mountingTarget) => {
     let createTab = () =>
@@ -177,7 +176,7 @@ let make =
                }),
         (),
       );
-    switch (React.Ref.current(mountingPointRef), mountingTarget) {
+    switch (mountingPointRef.current, mountingTarget) {
     | (Bottom(_), AtBottom) => ()
     | (Bottom(_), AtPane) => setMountingPoint(Pane(createTab()))
     | (Pane(tab), AtBottom) =>
@@ -191,7 +190,7 @@ let make =
   /* toggle docking */
   Hook.useChannel(
     () => {
-      switch (React.Ref.current(mountingPointRef)) {
+      switch (mountingPointRef.current) {
       | Bottom(_) => mountAtPane()
       | Pane(_) => mountAtBottom()
       };
@@ -224,10 +223,7 @@ let make =
   Hook.useChannel(
     () => {
       setActivation(true);
-      mountingPointRef
-      |> React.Ref.current
-      |> PanelContainer.fromMountingPoint
-      |> ignore;
+      mountingPointRef.current |> PanelContainer.fromMountingPoint |> ignore;
       Promise.resolved();
     },
     channels.activatePanel,
@@ -248,11 +244,11 @@ let make =
       open Webapi.Dom;
 
       // `stateRef` is permanant
-      let mountingPoint = React.Ref.current(mountingPointRef);
+      let mountingPoint = mountingPointRef.current;
       switch (mountingPoint) {
       | Bottom(container) =>
         // removes `.agda-mode-panel` from the `.agda-mode-panel-container`
-        let panel = React.Ref.current(panelRef) |> Js.Nullable.toOption;
+        let panel = panelRef.current |> Js.Nullable.toOption;
         switch (panel) {
         | None => ()
         | Some(elem) => container |> Element.removeChild(elem) |> ignore

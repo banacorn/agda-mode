@@ -18,7 +18,7 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
     fun
     | None => {
         // update settingsViewRef
-        React.Ref.setCurrent(settingsViewRef, None);
+        settingsViewRef.current = None;
         // update settingsElement
         setSettingsElement(None);
         // update settingsURI
@@ -26,10 +26,9 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
       }
     | Some((uri, tab)) => {
         // update settingsViewRef
-        React.Ref.setCurrent(settingsViewRef, Some(tab));
+        settingsViewRef.current = Some(tab);
         // update settingsElement
-        settingsViewRef
-        |> React.Ref.current
+        settingsViewRef.current
         |> Option.map(Tab.getElement)
         |> setSettingsElement;
         // update settingsURI
@@ -39,7 +38,7 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
   Hook.useChannel(
     fun
     | None =>
-      switch (settingsViewRef |> React.Ref.current) {
+      switch (settingsViewRef.current) {
       // Close => Close
       | None => Promise.resolved()
       // Open => Close
@@ -49,7 +48,7 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
         Promise.resolved();
       }
     | Some(address) =>
-      switch (settingsViewRef |> React.Ref.current) {
+      switch (settingsViewRef.current) {
       // Close => Open
       | None =>
         let resource = Resource.make();
@@ -75,7 +74,7 @@ let make = (~editors: Editors.t, ~events: Events.t, ~channels: Channels.t) => {
     React.useReducer(Debug.reducer, Debug.initialState);
 
   let settingsActivated =
-    switch (settingsViewRef |> React.Ref.current) {
+    switch (settingsViewRef.current) {
     | Some(_) => true
     | None => false
     };

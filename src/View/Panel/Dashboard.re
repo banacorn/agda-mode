@@ -18,8 +18,7 @@ let make =
 
   React.useEffect1(
     () =>
-      settingsButtonRef
-      |> React.Ref.current
+      settingsButtonRef.current
       |> Js.Nullable.toOption
       |> Option.flatMap(settingsButton => {
            let disposable =
@@ -40,8 +39,7 @@ let make =
 
   React.useEffect1(
     () =>
-      dockingButtonRef
-      |> React.Ref.current
+      dockingButtonRef.current
       |> Js.Nullable.toOption
       |> Option.flatMap(dockingButton => {
            let disposable =

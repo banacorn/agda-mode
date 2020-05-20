@@ -4,9 +4,10 @@ open Rebase;
 
 open Webapi;
 
-let calculateBodyHeight = (handleRef, handleY: int): option(int) => {
-  handleRef
-  |> React.Ref.current
+let calculateBodyHeight =
+    (handleRef: React.ref(Js.Nullable.t(Dom.Element.t)), handleY: int)
+    : option(int) => {
+  handleRef.current
   |> Js.Nullable.toOption
   |> Option.flatMap(elem => {
        let top =

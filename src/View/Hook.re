@@ -4,10 +4,10 @@ let useDidUpdateEffect = (f, inputs) => {
   let didMountRef = React.useRef(false);
   React.useEffect1(
     () =>
-      if (React.Ref.current(didMountRef)) {
+      if (didMountRef.current) {
         f();
       } else {
-        React.Ref.setCurrent(didMountRef, true);
+        didMountRef.current = true;
         None;
       },
     inputs,
@@ -18,10 +18,10 @@ let useDidUpdateEffect2 = (f, (a, b)) => {
   let didMountRef = React.useRef(false);
   React.useEffect2(
     () =>
-      if (React.Ref.current(didMountRef)) {
+      if (didMountRef.current) {
         f();
       } else {
-        React.Ref.setCurrent(didMountRef, true);
+        didMountRef.current = true;
         None;
       },
     (a, b),

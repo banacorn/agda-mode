@@ -65,7 +65,7 @@ let make =
   /* value */
   React.useEffect1(
     _ => {
-      React.Ref.current(editorElem)
+      editorElem.current
       |> Option.map(ofTextEditor)
       |> Option.forEach(Atom.TextEditor.setText(value));
       None;
@@ -75,7 +75,7 @@ let make =
   /* placeholder */
   React.useEffect1(
     _ => {
-      React.Ref.current(editorElem)
+      editorElem.current
       |> Option.map(ofTextEditor)
       |> Option.forEach(Atom.TextEditor.setPlaceholderText(placeholder));
       None;
@@ -85,7 +85,7 @@ let make =
 
   React.useEffect1(
     () =>
-      React.Ref.current(editorElem)
+      editorElem.current
       |> Option.map(ofTextEditor)
       |> Option.flatMap(editor => {
            // storing the Editor
@@ -95,7 +95,7 @@ let make =
            if (grammar === "agda") {
              Atom.Grammars.grammarForScopeName("source.agda")
              |> Option.forEach(grammar =>
-                  try (editor |> Atom.TextEditor.setGrammar(grammar)) {
+                  try(editor |> Atom.TextEditor.setGrammar(grammar)) {
                   | _ => () /* do nothing when we fail to load the grammar */
                   }
                 );
