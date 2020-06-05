@@ -166,9 +166,9 @@ acorn@^6.4.1:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-6.4.1.tgz#531e58ba3f51b9dacb9a6646ca4debf5b14ca474"
   integrity sha512-ZVA9k326Nwrj3Cj9jlh3wGFutC2ZornPNARZwsNYqQYgN0EsV2d53w5RN/co65Ohn4sUAUtb1rSUAOD6XN9idA==
 
-"agda-mode-vscode@github:banacorn/agda-mode-vscode#48a18a":
+"agda-mode-vscode@github:banacorn/agda-mode-vscode#9d13e8d":
   version "0.0.3"
-  resolved "https://codeload.github.com/banacorn/agda-mode-vscode/tar.gz/48a18a4cafa386ef503f27cb5e4e573eecd835ea"
+  resolved "https://codeload.github.com/banacorn/agda-mode-vscode/tar.gz/9d13e8d299a966ec1347f111b9d7530b74a8d583"
   dependencies:
     "@glennsl/bs-json" "github:banacorn/bs-json#0c900d3"
     bs-let "^0.1.11"

@@ -178,7 +178,10 @@ module Impl:
   module Decoration = {
     type t = Atom.Decoration.t;
 
-    type style = string;
+    type backgroundStyle =
+      | Hole;
+    type foregroundStyle =
+      | HoleIndex;
 
     // rewrite "?" to "{!!}"
     let digHole = (editor, range) => {
@@ -197,7 +200,7 @@ module Impl:
       editor |> TextEditor.setCursorBufferPosition(cursorPos);
     };
 
-    let highlightBackground = (editor, kind: style, range) => {
+    let highlightBackground = (editor, kind: backgroundStyle, range) => {
       let createMarker = (class_, range) => {
         let marker = TextEditor.markBufferRange(range, editor);
         let option =
@@ -205,13 +208,17 @@ module Impl:
         TextEditor.decorateMarker(marker, option, editor);
       };
       switch (kind) {
-      | "Error" => [|createMarker("highlight-error", range)|]
-      | "Highlight" => [|createMarker("highlight-link", range)|]
-      | _ => [|createMarker("highlight-spec", range)|]
+      | Hole => [|createMarker("highlight-spec", range)|]
       };
+      // switch (kind) {
+      // | "Error" => [|createMarker("highlight-error", range)|]
+      // | "Highlight" => [|createMarker("highlight-link", range)|]
+      // | _ => [|createMarker("highlight-spec", range)|]
+      // };
     };
     // let overlayText: (editor, style, string, Range.t) => array(t);
-    let overlayText = (editor, kind: style, text: string, range: Range.t) => {
+    let overlayText =
+        (editor, kind: foregroundStyle, text: string, range: Range.t) => {
       let createOverlay =
           (text, class_, tail: bool, translation: (int, int), range) => {
         open Webapi.Dom;
@@ -250,14 +257,17 @@ module Impl:
         TextEditor.decorateMarker(marker, option, editor);
       };
 
+      // switch (kind) {
+      // | "Error" => [|createOverlay(text, "overlay-error", true, (0, 0), range)|]
+      // | "Highlight" => [|
+      //     createOverlay(text, "overlay-link", false, (0, 1), range),
+      //   |]
+      // | _ => [|createOverlay(text, "overlay-spec", false, (0, 1), range)|]
+      // };
       switch (kind) {
-      | "Error" => [|
-          createOverlay(text, "overlay-error", true, (0, 0), range),
+      | HoleIndex => [|
+          createOverlay(text, "overlay-spec", false, (0, 1), range),
         |]
-      | "Highlight" => [|
-          createOverlay(text, "overlay-link", false, (0, 1), range),
-        |]
-      | _ => [|createOverlay(text, "overlay-spec", false, (0, 1), range)|]
       };
     };
 
