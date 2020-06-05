@@ -208,7 +208,7 @@ module Impl:
         TextEditor.decorateMarker(marker, option, editor);
       };
       switch (kind) {
-      | Hole => [|createMarker("highlight-spec", range)|]
+      | Hole => [|createMarker("goal-background", range)|]
       };
       // switch (kind) {
       // | "Error" => [|createMarker("highlight-error", range)|]
@@ -266,7 +266,7 @@ module Impl:
       // };
       switch (kind) {
       | HoleIndex => [|
-          createOverlay(text, "overlay-spec", false, (0, 1), range),
+          createOverlay(text, "goal-index", false, (0, (-1)), range),
         |]
       };
     };

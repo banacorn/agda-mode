@@ -1,0 +1,349 @@
+// // The ui-variables file is provided by base themes provided by Atom.
+// @import "ui-variables";
+// @import "syntax-variables";
+
+// // the main component that houses everything
+// .agda-mode-panel-container {
+//     // font-size: var(--editor-font-size) !important;
+// 	// line-height: var(--editor-line-height) !important;
+//     @line-height: var(--editor-line-height);
+//     @font-size: var(--editor-font-size);
+
+//     @headerHeight: 50px;
+//     @itemHeight: 30px;
+
+//     // font-size: var(--editor-font-size) !important;
+// 	// line-height: var(--editor-line-height) !important;
+
+//     // So that we can stop goal indices from floating around
+//     // see #14: https://github.com/banacorn/agda-mode/issues/14
+//     z-index: 4;
+
+//     // so that .agda-body will overflow and be scrollable
+//     height: 100%;
+//     > section.agda-mode-panel { height: 100% }
+
+//     //////////////////////////////////////////////////////
+//     // Header Container
+//     //////////////////////////////////////////////////////
+
+//     .agda-header-container {
+//         padding: 0 @component-padding;
+
+//         // <Header>
+//         .agda-header {
+//             h1 {
+//                 height: @headerHeight;
+//                 line-height: @headerHeight;
+//                 font-size: 150%;
+//                 margin: 0;
+//             }
+//         }
+
+//         // <Dashboard>
+//         .agda-dashboard {
+//             list-style: none;
+//             margin: 0;
+
+//             height: @headerHeight;
+//             line-height: @headerHeight;
+
+//             // flexbox
+//             display: flex;
+
+//             button {
+//                 color: @text-color-subtle;
+//                 min-width: @itemHeight;
+//                 height: @itemHeight;
+//                 font-size: 16px;
+//             }
+//             button:hover {
+//                 background-color: inherit;
+//                 color: @text-color;
+//             }
+//             button.activated {
+//                 color: @text-color-selected;
+//             }
+
+//             // the spinner
+//             #spinner {
+//                 opacity: 0;
+//             }
+//             // show the spinner 0.3s after the classname ".pending" is added
+//             #spinner.pending {
+//                 opacity: inherit;
+//                 transition-property: opacity;
+//                 transition-delay: 0.3s;
+//             }
+//         }
+//     }
+
+//     //////////////////////////////////////////////////////
+//     // Body Container
+//     //////////////////////////////////////////////////////
+
+//     .agda-body-container {
+//         @height: 30px;
+
+//         // so that <Body> will overflow and be scrollable
+//         height: calc(~"100% - 51px");
+//         overflow-y: scroll;
+
+//         // texts
+//         font-family: Menlo, inconsolata, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
+//         font-size: 125%;
+//         white-space: pre-wrap;       // preserves whitespaces
+
+//         // <EmacsBody>
+//         .agda-body {
+
+//             padding: 0px @component-padding;
+
+//             li, p, section {
+//                 min-height: @height;
+//                 line-height: @height !important;
+//                 padding: 0px @component-padding;
+//                 margin: 10px 0;
+//             }
+
+//             li.labeled {
+//                 background: @base-background-color;
+
+//                 span.label {
+//                     color: @text-color-info;
+//                 }
+//             }
+
+//             li.warning-error {
+
+//                 background: @base-background-color;
+//                 border-radius: @component-border-radius * 2;
+
+//                 padding: @component-padding;
+
+//                 span.warning-label {
+//                     font-variant: small-caps;
+//                     font-weight: bolder;
+//                     color: @text-color-warning;
+//                     float: right;
+//                 }
+
+//                 span.error-label {
+//                     font-variant: small-caps;
+//                     font-weight: bolder;
+//                     color: @text-color-error;
+//                     float: right;
+//                 }
+//             }
+
+//             li.output {
+//                 .range {
+//                     float: right;
+//                 }
+//             }
+//         }
+//     }
+
+//     //////////////////////////////////////////////////////
+//     // <Settings>
+//     //////////////////////////////////////////////////////
+
+//     .agda-settings {
+
+//         height: 100%;
+//         display: flex;
+//         flex-flow: column;
+
+//         // font-size: @font-size;
+//         // background: @base-background-color;
+
+//         @breadcrumbHeight: calc(@component-line-height + @component-padding * 2);
+
+//         h1, h2 {
+//             color: @text-color-highlight
+//         }
+
+//         .agda-settings-breadcrumb {
+//             flex: 0 1 @breadcrumbHeight;
+
+//             border-top: 1px solid @tab-border-color;
+//             border-bottom: 1px solid @tab-border-color;
+//             height: @breadcrumbHeight;
+//             line-height: @component-line-height;
+//             background: @tab-background-color;
+//         }
+
+
+//         .agda-settings-pages {
+//             flex: 1 1 auto;
+//             height: 100%;
+//             overflow: hidden;
+
+//             overflow-y: scroll;
+//         }
+
+//         .agda-settings-menu {
+//             li {
+//                 height: @component-line-height * 2 + @component-padding * 2;
+//                 line-height: @component-line-height * 2;
+//                 padding: @component-padding @component-padding*2 @component-padding;
+//                 font-size: 125%;
+
+//                 cursor: pointer;
+//             }
+
+//             li:hover {
+//                 background: @background-color-highlight;
+//             }
+
+//             li.selected {
+//                 background: @background-color-selected;
+//             }
+//         }
+
+//         .agda-settings-connection {
+//             padding: @component-padding (@component-padding * 2);
+
+//             #connection-status {
+//                 float: right;
+//             }
+//         }
+
+//         .agda-settings-input-method {
+//             padding: @component-padding (@component-padding * 2);
+
+//             h2 .pull-right {
+//               button {
+//                 font-size: 75%;
+//               }
+//             }
+
+//             #candidate-symbols {
+//               kbd {
+//                 font-size: 150%;
+//                 line-height: @component-line-height * 0.75;
+//               }
+
+//               line-height: @component-line-height * 1.5;
+//             }
+
+//             #key-sequences {
+//               font-family: Menlo, inconsolata, Consolas, "DejaVu Sans Mono", "Liberation Mono", Monaco, "Lucida Console", monospace;
+//             }
+
+//             #add-entry {
+//               display: flex;
+//               align-items: center;
+//               line-height: @component-line-height;
+
+//               atom-text-editor {
+//                 height: @component-line-height;
+//               }
+
+//               #add-entry-key-sequence {
+//                 width: 20%;
+//                 padding-right: @component-padding;
+//               }
+
+//               #add-entry-symbols {
+//                 flex-grow: 2;
+//                 padding-right: @component-padding;
+//               }
+
+//               #add-entry-button {
+//               }
+//             }
+
+//             #extensions {
+
+//               li {
+//                 display: flex;
+//                 line-height: @component-line-height;
+//                 border-top: @base-border-color 1px solid;
+//                 padding: @component-padding 0;
+
+//                 .sequence {
+//                   width: 20%;
+//                   overflow-x: scroll;
+//                 }
+
+//                 .symbols {
+//                   flex-grow: 2;
+//                   height: @component-line-height * 1.5;
+
+//                   kbd {
+//                     height: @component-line-height;
+//                   }
+
+//                   atom-text-editor {
+//                     height: @component-line-height;
+//                     margin: 0;
+//                   }
+//                 }
+
+//                 .buttons {
+//                   height: @component-line-height;
+//                 }
+//               }
+
+//             }
+//         }
+
+//         .agda-settings-log {
+//             // margin: @component-padding;
+//             padding: @component-padding (@component-padding * 2);
+
+
+//             .agda-settings-log-entry {
+//                 margin: @component-padding 0;
+//                 background: @base-background-color;
+
+//                 section {
+//                     padding: @component-padding;
+//                 }
+
+//                 li {
+//                     background: @app-background-color;
+//                     padding: @component-padding;
+//                     margin: @component-padding 0;
+//                 }
+
+//                 h2 {
+//                     padding: @component-padding;
+//                     margin-bottom: 0;
+//                     // background: @background-color-highlight;
+//                 }
+//                 h2:hover {
+//                     // background: @background-color-selected;
+//                     cursor: pointer;
+//                 }
+
+//                 h3 {
+//                     color: @text-color-highlight;
+//                 }
+//             }
+//         }
+
+
+//         .agda-settings-debug {
+//             padding: @component-padding (@component-padding * 2);
+//             p {font-size: 120%;}
+
+//             #input-method-activation {
+//                 float: right;
+//             }
+//         }
+
+//         .agda-settings-connection.inquiring {
+//             atom-text-editor {
+//                 border-color: @background-color-error;
+//             }
+//             atom-text-editor.is-focused {
+//                 border-color: @background-color-error;
+//                 box-shadow: 0 0 0 1px @background-color-error;
+//             }
+//         }
+
+//     }
+
+// }

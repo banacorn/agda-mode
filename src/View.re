@@ -1,7 +1,7 @@
 open Belt;
 
 module PanelContainer = {
-  // get "article.gcl-panel-container", create one if not found
+  // get "article.agda-mode-panel-container", create one if not found
   external fromDomElement: Dom.element => Atom.Workspace.item = "%identity";
   external asElement:
     Webapi.Dom.HtmlElement.t_htmlElement => Webapi.Dom.Element.t =
@@ -11,11 +11,11 @@ module PanelContainer = {
   let make = (): Element.t => {
     open DomTokenList;
 
-    // create "article.gcl-panel-container"
+    // create "article.agda-mode-panel-container"
     // shared by all instances, should only be invoked once!
     let createBottomPanelContainer = (): Element.t => {
       let panelContainer = document |> Document.createElement("article");
-      panelContainer |> Element.classList |> add("gcl-panel-container");
+      panelContainer |> Element.classList |> add("agda-mode-panel-container");
       Atom.Workspace.addBottomPanel({
         "item": fromDomElement(panelContainer),
         "priority": 0,
@@ -37,7 +37,7 @@ module PanelContainer = {
         )
       ->Array.concatMany
       ->Array.keep(elem =>
-          HtmlElement.className(elem) == "gcl-panel-container"
+          HtmlElement.className(elem) == "agda-mode-panel-container"
         );
 
     switch (containers[0]) {
@@ -87,16 +87,16 @@ let make = (_context, editor: Atom.TextEditor.t) => {
   open Webapi.Dom;
   let container = PanelContainer.make();
 
-  // add "gcl" to the class-list
+  // add "agda-mode" to the class-list
   editor
   |> Atom.Views.getView
   |> HtmlElement.classList
-  |> DomTokenList.add("gcl");
+  |> DomTokenList.add("agda-mode");
 
   // create a element to house the panel
   let element = document |> Document.createElement("article");
   element |> Element.setAttribute("tabIndex", "-1");
-  element |> Element.classList |> DomTokenList.add("gcl-panel");
+  element |> Element.classList |> DomTokenList.add("agda-mode-panel");
   element |> Element.classList |> DomTokenList.add("native-key-bindings");
 
   // add the element to the container
@@ -118,11 +118,11 @@ let destroy = view => {
   ReactDOMRe.unmountComponentAtNode(view.element);
   Webapi.Dom.Element.remove(view.element);
 
-  // remove "gcl" from the class-list of the editor
+  // remove "agda-mode" from the class-list of the editor
   view.editor
   |> Atom.Views.getView
   |> Webapi.Dom.HtmlElement.classList
-  |> Webapi.Dom.DomTokenList.remove("gcl");
+  |> Webapi.Dom.DomTokenList.remove("agda-mode");
 
   view.subscriptions->Belt.Array.forEach(destructor => destructor());
 };

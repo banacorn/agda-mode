@@ -1,0 +1,55 @@
+@import "variables";
+@import "atomSpecific";
+
+// vscode: removes focus outline  
+*:focus {
+    outline: none;
+}
+
+.agda-mode {
+    height: 100%;
+}
+
+.agda-mode-header {
+    height : @header-height;
+    padding: 0 @header-padding;
+
+    line-height: @header-height;
+    font-size  : 150%;
+    font-weight: bold;
+
+    &.success {
+        color: @success
+    }
+
+    &.error {
+        color: @error
+    }
+
+    &.warning {
+        color: @warning
+    }
+}
+
+.agda-mode-body {
+    white-space: pre;
+    background : var(--vscode-sideBar-background);
+
+    font-size  : 125%;
+    line-height: 1.5rem;
+
+    padding: @body-padding;
+
+    input {
+        font-size: 125%;
+        padding  : @body-padding;
+
+        background-color: @inputBackground;
+        border          : none;
+        color           : @input;
+    }
+
+    input::-webkit-input-placeholder {
+        color: @inputPlaceholder;
+    }
+}

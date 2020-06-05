@@ -1,0 +1,16 @@
+@import "ui-variables";
+@import "syntax-variables";
+
+// ATOM-SPECIFIC
+@goalIndex : @background-color-info;
+
+.agda-mode {
+    .goal-index {
+        color   : @goalIndex;
+        position: relative;
+    }
+
+    .goal-background .region {
+        background: fade(mix(@syntax-background-color, @syntax-text-color, 60%), 50%);
+    }
+}
