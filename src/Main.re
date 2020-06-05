@@ -28,10 +28,28 @@ let deactivate = _ =>
 // https://atom.io/docs/api/latest/Config
 let config = {
   "path": {
-    "title": "GCL path",
-    "description": "Path to the executable of GCL, automatically inferred when possible. Overwrite to override.",
+    "title": "Agda path",
+    "description": "Path to the executable of Agda, automatically inferred when possible. Overwrite to override.",
     "type": "string",
     "default": "",
-    "order": 1,
+    "order": 0,
+  },
+  "libraryPath": {
+    "title": "Libraries",
+    "description": "Paths to include (such as agda-stdlib), seperate with comma. Useless after Agda 2.5.0",
+    "type": "array",
+    "default": ([||]: array(string)),
+    "items": {
+      "type": "string",
+    },
+    "order": 10,
+  },
+  "highlightingMethod": {
+    "title": "Highlighting information passing",
+    "description": "Receive parsed result from Agda, directly from stdio, or indirectly from temporary files (which requires frequent disk access)",
+    "type": "string",
+    "default": "Direct",
+    "enum": [|"Indirect", "Direct"|],
+    "order": 20,
   },
 };

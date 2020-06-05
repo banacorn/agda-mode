@@ -155,10 +155,9 @@ module Impl:
 
     // Library path
     let getLibraryPath = () => {
-      let raw =
-        Config.get("agda-mode.libraryPath")->Option.getWithDefault("");
-      // split by comma, and clean them up
-      Js.String.split(",", raw)
+      // array(string)
+      let raw: array(string) = Config.get("agda-mode.libraryPath");
+      raw
       ->Array.keep(x => x !== "")
       ->Array.map(AgdaModeVscode.Parser.filepath);
     };

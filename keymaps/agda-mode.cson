@@ -22,7 +22,7 @@
     'escape' : 'agda-mode:deactivate-input-symbol'
 
 # for people who have 'agda-mode:load' executed (regardless of language-agda)
-'atom-text-editor.agda':
+'atom-text-editor.agda-mode':
     # Global commands
     # 'ctrl-c        ctrl-l': 'agda-mode:load'
     'ctrl-c ctrl-x ctrl-q': 'agda-mode:quit'

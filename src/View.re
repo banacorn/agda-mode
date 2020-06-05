@@ -60,8 +60,9 @@ type t = {
 
 // messaging
 let send = (view, request) => {
+  let promise = view.onResponse.once();
   view.onRequest.emit(request);
-  view.onResponse.once();
+  promise;
 };
 let on = (view, callback) => {
   view.onResponse.on(
