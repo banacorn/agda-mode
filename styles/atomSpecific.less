@@ -5,6 +5,10 @@
 @goalIndex : @background-color-info;
 
 .agda-mode {
+    //////////////////////////////////////////////////////
+    // Goals
+    //////////////////////////////////////////////////////
+
     .goal-index {
         color   : @goalIndex;
         position: relative;
@@ -12,5 +16,12 @@
 
     .goal-background .region {
         background: fade(mix(@syntax-background-color, @syntax-text-color, 60%), 50%);
+    }
+
+    // Fixes the problem that the "ghost" of a goal index that remains at the
+    // original unshifted position would block some events (e.g. mouse clicks)
+    // from getting through.
+    atom-overlay {
+        pointer-events: none;
     }
 }
