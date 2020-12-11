@@ -286,11 +286,6 @@ atom-mocha@^2.2.0:
     mocha-when "^1.0.1"
     print "^1.1.0"
 
-"atom@github:banacorn/bs-atom#v1.40.2":
-  version "0.1.0"
-  uid b010832d2e35d7f6e365f173d9da56ab3e59e7b3
-  resolved "https://codeload.github.com/banacorn/bs-atom/tar.gz/b010832d2e35d7f6e365f173d9da56ab3e59e7b3"
-
 balanced-match@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
@@ -410,12 +405,9 @@ browserify-zlib@^0.2.0:
   dependencies:
     pako "~1.0.5"
 
-bs-chai@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/bs-chai/-/bs-chai-1.0.1.tgz#282743d0c90a3f4f7f2e29b2c3be3341d6c284d4"
-  dependencies:
-    chai "^4.1.2"
-    mocha "^6.2.0"
+bs-atom2@^1.40.1:
+  version "1.40.1"
+  resolved "https://registry.yarnpkg.com/bs-atom2/-/bs-atom2-1.40.1.tgz#032d16a1cc73ffd6f39eae26abb1cd269bee34be"
 
 bs-mocha@^0.5.0:
   version "0.5.0"
@@ -423,9 +415,13 @@ bs-mocha@^0.5.0:
   dependencies:
     mocha "^6.0.0"
 
-bs-platform@^5.0.4:
-  version "5.2.1"
-  resolved "https://registry.yarnpkg.com/bs-platform/-/bs-platform-5.2.1.tgz#3f76f6d4f4c7255296375a8104c8be332770b691"
+bs-nd@^0.1.5:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/bs-nd/-/bs-nd-0.1.5.tgz#040f88a1ba28cfd4dc96a276290b7adb5832d028"
+
+bs-platform@^7.2:
+  version "7.3.2"
+  resolved "https://registry.yarnpkg.com/bs-platform/-/bs-platform-7.3.2.tgz#301f5c9b4e8cf5713cb60ca22e145e56e793affe"
 
 bs-webapi@^0.15.3:
   version "0.15.5"
@@ -489,7 +485,7 @@ camelcase@^5.0.0:
   version "5.3.1"
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-5.3.1.tgz#e3c9b31569e106811df242f715725a1f4c494320"
 
-chai@^4.1.2, chai@^4.2.0:
+chai@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/chai/-/chai-4.2.0.tgz#760aa72cf20e3795e84b12877ce0e83737aa29e5"
   dependencies:
@@ -1313,8 +1309,8 @@ inherits@2.0.1:
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.1.tgz#b17d08d326b4423e568eff719f91b0b1cbdf69f1"
 
 ini@^1.3.4, ini@~1.3.0:
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/ini/-/ini-1.3.5.tgz#eee25f56db1c9ec6085e0c22778083f596abf927"
+  version "1.3.7"
+  resolved "https://registry.yarnpkg.com/ini/-/ini-1.3.7.tgz#a09363e1911972ea16d7a8851005d84cf09a9a84"
 
 interpret@^1.1.0:
   version "1.2.0"
@@ -2253,6 +2249,10 @@ readdirp@^2.2.1:
     graceful-fs "^4.1.11"
     micromatch "^3.1.10"
     readable-stream "^2.0.2"
+
+reason-promise@^1.0.1:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/reason-promise/-/reason-promise-1.1.2.tgz#00ddb71c4034bdbdadd24f7c95273d32870f6d50"
 
 reason-react-update@^0.1.1:
   version "0.1.1"
