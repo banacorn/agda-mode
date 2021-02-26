@@ -2,7 +2,10 @@
 
 For people who don't wanna use Emacs for whatever reasons.
 
-**Feel free to open issues!!!!**
+## ⚠️ Project status ⏸️
+
+Sorry, people on Atom.
+Please consider using the new [agda-mode](https://github.com/banacorn/agda-mode-vscode) on VS Code.
 
 ## Requirements
 
